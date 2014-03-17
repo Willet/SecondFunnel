@@ -1,5 +1,6 @@
 import json
 from urlparse import parse_qs
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 
 from django.views.decorators.cache import never_cache
@@ -9,10 +10,10 @@ from django.http import (HttpResponse, HttpResponseBadRequest,
 from django.conf import settings
 
 from apps.api.decorators import check_login, append_headers, request_methods
-from apps.assets.models import Content
+from apps.assets.models import Content, Store
 from apps.intentrank.utils import ajax_jsonp, returns_cg_json
 
-from apps.api.resources import ContentGraphClient
+from apps.api.resources import ContentGraphClient, to_cg_datetime
 from apps.api.utils import mimic_response, get_proxy_results
 from apps.api.views.tileconfig import add_content_to_page, page_add_product
 
@@ -24,7 +25,8 @@ from apps.contentgraph.models import TileConfigObject
 @never_cache
 @csrf_exempt
 @returns_cg_json
-def content(request, content_id=0):
+def content(request, content_id=0, offset=1,
+            results=settings.API_LIMIT_PER_PAGE):
     """Implements the following API patterns:
 
     GET /content
@@ -36,18 +38,25 @@ def content(request, content_id=0):
     if content_id:
         content = Content.objects.filter(old_id=content_id).select_subclasses()[0]
     else:
-        content = Content.objects.all()
+        content = Content.objects.select_subclasses().all()
+
+    if not offset:
+        offset = 1
+    paginator = Paginator(content, results)
+    page = paginator.page(offset)
+    next_ptr = page.next_page_number() if page.has_next() else None
 
     if request.method == 'GET':
-        if not isinstance(content, list):
-            return make_cg_content_json(content)
-        else:
-            return [make_cg_content_json(content)
-                    for content in Content.objects.all()]
+        # single item
+        if content_id:
+            return page.object_list[0].to_cg_json()
+        # multi item
+        return [c.to_cg_json() for c in page.object_list], next_ptr
     elif request.method == 'POST':
         pass
-    elif request.method == 'PATCH':
-        content.update()
+    elif request.method == 'PATCH' and content_id:
+        content.update(**json.loads(request.body)).save()
+        return content.to_cg_json()
     elif request.method == 'DELETE':
         content.delete()
         return HttpResponse(status=200)  # it would be 500 if delete failed
@@ -58,7 +67,8 @@ def content(request, content_id=0):
 @never_cache
 @csrf_exempt
 @returns_cg_json
-def store_content(request, store_id, content_id=0):
+def store_content(request, store_id, content_id=0, offset=1,
+                  results=settings.API_LIMIT_PER_PAGE):
     """Implements the following API patterns:
 
     GET /store/id/content
@@ -66,18 +76,28 @@ def store_content(request, store_id, content_id=0):
     POST /store/id/content
     PATCH /store/id/content/id
     DELETE /store/id/content/id
+
+    :returns (results, next page pointer)
     """
-    if content_id:
-        content = Content.objects.filter(old_id=content_id).select_subclasses()[0]
-    else:
-        content = Content.objects.all()
+    store = get_object_or_404(Store, old_id=store_id)
+
+    if content_id:  # get this content for this store
+        content = [Content.objects.filter(old_id=content_id, store_id=store.id).select_subclasses()[0]]
+    else:  # get all content for this store
+        content = (Content.objects.filter(store_id=store.id).select_subclasses().all())
+
+    if not offset:
+        offset = 1
+    paginator = Paginator(content, results)
+    page = paginator.page(offset)
+    next_ptr = page.next_page_number() if page.has_next() else None
 
     if request.method == 'GET':
-        if not isinstance(content, list):
-            return make_cg_content_json(content)
-        else:
-            return [make_cg_content_json(content)
-                    for content in Content.objects.all()]
+        # single item
+        if content_id:
+            return page.object_list[0].to_cg_json()
+        # multi item
+        return [c.to_cg_json() for c in page.object_list], next_ptr
     elif request.method == 'POST':
         return content(request=request)
     elif request.method == 'PATCH':
@@ -326,17 +346,3 @@ def tag_content(request, store_id, page_id, content_id, product_id=0):
         return ajax_jsonp(result=json.loads(cont), status=resp.status)
 
     return HttpResponseBadRequest()  # missing something (say, product id)
-
-
-def make_cg_content_json(content):
-    """returns {dict} content in CG json format"""
-    return {
-
-    }
-
-
-def make_cg_image_json(image):
-    """"""
-    return {
-
-    }

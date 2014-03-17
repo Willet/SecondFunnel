@@ -1,3 +1,4 @@
+import calendar
 import math
 import datetime
 import pytz
@@ -14,7 +15,8 @@ from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
 
-from apps.intentrank.serializers import *
+import apps.api.serializers as cg_serializers
+import apps.intentrank.serializers as ir_serializers
 from apps.utils import returns_unicode
 
 
@@ -32,7 +34,15 @@ class BaseModel(models.Model, DirtyFieldsMixin):
     # To change this value, use model.save(skip_updated_at=True)
     updated_at = models.DateTimeField()
 
-    serializer = Serializer
+    serializer = Serializer     # @override IntentRank serializer
+    cg_serializer = cg_serializers.RawSerializer  # @override ContentGraph serializer
+
+    # @override
+    _attribute_map = (
+        # (cg attribute name, python attribute name)
+        ('created', 'created_at'),
+        ('modified', 'updated_at'),
+    )
 
     class Meta:
         abstract = True
@@ -57,6 +67,32 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         return u'{class_name} #{obj_id}'.format(
             class_name=self.__class__.__name__,
             obj_id=self.pk)
+
+    def _cg_attribute_name_to_python_attribute_name(self, cg_attribute_name):
+        """(method name can be shorter, but something about PEP 20)
+
+        reads the model's key conversion map and returns whichever model
+        attribute name it is that matches the given cg_attribute_name.
+
+        :returns str
+        """
+        for cg_py in self._attribute_map:
+            if cg_py[0] == cg_attribute_name:
+                return cg_py[1]
+        return cg_attribute_name  # not found, assume identical
+
+    def _python_attribute_name_to_cg_attribute_name(self, python_attribute_name):
+        """(method name can be shorter, but something about PEP 20)
+
+        reads the model's key conversion map and returns whichever model
+        attribute name it is that matches the given python_attribute_name.
+
+        :returns str
+        """
+        for cg_py in self._attribute_map:
+            if cg_py[1] == python_attribute_name:
+                return cg_py[0]
+        return python_attribute_name  # not found, assume identical
 
     def days_since_creation(self):
         return (timezone.now() - self.created_at).days
@@ -119,6 +155,30 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         if hasattr(self, 'attributes'):
             return self.attributes.get(key, default=default)
 
+    def update(self, other=None, **kwargs):
+        """This is not <dict>.update().
+
+        Setting attributes of non-model fields does not raise exceptions..
+
+        :param {dict} other    overwrites matching attributes in self.
+        :param {dict} kwargs   only if other is not supplied, use kwargs
+                               as other.
+
+        :returns self (<dict>.update() does not return anything)
+        """
+        if not other:
+            other = kwargs
+
+        if not other:
+            return self
+
+        for key in other:
+            setattr(self,
+                    self._cg_attribute_name_to_python_attribute_name(key),
+                    other[key])
+
+        return self
+
     def save(self, *args, **kwargs):
         # http://stackoverflow.com/a/7502498/1558430
         # allows modification of a last-modified timestamp
@@ -133,6 +193,19 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         """default method for all models to have a json representation."""
         return self.serializer().serialize(iter([self]))
 
+    def to_cg_json(self):
+        """serialize into CG model. This is an instance shorthand."""
+        return self.cg_serializer.dump(self)
+
+    @property
+    def cg_created_at(self):
+        """(readonly) representation of the content graph timestamp"""
+        return unicode(calendar.timegm(self.created_at.utctimetuple()) * 1000)
+
+    @property
+    def cg_updated_at(self):
+        """(readonly) representation of the content graph timestamp"""
+        return unicode(calendar.timegm(self.updated_at.utctimetuple()) * 1000)
 
 class Store(BaseModel):
     old_id = models.IntegerField(unique=True)
@@ -182,7 +255,8 @@ class Product(BaseModel):
     ## for instance new-egg's egg-score; sale-prices; etc.
     attributes = JSONField(blank=True, null=True)
 
-    serializer = ProductSerializer
+    serializer = ir_serializers.ProductSerializer
+    cg_serializer = cg_serializers.ProductSerializer
 
     def __init__(self, *args, **kwargs):
         super(Product, self).__init__(*args, **kwargs)
@@ -249,7 +323,8 @@ class Content(BaseModel):
     ## but restrict to only filtering/ordering on above fields
     attributes = JSONField(blank=True, null=True)
 
-    serializer = ContentSerializer
+    serializer = ir_serializers.ContentSerializer
+    cg_serializer = cg_serializers.ContentSerializer
 
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)
@@ -296,7 +371,8 @@ class Image(Content):
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
-    serializer = ContentTileSerializer
+    serializer = ir_serializers.ContentTileSerializer
+    cg_serializer = cg_serializers.ImageSerializer
 
     def to_json(self, expand_products=True):
         """Only Images (not ProductImages) can have related-products."""
@@ -334,7 +410,8 @@ class Video(Content):
     # e.g. oHg5SJYRHA0
     original_id = models.CharField(max_length=255, blank=True, null=True)
 
-    serializer = VideoSerializer
+    serializer = ir_serializers.VideoSerializer
+    cg_serializer = cg_serializers.VideoSerializer
 
     def to_json(self, expand_products=True):
         return self.serializer(expand_products=expand_products).to_json([self])
@@ -396,7 +473,7 @@ class Feed(BaseModel):
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     # and other representation specific of the Feed itself
     def to_json(self):
-        serializer = FeedSerializer(self.tiles.all())
+        serializer = ir_serializers.FeedSerializer(self.tiles.all())
         return serializer.serialize()
 
 
@@ -551,13 +628,13 @@ class Tile(BaseModel):
         # determine what kind of tile this is
         serializer = None
         if self.template == 'image':
-            serializer = ContentTileSerializer()
+            serializer = ir_serializers.ContentTileSerializer()
         else:
             try:
                 if not serializer:
                     serializer = globals()[self.template.capitalize() + 'TileSerializer']()
             except:  # cannot find e.g. 'Youtube'TileSerializer -- use default
-                serializer = TileSerializer()
+                serializer = ir_serializers.TileSerializer()
 
         return serializer.to_json([self])
 

@@ -13,7 +13,7 @@ prefix = 'v1'
 # tastypie routers
 api = Api(api_name=prefix)
 api.register(UserResource())
-api.register(StoreResource())
+# api.register(StoreResource())
 # api.register(ProductResource())
 api.register(ProductImageResource())
 # api.register(ContentResource())
@@ -30,33 +30,14 @@ api.register(TileRelationResource())
 urlpatterns = api.urls
 
 urlpatterns += patterns('apps.api.views',
+    # primitive handlers
     url(r'^%s/product/?$' % prefix, 'product'),
     url(r'^%s/product/(?P<product_id>[^\/]*)/?$' % prefix, 'product'),
     url(r'^%s/content/?$' % prefix, 'content'),
     url(r'^%s/content/(?P<content_id>[^\/]*)/?$' % prefix, 'content'),
     url(r'^%s/store/(?P<store_id>[^\/]*)/content/?$' % prefix, 'store_content'),
     url(r'^%s/store/(?P<store_id>[^\/]*)/content/(?P<content_id>[^\/]*)/?$' % prefix, 'store_content'),
-)
 
-store_router = routers.SimpleRouter()
-store_router.register(r'store', StoreViewSet)
-
-store_page_router = routers.NestedSimpleRouter(store_router, r'store', lookup='store')
-store_page_router.register(r'page', PageViewSet)
-
-store_page_feed_router = routers.NestedSimpleRouter(store_page_router, r'page', lookup='page')
-store_page_feed_router.register(r'feed', FeedViewSet)
-
-# django rest framework won't work (can't filter multi-level objects)
-v2_prefix = r'^v2/'
-urlpatterns += patterns('',
-    # url(r"%sstore/?$" % v2_prefix, StoreViewSet.as_view()),
-    url(v2_prefix, include(store_router.urls)),
-    url(v2_prefix, include(store_page_router.urls)),
-    url(v2_prefix, include(store_page_feed_router.urls)),
-)
-
-urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>[^\/]*)'
         r'/page/(?P<page_id>[^\/]*)'
         r'/content/suggested/?$' % prefix,

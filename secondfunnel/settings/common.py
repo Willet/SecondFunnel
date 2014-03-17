@@ -379,6 +379,8 @@ CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
 
 CELERY_IMPORTS = ('apps.utils.tasks', )
 
+API_LIMIT_PER_PAGE = 20
+
 # only celery workers use this setting.
 # run a celery worker with manage.py.
 CELERYBEAT_SCHEDULE = {

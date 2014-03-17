@@ -1,6 +1,8 @@
+import collections
 from functools import wraps
 import json
 
+from django.db.models.query import QuerySet
 from django.http import HttpResponse
 
 from apps.assets.models import BaseModel
@@ -99,11 +101,38 @@ def returns_cg_json(fn):
 
     @wraps(fn)
     def wrapped_view(request, *args, **kwargs):
-#         try:
-        res = fn(request, *args, **kwargs)
-#         except:
-#             return ajax_jsonp({}, status=500)
+        """handle optional pagination"""
+        offset = request.GET.get('offset', 0)
+        if offset:
+            kwargs.update({'offset': offset})
+        results = request.GET.get('results', 0)
+        if results:
+            kwargs.update({'results': results})
 
-        return ajax_jsonp({'results': res})
+        returns = fn(request, *args, **kwargs)
+
+        # normalize returns to (results, next)
+        if isinstance(returns, tuple):
+            res, next_ptr = returns
+        else:  # just results
+            res, next_ptr = returns, None
+
+        if isinstance(res, collections.Iterable):  # multiple objects (paginate)
+            if next_ptr is None:  # nothing to put in the meta
+                return ajax_jsonp({
+                    'results': res,
+                })
+            else:
+                return ajax_jsonp({
+                    'results': res,
+                    'meta': {
+                        'next': next_ptr
+                    },
+                })
+        else:  # single object
+            if res is None:  # simple status code response
+                return ajax_jsonp('')
+            else:
+                return ajax_jsonp(res)
 
     return wrapped_view

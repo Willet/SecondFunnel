@@ -1,30 +1,30 @@
-from apps.api.serializers import RawSerializer
+import json
+
+from django.core.serializers.json import Serializer as JSONSerializer
 
 
-class FeedSerializer(RawSerializer):
-    """Turns tiles in a feed (usually, feed.tiles.all()) into a JSON object.
+class RawSerializer(JSONSerializer):
+    """This removes the square brackets introduced by the JSONSerializer."""
+    @classmethod
+    def dump(cls, obj):
+        """obj be <Model>"""
+        return cls().to_json([obj])
 
-    :attribute _current the current object in the queryset
-    """
-    def __init__(self, tiles=None):
-        if tiles:
-            self.tiles = tiles
+    def start_serialization(self):
+        if json.__version__.split('.') >= ['2', '1', '3']:
+            # Use JS strings to represent Python Decimal instances (ticket #16850)
+            self.options.update({'use_decimal': False})
+        self._current = None
+        self.json_kwargs = self.options.copy()
+        self.json_kwargs.pop('stream', None)
+        self.json_kwargs.pop('fields', None)
 
-    def serialize(self, queryset=None, **options):
-        tiles = queryset
-        if not tiles and self.tiles:
-            tiles = self.tiles
-        if not tiles:
-            raise ValueError("A QuerySet object must be supplied")
-        return super(FeedSerializer, self).serialize(queryset=tiles, **options)
+    def end_serialization(self):
+        """Do not want the original behaviour (adding commas)"""
+        pass
 
-    @property
-    def json(self, **options):
-        return self.serialize(**options)
-
-    def get_dump_object(self, obj):
-        data = self._current
-        return data
+    def to_json(self, queryset, **options):
+        return json.loads(self.serialize(queryset=queryset, **options))
 
 
 class ProductSerializer(RawSerializer):
@@ -58,40 +58,38 @@ class ProductSerializer(RawSerializer):
 
 class ContentSerializer(RawSerializer):
 
-    expand_products = True
-
-    def __init__(self, expand_products=True):
-        self.expand_products = expand_products
-
     def get_dump_object(self, obj):
         from apps.assets.models import Product
 
         data = {
-            'store-id': str(obj.store.old_id if obj.store else 0),
-            'source': obj.source,
-            'source_url': obj.source_url,
-            'url': obj.url or obj.source_url,
-            'author': obj.author,
-            'status': obj.attributes.get('status', 'undecided'),
+            "-dbg-id": obj.id,
+            "id": getattr(obj, 'old_id', obj.id),
+            "source": obj.source,
+            "last-modified": obj.cg_updated_at,
+            "created": obj.cg_created_at,
+            "store-id": obj.store.old_id,
+            # e.g. ImageSerializer -> 'image'
+            "type": self.__class__.__name__[:self.__class__.__name__.index('Serializer')].lower(),
+            "tagged-products": [str(p.old_id) for p in obj.tagged_products.all()],
+            "url": obj.url,
         }
 
-        if obj.tagged_products.count() > 0:
-            data['related-products'] = []
-        else:
-            data['-dbg-no-related-products'] = True
-            data['-dbg-related-products'] = []
+        if hasattr(obj, 'attributes'):
+            if obj.attributes.get('status'):
+                data['status'] = obj.attributes.get('status', 'approved')
 
-        for product in (obj.tagged_products
-                            .select_related('default_image', 'product_images')
-                            .all()):
-            try:
-                if self.expand_products:
-                    data['related-products'].append(product.to_json())
-                else:
-                    data['related-products'].append(product.id)
+        return data
 
-            except Product.DoesNotExist as err:
-                data['-dbg-related-products'].append(str(err.message))
+
+class ImageSerializer(ContentSerializer):
+    """This will dump absolutely everything in a product as JSON."""
+    def get_dump_object(self, obj):
+        data = super(ImageSerializer, self).get_dump_object(obj)
+        data.update({
+            "original-url": obj.original_url or obj.url,
+            "format": obj.file_type,
+            "hash": getattr(obj, 'file_checksum', ''),
+        })
 
         return data
 
@@ -108,6 +106,9 @@ class VideoSerializer(ContentSerializer):
             "original-id": obj.original_id or obj.id,
             "original-url": obj.source_url or obj.url,
             "source": getattr(obj, 'source', 'youtube'),
+            "is-content": "true",
+            "source-url": obj.source_url,
+            "page-prioritized": "false",  # TODO: ?
         })
 
         if hasattr(obj, 'attributes'):
@@ -130,6 +131,9 @@ class TileSerializer(RawSerializer):
 
         Also, screw you for not having any docs.
         """
+
+        data = {}
+        '''
         data = {
             # prefixed keys are for inspection only; the hyphen is designed to
             # prevent you from using it like a js object
@@ -137,12 +141,12 @@ class TileSerializer(RawSerializer):
             '-dbg-attributes': obj.attributes,
             'tile-id': obj.old_id or obj.id,
         }
-
         if hasattr(obj, 'template'):
             data['template'] = obj.template
 
         if hasattr(obj, 'prioritized'):
             data['prioritized'] = obj.prioritized
+        '''
 
         return data
 
@@ -153,21 +157,24 @@ class ProductTileSerializer(TileSerializer):
         :param obj  <Tile>
         """
         data = super(ProductTileSerializer, self).get_dump_object(obj)
+        '''
         try:
             data.update(obj.products
                            .select_related('product_images')[0]
                            .to_json())
         except IndexError as err:
             pass  # no products in this tile
+        '''
         return data
 
 
-class ContentTileSerializer(TileSerializer):
+class ImageTileSerializer(TileSerializer):
     def get_dump_object(self, obj):
         """
         :param obj  <Tile>
         """
-        data = super(ContentTileSerializer, self).get_dump_object(obj)
+        data = super(ImageTileSerializer, self).get_dump_object(obj)
+        '''
         try:
             data.update(obj.content
                         .prefetch_related('tagged_products')
@@ -176,10 +183,11 @@ class ContentTileSerializer(TileSerializer):
                         .to_json())
         except IndexError as err:
             pass  # no content in this tile
+        '''
         return data
 
 
-class BannerTileSerializer(ContentTileSerializer):
+class BannerTileSerializer(ImageTileSerializer):
     def get_dump_object(self, obj):
         """
         :param obj  <Tile>
@@ -187,6 +195,7 @@ class BannerTileSerializer(ContentTileSerializer):
         data = super(BannerTileSerializer, self).get_dump_object(obj)
 
         # banner mode in JS is triggered by having 'redirect-url'
+        '''
         redirect_url = (obj.attributes.get('redirect_url') or
                         obj.attributes.get('redirect-url'))
         if not redirect_url and obj.content.count():
@@ -197,11 +206,12 @@ class BannerTileSerializer(ContentTileSerializer):
 
         data.update({'redirect-url': redirect_url,
                      'images': [obj.attributes]})
+        '''
 
         return data
 
 
-class VideoTileSerializer(ContentTileSerializer):
+class VideoTileSerializer(ImageTileSerializer):
     def get_dump_object(self, obj):
         """
         :param obj  <Tile>
