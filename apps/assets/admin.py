@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db import models
+from django.forms import SelectMultiple
 
 from apps.assets.models import (Store, Page, Tile, Feed, Product, ProductImage,
                                 Image, Content, Theme, Review, Video, TileRelation)
@@ -15,6 +17,14 @@ class BaseAdmin(admin.ModelAdmin):
 
     date_hierarchy = 'created_at'
 
+    formfield_overrides = {
+        models.ManyToManyField: {
+            'widget': SelectMultiple(attrs={'size':'10'})
+        },
+    }
+
+    search_fields = ('pk', )
+
 
 class BaseNamedAdmin(BaseAdmin):
     list_display = [
@@ -24,6 +34,7 @@ class BaseNamedAdmin(BaseAdmin):
                    ] + BaseAdmin.list_display
 
     search_fields = ['name']
+    ordering = ['name']
 
     prepopulated_fields = {"slug": ("name",)}
 
@@ -40,19 +51,24 @@ class BaseNamedImageAdmin(BaseAdmin):
 
 class StoreAdmin(BaseNamedAdmin):
     list_display = ['old_id'] + BaseNamedAdmin.list_display + ['public_base_url']
+    search_fields = ('pk', 'name',)
 
 
 class PageAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display
+    list_display = ['old_id', 'name', 'url_slug'] + BaseAdmin.list_display
+    search_fields = ('pk', 'old_id', 'name', 'url_slug')
 
 
 class TileAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display + ['template', 'click_starting_score', 'click_score',
-                                                          'view_starting_score', 'view_score']
+    list_display = ['old_id', 'feed', 'template', 'prioritized',
+                    'click_starting_score', 'click_score',
+                    'view_starting_score', 'view_score'] + BaseAdmin.list_display
+    search_fields = ('pk', 'old_id', 'template')
 
 
 class TileRelationAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display + ['tile_a_id', 'tile_b_id', 'starting_score', 'score']
+    search_fields = ('pk', 'tile_a_id', 'tile_b_id',)
 
     def tile_a_id(self, obj):
         return str(obj.tile_a.id)
@@ -67,26 +83,34 @@ class TileRelationAdmin(BaseAdmin):
 
 class FeedAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display
+    search_fields = ('pk', 'page_id',)
 
 
 class ProductAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display
+    ordering = ['name']
+    list_display = ['name', 'old_id'] + BaseAdmin.list_display
+    search_fields = ('pk', 'name', 'description', 'sku',)
 
 
 class ProductImageAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display + ['url', 'original_url']
+    ordering = ['created_at', 'original_url']
+    list_display = ['old_id', 'url'] + BaseAdmin.list_display + ['original_url']
 
 
 class ImageAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display + ['url', 'original_url']
+    ordering = ['created_at', 'original_url']
+    list_display = ['old_id', 'url'] + BaseAdmin.list_display + ['original_url']
 
 
 class ContentAdmin(BaseAdmin):
-    list_display = BaseAdmin.list_display
+    ordering = ['url']
+    list_display = ['url'] + BaseAdmin.list_display
+    search_fields = ('pk', 'url',)
 
 
 class ThemeAdmin(BaseAdmin):
-    list_display = BaseAdmin.list_display + ['store', 'template']
+    list_display = ['name'] + BaseAdmin.list_display + ['store', 'template']
+    search_fields = ('pk', 'name', 'template',)
 
 
 class ReviewAdmin(BaseAdmin):
@@ -95,6 +119,7 @@ class ReviewAdmin(BaseAdmin):
 
 class VideoAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display + ['url', 'source_url']
+    search_fields = ('pk', 'url', 'source_url',)
 
 
 admin.site.register(Store, StoreAdmin)

@@ -43,6 +43,21 @@ class BaseModel(models.Model, DirtyFieldsMixin):
     def __setitem__(self, key, value):
         return setattr(self, key, value)
 
+    def __unicode__(self):
+        """Changes display of models in the django admin.
+
+        http://stackoverflow.com/a/5853966/1558430
+        """
+        if hasattr(self, 'name'):
+            return u'({class_name} #{obj_id}) {obj_name}'.format(
+                class_name=self.__class__.__name__,
+                obj_id=self.pk,
+                obj_name=getattr(self, 'name', ''))
+
+        return u'{class_name} #{obj_id}'.format(
+            class_name=self.__class__.__name__,
+            obj_id=self.pk)
+
     def days_since_creation(self):
         return (timezone.now() - self.created_at).days
 
