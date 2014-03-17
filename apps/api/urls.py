@@ -14,7 +14,7 @@ prefix = 'v1'
 api = Api(api_name=prefix)
 api.register(UserResource())
 api.register(StoreResource())
-api.register(ProductResource())
+# api.register(ProductResource())
 api.register(ProductImageResource())
 api.register(ContentResource())
 api.register(ImageResource())
@@ -29,12 +29,10 @@ api.register(TileRelationResource())
 
 urlpatterns = api.urls
 
-'''
 urlpatterns += patterns('apps.api.views',
     url(r'^%s/product/?$' % prefix, 'product'),
     url(r'^%s/product/(?P<product_id>[^\/]*)/?$' % prefix, 'product'),
 )
-'''
 
 store_router = routers.SimpleRouter()
 store_router.register(r'store', StoreViewSet)

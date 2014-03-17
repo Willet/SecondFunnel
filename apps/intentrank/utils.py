@@ -99,10 +99,10 @@ def returns_cg_json(fn):
 
     @wraps(fn)
     def wrapped_view(request, *args, **kwargs):
-        try:
-            res = fn(request, *args, **kwargs)
-        except:
-            return ajax_jsonp({}, status=500)
+#         try:
+        res = fn(request, *args, **kwargs)
+#         except:
+#             return ajax_jsonp({}, status=500)
 
         return ajax_jsonp({'results': res})
 

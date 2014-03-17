@@ -1,16 +1,19 @@
 import json
 import itertools
+from django.shortcuts import get_object_or_404
 
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 
 from apps.api.decorators import check_login, request_methods
+from apps.assets.models import Page
 
 from apps.intentrank.utils import ajax_jsonp
 from apps.api.resources import ContentGraphClient
 from apps.contentgraph.models import call_contentgraph
 from apps.api.utils import mimic_response
+from apps.utils import flatten
 
 
 def cg_response_contains_results(request):
@@ -266,6 +269,20 @@ def expand_products(store_id, page_id, products):
 @never_cache
 @csrf_exempt
 def list_page_all_products(request, store_id, page_id):
+    """Handles /store/38/page/91/product/all.
+
+    Example output: https://gist.github.com/1337/d9c08c1f24979af0aa90
+    """
+    page = get_object_or_404(Page, old_id=page_id)
+    store, feed = page.store, page.feed
+    products = flatten([tile.products.all() for tile in feed.tiles.all()])
+    products = [product.to_json() for product in products]
+
+    return ajax_jsonp({
+        'results': products,
+        'meta': {}
+    })
+    '''
     r = ContentGraphClient.store(store_id).product().GET(params=request.GET)
 
     if r.status_code == 200:
@@ -273,6 +290,7 @@ def list_page_all_products(request, store_id, page_id):
         result_json['results'] = expand_products(store_id, page_id, result_json['results'])
         return mimic_response(r, content=json.dumps(result_json))
     return mimic_response(r)
+    '''
 
 
 @request_methods('GET')

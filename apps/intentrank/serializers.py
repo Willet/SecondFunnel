@@ -78,6 +78,12 @@ class ProductSerializer(RawSerializer):
 
 
 class ContentSerializer(RawSerializer):
+
+    expand_products = True
+
+    def __init__(self, expand_products=True):
+        self.expand_products = expand_products
+
     def get_dump_object(self, obj):
         from apps.assets.models import Product
 
@@ -87,6 +93,7 @@ class ContentSerializer(RawSerializer):
             'source_url': obj.source_url,
             'url': obj.url or obj.source_url,
             'author': obj.author,
+            'status': obj.attributes.get('status', 'undecided'),
         }
 
         if obj.tagged_products.count() > 0:
@@ -99,7 +106,11 @@ class ContentSerializer(RawSerializer):
                             .select_related('default_image', 'product_images')
                             .all()):
             try:
-                data['related-products'].append(product.to_json())
+                if self.expand_products:
+                    data['related-products'].append(product.to_json())
+                else:
+                    data['related-products'].append(product.id)
+
             except Product.DoesNotExist as err:
                 data['-dbg-related-products'].append(str(err.message))
 

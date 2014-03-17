@@ -169,6 +169,11 @@ class Product(BaseModel):
 
     serializer = ProductSerializer
 
+    def __init__(self, *args, **kwargs):
+        super(Product, self).__init__(*args, **kwargs)
+        if not self.attributes:
+            self.attributes = {}
+
     def to_json(self):
         return self.serializer().to_json([self])
 
@@ -246,6 +251,7 @@ class Content(BaseModel):
             'source_url': self.source_url,
             'url': self.url or self.source_url,
             'author': self.author,
+            'status': self.attributes.get('status', 'undecided'),
         }
 
         if self.tagged_products.count() > 0:
@@ -288,6 +294,7 @@ class Image(Content):
             "url": self.url or self.source_url,
             "id": str(self.old_id or self.id),
             "sizes": self.attributes.get('sizes', default_master_size),
+            'status': self.attributes.get('status', 'undecided'),
         }
         if expand_products:
             # turn django's string list of strings into a real list of ids
@@ -314,8 +321,8 @@ class Video(Content):
 
     serializer = VideoSerializer
 
-    def to_json(self):
-        return self.serializer().to_json([self])
+    def to_json(self, expand_products=True):
+        return self.serializer(expand_products=expand_products).to_json([self])
 
 
 class Review(Content):

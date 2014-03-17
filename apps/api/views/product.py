@@ -4,7 +4,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import request_methods, check_login
-from apps.assets.models import Product
+from apps.assets.models import Product, ProductImage
 from apps.intentrank.utils import returns_json, returns_cg_json
 
 
@@ -22,28 +22,6 @@ def product(request, product_id=0):
     PATCH /product/id
     DELETE /product/id
     """
-    def make_cg_product_json(product):
-        """returns {dict} product in CG json format"""
-        return {
-            "default-image-id": "14291",
-            "last-modified": "1394775877605",
-            "rescrape": "false",
-            "product-set": "live",
-            "image-ids": [
-                "14292",
-                "14291"
-            ],
-            "available": "true",
-            "sku": "959472",
-            "url": "http://www.gap.com/browse/product.do?pid\u003d959472",
-            "id": "3045",
-            "price": "$88.00",
-            "created": "1394092849261",
-            "description": "Long sleeves with button cuffs. Notched lapel. Double-button front. Welt pocket at chest, patch pockets at sides. Seam details throughout. Allover multi-stripes.",
-            "name": "Classic stripe blazer",
-            "store-id": "38",
-            "last-scraped": "1394775827025"
-        }
 
     if request.method == 'GET':
         if product_id:
@@ -52,3 +30,47 @@ def product(request, product_id=0):
         else:
             return [make_cg_product_json(product)
                     for product in Product.objects.all()]
+
+
+def make_cg_product_json(product):
+    """returns {dict} product in CG json format"""
+    return {
+        "available": product.attributes.get('available', False),
+        "sku": product.sku,
+        "default-image": make_cg_image_json(product.default_image),
+        # "rescrape": "false",
+        "description": "Short sleeves. Crewneck. Screen-printed graphic at front.\nTumble Dry Low Only Non-Chlorine Bleach When Needed Cool Iron On Reverse Do Not Iron On Print",
+        "tile-configs": [],
+        "image-ids": [i.old_id for i in product.product_images.all()],
+        "url": product.url,
+        "price": product.price,
+        "created": product.created_at,
+        "default-image-id": product.default_image_id,
+        "last-modified": product.updated_at,
+        "last-scraped": product.last_scraped_at,
+        "images": [make_cg_image_json(i) for i in product.product_images.all()],
+        "product-set": "live",
+        "store-id": product.store_id,
+        "id": product.old_id,
+        "name": product.name,
+    }
+
+
+def make_cg_image_json(image):
+    """"""
+    return {
+        "is-content": "false" if image.__class__ is ProductImage else 'true',
+        # "hash": image.hash,
+        "tagged-products": [getattr(image, 'product_id')],
+        "format": image.file_type,
+        "url": image.url,
+        "image-sizes": image.attributes.get('sizes'),
+        "created": image.created_at,
+        "last-modified": image.updated_at,
+        "original-url": image.original_url,
+        "source": getattr(image, 'source', "image"),
+        "dominant-colour": image.dominant_color,
+        "store-id": getattr(image, 'store_id', -1),
+        "type": "image",
+        "id": image.old_id,
+    }

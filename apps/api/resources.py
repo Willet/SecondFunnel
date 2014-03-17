@@ -223,20 +223,14 @@ class ContentResource(BaseCGResource):
         # convert a piece of content to its subclass, then serialize that
         bundle.obj = Content.objects.filter(pk=bundle.obj.pk).select_subclasses()[0]
 
-        # re-evaluate tastypie's serialization routines to get bundle.data
-        use_in = ['all', 'detail']
-        for field_name, field_object in self.fields.items():
-            field_use_in = getattr(field_object, 'use_in', 'all')
-            if callable(field_use_in):
-                if not field_use_in(bundle):
-                    continue
-            else:
-                if field_use_in not in use_in:
-                    continue
-            if getattr(field_object, 'dehydrated_type', None) == 'related':
-                field_object.api_name = self._meta.api_name
-                field_object.resource_name = self._meta.resource_name
-            bundle.data[field_name] = field_object.dehydrate(bundle, for_list=False)
+        '''
+        bundle_class = (globals()[bundle.obj.__class__.__name__ + 'Resource'])
+
+        if bundle_class.__name__ != self.__class__.__name__:
+            return bundle_class.dehydrate(bundle_class(), bundle)
+        '''
+
+        bundle.data = bundle.obj.to_json(expand_products=False)
 
         return bundle
 
@@ -420,6 +414,7 @@ class TileResource(BaseCGResource):
             'store': ALL,
         }
 
+
 class TileConfigResource(BaseCGResource):
     """Returns "a tile config, even though tile configs don't exist"."""
 
@@ -437,7 +432,9 @@ class TileConfigResource(BaseCGResource):
 
     def dehydrate(self, bundle):
         bundle.data = {
-            'content-ids': [c.id for c in bundle.obj.content.all()]
+            'template': bundle.obj.template,
+            'content-ids': [c.id for c in bundle.obj.content.all()],
+            'product-ids': [c.id for c in bundle.obj.products.all()],
         }
         return bundle
 
