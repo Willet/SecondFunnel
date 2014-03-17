@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 import sys
 
 from xml.dom import minidom
@@ -13,6 +14,8 @@ ContentGraph = Hammock(
 
 # Don't know how to add this programmatically
 FEED_HEADER = '<?xml version="1.0"?>'
+
+MASTER = re.compile(r'master(\.\w{3,4})$')
 
 def main():
     parser = argparse.ArgumentParser(
@@ -97,7 +100,8 @@ def generate_feed(items, store_info, page_info):
 
     for item in items:
         item_obj = json_to_XMLItem(item, store_info, page_info)
-        channel.append(item_obj)
+        if item_obj:
+            channel.append(item_obj)
 
     return root
 
@@ -108,10 +112,13 @@ def json_to_XMLItem(tile, store_info=None, page_info=None):
     if not page_info:
         page_info = {}
 
-    if len(tile.get('related-products', [])) > 0:
-        product = tile.get('related-products')[0]
-    else:
+    if tile.get('template') == 'product':
         product = tile
+    else:
+        product = tile.get('related-products', [None])[0] or {}
+
+    if not product:
+        return None
 
     item = Element('item')
 
@@ -153,9 +160,12 @@ def json_to_XMLItem(tile, store_info=None, page_info=None):
     image_link = SubElement(item, 'g:image_link')
 
     if tile is product:
-        image_link.text = product.get('images')[0]['url']
+        image_url = product.get('images')[0]['url']
     else:
-        image_link.text = tile.get('url')
+        image_url = tile.get('url')
+
+    image_url = re.sub(MASTER, r'large\1', image_url)
+    image_link.text = image_url
 
     # End - Always Required
 
