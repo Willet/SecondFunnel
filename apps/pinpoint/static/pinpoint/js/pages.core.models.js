@@ -473,7 +473,7 @@ App.module('core', function (core, App) {
         'initialize': function (arrayOfData, url, campaign, results) {
             this.setup(url, campaign, results);  // if necessary
             this.tiles = {};
-            this.on('add', this.onAdded);
+            this.on('add', this.itemAdded, this);
             App.vent.trigger('tileCollectionInitialized', this);
         },
 
@@ -485,7 +485,7 @@ App.module('core', function (core, App) {
          * @param collection {Object}
          * @param options {Object}
          */
-        'onAdded': function (tile, collection, options) {
+        'itemAdded': function (tile, collection, options) {
             var id = tile.get('tile-id');
             this.tiles[id] = tile;
         },
