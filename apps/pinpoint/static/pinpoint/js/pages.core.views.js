@@ -196,8 +196,6 @@ App.module('core', function (module, App) {
                 App.router.navigate(String(tile.get('tile-id')), {
                     trigger: true
                 });
-                // YAY, request sent on tile click to update click count for tile
-                $.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.campaign + "/tile/" + tile.get('tile-id') + "/click");
             }
         },
 
@@ -290,6 +288,9 @@ App.module('core', function (module, App) {
                     self.close();
                 };
             }
+
+            // add view to our database
+            $.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.campaign + "/tile/" + model.get('tile-id') + "/view");
 
             $tileImg.load(allocateTile);
         }
