@@ -652,6 +652,7 @@ App.module('core', function (module, App) {
                 this.getTiles();
             }
 
+            // Did the user scroll ever?
             if ($window.scrollTop() > 0 && !everScrolled) {
                 // only log this event once per user
                 everScrolled = true;
@@ -660,7 +661,6 @@ App.module('core', function (module, App) {
                     'action': 'scroll',
                     'nonInteraction': true
                 });
-
             }
 
             // "did user scroll down more than a page?"
