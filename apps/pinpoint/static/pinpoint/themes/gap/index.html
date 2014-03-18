@@ -985,6 +985,12 @@
     '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-NQTT');</script>
     <!-- End Google Tag Manager -->
+    {% else %}
+    <script type='text/javascript'>
+        (function() {
+            var dataLayer = window.dataLayer = [];
+        }());
+    </script>
     {% endif %}
 
     <!-- Perfect Audience -->
