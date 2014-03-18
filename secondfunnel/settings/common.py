@@ -20,6 +20,10 @@ INTENTRANK_DEFAULT_NUM_RESULTS = 10
 MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 CLOUDFRONT_DOMAIN = 'cdn.secondfunnel.com'
 
+# Google analytics
+GOOGLE_ANALYTICS_PROFILE = '67271131'         
+GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17' # dev and test (production has a separate profile, -16)  
+
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
@@ -278,6 +282,8 @@ CORS_ORIGIN_REGEX_WHITELIST = (
     r'^(https?://)?(localhost|127.0.0.1):(\d+)$',
     r'^(https?://)?[\w-]+\.secondfunnel\.com$',
     r'^(https?://)?[\w-]+\.elasticbeanstalk\.com$',
+    r'^(https?://)?[\w-]+\.myshopify\.com$',
+    r'^(https?://)?[\w-]+\.amazonaws\.com$',
 )
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
