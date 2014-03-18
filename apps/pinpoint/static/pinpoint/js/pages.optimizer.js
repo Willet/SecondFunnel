@@ -58,7 +58,7 @@ App.module('optimizer', function (optimizer, App) {
      **/
     this.setCookieValue = function (cname, value, days) {
         var expires, ms, d = new Date();
-        ms = days ? days * MILLISECONDS_PER_DAY : 30 * 6000; // Defaults to 30 minutes, convert to milliseconds
+        ms = days ? days * MILLISECONDS_PER_DAY : 30 * 60 * 1000; // Defaults to 30 minutes, convert to milliseconds
         d.setTime(d.getTime() + ms);
         expires = "expires=" + d.toGMTString();
         console.debug(cname + "=" + value + "; " + expires);
