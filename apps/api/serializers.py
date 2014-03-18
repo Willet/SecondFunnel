@@ -32,7 +32,7 @@ class StoreSerializer(RawSerializer):
     def get_dump_object(self, obj):
         """This will be the data used to generate the object."""
         data = {
-            "id": obj.old_id,
+            "id": str(obj.old_id),
             "name": obj.name,
             "display_name": obj.name,  # TODO: how's this different from name?
             "public-base-url": obj.public_base_url,
@@ -57,8 +57,8 @@ class ProductSerializer(RawSerializer):
         # product_images = obj.product_images.all()
 
         data = {
-            "-dbg-id": obj.id,
-            "id": obj.old_id,
+            "-dbg-id": str(obj.id),
+            "id": str(obj.old_id),
             "created": obj.cg_created_at,
             "last-modified": obj.cg_updated_at,
             "default-image-id": obj.default_image.old_id,
@@ -70,7 +70,7 @@ class ProductSerializer(RawSerializer):
             "price": obj.price,
             "description": obj.description,
             "name": obj.name,
-            "store-id": obj.store.old_id,
+            "store-id": str(obj.store.old_id),
             # "rescrape": "false",
             # "last-scraped": "1394775462303",
         }
@@ -81,12 +81,12 @@ class ContentSerializer(RawSerializer):
 
     def get_dump_object(self, obj):
         data = {
-            "-dbg-id": obj.id,
-            "id": getattr(obj, 'old_id', obj.id),
+            "-dbg-id": str(obj.id),
+            "id": str(getattr(obj, 'old_id', obj.id)),
             "source": obj.source,
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
-            "store-id": obj.store.old_id,
+            "store-id": str(obj.store.old_id),
             # e.g. ImageSerializer -> 'image'
             "type": self.__class__.__name__[:self.__class__.__name__.index('Serializer')].lower(),
             "tagged-products": [str(p.old_id) for p in obj.tagged_products.all()],
@@ -147,6 +147,8 @@ class PageSerializer(RawSerializer):
         """
 
         data = {
+            "-dbg-id": str(obj.id),
+            "id": str(getattr(obj, 'old_id', obj.id)),
             "heroImageMobile": obj.desktop_hero_image,
             "intentrank_id": obj.intentrank_id,
             "ir_base_url": obj.ir_base_url,
@@ -155,7 +157,6 @@ class PageSerializer(RawSerializer):
             "social-buttons": obj.social_buttons,
             "theme": obj.theme.template,
             "url": obj.url_slug,
-            "id": obj.old_id,
             # "ir-last-generated": "1391710019",
             # "ir-stale": "true",
             "imageTileWide": obj.theme_settings.get('image_tile_wide'),
@@ -165,7 +166,7 @@ class PageSerializer(RawSerializer):
             "name": obj.name,
             "layout": obj.template,
             "column-width": obj.column_width,
-            "store-id": obj.store.old_id
+            "store-id": str(obj.store.old_id),
         }
 
         return data

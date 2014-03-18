@@ -2,11 +2,12 @@ from django.conf.urls import url, patterns, include
 from tastypie.api import Api
 
 from apps.api.resources import UserResource
-from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
+from apps.api.views import (ContentCGHandler, StoreContentsCGHandler,
     StorePageContentCGHandler, ProductCGHandler, StoreProductsCGHandler,
     StorePageProductCGHandler, StoreCGHandler, PageCGHandler,
     StorePageCGHandler, TileConfigCGHandler, PageTileConfigCGHandler,
-    StorePagesCGHandler, StoreProductCGHandler)
+    StorePagesCGHandler, StoreProductCGHandler, StorePageContentsCGHandler,
+    StoreContentCGHandler)
 
 prefix = 'v1'
 
@@ -22,9 +23,12 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreCGHandler.as_view()),
 
+    # content
     url(r'^%s/content/?$' % prefix, ContentCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/content/?$' % prefix, StoreContentCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/?$' % prefix, StorePageContentCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/content/?$' % prefix, StoreContentsCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, StoreContentCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/?$' % prefix, StorePageContentsCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, StorePageContentCGHandler.as_view()),
 
     # product
     url(r'^%s/product/?$' % prefix, ProductCGHandler.as_view()),
@@ -73,7 +77,7 @@ urlpatterns += patterns('apps.api.views',
         'check_queue',
         name='check_queue'),
 
-    url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, 'content_operations', name='content_operations'),
+    # url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, 'content_operations', name='content_operations'),
     url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/approve/?$' % prefix, 'approve_content', name='approve_content'),
     url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/reject/?$' % prefix, 'reject_content', name='reject_content'),
     url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide/?$' % prefix, 'undecide_content', name='undecide_content'),

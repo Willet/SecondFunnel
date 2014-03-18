@@ -20,6 +20,7 @@ from apps.api.utils import mimic_response, get_proxy_results
 from apps.api.views.tileconfig import add_content_to_page, page_add_product
 
 from apps.contentgraph.models import TileConfigObject
+from secondfunnel.errors import deprecated
 
 
 class ContentCGHandler(BaseCGHandler):
@@ -27,7 +28,7 @@ class ContentCGHandler(BaseCGHandler):
     id_attr = 'content_id'  # the arg in the url pattern used to select something
 
 
-class StoreContentCGHandler(ContentCGHandler):
+class StoreContentsCGHandler(ContentCGHandler):
     """Adds filtering by store"""
     store_id = None  # new ID
 
@@ -37,11 +38,58 @@ class StoreContentCGHandler(ContentCGHandler):
         store = get_object_or_404(Store, old_id=store_id)
         self.store_id = store.id
 
+        return super(StoreContentsCGHandler, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self, request=None):
+        qs = super(StoreContentsCGHandler, self).get_queryset()
+        return qs.filter(store_id=self.store_id)
+
+
+class StoreContentCGHandler(ContentCGHandler):
+    """Adds filtering by store"""
+    store_id = None  # new ID
+    content_id = None  # old ID
+    id_attr = 'content_id'
+
+    def get(self, request, *args, **kwargs):
+        return ajax_jsonp(self.serialize_one())
+
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        store_id = kwargs.get('store_id')
+        store = get_object_or_404(Store, old_id=store_id)
+        self.store_id = store.id
+        self.content_id = kwargs.get(self.id_attr)
+
         return super(StoreContentCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
         qs = super(StoreContentCGHandler, self).get_queryset()
-        return qs.filter(store_id=self.store_id)
+        return qs.filter(store_id=self.store_id,
+                         old_id=self.content_id)
+
+
+class StorePageContentsCGHandler(ContentCGHandler):
+    """Adds filtering by page/feed"""
+    feed = None
+
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        page_id = kwargs.get('page_id')
+        page = get_object_or_404(Page, old_id=page_id)
+        self.feed = page.feed
+
+        return super(StorePageContentsCGHandler, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self, request=None):
+        """get all the contents in the feed, which is
+        all the feed's tiles' contents
+        """
+        tiles = self.feed.tiles.all()
+        contents = []
+        for tile in tiles:
+            contents += tile.content.all()
+        return contents
 
 
 class StorePageContentCGHandler(StoreContentCGHandler):
@@ -71,6 +119,7 @@ class StorePageContentCGHandler(StoreContentCGHandler):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def content_operations(request, store_id, content_id):
     try:
         if request.method == 'GET':
@@ -90,6 +139,7 @@ def content_operations(request, store_id, content_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def reject_content(request, store_id, content_id):
     payload = json.dumps({'status': 'rejected'})
 
@@ -102,6 +152,7 @@ def reject_content(request, store_id, content_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def undecide_content(request, store_id, content_id):
     payload = json.dumps({'status': 'needs-review'})
 
@@ -114,6 +165,7 @@ def undecide_content(request, store_id, content_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def approve_content(request, store_id, content_id):
     payload = json.dumps({'status': 'approved'})
 
@@ -126,6 +178,7 @@ def approve_content(request, store_id, content_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def add_all_content(request, store_id, page_id):
     try:
         content_ids = json.loads(request.body)
@@ -151,6 +204,7 @@ def add_all_content(request, store_id, page_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def add_all_products(request, store_id, page_id):
     """Mirror of add_all_content."""
     try:
@@ -177,6 +231,7 @@ def add_all_products(request, store_id, page_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def get_suggested_content_by_page(request, store_id, page_id):
     """Returns a multiple lists of product content grouped by
     their product id.
@@ -235,6 +290,7 @@ def get_suggested_content_by_page(request, store_id, page_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def tag_content(request, store_id, page_id, content_id, product_id=0):
     """Add a API endpoint to the backend for tagging content with products.
 

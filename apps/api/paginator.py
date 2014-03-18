@@ -10,6 +10,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView
+from model_utils.managers import InheritanceQuerySet
 from tastypie.exceptions import BadRequest
 from tastypie.paginator import Paginator
 from apps.api.decorators import request_methods, check_login
@@ -154,7 +155,7 @@ class BaseCGHandler(JSONResponseMixin, ListView):
                     'results': result_set,
                     'meta': {
                         'cursor': {
-                            'next': page.next_page_number(),
+                            'next': str(page.next_page_number()),
                         },
                     },
                 }
@@ -168,10 +169,13 @@ class BaseCGHandler(JSONResponseMixin, ListView):
     def serialize_one(self, thing=None):
         if not thing:
             thing = self.object_list
-        if type(thing) in (QuerySet, list):
-            thing = thing[0]
-
-        return thing.to_cg_json()
+        try:
+            if type(thing) in (QuerySet, InheritanceQuerySet, list):
+                thing = thing[0]
+            return thing.to_cg_json()
+        except:
+            print "WARNING: serialization failed on {0}".format(thing)
+            return None
 
     def get(self, request, *args, **kwargs):
         return ajax_jsonp(self.serialize())
