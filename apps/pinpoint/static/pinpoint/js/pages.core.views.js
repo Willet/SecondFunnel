@@ -197,7 +197,7 @@ App.module('core', function (module, App) {
                     trigger: true
                 });
                 // YAY, request sent on tile click to update click count for tile
-                jQuery.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.campaign + "/tile/" + tile.get('tile-id') + "/click")
+                $.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.campaign + "/tile/" + tile.get('tile-id') + "/click");
             }
         },
 
