@@ -1,88 +1,212 @@
+import math
 import numpy
 import scipy
 import scipy.misc
 import scipy.cluster
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageFilter
+
+from django.db import models
 
 
 MAX_COLOR_DISTANCE = 510
+NUM_OF_CLUSTERS = 5
+
+
+class SizeConf(models.Model):
+    """
+    A size configuration is a tool for resizing (create new resized
+    images).
+    """
+    name = models.CharField(max_length=240)
+    width = models.PositiveIntegerField()
+    height = models.PositiveIntegerField()
+
+    @property
+    def size(self):
+        """
+        @return: Tuple
+        """
+        return (self.width, self.height)
+
+
+class COLOR(object):
+    """
+    Some colours.
+    """
+    red = (255, 0, 0)
+    blue = (0, 0, 255)
+    green = (0, 255, 0)
+    black = (0, 0, 0)
+    white = (255, 255, 255)
 
 
 class ExtendedImage(object):
     """
+    An ExtendedImage is an object extending PIL.Image to provide additional functionality
+    while still maintaining the same use that PIL.Image provides.
+
+    @attr path: The opened file path (if exists)
     """
 
-    def __init__(self, path=None, mode='RGBA', size=None, color="white"):
-        if path is not None:
-            self.path = path
-            self._image = Image.open(path)
-        else:
-            self._image = Image.new(mode, size, color)
-
     def __getattr__(self, key):
-        return getattr(self._image, key)
+        """Delegate to PIL.Image"""
+        result = getattr(self._image, key)
 
-    def open(self, path, mode=None):
+        if type(result) == Image:
+            img = self.copy()
+            img._image = result
+            return img
+
+        return result
+
+    @classmethod
+    def new(cls, mode, size):
         """
-        Opens the image pointed to by the path.
+        Creates a new ExtendedImage object.
 
-        @param self: ExtendedImage object
+        @param cls: ExtendedImage
+        @param mode: Mode to open object in
+        @param size: Tuple of the (width, height) dimensions
+        @return: ExtendedImage
+        """
+        img = cls()
+        img._image = Image.new(mode, size)
+        return img
+
+    @classmethod
+    def new(cls, mode, size, color):
+        """
+        Creates a new ExtendedImage object.
+
+        @param cls: ExtendedImage
+        @param mode: Mode to open object in
+        @param size: Tuple of the (width, height) dimensions
+        @param color: Background colour to fill the image
+        @return: ExtendedImage
+        """
+        img = cls()
+        img._image = Image.new(mode, size, color)
+        return img
+
+    @classmethod
+    def open(cls, path, mode=None):
+        """
+        Opens the image pointed to by the path and returns an opened
+        ExtendedImage object.
+
+        @param cls: ExtendedImage
         @param path: String representing the full path to image
         @param mode: Mode to open object in
-        @return: PIL.Image.Image
+        @return: ExtendedImage
         """
-        self.path = path
+        img = cls()
+        args = (path,) if mode is None else (path, mode)
+        img.path = path
+        img._image = Image.open(*args)
 
-        if mode is not None:
-            return self._image.open(path, mode)
-        return self._image.open(path)
+        return img
 
-    def save(self, path=None, **options):
+    @property
+    def width(self):
         """
-        Saves the image.
-
-        @param self: ExtendedImage object
-        @param object: Dictionary of attributes to pass when saving object.
-        @return: None
+        Returns the width.
         """
-        path = path if path is not None else self.path
-        self._image.save(path, **options)
+        return self.size[0]
 
-    def get_dominant_color(self, num_of_clusters=5):
+    @property
+    def height(self):
         """
-        Determines the dominant colour in an image and returns it as a hex string.
+        Returns the height.
+        """
+        return self.size[1]
+
+    @property
+    def crop_conf(self):
+        """
+        Returns the default crop configuration for this image.
+
+        @param self: The ExtendedImage instance
+        @return: Tuple
+        """
+        return (0, 0, self.size[0], self.size[1])
+
+    @property
+    def dominant_color(self):
+        """
+        Determines the dominant color in an image and returns it as a hex string.
         Reference: http://stackoverflow.com/questions/3241929
 
-        @param self: ExtendedImage object
-        @param num_of_clusters: The number of clusters to generate.
+        @param self: ExtendedImage instance
         @return: String
         """
         # resize to reduce computation time
         tmp = self.copy().resize((150, 150))
-        # Generate a histogram for the image colour points
+        # Generate a histogram for the image color points
         points = scipy.misc.fromimage(tmp)
         shape = points.shape
         points = points.reshape(scipy.product(shape[:2]), shape[2])
 
         # Using the kmeans algorithm, group the points into clusters
-        clusters, _ = scipy.cluster.vq.kmeans(points, num_of_clusters)
+        clusters, _ = scipy.cluster.vq.kmeans(points, NUM_OF_CLUSTERS)
         # Generate vectors
         vectors, distance = scipy.cluster.vq.vq(points, clusters)
         occurrences, _ = scipy.histogram(vectors, len(clusters)) # Get occurrences of each vector
 
-        # Find most frequent colour
+        # Find most frequent color
         peak = scipy.argmax(occurrences)
         peak = ''.join(chr(c) for c in clusters[peak]).encode('hex')
 
         return peak
+
+    def copy(self):
+        """
+        Copies the ExtendedImage object and returns the copy.
+
+        @param self: The ExtendedImage instance
+        @return: ExtendedImage
+        """
+        img = ExtendedImage()
+        img.path = getattr(self, 'path', None)
+        img._image = self._image.copy()
+
+        return img
+
+    def save(self, path=None, mode=None, *args):
+        """
+        Saves the image.
+
+        @param self: ExtendedImage instance
+        @param object: Dictionary of attributes to pass when saving object.
+        @return: None
+        """
+        path = path if path is not None else self.path
+        self._image.save(path, mode, *args)
+
+    def luminosity(self, x, y, red_coefficient=0.2126, green_coefficient=0.7152, blue_coefficient=0.0722):
+        """
+        Computes the luminisoity in an image at the specified pixel.
+        Takes the RGB pixel and determines the gray level intensity coefficient.
+
+        @param self: ExtendedImage instance
+        @param x: x-coordinate of the pixel
+        @param y: y-coordinate of the pixel
+        @param red_coefficient: Multiplier of the red value of the pixel.
+        @param green_coefficient: Multiplier of the green value of the pixel.
+        @param blue_coefficient: Multiplier of the blue value of the pixel.
+        """
+        coefficients = (red_coefficient, green_coefficient, blue_coefficent)
+        rgb = self.getpixel((x, y))
+        luminosity = sum(c * coeff for c, coeff in zip(rgb, coefficients))
+
+        return luminosity
 
     def get_edges(self, color):
         """
         Calculates the bounding box surrounding the non-white portion of the image; the
         box may contain portions of the specified color.
         Reference: http://stackoverflow.com/questions/9396312
-        
-        @param self: ExtendedImage object
+
+        @param self: ExtendedImage instance
         @param color: int representing pixel color
         @return: list
         """
@@ -94,43 +218,66 @@ class ExtendedImage(object):
 
         return box
 
-    def trim(self, border=(255, 255, 255)):
-        """
-        Trims the border surrounding the focused image.  Default border
-        is whitespace.
-
-        @param self: ExtendedImage object
-        @param border: Color to trim.
-        @return: ExtendedImage object
-        """
-        bbox = self.get_edges(border)
-        self._image = self.crop(bbox)
-
-        return self
-
-    def crop_color(self, color=(255, 255, 255)):
+    def crop(self, border=COLOR.white, conf=None):
         """
         Crops the image based on the passed color.  Defaults to
         whitespace.
 
-        @param self: ExtendedImage object
-        @param color: The color to crop
+        @param self: ExtendedImage instance
+        @param border: The color to crop
+        @param conf: A tuple specifying the (x, y, width, height)
         @return: ExtendedImage object
         """
-        return self.trim(color)
+        img = self.copy()
+        conf = conf if conf is not None else img.crop_conf
+        img._image = img._image.crop(conf)
 
-    def make_transparent(self, color=(255, 255, 255), tolerance=0):
-        # TODO: Make this functional
+        # Get the bounding box
+        bbox = img.get_edges(border)
+        img._image = img._image.crop(bbox)
+
+        return img
+
+    def resize(self, targetWidth, targetHeight, *args):
+        """
+        Resizes and returns an ExtendedImage object.  If image is larger than
+        our target, resizes based on the ratio, otherwise does not upscale the
+        image.
+
+        @param self: ExtendedImage instance
+        @param targetWidth: The width to resize to.
+        @param targetHeight: The height to resize to.
+        @return: ExtendedImage
+        """
+        img = self.copy()
+        width, height = None, None
+        sourceWidth, sourceHeight = img.size
+
+        if img.width <= targetWidth and img.height <= targetHeight:
+            return img
+
+        if img.width >= img.height: # image wider than it is tall
+            width = targetWidth
+            height = int(math.ceil((sourceHeight / float(sourceWidth)) * targetWidth))
+        else:
+            height = targetHeight
+            width = int(math.ceil((sourceWidth / float(sourceHeight)) * targetHeight))
+
+        img._image = img._image.resize((width, height), *args)
+
+        return img
+
+    def make_transparent(self, color=COLOR.white, tolerance=0.9):
         """
         Makes all pixels within tolerance of the color transparent.  Defaults
         to a tolerance of 0, and whitespace.
 
-        @param self: Image object
+        @param self: ExtendedImage instance
         @param color: Iterable of the RGB values
         @param tolerance: Float specifying tolerance in which to reject colors.
         @return: None
         """
-        self._image = self.convert("RGBA")
+        self.convert('RGBA')
         pixels = self.load()
         tolerance = MAX_COLOR_DISTANCE * tolerance
 
@@ -139,13 +286,8 @@ class ExtendedImage(object):
                 data = pixels[x, y]
                 diff = sum(abs(o - s) for o, s in zip(color, data))
                 if diff <= tolerance:
-                    pixels[x, y] = (255, 255, 255, 0)
+                    data = list(data)
+                    data[3] = 0
+                    pixels[x, y] = tuple(data)
 
         return self
-
-
-if __name__ == "__main__":
-    import sys
-
-    img = ExtendedImage(sys.argv[1])
-    img.make_transparent().show()

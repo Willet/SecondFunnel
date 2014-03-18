@@ -268,6 +268,7 @@ INSTALLED_APPS = (
     'apps.static_pages',
     'apps.tracking',
     'apps.utils',
+    'apps.imageservice'
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = (
