@@ -11,7 +11,12 @@ TRANSPARENT_1_PIXEL_GIF = "\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00" \
 # Note: This is a cookie function
 def pixel(request):
     response = HttpResponse(TRANSPARENT_1_PIXEL_GIF, content_type='image/gif')
-    response.set_cookie('visited', 'true', max_age=settings.TRACKING_COOKIE_AGE)
+    response.set_cookie(
+        'visited',
+        'true',
+        max_age=settings.TRACKING_COOKIE_AGE,
+        domain=settings.TRACKING_COOKIE_DOMAIN
+    )
     return response
 
 def tracking(request, tracking_id, dev=False):

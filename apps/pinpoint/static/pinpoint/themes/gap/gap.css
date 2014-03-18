@@ -622,7 +622,6 @@ div.header {
         height: 45px;
         margin-top: -45px;
         position: absolute;
-        pointer-events: none;
         background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
     }
 

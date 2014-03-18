@@ -13,7 +13,7 @@
  * @return this
  */
 App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
-    var images, focusWidth,
+    var images, focusWidth, arrows,
         focusCurrent = 0,
         speed = 250, // transition speed for mobile
         $gallery = view.$('.gallery'), // reference to gallery
@@ -22,7 +22,8 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
         defaults = {
             leftArrow: '.gallery-swipe-left',
             rightArrow: '.gallery-swipe-right',
-            disabledClass: 'grey'
+            disabledClass: 'grey',
+            selectedClass: 'selected'
         };
 
     // Check for children as may have already appended
@@ -95,22 +96,26 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
      * @return this
      */
     this.selectImage = function () {
-        var hash;
+        var hash,
+            arrows,
+            len = focus.children().length - 1;
 
         // Determine the selected image
-        view.$('.gallery .img')
-            .removeClass('selected')
+        $gallery
+            .children()
+            .removeClass(options.selectedClass)
             .eq(focusCurrent)
-            .addClass('selected');
+            .addClass(options.selectedClass);
 
-        view.$(options.leftArrow + "," + options.rightArrow)
-            .removeClass(options.disabledClass);
+        // Undisable by default
+        arrows = $()
+            .add(options.leftArrow)
+            .add(options.rightArrow)
+            .removeClass(options.disabledClass)
+            .eq(focusCurrent / len);
 
-        // For mobile, determines whether or not to grey out arrow
-        if (focusCurrent === 0) {
-            view.$(options.leftArrow).addClass(options.disabledClass);
-        } else if (focusCurrent === focus.children().length - 1) {
-            view.$(options.rightArrow).addClass(options.disabledClass);
+        if (!! arrows[0]) {
+            arrows.addClass(options.disabledClass);
         }
 
         if (!!window.location.hash) { // set hash if nonexistant
@@ -143,7 +148,21 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
         focus.children().css('width', width);
         width = width * focus.children().length;
         focus.width(width);
+
+        // Assign options and select arrows; attach swipe
+        // handlers
         options = _.extend(defaults, options);
+        options.leftArrow = view
+            .$(options.leftArrow)
+            .click(function(ev) { // tap left is swipe right
+                self.swipeStatus(null, 'end', 'right');
+            });
+
+        options.rightArrow = view
+            .$(options.rightArrow)
+            .click(function(ev) { // tap right is swipe left
+                self.swipeStatus(null, 'end', 'left');
+            });
 
         focus.swipe({ // attach swipe handler
             triggerOnTouchEnd: true,

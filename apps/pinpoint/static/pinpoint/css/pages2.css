@@ -507,7 +507,6 @@ div.loading {
         line-height: 75px;
         display: block;
         background-color: black;
-        pointer-events: none;
     }
 
     .previewContainer .gallery-swipe-left {

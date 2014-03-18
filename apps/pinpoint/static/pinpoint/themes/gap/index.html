@@ -18,7 +18,7 @@
             }
         });
         window.OPTIMIZER_TESTS.push({
-            index: 6, // 6 in Analytics
+            index: 6, // Two-column in Analytics
             test: 'custom',
             device: 'mobile',
             disabled: true,
@@ -32,6 +32,14 @@
                     });
                 }
                 return template;
+            }
+        });
+        window.OPTIMIZER_TESTS.push({
+            index: 7, // Null A/B Test in Analytics
+            test: 'custom',
+            device: 'mobile',
+            custom: function (template) {
+                return template || _.sample(["A", "B"]);
             }
         });
     </script>
@@ -967,6 +975,7 @@
         }, 100);
     </script>
 
+    {% if environment == 'production' %}
     <!-- Google Tag Manager -->
     <noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-NQTT"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -976,6 +985,13 @@
     '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-NQTT');</script>
     <!-- End Google Tag Manager -->
+    {% else %}
+    <script type='text/javascript'>
+        (function() {
+            var dataLayer = window.dataLayer = [];
+        }());
+    </script>
+    {% endif %}
 
     <!-- Perfect Audience -->
     <script type="text/javascript">
