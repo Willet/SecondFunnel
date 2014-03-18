@@ -279,6 +279,7 @@ CORS_ORIGIN_REGEX_WHITELIST = (
     r'^(https?://)?[\w-]+\.secondfunnel\.com$',
     r'^(https?://)?[\w-]+\.elasticbeanstalk\.com$',
     r'^(https?://)?[\w-]+\.myshopify\.com$',
+    r'^(https?://)?[\w-]+\.amazonaws\.com$',
 )
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
