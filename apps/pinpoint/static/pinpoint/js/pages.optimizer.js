@@ -47,7 +47,7 @@ App.module('optimizer', function (optimizer, App) {
      * @returns object
      **/
     this.getCustomDimensions = function () {
-        return _.extend({}, CUSTOM_DIMENSIONS);
+        return _.clone(CUSTOM_DIMENSIONS);
     };
 
     /**
@@ -217,7 +217,5 @@ App.module('optimizer', function (optimizer, App) {
             test = t.test;
             self.addTest(index, test, t);
         });
-
-        App.vent.trigger('optimizer:initialized');
     };
 });

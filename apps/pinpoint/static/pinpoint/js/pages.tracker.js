@@ -516,17 +516,12 @@ App.module("tracker", function (tracker, App) {
         }
     };
 
-    this.on('start', function () {  // this = tracker
-        return this.initialize(App.options);
-    });
-
     /**
-     * Starts the module.
-     * Sets up default tracking events.
+     * Add an initializer to fetch Google Analytics
+     * asynchronously.
      *
-     * @alias tracker.start
      */
-    this.initialize = function (options) {
+    this.addInitializer(function () {
         // this (reformatted) code creates window.ga
         (function (o, g, r, a, m) {
             window.GoogleAnalyticsObject = 'ga';
@@ -541,9 +536,15 @@ App.module("tracker", function (tracker, App) {
             m = document.getElementsByTagName(o)[0];
             m.parentNode.insertBefore(a, m);
         }('script', '//www.google-analytics.com/analytics.js', 'ga'));
-    };
+    });
 
-    this.setup = function (options) {
+
+    /**
+     * Starts the module.
+     * Sets up default tracking events.
+     *
+     */
+    this.initialize = function () {
         addItem('create', App.option('gaAccountNumber'), 'auto');
         // Track a pageview, eg like https://developers.google.com/analytics/devguides/collection/analyticsjs/
         addItem('send', 'pageview', App.optimizer.getCustomDimensions());
@@ -582,12 +583,8 @@ App.module("tracker", function (tracker, App) {
         // setTrackingDomHooks() on $.ready
     };
 
-    // bind initialize
-    _.bindAll(this, 'initialize', 'setup');
-
     // add mediator triggers if the module exists.
     App.vent.on({
-        'optimizer:initialized': _.partial(this.setup, App.options),
         'tracking:trackEvent': trackEvent,
         'tracking:trackPageView': function() {}, //trackPageview,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,

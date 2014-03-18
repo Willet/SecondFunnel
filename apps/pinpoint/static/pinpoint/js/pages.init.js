@@ -31,6 +31,7 @@ function reinitialize(app) {
         // set its width to whatever it began with.
         app.options.initialWidth = $(window).width();
         app.optimizer.initialize();
+        app.tracker.initialize();
     });
 
     app.addInitializer(function () {
