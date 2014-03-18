@@ -119,4 +119,5 @@ AWS_SQS_POLLING_QUEUES = {
     }
 }
 
-TRACKING_COOKIE_AGE = 30 # seconds: 30 seconds
+TRACKING_COOKIE_AGE = 30  # seconds: 30 seconds
+TRACKING_COOKIE_DOMAIN = None  # No need to set specific domain for local tests
