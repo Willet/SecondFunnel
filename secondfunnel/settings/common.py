@@ -20,6 +20,10 @@ INTENTRANK_DEFAULT_NUM_RESULTS = 10
 MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 CLOUDFRONT_DOMAIN = 'cdn.secondfunnel.com'
 
+# Google analytics
+GOOGLE_ANALYTICS_PROFILE = '67271131'         
+GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17' # dev and test (production has a separate profile, -16)  
+
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
