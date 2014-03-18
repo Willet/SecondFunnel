@@ -1,26 +1,12 @@
-import json
-from urlparse import parse_qs
-from django.core.paginator import Paginator
-from django.http.response import Http404
 from django.shortcuts import get_object_or_404
 
-from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_exempt
-from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseNotAllowed)
-from django.conf import settings
-
-from apps.api.decorators import check_login, append_headers, request_methods
-from apps.api.paginator import BaseCGHandler
+from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
 from apps.assets.models import Content, Store, Page
-from apps.intentrank.utils import ajax_jsonp, returns_cg_json
+from apps.intentrank.utils import ajax_jsonp
 
-from apps.api.resources import ContentGraphClient, to_cg_datetime
-from apps.api.utils import mimic_response, get_proxy_results
-from apps.api.views.tileconfig import add_content_to_page, page_add_product
-
-from apps.contentgraph.models import TileConfigObject
-from secondfunnel.errors import deprecated
+class ContentItemCGHandler(BaseItemCGHandler):
+    model = Content
+    id_attr = 'content_id'  # the arg in the url pattern used to select something
 
 
 class ContentCGHandler(BaseCGHandler):
@@ -28,7 +14,7 @@ class ContentCGHandler(BaseCGHandler):
     id_attr = 'content_id'  # the arg in the url pattern used to select something
 
 
-class StoreContentsCGHandler(ContentCGHandler):
+class StoreContentCGHandler(ContentCGHandler):
     """Adds filtering by store"""
     store_id = None  # new ID
 
@@ -38,14 +24,14 @@ class StoreContentsCGHandler(ContentCGHandler):
         store = get_object_or_404(Store, old_id=store_id)
         self.store_id = store.id
 
-        return super(StoreContentsCGHandler, self).dispatch(*args, **kwargs)
+        return super(StoreContentCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
-        qs = super(StoreContentsCGHandler, self).get_queryset()
+        qs = super(StoreContentCGHandler, self).get_queryset()
         return qs.filter(store_id=self.store_id)
 
 
-class StoreContentCGHandler(ContentCGHandler):
+class StoreContentItemCGHandler(ContentCGHandler):
     """Adds filtering by store"""
     store_id = None  # new ID
     content_id = None  # old ID
@@ -61,15 +47,15 @@ class StoreContentCGHandler(ContentCGHandler):
         self.store_id = store.id
         self.content_id = kwargs.get(self.id_attr)
 
-        return super(StoreContentCGHandler, self).dispatch(*args, **kwargs)
+        return super(StoreContentItemCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
-        qs = super(StoreContentCGHandler, self).get_queryset()
+        qs = super(StoreContentItemCGHandler, self).get_queryset()
         return qs.filter(store_id=self.store_id,
                          old_id=self.content_id)
 
 
-class StorePageContentsCGHandler(ContentCGHandler):
+class StorePageContentCGHandler(ContentCGHandler):
     """Adds filtering by page/feed"""
     feed = None
 
@@ -79,7 +65,7 @@ class StorePageContentsCGHandler(ContentCGHandler):
         page = get_object_or_404(Page, old_id=page_id)
         self.feed = page.feed
 
-        return super(StorePageContentsCGHandler, self).dispatch(*args, **kwargs)
+        return super(StorePageContentCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
         """get all the contents in the feed, which is
@@ -92,7 +78,7 @@ class StorePageContentsCGHandler(ContentCGHandler):
         return contents
 
 
-class StorePageContentCGHandler(StoreContentCGHandler):
+class StorePageContentItemCGHandler(StoreContentItemCGHandler):
     """Adds filtering by page/feed"""
     feed = None
 
@@ -102,7 +88,7 @@ class StorePageContentCGHandler(StoreContentCGHandler):
         page = get_object_or_404(Page, old_id=page_id)
         self.feed = page.feed
 
-        return super(StoreContentCGHandler, self).dispatch(*args, **kwargs)
+        return super(StoreContentItemCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
         """get all the contents in the feed, which is
@@ -115,6 +101,7 @@ class StorePageContentCGHandler(StoreContentCGHandler):
         return contents
 
 
+'''
 @request_methods('GET', 'PATCH')
 @check_login
 @never_cache
@@ -363,3 +350,4 @@ def tag_content(request, store_id, page_id, content_id, product_id=0):
         return ajax_jsonp(result=json.loads(cont), status=resp.status)
 
     return HttpResponseBadRequest()  # missing something (say, product id)
+'''

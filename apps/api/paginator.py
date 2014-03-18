@@ -206,3 +206,9 @@ class BaseCGHandler(JSONResponseMixin, ListView):
         object = get_object_or_404(self.model, id=kwargs.get(self.id_attr))
         object.delete()
         return HttpResponse(status=200)
+
+
+class BaseItemCGHandler(BaseCGHandler):
+    """Adds small modifications to handle single-object returns."""
+    def get(self, request, *args, **kwargs):
+        return ajax_jsonp(self.serialize_one())

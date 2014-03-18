@@ -34,9 +34,6 @@ class StoreProductCGHandler(ProductCGHandler):
     store_id = None  # new ID
     product_id = None  # old ID
 
-    def get(self, request, *args, **kwargs):
-        return ajax_jsonp(self.serialize_one())
-
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
