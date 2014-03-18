@@ -117,7 +117,7 @@ def returns_cg_json(fn):
         else:  # just results
             res, next_ptr = returns, None
 
-        if isinstance(res, collections.Iterable):  # multiple objects (paginate)
+        if isinstance(res, collections.Iterable) and type(res) != dict:  # multiple objects (paginate)
             if next_ptr is None:  # nothing to put in the meta
                 return ajax_jsonp({
                     'results': res,

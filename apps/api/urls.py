@@ -31,12 +31,24 @@ urlpatterns = api.urls
 
 urlpatterns += patterns('apps.api.views',
     # primitive handlers
-    url(r'^%s/product/?$' % prefix, 'product'),
-    url(r'^%s/product/(?P<product_id>[^\/]*)/?$' % prefix, 'product'),
+    url(r'^%s/store/?$' % prefix, 'handle_store'),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/?$' % prefix, 'handle_store'),
+
+    url(r'^%s/product/?$' % prefix, 'handle_product'),
+    url(r'^%s/product/(?P<product_id>[^\/]*)/?$' % prefix, 'handle_product'),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/product/?$' % prefix, 'handle_store_product'),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/product/(?P<product_id>\d+)/?$' % prefix, 'handle_store_product'),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/product/(?P<product_set>[a-z]+)/(?P<product_id>[^\/]*)/?$' % prefix, 'handle_store_product'),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/product/?$' % prefix, 'handle_store_page_product'),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/product/(?P<product_id>[^\/]*)/?$' % prefix, 'handle_store_page_product'),
+
     url(r'^%s/content/?$' % prefix, 'handle_content'),
     url(r'^%s/content/(?P<content_id>[^\/]*)/?$' % prefix, 'handle_content'),
     url(r'^%s/store/(?P<store_id>[^\/]*)/content/?$' % prefix, 'handle_store_content'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/content/(?P<content_id>[^\/]*)/?$' % prefix, 'handle_store_content'),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/content/(?P<content_id>\d+)/?$' % prefix, 'handle_store_content'),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/content/(?P<content_set>[a-z]+)/(?P<content_id>[^\/]*)/?$' % prefix, 'handle_store_content'),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/content/?$' % prefix, 'handle_store_page_content'),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/content/(?P<content_id>[^\/]*)/?$' % prefix, 'handle_store_page_content'),
 
     url(r'^%s/store/(?P<store_id>[^\/]*)'
         r'/page/(?P<page_id>[^\/]*)'

@@ -221,6 +221,8 @@ class Store(BaseModel):
     public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com",
                                       blank=True, null=True)
 
+    cg_serializer = cg_serializers.StoreSerializer
+
     @classmethod
     def from_json(cls, json_data):
         """@deprecated for replacing the Campaign Model. Use something else.
@@ -245,6 +247,7 @@ class Product(BaseModel):
     url = models.TextField()
     sku = models.CharField(max_length=255)
     price = models.CharField(max_length=16)  # DEFER: could make more sense to be an integer (# of cents)
+                                             # ... or, maybe a composite field with currency too
 
     default_image = models.ForeignKey('ProductImage', related_name='default_image',
                                       blank=True, null=True)

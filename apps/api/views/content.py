@@ -1,6 +1,7 @@
 import json
 from urlparse import parse_qs
 from django.core.paginator import Paginator
+from django.http.response import Http404
 from django.shortcuts import get_object_or_404
 
 from django.views.decorators.cache import never_cache
@@ -10,7 +11,7 @@ from django.http import (HttpResponse, HttpResponseBadRequest,
 from django.conf import settings
 
 from apps.api.decorators import check_login, append_headers, request_methods
-from apps.assets.models import Content, Store
+from apps.assets.models import Content, Store, Page
 from apps.intentrank.utils import ajax_jsonp, returns_cg_json
 
 from apps.api.resources import ContentGraphClient, to_cg_datetime
@@ -36,7 +37,10 @@ def handle_content(request, content_id=0, offset=1,
     DELETE /content/id
     """
     if content_id:
-        content = Content.objects.filter(old_id=content_id).select_subclasses()[0]
+        try:
+            content = [Content.objects.filter(old_id=content_id).select_subclasses()[0]]
+        except IndexError:
+            raise Http404()
     else:
         content = Content.objects.select_subclasses().all()
 
@@ -60,9 +64,10 @@ def handle_content(request, content_id=0, offset=1,
         if obj_attrs:
             new_content.update(**obj_attrs)
         new_content.save()  # :raises ValidationError
-        return content.to_cg_json()
+        return new_content.to_cg_json()
     # PATCH /content/id
     elif request.method == 'PATCH' and content_id:
+        content = content[0]
         content.update(**json.loads(request.body))
         if obj_attrs:
             content.update(**obj_attrs)
@@ -70,6 +75,7 @@ def handle_content(request, content_id=0, offset=1,
         return content.to_cg_json()
     # DELETE /content/id
     elif request.method == 'DELETE':
+        content = content[0]
         content.delete()
         return HttpResponse(status=200)  # it would be 500 if delete failed
 
@@ -80,7 +86,7 @@ def handle_content(request, content_id=0, offset=1,
 @csrf_exempt
 @returns_cg_json
 def handle_store_content(request, store_id, content_id=0, offset=1,
-                  results=settings.API_LIMIT_PER_PAGE):
+                         content_set='', results=settings.API_LIMIT_PER_PAGE):
     """Implements the following API patterns:
 
     GET /store/id/content
@@ -94,9 +100,12 @@ def handle_store_content(request, store_id, content_id=0, offset=1,
     store = get_object_or_404(Store, old_id=store_id)
 
     if content_id:  # get this content for this store
-        content = [Content.objects
-                          .filter(old_id=content_id, store_id=store.id)
-                          .select_subclasses()[0]]
+        try:
+            content = [Content.objects
+                              .filter(old_id=content_id, store_id=store.id)
+                              .select_subclasses()[0]]
+        except IndexError:
+            raise Http404()
     else:  # get all content for this store
         content = (Content.objects
                           .filter(store_id=store.id)
@@ -123,6 +132,67 @@ def handle_store_content(request, store_id, content_id=0, offset=1,
     elif request.method == 'PATCH' and content_id:
         return handle_content(request=request, content_id=content_id)
     # DELETE /store/id/content_id
+    elif request.method == 'DELETE' and content_id:
+        return handle_content(request=request, content_id=content_id)
+
+
+@request_methods('GET', 'POST', 'PATCH', 'DELETE')
+@check_login
+@never_cache
+@csrf_exempt
+@returns_cg_json
+def handle_store_page_content(request, store_id, page_id, content_id=0,
+                              content_set='', offset=1,
+                              results=settings.API_LIMIT_PER_PAGE):
+    """Implements the following API patterns:
+
+    GET /store/id/page/id/content
+    GET /store/id/page/id/content/id
+    POST /store/id/page/id/content
+    PATCH /store/id/page/id/content/id
+    DELETE /store/id/page/id/content/id
+
+    :returns (results, next page pointer)
+    """
+    page = get_object_or_404(Page, old_id=page_id)
+    feed = page.feed
+    tile = feed.tiles[0]  # TODO
+    store = page.store
+
+    if content_id:  # get this content for this store
+        try:
+            content = [Content.objects
+                              .filter(old_id=content_id, store_id=store.id)
+                              .select_subclasses()[0]]
+        except IndexError:
+            raise Http404()
+    else:  # get all content for this store
+        content = (Content.objects
+                          .filter(store_id=store.id)
+                          .select_subclasses()
+                          .all())
+
+    if not offset:
+        offset = 1
+    paginator = Paginator(content, results)
+    page = paginator.page(offset)
+    next_ptr = page.next_page_number() if page.has_next() else None
+
+    # GET /store/id/page/id/content/id
+    if request.method == 'GET' and content_id:
+        return page.object_list[0].to_cg_json(), None
+    # GET /store/id/page/id/content
+    elif request.method == 'GET':
+        return [c.to_cg_json() for c in page.object_list], next_ptr
+    # POST /store/id/page/id/content
+    elif request.method == 'POST':
+        return handle_content(request=request,
+                              obj_attrs={'store_id': store.id,
+                                         'tile_id': tile.id})
+    # PATCH /store/id/page/id/content/id
+    elif request.method == 'PATCH' and content_id:
+        return handle_content(request=request, content_id=content_id)
+    # DELETE /store/id/page/id/content/id
     elif request.method == 'DELETE' and content_id:
         return handle_content(request=request, content_id=content_id)
 

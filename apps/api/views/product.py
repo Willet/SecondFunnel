@@ -1,10 +1,13 @@
+import json
+from django.conf import settings
 from django.core.paginator import Paginator
+from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import request_methods, check_login
-from apps.assets.models import Product, ProductImage
+from apps.assets.models import Product, ProductImage, Store, Page
 from apps.intentrank.utils import returns_json, returns_cg_json
 
 
@@ -13,7 +16,8 @@ from apps.intentrank.utils import returns_json, returns_cg_json
 @never_cache
 @csrf_exempt
 @returns_cg_json
-def product(request, product_id=0):
+def handle_product(request, product_id=0, offset=1,
+                   results=settings.API_LIMIT_PER_PAGE, obj_attrs=None):
     """Implements the following API patterns:
 
     GET /product
@@ -22,55 +26,156 @@ def product(request, product_id=0):
     PATCH /product/id
     DELETE /product/id
     """
+    if product_id:
+        product = [Product.objects.filter(old_id=product_id)[0]]
+    else:
+        product = Product.objects.all()
 
-    if request.method == 'GET':
-        if product_id:
-            product = get_object_or_404(Product, old_id=product_id)
-            return make_cg_product_json(product)
-        else:
-            return [make_cg_product_json(product)
-                    for product in Product.objects.all()]
+    if not offset:
+        offset = 1
+    paginator = Paginator(product, results)
+    page = paginator.page(offset)
+    next_ptr = page.next_page_number() if page.has_next() else None
+
+    # GET /product/id
+    if request.method == 'GET' and product_id:
+        return page.object_list[0].to_cg_json()
+    # GET /product/id
+    elif request.method == 'GET':
+        return [c.to_cg_json() for c in page.object_list], next_ptr
+    # POST /product
+    elif request.method == 'POST':
+        attrs = json.loads(request.body)
+        new_product = Product()
+        new_product.update(**attrs)
+        if obj_attrs:
+            new_product.update(**obj_attrs)
+        new_product.save()  # :raises ValidationError
+        return new_product.to_cg_json()
+    # PATCH /product/id
+    elif request.method == 'PATCH' and product_id:
+        product = product[0]
+        product.update(**json.loads(request.body))
+        if obj_attrs:
+            product.update(**obj_attrs)
+        product.save()  # :raises ValidationError
+        return product.to_cg_json()
+    # DELETE /product/id
+    elif request.method == 'DELETE':
+        product = product[0]
+        product.delete()
+        return HttpResponse(status=200)  # it would be 500 if delete failed
+    
+    
+@request_methods('GET', 'POST', 'PATCH', 'DELETE')
+@check_login
+@never_cache
+@csrf_exempt
+@returns_cg_json
+def handle_store_product(request, store_id, product_id=0, offset=1,
+                         product_set='', results=settings.API_LIMIT_PER_PAGE):
+    """Implements the following API patterns:
+
+    GET /store/id/product
+    GET /store/id/product/id
+    POST /store/id/product
+    PATCH /store/id/product/id
+    DELETE /store/id/product/id
+
+    :returns (results, next page pointer)
+    """
+    store = get_object_or_404(Store, old_id=store_id)
+
+    if product_id:  # get this product for this store
+        try:
+            product = [Product.objects
+                              .filter(old_id=product_id, store_id=store.id)[0]]
+        except IndexError:
+            raise Http404()
+    else:  # get all product for this store
+        product = (Product.objects
+                          .filter(store_id=store.id)
+                          .all())
+
+    if not offset:
+        offset = 1
+    paginator = Paginator(product, results)
+    page = paginator.page(offset)
+    next_ptr = page.next_page_number() if page.has_next() else None
+
+    # GET /store/id/product/id
+    if request.method == 'GET' and product_id:
+        return page.object_list[0].to_cg_json(), None
+    # GET /store/id/product
+    elif request.method == 'GET':
+        return [c.to_cg_json() for c in page.object_list], next_ptr
+    # POST /store/id/product
+    elif request.method == 'POST':
+        return handle_product(request=request,
+                              obj_attrs={'store_id': store.id})
+    # PATCH /store/id/product_id
+    elif request.method == 'PATCH' and product_id:
+        return handle_product(request=request, product_id=product_id)
+    # DELETE /store/id/product_id
+    elif request.method == 'DELETE' and product_id:
+        return handle_product(request=request, product_id=product_id)
 
 
-def make_cg_product_json(product):
-    """returns {dict} product in CG json format"""
-    return {
-        "available": product.attributes.get('available', False),
-        "sku": product.sku,
-        "default-image": make_cg_image_json(product.default_image),
-        # "rescrape": "false",
-        "description": "Short sleeves. Crewneck. Screen-printed graphic at front.\nTumble Dry Low Only Non-Chlorine Bleach When Needed Cool Iron On Reverse Do Not Iron On Print",
-        "tile-configs": [],
-        "image-ids": [i.old_id for i in product.product_images.all()],
-        "url": product.url,
-        "price": product.price,
-        "created": product.created_at,
-        "default-image-id": product.default_image_id,
-        "last-modified": product.updated_at,
-        "last-scraped": product.last_scraped_at,
-        "images": [make_cg_image_json(i) for i in product.product_images.all()],
-        "product-set": "live",
-        "store-id": product.store_id,
-        "id": product.old_id,
-        "name": product.name,
-    }
+@request_methods('GET', 'POST', 'PATCH', 'DELETE')
+@check_login
+@never_cache
+@csrf_exempt
+@returns_cg_json
+def handle_store_page_product(request, store_id, page_id, product_id=0,
+                              product_set='', offset=1,
+                              results=settings.API_LIMIT_PER_PAGE):
+    """Implements the following API patterns:
 
+    GET /store/id/page/id/product
+    GET /store/id/page/id/product/id
+    POST /store/id/page/id/product
+    PATCH /store/id/page/id/product/id
+    DELETE /store/id/page/id/product/id
 
-def make_cg_image_json(image):
-    """"""
-    return {
-        "is-content": "false" if image.__class__ is ProductImage else 'true',
-        # "hash": image.hash,
-        "tagged-products": [getattr(image, 'product_id')],
-        "format": image.file_type,
-        "url": image.url,
-        "image-sizes": image.attributes.get('sizes'),
-        "created": image.created_at,
-        "last-modified": image.updated_at,
-        "original-url": image.original_url,
-        "source": getattr(image, 'source', "image"),
-        "dominant-colour": image.dominant_color,
-        "store-id": getattr(image, 'store_id', -1),
-        "type": "image",
-        "id": image.old_id,
-    }
+    :returns (results, next page pointer)
+    """
+    page = get_object_or_404(Page, old_id=page_id)
+    feed = page.feed
+    tile = feed.tiles[0]  # TODO
+    store = page.store
+
+    if product_id:  # get this product for this store
+        try:
+            product = [Product.objects
+                              .filter(old_id=product_id, store_id=store.id)[0]]
+        except IndexError:
+            raise Http404()
+    else:  # get all product for this store
+        product = (Product.objects
+                          .filter(store_id=store.id)
+                          .all())
+
+    if not offset:
+        offset = 1
+    paginator = Paginator(product, results)
+    page = paginator.page(offset)
+    next_ptr = page.next_page_number() if page.has_next() else None
+
+    # GET /store/id/page/id/product/id
+    if request.method == 'GET' and product_id:
+        return page.object_list[0].to_cg_json(), None
+    # GET /store/id/page/id/product
+    elif request.method == 'GET':
+        return [c.to_cg_json() for c in page.object_list], next_ptr
+    # POST /store/id/page/id/product
+    elif request.method == 'POST':
+        return handle_product(request=request,
+                              obj_attrs={'store_id': store.id,
+                                         'tile_id': tile.id})
+    # PATCH /store/id/page/id/product/id
+    elif request.method == 'PATCH' and product_id:
+        return handle_product(request=request, product_id=product_id)
+    # DELETE /store/id/page/id/product/id
+    elif request.method == 'DELETE' and product_id:
+        return handle_product(request=request, product_id=product_id)
+

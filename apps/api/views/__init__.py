@@ -1,3 +1,4 @@
+from store import *
 from content import *
 from page import *
 from product import *

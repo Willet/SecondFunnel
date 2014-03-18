@@ -1,6 +1,7 @@
 import json
 
 from django.core.serializers.json import Serializer as JSONSerializer
+from django.utils.text import slugify
 
 
 class RawSerializer(JSONSerializer):
@@ -27,6 +28,24 @@ class RawSerializer(JSONSerializer):
         return json.loads(self.serialize(queryset=queryset, **options))
 
 
+class StoreSerializer(RawSerializer):
+    def get_dump_object(self, obj):
+        """This will be the data used to generate the object."""
+        data = {
+            "id": obj.old_id,
+            "name": obj.name,
+            "display_name": obj.name,  # TODO: how's this different from name?
+            "public-base-url": obj.public_base_url,
+            "last-modified": obj.cg_updated_at,
+            "created": obj.cg_created_at,
+            "social-buttons": "[\"tumblr\", \"pinterest\", \"facebook\"]",  # TODO
+            "theme": obj.default_theme.template if getattr(obj, 'default_theme_id', False) else None,
+            "column-width": "220",  # TODO
+            "slug": slugify(obj.name),  # major design flaw dictates that our stores don't have slugs
+        }
+        return data
+
+
 class ProductSerializer(RawSerializer):
     """This will dump absolutely everything in a product as JSON."""
     def get_dump_object(self, obj):
@@ -35,32 +54,32 @@ class ProductSerializer(RawSerializer):
 
         Also, screw you for not having any docs.
         """
-        product_images = obj.product_images.all()
+        # product_images = obj.product_images.all()
 
         data = {
+            "-dbg-id": obj.id,
+            "id": obj.old_id,
+            "created": obj.cg_created_at,
+            "last-modified": obj.cg_updated_at,
+            "default-image-id": obj.default_image.old_id,
+            "product-set": "live",  # TODO
+            "image-ids": [str(o.old_id) for o in obj.product_images.all()],
+            "available": "true",  # TODO
+            "sku": obj.sku,
             "url": obj.url,
             "price": obj.price,
             "description": obj.description,
             "name": obj.name,
-            "images": [image.to_json() for image in product_images],
+            "store-id": obj.store.old_id,
+            # "rescrape": "false",
+            # "last-scraped": "1394775462303",
         }
-
-        # if default image is missing...
-        if hasattr(obj, 'default_image_id') and obj.default_image_id:
-            data["default-image"] = str(obj.default_image.old_id or
-                obj.default_image_id)
-        elif len(product_images) > 0:
-            # fall back to first image
-            data["default-image"] = str(product_images[0].old_id)
-
         return data
 
 
 class ContentSerializer(RawSerializer):
 
     def get_dump_object(self, obj):
-        from apps.assets.models import Product
-
         data = {
             "-dbg-id": obj.id,
             "id": getattr(obj, 'old_id', obj.id),
@@ -72,6 +91,7 @@ class ContentSerializer(RawSerializer):
             "type": self.__class__.__name__[:self.__class__.__name__.index('Serializer')].lower(),
             "tagged-products": [str(p.old_id) for p in obj.tagged_products.all()],
             "url": obj.url,
+            "status": "approved",  # by default it is
         }
 
         if hasattr(obj, 'attributes'):
