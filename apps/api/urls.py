@@ -2,7 +2,11 @@ from django.conf.urls import url, patterns, include
 from tastypie.api import Api
 
 from apps.api.resources import UserResource
-from apps.api.views import ContentCGHandler, StoreContentCGHandler, StorePageContentCGHandler, ProductCGHandler, StoreProductCGHandler, StorePageProductCGHandler, StoreCGHandler, PageCGHandler, StorePageCGHandler, TileConfigCGHandler, PageTileConfigCGHandler, StorePagesCGHandler
+from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
+    StorePageContentCGHandler, ProductCGHandler, StoreProductsCGHandler,
+    StorePageProductCGHandler, StoreCGHandler, PageCGHandler,
+    StorePageCGHandler, TileConfigCGHandler, PageTileConfigCGHandler,
+    StorePagesCGHandler, StoreProductCGHandler)
 
 prefix = 'v1'
 
@@ -24,7 +28,9 @@ urlpatterns += patterns('apps.api.views',
 
     # product
     url(r'^%s/product/?$' % prefix, ProductCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/product/?$' % prefix, StoreProductCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/product/?$' % prefix, StoreProductsCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_set>\w+)/?$' % prefix, StoreProductsCGHandler.as_view()),  # TODO: actually filter by sets (live, all, ...)
+    url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_set>\w+)/(?P<product_id>\d+)/?$' % prefix, StoreProductCGHandler.as_view()),  # TODO: actually filter by sets (live, all, ...)
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/?$' % prefix, StorePageProductCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/all/?$' % prefix, StorePageProductCGHandler.as_view()),
 

@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 
 from apps.api.paginator import BaseCGHandler
 from apps.assets.models import Product, Store, Page
+from apps.intentrank.utils import ajax_jsonp
 
 
 class ProductCGHandler(BaseCGHandler):
@@ -11,7 +12,7 @@ class ProductCGHandler(BaseCGHandler):
     id_attr = 'product_id'
 
 
-class StoreProductCGHandler(ProductCGHandler):
+class StoreProductsCGHandler(ProductCGHandler):
     """Adds filtering by store"""
     store_id = None  # new ID
 
@@ -21,14 +22,37 @@ class StoreProductCGHandler(ProductCGHandler):
         store = get_object_or_404(Store, old_id=store_id)
         self.store_id = store.id
 
+        return super(StoreProductsCGHandler, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self, request=None):
+        qs = super(StoreProductsCGHandler, self).get_queryset()
+        return qs.filter(store_id=self.store_id)
+
+
+class StoreProductCGHandler(ProductCGHandler):
+    """Adds filtering by store"""
+    store_id = None  # new ID
+    product_id = None  # old ID
+
+    def get(self, request, *args, **kwargs):
+        return ajax_jsonp(self.serialize_one())
+
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        store_id = kwargs.get('store_id')
+        store = get_object_or_404(Store, old_id=store_id)
+        self.store_id = store.id
+        self.product_id = kwargs.get('product_id')
+
         return super(StoreProductCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
         qs = super(StoreProductCGHandler, self).get_queryset()
-        return qs.filter(store_id=self.store_id)
+        return qs.filter(store_id=self.store_id,
+                         old_id=self.product_id)
 
 
-class StorePageProductCGHandler(StoreProductCGHandler):
+class StorePageProductCGHandler(StoreProductsCGHandler):
     """Adds filtering by page/feed"""
     feed = None
 
@@ -38,7 +62,7 @@ class StorePageProductCGHandler(StoreProductCGHandler):
         page = get_object_or_404(Page, old_id=page_id)
         self.feed = page.feed
 
-        return super(StoreProductCGHandler, self).dispatch(*args, **kwargs)
+        return super(StoreProductsCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
         """get all the products in the feed, which is
