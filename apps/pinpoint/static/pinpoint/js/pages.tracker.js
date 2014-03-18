@@ -5,7 +5,8 @@
 App.module("tracker", function (tracker, App) {
     "use strict";
 
-    var $document = $(document),
+    var self = this,
+        $document = $(document),
         $window = $(window),
         videosPlayed = [],
         GA_CUSTOMVAR_SCOPE = {
@@ -515,17 +516,12 @@ App.module("tracker", function (tracker, App) {
         }
     };
 
-    this.on('start', function () {  // this = tracker
-        return this.initialize(App.options);
-    });
-
     /**
-     * Starts the module.
-     * Sets up default tracking events.
+     * Add an initializer to fetch Google Analytics
+     * asynchronously.
      *
-     * @alias tracker.start
      */
-    this.initialize = function (options) {
+    this.addInitializer(function () {
         // this (reformatted) code creates window.ga
         (function (o, g, r, a, m) {
             window.GoogleAnalyticsObject = 'ga';
@@ -540,14 +536,18 @@ App.module("tracker", function (tracker, App) {
             m = document.getElementsByTagName(o)[0];
             m.parentNode.insertBefore(a, m);
         }('script', '//www.google-analytics.com/analytics.js', 'ga'));
+    });
 
-        this.setup(options);
-    };
 
-    this.setup = function (options) {
+    /**
+     * Starts the module.
+     * Sets up default tracking events.
+     *
+     */
+    this.initialize = function () {
         addItem('create', App.option('gaAccountNumber'), 'auto');
         // Track a pageview, eg like https://developers.google.com/analytics/devguides/collection/analyticsjs/
-        addItem('send', 'pageview');
+        addItem('send', 'pageview', App.optimizer.getCustomDimensions());
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?
