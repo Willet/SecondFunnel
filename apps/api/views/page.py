@@ -1,21 +1,14 @@
 import json
-from socket import error as socket_error, errno
-from django.conf import settings
-from django.core.paginator import Paginator
-from django.http import HttpResponse, Http404
+
 from django.shortcuts import get_object_or_404
-from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import check_login, request_methods
 from apps.api.paginator import BaseCGHandler
-from apps.api.resources import ContentGraphClient
-from apps.api.utils import mimic_response
-from apps.assets.models import Page, Store, Product
-from apps.intentrank.utils import ajax_jsonp, returns_cg_json
+from apps.assets.models import Page, Store
+from apps.intentrank.utils import ajax_jsonp
 from apps.static_pages.views import (generate_static_campaign,
                                      transfer_static_campaign)
-from apps.static_pages.tasks import generate_static_campaign as async_generate_campaign
 
 
 class PageCGHandler(BaseCGHandler):
@@ -28,7 +21,7 @@ class PageCGHandler(BaseCGHandler):
         return page.to_cg_json()
 
 
-class StorePageCGHandler(PageCGHandler):
+class StorePagesCGHandler(PageCGHandler):
     """Adds filtering by store"""
     store_id = None  # new ID
 
@@ -38,11 +31,33 @@ class StorePageCGHandler(PageCGHandler):
         store = get_object_or_404(Store, old_id=store_id)
         self.store_id = store.id
 
-        return super(StorePageCGHandler, self).dispatch(*args, **kwargs)
+        return super(StorePagesCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
-        qs = super(StorePageCGHandler, self).get_queryset()
+        qs = super(StorePagesCGHandler, self).get_queryset()
         return qs.filter(store_id=self.store_id)
+
+
+class StorePageCGHandler(StorePagesCGHandler):
+    """Adds filtering by store"""
+    model = Page
+    id_attr = 'page_id'
+    page_id = None
+
+    def get(self, request, *args, **kwargs):
+        return ajax_jsonp(self.serialize_one())
+    
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        page_id = kwargs.get('page_id')
+        page = get_object_or_404(Page, old_id=page_id)
+        self.page_id = page.id
+
+        return super(StorePageCGHandler, self).dispatch(*args, **kwargs)
+    
+    def get_queryset(self, request=None):
+        qs = super(StorePageCGHandler, self).get_queryset()
+        return qs.filter(store_id=self.store_id, id=self.page_id)
 
 
 @check_login
@@ -66,22 +81,3 @@ def transfer_static_page(request, store_id, page_id):
             'exception': err.__class__.__name__,
             'reason': err.message
         }, status=500)
-
-@check_login
-@csrf_exempt
-@request_methods('GET', 'PATCH')
-def modify_page(request, store_id, page_id):
-    if request.method == 'GET':
-        r = ContentGraphClient.store(store_id).page(page_id).GET(params=request.GET)
-    elif request.method == 'PATCH':
-        try:
-            async_generate_campaign.delay(store_id, page_id)
-        except socket_error as serr:
-            if serr.errno != errno.ECONNREFUSED:
-                # If we wanted to do something if rabbit is not running locally,
-                # this is where we would put it.
-                pass
-
-        r = ContentGraphClient.store(store_id).page(page_id).PATCH(data=request.body)
-
-    return mimic_response(r)

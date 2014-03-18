@@ -8,12 +8,7 @@ from apps.assets.models import Product, Store, Page
 
 class ProductCGHandler(BaseCGHandler):
     model = Product
-
-    def patch(self, request, *args, **kwargs):
-        product = get_object_or_404(self.model, old_id=kwargs.get('product_id'))
-        product.update(**json.loads(request.body))
-        product.save()
-        return product.to_cg_json()
+    id_attr = 'product_id'
 
 
 class StoreProductCGHandler(ProductCGHandler):
@@ -52,5 +47,5 @@ class StorePageProductCGHandler(StoreProductCGHandler):
         tiles = self.feed.tiles.all()
         products = []
         for tile in tiles:
-            products += tile.product.all()
+            products += tile.products.all()
         return products

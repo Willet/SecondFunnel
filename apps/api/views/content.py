@@ -24,12 +24,7 @@ from apps.contentgraph.models import TileConfigObject
 
 class ContentCGHandler(BaseCGHandler):
     model = Content
-
-    def patch(self, request, *args, **kwargs):
-        content = get_object_or_404(self.model, old_id=kwargs.get('content_id'))
-        content.update(**json.loads(request.body))
-        content.save()
-        return content.to_cg_json()
+    id_attr = 'content_id'  # the arg in the url pattern used to select something
 
 
 class StoreContentCGHandler(ContentCGHandler):

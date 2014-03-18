@@ -2,7 +2,7 @@ from django.conf.urls import url, patterns, include
 from tastypie.api import Api
 
 from apps.api.resources import UserResource
-from apps.api.views import ContentCGHandler, StoreContentCGHandler, StorePageContentCGHandler, ProductCGHandler, StoreProductCGHandler, StorePageProductCGHandler, StoreCGHandler, PageCGHandler, StorePageCGHandler
+from apps.api.views import ContentCGHandler, StoreContentCGHandler, StorePageContentCGHandler, ProductCGHandler, StoreProductCGHandler, StorePageProductCGHandler, StoreCGHandler, PageCGHandler, StorePageCGHandler, TileConfigCGHandler, PageTileConfigCGHandler, StorePagesCGHandler
 
 prefix = 'v1'
 
@@ -16,52 +16,52 @@ urlpatterns += patterns('apps.api.views',
     # primitive handlers
     # store
     url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/?$' % prefix, StoreCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreCGHandler.as_view()),
 
     url(r'^%s/content/?$' % prefix, ContentCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/content/?$' % prefix, StoreContentCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/content/?$' % prefix, StorePageContentCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/content/?$' % prefix, StoreContentCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/?$' % prefix, StorePageContentCGHandler.as_view()),
 
     # product
     url(r'^%s/product/?$' % prefix, ProductCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/product/?$' % prefix, StoreProductCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/product/?$' % prefix, StorePageProductCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/product/?$' % prefix, StoreProductCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/?$' % prefix, StorePageProductCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/all/?$' % prefix, StorePageProductCGHandler.as_view()),
 
     # page
-    url(r'^%s/page/(?P<page_id>[^\/]*)/?$' % prefix, PageCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/page/?$' % prefix, StorePageCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/?$' % prefix, PageCGHandler.as_view()),
+    url(r'^%s/page/(?P<page_id>\d+)/?$' % prefix, PageCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/?$' % prefix, StorePagesCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/?$' % prefix, StorePageCGHandler.as_view()),
 
-    url(r'^%s/store/(?P<store_id>[^\/]*)'
-        r'/page/(?P<page_id>[^\/]*)'
+    # tileconfig
+    url(r'^%s/tile-config/?$' % prefix, TileConfigCGHandler.as_view()),
+    url(r'^%s/tile-config/(?P<tileconfig_id>\d+)/?$' % prefix, TileConfigCGHandler.as_view()),
+    url(r'^%s/page/(?P<page_id>\d+)/tile-config/?$' % prefix, PageTileConfigCGHandler.as_view()),
+    url(r'^%s/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/?$' % prefix, PageTileConfigCGHandler.as_view()),
+
+    url(r'^%s/store/(?P<store_id>\d+)'
+        r'/page/(?P<page_id>\d+)'
         r'/content/suggested/?$' % prefix,
         'get_suggested_content_by_page',
         name='get_suggested_content_by_page'),
 
-    url(r'^%s/store/(?P<store_id>[^\/]*)'
-        r'/page/(?P<page_id>[^\/]*)'
-        r'/content/(?P<content_id>[^\/]*)'
+    url(r'^%s/store/(?P<store_id>\d+)'
+        r'/page/(?P<page_id>\d+)'
+        r'/content/(?P<content_id>\d+)'
         r'/tag/?$' % prefix,
         'tag_content',
         name='tag_content'),
 
-    url(r'^%s/store/(?P<store_id>[^\/]*)'
-        r'/page/(?P<page_id>[^\/]*)'
-        r'/content/(?P<content_id>[^\/]*)'
+    url(r'^%s/store/(?P<store_id>\d+)'
+        r'/page/(?P<page_id>\d+)'
+        r'/content/(?P<content_id>\d+)'
         r'/tag'
-        r'/(?P<product_id>[^\/]*)/?$' % prefix,
+        r'/(?P<product_id>\d+)/?$' % prefix,
         'tag_content',
         name='delete_tagged_content'),
 
-    url(r'^%s/store/(?P<store_id>\d+)'
-        r'/page/(?P<page_id>\d+)'
-        r'/product/add_all/?$' % prefix,
-        'add_all_products', name='add_all_products'),
-
-    url(r'^%s/store/(?P<store_id>\d+)'
-        r'/page/(?P<page_id>\d+)'
-        r'/content/add_all/?$' % prefix,
-        'add_all_content', name='add_all_content'),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/add_all/?$' % prefix, 'add_all_products', name='add_all_products'),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/add_all/?$' % prefix, 'add_all_content'),
 
     url(r'^%s/check_queue/(?P<queue_name>[^\/]*)/?$' % prefix,
         'check_queue',
@@ -79,18 +79,16 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
     url(r'^%s/scraper/store/(?P<store_id>\d+)/(?P<scraper_name>.*?)/?$' % prefix, 'delete_scraper', name='delete_scraper'),
 
-    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/?$' % prefix, 'modify_page', name='modify_page'),
-
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, 'page_content_operations', name='page_content_operations'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/prioritize/?$' % prefix, 'prioritize_content', name='prioritize_content'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/deprioritize/?$' % prefix, 'deprioritize_content', name='deprioritize_content'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/all/?$' % prefix, 'list_page_all_content', name='list_page_all_content'),
 
-    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/?$' % prefix, 'list_page_products', name='list_page_products'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/?$' % prefix, 'product_operations', name='product_operations'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/prioritize/?$' % prefix, 'prioritize_product', name='prioritize_product'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/deprioritize/?$' % prefix, 'deprioritize_product', name='deprioritize_product'),
-    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/all/?$' % prefix, 'list_page_all_products', name='list_page_all_products'),
+    #url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/all/?$' % prefix, 'list_page_all_products', name='list_page_all_products'),
+
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/?$' % prefix, 'list_page_tile_configs', name='list_page_tile_configs'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/?$' % prefix, 'get_page_tile_config', name='get_page_tile_config'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/prioritize/?$' % prefix, 'prioritize_tile', name='prioritize_tile'),

@@ -1,19 +1,71 @@
+import collections
 import json
 import itertools
-from django.shortcuts import get_object_or_404
 
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
 
 from apps.api.decorators import check_login, request_methods
-from apps.assets.models import Page
-
-from apps.intentrank.utils import ajax_jsonp
+from apps.api.paginator import BaseCGHandler
 from apps.api.resources import ContentGraphClient
-from apps.contentgraph.models import call_contentgraph
 from apps.api.utils import mimic_response
+from apps.assets.models import Page, Tile
+from apps.contentgraph.models import call_contentgraph
+from apps.intentrank.utils import ajax_jsonp
 from apps.utils import flatten
+
+from secondfunnel.errors import deprecated
+
+
+class TileConfigCGHandler(BaseCGHandler):
+    """EMULATED handler for managing tiles."""
+    model = Tile
+    id_attr = 'tileconfig_id'  # the arg in the url pattern used to select something
+
+    def serialize(self, things=None):
+        """Converts the current object (or object list) to CG's JSON output."""
+        if not things:
+            things = self.object_list
+
+        # multiple objects (paginate)
+        if isinstance(things, collections.Iterable) and type(things) != dict:
+            paginator, page, queryset, is_paginated = self.paginate_queryset(
+                things, self.get_paginate_by(things))
+
+            result_set = [obj.to_cg_json() for obj in page.object_list]
+            if page.has_next():
+                return {
+                    'results': result_set,
+                    'meta': {
+                        'cursor': {
+                            'next': page.next_page_number(),
+                        },
+                    },
+                }
+            else:
+                return {
+                    'results': result_set,
+                }
+        # single object
+        return things.to_cg_json()
+
+
+class PageTileConfigCGHandler(TileConfigCGHandler):
+    """Adds filtering by page"""
+    page = None
+
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        page_id = kwargs.get('page_id')
+        self.page = get_object_or_404(Page, old_id=page_id)
+
+        return super(PageTileConfigCGHandler, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self, request=None):
+        qs = super(PageTileConfigCGHandler, self).get_queryset()
+        return qs.filter(feed=self.page.feed)
 
 
 def cg_response_contains_results(request):
@@ -31,11 +83,12 @@ def cg_response_contains_results(request):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def prioritize_tile(request, store_id, page_id, tileconfig_id):
     tileconfig = tileconfig_prioritize(store_id, page_id, tileconfig_id)
     return ajax_jsonp(tileconfig)
 
-
+@deprecated
 def tileconfig_prioritize(store_id, page_id, tileconfig_id):
     payload = json.dumps({
         'prioritized': 'true',
@@ -49,10 +102,12 @@ def tileconfig_prioritize(store_id, page_id, tileconfig_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def deprioritize_tile(request, store_id, page_id, tileconfig_id):
     return ajax_jsonp(tileconfig_deprioritize(store_id, page_id, tileconfig_id))
 
 
+@deprecated
 def tileconfig_deprioritize(store_id, page_id, tileconfig_id):
     payload = json.dumps({
         'prioritized': 'false',
@@ -65,11 +120,13 @@ def tileconfig_deprioritize(store_id, page_id, tileconfig_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def prioritize_content(request, store_id, page_id, content_id):
     content_prioritize(store_id, page_id, content_id)
     return get_page_content(store_id, page_id, content_id)
 
 
+@deprecated
 def content_prioritize(store_id, page_id, content_id):
     tileconfig = add_content_to_page(store_id, page_id, content_id, prioritized=True)
     if not tileconfig.get('prioritized', 'false') == 'true':
@@ -81,11 +138,13 @@ def content_prioritize(store_id, page_id, content_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def deprioritize_content(request, store_id, page_id, content_id):
     content_deprioritize(store_id, page_id, content_id)
     return get_page_content(store_id, page_id, content_id)
 
 
+@deprecated
 def content_deprioritize(store_id, page_id, content_id):
     tileconfig = add_content_to_page(store_id, page_id, content_id, prioritized=True)
     if not tileconfig.get('prioritized', 'false') == 'false':
@@ -97,11 +156,13 @@ def content_deprioritize(store_id, page_id, content_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def prioritize_product(request, store_id, page_id, product_id):
     product_prioritize(store_id, page_id, product_id)
     return get_page_product(store_id, page_id, product_id)
 
 
+@deprecated
 def product_prioritize(store_id, page_id, product_id):
     tileconfig = page_add_product(store_id, page_id, product_id, prioritized=True)
     if not tileconfig.get('prioritized', 'false') == 'true':
@@ -113,11 +174,13 @@ def product_prioritize(store_id, page_id, product_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def deprioritize_product(request, store_id, page_id, product_id):
     product_deprioritize(store_id, page_id, product_id)
     return get_page_product(store_id, page_id, product_id)
 
 
+@deprecated
 def product_deprioritize(store_id, page_id, product_id):
     tileconfig = page_add_product(store_id, page_id, product_id, prioritized=True)
     if not tileconfig.get('prioritized', 'false') == 'false':
@@ -129,6 +192,7 @@ def product_deprioritize(store_id, page_id, product_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def list_page_tile_configs(request, store_id, page_id):
     r = ContentGraphClient.page(page_id)('tile-config').GET(params=request.GET)
     if r.status_code == 200:
@@ -139,6 +203,7 @@ def list_page_tile_configs(request, store_id, page_id):
     return mimic_response(r)
 
 
+@deprecated
 def get_page_content(store_id, page_id, content_id):
     r = ContentGraphClient.store(store_id).content(content_id).GET()
     if r.status_code != 200:
@@ -147,6 +212,7 @@ def get_page_content(store_id, page_id, content_id):
     return ajax_jsonp(content)
 
 
+@deprecated
 def tileconfig_to_content(tileconfig):
     if 'content' in tileconfig and len(tileconfig['content']) > 0:
         content = tileconfig['content'][0]
@@ -157,6 +223,7 @@ def tileconfig_to_content(tileconfig):
         return None
 
 
+@deprecated
 def get_page_product(store_id, page_id, product_id):
     r = ContentGraphClient.store(store_id).product(product_id).GET()
     if r.status_code != 200:
@@ -165,29 +232,7 @@ def get_page_product(store_id, page_id, product_id):
     return ajax_jsonp(product)
 
 
-@request_methods('GET')
-@check_login
-@never_cache
-@csrf_exempt
-def list_page_products(request, store_id, page_id):
-    params = request.GET.dict()
-    params['template'] = 'product'
-    r = ContentGraphClient.page(page_id)('tile-config').GET(params=params)
-    if r.status_code == 200:
-        tiles_json = r.json()
-        if 'results' in tiles_json:
-            tiles_json['results'] = expand_tile_configs(store_id, tiles_json['results'])
-            product_list = [tileconfig_to_product(x) for x in tiles_json['results']]
-            product_list = [x for x in product_list if x is not None]
-            product_json = {}
-            product_json['meta'] = tiles_json['meta']
-            product_json['results'] = product_list
-        else:
-            product_json = tiles_json
-        return mimic_response(r, content=json.dumps(product_json))
-    return mimic_response(r)
-
-
+@deprecated
 def tileconfig_to_product(tileconfig):
     if 'products' in tileconfig and len(tileconfig['products']) > 0:
         product = tileconfig['products'][0]
@@ -198,6 +243,7 @@ def tileconfig_to_product(tileconfig):
         return None
 
 
+@deprecated
 def expand_products(store_id, page_id, products):
 
     def get_product_tiles(store_id, product_id):
@@ -245,35 +291,7 @@ def expand_products(store_id, page_id, products):
 @check_login
 @never_cache
 @csrf_exempt
-def list_page_all_products(request, store_id, page_id):
-    """Handles /store/38/page/91/product/all.
-
-    Example output: https://gist.github.com/1337/d9c08c1f24979af0aa90
-    """
-    page = get_object_or_404(Page, old_id=page_id)
-    store, feed = page.store, page.feed
-    products = flatten([tile.products.all() for tile in feed.tiles.all()])
-    products = [product.to_json() for product in products]
-
-    return ajax_jsonp({
-        'results': products,
-        'meta': {}
-    })
-    '''
-    r = ContentGraphClient.store(store_id).product().GET(params=request.GET)
-
-    if r.status_code == 200:
-        result_json = r.json()
-        result_json['results'] = expand_products(store_id, page_id, result_json['results'])
-        return mimic_response(r, content=json.dumps(result_json))
-    return mimic_response(r)
-    '''
-
-
-@request_methods('GET')
-@check_login
-@never_cache
-@csrf_exempt
+@deprecated
 def list_page_all_content(request, store_id, page_id):
     params = request.GET.dict()
     params['is-content'] = 'true'
@@ -308,6 +326,7 @@ def list_page_all_content(request, store_id, page_id):
     return mimic_response(r)
 
 
+@deprecated
 def expand_contents(store_id, page_id, contents):
 
     def get_content_tiles(store_id, content_id):
@@ -336,6 +355,7 @@ def expand_contents(store_id, page_id, contents):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def get_page_tile_config(request, store_id, page_id, tileconfig_id):
     r = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).GET()
     if r.status_code == 200:
@@ -344,11 +364,13 @@ def get_page_tile_config(request, store_id, page_id, tileconfig_id):
     return mimic_response(r)
 
 
+@deprecated
 def expand_tile_config(store_id, record):
     records = expand_tile_configs(store_id, [record])
     return records[0]
 
 
+@deprecated
 def expand_tile_configs(store_id, configs):
     # TODO: this assumes multi-id lookups always return all results
     #       I think... this is a valid assumption, I am not certain at this point in time
@@ -393,6 +415,7 @@ def expand_tile_configs(store_id, configs):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def product_operations(request, store_id, page_id, product_id):
     if request.method == 'PUT':
         page_add_product(store_id, page_id, product_id)
@@ -401,6 +424,7 @@ def product_operations(request, store_id, page_id, product_id):
     return get_page_product(store_id, page_id, product_id)
 
 
+@deprecated
 def page_add_product(store_id, page_id, product_id, prioritized=False):
     tile_check_params = {'template': 'product', 'product-ids': product_id}
     tile_check = ContentGraphClient.page(page_id)('tile-config').GET(params=tile_check_params)
@@ -438,6 +462,7 @@ def page_remove_product(store_id, page_id, product_id):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def page_content_operations(request, store_id, page_id, content_id):
     try:
         if request.method == 'PUT':
@@ -449,6 +474,7 @@ def page_content_operations(request, store_id, page_id, content_id):
     return get_page_content(store_id, page_id, content_id)
 
 
+@deprecated
 def get_content_template(store_id, page_id, content_id):
     r = ContentGraphClient.store(store_id).content(content_id).GET()
     if r.status_code != 200:
@@ -461,6 +487,7 @@ def get_content_template(store_id, page_id, content_id):
     return templates.get(content['source'].lower(), 'image')
 
 
+@deprecated
 def add_content_to_page(store_id, page_id, content_id, prioritized=False):
     # get the appropriate content to determine the template type
     template = get_content_template(store_id, page_id, content_id)
@@ -486,6 +513,7 @@ def add_content_to_page(store_id, page_id, content_id, prioritized=False):
     return r.json()
 
 
+@deprecated
 def remove_content_from_page(store_id, page_id, content_id):
     # get the appropriate content to determine the template type
     template = get_content_template(store_id, page_id, content_id)
@@ -505,6 +533,7 @@ def remove_content_from_page(store_id, page_id, content_id):
         return True
 
 
+@deprecated
 def mark_page_for_regeneration(store_id, page_id):
     """marks a page for regeneration.  When one of the periodic tasks see that
     this page has been marked for regeneration, it will queue up irconfig fot

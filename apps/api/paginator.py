@@ -3,6 +3,7 @@ import json
 from django import http
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
@@ -96,9 +97,16 @@ def cg_endpoint(fn):
 
 
 class BaseCGHandler(JSONResponseMixin, ListView):
-    """Making REST APIs is a legit use of CBV, right?"""
+    """The Base Content Graph Handler. By default, handles 5 HTTP verbs using
+    django's method names: get(), post(), put(), patch(), delete(), and
+    ensures that the JSON output matches the ones produced by the original
+    Content Graph.
+
+    Making REST APIs is a legit use of CBV, right?
+    """
     model = BaseModel
     page_kwarg = 'offset'
+    id_attr = 'object_id'  # the arg in the url pattern used to select something
 
     @method_decorator(never_cache)
     @method_decorator(csrf_exempt)
@@ -127,9 +135,11 @@ class BaseCGHandler(JSONResponseMixin, ListView):
             return settings.API_LIMIT_PER_PAGE
 
     def get_allow_empty(self):
+        """Old CG serves empty lists for no results"""
         return True
 
     def serialize(self, things=None):
+        """Converts the current object (or object list) to CG's JSON output."""
         if not things:
             things = self.object_list
 
@@ -153,7 +163,15 @@ class BaseCGHandler(JSONResponseMixin, ListView):
                     'results': result_set,
                 }
         # single object
-        return things.to_cg_json()
+        return self.serialize_one(thing=things)
+
+    def serialize_one(self, thing=None):
+        if not thing:
+            thing = self.object_list
+        if type(thing) in (QuerySet, list):
+            thing = thing[0]
+
+        return thing.to_cg_json()
 
     def get(self, request, *args, **kwargs):
         return ajax_jsonp(self.serialize())
@@ -175,14 +193,12 @@ class BaseCGHandler(JSONResponseMixin, ListView):
         raise NotImplementedError()
 
     def patch(self, request, *args, **kwargs):
-        request = args[0]
-        object = get_object_or_404(self.model, id=kwargs.get('object_id'))
+        object = get_object_or_404(self.model, id=kwargs.get(self.id_attr))
         object.update(**json.loads(request.body))
         object.save()
         return ajax_jsonp(object.to_cg_json())
 
     def delete(self, request, *args, **kwargs):
-        request = args[0]
-        object = get_object_or_404(self.model, id=kwargs.get('object_id'))
+        object = get_object_or_404(self.model, id=kwargs.get(self.id_attr))
         object.delete()
         return HttpResponse(status=200)

@@ -6,10 +6,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import (HttpResponse, HttpResponseBadRequest)
 from django.conf import settings
 
-from apps.api.decorators import check_login, append_headers, request_methods
+from apps.api.decorators import request_methods
 
 
 # login_required decorator?
+from secondfunnel.errors import deprecated
+
+
 @never_cache
 @csrf_exempt
 @request_methods('GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH')
@@ -168,6 +171,7 @@ def tile_request(url, method='POST', data=None):
 
 @never_cache
 @csrf_exempt
+@deprecated
 def proxy_view(request, path):
     """Throw an exception for every unhandled request from CM."""
     raise NotImplementedError("'{0}' has not yet been implemented".format(path))
