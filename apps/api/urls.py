@@ -1,54 +1,36 @@
 from django.conf.urls import url, patterns, include
 from tastypie.api import Api
-from rest_framework_nested import routers
 
-from apps.api.resources import (ProductResource, StoreResource, PageResource,
-                                TileResource, FeedResource, UserResource,
-                                ProductImageResource, ImageResource, VideoResource,
-                                ThemeResource, ReviewResource, TileRelationResource,
-                                ContentResource, StoreViewSet, PageViewSet, FeedViewSet, TileConfigResource)
+from apps.api.resources import UserResource
+from apps.api.views import ContentCGHandler, StoreContentCGHandler, StorePageContentCGHandler, ProductCGHandler, StoreProductCGHandler, StorePageProductCGHandler, StoreCGHandler, PageCGHandler, StorePageCGHandler
 
 prefix = 'v1'
 
 # tastypie routers
 api = Api(api_name=prefix)
 api.register(UserResource())
-# api.register(StoreResource())
-# api.register(ProductResource())
-api.register(ProductImageResource())
-# api.register(ContentResource())
-api.register(ImageResource())
-api.register(VideoResource())
-api.register(ReviewResource())
-api.register(ThemeResource())
-api.register(PageResource())
-api.register(FeedResource())
-api.register(TileResource())
-api.register(TileConfigResource())
-api.register(TileRelationResource())
 
 urlpatterns = api.urls
 
 urlpatterns += patterns('apps.api.views',
     # primitive handlers
-    url(r'^%s/store/?$' % prefix, 'handle_store'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/?$' % prefix, 'handle_store'),
+    # store
+    url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/?$' % prefix, StoreCGHandler.as_view()),
 
-    url(r'^%s/product/?$' % prefix, 'handle_product'),
-    url(r'^%s/product/(?P<product_id>[^\/]*)/?$' % prefix, 'handle_product'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/product/?$' % prefix, 'handle_store_product'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/product/(?P<product_id>\d+)/?$' % prefix, 'handle_store_product'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/product/(?P<product_set>[a-z]+)/(?P<product_id>[^\/]*)/?$' % prefix, 'handle_store_product'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/product/?$' % prefix, 'handle_store_page_product'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/product/(?P<product_id>[^\/]*)/?$' % prefix, 'handle_store_page_product'),
+    url(r'^%s/content/?$' % prefix, ContentCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/content/?$' % prefix, StoreContentCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/content/?$' % prefix, StorePageContentCGHandler.as_view()),
 
-    url(r'^%s/content/?$' % prefix, 'handle_content'),
-    url(r'^%s/content/(?P<content_id>[^\/]*)/?$' % prefix, 'handle_content'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/content/?$' % prefix, 'handle_store_content'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/content/(?P<content_id>\d+)/?$' % prefix, 'handle_store_content'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/content/(?P<content_set>[a-z]+)/(?P<content_id>[^\/]*)/?$' % prefix, 'handle_store_content'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/content/?$' % prefix, 'handle_store_page_content'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/content/(?P<content_id>[^\/]*)/?$' % prefix, 'handle_store_page_content'),
+    # product
+    url(r'^%s/product/?$' % prefix, ProductCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/product/?$' % prefix, StoreProductCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/product/?$' % prefix, StorePageProductCGHandler.as_view()),
+
+    # page
+    url(r'^%s/page/(?P<page_id>[^\/]*)/?$' % prefix, PageCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/page/?$' % prefix, StorePageCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/?$' % prefix, PageCGHandler.as_view()),
 
     url(r'^%s/store/(?P<store_id>[^\/]*)'
         r'/page/(?P<page_id>[^\/]*)'
@@ -99,7 +81,6 @@ urlpatterns += patterns('apps.api.views',
 
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/?$' % prefix, 'modify_page', name='modify_page'),
 
-    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/?$' % prefix, 'list_page_content', name='list_page_content'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, 'page_content_operations', name='page_content_operations'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/prioritize/?$' % prefix, 'prioritize_content', name='prioritize_content'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/deprioritize/?$' % prefix, 'deprioritize_content', name='deprioritize_content'),

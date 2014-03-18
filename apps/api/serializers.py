@@ -138,6 +138,39 @@ class VideoSerializer(ContentSerializer):
         return data
 
 
+class PageSerializer(RawSerializer):
+    def get_dump_object(self, obj):
+        """This will be the data used to generate the object.
+        These are core attributes that every tile has.
+
+        Also, screw you for not having any docs.
+        """
+
+        data = {
+            "heroImageMobile": obj.desktop_hero_image,
+            "intentrank_id": obj.intentrank_id,
+            "ir_base_url": obj.ir_base_url,
+            # "IRSource": obj.ir_base_url,  # TOGO
+            "last-modified": obj.cg_updated_at,
+            "social-buttons": obj.social_buttons,
+            "theme": obj.theme.template,
+            "url": obj.url_slug,
+            "id": obj.old_id,
+            # "ir-last-generated": "1391710019",
+            # "ir-stale": "true",
+            "imageTileWide": obj.theme_settings.get('image_tile_wide'),
+            "created": obj.cg_created_at,
+            # "last-queued-stale-tile": "1394056998",
+            "heroImageDesktop": obj.mobile_hero_image,
+            "name": obj.name,
+            "layout": obj.template,
+            "column-width": obj.column_width,
+            "store-id": obj.store.old_id
+        }
+
+        return data
+
+
 class TileSerializer(RawSerializer):
     """This will dump absolutely everything in a tile as JSON."""
 

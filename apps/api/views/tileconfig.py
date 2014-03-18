@@ -147,29 +147,6 @@ def get_page_content(store_id, page_id, content_id):
     return ajax_jsonp(content)
 
 
-@request_methods('GET')
-@check_login
-@never_cache
-@csrf_exempt
-def list_page_content(request, store_id, page_id):
-    params = request.GET.dict()
-    params['is-content'] = 'true'
-    r = ContentGraphClient.page(page_id)('tile-config').GET(params=params)
-    if r.status_code == 200:
-        tiles_json = r.json()
-        if 'results' in tiles_json:
-            tiles_json['results'] = expand_tile_configs(store_id, tiles_json['results'])
-            content_list = [tileconfig_to_content(x) for x in tiles_json['results']]
-            content_list = [x for x in content_list if x is not None]
-            content_json = {}
-            content_json['meta'] = tiles_json['meta']
-            content_json['results'] = content_list
-        else:
-            content_json = tiles_json
-        return mimic_response(r, content=json.dumps(content_json))
-    return mimic_response(r)
-
-
 def tileconfig_to_content(tileconfig):
     if 'content' in tileconfig and len(tileconfig['content']) > 0:
         content = tileconfig['content'][0]

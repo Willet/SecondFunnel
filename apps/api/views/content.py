@@ -11,6 +11,7 @@ from django.http import (HttpResponse, HttpResponseBadRequest,
 from django.conf import settings
 
 from apps.api.decorators import check_login, append_headers, request_methods
+from apps.api.paginator import BaseCGHandler
 from apps.assets.models import Content, Store, Page
 from apps.intentrank.utils import ajax_jsonp, returns_cg_json
 
@@ -21,180 +22,54 @@ from apps.api.views.tileconfig import add_content_to_page, page_add_product
 from apps.contentgraph.models import TileConfigObject
 
 
-@request_methods('GET', 'POST', 'PATCH', 'DELETE')
-@check_login
-@never_cache
-@csrf_exempt
-@returns_cg_json
-def handle_content(request, content_id=0, offset=1,
-                   results=settings.API_LIMIT_PER_PAGE, obj_attrs=None):
-    """Implements the following API patterns:
+class ContentCGHandler(BaseCGHandler):
+    model = Content
 
-    GET /content
-    GET /content/id
-    POST /content
-    PATCH /content/id
-    DELETE /content/id
-    """
-    if content_id:
-        try:
-            content = [Content.objects.filter(old_id=content_id).select_subclasses()[0]]
-        except IndexError:
-            raise Http404()
-    else:
-        content = Content.objects.select_subclasses().all()
-
-    if not offset:
-        offset = 1
-    paginator = Paginator(content, results)
-    page = paginator.page(offset)
-    next_ptr = page.next_page_number() if page.has_next() else None
-
-    # GET /content/id
-    if request.method == 'GET' and content_id:
-        return page.object_list[0].to_cg_json()
-    # GET /content/id
-    elif request.method == 'GET':
-        return [c.to_cg_json() for c in page.object_list], next_ptr
-    # POST /content
-    elif request.method == 'POST':
-        attrs = json.loads(request.body)
-        new_content = Content()
-        new_content.update(**attrs)
-        if obj_attrs:
-            new_content.update(**obj_attrs)
-        new_content.save()  # :raises ValidationError
-        return new_content.to_cg_json()
-    # PATCH /content/id
-    elif request.method == 'PATCH' and content_id:
-        content = content[0]
+    def patch(self, request, *args, **kwargs):
+        content = get_object_or_404(self.model, old_id=kwargs.get('content_id'))
         content.update(**json.loads(request.body))
-        if obj_attrs:
-            content.update(**obj_attrs)
-        content.save()  # :raises ValidationError
+        content.save()
         return content.to_cg_json()
-    # DELETE /content/id
-    elif request.method == 'DELETE':
-        content = content[0]
-        content.delete()
-        return HttpResponse(status=200)  # it would be 500 if delete failed
 
 
-@request_methods('GET', 'POST', 'PATCH', 'DELETE')
-@check_login
-@never_cache
-@csrf_exempt
-@returns_cg_json
-def handle_store_content(request, store_id, content_id=0, offset=1,
-                         content_set='', results=settings.API_LIMIT_PER_PAGE):
-    """Implements the following API patterns:
+class StoreContentCGHandler(ContentCGHandler):
+    """Adds filtering by store"""
+    store_id = None  # new ID
 
-    GET /store/id/content
-    GET /store/id/content/id
-    POST /store/id/content
-    PATCH /store/id/content/id
-    DELETE /store/id/content/id
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        store_id = kwargs.get('store_id')
+        store = get_object_or_404(Store, old_id=store_id)
+        self.store_id = store.id
 
-    :returns (results, next page pointer)
-    """
-    store = get_object_or_404(Store, old_id=store_id)
+        return super(StoreContentCGHandler, self).dispatch(*args, **kwargs)
 
-    if content_id:  # get this content for this store
-        try:
-            content = [Content.objects
-                              .filter(old_id=content_id, store_id=store.id)
-                              .select_subclasses()[0]]
-        except IndexError:
-            raise Http404()
-    else:  # get all content for this store
-        content = (Content.objects
-                          .filter(store_id=store.id)
-                          .select_subclasses()
-                          .all())
-
-    if not offset:
-        offset = 1
-    paginator = Paginator(content, results)
-    page = paginator.page(offset)
-    next_ptr = page.next_page_number() if page.has_next() else None
-
-    # GET /store/id/content/id
-    if request.method == 'GET' and content_id:
-        return page.object_list[0].to_cg_json(), None
-    # GET /store/id/content
-    elif request.method == 'GET':
-        return [c.to_cg_json() for c in page.object_list], next_ptr
-    # POST /store/id/content
-    elif request.method == 'POST':
-        return handle_content(request=request,
-                              obj_attrs={'store_id': store.id})
-    # PATCH /store/id/content_id
-    elif request.method == 'PATCH' and content_id:
-        return handle_content(request=request, content_id=content_id)
-    # DELETE /store/id/content_id
-    elif request.method == 'DELETE' and content_id:
-        return handle_content(request=request, content_id=content_id)
+    def get_queryset(self, request=None):
+        qs = super(StoreContentCGHandler, self).get_queryset()
+        return qs.filter(store_id=self.store_id)
 
 
-@request_methods('GET', 'POST', 'PATCH', 'DELETE')
-@check_login
-@never_cache
-@csrf_exempt
-@returns_cg_json
-def handle_store_page_content(request, store_id, page_id, content_id=0,
-                              content_set='', offset=1,
-                              results=settings.API_LIMIT_PER_PAGE):
-    """Implements the following API patterns:
+class StorePageContentCGHandler(StoreContentCGHandler):
+    """Adds filtering by page/feed"""
+    feed = None
 
-    GET /store/id/page/id/content
-    GET /store/id/page/id/content/id
-    POST /store/id/page/id/content
-    PATCH /store/id/page/id/content/id
-    DELETE /store/id/page/id/content/id
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        page_id = kwargs.get('page_id')
+        page = get_object_or_404(Page, old_id=page_id)
+        self.feed = page.feed
 
-    :returns (results, next page pointer)
-    """
-    page = get_object_or_404(Page, old_id=page_id)
-    feed = page.feed
-    tile = feed.tiles[0]  # TODO
-    store = page.store
+        return super(StoreContentCGHandler, self).dispatch(*args, **kwargs)
 
-    if content_id:  # get this content for this store
-        try:
-            content = [Content.objects
-                              .filter(old_id=content_id, store_id=store.id)
-                              .select_subclasses()[0]]
-        except IndexError:
-            raise Http404()
-    else:  # get all content for this store
-        content = (Content.objects
-                          .filter(store_id=store.id)
-                          .select_subclasses()
-                          .all())
-
-    if not offset:
-        offset = 1
-    paginator = Paginator(content, results)
-    page = paginator.page(offset)
-    next_ptr = page.next_page_number() if page.has_next() else None
-
-    # GET /store/id/page/id/content/id
-    if request.method == 'GET' and content_id:
-        return page.object_list[0].to_cg_json(), None
-    # GET /store/id/page/id/content
-    elif request.method == 'GET':
-        return [c.to_cg_json() for c in page.object_list], next_ptr
-    # POST /store/id/page/id/content
-    elif request.method == 'POST':
-        return handle_content(request=request,
-                              obj_attrs={'store_id': store.id,
-                                         'tile_id': tile.id})
-    # PATCH /store/id/page/id/content/id
-    elif request.method == 'PATCH' and content_id:
-        return handle_content(request=request, content_id=content_id)
-    # DELETE /store/id/page/id/content/id
-    elif request.method == 'DELETE' and content_id:
-        return handle_content(request=request, content_id=content_id)
+    def get_queryset(self, request=None):
+        """get all the contents in the feed, which is
+        all the feed's tiles' contents
+        """
+        tiles = self.feed.tiles.all()
+        contents = []
+        for tile in tiles:
+            contents += tile.content.all()
+        return contents
 
 
 @request_methods('GET', 'PATCH')

@@ -506,6 +506,8 @@ class Page(BaseModel):
 
     feed = models.ForeignKey(Feed, related_name='page')
 
+    cg_serializer = cg_serializers.PageSerializer
+
     def __init__(self, *args, **kwargs):
         super(Page, self).__init__(*args, **kwargs)
         if not self.theme_settings:
