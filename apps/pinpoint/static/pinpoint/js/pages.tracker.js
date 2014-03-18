@@ -336,6 +336,9 @@ App.module("tracker", function (tracker, App) {
             // have different ids
             if (tileId) {
                 label += " (Tile " + tileId + ")";
+
+                // add click to our database
+                $.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.page.id + "/tile/" + tileId + "/click");
             }
 
             trackEvent({
