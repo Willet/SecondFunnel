@@ -66,18 +66,9 @@ App.module("tracker", function (tracker, App) {
                 return;
             }
 
-            if (window.location.hostname.indexOf('test') !== -1) {
-                console.warn('Skipping analytics from test buckets', arguments);
-                return;
-            }
-
             if (!App.option('enableTracking', true)) {
                 console.warn('addItem was either disabled by the client ' +
                              'or prevented by the browser. %o', arguments);
-                return;
-            }
-            if (App.option('debug', App.QUIET) > App.QUIET) {
-                console.warn('Debug mode disabled tracking. %o', arguments);
                 return;
             }
 
