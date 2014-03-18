@@ -861,9 +861,11 @@ App.module('core', function (module, App) {
                         window_middle = App.window_middle;
                     }
 
-                    if (!App.support.mobile()) {
-                        previewWindow.$el.css('top', Math.max(window_middle - (previewWindow.$el.height() / 2), 0));
+                    if (App.windowHeight && App.support.mobile()) {
+                        previewWindow.$el.css('height', App.windowHeight);
                     }
+
+                    previewWindow.$el.css('top', Math.max(window_middle - (previewWindow.$el.height() / 2), 0));
                 };
             }(this));
 
