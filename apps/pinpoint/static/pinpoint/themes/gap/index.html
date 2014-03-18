@@ -902,7 +902,9 @@
                 'click .tile.image, .tile.product': function() {
                     var cid = $(this).attr('id'),
                         obj = App.discovery.collection.get(cid),
-                        product, product_id, page_id, store_slug, feed_id, segment;
+                        product, product_id, page_id, store_slug, feed_id,
+                        segment, analyticsTile, analyticsProduct, related,
+                        analyticsPage;
 
                     tile_id = obj.get('tile-id');
                     page_id = App.options.page.id;
@@ -927,6 +929,37 @@
                         __adroll.record_user({"adroll_segments": segment});
                         __adroll.record_user({"adroll_segments": 'PopUp'});
                         __adroll.record_user({"product_id": feed_id});
+                    } catch(err) {}
+
+                    try {
+                        related = _.isEmpty(obj.get('related-products')) ?
+                                obj : obj.get('related-products')[0];
+
+                        analyticsProduct = _.pick(
+                            related.attributes || related,
+                            ['name', 'description', 'price', 'url']
+                        );
+
+                        analyticsTile = {
+                            'url': obj.get('image').get('url'),
+                            'id': obj.get('tile-id')
+                        };
+
+                        analyticsPage = _.pick(
+                            App.options.page,
+                            ['id', 'name', 'pubDate']
+                        );
+                        analyticsPage['url'] = window.location.protocol
+                            + '//'
+                            + window.location.hostname
+                            + window.location.pathname;
+
+                        Keen.addEvent('preview', {
+                            'store': App.options.store,
+                            'tile': analyticsTile,
+                            'product': analyticsProduct,
+                            'page': analyticsPage
+                        });
                     } catch(err) {}
                 }
             });
