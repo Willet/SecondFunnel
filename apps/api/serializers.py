@@ -212,10 +212,10 @@ class TileConfigSerializer(RawSerializer):
             "template": obj.template,
             "id": str(obj.old_id),
             "page-id": str(obj.feed.page.all()[0].old_id),  # if this fails, it deserves an outright exception
-            "is-content": not (obj.template == 'product'),
+            "is-content": "false" if obj.template == 'product' else "true",
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
-            "prioritized": obj.prioritized,
+            "prioritized": str(obj.prioritized).lower(),
             # "stale": "false",  # useless
         }
 

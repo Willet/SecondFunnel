@@ -175,7 +175,7 @@ class BaseCGHandler(JSONResponseMixin, ListView):
             return thing.to_cg_json()
         except:
             print "WARNING: serialization failed on {0}".format(thing)
-            return None
+            return {}
 
     def get(self, request, *args, **kwargs):
         return ajax_jsonp(self.serialize())

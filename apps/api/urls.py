@@ -7,7 +7,7 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageProductCGHandler, StoreCGHandler, PageCGHandler,
     StorePageCGHandler, TileConfigCGHandler, PageTileConfigCGHandler,
     StorePagesCGHandler, StoreProductCGHandler, StorePageContentItemCGHandler,
-    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler, PageTileConfigItemCGHandler, StorePageTileConfigCGHandler, StorePageTileConfigItemCGHandler)
+    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler, PageTileConfigItemCGHandler, StorePageTileConfigCGHandler, StorePageTileConfigItemCGHandler, CategoryCGHandler)
 
 prefix = 'v1'
 
@@ -22,6 +22,9 @@ urlpatterns += patterns('apps.api.views',
     # store
     url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreCGHandler.as_view()),
+
+    url(r'^%s/category/?$' % prefix, CategoryCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/category/?$' % prefix, CategoryCGHandler.as_view()),
 
     # content
     url(r'^%s/content/?$' % prefix, ContentCGHandler.as_view()),
