@@ -658,7 +658,7 @@ App.module('core', function (module, App) {
                 everScrolled = true;
                 App.vent.trigger('tracking:trackEvent', {
                     'category': 'visit',
-                    'action': 'scroll',
+                    'action': 'first_scroll',
                     'nonInteraction': true
                 });
             }
@@ -667,7 +667,7 @@ App.module('core', function (module, App) {
             if ((windowTop / pageHeight) > pagesScrolled) {
                 App.vent.trigger('tracking:trackEvent', {
                     'category': 'visit',
-                    'action': 'page_scroll',
+                    'action': 'scroll',
                     'label': pagesScrolled  // reports 1 if 1 page *scrolled*
                 });
 
