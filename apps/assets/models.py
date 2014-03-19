@@ -646,6 +646,12 @@ class Tile(BaseModel):
     def get_related(self):
         return TileRelation.get_related_tiles([self.id])
 
+    @property
+    def tile_config(self):
+        """(read-only) representation of the tile as its content graph
+        tileconfig."""
+        return cg_serializers.TileConfigSerializer().to_json([self])
+
 
 class TileRelation(BaseModel):
     tile_a = models.ForeignKey(Tile, related_name='+')

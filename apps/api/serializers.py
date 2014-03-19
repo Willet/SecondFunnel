@@ -205,6 +205,33 @@ class TileSerializer(RawSerializer):
         return data
 
 
+class TileConfigSerializer(RawSerializer):
+    """Tile --> tileconfig json"""
+    def get_dump_object(self, obj):
+        data =  {
+            "template": obj.template,
+            "id": str(obj.old_id),
+            "page-id": str(obj.feed.page.all()[0].old_id),  # if this fails, it deserves an outright exception
+            "is-content": not (obj.template == 'product'),
+            "last-modified": obj.cg_updated_at,
+            "created": obj.cg_created_at,
+            "prioritized": obj.prioritized,
+            # "stale": "false",  # useless
+        }
+
+        if obj.content.count() > 0:
+            data.update({
+                "content-ids": [str(c.old_id) for c in obj.content.all()],
+            })
+
+        elif obj.products.count() > 0:  # content tiles with tagged products never shows tagged products
+            data.update({
+                "product-ids": [str(p.old_id) for p in obj.products.all()],
+            })
+
+        return data
+
+
 class ProductTileSerializer(TileSerializer):
     def get_dump_object(self, obj):
         """

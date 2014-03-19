@@ -32,7 +32,7 @@ class TileConfigItemCGHandler(BaseItemCGHandler):
         if not thing:
             thing = self.object_list
 
-        return thing.to_cg_json()
+        return thing.tile_config
 
 
 class TileConfigCGHandler(BaseCGHandler):
@@ -50,7 +50,7 @@ class TileConfigCGHandler(BaseCGHandler):
             paginator, page, queryset, is_paginated = self.paginate_queryset(
                 things, self.get_paginate_by(things))
 
-            result_set = [obj.to_cg_json() for obj in page.object_list]
+            result_set = [obj.tile_config for obj in page.object_list]
             if page.has_next():
                 return {
                     'results': result_set,
@@ -65,7 +65,7 @@ class TileConfigCGHandler(BaseCGHandler):
                     'results': result_set,
                 }
         # single object
-        return things.to_cg_json()
+        return things.tile_config
 
 
 class PageTileConfigCGHandler(TileConfigCGHandler):
