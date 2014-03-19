@@ -209,7 +209,8 @@
                         second_funnel.contentWindow.postMessage(JSON.stringify({
                             'target': 'second_funnel',
                             'type': 'window_location',
-                            'window_middle': (get_scroll_top() + get_inner_window_height() / 2) - get_absolute_top_offset(second_funnel)
+                            'window_middle': (get_scroll_top() + get_inner_window_height() / 2) - get_absolute_top_offset(second_funnel),
+                            'window_height': get_inner_window_height()
                         }), origin);
                     }
                 }
