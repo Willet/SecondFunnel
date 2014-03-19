@@ -100,10 +100,12 @@ App.module("tracker", function (tracker, App) {
             addItem('send', 'event', o.category, o.action, o.label,
                     o.value || undefined, {'nonInteraction': nonInteraction});
 
+            /* adb: disable scroll pageviews for now while we resolve pageview issues
+
             if (o.action === 'scroll') {
                 var hash = '#page' + o.label;
                 trackPageview(hash);
-            }
+            }*/
         },
 
         setCustomVar = function (o) {
