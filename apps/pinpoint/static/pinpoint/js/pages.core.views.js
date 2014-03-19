@@ -9,7 +9,8 @@ App.module('core', function (module, App) {
         $document = $(document),
         // specifically, pages scrolled downwards; pagesScrolled defaults
         // to 1 because the user always sees the first page.
-        pagesScrolled = 1;
+        pagesScrolled = 1,
+        everScrolled = false;
 
     /**
      * View responsible for the "Hero Area"
@@ -649,6 +650,17 @@ App.module('core', function (module, App) {
                     pageBottomPos >= documentBottomPos - viewportHeights) {
                 // get more tiles to fill the screen.
                 this.getTiles();
+            }
+
+            // Did the user scroll ever?
+            if ($window.scrollTop() > 0 && !everScrolled) {
+                // only log this event once per user
+                everScrolled = true;
+                App.vent.trigger('tracking:trackEvent', {
+                    'category': 'visit',
+                    'action': 'first_scroll',
+                    'nonInteraction': true
+                });
             }
 
             // "did user scroll down more than a page?"
