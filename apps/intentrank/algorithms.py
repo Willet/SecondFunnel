@@ -102,54 +102,10 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     :returns list
     """
 
-    # serve prioritized tiles first
-    related_tiles = []
-    if request and hasattr(request, 'session'):
-        if len(request.session.get('shown', [])) == 0:
-            prioritized_tiles = list(
-                feed.tiles
-                .filter(prioritized=True)
-                .order_by('created_at')
-                .select_related()
-                .prefetch_related('content', 'products'))
-            prioritized_tile_ids = [tile.old_id or tile.id
-                                    for tile in prioritized_tiles]
-
-            tiles = list(feed.tiles.exclude(old_id__in=prioritized_tile_ids)
-                .select_related().prefetch_related('content', 'products'))
-
-            tiles = sorted(tiles, key=lambda tile: tile.score, reverse=True)
-
-            return (prioritized_tiles + tiles)[:results]
-
-    if not exclude_set:
-        exclude_set = []
-
     tiles = list(feed.tiles.exclude(old_id__in=exclude_set)
         .select_related().prefetch_related('content', 'products'))
 
-    total_score = 0
-
-    for tile in tiles:
-        total_score += tile.log_score()
-
-    tiles_length = 0
-    rand_sum = 0
-
-    if len(tiles) < results:
-        results = len(tiles)
-
-    while tiles_length < results:
-        rand_num = real_random.uniform(rand_sum, total_score)
-        for tile in tiles:
-            log_score = tile.log_score()
-            rand_num -= log_score
-            if rand_num <= 0:
-                index = tiles.index(tile)
-                tiles[tiles_length], tiles[index] = tiles[index], tiles[tiles_length]
-                rand_sum += log_score
-                tiles_length += 1
-                break
+    tiles = sorted(tiles, key=lambda tile: tile.click_score(), reverse=True)
 
     return tiles[:results]
 
