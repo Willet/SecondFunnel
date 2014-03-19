@@ -125,65 +125,6 @@ class StorePageContentSuggestedCGHandler(StorePageContentCGHandler):
 
 
 '''
-@request_methods('GET', 'PATCH')
-@check_login
-@never_cache
-@csrf_exempt
-@deprecated
-def content_operations(request, store_id, content_id):
-    try:
-        if request.method == 'GET':
-            r = ContentGraphClient.store(store_id).content(content_id).GET(params=request.GET)
-        elif request.method == 'PATCH':
-            r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=request.body)
-            # add an item to the TileGenerator's queue to have it updated
-            tile_config_object = TileConfigObject(store_id=store_id)
-            # caller handles error
-            tile_config_object.mark_tile_for_regeneration(content_id=content_id)
-        return mimic_response(r)
-    except ValueError:
-        return HttpResponse(status=500)
-
-
-@request_methods('POST')
-@check_login
-@never_cache
-@csrf_exempt
-@deprecated
-def reject_content(request, store_id, content_id):
-    payload = json.dumps({'status': 'rejected'})
-
-    r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
-
-    return mimic_response(r)
-
-
-@request_methods('POST')
-@check_login
-@never_cache
-@csrf_exempt
-@deprecated
-def undecide_content(request, store_id, content_id):
-    payload = json.dumps({'status': 'needs-review'})
-
-    r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
-
-    return mimic_response(r)
-
-
-@request_methods('POST')
-@check_login
-@never_cache
-@csrf_exempt
-@deprecated
-def approve_content(request, store_id, content_id):
-    payload = json.dumps({'status': 'approved'})
-
-    r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
-
-    return mimic_response(r)
-
-
 @request_methods('PUT')
 @check_login
 @never_cache

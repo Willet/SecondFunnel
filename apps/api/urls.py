@@ -34,6 +34,9 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, StorePageContentItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/suggested/?$' % prefix, StorePageContentSuggestedCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/all/?$' % prefix, StoreContentCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/approve/?$' % prefix, StoreContentItemCGHandler.as_view()),
+    url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/reject/?$' % prefix, StoreContentItemCGHandler.as_view()),
+    url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide/?$' % prefix, StoreContentItemCGHandler.as_view()),
 
     # product
     url(r'^%s/product/?$' % prefix, ProductCGHandler.as_view()),
@@ -64,11 +67,6 @@ urlpatterns += patterns('apps.api.views',
     # url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/add_all/?$' % prefix, 'add_all_content'),
 
     # url(r'^%s/check_queue/(?P<queue_name>[^\/]*)/?$' % prefix, 'check_queue', name='check_queue'),
-
-    # url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, 'content_operations', name='content_operations'),
-    # url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/approve/?$' % prefix, 'approve_content', name='approve_content'),
-    # url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/reject/?$' % prefix, 'reject_content', name='reject_content'),
-    # url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide/?$' % prefix, 'undecide_content', name='undecide_content'),
 
     # Intentrank Config
     url(r'^%s/store/(?P<store_id>\d+)/intentrank/(?P<ir_id>\d+)/?$' % prefix, 'generate_ir_config_view', name='generate_ir_config_view'),
