@@ -91,12 +91,8 @@ class ContentSerializer(RawSerializer):
             "type": self.__class__.__name__[:self.__class__.__name__.index('Serializer')].lower(),
             "tagged-products": [str(p.old_id) for p in obj.tagged_products.all()],
             "url": obj.url,
-            "status": "approved",  # by default it is
+            "status": obj.status,  # by default it is
         }
-
-        if hasattr(obj, 'attributes'):
-            if obj.attributes.get('status'):
-                data['status'] = obj.attributes.get('status', 'approved')
 
         return data
 

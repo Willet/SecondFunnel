@@ -5,7 +5,7 @@ import pytz
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.serializers.json import Serializer
 from django.db import models
 from django.db.models import Q
@@ -307,6 +307,12 @@ class ProductImage(BaseModel):
 
 
 class Content(BaseModel):
+    def _validate_status(status):
+        allowed =["approved", "rejected", "needs-review"]
+        if status not in allowed:
+            raise ValidationError("{0} is not an allowed status; "
+                                  "choices are {1}".format(status, allowed))
+
     # Content.objects object for deserializing Content models as subclasses
     objects = InheritanceManager()
 
@@ -325,6 +331,10 @@ class Content(BaseModel):
     ## this will allow arbitrary fields, querying all Content
     ## but restrict to only filtering/ordering on above fields
     attributes = JSONField(blank=True, null=True)
+
+    # "approved", "rejected", "needs-review"
+    status = models.CharField(max_length=255, default="approved",
+                              validators=[_validate_status])
 
     serializer = ir_serializers.ContentSerializer
     cg_serializer = cg_serializers.ContentSerializer
