@@ -29,9 +29,8 @@ App.module('optimizer', function (optimizer, App) {
 
             if (window.ga) {
                 window.ga('set', dim, val);
-            } else {
-                CUSTOM_DIMENSIONS[dim] = val;
             }
+            CUSTOM_DIMENSIONS[dim] = val;
         },
         getPos = function (ch) {
             return UPPERCASE_LETTERS.indexOf(ch);
