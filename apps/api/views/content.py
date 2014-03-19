@@ -1,3 +1,4 @@
+from celery.utils.functional import uniq
 from django.shortcuts import get_object_or_404
 
 from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
@@ -16,24 +17,23 @@ class ContentCGHandler(BaseCGHandler):
 
 class StoreContentCGHandler(ContentCGHandler):
     """Adds filtering by store"""
-    store_id = None  # new ID
+    store = None
 
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
-        store = get_object_or_404(Store, old_id=store_id)
-        self.store_id = store.id
+        self.store = get_object_or_404(Store, old_id=store_id)
 
         return super(StoreContentCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
         qs = super(StoreContentCGHandler, self).get_queryset()
-        return qs.filter(store_id=self.store_id)
+        return qs.filter(store_id=self.store.id)
 
 
 class StoreContentItemCGHandler(ContentCGHandler):
     """Adds filtering by store"""
-    store_id = None  # new ID
+    store = None
     content_id = None  # old ID
     id_attr = 'content_id'
 
@@ -43,19 +43,18 @@ class StoreContentItemCGHandler(ContentCGHandler):
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
-        store = get_object_or_404(Store, old_id=store_id)
-        self.store_id = store.id
+        self.store = get_object_or_404(Store, old_id=store_id)
         self.content_id = kwargs.get(self.id_attr)
 
         return super(StoreContentItemCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
         qs = super(StoreContentItemCGHandler, self).get_queryset()
-        return qs.filter(store_id=self.store_id,
+        return qs.filter(store_id=self.store.id,
                          old_id=self.content_id)
 
 
-class StorePageContentCGHandler(ContentCGHandler):
+class StorePageContentCGHandler(StoreContentCGHandler):
     """Adds filtering by page/feed"""
     feed = None
 
@@ -99,6 +98,30 @@ class StorePageContentItemCGHandler(StoreContentItemCGHandler):
         for tile in tiles:
             contents += tile.content.all()
         return contents
+
+
+class StorePageContentSuggestedCGHandler(StorePageContentCGHandler):
+    """GET only; compute list of content based on products on page."""
+    def get_queryset(self, request=None):
+        """get all the contents in the feed, which is
+        all the feed's tiles' contents
+        """
+        store = self.store
+
+        # find ids of content not already present in the current set of tiles
+        tile_content_ids = self.feed.tiles.values_list('content__old_id', flat=True)
+        not_in_feed = list(set(store.content.values_list('old_id', flat=True)) -
+                           set(tile_content_ids))
+
+        # mass select and initialize these content models
+        not_in_feed = (Content.objects.filter(old_id__in=not_in_feed)
+                                      .select_subclasses())
+
+        return not_in_feed
+
+    def post(self, request, *args, **kwargs):
+        raise NotImplementedError()
+    put = patch = delete = post
 
 
 '''

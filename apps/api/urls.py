@@ -7,7 +7,7 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageProductCGHandler, StoreCGHandler, PageCGHandler,
     StorePageCGHandler, TileConfigCGHandler, PageTileConfigCGHandler,
     StorePagesCGHandler, StoreProductCGHandler, StorePageContentItemCGHandler,
-    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler, PageTileConfigItemCGHandler, StorePageTileConfigCGHandler, StorePageTileConfigItemCGHandler, CategoryCGHandler)
+    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler, PageTileConfigItemCGHandler, StorePageTileConfigCGHandler, StorePageTileConfigItemCGHandler, CategoryCGHandler, StorePageContentSuggestedCGHandler)
 
 prefix = 'v1'
 
@@ -32,6 +32,7 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, StoreContentItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/?$' % prefix, StorePageContentCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, StorePageContentItemCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/suggested/?$' % prefix, StorePageContentSuggestedCGHandler.as_view()),
 
     # product
     url(r'^%s/product/?$' % prefix, ProductCGHandler.as_view()),
@@ -55,7 +56,6 @@ urlpatterns += patterns('apps.api.views',
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/?$' % prefix, StorePageTileConfigItemCGHandler.as_view()),
 
 
-    # url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/suggested/?$' % prefix, 'get_suggested_content_by_page', name='get_suggested_content_by_page'),
     # url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/tag/?$' % prefix, 'tag_content', name='tag_content'),
     # url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/tag/(?P<product_id>\d+)/?$' % prefix, 'tag_content', name='delete_tagged_content'),
 
