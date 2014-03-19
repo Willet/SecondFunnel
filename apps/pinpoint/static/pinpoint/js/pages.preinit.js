@@ -21,7 +21,8 @@ App.options.urlParams = window.location.search;
             urlParams = App.options.urlParams;
         if (urlParams.length > 0) {
             var href = $target.attr('href');
-            if (href && href.indexOf(urlParams.substring(1)) == -1) {
+            if (href && href.indexOf('#') == -1 &&
+                    href.indexOf(urlParams.substring(1)) == -1) {
                 href += href.indexOf('?') > -1 ? urlParams.replace('?', '&') : urlParams;
                 $target.attr('href', href);
             }

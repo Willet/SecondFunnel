@@ -18,7 +18,7 @@
             }
         });
         window.OPTIMIZER_TESTS.push({
-            index: 6, // 6 in Analytics
+            index: 6, // Two-column in Analytics
             test: 'custom',
             device: 'mobile',
             disabled: true,
@@ -32,6 +32,14 @@
                     });
                 }
                 return template;
+            }
+        });
+        window.OPTIMIZER_TESTS.push({
+            index: 7, // Null A/B Test in Analytics
+            test: 'custom',
+            device: 'mobile',
+            custom: function (template) {
+                return template || _.sample(["A", "B"]);
             }
         });
     </script>
@@ -110,11 +118,11 @@
                 <div class="container">
                     <ul class="nav navbar-nav navbar-left">
                         <li>
-                            <a class="navbar-brand gap" href="http://www.gap.com" target="_blank">&nbsp;</a>
-                            <a class="navbar-brand old_navy navbar-brand hidden-xs hidden-sm" href="http://www.oldnavy.com" target="_blank">&nbsp;</a>
-                            <a class="navbar-brand banana_republic hidden-xs hidden-sm" href="http://www.bananarepublic.com" target="_blank">&nbsp;</a>
-                            <a class="navbar-brand piperlime hidden-xs hidden-sm" href="http://www.piperlime.com" target="_blank">&nbsp;</a>
-                            <a class="navbar-brand athleta hidden-xs hidden-sm"  href="http://www.athleta.com" target="_blank">&nbsp;</a>
+                            <a data-brand="Gap" class="navbar-brand gap" href="http://www.gap.com" target="_blank">&nbsp;</a>
+                            <a data-brand="Old Navy" class="navbar-brand old_navy navbar-brand hidden-xs hidden-sm" href="http://www.oldnavy.com" target="_blank">&nbsp;</a>
+                            <a data-brand="Banana Republic" class="navbar-brand banana_republic hidden-xs hidden-sm" href="http://www.bananarepublic.com" target="_blank">&nbsp;</a>
+                            <a data-brand="Piperlime" class="navbar-brand piperlime hidden-xs hidden-sm" href="http://www.piperlime.com" target="_blank">&nbsp;</a>
+                            <a data-brand="Athleta" class="navbar-brand athleta hidden-xs hidden-sm"  href="http://www.athleta.com" target="_blank">&nbsp;</a>
                         </li>
                         <li class="other-brands dropdown hidden-md hidden-lg">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">&nbsp;</a>
@@ -783,12 +791,17 @@
             window.GAP_ANALYTICS = new App.tracker.EventManager({
                 // 1 - Top Nav
                 'click a.navbar-brand, .other-brands.dropdown a:not(.dropdown-toggle)': function () {
-                    var brand;
-                    if ($(this).text().length) {
-                        brand = $(this).text().toLowerCase();
+                    var dataBrand = $(this).data('brand');
+                    var brand = "(Unknown)";
+                    if (dataBrand && $.trim(dataBrand).length > 0) {
+                        brand = dataBrand;
                     } else {
-                        brand = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
+                        var textBrand = $.trim($(this).text().toLowerCase());
+                        if (textBrand.length > 0 ) {
+                            brand = textBrand;
+                        }
                     }
+
                     recordEvent('gap_nav', 'nav', 'exit', 'nav - ' + brand);
                 },
                 // 2 - Header Logo
@@ -967,6 +980,7 @@
         }, 100);
     </script>
 
+    {% if environment == 'production' %}
     <!-- Google Tag Manager -->
     <noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-NQTT"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -976,6 +990,13 @@
     '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-NQTT');</script>
     <!-- End Google Tag Manager -->
+    {% else %}
+    <script type='text/javascript'>
+        (function() {
+            var dataLayer = window.dataLayer = [];
+        }());
+    </script>
+    {% endif %}
 
     <!-- Perfect Audience -->
     <script type="text/javascript">

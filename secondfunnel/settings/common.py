@@ -20,6 +20,10 @@ INTENTRANK_DEFAULT_NUM_RESULTS = 10
 MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 CLOUDFRONT_DOMAIN = 'cdn.secondfunnel.com'
 
+# Google analytics
+GOOGLE_ANALYTICS_PROFILE = '67271131'         
+GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17' # dev and test (production has a separate profile, -16)  
+
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
@@ -244,6 +248,9 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_admin_bootstrapped.bootstrap3', # before 'django_admin_bootstrapped'
+    'django_admin_bootstrapped',  # before 'django.contrib.admin'
+    'adminactions',  # before 'django.contrib.admin'
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.humanize',
@@ -275,6 +282,8 @@ CORS_ORIGIN_REGEX_WHITELIST = (
     r'^(https?://)?(localhost|127.0.0.1):(\d+)$',
     r'^(https?://)?[\w-]+\.secondfunnel\.com$',
     r'^(https?://)?[\w-]+\.elasticbeanstalk\.com$',
+    r'^(https?://)?[\w-]+\.myshopify\.com$',
+    r'^(https?://)?[\w-]+\.amazonaws\.com$',
 )
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
@@ -346,6 +355,7 @@ TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     # add custom context processors here
     'secondfunnel.context_processors.environment',
     'secondfunnel.context_processors.required_dimensions',
+    'django.core.context_processors.request',
 )
 
 FIXTURE_DIRS = (
@@ -408,5 +418,6 @@ STALE_TILE_RETRY_THRESHOLD = 240  # seconds
 IRCONFIG_RETRY_THRESHOLD = 240  # seconds
 
 TRACKING_COOKIE_AGE = 60 * 60 * 24 * 30 # seconds: s*m*h*d; 30 days
+TRACKING_COOKIE_DOMAIN = 'px.secondfunnel.com'
 
 djcelery.setup_loader()

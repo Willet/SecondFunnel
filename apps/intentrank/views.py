@@ -182,8 +182,8 @@ def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
 
 
 def update_tiles(request, tile_function, **kwargs):
-    tile_id = kwargs.get('tile_id', None)
-    tile_ids = request.GET.get('tile_ids', None)
+    tile_id = kwargs.get('tile_id', None) or request.GET.get('tile-id', None)
+    tile_ids = request.GET.get('tile-ids', None)
     if tile_id:
         tile = get_object_or_404(Tile, old_id=tile_id)
         tile_function(tile)
