@@ -8,7 +8,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import check_login, request_methods
-from apps.api.paginator import BaseCGHandler
+from apps.api.paginator import BaseItemCGHandler, BaseCGHandler
 from apps.api.resources import ContentGraphClient
 from apps.api.utils import mimic_response
 from apps.assets.models import Page, Tile
@@ -17,6 +17,22 @@ from apps.intentrank.utils import ajax_jsonp
 from apps.utils import flatten
 
 from secondfunnel.errors import deprecated
+
+
+class TileConfigItemCGHandler(BaseItemCGHandler):
+    """EMULATED handler for managing tiles."""
+    model = Tile
+    id_attr = 'tileconfig_id'  # the arg in the url pattern used to select something
+
+    def serialize(self, things=None):
+        return self.serialize_one(thing=things)
+
+    def serialize_one(self, thing=None):
+        """Converts the current object (or object list) to CG's JSON output."""
+        if not thing:
+            thing = self.object_list
+
+        return thing.to_cg_json()
 
 
 class TileConfigCGHandler(BaseCGHandler):
@@ -66,6 +82,34 @@ class PageTileConfigCGHandler(TileConfigCGHandler):
     def get_queryset(self, request=None):
         qs = super(PageTileConfigCGHandler, self).get_queryset()
         return qs.filter(feed=self.page.feed)
+
+
+class PageTileConfigItemCGHandler(TileConfigItemCGHandler):
+    """Adds filtering by page"""
+    page = None
+
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        page_id = kwargs.get('page_id')
+        self.page = get_object_or_404(Page, old_id=page_id)
+
+        return super(PageTileConfigItemCGHandler, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self, request=None):
+        qs = super(PageTileConfigItemCGHandler, self).get_queryset()
+        return qs.filter(feed=self.page.feed)
+
+
+class StorePageTileConfigCGHandler(PageTileConfigCGHandler):
+    """While semantically different, same as PageTileConfigCGHandler in a
+    relational DB"""
+    pass
+
+
+class StorePageTileConfigItemCGHandler(PageTileConfigItemCGHandler):
+    """While semantically different, same as PageTileConfigItemCGHandler in a
+    relational DB"""
+    pass
 
 
 def cg_response_contains_results(request):
