@@ -51,6 +51,8 @@ requests-oauthlib==0.3.2
 
 ## Scraping
 Scrapy==0.22.2
+zope.interface==4.1.0
+selenium==2.40.0
 
 # Image Processing
 Pillow==2.3.0

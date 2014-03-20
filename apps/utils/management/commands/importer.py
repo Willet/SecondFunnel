@@ -168,6 +168,7 @@ class Command(BaseCommand):
             # if the image has source 'image' (product image), skip
             if content_source == 'image':
                 continue
+
             content_type = content_dict.get('type')
 
             content_name = content_dict.get('name')
