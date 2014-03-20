@@ -542,8 +542,17 @@ App.module("tracker", function (tracker, App) {
      */
     this.initialize = function () {
         addItem('create', App.option('gaAccountNumber'), 'auto');
+
+        // Register custom dimensions in-case they weren't already
+        // registered.
+        _.each(App.optimizer.dimensions(),
+            function (obj) {
+                setCustomVar(obj);
+            }
+        );
+
         // Track a pageview, eg like https://developers.google.com/analytics/devguides/collection/analyticsjs/
-        addItem('send', 'pageview', App.optimizer.getCustomDimensions());
+        addItem('send', 'pageview');
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?
