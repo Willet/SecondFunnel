@@ -214,4 +214,38 @@ App.module("utils", function (utils, App) {
             results = regex.exec(location.search);
         return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
     };
+
+    /**
+     * Returns a formatted url for a cloudinary image
+     *
+     * @param {string} url
+     * @param {Object} options
+     *
+     * @returns {Object}
+     */
+    this.getResizedImage = function (url, options) {
+        var columnWidth = App.layoutEngine.width(),
+            width = options.width || columnWidth,
+            height = options.height || columnWidth * 2,
+            multiplier = App.support.mobile() ? 1 : 2;
+
+        // Round to the nearest whole hundred pixel dimension;
+        // prevents creating a ridiculous number of images.
+        if (width > height) {
+            // wider than it is tall, so have to apply aspect
+            // ratio calculations
+            height = (height / width) * columnWidth;
+            height = Math.ceil((height / 100.0) * 100);
+            options.height = height * multiplier;
+        } else {
+            width = Math.ceil((columnWidth / 100.0) * 100);
+            options.width = width * multiplier;
+        }
+
+        options = _.extend({
+            crop: 'fit'
+        }, options);
+
+        return $.cloudinary.url(url, options);
+    };
 });

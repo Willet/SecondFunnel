@@ -315,3 +315,8 @@ _.mixin({
 debugOp = function () {
     console.debug('%O, %O', this, arguments);
 };
+
+/**
+ * Initialize cloudinary
+ */
+$.cloudinary.config({ cloud_name: 'secondfunnel', api_key: '471718281466152' });
