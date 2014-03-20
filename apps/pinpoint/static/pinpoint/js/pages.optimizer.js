@@ -11,7 +11,7 @@ App.module('optimizer', function (optimizer, App) {
             'SESSION': 2,
             'VISITOR': 1
         },
-        CUSTOM_DIMENSIONS = {},
+        CUSTOM_DIMENSIONS = [],
         ENABLED_TESTS = [],
         UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         OPTIMIZER_COOKIE = '__sotm',
@@ -29,9 +29,13 @@ App.module('optimizer', function (optimizer, App) {
 
             if (window.ga) {
                 window.ga('set', dim, val);
-            } else {
-                CUSTOM_DIMENSIONS[dim] = val;
             }
+
+            CUSTOM_DIMENSIONS.push({
+                'index': index,
+                'type': 'dimension',
+                'value': val
+            });
         },
         getPos = function (ch) {
             return UPPERCASE_LETTERS.indexOf(ch);
@@ -46,7 +50,7 @@ App.module('optimizer', function (optimizer, App) {
      *
      * @returns object
      **/
-    this.getCustomDimensions = function () {
+    this.dimensions = function () {
         return _.clone(CUSTOM_DIMENSIONS);
     };
 

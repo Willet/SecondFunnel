@@ -78,6 +78,7 @@ def get_results_view(request, page_id):
 
     if request.GET.get('algorithm', None) == 'popular':
         algorithm = ir_popular
+        results = 100  # temporary default to check if popularity is working
     else:
         algorithm = ir_generic
 
