@@ -596,6 +596,8 @@ class Tile(BaseModel):
     # the lower the ratio, the bigger the range between low and high log_scores
     ratio = 1.5
 
+    cg_serializer = cg_serializers.TileSerializer
+
     def add_click(self):
         self.clicks += 1
         # the value used to increase click_starting_score per click

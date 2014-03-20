@@ -181,22 +181,32 @@ class TileSerializer(RawSerializer):
 
         Also, screw you for not having any docs.
         """
-
-        data = {}
-        '''
         data = {
-            # prefixed keys are for inspection only; the hyphen is designed to
-            # prevent you from using it like a js object
-            '-dbg-real-tile-id': obj.old_id or obj.id,
-            '-dbg-attributes': obj.attributes,
-            'tile-id': obj.old_id or obj.id,
+            "template": obj.template,
+            '-dbg-id': obj.id,
+            "id": str(obj.old_id),
+            "page-id": str(obj.feed.page.all()[0].old_id),  # if this fails, it deserves an exception outright
+            "last-modified": obj.cg_updated_at,
+            "content-ids": [
+                "14035"
+            ],
+            "created": obj.cg_created_at,
+            "json": json.dumps(obj.to_json()),
+            "prioritized": "true" if obj.prioritized else "false",
         }
-        if hasattr(obj, 'template'):
-            data['template'] = obj.template
 
-        if hasattr(obj, 'prioritized'):
-            data['prioritized'] = obj.prioritized
-        '''
+        if obj.content.count() > 0:
+            data.update({
+                "content-ids": [str(c.old_id) for c in obj.content.all()],
+            })
+
+        elif obj.products.count() > 0:  # content tiles with tagged products never shows tagged products
+            data.update({
+                "product-ids": [str(p.old_id) for p in obj.products.all()],
+            })
+
+        if type(obj.attributes) is dict:
+            data.update(obj.attributes)
 
         return data
 
@@ -207,7 +217,7 @@ class TileConfigSerializer(RawSerializer):
         data =  {
             "template": obj.template,
             "id": str(obj.old_id),
-            "page-id": str(obj.feed.page.all()[0].old_id),  # if this fails, it deserves an outright exception
+            "page-id": str(obj.feed.page.all()[0].old_id),  # if this fails, it deserves an exception outright
             "is-content": "false" if obj.template == 'product' else "true",
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
@@ -225,81 +235,7 @@ class TileConfigSerializer(RawSerializer):
                 "product-ids": [str(p.old_id) for p in obj.products.all()],
             })
 
-        return data
-
-
-class ProductTileSerializer(TileSerializer):
-    def get_dump_object(self, obj):
-        """
-        :param obj  <Tile>
-        """
-        data = super(ProductTileSerializer, self).get_dump_object(obj)
-        '''
-        try:
-            data.update(obj.products
-                           .select_related('product_images')[0]
-                           .to_json())
-        except IndexError as err:
-            pass  # no products in this tile
-        '''
-        return data
-
-
-class ImageTileSerializer(TileSerializer):
-    def get_dump_object(self, obj):
-        """
-        :param obj  <Tile>
-        """
-        data = super(ImageTileSerializer, self).get_dump_object(obj)
-        '''
-        try:
-            data.update(obj.content
-                        .prefetch_related('tagged_products')
-                        .select_subclasses()
-                        [0]
-                        .to_json())
-        except IndexError as err:
-            pass  # no content in this tile
-        '''
-        return data
-
-
-class BannerTileSerializer(ImageTileSerializer):
-    def get_dump_object(self, obj):
-        """
-        :param obj  <Tile>
-        """
-        data = super(BannerTileSerializer, self).get_dump_object(obj)
-
-        # banner mode in JS is triggered by having 'redirect-url'
-        '''
-        redirect_url = (obj.attributes.get('redirect_url') or
-                        obj.attributes.get('redirect-url'))
-        if not redirect_url and obj.content.count():
-            try:
-                redirect_url = obj.content.select_subclasses()[0].source_url
-            except IndexError as err:
-                pass  # tried to find a redirect url, don't have one
-
-        data.update({'redirect-url': redirect_url,
-                     'images': [obj.attributes]})
-        '''
+        if type(obj.attributes) is dict:
+            data.update(obj.attributes)
 
         return data
-
-
-class VideoTileSerializer(ImageTileSerializer):
-    def get_dump_object(self, obj):
-        """
-        :param obj  <Tile>
-        """
-        data = {
-            'type': 'video'
-        }
-
-        data.update(super(VideoTileSerializer, self).get_dump_object(obj))
-
-        return data
-
-
-YoutubeTileSerializer = VideoTileSerializer

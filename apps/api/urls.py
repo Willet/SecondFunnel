@@ -7,7 +7,7 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageProductCGHandler, StoreCGHandler, PageCGHandler,
     StorePageCGHandler, TileConfigCGHandler, PageTileConfigCGHandler,
     StorePagesCGHandler, StoreProductCGHandler, StorePageContentItemCGHandler,
-    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler, PageTileConfigItemCGHandler, StorePageTileConfigCGHandler, StorePageTileConfigItemCGHandler, CategoryCGHandler, StorePageContentSuggestedCGHandler)
+    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler, PageTileConfigItemCGHandler, StorePageTileConfigCGHandler, StorePageTileConfigItemCGHandler, CategoryCGHandler, StorePageContentSuggestedCGHandler, TileCGHandler, TileItemCGHandler, PageTileCGHandler, PageTileItemCGHandler, StorePageTileCGHandler, StorePageTileItemCGHandler)
 
 prefix = 'v1'
 
@@ -58,6 +58,14 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/?$' % prefix, PageTileConfigItemCGHandler.as_view()),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/?$' % prefix, StorePageTileConfigCGHandler.as_view()),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/?$' % prefix, StorePageTileConfigItemCGHandler.as_view()),
+
+    # tile
+    url(r'^%s/tile/?$' % prefix, TileCGHandler.as_view()),
+    url(r'^%s/tile/(?P<tile_id>\d+)/?$' % prefix, TileItemCGHandler.as_view()),
+    url(r'^%s/page/(?P<page_id>\d+)/tile/?$' % prefix, PageTileCGHandler.as_view()),
+    url(r'^%s/page/(?P<page_id>\d+)/tile/(?P<tile_id>\d+)/?$' % prefix, PageTileItemCGHandler.as_view()),
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile/?$' % prefix, StorePageTileCGHandler.as_view()),
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile/(?P<tile_id>\d+)/?$' % prefix, StorePageTileItemCGHandler.as_view()),
 
 
     # url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/tag/?$' % prefix, 'tag_content', name='tag_content'),
