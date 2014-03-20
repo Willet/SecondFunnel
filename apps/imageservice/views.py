@@ -1,122 +1,129 @@
+import json
+import random
+
 from django.conf import settings
-from django.views.decorators.http import require_http_methods
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
-from apps.utils.ajax import ajax_success, ajax_error
-from apps.pinpoint.utils import read_remote_file
+from apps.assets.models import ProductImage, Image, Product, Store
 
 
-# The image url parameter fields
-IMAGE_KEY_FIELDS = ['file', 'url']
+def has_image_key(fn):
+    """
+    Decorator that checks for the file being present and reads it into
+    a string provided it exists, otherwise throws an error.
+    """
 
+    def wrapped_function(request, *args, **kwargs):
+        """
+        Wrapper that calls the view.
+        """
+        img = None
+        query_keys = ['file', 'url']
 
-class ParameterException(Exception):
-    pass
+        for k in query_keys: # Ensure mutual exclusion in keys
+            if request.POST.get(k, None) is not None:
+                if img is not None:
+                    raise Exception("Expected one file, found multiple.")
+                img = k
+
+        # Determine which sort of image we have
+        if img is None:
+            raise Exception("Expected a file, found nothing.")
+
+        img = request.POST.get(img)
+
+        try:
+            data = fn(request, img, *args, **kwargs)
+
+            return HttpResponse(json.dumps(data), content_type="application/json",
+                status=200)
+
+        except Exception as e:
+            return HttpResponse(json.dumps({
+                'error': {
+                    'message': str(e),
+                },
+                'success': False
+            }), content_type="application/json", status=400)
+
+        # This should never hit, if it does, something is clearly very very
+        # wrong.
+        return HttpResponse(status=500)
+
+    return wrapped_function
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def create(request):
+@has_image_key
+def create(request, img):
     """
     Processes an image and uploads it to the specified MEDIA_URL.
 
     @param request: HttpRequest
+    @param img: str
     @return: HttpResponse
     """
-    image_source = None
-
-    try:
-        image_source = get_file(request.POST)
-    except ParameterException as e:
-        return ajax_error({"msg": str(e)})
-
     path = settings.MEDIA_URL
-    data = process_image(image_source)
+    data = process_image(img)
 
-    return ajax_success({
-        'response': data
-    })
+    return data
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def create_image(request, store_id, source):
+@has_image_key
+def create_image(request, img, store_id, source):
     """
     Consumes a request object with a passed file and delegates it to the
     image service for processing, assigning it to a store.
 
     @param request: HttpRequest object
-    @param store_id: The stoer id
+    @param img: str
+    @param store_id: The store id
+    @param source: The source of the image
     @return: HttpResponse
     """
-    image_source = None
-
-    try:
-        image_source = get_file(request.POST)
-    except ParameterException as e:
-        return ajax_error({"msg": str(e)})
-
     path = create_image_path(store_id, source)
-    data = process_image(image_source, path)
-    # TODO: Assign to store
+    data = process_image(img, path)
+    store = Store.objects.get(pk=store_id)
+    """
+    image = Image(original_url=request.POST['url'], attributes=data['sizes'],
+        dominant_color=data['dominant-colour'], url=data['url'], store=store,
+        source=source, old_id=random.randint(99994, 9999923))
 
-    return ajax_success({
-        'response': data
-    })
+    image.save()
+    """
+    return data
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def create_product_image(request, store_id, product_id, source):
+@has_image_key
+def create_product_image(request, img, store_id, product_id, source):
     """
     Consumes a request object with a passed file and delegates it to the
     imageservice for processing and assigns it to a product.
 
     @param request: HttpRequest object
+    @param img: str
     @param store_id: The store id
     @param product_id: The product id
     @param source:
     @return: HttpResponse
     """
-    image_source = None
-
-    try: # Try to get the file
-        image_source = get_file(request.POST)
-    except ParameterException as e:
-        return ajax_error({'msg': str(e)})
-
     path = create_image_path(store_id, source)
-    data = process_image(image_source, path)
-    # TODO: Assign to store product
-
-    return ajax_success({
-        'response': data
-    })
-
-
-def get_file(params):
+    data = process_image(img, path)
+    product = Product.objects.get(pk=product_id)
     """
-    Determine the passed file from the dictionary of values.
+    image = ProductImage(product=product, original_url=request.POST['url'],
+        attributes=data['sizes'], dominant_color=data['dominant-colour'],
+        url=data['url'], old_id=random.randint(99994, 9999923))
 
-    @param params: dict
-    @return: str
+    image.save()
     """
-    source_file = None
-
-    for key in IMAGE_KEY_FIELDS: # iterate over file params
-        val = params.get(key, None)
-        if val is not None:
-            if source_file is not None:
-                raise ParameterException("Too many sources found.  Expected only one.")
-            if key == 'url':
-                source_file, _ = read_remote_file(val)
-            else:
-                source_file = val
-
-    # Ensure we have a file
-    if source_file is None:
-        raise ParameterException("No file passed.")
-
-    return source_file
+    return data

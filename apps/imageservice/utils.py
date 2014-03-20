@@ -1,4 +1,6 @@
 import os
+import cStringIO
+import urlparse
 
 from django.conf import settings
 from django.core.files.storage import default_storage
@@ -50,15 +52,35 @@ def determine_format(url):
     return url.split(".")[-1]
 
 
-def create_image_path(store_id, source):
+def create_image(source):
     """
-    Determine path for an image.
+    Creates an ExtendeImage object given the string representation of the
+    image.
+
+    @param source: str
+    @return: ExtendedImage object
+    """
+    img = None
+
+    try:
+        buff = cStringIO.StringIO()
+        buff.write(source)
+        buff.seek(0)
+        img = ExtendedImage.open(buff)
+    except (IOError, OSError) as e:
+        raise e
+
+    return img
+
+
+def create_image_path(store_id, *args):
+    """
+    Determine endpoint path for a url.
     """
     store = Store.objects.get(id=store_id)
     name = store.name.lower()
 
     if settings.ENVIRONMENT == 'dev':
-        static = default_storage.location
-        return os.path.join(static, "store", name, source)
+        return os.path.join("store", name, *args)
 
-    return os.path.join(IMAGESERVICE_BUCKET, "store", name, source)
+    return urlparse.urljoin("store", name, *args)

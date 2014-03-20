@@ -1,14 +1,19 @@
 import os
+import re
 import json
 import hashlib
+import tempfile
 import cStringIO
 import mimetypes
 
+import cloudinary.utils
+import cloudinary.uploader
 from threading import Semaphore
 from django.conf import settings
 from PIL import ImageFilter, Image
 
-from apps.imageservice.utils import IMAGE_SIZES
+from apps.pinpoint.utils import read_remote_file
+from apps.imageservice.utils import IMAGE_SIZES, IMAGESERVICE_BUCKET, create_image
 from apps.imageservice.models import SizeConf, ExtendedImage
 from apps.static_pages.aws_utils import upload_to_bucket, s3_key_exists
 
@@ -49,11 +54,12 @@ def resize_images(sizes, img):
     return image_sizes
 
 
-def upload_to_local(path, img, size):
+def upload_to_local(path, folder, img, size):
     """
     Uploads an image locally.
 
     @param path: The path where to upload the file
+    @param folder: The unique folder to store it in
     @param img: ExtendedImage object
     @param size: SizeConf object
     @return: None
@@ -64,20 +70,22 @@ def upload_to_local(path, img, size):
     if not os.path.exists(path):
         os.makedirs(path)
 
-    filename = os.path.join(path, filename)
+    filename = os.path.join(settings.STATIC_URL[1:],
+                            path, folder, filename)
     
     with open(filename, 'wb') as output:
         img.save(output)
 
-    return None
+    return filename
 
 
-def upload_to_s3(bucket, img, size):
+def upload_to_s3(path, folder, img, size):
     """
     Uploads an image to S3, avoids a disk write by keeping the image
     in memory.
 
-    @param bucket: S3 bucket name + folder
+    @param bucket: prefixed path name
+    @param folder: The unique folder to store it in
     @param img: ExtendedImage object
     @param size: SizeConf object
     @return: None
@@ -87,6 +95,7 @@ def upload_to_s3(bucket, img, size):
 
     file_format = "jpg" if img.format is None else img.format
     filename = "{0}.{1}".format(size.name, file_format)
+    bucket = os.path.join(IMAGESERVICE_BUCKET, path, folder)
 
     if not upload_to_bucket(bucket_name=bucket,
         filename=filename, content=output,
@@ -94,7 +103,7 @@ def upload_to_s3(bucket, img, size):
         public=True, do_gzip=True):
         raise IOError("ImageService could not upload size.")
 
-    return None
+    return os.path.join(bucket, filename)
 
 
 def process_image(source, path, sizes=[]):
@@ -122,16 +131,15 @@ def process_image_now(source, path, sizes=[]):
     @param sizes: List of sizes to create
     @return: None
     """
-    image_sizes = {}
-    img = None
+    # TODO: More sophisticated determination of file object
+    if re.match(r'^https?:', source):
+        img, _ = read_remote_file(source)
+        img = create_image(img)
+    else:
+        img = create_image(source)
 
-    try:
-        buff = cStringIO.StringIO()
-        buff.write(source)
-        buff.seek(0) # reset seek pointer
-        img = ExtendedImage.open(buff)
-    except (IOError, OSError) as e:
-        raise e
+    master_url, dominant_colour = None, None
+    data = {'sizes': []}
 
     if len(sizes) == 0:
         # sizes = SizeConf.objects.all()
@@ -140,23 +148,32 @@ def process_image_now(source, path, sizes=[]):
 
     # Get the unique folder where we'll store the image
     folder = hashlib.sha224(img.tobytes()).hexdigest()
-    path = os.path.join(path, folder)
+    upload = upload_to_local if settings.ENVIRONMENT == 'dev' else \
+        upload_to_s3
 
-    for size in sizes:
-        name, width, height = size.name, size.width, size.height
-        resized = img.resize(width, height, Image.ANTIALIAS)
-        resized = resized.filter(ImageFilter.UnsharpMask)
+    if getattr(settings, 'CLOUDINARY', None) is not None:
+        image_object = cloudinary.uploader.upload_image(source,
+            folder=os.path.join(path, folder), public_id="master")
+        master_url = image_object.url
 
-        try:
-            if settings.ENVIRONMENT == 'dev':
-                upload_to_local(path, resized, size)
-            else:
-                upload_to_s3(path, resized, size)
-            image_sizes[size.name] = { 
-                'width': size.width,
-                'height': size.height
-            }
-        except (OSError, IOError): # upload failed, don't add to our json
-            continue
+    else: # fall back to default ImageService is Cloudinary is not available
+        for size in sorted(sizes, key=lambda size: size.width):
+            name, width, height = size.name, size.width, size.height
+            resized = img.resize(width, height, Image.ANTIALIAS)
+            resized = resized.filter(ImageFilter.UnsharpMask)
 
-    return image_sizes
+            try: # ignore on failure
+                master_url = upload(path, folder, resized, size)
+                data.sizes.update(dict(size.name, {
+                    'width': size.width,
+                    'height': size.height
+                }))
+            except (OSError, IOError) as e: # upload failed, don't add to our json
+                continue
+
+    data.update({
+        'dominant-colour': img.dominant_colour,
+        'url': master_url
+    })
+
+    return data

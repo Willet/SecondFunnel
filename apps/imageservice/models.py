@@ -8,7 +8,7 @@ from PIL import Image, ImageChops, ImageFilter
 from django.db import models
 
 
-MAX_COLOR_DISTANCE = 510
+MAX_COLOUR_DISTANCE = 510
 NUM_OF_CLUSTERS = 5
 
 
@@ -29,7 +29,7 @@ class SizeConf(models.Model):
         return (self.width, self.height)
 
 
-class COLOR(object):
+class COLOUR(object):
     """
     Some colours.
     """
@@ -74,18 +74,18 @@ class ExtendedImage(object):
         return img
 
     @classmethod
-    def new(cls, mode, size, color):
+    def new(cls, mode, size, colour):
         """
         Creates a new ExtendedImage object.
 
         @param cls: ExtendedImage
         @param mode: Mode to open object in
         @param size: Tuple of the (width, height) dimensions
-        @param color: Background colour to fill the image
+        @param colour: Background colour to fill the image
         @return: ExtendedImage
         """
         img = cls()
-        img._image = Image.new(mode, size, color)
+        img._image = Image.new(mode, size, colour)
         return img
 
     @classmethod
@@ -131,17 +131,17 @@ class ExtendedImage(object):
         return (0, 0, self.size[0], self.size[1])
 
     @property
-    def dominant_color(self):
+    def dominant_colour(self):
         """
-        Determines the dominant color in an image and returns it as a hex string.
+        Determines the dominant colour in an image and returns it as a hex string.
         Reference: http://stackoverflow.com/questions/3241929
 
         @param self: ExtendedImage instance
         @return: String
         """
         # resize to reduce computation time
-        tmp = self.copy().resize((150, 150))
-        # Generate a histogram for the image color points
+        tmp = self.copy().resize(150, 150)
+        # Generate a histogram for the image colour points
         points = scipy.misc.fromimage(tmp)
         shape = points.shape
         points = points.reshape(scipy.product(shape[:2]), shape[2])
@@ -152,7 +152,7 @@ class ExtendedImage(object):
         vectors, distance = scipy.cluster.vq.vq(points, clusters)
         occurrences, _ = scipy.histogram(vectors, len(clusters)) # Get occurrences of each vector
 
-        # Find most frequent color
+        # Find most frequent colour
         peak = scipy.argmax(occurrences)
         peak = ''.join(chr(c) for c in clusters[peak]).encode('hex')
 
@@ -180,6 +180,7 @@ class ExtendedImage(object):
         @return: None
         """
         path = path if path is not None else self.path
+        mode = mode if mode is not None else self.format
         self._image.save(path, mode, *args)
 
     def luminosity(self, x, y, red_coefficient=0.2126, green_coefficient=0.7152, blue_coefficient=0.0722):
@@ -200,31 +201,31 @@ class ExtendedImage(object):
 
         return luminosity
 
-    def get_edges(self, color):
+    def get_edges(self, colour):
         """
         Calculates the bounding box surrounding the non-white portion of the image; the
-        box may contain portions of the specified color.
+        box may contain portions of the specified colour.
         Reference: http://stackoverflow.com/questions/9396312
 
         @param self: ExtendedImage instance
-        @param color: int representing pixel color
+        @param colour: int representing pixel colour
         @return: list
         """
         pixels = numpy.asarray(self)
         pixel = pixels[:, :, 0:3] # remove alpha channel
 
-        colors = numpy.where(pixel - color)[0:2]
-        box = map(min, colors)[::-1] + map(max, colors)[::-1]
+        colours = numpy.where(pixel - colour)[0:2]
+        box = map(min, colours)[::-1] + map(max, colours)[::-1]
 
         return box
 
-    def crop(self, border=COLOR.white, conf=None):
+    def crop(self, border=COLOUR.white, conf=None):
         """
-        Crops the image based on the passed color.  Defaults to
+        Crops the image based on the passed colour.  Defaults to
         whitespace.
 
         @param self: ExtendedImage instance
-        @param border: The color to crop
+        @param border: The colour to crop
         @param conf: A tuple specifying the (x, y, width, height)
         @return: ExtendedImage object
         """
@@ -267,24 +268,24 @@ class ExtendedImage(object):
 
         return img
 
-    def make_transparent(self, color=COLOR.white, tolerance=0.9):
+    def make_transparent(self, colour=COLOUR.white, tolerance=0.9):
         """
-        Makes all pixels within tolerance of the color transparent.  Defaults
+        Makes all pixels within tolerance of the colour transparent.  Defaults
         to a tolerance of 0, and whitespace.
 
         @param self: ExtendedImage instance
-        @param color: Iterable of the RGB values
-        @param tolerance: Float specifying tolerance in which to reject colors.
+        @param colour: Iterable of the RGB values
+        @param tolerance: Float specifying tolerance in which to reject colours.
         @return: None
         """
         self.convert('RGBA')
         pixels = self.load()
-        tolerance = MAX_COLOR_DISTANCE * tolerance
+        tolerance = MAX_COLOUR_DISTANCE * tolerance
 
         for y in xrange(self.size[1]): # iterate over rows
             for x in xrange(self.size[0]): # iterate over cols
                 data = pixels[x, y]
-                diff = sum(abs(o - s) for o, s in zip(color, data))
+                diff = sum(abs(o - s) for o, s in zip(colour, data))
                 if diff <= tolerance:
                     data = list(data)
                     data[3] = 0
