@@ -408,7 +408,7 @@ class Page(BaseModel):
         ('template', 'hero'), ('image_tile_wide', 0.5), ('hide_navigation_bar', ''),
         ('results_threshold', {}), ('desktop_hero_image', ''), ('mobile_hero_image', ''),
         ('intentrank_id', old_id), ('column_width', 240), ('social_buttons', ''),
-        ('enable_tracking', "true"), ('ir_base_url', '')
+        ('enable_tracking', "true"), ('ir_base_url', ''), ('ga_account_number', ''),
     ]
 
     description = models.TextField(blank=True, null=True)
