@@ -6,8 +6,8 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageContentCGHandler, ProductCGHandler, StoreProductsCGHandler,
     StorePageProductCGHandler, StoreCGHandler, PageCGHandler,
     StorePageCGHandler, TileConfigCGHandler, PageTileConfigCGHandler,
-    StorePagesCGHandler, StoreProductCGHandler, StorePageContentItemCGHandler,
-    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler, PageTileConfigItemCGHandler, StorePageTileConfigCGHandler, StorePageTileConfigItemCGHandler, CategoryCGHandler, StorePageContentSuggestedCGHandler, TileCGHandler, TileItemCGHandler, PageTileCGHandler, PageTileItemCGHandler, StorePageTileCGHandler, StorePageTileItemCGHandler)
+    StorePageItemCGHandler, StoreProductCGHandler, StorePageContentItemCGHandler,
+    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler, PageTileConfigItemCGHandler, StorePageTileConfigCGHandler, StorePageTileConfigItemCGHandler, CategoryCGHandler, StorePageContentSuggestedCGHandler, TileCGHandler, TileItemCGHandler, PageTileCGHandler, PageTileItemCGHandler, StorePageTileCGHandler, StorePageTileItemCGHandler, PageItemCGHandler)
 
 prefix = 'v1'
 
@@ -47,9 +47,10 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/all/?$' % prefix, StorePageProductCGHandler.as_view()),
 
     # page
-    url(r'^%s/page/(?P<page_id>\d+)/?$' % prefix, PageCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/page/?$' % prefix, StorePagesCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/?$' % prefix, StorePageCGHandler.as_view()),
+    url(r'^%s/page/?$' % prefix, PageCGHandler.as_view()),
+    url(r'^%s/page/(?P<page_id>\d+)/?$' % prefix, PageItemCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/?$' % prefix, StorePageCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/?$' % prefix, StorePageItemCGHandler.as_view()),
 
     # tileconfig
     url(r'^%s/tile-config/?$' % prefix, TileConfigCGHandler.as_view()),

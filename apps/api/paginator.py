@@ -3,6 +3,7 @@ import json
 from django import http
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -178,12 +179,16 @@ class BaseCGHandler(JSONResponseMixin, ListView):
             return {}
 
     def get(self, request, *args, **kwargs):
+        print "BaseCGHandler handling GET {0}".format(request.path)
         return ajax_jsonp(self.serialize())
 
     def post(self, request, *args, **kwargs):
         """default POST behaviour: apply whichever object attributes
         you supply as the body and save the object.
+
+        - saves a new object every time (PK Exceptions apply)
         """
+        print "BaseCGHandler handling POST {0}".format(request.path)
         data = json.loads(request.body)
         new_object = self.model()
         new_object.update(**data)
@@ -194,15 +199,51 @@ class BaseCGHandler(JSONResponseMixin, ListView):
         return ajax_jsonp(new_object.to_cg_json())
 
     def put(self, request, *args, **kwargs):
-        raise NotImplementedError()
+        """default PUT behaviour
+
+        - if found, update and save
+        - if not found, create and save
+        """
+        print "BaseCGHandler handling PUT {0}".format(request.path)
+        try:
+            object_id = kwargs[self.id_attr]  # raises
+            object = self.model.objects.get(id=object_id)
+        except:  # no object specified
+            object = self.model()
+        else:  # object exists
+            pass
+
+        object.update(**json.loads(request.body))
+        object.save()
+        return ajax_jsonp(object.to_cg_json())
 
     def patch(self, request, *args, **kwargs):
-        object = get_object_or_404(self.model, id=kwargs.get(self.id_attr))
+        """default PATCH behaviour
+
+        - if found, update and save
+        - if not found, 404
+        """
+        print "BaseCGHandler handling PATCH {0}".format(request.path)
+        object_id = kwargs.get(self.id_attr)
+        if not object_id:
+            raise HttpResponse(status=405)  # url didn't capture what to delete
+
+        object = get_object_or_404(self.model, id=object_id)
         object.update(**json.loads(request.body))
         object.save()
         return ajax_jsonp(object.to_cg_json())
 
     def delete(self, request, *args, **kwargs):
+        """default DELETE behaviour
+
+        - if found, delete
+        - if not found, 404
+        """
+        print "BaseCGHandler handling DELETE {0}".format(request.path)
+        object_id = kwargs.get(self.id_attr)
+        if not object_id:
+            raise HttpResponse(status=405)  # url didn't capture what to delete
+
         object = get_object_or_404(self.model, id=kwargs.get(self.id_attr))
         object.delete()
         return HttpResponse(status=200)
