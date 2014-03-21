@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile, TileRelation
 from apps.intentrank.controllers import IntentRank
-from apps.intentrank.algorithms import ir_generic, ir_all, ir_popular
+from apps.intentrank.algorithms import ir_generic, ir_all, ir_popular, ir_ordered
 from apps.intentrank.utils import ajax_jsonp
 
 
@@ -79,6 +79,8 @@ def get_results_view(request, page_id):
     if request.GET.get('algorithm', None) == 'popular':
         algorithm = ir_popular
         results = 100  # temporary default to check if popularity is working
+    elif request.GET.get('algorithm', None) == 'ordered':
+        algorithm = ir_ordered
     else:
         algorithm = ir_generic
 
