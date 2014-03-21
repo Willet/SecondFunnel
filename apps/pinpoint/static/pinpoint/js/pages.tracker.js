@@ -5,7 +5,8 @@
 App.module("tracker", function (tracker, App) {
     "use strict";
 
-    var $document = $(document),
+    var self = this,
+        $document = $(document),
         $window = $(window),
         videosPlayed = [],
         GA_CUSTOMVAR_SCOPE = {
@@ -65,18 +66,9 @@ App.module("tracker", function (tracker, App) {
                 return;
             }
 
-            if (window.location.hostname.indexOf('test') !== -1) {
-                console.warn('Skipping analytics from test buckets', arguments);
-                return;
-            }
-
             if (!App.option('enableTracking', true)) {
                 console.warn('addItem was either disabled by the client ' +
                              'or prevented by the browser. %o', arguments);
-                return;
-            }
-            if (App.option('debug', App.QUIET) > App.QUIET) {
-                console.warn('Debug mode disabled tracking. %o', arguments);
                 return;
             }
 
@@ -108,10 +100,12 @@ App.module("tracker", function (tracker, App) {
             addItem('send', 'event', o.category, o.action, o.label,
                     o.value || undefined, {'nonInteraction': nonInteraction});
 
+            /* adb: disable scroll pageviews for now while we resolve pageview issues
+
             if (o.action === 'scroll') {
                 var hash = '#page' + o.label;
                 trackPageview(hash);
-            }
+            }*/
         },
 
         setCustomVar = function (o) {
@@ -344,6 +338,9 @@ App.module("tracker", function (tracker, App) {
             // have different ids
             if (tileId) {
                 label += " (Tile " + tileId + ")";
+
+                // add click to our database
+                $.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.page.id + "/tile/" + tileId + "/click");
             }
 
             trackEvent({
@@ -515,17 +512,12 @@ App.module("tracker", function (tracker, App) {
         }
     };
 
-    this.on('start', function () {  // this = tracker
-        return this.initialize(App.options);
-    });
-
     /**
-     * Starts the module.
-     * Sets up default tracking events.
+     * Add an initializer to fetch Google Analytics
+     * asynchronously.
      *
-     * @alias tracker.start
      */
-    this.initialize = function (options) {
+    this.addInitializer(function () {
         // this (reformatted) code creates window.ga
         (function (o, g, r, a, m) {
             window.GoogleAnalyticsObject = 'ga';
@@ -540,12 +532,25 @@ App.module("tracker", function (tracker, App) {
             m = document.getElementsByTagName(o)[0];
             m.parentNode.insertBefore(a, m);
         }('script', '//www.google-analytics.com/analytics.js', 'ga'));
+    });
 
-        this.setup(options);
-    };
 
-    this.setup = function (options) {
+    /**
+     * Starts the module.
+     * Sets up default tracking events.
+     *
+     */
+    this.initialize = function () {
         addItem('create', App.option('gaAccountNumber'), 'auto');
+
+        // Register custom dimensions in-case they weren't already
+        // registered.
+        _.each(App.optimizer.dimensions(),
+            function (obj) {
+                setCustomVar(obj);
+            }
+        );
+
         // Track a pageview, eg like https://developers.google.com/analytics/devguides/collection/analyticsjs/
         addItem('send', 'pageview');
 

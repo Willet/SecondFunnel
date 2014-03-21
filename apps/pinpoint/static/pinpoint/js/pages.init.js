@@ -31,6 +31,7 @@ function reinitialize(app) {
         // set its width to whatever it began with.
         app.options.initialWidth = $(window).width();
         app.optimizer.initialize();
+        app.tracker.initialize();
     });
 
     app.addInitializer(function () {
@@ -65,7 +66,8 @@ function reinitialize(app) {
     });
 
     app.vent.on('initRouter', function () {
-        var loc = window.location.href; // reference to current url
+        var loc = window.location.href, // reference to current url
+            previewLoadingScreen = $('#preview-loading');
         app.router = new Backbone.Router();
 
         //TODO: put these routes into their own file?
@@ -105,7 +107,25 @@ function reinitialize(app) {
                 'type': 'hash_change',
                 'hash': window.location.hash
             }));
-            var tile = new app.core.Tile({
+
+            var tile = app.discovery && app.discovery.collection ?
+                app.discovery.collection.tiles[tileId] :
+                undefined;
+
+
+            previewLoadingScreen.show();
+
+            if (tile !== undefined) {
+                var preview = new app.core.PreviewWindow({
+                    'model': tile
+                });
+                app.previewArea.show(preview);
+                return;
+            }
+
+            console.debug("tile not found, fetching from IR.");
+
+            tile = new app.core.Tile({
                 'tile-id': tileId
             });
 

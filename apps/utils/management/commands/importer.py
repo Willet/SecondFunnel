@@ -235,7 +235,7 @@ class Command(BaseCommand):
         store_id = store_id or self.store_id
         for page_dict in get_contentgraph_data(self._store_url() + 'page/'):
             page_old_id = page_dict.get('id')
-            if not page_old_id in ['53', '91', '95', '98']:
+            if not page_old_id in ['53', '91', '95', '98', '102']:
                 continue
             page_name = page_dict.get('name')
             page_legal_copy = page_dict.get('legalCopy')

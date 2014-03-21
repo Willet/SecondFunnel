@@ -14,7 +14,7 @@ from django.template import RequestContext, loader, Template
 from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Theme, Page
+from apps.assets.models import Theme, Page, Store
 from secondfunnel.errors import deprecated
 
 
@@ -54,6 +54,16 @@ def read_remote_file(url, default_value=''):
         return content, False
     except (TypeError, ValueError, urllib2.HTTPError) as err:
         return default_value, False
+
+def get_store_from_request(request):
+    current_url = 'http://%s/' % request.get_host()
+
+    try:
+        store = Store.objects.get(public_base_url=current_url)
+    except Store.DoesNotExist:
+        store = None
+
+    return store
 
 
 def render_campaign(page_id, request, store_id=0):
@@ -128,6 +138,8 @@ def render_campaign(page_id, request, store_id=0):
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
         "url": page.get('url', ''),
         "related_to_tile": request.GET.get('related', ''),
+        "algorithm": request.GET.get('algorithm', 'generic'),
+        "environment": settings.ENVIRONMENT,
     }
 
     context = RequestContext(request, attributes)
