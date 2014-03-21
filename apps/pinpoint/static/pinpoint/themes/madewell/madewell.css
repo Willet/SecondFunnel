@@ -18,7 +18,8 @@ body {
 
 @media (min-width: 769px) {
     .container {
-        max-width: 942px;
+        max-width: 960px;
+        padding: 0px 75px;
     }
 }
 
@@ -261,12 +262,12 @@ div.header {
 .tile {
     border: 0;
     box-shadow: none;
-    width: 235px;
+    width: 202px;
     margin: 0;
 }
 
 .tile.wide {
-    width: 480px;
+    width: 408px;
 }
 
 .tile .caption {
