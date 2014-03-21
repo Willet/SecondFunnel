@@ -88,10 +88,10 @@
     <!-- End Optimizer Tests -->
     {% include "pinpoint/campaign_head.html" %}
     <link rel="shortcut icon"
-         href="http://www.gap.com/favicon.ico" />
+         href="{% static 'pinpoint/themes/madewell/images/favicon.ico' %}" />
     <link rel="stylesheet"
           href="{% static 'pinpoint/themes/madewell/madewell.css' %}"/>
-    <title>{{ page.name|default:"Gap" }}</title>
+    <title>{{ page.name|default:"Madewell" }}</title>
     <style type="text/css">
         /* out of necessity */
         .visible-xs.jumbotron { /* mobile hero */
