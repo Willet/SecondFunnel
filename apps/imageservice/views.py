@@ -91,13 +91,16 @@ def create_image(request, img, store_id, source):
     path = create_image_path(store_id, source)
     data = process_image(img, path)
     store = Store.objects.get(pk=store_id)
-    """
+
+    # Get the last old id to use for this object
+    # TODO: This will eventually be phased out
+    last = Image.objects.all().order_by('-old_id')[0]
+    old_id = last.old_id + 1
     image = Image(original_url=request.POST['url'], attributes=data['sizes'],
         dominant_color=data['dominant-colour'], url=data['url'], store=store,
-        source=source, old_id=random.randint(99994, 9999923))
+        source=source, old_id=old_id)
 
     image.save()
-    """
     return data
 
 
@@ -119,11 +122,15 @@ def create_product_image(request, img, store_id, product_id, source):
     path = create_image_path(store_id, source)
     data = process_image(img, path)
     product = Product.objects.get(pk=product_id)
-    """
+
+    # Get the last old id to use for this object
+    # TODO: This will eventually be phased out
+    last = ProductImage.objects.all().order_by('-old_id')[0]
+    old_id = last.old_id + 1
     image = ProductImage(product=product, original_url=request.POST['url'],
         attributes=data['sizes'], dominant_color=data['dominant-colour'],
-        url=data['url'], old_id=random.randint(99994, 9999923))
+        url=data['url'], old_id=old_id)
 
     image.save()
-    """
+
     return data

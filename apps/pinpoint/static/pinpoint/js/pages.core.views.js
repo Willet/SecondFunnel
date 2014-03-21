@@ -211,22 +211,18 @@ App.module('core', function (module, App) {
                 fullTileWidth = normalTileWidth * 4,  // 4col (standby)
                 normalImageInfo = this.model.get('defaultImage')
                     .width(normalTileWidth, true),  // undefined if not found
-                wideImageInfo = this.model.get('defaultImage'),
-                    /*.width(wideTileWidth, true)*/  // undefined if not found
-                sizes = {
-                    'normal': normalTileWidth,
-                    'wide': wideTileWidth,
-                    'full': fullTileWidth
-                },
+                wideImageInfo = this.model.get('defaultImage')
+                    .width(wideTileWidth, true),
+                // TODO: Make the configurable; perhaps a page property?
                 widable_templates = {
                     'image': true,
                     'youtube': true,
                     'banner': true
-                }; //TODO: Make the configurable; perhaps a page property?
+                };
 
             // templates use this as obj.image.url
             this.model.set('image',
-                this.model.get('defaultImage')/*.width(normalTileWidth, true)*/);
+                this.model.get('defaultImage'));
 
             // 0.5 is an arbitrary 'lets make this tile wide' factor
             if (widable_templates[self.model.get('template')] &&
@@ -703,11 +699,16 @@ App.module('core', function (module, App) {
             }
             return templateRules;
         },
+
         'onBeforeRender': function () {
             // templates use this as obj.image.url
-            this.model.set('image',
-                    this.model.get('defaultImage').toJSON());
+            var data = this.model
+                    .get('defaultImage')
+                    .width(App.layoutEngine.width() * 2, true);
+
+            this.model.set('image', data);
         },
+
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
             var buttons, width;

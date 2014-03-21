@@ -226,26 +226,25 @@ App.module("utils", function (utils, App) {
     this.getResizedImage = function (url, options) {
         var columnWidth = App.layoutEngine.width(),
             width = options.width || columnWidth,
-            height = options.height || columnWidth * 2,
-            multiplier = App.support.mobile() ? 1 : 2;
+            height = options.height || width * 2,
+            multiplier = (options.multiplier || 1.2);
 
         // Round to the nearest whole hundred pixel dimension;
         // prevents creating a ridiculous number of images.
         if (width > height) {
-            // wider than it is tall, so have to apply aspect
-            // ratio calculations
             height = (height / width) * columnWidth;
-            height = Math.ceil((height / 100.0) * 100);
-            options.height = height * multiplier;
+            height = Math.ceil((height * multiplier) / 100.0) * 100;
+            options.height = height;
         } else {
-            width = Math.ceil((columnWidth / 100.0) * 100);
-            options.width = width * multiplier;
+            width = Math.ceil((width * multiplier) / 100.0) * 100;
+            options.width = width;
         }
 
         options = _.extend({
             crop: 'fit'
         }, options);
 
-        return $.cloudinary.url(url, options);
+        url = $.cloudinary.url(url, options);
+        return url;
     };
 });

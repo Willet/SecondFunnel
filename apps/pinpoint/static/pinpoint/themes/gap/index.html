@@ -447,7 +447,7 @@
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
                     <div class='image'>
-                        <img src='<%= obj.defaultImage.url %>'/>
+                        <img src='<%= obj.image.url %>'/>
                     </div>
                     <% if (obj.images.length > 1) { %>
                     <div class='gallery'></div>
@@ -584,7 +584,7 @@
                             -->
                         </div>
                     <% } else { %>
-                        <div class="img" style="background-image: url('<%= obj.defaultImage.url %>');"></div>
+                        <div class="img" style="background-image: url('<%= obj.image.url %>');"></div>
                     <% } %>
                 </div>
             </div>
@@ -596,7 +596,7 @@
             <div class="image-with-related-products">
                 <div class="row">
                     <div class="image middle cell capped-width">
-                        <img src="<%= obj.defaultImage.url %>" alt="image"/>
+                        <img src="<%= obj.image.url %>" alt="image"/>
                         <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                         <% var validSources = ['tumblr', 'instagram', 'facebook', 'styld.by']; %>
                         <% if (_.indexOf(validSources, obj.source) != -1) { %>
@@ -613,7 +613,7 @@
                         <% if (product.images.length > 1 && App.support.mobile()) { %>
                             <div class="main-image">
                                 <span class="gallery-swipe-left gallery-related"></span>
-                                <img class="main-image" src="<%= product.defaultImage.url %>" alt="related product"/>
+                                <img class="main-image" src="<%= product.image.url %>" alt="related product"/>
                                 <span class="gallery-swipe-right gallery-related"></span>
                             </div>
                         <% } else { %>
@@ -660,7 +660,7 @@
             <div class="image-without-related-products">
                 <div class="row">
                     <div class="image middle cell capped-width">
-                        <img src="<%= obj.defaultImage.url %>" alt="image"/>
+                        <img src="<%= obj.image.url %>" alt="image"/>
                     </div>
                     <div class="middle cell">
                         <div class="info">
