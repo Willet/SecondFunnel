@@ -342,14 +342,7 @@
                     <div class='red marker price'><%= obj.price %></div>
                     <div class='description'>
                         <div class='desc-title'>Overview</div>
-                        <ul>
-                            <% var sentences =
-                            _.compact(obj.description.split('.')); %>
-                            <% _.each(sentences, function(sentence) { %>
-                            <li><%= SecondFunnel.utils.safeString(sentence)
-                                %>
-                            </li>
-                            <% }); %>
+                        <p><%= obj.description %></p>
                         </ul>
                     </div>
                     <div>
