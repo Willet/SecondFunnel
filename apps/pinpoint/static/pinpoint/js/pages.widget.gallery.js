@@ -189,9 +189,8 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
 
     _.each(images, function(image) { // iterate over images to create gallery
         var $img;
-
         $img = App.support.mobile() ?
-            $('<div></div>').css('background-image', 'url(' + image.width(wndWidth) + ')') :
+            $('<div></div>').css('background-image', 'url(' + image.width(wndWidth * 1.5) + ')') :
             $('<img />').attr('src', image.url);
 
         $img

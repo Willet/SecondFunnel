@@ -241,7 +241,8 @@ App.module("utils", function (utils, App) {
         }
 
         options = _.extend({
-            crop: 'fit'
+            crop: 'fit',
+            quality: 100
         }, options);
 
         url = $.cloudinary.url(url, options);

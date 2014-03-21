@@ -206,7 +206,7 @@ App.module('core', function (module, App) {
             var maxImageSize,
                 self = this,
                 defaultImage = self.model.getDefaultImage(),  // obj
-                normalTileWidth = App.option('columnWidth', 255),
+                normalTileWidth = App.layoutEngine.width(),
                 wideTileWidth = normalTileWidth * 2,
                 fullTileWidth = normalTileWidth * 4,  // 4col (standby)
                 normalImageInfo = this.model.get('defaultImage')
@@ -702,11 +702,8 @@ App.module('core', function (module, App) {
 
         'onBeforeRender': function () {
             // templates use this as obj.image.url
-            var data = this.model
-                    .get('defaultImage')
-                    .width(App.layoutEngine.width() * 2, true);
-
-            this.model.set('image', data);
+            this.model.set('image',
+                this.model.get('defaultImage').toJSON());
         },
 
         'onRender': function () {

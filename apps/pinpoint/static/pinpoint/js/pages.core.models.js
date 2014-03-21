@@ -225,7 +225,7 @@ App.module('core', function (core, App) {
 
             // the template needs something simpler.
             this.color = color;
-            this.url = this.width(App.option('columnWidth', 255));
+            this.url = this.width(App.layoutEngine.width());
         },
 
         'sync': function () {

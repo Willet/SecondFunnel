@@ -390,6 +390,9 @@ JENKINS_TASKS = (
 
 IMAGE_SERVICE_API = "http://imageservice.elasticbeanstalk.com"
 IMAGE_SERVICE_STORE = "http://images.secondfunnel.com"
+IMAGE_SERVICE_USER_AGENT = "Mozilla/5.0 (compatible; SecondFunnelBot/1.0; +http://secondfunnel.com/bot.hml)"
+IMAGE_SERVICE_USER_AGENT_NAME = "SecondFunnelBot"
+IMAGE_SERVICE_BUCKET = "images.secondfunnel.com"
 
 STALE_TILE_QUEUE_NAME = 'tiles-worker-test-queue'
 

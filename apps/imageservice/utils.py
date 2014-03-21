@@ -9,12 +9,6 @@ from apps.assets.models import Store
 from apps.imageservice.models import ExtendedImage, SizeConf
 
 
-# Constants
-IMAGESERVICE_BUCKET = "images.secondfunnel.com"
-IMAGESERVICE_USER_AGENT = "Mozilla/5.0 (compatible; SecondFunnelBot/1.0; +http://secondfunnel.com/bot.hml)"
-IMAGESERVICE_USER_AGENT_NAME = "SecondFunnelBot"
-
-
 IMAGE_SIZES = getattr(settings, 'IMAGE_SIZES', (
     ("pico", 16, 16),
     ("icon", 32, 32),

@@ -13,14 +13,14 @@ from django.conf import settings
 from PIL import ImageFilter, Image
 
 from apps.pinpoint.utils import read_remote_file
-from apps.imageservice.utils import IMAGE_SIZES, IMAGESERVICE_BUCKET, create_image
+from apps.imageservice.utils import create_image, IMAGE_SIZES
 from apps.imageservice.models import SizeConf, ExtendedImage
 from apps.static_pages.aws_utils import upload_to_bucket, s3_key_exists
 
 
 # Use a semaphore as image processing is an CPU expensive operation
 # and don't want to drive our service into the ground
-MAX_CONNECTIONS = getattr(settings, 'MAX_CONNECTIONS', 2)
+MAX_CONNECTIONS = getattr(settings, 'MAX_CONNECTIONS', 3)
 PROCESSING_SEM = Semaphore(value=MAX_CONNECTIONS)
 
 
@@ -95,7 +95,7 @@ def upload_to_s3(path, folder, img, size):
 
     file_format = "jpg" if img.format is None else img.format
     filename = "{0}.{1}".format(size.name, file_format)
-    bucket = os.path.join(IMAGESERVICE_BUCKET, path, folder)
+    bucket = os.path.join(IMAGE_SERVICE_BUCKET, path, folder)
 
     if not upload_to_bucket(bucket_name=bucket,
         filename=filename, content=output,
@@ -116,7 +116,12 @@ def process_image(source, path, sizes=[]):
     @return: None
     """
     PROCESSING_SEM.acquire()
-    data = process_image_now(source, path)
+    try:
+        data = process_image_now(source, path)
+    except Exception as e:
+        # Need to ensure semaphore is released
+        PROCESSING_SEM.release()
+        raise e
     PROCESSING_SEM.release()
 
     return data
@@ -142,9 +147,8 @@ def process_image_now(source, path, sizes=[]):
     data = {'sizes': []}
 
     if len(sizes) == 0:
-        # sizes = SizeConf.objects.all()
-        sizes = (SizeConf(width=width, height=height, name=name)  for (name, width, height) \
-                     in IMAGE_SIZES)
+        sizes = (SizeConf(width=width, height=height, name=name)  for \
+                 (name, width, height) in IMAGE_SIZES)
 
     # Get the unique folder where we'll store the image
     folder = hashlib.sha224(img.tobytes()).hexdigest()
