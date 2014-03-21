@@ -4,7 +4,7 @@ import pytz
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.serializers.json import Serializer
 from django.db import models
 from django.db.models import Q
@@ -225,12 +225,18 @@ class ProductImage(BaseModel):
 
 
 class Content(BaseModel):
+    def _validate_status(status):
+        allowed =["approved", "rejected", "needs-review"]
+        if status not in allowed:
+            raise ValidationError("{0} is not an allowed status; "
+                                  "choices are {1}".format(status, allowed))
+
     # Content.objects object for deserializing Content models as subclasses
     objects = InheritanceManager()
 
     old_id = models.IntegerField(unique=True)
 
-    store = models.ForeignKey(Store)
+    store = models.ForeignKey(Store, related_name='content')
 
     url = models.TextField()  # 2f.com/.jpg
     source = models.CharField(max_length=255)
@@ -243,6 +249,11 @@ class Content(BaseModel):
     ## this will allow arbitrary fields, querying all Content
     ## but restrict to only filtering/ordering on above fields
     attributes = JSONField(null=True, blank=True, default={})
+
+    # "approved", "rejected", "needs-review"
+    status = models.CharField(max_length=255, blank=True, null=True,
+                              default="approved",
+                              validators=[_validate_status])
 
     serializer = ContentSerializer
 
@@ -477,6 +488,13 @@ class Tile(BaseModel):
     content = models.ManyToManyField(Content)
 
     prioritized = models.BooleanField()
+
+    # if the feed's algorithm is 'generic', then priority is not used.
+    # if the feed's algorithm is 'ordered', then prioritized tiles will be
+    # sorted using this attribute instead of the tile's created date.
+    #   negative values are allowed.
+    #   identical values are undeterministic.
+    priority = models.IntegerField(null=True, default=0)
 
     # miscellaneous attributes, e.g. "is_banner_tile"
     attributes = JSONField(blank=True, null=True, default={})
