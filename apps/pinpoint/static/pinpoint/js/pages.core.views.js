@@ -9,7 +9,8 @@ App.module('core', function (module, App) {
         $document = $(document),
         // specifically, pages scrolled downwards; pagesScrolled defaults
         // to 1 because the user always sees the first page.
-        pagesScrolled = 1;
+        pagesScrolled = 1,
+        everScrolled = false;
 
     /**
      * View responsible for the "Hero Area"
@@ -284,6 +285,9 @@ App.module('core', function (module, App) {
                     self.close();
                 };
             }
+
+            // add view to our database
+            $.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.page.id + "/tile/" + model.get('tile-id') + "/view");
 
             $tileImg.load(allocateTile);
         }
@@ -644,6 +648,17 @@ App.module('core', function (module, App) {
                 this.getTiles();
             }
 
+            // Did the user scroll ever?
+            if ($window.scrollTop() > 0 && !everScrolled) {
+                // only log this event once per user
+                everScrolled = true;
+                App.vent.trigger('tracking:trackEvent', {
+                    'category': 'visit',
+                    'action': 'first_scroll',
+                    'nonInteraction': true
+                });
+            }
+
             // "did user scroll down more than a page?"
             if ((windowTop / pageHeight) > pagesScrolled) {
                 App.vent.trigger('tracking:trackEvent', {
@@ -834,6 +849,7 @@ App.module('core', function (module, App) {
         },
 
         'onRender': function () {
+            var previewLoadingScreen = $('#preview-loading');
             // cannot declare display:table in marionette class.
             this.$el.css({
                 'display': "table",
@@ -848,6 +864,7 @@ App.module('core', function (module, App) {
                 };
 
             this.content.show(new ContentClass(contentOpts));
+            previewLoadingScreen.hide();
         },
 
         'onShow': function () {
@@ -859,9 +876,11 @@ App.module('core', function (module, App) {
                         window_middle = App.window_middle;
                     }
 
-                    if (!App.support.mobile()) {
-                        previewWindow.$el.css('top', Math.max(window_middle - (previewWindow.$el.height() / 2), 0));
+                    if (App.windowHeight && App.support.mobile()) {
+                        previewWindow.$el.css('height', App.windowHeight);
                     }
+
+                    previewWindow.$el.css('top', Math.max(window_middle - (previewWindow.$el.height() / 2), 0));
                 };
             }(this));
 

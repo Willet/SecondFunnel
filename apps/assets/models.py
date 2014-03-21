@@ -180,7 +180,7 @@ class Product(BaseModel):
 
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
-    attributes = JSONField(blank=True, null=True)
+    attributes = JSONField(blank=True, null=True, default={})
 
     serializer = ProductSerializer
 
@@ -241,7 +241,7 @@ class Content(BaseModel):
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
     ## but restrict to only filtering/ordering on above fields
-    attributes = JSONField(blank=True, null=True)
+    attributes = JSONField(null=True, blank=True, default={})
 
     serializer = ContentSerializer
 
@@ -406,7 +406,7 @@ class Page(BaseModel):
         ('template', 'hero'), ('image_tile_wide', 0.5), ('hide_navigation_bar', ''),
         ('results_threshold', {}), ('desktop_hero_image', ''), ('mobile_hero_image', ''),
         ('intentrank_id', old_id), ('column_width', 240), ('social_buttons', ''),
-        ('enable_tracking', True), ('ir_base_url', '')
+        ('enable_tracking', "true"), ('ir_base_url', ''), ('ga_account_number', ''),
     ]
 
     description = models.TextField(blank=True, null=True)

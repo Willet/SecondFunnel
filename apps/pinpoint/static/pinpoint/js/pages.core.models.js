@@ -414,7 +414,22 @@ App.module('core', function (core, App) {
 
         'initialize': function (arrayOfData, url, campaign, results) {
             this.setup(url, campaign, results);  // if necessary
+            this.tiles = {};
+            this.on('add', this.itemAdded, this);
             App.vent.trigger('tileCollectionInitialized', this);
+        },
+
+        /**
+         * Adds a reference to the tile in a hashmap of tiles.  Useful for
+         * getting the tile if you only know the real tile id.
+         *
+         * @param tile {Object}
+         * @param collection {Object}
+         * @param options {Object}
+         */
+        'itemAdded': function (tile, collection, options) {
+            var id = tile.get('tile-id');
+            this.tiles[id] = tile;
         },
 
         /**

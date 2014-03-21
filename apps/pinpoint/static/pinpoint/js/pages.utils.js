@@ -55,8 +55,13 @@ App.module("utils", function (utils, App) {
             loadUntilHeight(data.height);
         } else if (data.type === 'window_location') {
             App.window_middle = data.window_middle;
+            App.windowHeight = data.window_height;
 
             if (App.previewArea.currentView) {
+                if (App.support.mobile()) {
+                    App.previewArea.currentView.$el.css('height', App.window_height);
+                }
+
                 App.previewArea.currentView.$el.css('top',
                     Math.max(App.window_middle - (App.previewArea.currentView.el.height() / 2), 0)
                 );
