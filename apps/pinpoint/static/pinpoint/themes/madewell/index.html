@@ -578,43 +578,6 @@
                     <img src="{{ mobile_hero_image }}" alt="Hero" />
                 </div>
                 <div class="visible-md visible-lg jumbotron"></div>
-                <div class="overlay">
-                    <div class='buttons'>
-                        <%
-                            var share = App.options.page.description;
-                            var src = top.location.href;
-                            var fbLink = 'http://www.facebook.com/sharer/sharer.php?'
-                                + 's=100'
-                                + '&p[title]=Gap'
-                                + '&p[summary]=' + share.replace(' ', '+')
-                                + '&p[url]=' + encodeURIComponent(src)
-                                + '&p[images][0]={{ desktop_hero_image }}';
-
-                            var twtLink = 'http://twitter.com/share?'
-                                + 'url=' + encodeURIComponent(src)
-                                + '&text=' + encodeURIComponent(share);
-
-                            var mailLink = 'mailto:?'
-                                + 'body=' + encodeURIComponent(share);
-                        %>
-                        <a href='<%= fbLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon.png' />
-                        </a>
-                        <a href='<%= twtLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon.png' />
-                        </a>
-                        <a href='<%= mailLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon.png' />
-                        </a>
-                    </div>
-                    <span class='find'>
-                        <% if (!App.support.mobile()) { %>
-                            <a href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
-                        <% } else { %>
-                            <a href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
-                        <% } %>
-                    </span>
-                </div>
             </div>
             {% if legal_copy %}
                 <div class="legal us">
