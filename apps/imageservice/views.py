@@ -4,6 +4,7 @@ import random
 from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
 from apps.imageservice.tasks import process_image
@@ -58,6 +59,7 @@ def has_image_key(fn):
 
 
 @csrf_exempt
+@login_required
 @require_http_methods(["POST"])
 @has_image_key
 def create(request, img):
@@ -75,6 +77,7 @@ def create(request, img):
 
 
 @csrf_exempt
+@login_required
 @require_http_methods(["POST"])
 @has_image_key
 def create_image(request, img, store_id, source):
@@ -98,13 +101,14 @@ def create_image(request, img, store_id, source):
     old_id = last.old_id + 1
     image = Image(original_url=request.POST['url'], attributes=data['sizes'],
         dominant_color=data['dominant-colour'], url=data['url'], store=store,
-        source=source, old_id=old_id)
+        source=source, old_id=old_id, file_type=data['format'])
 
     image.save()
-    return data
+    return image.to_json()
 
 
 @csrf_exempt
+@login_required
 @require_http_methods(["POST"])
 @has_image_key
 def create_product_image(request, img, store_id, product_id, source):
@@ -129,8 +133,7 @@ def create_product_image(request, img, store_id, product_id, source):
     old_id = last.old_id + 1
     image = ProductImage(product=product, original_url=request.POST['url'],
         attributes=data['sizes'], dominant_color=data['dominant-colour'],
-        url=data['url'], old_id=old_id)
+        url=data['url'], old_id=old_id, file_type=data['format'])
 
     image.save()
-
-    return data
+    return image.to_json()
