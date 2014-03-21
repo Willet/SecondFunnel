@@ -255,6 +255,7 @@
         </script>
 
         <script type="text/template" id="twitter_social_button_template">
+            <% var desc = description.replace(/<(?:.|\n)*?>/gm, ''); %>
             <% if (showCount) { %>
                 <div class='button twitter' style='height: 13px; width: 77px;'>
                     <a href="//twitter.com/share"
@@ -339,7 +340,8 @@
                 </div>
                 <div class='cell middle info col-sm-6 col-md-6'>
                     <div class='title'><%= obj.title || obj.name %></div>
-                    <div class='red marker price'><%= obj.price %></div>
+                    <div class='red marker price'>USD: <%= obj.price %></div>
+                    <hr>
                     <div class='description'>
                         <div class='desc-title'>Overview</div>
                         <p><%= obj.description %></p>
@@ -349,17 +351,11 @@
                         <div class="social-buttons"></div>
                         <div class='spacer'></div>
                     </div>
-                    <div class='gap-buttons'>
-                        <a class='button find-store'
-                           href='http://www.gap.com/customerService/storeLocator.do'
+                    <div class='madewell-buttons'>
+                        <a class='button show-now'
+                           href='<%= obj.url %>'
                            target='_blank'>
-                            <!-- find-store is magic -->
-                            Find in Store
-                        </a>
-                        <a class='button in-store' href='<%= obj.url %>'
-                           target='_blank'>
-                            <!-- in-store is magic -->
-                            Shop on Gap.com
+                            Shop Now
                         </a>
                     </div>
                 </div>
