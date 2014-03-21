@@ -201,15 +201,17 @@ def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     """
     # serve prioritized ones first
     prioritized_tiles = prioritized_tile_ids = []
-    if request and hasattr(request, 'session'):
-        if len(request.session.get('shown', [])) == 0:  # first page view
-            prioritized_tiles = ir_priority_sorted(feed=feed, results=8,
-                                                   exclude_set=exclude_set)
+    if not (request and hasattr(request, 'session')):
+        raise ValueError("Sessions must be enabled for ir_ordered")
 
-            # fill the first two rows with (8) tiles that are known to be new
-            exclude_set += [tile.old_id for tile in prioritized_tiles]
-            prioritized_tile_ids = [tile.old_id or tile.id
-                                    for tile in prioritized_tiles]
+    if len(request.session.get('shown', [])) == 0:  # first page view
+        prioritized_tiles = ir_priority_sorted(feed=feed, results=8,
+                                               exclude_set=exclude_set)
+
+        # fill the first two rows with (8) tiles that are known to be new
+        exclude_set += [tile.old_id for tile in prioritized_tiles]
+        prioritized_tile_ids = [tile.old_id or tile.id
+                                for tile in prioritized_tiles]
 
     # get (10 - number of prioritized) tiles that are not already prioritized
     random_tiles = ir_priority_sorted(feed=feed, prioritized_state=False,

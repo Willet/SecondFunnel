@@ -50,7 +50,10 @@ def get_results_view(request, page_id):
         else:
             request.session['shown'] += exclude_set
         request.session['shown'] = list(set(request.session['shown']))  # uniq
-        request.session['shown'] = request.session['shown'][:TRACK_SHOWN_TILES_NUM]
+
+        if request.GET.get('algorithm', None) != 'ordered':
+            # ordered algo keeps track of full list for zero repeats
+            request.session['shown'] = request.session['shown'][:TRACK_SHOWN_TILES_NUM]
 
     # otherwise, not a proxy
     try:
