@@ -64,7 +64,7 @@ def upload_to_local(path, folder, img, size):
     @param size: SizeConf object
     @return: None
     """
-    file_format = "jpg" if img.format is None else img.format
+    file_format = img.format or "jpg"
     filename = "{0}.{1}".format(size.name, file_format)
 
     if not os.path.exists(path):
@@ -113,7 +113,7 @@ def process_image(source, path, sizes=[]):
     @param source: The source file
     @param path: The path to save the object to
     @param sizes: List of sizes to create
-    @return: None
+    @return: object
     """
     PROCESSING_SEM.acquire()
     try:
@@ -134,7 +134,7 @@ def process_image_now(source, path, sizes=[]):
     @param source: The source file
     @param path: The path to save the object to
     @param sizes: List of sizes to create
-    @return: None
+    @return: object
     """
     # TODO: More sophisticated determination of file object
     if re.match(r'^https?:', source):
