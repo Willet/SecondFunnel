@@ -498,7 +498,7 @@
                         <div class='title'><%= product.title || product.name %></div>
                         <div class='red marker price'>USD: <%= product.price %></div>
                         <hr>
-                        <div class="middle cell center">
+                        <div class="cell middle col-sm-6 col-md-6"> <!-- image-div -->
                             <% if (product.images.length > 1 && App.support.mobile()) { %>
                                 <div class="main-image">
                                     <span class="gallery-swipe-left gallery-related"></span>
@@ -512,7 +512,7 @@
                                 <div class='gallery'></div>
                             <% } %>
                         </div>
-                        <div class="middle cell">
+                        <div class="cell col-sm-6 col-md-6"> <!-- info -->
                             <div class='description'>
                                 <div class='desc-title'>Overview</div>
                                 <p><%= product.description %></p>

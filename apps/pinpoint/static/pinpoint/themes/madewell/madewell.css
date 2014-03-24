@@ -590,9 +590,11 @@ div.header {
 
     .previewContainer .main-image {
         /* actually the largest product image */
+        /*
         max-width: 150px;
         margin: 0 20px 0 0;
         max-height: 200px;
+        */
     }
 }
 
@@ -861,7 +863,7 @@ div.header {
     }
 
     .previewContainer .image-with-related-products .row .gallery {
-        max-width: 192px;
+        /*max-width: 192px;*/
         height: 71px;
         overflow-x: auto;
         overflow-y: hidden;
