@@ -8,7 +8,7 @@ from PIL import Image, ImageChops, ImageFilter
 from django.db import models
 
 
-MAX_COLOUR_DISTANCE = 510
+MAX_COLOR_DISTANCE = 510
 NUM_OF_CLUSTERS = 5
 
 
@@ -29,7 +29,7 @@ class SizeConf(models.Model):
         return (self.width, self.height)
 
 
-class COLOUR(object):
+class COLOR(object):
     """
     Some colours.
     """
@@ -74,7 +74,7 @@ class ExtendedImage(object):
         return img
 
     @classmethod
-    def new(cls, mode, size, colour):
+    def new(cls, mode, size, color):
         """
         Creates a new ExtendedImage object.
 
@@ -85,7 +85,7 @@ class ExtendedImage(object):
         @return: ExtendedImage
         """
         img = cls()
-        img._image = Image.new(mode, size, colour)
+        img._image = Image.new(mode, size, color)
         return img
 
     @classmethod
@@ -131,7 +131,7 @@ class ExtendedImage(object):
         return (0, 0, self.size[0], self.size[1])
 
     @property
-    def dominant_colour(self):
+    def dominant_color(self):
         """
         Determines the dominant colour in an image and returns it as a hex string.
         Reference: http://stackoverflow.com/questions/3241929
@@ -201,7 +201,7 @@ class ExtendedImage(object):
 
         return luminosity
 
-    def get_edges(self, colour):
+    def get_edges(self, color):
         """
         Calculates the bounding box surrounding the non-white portion of the image; the
         box may contain portions of the specified colour.
@@ -214,12 +214,12 @@ class ExtendedImage(object):
         pixels = numpy.asarray(self)
         pixel = pixels[:, :, 0:3] # remove alpha channel
 
-        colours = numpy.where(pixel - colour)[0:2]
-        box = map(min, colours)[::-1] + map(max, colours)[::-1]
+        colors = numpy.where(pixel - color)[0:2]
+        box = map(min, colors)[::-1] + map(max, colors)[::-1]
 
         return box
 
-    def crop(self, border=COLOUR.white, conf=None):
+    def crop(self, border=COLOR.white, conf=None):
         """
         Crops the image based on the passed colour.  Defaults to
         whitespace.
@@ -268,7 +268,7 @@ class ExtendedImage(object):
 
         return img
 
-    def make_transparent(self, colour=COLOUR.white, tolerance=0.9):
+    def make_transparent(self, color=COLOR.white, tolerance=0.9):
         """
         Makes all pixels within tolerance of the colour transparent.  Defaults
         to a tolerance of 0, and whitespace.
@@ -280,12 +280,12 @@ class ExtendedImage(object):
         """
         self.convert('RGBA')
         pixels = self.load()
-        tolerance = MAX_COLOUR_DISTANCE * tolerance
+        tolerance = MAX_COLOR_DISTANCE * tolerance
 
         for y in xrange(self.size[1]): # iterate over rows
             for x in xrange(self.size[0]): # iterate over cols
                 data = pixels[x, y]
-                diff = sum(abs(o - s) for o, s in zip(colour, data))
+                diff = sum(abs(o - s) for o, s in zip(color, data))
                 if diff <= tolerance:
                     data = list(data)
                     data[3] = 0

@@ -143,7 +143,7 @@ def process_image_now(source, path, sizes=[]):
     else:
         img = create_image(source)
 
-    master_url, dominant_colour = None, None
+    master_url, dominant_color = None, None
     data = {'sizes': []}
 
     if len(sizes) == 0:
@@ -178,8 +178,8 @@ def process_image_now(source, path, sizes=[]):
 
     data.update({
         'url': master_url,
-        'format': img.format,
-        'dominant-colour': img.dominant_colour
+        'format': img.format.lower().replace("jpeg", "jpg"),
+        'dominant-colour': img.dominant_color
     })
 
     return data
