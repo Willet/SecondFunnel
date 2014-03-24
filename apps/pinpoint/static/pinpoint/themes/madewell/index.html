@@ -213,7 +213,12 @@
 
         <script type="text/template" id="preview_container_template">
             <div class="tablecell">
+                <% var products = obj['related-products'] || []; %>
+                <% if (products.length === 0) { %>
                 <div class="content">
+                <% } else { %>
+                <div class="content big">
+                <% } %>
                     <span class="close">&#x00D7;</span>
                     <div class="scrollable">
                         <div class="template target"></div>
