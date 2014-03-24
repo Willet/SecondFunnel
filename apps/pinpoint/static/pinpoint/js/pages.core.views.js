@@ -721,7 +721,9 @@ App.module('core', function (module, App) {
             // Need to get an appropriate sized image
             var image = $.extend(true, {},
                 this.model.get('defaultImage').attributes);
-            image = (new App.core.Image(image)).width(undefined, true);
+            image = (new App.core.Image(image)).width(undefined, {
+                multiplier: 1.5
+            });
 
             // templates use this as obj.image.url
             this.model.set('image', image);

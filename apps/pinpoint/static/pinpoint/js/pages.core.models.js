@@ -242,7 +242,7 @@ App.module('core', function (core, App) {
          */
         'dimens': function (width, height, obj) {
             var resized,
-                options = {};
+                options = $.extend({}, obj);
             resized = $.extend({}, this.defaults, this.attributes);
 
             if (width > 0) {

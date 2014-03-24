@@ -247,10 +247,10 @@ App.module("utils", function (utils, App) {
 
         options = _.extend({
             crop: 'fit',
-            quality: 100,
+            quality: 100
             // New feature, undocumenated, trims background space, add :
             // for tolerance, e.g. trim: 20 (defaults to 10)
-            effect: 'trim:5'
+            // effect: 'trim:0'
         }, options);
 
         url = $.cloudinary.url(url, options);
