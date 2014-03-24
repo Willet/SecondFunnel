@@ -1,3 +1,5 @@
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 
 from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
@@ -126,41 +128,60 @@ class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
     """Supports content tagging
 
     GET content id: list tagged product ids on that product
-    POST content id with product id: add that product tag
+    POST content id with product id: add (not replace) that product tag
                                      returns updated content
     DELETE content id with product id: remove that product tag
                                        returns updated content
 
     All other operations: not supported
     """
-    '''
+    content = None
+
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        content_id = kwargs.get('content_id')
+        try:
+            self.content = Content.objects.filter(old_id=content_id).select_subclasses()[0]
+        except ObjectDoesNotExist:
+            raise Http404()
+
+        return super(StorePageContentTagCGHandler, self).dispatch(*args, **kwargs)
+
     def get_queryset(self, request=None):
-        """get all the contents in the feed, which is
-        all the feed's tiles' contents
-        """
-        store = self.store
-
-        # find ids of content not already present in the current set of tiles
-        tile_content_ids = self.feed.tiles.values_list('content__old_id', flat=True)
-        not_in_feed = list(set(store.content.values_list('old_id', flat=True)) -
-                           set(tile_content_ids))
-
-        # mass select and initialize these content models
-        not_in_feed = (Content.objects.filter(old_id__in=not_in_feed)
-                                      .select_subclasses())
-
-        return not_in_feed
+        return Content.objects.filter(old_id=request).select_subclasses()
 
     def get(self, request, *args, **kwargs):
-        content = 0
+        return ajax_jsonp({
+            'results': [x.old_id for x in self.content.tagged_products.all()]
+        })
+
+    def post(self, request, *args, **kwargs):
+        product_id = kwargs.get('product_id')
+        tagged_product_ids = [x.old_id for x in self.content.tagged_products]
+        if not product_id in tagged_product_ids:
+            tagged_product_ids.append(product_id)
+
+        self.content.update({'tagged_products': tagged_product_ids})
+        self.content.save()
+        return ajax_jsonp(self.content.to_cg_json())
+
+    def delete(self, request, *args, **kwargs):
+        product_id = kwargs.get('product_id')
+        tagged_product_ids = [x.old_id for x in self.content.tagged_products]
+        try:
+            tagged_product_ids.remove(product_id)
+        except IndexError:
+            pass
+
+        self.content.update({'tagged_products': tagged_product_ids})
+        self.content.save()
+        return ajax_jsonp(self.content.to_cg_json())
 
     def put(self, request, *args, **kwargs):
         raise NotImplementedError()
 
     def patch(self, request, *args, **kwargs):
         raise NotImplementedError()
-    '''
-    pass  # TODO
 
 '''
 @request_methods('PUT')
@@ -273,83 +294,4 @@ def get_suggested_content_by_page(request, store_id, page_id):
 
     return ajax_jsonp({'results': results,
                        'meta': meta})
-
-
-@append_headers
-@check_login
-@never_cache
-@csrf_exempt
-@deprecated
-def tag_content(request, store_id, page_id, content_id, product_id=0):
-    """Add a API endpoint to the backend for tagging content with products.
-
-    Tag content with a product
-    POST /page/:page_id/content/:content_id/tag
-    <product-id>
-    "Post adds a new tag to the set of existing tags stored in tagged-products."
-
-    List tags
-    GET /page/:page_id/content/:content_id/tag
-    Tags are all strings.
-
-    Delete a tag
-    DELETE /page/:page_id/content/:content_id/tag/<product-id>
-
-    As far as the spec is concerned, product_id is a query parameter
-    for the DELETE case, and from content body for the POST case.
-
-    :raises (ValueError, TypeError)
-    """
-    store_content_url = '{url}/store/{store_id}/content/{content_id}'.format(
-        url=settings.CONTENTGRAPH_BASE_URL, store_id=store_id,
-        content_id=content_id)
-    page_content_url = '{url}/store/{store_id}/page/{page_id}/content/{content_id}'.format(
-        url=settings.CONTENTGRAPH_BASE_URL, store_id=store_id, page_id=page_id,
-        content_id=content_id)
-
-    # get the content (it's a json string)
-    resp, cont = get_proxy_results(request=request, url=store_content_url,
-                                   raw=True, method='GET')
-    content = json.loads(cont)  # raises ValueError here if fetching failed
-
-    if request.method == 'GET':
-        # return the list of tags on this product
-        return ajax_jsonp({
-            'results': content.get('tagged-products', [])
-        })
-
-    tagged_products = content.get('tagged-products', [])  # :type list
-    if not product_id:
-        product_id = (request.body or '')
-
-    # add one tag to the list of tags (if it doesn't already exist)
-    if request.method == 'POST':
-        if not str(product_id) in tagged_products:
-            tagged_products.append(str(product_id))
-            # new product not in list? patch the content with new list
-            resp, cont = get_proxy_results(request=request, url=store_content_url,
-                body=json.dumps({"tagged-products": tagged_products}),
-                method='PATCH', raw=True)
-
-            # return an ajax response instead of just the text
-            return ajax_jsonp(result=json.loads(cont), status=resp.status)
-
-        else:  # already in the list
-            return HttpResponse(status=200)
-
-    # remove one tag from the list of tags
-    if product_id and request.method == 'DELETE':
-        if not str(product_id) in tagged_products:
-            return HttpResponse(status=200)  # already out of the list
-
-        tagged_products.remove(str(product_id))
-        # new product in list? patch the content with new list
-        resp, cont = get_proxy_results(request=request, url=store_content_url,
-            body=json.dumps({"tagged-products": tagged_products}),
-            method='PATCH', raw=True)
-
-        # return an ajax response instead of just the text
-        return ajax_jsonp(result=json.loads(cont), status=resp.status)
-
-    return HttpResponseBadRequest()  # missing something (say, product id)
 '''
