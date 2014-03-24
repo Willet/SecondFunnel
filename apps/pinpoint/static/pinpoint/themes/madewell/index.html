@@ -336,6 +336,9 @@
         <script type="text/template" id="product_preview_template">
             <!-- any (store.name)_(type)_... templates will be used in place
              of default templates if they exist. -->
+            <div class='title'><%= obj.title || obj.name %></div>
+            <div class='red marker price'>USD: <%= obj.price %></div>
+            <hr>
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
                     <div class='image'>
@@ -345,10 +348,7 @@
                     <div class='gallery'></div>
                     <% } %>
                 </div>
-                <div class='cell middle info col-sm-6 col-md-6'>
-                    <div class='title'><%= obj.title || obj.name %></div>
-                    <div class='red marker price'>USD: <%= obj.price %></div>
-                    <hr>
+                <div class='cell info col-sm-6 col-md-6'>
                     <div class='description'>
                         <div class='desc-title'>Overview</div>
                         <p><%= obj.description %></p>
