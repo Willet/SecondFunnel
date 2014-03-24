@@ -2,6 +2,7 @@ import json
 import calendar
 import time
 from datetime import datetime
+import traceback
 
 from celery import Celery
 from celery.utils import noop
@@ -94,8 +95,8 @@ def fetch_queue(queue=None, interval=None):
                         handler(message.get_body()))
 
                     # also log it to SNS
-                    sns_logger.info("Successfully processed message: {0}".format(
-                        message.get_body()))
+                    sns_logger.info("Successfully processed message: {0}({1})".format(
+                        handler.__name__, message.get_body()))
 
                 except BaseException as err:
                     # message failed, leave message in queue so someone else
@@ -105,9 +106,9 @@ def fetch_queue(queue=None, interval=None):
                          'message': message.get_body()})
 
                     # also log it to SNS
-                    sns_logger.error("{0}: {1}\n\n{2}".format(
-                        err.__class__.__name__, err.message,
-                        message.get_body()))
+                    sns_logger.error("{0}: {1}({2})\n\n{3}\n\n{4}".format(
+                        err.__class__.__name__, handler.__name__, err.message,
+                        message.get_body(), traceback.format_exc()))
 
                 try:  # dequeue the message, whether or not it succeeded.
                     message.delete()
