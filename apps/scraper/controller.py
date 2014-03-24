@@ -1,52 +1,64 @@
-import sys, re
+import sys
+import re
+
 from selenium import webdriver
 
 from apps.assets.models import Product, Store
-from apps.scraper.scrapers.gap.gap_product_scraper_selenium import scrape_product_page, scrape_category_page
+from apps.scraper.scrapers.scraper import Scraper
+from apps.scraper.scrapers.gap.gap_product_scrapers import GapProductScraper, GapCategoryScraper
+from apps.scraper.scrapers.madewell.madewell_product_scrapers import MadewellProductScraper, MadewellCategoryScraper
 
-def get_gap_product_url(url):
-    id_regex = r'^(?:https?://)?(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&.*)?$'
-    result = re.match(id_regex, url)
-    sku = result.group(1)
-    url = 'http://www.gap.com/browse/product.do?pid=' + sku
-    return url
 
-scrapers = [(scrape_product_page, 'detail', r'^(?:https?://)?(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=\d{6,}(?:&.*)?$', get_gap_product_url),
-            (scrape_category_page, 'category', r'^(?:https?://)?(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=\d{6,}(?:&.*)?$', None),]
+# define all the possible scrapers
+scrapers = [
+    GapProductScraper(),
+    GapCategoryScraper(),
+    MadewellProductScraper(),
+    MadewellCategoryScraper(),
+]
+
 
 def run_scraper(store, url):
+    driver = None
     try:
         # "http://www.gap.com/browse/product.do?pid=941851"
-        for fun, type, regex, get_url in scrapers:
-            if re.match(regex, url):
-                if get_url:
-                    url = get_url(url)
-                print type
-                print url
+
+        # checking if any scraper has the correct regex to scrape the given url
+        for scraper in scrapers:
+            if isinstance(scraper.get_regex(), list):
+                if any(re.match(regex, url) for regex in scraper.get_regex()):
+                    url = scraper.get_url(url)
+                    break
+
+            elif re.match(scraper.get_regex(), url):
+                url = scraper.get_url(url)
                 break
+        # if no scraper has been found, exit
         else:
             return
+
+        # initialize the head-less browser PhantomJS
         driver = webdriver.PhantomJS()
         driver.get(url)
-        if type == 'detail':
+
+        if scraper.get_type() == Scraper.PRODUCT_DETAIL:
             try:
-                product, _ = Product.objects.get(store=store, url=url)
+                product = Product.objects.get(store=store, url=url)
             except Product.DoesNotExist:
                 product = Product(store=store, url=url)
-            product = fun(product, driver)
+            product = scraper.scrape(driver, product=product)
             print product.to_json()
-        elif type == 'category':
-            for product in fun(store, driver):
+        elif scraper.get_type() == Scraper.PRODUCT_CATEGORY:
+            for product in scraper.scrape(driver, store=store):
                 #product.save()
-                run_scraper(store, product.url)
-    except Exception as e:
-        print e
+                #run_scraper(store, product.url)
+                print product.to_json()
     finally:
         if driver:
             driver.close()
 
 
-store_id = sys.argv[1]
-url = sys.argv[2]
-store = Store.objects.get(old_id=store_id)
-run_scraper(store, url)
+start_store_id = sys.argv[1]
+start_url = sys.argv[2]
+start_store = Store.objects.get(old_id=start_store_id)
+run_scraper(start_store, start_url)

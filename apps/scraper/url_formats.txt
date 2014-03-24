@@ -1,0 +1,4 @@
+Gap Product - http://www.gap.com/browse/product.do?pid=\d{6}
+Gap Category - http://www.gap.com/browse/category.do?cid=\d{6}
+
+Madewell Product - https://www.madewell.com/madewell_category/<category>/<sub-category>/PRDOVR~<sku>/<sku>.jsp
