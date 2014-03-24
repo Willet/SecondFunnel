@@ -144,6 +144,9 @@ class TileSerializer(RawSerializer):
         if hasattr(obj, 'prioritized'):
             data['prioritized'] = obj.prioritized
 
+        if hasattr(obj, 'priority'):
+            data['priority'] = obj.priority
+
         return data
 
 

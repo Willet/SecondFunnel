@@ -333,7 +333,8 @@ class Content(BaseModel):
     attributes = JSONField(null=True, blank=True, default={})
 
     # "approved", "rejected", "needs-review"
-    status = models.CharField(max_length=255, default="approved",
+    status = models.CharField(max_length=255, blank=True, null=True,
+                              default="approved",
                               validators=[_validate_status])
 
     serializer = ir_serializers.ContentSerializer
@@ -576,6 +577,13 @@ class Tile(BaseModel):
     content = models.ManyToManyField(Content)
 
     prioritized = models.BooleanField()
+
+    # if the feed's algorithm is 'generic', then priority is not used.
+    # if the feed's algorithm is 'ordered', then prioritized tiles will be
+    # sorted using this attribute instead of the tile's created date.
+    #   negative values are allowed.
+    #   identical values are undeterministic.
+    priority = models.IntegerField(null=True, default=0)
 
     # miscellaneous attributes, e.g. "is_banner_tile"
     attributes = JSONField(blank=True, null=True, default={})

@@ -10,7 +10,12 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'Content.status'
         db.add_column(u'assets_content', 'status',
-                      self.gf('django.db.models.fields.CharField')(default='approved', max_length=255),
+                      self.gf('django.db.models.fields.CharField')(default='approved', max_length=255, null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'Tile.priority'
+        db.add_column(u'assets_tile', 'priority',
+                      self.gf('django.db.models.fields.IntegerField')(default=0, null=True),
                       keep_default=False)
 
 
@@ -18,18 +23,21 @@ class Migration(SchemaMigration):
         # Deleting field 'Content.status'
         db.delete_column(u'assets_content', 'status')
 
+        # Deleting field 'Tile.priority'
+        db.delete_column(u'assets_tile', 'priority')
+
 
     models = {
         u'assets.content': {
             'Meta': {'object_name': 'Content'},
-            'attributes': ('jsonfield.fields.JSONField', [], {'null': 'True', 'blank': 'True'}),
+            'attributes': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'}),
             'author': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'old_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
             'source': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'source_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'status': ('django.db.models.fields.CharField', [], {'default': "'approved'", 'max_length': '255'}),
+            'status': ('django.db.models.fields.CharField', [], {'default': "'approved'", 'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'store': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'content'", 'to': u"orm['assets.Store']"}),
             'tagged_products': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['assets.Product']", 'null': 'True', 'symmetrical': 'False'}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {}),
@@ -72,7 +80,7 @@ class Migration(SchemaMigration):
         },
         u'assets.product': {
             'Meta': {'object_name': 'Product'},
-            'attributes': ('jsonfield.fields.JSONField', [], {'null': 'True', 'blank': 'True'}),
+            'attributes': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'}),
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             'default_image': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'default_image'", 'null': 'True', 'to': u"orm['assets.ProductImage']"}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
@@ -141,6 +149,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'old_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'db_index': 'True'}),
             'prioritized': ('django.db.models.fields.BooleanField', [], {}),
+            'priority': ('django.db.models.fields.IntegerField', [], {'default': '0', 'null': 'True'}),
             'products': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['assets.Product']", 'symmetrical': 'False'}),
             'template': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {}),
