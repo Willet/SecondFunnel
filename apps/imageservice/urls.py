@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, url
 
-# url prefix: /imagesevice/
+# url prefix: /imageservice/
 # Essentially an API for interacting with the API
 
 urlpatterns = patterns('apps.imageservice.views',

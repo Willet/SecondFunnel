@@ -232,7 +232,7 @@ App.module("utils", function (utils, App) {
         var columnWidth = App.layoutEngine.width(),
             width = options.width || columnWidth,
             height = options.height || width * 2,
-            multiplier = (options.multiplier || 1.2);
+            multiplier = (options.multiplier || 1.1);
 
         // Round to the nearest whole hundred pixel dimension;
         // prevents creating a ridiculous number of images.
@@ -250,7 +250,7 @@ App.module("utils", function (utils, App) {
             quality: 100,
             // New feature, undocumenated, trims background space, add :
             // for tolerance, e.g. trim: 20 (defaults to 10)
-            effect: 'trim'
+            effect: 'trim:5'
         }, options);
 
         url = $.cloudinary.url(url, options);

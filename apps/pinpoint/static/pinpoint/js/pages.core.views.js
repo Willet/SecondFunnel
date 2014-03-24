@@ -231,7 +231,9 @@ App.module('core', function (module, App) {
                 Math.random() > App.option('imageTileWide', 0.5)) {
                 // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
-                this.model.set({'image': wideImageInfo});
+                if (!App.support.mobile()) { // wide means nothing on mobile
+                    this.model.set({'image': wideImageInfo});
+                }
             }
 
             // Listen for the image being removed from the DOM, if it is, remove

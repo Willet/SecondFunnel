@@ -27,9 +27,7 @@
                 template = template || _.sample(["A", "B"]);
                 if (template != "A") {
                     App.options.minColumns = 2;
-                    $('head').ready(function() {
-                        s.appendTo($('head'));
-                    });
+                    s.appendTo($('head'));
                 }
                 return template;
             }
