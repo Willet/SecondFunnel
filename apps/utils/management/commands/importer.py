@@ -172,11 +172,13 @@ class Command(BaseCommand):
             content_type = content_dict.get('type')
 
             content_name = content_dict.get('name')
+            content_status = content_dict.get('status', 'approved')
             content_description = content_dict.get('description')
 
             content_fields = {'store': self.store,
                               'source': content_source,
                               'name': content_name,
+                              'status': content_status,
                               'description': content_description}
 
             if content_type == 'image':
@@ -236,7 +238,7 @@ class Command(BaseCommand):
         store_id = store_id or self.store_id
         for page_dict in get_contentgraph_data(self._store_url() + 'page/'):
             page_old_id = page_dict.get('id')
-            if not page_old_id in ['53', '91', '95', '98']:
+            if not page_old_id in ['53', '91', '95', '98', '102']:
                 continue
             page_name = page_dict.get('name')
             page_legal_copy = page_dict.get('legalCopy')

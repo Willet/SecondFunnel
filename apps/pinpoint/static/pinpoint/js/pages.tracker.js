@@ -341,6 +341,15 @@ App.module("tracker", function (tracker, App) {
 
                 // add click to our database
                 $.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.page.id + "/tile/" + tileId + "/click");
+
+                // Be super explicit about what the hash is
+                // rather than relying on the window
+                //
+                // adb: use '/' instead of '#' because it seems like google analytics will attribute
+                // http://gap.secondfunnel.com/livedin#foo to http://gap.secondfunnel.com/livedin
+                trackPageview('/' + tileId);
+            } else {
+                console.warn('No tile id present for for tile: ' + label);
             }
 
             trackEvent({
@@ -348,10 +357,6 @@ App.module("tracker", function (tracker, App) {
                 'action': 'Preview',
                 'label': label
             });
-
-            // Be super explicit about what the hash is
-            // rather than relying on the window
-            // trackPageview('#' + tileId);
         },
 
         // Content Share
