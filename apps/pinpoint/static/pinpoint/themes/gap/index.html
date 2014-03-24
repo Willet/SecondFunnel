@@ -35,7 +35,6 @@
         window.OPTIMIZER_TESTS.push({
             index: 7, // Null A/B Test in Analytics
             test: 'custom',
-            device: 'mobile',
             custom: function (template) {
                 return template || _.sample(["A", "B"]);
             }
@@ -608,16 +607,8 @@
                         <% } %>
                     </div>
                     <div class="middle cell center">
-                        <% if (product.images.length > 1 && App.support.mobile()) { %>
-                            <div class="main-image">
-                                <span class="gallery-swipe-left gallery-related"></span>
-                                <img class="main-image" src="<%= product.image.url %>" alt="related product"/>
-                                <span class="gallery-swipe-right gallery-related"></span>
-                            </div>
-                        <% } else { %>
-                            <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                        <% } %>
                         <% if (product.images.length > 1) { %>
+                            <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
                             <div class='gallery'></div>
                         <% } %>
                     </div>

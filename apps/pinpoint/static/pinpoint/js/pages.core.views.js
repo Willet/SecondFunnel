@@ -718,9 +718,13 @@ App.module('core', function (module, App) {
         },
 
         'onBeforeRender': function () {
+            // Need to get an appropriate sized image
+            var image = $.extend(true, {},
+                this.model.get('defaultImage').attributes);
+            image = (new App.core.Image(image)).width(undefined, true);
+
             // templates use this as obj.image.url
-            this.model.set('image',
-                this.model.get('defaultImage').toJSON());
+            this.model.set('image', image);
         },
 
         'onRender': function () {

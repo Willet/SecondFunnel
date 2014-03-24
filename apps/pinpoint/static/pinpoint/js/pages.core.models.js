@@ -88,7 +88,7 @@ App.module('core', function (core, App) {
             // this tile has no images, or can be an image itself
             if (imgInstances.length === 0) {
                 imgInstances.push(new core.Image({
-                    'dominant-color': this.get('dominant-color'),
+                    'dominant-colour': this.get('dominant-color'),
                     'url': this.get('url')
                 }));
             }
