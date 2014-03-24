@@ -213,7 +213,12 @@
 
         <script type="text/template" id="preview_container_template">
             <div class="tablecell">
+                <% var products = obj['related-products'] || []; %>
+                <% if (products.length === 0) { %>
                 <div class="content">
+                <% } else { %>
+                <div class="content big">
+                <% } %>
                     <span class="close">&#x00D7;</span>
                     <div class="scrollable">
                         <div class="template target"></div>
@@ -336,6 +341,9 @@
         <script type="text/template" id="product_preview_template">
             <!-- any (store.name)_(type)_... templates will be used in place
              of default templates if they exist. -->
+            <div class='title'><%= obj.title || obj.name %></div>
+            <div class='red marker price'>USD: <%= obj.price %></div>
+            <hr>
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
                     <div class='image'>
@@ -345,10 +353,7 @@
                     <div class='gallery'></div>
                     <% } %>
                 </div>
-                <div class='cell middle info col-sm-6 col-md-6'>
-                    <div class='title'><%= obj.title || obj.name %></div>
-                    <div class='red marker price'>USD: <%= obj.price %></div>
-                    <hr>
+                <div class='cell info col-sm-6 col-md-6'>
                     <div class='description'>
                         <div class='desc-title'>Overview</div>
                         <p><%= obj.description %></p>
@@ -489,49 +494,40 @@
                             </div>
                         <% } %>
                     </div>
-                    <div class="middle cell center">
-                        <% if (product.images.length > 1 && App.support.mobile()) { %>
-                            <div class="main-image">
-                                <span class="gallery-swipe-left gallery-related"></span>
-                                <img class="main-image" src="<%= product.defaultImage.url %>" alt="related product"/>
-                                <span class="gallery-swipe-right gallery-related"></span>
-                            </div>
-                        <% } else { %>
-                            <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                        <% } %>
-                        <% if (product.images.length > 1) { %>
-                            <div class='gallery'></div>
-                        <% } %>
-                    </div>
                     <div class="middle cell">
-                        <div class='title'><%= product.title || product.name%></div>
-                        <div class='price'><%= product.price %></div>
-                        <div class='description'>
-                            <div class='desc-title'>Overview</div>
-                            <ul>
-                                <% var sentences =
-                                _.compact((product.description || "").split('.'));%>
-                                <% _.each(sentences, function(sentence) { %>
-                                <li><%= SecondFunnel.utils.safeString(sentence)
-                                    %>
-                                </li>
-                                <% }); %>
-                            </ul>
+                        <div class='title'><%= product.title || product.name %></div>
+                        <div class='red marker price'>USD: <%= product.price %></div>
+                        <hr>
+                        <div class="cell middle col-sm-6 col-md-6"> <!-- image-div -->
+                            <% if (product.images.length > 1 && App.support.mobile()) { %>
+                                <div class="main-image">
+                                    <span class="gallery-swipe-left gallery-related"></span>
+                                    <img class="main-image" src="<%= product.defaultImage.url %>" alt="related product"/>
+                                    <span class="gallery-swipe-right gallery-related"></span>
+                                </div>
+                            <% } else { %>
+                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
+                            <% } %>
+                            <% if (product.images.length > 1) { %>
+                                <div class='gallery'></div>
+                            <% } %>
                         </div>
-                        <div>
-                            <div class="social-buttons"></div>
-                            <div class='spacer'></div>
-                        </div>
-                        <div class='gap-buttons'>
-                            <a class='button find-store'
-                               href='http://www.gap.com/customerService/storeLocator.do'
-                               target='_blank'>
-                                Find in Store
-                            </a>
-                            <a class='button in-store'
-                               href='<%= product.url %>' target='_blank'>
-                                Shop on Gap.com
-                            </a>
+                        <div class="cell col-sm-6 col-md-6"> <!-- info -->
+                            <div class='description'>
+                                <div class='desc-title'>Overview</div>
+                                <p><%= product.description %></p>
+                            </div>
+                            <div>
+                                <div class="social-buttons"></div>
+                                <div class='spacer'></div>
+                            </div>
+                            <div class='madewell-buttons'>
+                                <a class='button show-now'
+                                   href='<%= obj.url %>'
+                                   target='_blank'>
+                                    Shop Now
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
