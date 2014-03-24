@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="google" value="notranslate">
     {% include "pinpoint/campaign_opengraph_tags.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
@@ -142,6 +143,7 @@
                 <span class="type"><%= obj['content-type'] %></span>
             <% } %>
             <div class="name"><%= obj.title || obj.name %></div>
+            <div class="price"><%= obj.price %></div>
         </script>
 
         <script type="text/template" id="product_mobile_tile_template">
@@ -255,19 +257,20 @@
         </script>
 
         <script type="text/template" id="twitter_social_button_template">
-            <% var desc = description.replace(/<(?:.|\n)*?>/gm, ''); %>
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
             <% if (showCount) { %>
                 <div class='button twitter' style='height: 13px; width: 77px;'>
                     <a href="//twitter.com/share"
                        class="twitter-share-button"
-                       data-text="<%= caption || description || name %> <%= url %>"
+                       data-text="<%= cleanDesc %> <%= url %>"
                        data-lang="en" data-height= "15">
                       Tweet
                     </a>
                 </div>
             <% } else { %>
                 <div class='button twitter'>
-                    <a href="//twitter.com/share?url=<%= url %>&text=<%= caption || description || name %>"
+                    <a href="//twitter.com/share?url=<%= url %>&text=<%= cleanDesc %>"
                        target="_blank">
                         <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
                     </a>
@@ -276,8 +279,10 @@
         </script>
 
         <script type="text/template" id="pinterest_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
             <div class='button pinterest'>
-                <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= caption || description || name %>"
+                <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= cleanDesc %>"
                    target="_blank"><img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/></a>
             </div>
         </script>
@@ -293,8 +298,10 @@
         </script>
 
         <script type="text/template" id="tumblr_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
             <div class="button tumblr">
-                <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= caption || description || name %>&click_thru=<%= url %>"
+                <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= cleanDesc %>&click_thru=<%= url %>"
                      target='_blank'><img src="http://platform.tumblr.com/v1/share_1.png"/></a>
             </div>
         </script>
