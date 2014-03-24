@@ -4,6 +4,7 @@ import StringIO
 
 from os import path
 
+
 def read_a_file(file_name, default_value=''):
     """just a file opener with a catch."""
     try:
@@ -38,5 +39,5 @@ def read_remote_file(url, default_value=''):
 
         content = response.read()
         return content, False
-    except (TypeError, ValueError, urllib2.HTTPError) as err:
+    except (TypeError, ValueError, urllib2.HTTPError, urllib2.URLError) as err:
         return default_value, False
