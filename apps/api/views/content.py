@@ -1,9 +1,9 @@
-from celery.utils.functional import uniq
 from django.shortcuts import get_object_or_404
 
 from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
 from apps.assets.models import Content, Store, Page
 from apps.intentrank.utils import ajax_jsonp
+
 
 class ContentItemCGHandler(BaseItemCGHandler):
     model = Content
@@ -70,10 +70,8 @@ class StorePageContentCGHandler(StoreContentCGHandler):
         """get all the contents in the feed, which is
         all the feed's tiles' contents
         """
-        tiles = self.feed.tiles.all()
-        contents = []
-        for tile in tiles:
-            contents += tile.content.all()
+        tile_content_ids = self.feed.tiles.values_list('content__id', flat=True)
+        contents = Content.objects.filter(id__in=tile_content_ids)
         return contents
 
 
@@ -123,6 +121,46 @@ class StorePageContentSuggestedCGHandler(StorePageContentCGHandler):
         raise NotImplementedError()
     put = patch = delete = post
 
+
+class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
+    """Supports content tagging
+
+    GET content id: list tagged product ids on that product
+    POST content id with product id: add that product tag
+                                     returns updated content
+    DELETE content id with product id: remove that product tag
+                                       returns updated content
+
+    All other operations: not supported
+    """
+    '''
+    def get_queryset(self, request=None):
+        """get all the contents in the feed, which is
+        all the feed's tiles' contents
+        """
+        store = self.store
+
+        # find ids of content not already present in the current set of tiles
+        tile_content_ids = self.feed.tiles.values_list('content__old_id', flat=True)
+        not_in_feed = list(set(store.content.values_list('old_id', flat=True)) -
+                           set(tile_content_ids))
+
+        # mass select and initialize these content models
+        not_in_feed = (Content.objects.filter(old_id__in=not_in_feed)
+                                      .select_subclasses())
+
+        return not_in_feed
+
+    def get(self, request, *args, **kwargs):
+        content = 0
+
+    def put(self, request, *args, **kwargs):
+        raise NotImplementedError()
+
+    def patch(self, request, *args, **kwargs):
+        raise NotImplementedError()
+    '''
+    pass  # TODO
 
 '''
 @request_methods('PUT')

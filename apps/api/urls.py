@@ -68,7 +68,6 @@ urlpatterns += patterns('apps.api.views',
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile/?$' % prefix, StorePageTileCGHandler.as_view()),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile/(?P<tile_id>\d+)/?$' % prefix, StorePageTileItemCGHandler.as_view()),
 
-
     # url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/tag/?$' % prefix, 'tag_content', name='tag_content'),
     # url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/tag/(?P<product_id>\d+)/?$' % prefix, 'tag_content', name='delete_tagged_content'),
 
@@ -102,14 +101,7 @@ urlpatterns += patterns('apps.api.views',
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/generate/?$' % prefix, 'generate_static_page', name='generate_static_page'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/transfer/?$' % prefix, 'transfer_static_page', name='transfer_static_page'),
 
-    url(
-        r'^%s/store/(?P<store_id>\d+)'          # store
-        r'/page/(?P<page_id>\d+)'               # page
-        r'/(?P<object_type>\w+)'                # type
-        r'/(?P<object_id>\d+)/?$' % prefix,     # id
-        'proxy_tile',
-        name='proxy_tile'
-    ),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/(?P<object_type>\w+)/(?P<object_id>\d+)/?$' % prefix, 'proxy_tile', name='proxy_tile'),
 
     # If all else fails, proxy
     url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
