@@ -504,33 +504,22 @@
                         <% } %>
                     </div>
                     <div class="middle cell">
-                        <div class='title'><%= product.title || product.name%></div>
-                        <div class='price'><%= product.price %></div>
+                        <div class='title'><%= product.title || product.name %></div>
+                        <div class='red marker price'>USD: <%= product.price %></div>
+                        <hr>
                         <div class='description'>
                             <div class='desc-title'>Overview</div>
-                            <ul>
-                                <% var sentences =
-                                _.compact((product.description || "").split('.'));%>
-                                <% _.each(sentences, function(sentence) { %>
-                                <li><%= SecondFunnel.utils.safeString(sentence)
-                                    %>
-                                </li>
-                                <% }); %>
-                            </ul>
+                            <p><%= product.description %></p>
                         </div>
                         <div>
                             <div class="social-buttons"></div>
                             <div class='spacer'></div>
                         </div>
-                        <div class='gap-buttons'>
-                            <a class='button find-store'
-                               href='http://www.gap.com/customerService/storeLocator.do'
+                        <div class='madewell-buttons'>
+                            <a class='button show-now'
+                               href='<%= obj.url %>'
                                target='_blank'>
-                                Find in Store
-                            </a>
-                            <a class='button in-store'
-                               href='<%= product.url %>' target='_blank'>
-                                Shop on Gap.com
+                                Shop Now
                             </a>
                         </div>
                     </div>
