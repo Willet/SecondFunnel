@@ -171,11 +171,13 @@ class Command(BaseCommand):
             content_type = content_dict.get('type')
 
             content_name = content_dict.get('name')
+            content_status = content_dict.get('status', 'approved')
             content_description = content_dict.get('description')
 
             content_fields = {'store': self.store,
                               'source': content_source,
                               'name': content_name,
+                              'status': content_status,
                               'description': content_description}
 
             if content_type == 'image':
