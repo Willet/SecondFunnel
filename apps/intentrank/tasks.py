@@ -37,7 +37,7 @@ def handle_ir_config_update_notification_message(message):
     @type message {boto.sqs.message.Message}
     @returns any JSON-serializable
     """
-    from apps.api.utils import ContentGraphClient  # circular loop
+    from apps.api.resources import ContentGraphClient  # circular loop
     message = json.loads(message)
 
     store_id = message['storeId']
