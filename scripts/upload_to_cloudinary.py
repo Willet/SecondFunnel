@@ -20,8 +20,14 @@ def upload():
     relative paths and uploading them to Cloudinary for use with the new
     SecondFunnel front-facing application.
     """
+    stores = [
+        38, # GAP
+        23 # Tee Time
+    ]
+
     secondfunnel_path = "http://images.secondfunnel.com/"
-    result_list = list(chain(Image.objects.all(), ProductImage.objects.all()))
+    result_list = list(chain(Image.objects.filter(store__old_id__in=stores),
+                             ProductImage.objects.filter(product__store__old_id__in=stores)))
     base_url = "http:{0}".format(settings.CLOUDINARY_BASE_URL)
 
     for img in result_list:
