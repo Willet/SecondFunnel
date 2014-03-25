@@ -712,7 +712,8 @@ div.header {
     width: auto;
     border: 1px solid #CECECE;
 }
-.previewContainer .gallery img.selected {
+.previewContainer .gallery img.selected,
+.previewContainer .gallery .selected > img {
     border: 1px solid black;
 }
 

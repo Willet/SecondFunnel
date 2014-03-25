@@ -140,7 +140,11 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
         $gallery.animate({ // animate gallery on click
             scrollLeft: $selected.offset().left - $gallery.offset().left
         }, 700);
-        focusCurrent = $selected.index();
+        if ($gallery.hasClass('dots')) {
+            focusCurrent = $selected.parent().index();
+        } else {
+            focusCurrent = $selected.index();
+        }
         self.selectImage();
     }
 
@@ -156,7 +160,11 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
             .click(function(ev) {
                 var $prev = $gallery.find('.selected').prev();
                 if ($prev.length) {
-                    self.onClick({'currentTarget': $prev});
+                    if ($gallery.hasClass('dots')) {
+                        self.onClick({'currentTarget': $prev.children().first()});
+                    } else {
+                        self.onClick({'currentTarget': $prev});
+                    }
                 }
             });
 
@@ -165,7 +173,11 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
             .click(function(ev) {
                 var $next = $gallery.find('.selected').next();
                 if ($next.length) {
-                    self.onClick({'currentTarget': $next});
+                    if ($gallery.hasClass('dots')) {
+                        self.onClick({'currentTarget': $next.children().first()});
+                    } else {
+                        self.onClick({'currentTarget': $next});
+                    }
                 }
             });
 
@@ -221,7 +233,7 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
     }
 
     _.each(images, function(image) { // iterate over images to create gallery
-        var $img;
+        var $img, $wrapper;
         $img = App.support.mobile() ?
             $('<div></div>').css('background-image', 'url(' + image.url + ')') :
             $('<img />').attr('src', image.url);
@@ -233,6 +245,10 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
         if (App.support.mobile()) { // append to display area and create tile for gallery
             focus.append($img);
             $el.append($('<div />').addClass('img'));
+        } else if ($gallery.hasClass('dots')) {
+            $wrapper = $('<span/>').addClass('img-wrapper');
+            $wrapper.append($img);
+            $el.append($wrapper);
         } else { // otherwise append to gallery
             $el.append($img);
         }
