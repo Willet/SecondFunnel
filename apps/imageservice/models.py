@@ -1,8 +1,6 @@
 import math
 import numpy
-import scipy
-import scipy.misc
-import scipy.cluster
+import random
 from PIL import Image, ImageChops, ImageFilter
 
 from django.db import models
@@ -134,7 +132,6 @@ class ExtendedImage(object):
     def dominant_color(self):
         """
         Determines the dominant colour in an image and returns it as a hex string.
-        Reference: http://stackoverflow.com/questions/3241929
 
         @param self: ExtendedImage instance
         @return: String
@@ -142,21 +139,11 @@ class ExtendedImage(object):
         # resize to reduce computation time
         tmp = self.copy().resize(150, 150)
         # Generate a histogram for the image colour points
-        points = scipy.misc.fromimage(tmp)
-        shape = points.shape
-        points = points.reshape(scipy.product(shape[:2]), shape[2])
+        # Begin by gathering into an array of points
+        from app.imageserver.utils import get_dominant_colour
 
-        # Using the kmeans algorithm, group the points into clusters
-        clusters, _ = scipy.cluster.vq.kmeans(points, NUM_OF_CLUSTERS)
-        # Generate vectors
-        vectors, distance = scipy.cluster.vq.vq(points, clusters)
-        occurrences, _ = scipy.histogram(vectors, len(clusters)) # Get occurrences of each vector
-
-        # Find most frequent colour
-        peak = scipy.argmax(occurrences)
-        peak = ''.join(chr(c) for c in clusters[peak]).encode('hex')
-
-        return peak
+        colour = get_dominant_colour(self, NUM_OF_CLUSTERS)
+        return colour
 
     def copy(self):
         """
