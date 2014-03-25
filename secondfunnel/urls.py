@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     # APPS
     url(r'^assets/', include('apps.assets.urls')),
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
+    url(r'^imageservice/', include('apps.imageservice.urls')),
     #url(r'p/', include('apps.pinpoint.global_urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
     url(r'^tracker/', include('apps.tracking.urls')),

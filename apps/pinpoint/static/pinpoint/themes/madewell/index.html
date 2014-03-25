@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="google" value="notranslate">
     {% include "pinpoint/campaign_opengraph_tags.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
@@ -27,7 +28,9 @@
                 template = template || _.sample(["A", "B"]);
                 if (template != "A") {
                     App.options.minColumns = 2;
-                    s.appendTo($('head'));
+                    $('head').ready(function() {
+                        s.appendTo($('head'));
+                    });
                 }
                 return template;
             }
@@ -35,6 +38,7 @@
         window.OPTIMIZER_TESTS.push({
             index: 7, // Null A/B Test in Analytics
             test: 'custom',
+            device: 'mobile',
             custom: function (template) {
                 return template || _.sample(["A", "B"]);
             }
@@ -85,10 +89,10 @@
     <!-- End Optimizer Tests -->
     {% include "pinpoint/campaign_head.html" %}
     <link rel="shortcut icon"
-         href="http://www.gap.com/favicon.ico" />
+         href="{% static 'pinpoint/themes/madewell/images/favicon.ico' %}" />
     <link rel="stylesheet"
-          href="{% static 'pinpoint/themes/gap/gap.css' %}"/>
-    <title>{{ page.name|default:"Gap" }}</title>
+          href="{% static 'pinpoint/themes/madewell/madewell.css' %}"/>
+    <title>{{ page.name|default:"Madewell" }}</title>
     <style type="text/css">
         /* out of necessity */
         .visible-xs.jumbotron { /* mobile hero */
@@ -108,126 +112,10 @@
     </style>
 </head>
 <body>
-    <div class='header'>
-        {% if not campaign.hide_navigation_bar %}
-            <div class="navbar navbar-fixed-top navbar-static-top"
-                 role="navigation">
-                <div class="container">
-                    <ul class="nav navbar-nav navbar-left">
-                        <li>
-                            <a data-brand="Gap" class="navbar-brand gap" href="http://www.gap.com" target="_blank">&nbsp;</a>
-                            <a data-brand="Old Navy" class="navbar-brand old_navy navbar-brand hidden-xs hidden-sm" href="http://www.oldnavy.com" target="_blank">&nbsp;</a>
-                            <a data-brand="Banana Republic" class="navbar-brand banana_republic hidden-xs hidden-sm" href="http://www.bananarepublic.com" target="_blank">&nbsp;</a>
-                            <a data-brand="Piperlime" class="navbar-brand piperlime hidden-xs hidden-sm" href="http://www.piperlime.com" target="_blank">&nbsp;</a>
-                            <a data-brand="Athleta" class="navbar-brand athleta hidden-xs hidden-sm"  href="http://www.athleta.com" target="_blank">&nbsp;</a>
-                        </li>
-                        <li class="other-brands dropdown hidden-md hidden-lg">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">&nbsp;</a>
-                            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                                <li>
-                                    <a href="http://www.gap.com" target="_blank">
-                                        <span class="icon"></span>
-                                        <span class="text">Gap</span>
-                                    </a>
-                                </li>
-                                <li class="old_navy">
-                                    <a href="http://oldnavy.com" target="_blank">
-                                        <span class="icon"></span>
-                                        <span class="text">Old Navy</span>
-                                    </a>
-                                </li>
-                                <li class="banana_republic">
-                                    <a href="http://www.bananarepublic.com" target="_blank">
-                                        <span class="icon"></span>
-                                        <span class="text">Banana Republic</span>
-                                    </a>
-                                </li>
-                                <li class="piperlime">
-                                    <a href="http://www.piperlime.com" target="_blank">
-                                        <span class="icon"></span>
-                                        <span class="text">Piperlime</span>
-                                    </a>
-                                </li>
-                                <li class="athleta">
-                                    <a href="http://www.athleta.com" target="_blank">
-                                        <span class="icon"></span>
-                                        <span class="text">Athleta</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="stay-connected dropdown hidden-md hidden-lg">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">&nbsp;</a>
-                            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                                <li class="facebook">
-                                    <a href="http://www.facebook.com/Gap" target="_blank">
-                                        <span class="icon"></span>
-                                        <span class="text">Facebook</span>
-                                    </a>
-                                </li>
-                                <li class="twitter">
-                                    <a href="http://www.twitter.com/gap" target="_blank">
-                                        <span class="icon"></span>
-                                        <span class="text">Twitter</span>
-                                    </a>
-                                </li>
-                                <li class="pinterest">
-                                    <a href="http://www.pinterest.com/Gap" target="_blank">
-                                        <span class="icon"></span>
-                                        <span class="text">Pinterest</span>
-                                    </a>
-                                </li>
-                                <li class="instagram">
-                                    <a href="http://www.instagram.com/gap" target="_blank">
-                                        <span class="icon"></span>
-                                        <span class="text">Instagram</span>
-                                    </a>
-                                </li>
-                                <li class="tumblr">
-                                    <a href="http://gap.tumblr.com" target="_blank">
-                                        <span class="icon"></span>
-                                        <span class="text">Tumblr</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                    <ul class="nav navbar-nav navbar-right">
-                        <li class="sharing hidden-xs hidden-sm">
-                            Stay Connected:
-                            <ul>
-                                <li class="icon pinterest">
-                                    <a href="http://www.pinterest.com/Gap"
-                                       target="_blank">&nbsp;</a>
-                                </li>
-                                <li class="icon facebook">
-                                    <a href="http://www.facebook.com/Gap"
-                                       target="_blank">&nbsp;</a>
-                                </li>
-                                <li class="icon twitter">
-                                    <a href="http://www.twitter.com/gap"
-                                       target="_blank">&nbsp;</a>
-                                </li>
-                                <li class="icon instagram">
-                                    <a href="http://www.instagram.com/gap"
-                                       target="_blank">&nbsp;</a>
-                                </li>
-                                <li class="icon youtube">
-                                    <a href="http://www.youtube.com/Gap"
-                                       target="_blank">&nbsp;</a>
-                                </li>
-                                <li class="icon tumblr">
-                                    <a href="http://gap.tumblr.com"
-                                       target="_blank">&nbsp;</a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-                <!-- /.navbar-collapse -->
-            </div>
-        </div>
-    {% endif %}
+    <div class='header container centered'>
+        <img class='centered'
+             src='{% static 'pinpoint/themes/madewell/images/logo.gif' %}'>
+    </div>
 
     {% include "pinpoint/campaign_body.html" %}
 
@@ -255,6 +143,7 @@
                 <span class="type"><%= obj['content-type'] %></span>
             <% } %>
             <div class="name"><%= obj.title || obj.name %></div>
+            <div class="price"><%= obj.price %></div>
         </script>
 
         <script type="text/template" id="product_mobile_tile_template">
@@ -324,7 +213,12 @@
 
         <script type="text/template" id="preview_container_template">
             <div class="tablecell">
+                <% var products = obj['related-products'] || []; %>
+                <% if (products.length === 0) { %>
                 <div class="content">
+                <% } else { %>
+                <div class="content big">
+                <% } %>
                     <span class="close">&#x00D7;</span>
                     <div class="scrollable">
                         <div class="template target"></div>
@@ -368,18 +262,20 @@
         </script>
 
         <script type="text/template" id="twitter_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
             <% if (showCount) { %>
                 <div class='button twitter' style='height: 13px; width: 77px;'>
                     <a href="//twitter.com/share"
                        class="twitter-share-button"
-                       data-text="<%= caption || description || name %> <%= url %>"
+                       data-text="<%= cleanDesc %> <%= url %>"
                        data-lang="en" data-height= "15">
                       Tweet
                     </a>
                 </div>
             <% } else { %>
                 <div class='button twitter'>
-                    <a href="//twitter.com/share?url=<%= url %>&text=<%= caption || description || name %>"
+                    <a href="//twitter.com/share?url=<%= url %>&text=<%= cleanDesc %>"
                        target="_blank">
                         <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
                     </a>
@@ -388,8 +284,10 @@
         </script>
 
         <script type="text/template" id="pinterest_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
             <div class='button pinterest'>
-                <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= caption || description || name %>"
+                <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= cleanDesc %>"
                    target="_blank"><img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/></a>
             </div>
         </script>
@@ -405,8 +303,10 @@
         </script>
 
         <script type="text/template" id="tumblr_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
             <div class="button tumblr">
-                <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= caption || description || name %>&click_thru=<%= url %>"
+                <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= cleanDesc %>&click_thru=<%= url %>"
                      target='_blank'><img src="http://platform.tumblr.com/v1/share_1.png"/></a>
             </div>
         </script>
@@ -441,45 +341,33 @@
         <script type="text/template" id="product_preview_template">
             <!-- any (store.name)_(type)_... templates will be used in place
              of default templates if they exist. -->
+            <div class='title'><%= obj.title || obj.name %></div>
+            <div class='red marker price'>USD: <%= obj.price %></div>
+            <hr>
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
                     <div class='image'>
-                        <img src='<%= obj.image.url %>'/>
+                        <img src='<%= obj.defaultImage.url %>'/>
                     </div>
                     <% if (obj.images.length > 1) { %>
                     <div class='gallery'></div>
                     <% } %>
                 </div>
-                <div class='cell middle info col-sm-6 col-md-6'>
-                    <div class='title'><%= obj.title || obj.name %></div>
-                    <div class='red marker price'><%= obj.price %></div>
+                <div class='cell info col-sm-6 col-md-6'>
                     <div class='description'>
                         <div class='desc-title'>Overview</div>
-                        <ul>
-                            <% var sentences =
-                            _.compact(obj.description.split('.')); %>
-                            <% _.each(sentences, function(sentence) { %>
-                            <li><%= SecondFunnel.utils.safeString(sentence)
-                                %>
-                            </li>
-                            <% }); %>
+                        <p><%= obj.description %></p>
                         </ul>
                     </div>
                     <div>
                         <div class="social-buttons"></div>
                         <div class='spacer'></div>
                     </div>
-                    <div class='gap-buttons'>
-                        <a class='button find-store'
-                           href='http://www.gap.com/customerService/storeLocator.do'
+                    <div class='madewell-buttons'>
+                        <a class='button show-now'
+                           href='<%= obj.url %>'
                            target='_blank'>
-                            <!-- find-store is magic -->
-                            Find in Store
-                        </a>
-                        <a class='button in-store' href='<%= obj.url %>'
-                           target='_blank'>
-                            <!-- in-store is magic -->
-                            Shop on Gap.com
+                            Shop Now
                         </a>
                     </div>
                 </div>
@@ -581,7 +469,7 @@
                             -->
                         </div>
                     <% } else { %>
-                        <div class="img" style="background-image: url('<%= obj.image.url %>');"></div>
+                        <div class="img" style="background-image: url('<%= obj.defaultImage.url %>');"></div>
                     <% } %>
                 </div>
             </div>
@@ -593,7 +481,7 @@
             <div class="image-with-related-products">
                 <div class="row">
                     <div class="image middle cell capped-width">
-                        <img src="<%= obj.image.url %>" alt="image"/>
+                        <img src="<%= obj.defaultImage.url %>" alt="image"/>
                         <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                         <% var validSources = ['tumblr', 'instagram', 'facebook', 'styld.by']; %>
                         <% if (_.indexOf(validSources, obj.source) != -1) { %>
@@ -606,41 +494,40 @@
                             </div>
                         <% } %>
                     </div>
-                    <div class="middle cell center">
-                        <% if (product.images.length > 1) { %>
-                            <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                            <div class='gallery'></div>
-                        <% } %>
-                    </div>
                     <div class="middle cell">
-                        <div class='title'><%= product.title || product.name%></div>
-                        <div class='price'><%= product.price %></div>
-                        <div class='description'>
-                            <div class='desc-title'>Overview</div>
-                            <ul>
-                                <% var sentences =
-                                _.compact((product.description || "").split('.'));%>
-                                <% _.each(sentences, function(sentence) { %>
-                                <li><%= SecondFunnel.utils.safeString(sentence)
-                                    %>
-                                </li>
-                                <% }); %>
-                            </ul>
+                        <div class='title'><%= product.title || product.name %></div>
+                        <div class='red marker price'>USD: <%= product.price %></div>
+                        <hr>
+                        <div class="cell middle col-sm-6 col-md-6"> <!-- image-div -->
+                            <% if (product.images.length > 1 && App.support.mobile()) { %>
+                                <div class="main-image">
+                                    <span class="gallery-swipe-left gallery-related"></span>
+                                    <img class="main-image" src="<%= product.defaultImage.url %>" alt="related product"/>
+                                    <span class="gallery-swipe-right gallery-related"></span>
+                                </div>
+                            <% } else { %>
+                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
+                            <% } %>
+                            <% if (product.images.length > 1) { %>
+                                <div class='gallery'></div>
+                            <% } %>
                         </div>
-                        <div>
-                            <div class="social-buttons"></div>
-                            <div class='spacer'></div>
-                        </div>
-                        <div class='gap-buttons'>
-                            <a class='button find-store'
-                               href='http://www.gap.com/customerService/storeLocator.do'
-                               target='_blank'>
-                                Find in Store
-                            </a>
-                            <a class='button in-store'
-                               href='<%= product.url %>' target='_blank'>
-                                Shop on Gap.com
-                            </a>
+                        <div class="cell col-sm-6 col-md-6"> <!-- info -->
+                            <div class='description'>
+                                <div class='desc-title'>Overview</div>
+                                <p><%= product.description %></p>
+                            </div>
+                            <div>
+                                <div class="social-buttons"></div>
+                                <div class='spacer'></div>
+                            </div>
+                            <div class='madewell-buttons'>
+                                <a class='button show-now'
+                                   href='<%= obj.url %>'
+                                   target='_blank'>
+                                    Shop Now
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -649,7 +536,7 @@
             <div class="image-without-related-products">
                 <div class="row">
                     <div class="image middle cell capped-width">
-                        <img src="<%= obj.image.url %>" alt="image"/>
+                        <img src="<%= obj.defaultImage.url %>" alt="image"/>
                     </div>
                     <div class="middle cell">
                         <div class="info">
@@ -683,43 +570,6 @@
                     <img src="{{ mobile_hero_image }}" alt="Hero" />
                 </div>
                 <div class="visible-md visible-lg jumbotron"></div>
-                <div class="overlay">
-                    <div class='buttons'>
-                        <%
-                            var share = App.options.page.description;
-                            var src = top.location.href;
-                            var fbLink = 'http://www.facebook.com/sharer/sharer.php?'
-                                + 's=100'
-                                + '&p[title]=Gap'
-                                + '&p[summary]=' + share.replace(' ', '+')
-                                + '&p[url]=' + encodeURIComponent(src)
-                                + '&p[images][0]={{ desktop_hero_image }}';
-
-                            var twtLink = 'http://twitter.com/share?'
-                                + 'url=' + encodeURIComponent(src)
-                                + '&text=' + encodeURIComponent(share);
-
-                            var mailLink = 'mailto:?'
-                                + 'body=' + encodeURIComponent(share);
-                        %>
-                        <a href='<%= fbLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon.png' />
-                        </a>
-                        <a href='<%= twtLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon.png' />
-                        </a>
-                        <a href='<%= mailLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon.png' />
-                        </a>
-                    </div>
-                    <span class='find'>
-                        <% if (!App.support.mobile()) { %>
-                            <a href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
-                        <% } else { %>
-                            <a href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
-                        <% } %>
-                    </span>
-                </div>
             </div>
             {% if legal_copy %}
                 <div class="legal us">

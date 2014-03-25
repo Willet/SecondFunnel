@@ -315,3 +315,9 @@ _.mixin({
 debugOp = function () {
     console.debug('%O, %O', this, arguments);
 };
+
+/**
+ * Initialize cloudinary
+ */
+$.cloudinary.config({ cloud_name: 'secondfunnel', api_key: '471718281466152' });
+App.CLOUDINARY_DOMAIN = "http://" + $.cloudinary.SHARED_CDN + "/" + $.cloudinary.config().cloud_name + "/image/upload";

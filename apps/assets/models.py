@@ -278,7 +278,7 @@ class ProductImage(BaseModel):
 
     product = models.ForeignKey(Product, related_name="product_images")
 
-    url = models.TextField()  # 2f.com/.jpg
+    url = models.TextField()  # store/.../.jpg
     original_url = models.TextField()  # gap.com/.jpg
     file_type = models.CharField(max_length=255, blank=True, null=True)
     file_checksum = models.CharField(max_length=512, blank=True, null=True)
@@ -300,8 +300,7 @@ class ProductImage(BaseModel):
             # TODO: deprecate "colour" to match up with CSS attr names
             "dominant-colour": self.dominant_color or "transparent",
             "url": self.url,
-            "id": str(self.old_id or self.id),
-            "sizes": self.attributes.get('sizes', default_master_size)
+            "id": str(self.old_id or self.id)
         }
         return dct
 

@@ -56,6 +56,7 @@ requests-oauthlib==0.3.2
 
 # Image Processing
 Pillow==2.3.0
+cloudinary==1.0.15
 
 ## Database Related
 South==0.8.4

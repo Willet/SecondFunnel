@@ -13,7 +13,10 @@
  * @return this
  */
 App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
-    var images, focusWidth, arrows,
+    var images,
+        focusWidth,
+        arrows,
+        windowWidth = $(window).width(),
         focusCurrent = 0,
         speed = 250, // transition speed for mobile
         $gallery = view.$('.gallery'), // reference to gallery
@@ -178,7 +181,10 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
     images = view.model.get('related-products');
     if (images && images.length) { // ensure related images exist
         images = images[0].images.slice(0);
-        if (App.support.mobile()) images.splice(0, 0, view.model.get('defaultImage'));
+
+        if (App.support.mobile()) {
+            images.splice(0, 0, view.model.get('defaultImage'));
+        }
     } else {
         images = view.model.get('images');
     }
@@ -186,8 +192,8 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
     _.each(images, function(image) { // iterate over images to create gallery
         var $img;
         $img = App.support.mobile() ?
-            $('<div></div>').css('background-image', 'url(' + image.url + ')') :
-            $('<img />').attr('src', image.url);
+            $('<div></div>').css('background-image', 'url(' + image.width(windowWidth * 1.5) + ')') :
+            $('<img />').attr('src', image.width());
 
         $img
             .addClass('img')

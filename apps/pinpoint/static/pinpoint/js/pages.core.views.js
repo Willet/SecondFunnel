@@ -207,27 +207,23 @@ App.module('core', function (module, App) {
             var maxImageSize,
                 self = this,
                 defaultImage = self.model.getDefaultImage(),  // obj
-                normalTileWidth = App.option('columnWidth', 255),
+                normalTileWidth = App.layoutEngine.width(),
                 wideTileWidth = normalTileWidth * 2,
                 fullTileWidth = normalTileWidth * 4,  // 4col (standby)
                 normalImageInfo = this.model.get('defaultImage')
                     .width(normalTileWidth, true),  // undefined if not found
-                wideImageInfo = this.model.get('defaultImage'),
-                    /*.width(wideTileWidth, true)*/  // undefined if not found
-                sizes = {
-                    'normal': normalTileWidth,
-                    'wide': wideTileWidth,
-                    'full': fullTileWidth
-                },
+                wideImageInfo = this.model.get('defaultImage')
+                    .width(wideTileWidth, true),
+                // TODO: Make the configurable; perhaps a page property?
                 widable_templates = {
                     'image': true,
                     'youtube': true,
                     'banner': true
-                }; //TODO: Make the configurable; perhaps a page property?
+                };
 
             // templates use this as obj.image.url
             this.model.set('image',
-                this.model.get('defaultImage')/*.width(normalTileWidth, true)*/);
+                this.model.get('defaultImage'));
 
             // 0.5 is an arbitrary 'lets make this tile wide' factor
             if (widable_templates[self.model.get('template')] &&
@@ -235,7 +231,9 @@ App.module('core', function (module, App) {
                 Math.random() > App.option('imageTileWide', 0.5)) {
                 // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
-                this.model.set({'image': wideImageInfo});
+                if (!App.support.mobile()) { // wide means nothing on mobile
+                    this.model.set({'image': wideImageInfo});
+                }
             }
 
             // Listen for the image being removed from the DOM, if it is, remove
@@ -718,11 +716,19 @@ App.module('core', function (module, App) {
             }
             return templateRules;
         },
+
         'onBeforeRender': function () {
+            // Need to get an appropriate sized image
+            var image = $.extend(true, {},
+                this.model.get('defaultImage').attributes);
+            image = (new App.core.Image(image)).width(undefined, {
+                multiplier: 1.5
+            });
+
             // templates use this as obj.image.url
-            this.model.set('image',
-                    this.model.get('defaultImage').toJSON());
+            this.model.set('image', image);
         },
+
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
             var buttons, width;

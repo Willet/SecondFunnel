@@ -139,6 +139,7 @@ function reinitialize(app) {
                 });
                 app.previewArea.show(preview);
             }).fail(function () {
+                previewLoadingScreen.hide();
                 app.router.navigate('', {
                     trigger: true,
                     replace: true

@@ -12,6 +12,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
 
     var $document = $(document),
         $window = $(window),
+        currentWidth = 0,
         defaults = {
             'columnWidth': 255,
             'isAnimated': App.support.transform3d() &&  // only if it is fast
@@ -91,12 +92,22 @@ App.module("layoutEngine", function (layoutEngine, App) {
      * @returns this
      */
     this.layout = function (view) {
-        // Dynamic columnWidth recalculation
         var _opts = _.extend({}, opts);
+        // Dynamic columnWidth recalculation
         _opts.columnWidth = this.recalculateWidth(view);
+        currentWidth = _opts.columnWidth;
         view.$el.masonry(_opts);
 
         return this;
+    };
+
+    /**
+     * Returns the current column width.
+     *
+     * @returns this
+     */
+    this.width = function () {
+        return currentWidth;
     };
 
     /**
