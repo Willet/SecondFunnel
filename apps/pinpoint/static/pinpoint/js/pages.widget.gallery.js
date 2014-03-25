@@ -96,9 +96,13 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
      * @return this
      */
     this.selectImage = function () {
-        var hash,
-            arrows,
+        var hash, arrows, len;
+
+        if (App.support.mobile()) {
             len = focus.children().length - 1;
+        } else {
+            len = $gallery.children().length - 1;
+        }
 
         // Determine the selected image
         $gallery
