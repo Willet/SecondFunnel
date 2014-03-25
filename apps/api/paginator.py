@@ -90,7 +90,7 @@ def cg_endpoint(fn):
     @request_methods('GET', 'POST', 'PATCH', 'DELETE')
     @check_login
     @never_cache
-    @csrf_exempt
+    #@csrf_exempt
     @returns_cg_json
     def wrapped(*args, **kwargs):
         return fn(*args, **kwargs)
@@ -110,9 +110,8 @@ class BaseCGHandler(JSONResponseMixin, ListView):
     page_kwarg = 'offset'
     id_attr = 'object_id'  # the arg in the url pattern used to select something
 
-    @method_decorator(never_cache)
-    @method_decorator(csrf_exempt)
     @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         """decides if this is a GET/POST/...
         Currently being exploited to set initial values.
@@ -198,6 +197,7 @@ class BaseCGHandler(JSONResponseMixin, ListView):
         new_object.save()  # :raises ValidationError
         return ajax_jsonp(new_object.to_cg_json())
 
+    #@csrf_exempt
     def put(self, request, *args, **kwargs):
         """default PUT behaviour
 

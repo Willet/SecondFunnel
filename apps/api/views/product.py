@@ -1,4 +1,5 @@
 import json
+from django.http import HttpResponse
 
 from django.shortcuts import get_object_or_404
 
@@ -70,3 +71,28 @@ class StorePageProductCGHandler(StoreProductsCGHandler):
         for tile in tiles:
             products += tile.products.all()
         return products
+
+
+class PageProductAllCGHandler(StorePageProductCGHandler):
+    """PUT adds all products specified in the request body to the page.
+
+    No other HTTP verb is supported.
+
+    This view is identical to PageProductAllCGHandler.
+    """
+    def get(self, request, *args, **kwargs):
+        raise NotImplementedError()
+
+    def put(self, request, *args, **kwargs):
+        """:returns 200"""
+        page_id = kwargs.get('page_id')
+        page = get_object_or_404(Page, old_id=page_id)
+
+        product_ids = json.loads(request.body)
+        for product_id in product_ids:
+            product = get_object_or_404(Product, old_id=product_id)
+            page.add_product(product)
+
+        return HttpResponse()
+
+    post = patch = delete = get

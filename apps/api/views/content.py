@@ -1,5 +1,7 @@
+import json
+
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 
 from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
@@ -169,7 +171,8 @@ class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
         product_id = kwargs.get('product_id')
         tagged_product_ids = [x.old_id for x in self.content.tagged_products]
         try:
-            tagged_product_ids.remove(product_id)
+            # remove all instances of product_id
+            tagged_product_ids = [i for i in tagged_product_ids if i != product_id]
         except IndexError:
             pass
 
@@ -183,115 +186,27 @@ class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
     def patch(self, request, *args, **kwargs):
         raise NotImplementedError()
 
-'''
-@request_methods('PUT')
-@check_login
-@never_cache
-@csrf_exempt
-@deprecated
-def add_all_content(request, store_id, page_id):
-    try:
-        content_ids = json.loads(request.body)
-    except ValueError:
-        return HttpResponse(status=500)
 
-    if type(content_ids) != type([]):
-        return HttpResponse(status=500)
+class PageContentAllCGHandler(StorePageContentCGHandler):
+    """PUT adds all content specified in the request body to the page.
 
-    for content_id in content_ids:
-        if type(content_id) != type(1):
-            return HttpResponse(status=500)
+    No other HTTP verb is supported.
 
-        try:
-            add_content_to_page(store_id, page_id, content_id)
-        except ValueError:
-            return HttpResponse(status=500)
-
-    return HttpResponse()
-
-
-@request_methods('PUT')
-@check_login
-@never_cache
-@csrf_exempt
-@deprecated
-def add_all_products(request, store_id, page_id):
-    """Mirror of add_all_content."""
-    try:
-        product_ids = json.loads(request.body)
-    except ValueError:
-        return HttpResponse(status=500)
-
-    if type(product_ids) != type([]):
-        return HttpResponse(status=500)
-
-    for product_id in product_ids:
-        if type(product_id) != type(1):
-            return HttpResponse(status=500)
-
-        try:
-            page_add_product(store_id, page_id, product_id)
-        except ValueError:
-            return HttpResponse(status=500)
-
-    return HttpResponse()
-
-
-@append_headers
-@check_login
-@never_cache
-@csrf_exempt
-@deprecated
-def get_suggested_content_by_page(request, store_id, page_id):
-    """Returns a multiple lists of product content grouped by
-    their product id.
+    This view is identical to PageProductAllCGHandler.
     """
-    if request.method != 'GET':
-        return HttpResponseNotAllowed(['GET'])
+    def get(self, request, *args, **kwargs):
+        raise NotImplementedError()
 
-    # {'key': ['val']}
-    params = parse_qs(request.META.get('QUERY_STRING', ''))
-    for key in params:
-        # {'key': 'val'}
-        params[key] = params[key][0]
+    def put(self, request, *args, **kwargs):
+        """:returns 200"""
+        page_id = kwargs.get('page_id')
+        page = get_object_or_404(Page, old_id=page_id)
 
-    tile_config_url = "%s/page/%s/tile-config?template=product" % (
-        settings.CONTENTGRAPH_BASE_URL, page_id)
-    content_url = "%s/store/%s/content?is-content=true&tagged-products=%s"
-
-    results = []
-
-    # { "template": "product", "page": this page, "product-ids": ["123"]}
-    tile_configs, meta = get_proxy_results(request=request,
-                                           url=tile_config_url)
-
-    # this makes a flat (chain), unique (set) list of
-    # attributes (product-ids) from a list of objects' (tile configs)
-    # http://stackoverflow.com/a/952946/1558430
-    product_ids = list(set(sum(
-        [x.get('product-ids', []) for x in tile_configs], [])))
-
-    for product_id in product_ids:  # ["123", "124, ...]
-        contents, _ = get_proxy_results(request=request,
-            url=content_url % (settings.CONTENTGRAPH_BASE_URL,
-                               store_id, product_id))
+        content_ids = json.loads(request.body)
+        contents = Content.objects.filter(old_id__in=content_ids).select_subclasses()
         for content in contents:
-            if content in results:  # this works because __hash__
-                continue
+            page.add_content(content)
 
-            # do not recommended content that hasn't been approved
-            if content.get('status', 'needs-review') != 'approved':
-                continue
+        return HttpResponse()
 
-            # if filter exists and content attribute exists, then filter on it
-            if params.get('source') and (content.get('source') != params.get('source')):
-                continue
-
-            if params.get('type') and (content.get('type') != params.get('type')):
-                continue
-
-            results.append(content)
-
-    return ajax_jsonp({'results': results,
-                       'meta': meta})
-'''
+    post = patch = delete = get

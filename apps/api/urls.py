@@ -7,7 +7,8 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageProductCGHandler, StoreCGHandler, PageCGHandler,
     StorePageCGHandler, TileConfigCGHandler, PageTileConfigCGHandler,
     StorePageItemCGHandler, StoreProductCGHandler, StorePageContentItemCGHandler,
-    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler, PageTileConfigItemCGHandler, StorePageTileConfigCGHandler, StorePageTileConfigItemCGHandler, CategoryCGHandler, StorePageContentSuggestedCGHandler, TileCGHandler, TileItemCGHandler, PageTileCGHandler, PageTileItemCGHandler, StorePageTileCGHandler, StorePageTileItemCGHandler, PageItemCGHandler, StorePageContentTagCGHandler)
+    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler, PageTileConfigItemCGHandler, StorePageTileConfigCGHandler, StorePageTileConfigItemCGHandler, CategoryCGHandler, StorePageContentSuggestedCGHandler, TileCGHandler, TileItemCGHandler, PageTileCGHandler, PageTileItemCGHandler, StorePageTileCGHandler, StorePageTileItemCGHandler, PageItemCGHandler, StorePageContentTagCGHandler, PageProductAllCGHandler)
+from apps.api.views.content import PageContentAllCGHandler
 
 prefix = 'v1'
 
@@ -73,8 +74,9 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/tag/(?P<product_id>\d+)/?$' % prefix, StorePageContentTagCGHandler.as_view()),
     # url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/tag/(?P<product_id>\d+)/?$' % prefix, 'tag_content', name='delete_tagged_content'),
 
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/add_all/?$' % prefix, PageProductAllCGHandler.as_view()),
     # url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/add_all/?$' % prefix, 'add_all_products', name='add_all_products'),
-    # url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/add_all/?$' % prefix, 'add_all_content'),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/add_all/?$' % prefix, PageContentAllCGHandler.as_view()),
     # url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/add_all/?$' % prefix, 'add_all_content'),
 
     # url(r'^%s/check_queue/(?P<queue_name>[^\/]*)/?$' % prefix, 'check_queue', name='check_queue'),

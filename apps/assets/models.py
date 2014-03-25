@@ -563,6 +563,58 @@ class Page(BaseModel):
             setattr(instance, field, json_data[field])
         return instance
 
+    def add_product(self, product, prioritized=False, priority=0):
+        """Adds (if not present) a tile with this product to the feed that
+        belongs to this page.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        TODO: can be faster
+
+        :raises AttributeError
+        """
+        product_tiles = [tile for tile in self.feed.tiles.all()
+                         if tile.products.count() > 0]
+        for tile in product_tiles:
+            if product in tile.products.all():
+                break
+        else:  # there weren't any tiles with this product in them
+            next_old_id = Tile.objects.order_by('-old_id')[0].old_id + 1
+            new_product_tile = Tile(old_id=next_old_id,
+                                    feed = self.feed,
+                                    template='product',
+                                    prioritized=prioritized,
+                                    priority=priority)
+            new_product_tile.products.add(product)
+            new_product_tile.save()
+
+    def add_content(self, content, prioritized=False, priority=0):
+        """Adds (if not present) a tile with this content to the feed that
+        belongs to this page.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        TODO: can be faster
+
+        :raises AttributeError
+        """
+        content_tiles = [tile for tile in self.feed.tiles.all()
+                         if tile.content.count() > 0]
+        for tile in content_tiles:
+            if content in tile.content.all():
+                break
+        else:  # there weren't any tiles with this content in them
+            next_old_id = Tile.objects.order_by('-old_id')[0].old_id + 1
+            new_content_tile = Tile(old_id=next_old_id,
+                                    feed = self.feed,
+                                    template='content',
+                                    prioritized=prioritized,
+                                    priority=priority)
+            new_content_tile.content.add(content)
+            new_content_tile.save()
+
 
 class Tile(BaseModel):
     old_id = models.IntegerField(unique=True, db_index=True)
