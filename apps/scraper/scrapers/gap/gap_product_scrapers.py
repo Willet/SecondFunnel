@@ -13,11 +13,11 @@ class GapProductScraper(Scraper):
     def get_regex(self):
         return r'^(?:https?://)?(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
 
-    def get_url(self, url):
-        return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.get_regex(), url).group(1)
-
     def get_type(self):
         return self.PRODUCT_DETAIL
+
+    def parse_url(self, url, **kwargs):
+        return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.get_regex(), url).group(1)
 
     def scrape(self, driver, product, **kwargs):
         try:
@@ -30,7 +30,7 @@ class GapProductScraper(Scraper):
         product.price = driver.find_element_by_id('priceText').text
         driver.get('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
 
-        self._get_images(driver.page_source)
+        images = self._get_images(driver.page_source)
 
         product.available = True
 
@@ -57,11 +57,11 @@ class GapCategoryScraper(Scraper):
     def get_regex(self):
         return r'^(?:https?://)?(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)(?:&[^/\?]*)?$'
 
-    def get_url(self, url):
-        return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.get_regex(), url).group(1)
-
     def get_type(self):
         return self.PRODUCT_CATEGORY
+
+    def parse_url(self, url, **kwargs):
+        return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.get_regex(), url).group(1)
 
     def scrape(self, driver, store, **kwargs):
         url = driver.current_url

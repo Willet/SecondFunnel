@@ -9,10 +9,12 @@ class Scraper(object):
     def get_regex(self):
         raise NotImplementedError
 
-    # returns the cleaned up url from an input url, the returned url is the url
-    # that is loaded and also the one that creates products or content for
-    # detail scrapers
-    def get_url(self, url):
+    # is passed the original url plus any values that are being passed to the scraper
+    # can return a string which is used as the new url
+    # or can return a dict where the new url is retrieved with the value 'url'
+    # the dict is then added to the values being passed around and is passed to the scraper
+    # plus all sub scrapers
+    def parse_url(self, url, **kwargs):
         return url
 
     # returns the type of scraper, types are defined as constants in the Scraper class

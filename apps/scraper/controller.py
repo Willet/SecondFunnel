@@ -19,7 +19,7 @@ scrapers = [
 ]
 
 
-def run_scraper(store, url):
+def run_scraper(store, url, values={}):
     driver = None
     try:
         # "http://www.gap.com/browse/product.do?pid=941851"
@@ -28,16 +28,22 @@ def run_scraper(store, url):
         for scraper in scrapers:
             if isinstance(scraper.get_regex(), list):
                 if any(re.match(regex, url) for regex in scraper.get_regex()):
-                    url = scraper.get_url(url)
+                    url_return = scraper.parse_url(url, **values)
                     break
 
             elif re.match(scraper.get_regex(), url):
-                url = scraper.get_url(url)
+                url_return = scraper.parse_url(url)
                 break
         # if no scraper has been found, exit
         else:
             print('no scraper found')
             return
+
+        if isinstance(url_return, dict):
+            url = url_return.pop('url', url)
+            values.update(url_return)
+        else:
+            url = url_return or url
 
         # initialize the head-less browser PhantomJS
         driver = webdriver.PhantomJS()
@@ -48,11 +54,11 @@ def run_scraper(store, url):
                 product = Product.objects.get(store=store, url=url)
             except Product.DoesNotExist:
                 product = Product(store=store, url=url)
-            product = scraper.scrape(driver, product=product)
+            product = scraper.scrape(driver, product=product, **values)
             print product.to_json()
             product.save()
         elif scraper.get_type() == Scraper.PRODUCT_CATEGORY:
-            for url in scraper.scrape(driver, store=store):
+            for url in scraper.scrape(driver, store=store, **values):
                 run_scraper(store, url)
 
     finally:

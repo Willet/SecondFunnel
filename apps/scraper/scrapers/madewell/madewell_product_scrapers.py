@@ -7,21 +7,30 @@ from apps.assets.models import Product
 
 
 class MadewellProductScraper(Scraper):
-
-    sku_regex = r'^http://www.madewell.com/madewell_category/(\w*)/(\w*)/PRDOVR~(?:\w*)/(\w*).jsp$'
+    sku_regex = r'^http://www.madewell.com/madewell_category/PRDOVR~(\w*)/\1.jsp$'
 
     def get_regex(self):
-        return r'^(?:https?://)?(?:www\.)?madewell.com/madewell_category/(\w*)/(\w*)/PRD(?:OVR)?~(\w+)/\3.jsp(?:\?[^/\?]+)?$'
-
-    def get_url(self, url):
-        match = re.match(self.get_regex(), url)
-        return 'http://www.madewell.com/madewell_category/{0}/{1}/PRDOVR~{2}/{2}.jsp'.format(match.group(1), match.group(2), match.group(3))
+        return r'^(?:https?://)?(?:www\.)?madewell.com/madewell_category/(?:(\w*)/(?:(\w*)/)?)?PRD(?:OVR)?~(\w+)/\3.jsp(?:\?[^/\?]+)?$'
 
     def get_type(self):
         return self.PRODUCT_DETAIL
 
+    def parse_url(self, url, **kwargs):
+        match = re.match(self.get_regex(), url)
+        url = 'http://www.madewell.com/madewell_category/PRDOVR~{0}/{0}.jsp'.format(match.group(3))
+        category = match.group(1)
+        sub_category = match.group(2)
+
+        values = {'url': url}
+        if category:
+            values.update({'category': category})
+        if sub_category:
+            values.update({'sub_category': sub_category})
+
+        return values
+
     def scrape(self, driver, product, **kwargs):
-        product.sku = re.match(self.sku_regex, product.url).group(3)
+        product.sku = re.match(self.sku_regex, product.url).group(1)
         try:
             product.price = re.sub(r'USD *', '$', driver.find_element_by_class_name('selected-color-price').text)
         except NoSuchElementException:
@@ -55,22 +64,28 @@ class MadewellCategoryScraper(Scraper):
     def get_regex(self):
         return r'^(?:https?://)?(?:www\.)?madewell.com/madewell_category/(\w*)(?:/(\w*))?.jsp(?:\?[^/\?]+)?$'
 
-    def get_url(self, url):
-        match = re.match(self.get_regex(), url)
-        url = 'http://www.madewell.com/madewell_category/' + match.group(1)
-        if match.group(2):
-            url += '/' + match.group(2)
-        url += '.jsp'
-        return url
-
     def get_type(self):
         return self.PRODUCT_CATEGORY
+
+    def parse_url(self, url, **kwargs):
+        match = re.match(self.get_regex(), url)
+        category = match.group(1)
+        sub_category = match.group(2)
+        url = 'http://www.madewell.com/madewell_category/' + category
+        if sub_category:
+            url += '/' + sub_category
+        url += '.jsp'
+        values = {'url': url,
+                  'category': category}
+        if sub_category:
+            values.update({'sub_category': sub_category})
+        return url
 
     def scrape(self, driver, store, **kwargs):
         urls = []
         products_data = driver.find_elements_by_xpath('//td[@class="arrayProdCell"]//td[@class="arrayImg"]/a')
-        for product_data in products_data: ## need to paginate
-            url = MadewellProductScraper().get_url(product_data.get_attribute('href'))
+        for product_data in products_data:  ## need to paginate
+            url = MadewellProductScraper().parse_url(product_data.get_attribute('href')).get('url')
             sku = re.match(MadewellProductScraper().sku_regex, url).group(3)
             name = product_data.find_element_by_xpath('./img').get_attribute('alt')
             try:
