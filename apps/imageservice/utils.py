@@ -1,6 +1,7 @@
 import os
 import math
 import numpy
+import random
 import urlparse
 import cStringIO
 from collections import namedtuple
