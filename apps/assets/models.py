@@ -483,7 +483,7 @@ class Tile(BaseModel):
 
     products = models.ManyToManyField(Product, blank=True, null=True)
     # use content.select_subclasses() instead of content.all()!
-    content = models.ManyToManyField(Content)
+    content = models.ManyToManyField(Content, blank=True, null=True)
 
     prioritized = models.BooleanField()
 
