@@ -269,6 +269,14 @@ div.header {
     width: 404px;
 }
 
+.tile.three-col {
+    width: 606px;
+}
+
+.tile.full {
+    width: 808px;
+}
+
 .tile .caption {
     position: relative;
     background-color: transparent;
