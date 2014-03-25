@@ -13,7 +13,7 @@ App.module("intentRank", function (intentRank, App) {
     this.options = {
         'baseUrl': "/intentrank",  // or an absolute base url, e.g. http://tng-test.secondfunnel.com/intentrank
         'urlTemplates': {
-            'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>",
+            'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>&algorithm=<%=IRAlgo%>",
             'content': "<%=baseUrl%>/page/<%=campaign%>/content/<%=id%>/getresults"
         },
         'add': true,
@@ -49,6 +49,7 @@ App.module("intentRank", function (intentRank, App) {
             'categories': page.categories || options.categories || {},
             'backupResults': options.backupResults || [],
             'IRResultsCount': options.IRResultsCount || 10,
+            'IRAlgo': options.IRAlgo || 'random',
             'IRTimeout': options.IRTimeout || 5000,
             'content': options.content || [],
             'filters': options.filters || [],
