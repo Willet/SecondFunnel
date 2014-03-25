@@ -717,6 +717,23 @@ div.header {
     border: 1px solid black;
 }
 
+.previewContainer .gallery.dots img {
+    display: none;
+}
+
+.previewContainer .gallery.dots .img-wrapper {
+    border-radius: 50%;
+    width: 5px;
+    height: 5px;
+    background: #aaa;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.previewContainer .gallery.dots .img-wrapper.selected {
+    background: #000;
+}
+
 .previewContainer .madewell-buttons a,
 .previewContainer .madewell-buttons a:visited,
 .previewContainer .madewell-buttons a:hover {
