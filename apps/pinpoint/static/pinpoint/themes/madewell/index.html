@@ -347,10 +347,16 @@
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
                     <div class='image'>
-                        <img src='<%= obj.defaultImage.url %>'/>
+                        <% if (obj.images.length > 1) { %>
+                            <span class="gallery-swipe-left"></span>
+                            <img src='<%= obj.defaultImage.url %>'/>
+                            <span class="gallery-swipe-right"></span>
+                        <% } else { %>
+                            <img src='<%= obj.defaultImage.url %>'/>
+                        <% } %>
                     </div>
                     <% if (obj.images.length > 1) { %>
-                    <div class='gallery'></div>
+                    <div class='gallery dots'></div>
                     <% } %>
                 </div>
                 <div class='cell info col-sm-6 col-md-6'>
@@ -506,10 +512,16 @@
                                     <span class="gallery-swipe-right gallery-related"></span>
                                 </div>
                             <% } else { %>
+                                <% if (product.images.length > 1) { %>
+                                <span class="gallery-swipe-left"></span>
                                 <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
+                                <span class="gallery-swipe-right"></span>
+                                <% } else { %>
+                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
+                                <% } %>
                             <% } %>
                             <% if (product.images.length > 1) { %>
-                                <div class='gallery'></div>
+                                <div class='gallery dots'></div>
                             <% } %>
                         </div>
                         <div class="cell col-sm-6 col-md-6"> <!-- info -->
