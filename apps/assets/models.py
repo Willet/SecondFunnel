@@ -481,7 +481,7 @@ class Tile(BaseModel):
 
     template = models.CharField(max_length=128)
 
-    products = models.ManyToManyField(Product)
+    products = models.ManyToManyField(Product, blank=True, null=True)
     # use content.select_subclasses() instead of content.all()!
     content = models.ManyToManyField(Content)
 
