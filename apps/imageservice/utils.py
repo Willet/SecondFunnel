@@ -100,7 +100,7 @@ def euclidean_distance(p1, p2):
     return math.sqrt(s)
 
 
-def get_dominant_colour(img, cluster_count, minimum_difference=1.0):
+def get_dominant_color(img, cluster_count, minimum_difference=1.0):
     """
     Finding the dominant colour in an image.  This is done by iterating over a random
     sample of clusters and finding the closest point, then taking the difference between that point

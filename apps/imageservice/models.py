@@ -140,9 +140,9 @@ class ExtendedImage(object):
         tmp = self.copy().resize(150, 150)
         # Generate a histogram for the image colour points
         # Begin by gathering into an array of points
-        from app.imageserver.utils import get_dominant_colour
+        from app.imageserver.utils import get_dominant_color
 
-        colour = get_dominant_colour(self, NUM_OF_CLUSTERS)
+        colour = get_dominant_color(self, NUM_OF_CLUSTERS)
         return colour
 
     def copy(self):
