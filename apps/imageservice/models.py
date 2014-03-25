@@ -7,7 +7,6 @@ from django.db import models
 
 
 MAX_COLOR_DISTANCE = 510
-NUM_OF_CLUSTERS = 5
 
 
 class SizeConf(models.Model):
@@ -140,9 +139,9 @@ class ExtendedImage(object):
         tmp = self.copy().resize(150, 150)
         # Generate a histogram for the image colour points
         # Begin by gathering into an array of points
-        from app.imageserver.utils import get_dominant_color
+        from apps.imageservice.utils import get_dominant_color
 
-        colour = get_dominant_color(self, NUM_OF_CLUSTERS)
+        colour = get_dominant_color(self)
         return colour
 
     def copy(self):

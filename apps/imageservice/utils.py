@@ -100,11 +100,12 @@ def euclidean_distance(p1, p2):
     return math.sqrt(s)
 
 
-def get_dominant_color(img, cluster_count, minimum_difference=1.0):
+def get_dominant_color(img, cluster_count=5, minimum_difference=1.0):
     """
     Finding the dominant colour in an image.  This is done by iterating over a random
     sample of clusters and finding the closest point, then taking the difference between that point
-    and the old center point until the difference converges.
+    and the old center point until the difference converges.  The more clusters, the better the result,
+    but the slower it runs.
 
     Reference: http://charlesleifer.com/blog/using-python-and-k-means-to-find-the-dominant-colors-in-images/
 
@@ -114,46 +115,77 @@ def get_dominant_color(img, cluster_count, minimum_difference=1.0):
     @return: String
     """
     points = []
+    img = img.resize(200, 200) # Resize for efficiency
+
     for count, color in img.getcolors(img.width * img.height):
         points.append(Point(color, 3, count))
 
     # Generate random clusters and find the centers
-    clusters = [Cluster([p], p, p.n) for p in random.sample(points, cluster_count)]
+    clusters = kmeans(points, cluster_count, minimum_difference)
 
-    while True:
-        # Recalcuate the centers of each cluster until they converge
-        # by iteration through the set of points
-        plists = list([] for i in range(cluster_count))
+    rgb_values = list(map(int, c.center.coords) for c in clusters)
+    rtoh = lambda rgb: '#%s' % ''.join(('%02x' % p for p in rgb))
+    rgbs = map(rtoh, rgb_values)
+
+    return rgbs[0]
+
+
+def calculate_center(points, n):
+    """
+    Calculates the center between a set of points.
+
+    @param points: List of Points
+    @param n: Integer
+    @return: Point
+    """
+    vals = [0.0 for i in range(n)]
+    plen = 0
+
+    # For each point, add its distance to the toal point length
+    for p in points:
+        plen += p.ct
+
+        for i in range(n):
+            vals[i] += (p.coords[i] * p.ct)
+
+    # For each of the lengths between poitns divide by the total
+    # distance to the center
+    return Point([(v / plen) for v in vals], n, 1)
+
+
+def kmeans(points, k, min_diff):
+    """
+    Kmeans algorithm for finding a histogram among a set of points.
+
+    @param points: List of points
+    @param k: The k-value
+    @param min_diff: The minimum difference (tolerance)
+    """
+    clusters = [Cluster([p], p, p.n) for p in random.sample(points, k)]
+
+    while True: # iterate until convergence
+        plists = [[] for i in range(k)]
 
         for p in points:
+
             smallest_distance = float('Inf')
 
-            for i in range(cluster_count):
+            for i in range(k):
                 distance = euclidean_distance(p, clusters[i].center)
                 if distance < smallest_distance:
                     smallest_distance, idx = distance, i
-            plists[idx].append(p) # shortest path
 
-        difference = 0
-        for i in range(cluster_count):
-            old_cluster = clusters[i]
-            # Recaculate the new center for this cluster
-            values = list(0.0 for i in range(old_cluster.n))
-            point_length = 0
-            for p in plists[i]:
-                point_length += p.ct
-                values = list(values[i] + (p.coords[i] * p.ct) for i in range(old_cluster.n))
-            center = Point([(v / point_length) for v in values], old_cluster.n, minimum_difference)
-            new_cluster = Cluster(plists[i], center, old_cluster.n)
-            clusters[i] = new_cluster
+            plists[idx].append(p)
 
-            # Recalculate difference, if it converges, return
-            difference = max(difference, euclidance_distance(old_cluster.center, new_cluster.center))
+        diff = 0
+        for i in range(k):
+            old = clusters[i]
+            center = calculate_center(plists[i], old.n)
+            new = Cluster(plists[i], center, old.n)
+            clusters[i] = new
+            diff = max(diff, euclidean_distance(old.center, new.center))
 
-        if difference < minimum_difference:
+        if diff < min_diff:
             break
 
-    rgb_values = [map(int, c.cneter.coords) for c in clusters]
-    rgb_values = map(lambda rgb: '%s' % ''.join(('%02x' % p for p in rgb_values)), rgbs)
-
-    return rgb_values
+    return clusters
