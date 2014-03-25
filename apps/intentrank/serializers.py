@@ -147,6 +147,9 @@ class TileSerializer(RawSerializer):
         if hasattr(obj, 'priority'):
             data['priority'] = obj.priority
 
+        if hasattr(obj, 'attributes') and obj.attributes.get('colspan'):
+            data['colspan'] = obj.attributes.get('colspan')
+
         return data
 
 

@@ -12,4 +12,3 @@ pep8==1.4.6
 django-jenkins==0.14.1
 pylint==1.1.0
 numpy==1.8.0
-scipy==0.13.3

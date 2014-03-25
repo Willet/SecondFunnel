@@ -64,6 +64,7 @@ class TileAdmin(BaseAdmin):
                     'click_starting_score', 'click_score',
                     'view_starting_score', 'view_score'] + BaseAdmin.list_display
     search_fields = ('id', 'old_id', 'template')
+    list_filter = ('feed',)
 
 
 class TileRelationAdmin(BaseAdmin):
