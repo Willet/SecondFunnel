@@ -375,16 +375,6 @@
         </script>
 
         <script type="text/template" id="product_mobile_preview_template">
-            <div class="info">
-                <div class="title">
-                    <%= obj.title || obj.name %>
-                </div>
-                <div class="center">
-                    <% if (obj.images.length > 1) { %>
-                        <div class='gallery'></div>
-                    <% } %>
-                </div>
-            </div>
             <% if (obj.images.length === 1) { %>
             <div class="image-region no-images">
             <% } else { %>
@@ -419,6 +409,16 @@
                     -->
                 </div>
             </div>
+            <div class="info">
+                <div class="center">
+                    <% if (obj.images.length > 1) { %>
+                        <div class='gallery'></div>
+                    <% } %>
+                </div>
+                <div class="title">
+                    <%= obj.title || obj.name %>
+                </div>
+            </div>
         </script>
 
         <script type="text/template" id="image_mobile_preview_template">
@@ -429,17 +429,6 @@
             <% } else { %>
             <div class="image-with-related-products">
             <% } %>
-                <div class="info">
-                    <div class="title">
-                        <span><%= product.title || product.name || obj.title || obj.name ||
-                                  obj.caption || obj.description %></span>
-                    </div>
-                    <div class="center">
-                        <% if (products.length > 0) { %>
-                            <div class='gallery'></div>
-                        <% } %>
-                    </div>
-                </div>
                 <div class="image-region">
                     <% if (products.length > 0) { %>
                         <span class="gallery-swipe-left"></span>
@@ -471,6 +460,17 @@
                     <% } else { %>
                         <div class="img" style="background-image: url('<%= obj.defaultImage.url %>');"></div>
                     <% } %>
+                </div>
+                <div class="info">
+                    <div class="center">
+                        <% if (products.length > 0) { %>
+                            <div class='gallery'></div>
+                        <% } %>
+                    </div>
+                    <div class="title">
+                        <span><%= product.title || product.name || obj.title || obj.name ||
+                                  obj.caption || obj.description %></span>
+                    </div>
                 </div>
             </div>
         </script>

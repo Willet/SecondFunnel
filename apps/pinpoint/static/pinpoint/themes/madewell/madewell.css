@@ -622,21 +622,24 @@ div.header {
         margin: 0 auto;
         padding: 3px;
         height: auto;
+        line-height: auto;
     }
 
     .previewContainer .gallery .img {
-        width: 10px;
+        vertical-align: middle;
+        width: 20px;
         height: 10px;
-        border-radius: 50%;
         margin-left: 2px;
         margin-right: 2px;
         display: inline-block;
-        background: transparent;
-        border: 2px solid #FFFFFF;
+        background: #A6A6A6;
+        border: 2px solid #A6A6A6;
     }
 
     .previewContainer .gallery .img.selected {
-        background: rgba(255, 255, 255, 1);
+        background: transparent;
+        border: 1px #A6A6A6 solid;
+        height: 20px;
     }
 
     /* indicate that the image can be swiped */
@@ -743,7 +746,6 @@ div.header {
 
 @media screen and (max-width: 768px) {
     .previewContainer .title {
-        color: white;
         padding: 0px;
         height: 23px;
         overflow: hidden;
@@ -917,8 +919,12 @@ div.header {
         padding: 5px;
         max-width: 100%;
         text-align: center;
-        background: #000d41;
+        background: white;
         border-bottom: 3px solid #FFFFFF;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
     }
 
     .previewContainer .content .center {
@@ -972,10 +978,10 @@ div.header {
     }
 
     .previewContainer .content .image-region {
-        top: 60px;
+        top: 0;
         left: 0;
         right: 0;
-        bottom: 0;
+        bottom: 60px;
         position: absolute;
         border-top: 1px solid white;
         overflow: hidden;
