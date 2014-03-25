@@ -3,7 +3,7 @@ from django.http import HttpResponse
 
 from django.shortcuts import get_object_or_404
 
-from apps.api.paginator import BaseCGHandler
+from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
 from apps.assets.models import Product, Store, Page
 from apps.intentrank.utils import ajax_jsonp
 
@@ -13,7 +13,12 @@ class ProductCGHandler(BaseCGHandler):
     id_attr = 'product_id'
 
 
-class StoreProductsCGHandler(ProductCGHandler):
+class ProductItemCGHandler(BaseItemCGHandler):
+    model = Product
+    id_attr = 'product_id'
+
+
+class StoreProductCGHandler(ProductCGHandler):
     """Adds filtering by store"""
     store_id = None  # new ID
 
@@ -23,14 +28,14 @@ class StoreProductsCGHandler(ProductCGHandler):
         store = get_object_or_404(Store, old_id=store_id)
         self.store_id = store.id
 
-        return super(StoreProductsCGHandler, self).dispatch(*args, **kwargs)
+        return super(StoreProductCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
-        qs = super(StoreProductsCGHandler, self).get_queryset()
+        qs = super(StoreProductCGHandler, self).get_queryset()
         return qs.filter(store_id=self.store_id)
 
 
-class StoreProductCGHandler(ProductCGHandler):
+class StoreProductItemCGHandler(ProductCGHandler):
     """Adds filtering by store"""
     store_id = None  # new ID
     product_id = None  # old ID
@@ -42,15 +47,15 @@ class StoreProductCGHandler(ProductCGHandler):
         self.store_id = store.id
         self.product_id = kwargs.get('product_id')
 
-        return super(StoreProductCGHandler, self).dispatch(*args, **kwargs)
+        return super(StoreProductItemCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
-        qs = super(StoreProductCGHandler, self).get_queryset()
+        qs = super(StoreProductItemCGHandler, self).get_queryset()
         return qs.filter(store_id=self.store_id,
                          old_id=self.product_id)
 
 
-class StorePageProductCGHandler(StoreProductsCGHandler):
+class StorePageProductCGHandler(StoreProductCGHandler):
     """Adds filtering by page/feed"""
     feed = None
 
@@ -60,7 +65,7 @@ class StorePageProductCGHandler(StoreProductsCGHandler):
         page = get_object_or_404(Page, old_id=page_id)
         self.feed = page.feed
 
-        return super(StoreProductsCGHandler, self).dispatch(*args, **kwargs)
+        return super(StoreProductCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
         """get all the products in the feed, which is
@@ -71,6 +76,54 @@ class StorePageProductCGHandler(StoreProductsCGHandler):
         for tile in tiles:
             products += tile.products.all()
         return products
+
+
+class StorePageProductItemCGHandler(StoreProductItemCGHandler):
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        page_id = kwargs.get('page_id')
+        product_id = kwargs.get('product_id')
+        page = get_object_or_404(Page, old_id=page_id)
+        product = get_object_or_404(Product, old_id=product_id)
+        self.page = page
+        self.product = product
+
+        return super(StorePageProductItemCGHandler, self).dispatch(*args, **kwargs)
+
+
+class StorePageProductPrioritizeItemCGHandler(StorePageProductItemCGHandler):
+    def post(self, request, *args, **kwargs):
+
+        feed = self.page.feed
+        tiles_with_this_product = feed.find_tiles(self.product)
+        for tile in tiles_with_this_product:
+            tile.prioritized = True
+            tile.save()
+
+        return HttpResponse()
+
+    def get(self, request, *args, **kwargs):
+        raise NotImplementedError()
+    put = patch = delete = get
+
+
+class StorePageProductDeprioritizeItemCGHandler(StorePageProductItemCGHandler):
+    """Finds the tile with this product in the feed that belongs to this page
+    and deprioritises it.
+    """
+    def post(self, request, *args, **kwargs):
+
+        feed = self.page.feed
+        tiles_with_this_product = feed.find_tiles(self.product)
+        for tile in tiles_with_this_product:
+            tile.prioritized = False
+            tile.save()
+
+        return HttpResponse()
+
+    def get(self, request, *args, **kwargs):
+        raise NotImplementedError()
+    put = patch = delete = get
 
 
 class PageProductAllCGHandler(StorePageProductCGHandler):

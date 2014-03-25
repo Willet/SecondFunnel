@@ -490,6 +490,16 @@ class Feed(BaseModel):
         serializer = ir_serializers.FeedSerializer(self.tiles.all())
         return serializer.serialize()
 
+    def find_tiles(self, content=None, product=None):
+        """:returns list of tiles with this product/content (if given)"""
+        if content:
+            tiles = self.tiles.filter(content__id=content.id)
+        else:
+            tiles = self.tiles.all()
+
+        if not product:
+            return tiles
+        return tiles.filter(products__id=product.id)
 
 class Page(BaseModel):
     store = models.ForeignKey(Store, related_name='pages')
