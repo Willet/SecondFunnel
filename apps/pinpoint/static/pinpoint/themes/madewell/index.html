@@ -347,7 +347,13 @@
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
                     <div class='image'>
-                        <img src='<%= obj.defaultImage.url %>'/>
+                        <% if (obj.images.length > 1) { %>
+                            <span class="gallery-swipe-left"></span>
+                            <img src='<%= obj.defaultImage.url %>'/>
+                            <span class="gallery-swipe-right"></span>
+                        <% } else { %>
+                            <img src='<%= obj.defaultImage.url %>'/>
+                        <% } %>
                     </div>
                     <% if (obj.images.length > 1) { %>
                     <div class='gallery'></div>
