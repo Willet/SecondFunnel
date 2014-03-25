@@ -22,6 +22,7 @@ App.module("intentRank", function (intentRank, App) {
         'categories': {},
         'backupResults': [],
         'IRResultsCount': 10,
+        'IRAlgo': 'generic',
         'IRTimeout': 5000,
         'store': {},
         'content': []
@@ -49,7 +50,7 @@ App.module("intentRank", function (intentRank, App) {
             'categories': page.categories || options.categories || {},
             'backupResults': options.backupResults || [],
             'IRResultsCount': options.IRResultsCount || 10,
-            'IRAlgo': options.IRAlgo || 'random',
+            'IRAlgo': options.IRAlgo || 'generic',
             'IRTimeout': options.IRTimeout || 5000,
             'content': options.content || [],
             'filters': options.filters || [],
@@ -108,27 +109,32 @@ App.module("intentRank", function (intentRank, App) {
         var collection = this,
             deferred = new $.Deferred(),
             online = !App.option('page:offline', false),
-            data = (resultsAlreadyRequested.length ? {
-                'shown': resultsAlreadyRequested.join(',')
-            } : undefined),
-            opts = $.extend({}, {
-                'results': 10,
-                'add': true,
-                'merge': true,
-                'remove': false,
-                'crossDomain': true,
-                'xhrFields': {
-                    'withCredentials': true
-                },
-                parse: true,
-                'data': data
-            }, this.config, intentRank.options, options),
+            data = {},
+            opts,
             prepopulatedResults = [],
             backupResults = _.chain(intentRank.options.backupResults)
                 .filter(intentRank.filter)
                 .shuffle()
                 .first(intentRank.options.IRResultsCount)
                 .value();
+
+        if (resultsAlreadyRequested.length) {
+            data.shown = resultsAlreadyRequested.join(',');
+        }
+        data.algorithm = intentRank.options.IRAlgo;
+
+        opts = $.extend({}, {
+            'results': 10,
+            'add': true,
+            'merge': true,
+            'remove': false,
+            'crossDomain': true,
+            'xhrFields': {
+                'withCredentials': true
+            },
+            parse: true,
+            'data': data
+        }, this.config, intentRank.options, options);
 
         // if offline, return a backup list
         if (!online || collection.ajaxFailCount > 5) {
