@@ -34,6 +34,10 @@ def upload():
         source = img.url
         # Get the relative path to use with Cloudinary
         if secondfunnel_path not in source:
+            if source.startswith("store"):
+                source = urlparse.urljoin("http://res.cloudinary.com/secondfunnel/image/upload/", source)
+                img.url = source
+                img.save()
             print "Skipping Image, Already Processed: %s" % source
             continue
         path = source.replace(secondfunnel_path, "")

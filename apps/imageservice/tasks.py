@@ -158,8 +158,7 @@ def process_image_now(source, path, sizes=[]):
     if getattr(settings, 'CLOUDINARY', None) is not None:
         image_object = cloudinary.uploader.upload_image(source,
             folder=os.path.join(path, folder), public_id="master")
-        master_url = "{0}.{1}".format(image_object.public_id,
-                                      image_object.format)
+        master_url = image_object.url
 
     else: # fall back to default ImageService is Cloudinary is not available
         for size in sorted(sizes, key=lambda size: size.width):

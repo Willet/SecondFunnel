@@ -253,6 +253,7 @@ App.module("utils", function (utils, App) {
             // effect: 'trim:0'
         }, options);
 
+        url = url.replace(App.CLOUDINARY_DOMAIN, ""); // remove absolute uri
         url = $.cloudinary.url(url, options);
         return url;
     };
