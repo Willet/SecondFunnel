@@ -121,6 +121,18 @@ STATIC_ROOT = from_project_root('static')
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
+# Cloudinary ImageService settings
+CLOUDINARY_API_URL = "//api.cloudinary.com/v1_1/secondfunnel"
+CLOUDINARY_BASE_URL = "//res.cloudinary.com/secondfunnel"
+CLOUDINARY_NAME = "secondfunnel"
+CLOUDINARY_API_KEY = "471718281466152"
+CLOUDINARY_API_SECRET = "_CR94qpFu7EGChMbwmc4xqCsbXo"
+CLOUDINARY = {
+    'cloud_name': CLOUDINARY_NAME,
+    'api_key': CLOUDINARY_API_KEY,
+    'api_secret': CLOUDINARY_API_SECRET
+}
+
 # http://django_compressor.readthedocs.org/en/latest/remote-storages/
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
@@ -275,6 +287,7 @@ INSTALLED_APPS = (
     'apps.static_pages',
     'apps.tracking',
     'apps.utils',
+    'apps.imageservice'
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = (
@@ -377,6 +390,9 @@ JENKINS_TASKS = (
 
 IMAGE_SERVICE_API = "http://imageservice.elasticbeanstalk.com"
 IMAGE_SERVICE_STORE = "http://images.secondfunnel.com"
+IMAGE_SERVICE_USER_AGENT = "Mozilla/5.0 (compatible; SecondFunnelBot/1.0; +http://secondfunnel.com/bot.hml)"
+IMAGE_SERVICE_USER_AGENT_NAME = "SecondFunnelBot"
+IMAGE_SERVICE_BUCKET = "images.secondfunnel.com"
 
 STALE_TILE_QUEUE_NAME = 'tiles-worker-test-queue'
 

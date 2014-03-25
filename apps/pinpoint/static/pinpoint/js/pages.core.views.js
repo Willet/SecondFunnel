@@ -204,38 +204,47 @@ App.module('core', function (module, App) {
          * Before the View is rendered. this.$el is still an empty div.
          */
         'onBeforeRender': function () {
-            var maxImageSize,
+            var columns, wideable, showWide, idealWidth, imageInfo,
                 self = this,
-                defaultImage = self.model.getDefaultImage(),  // obj
-                normalTileWidth = App.option('columnWidth', 255),
-                wideTileWidth = normalTileWidth * 2,
-                fullTileWidth = normalTileWidth * 4,  // 4col (standby)
-                normalImageInfo = this.model.get('defaultImage')
-                    .width(normalTileWidth, true),  // undefined if not found
-                wideImageInfo = this.model.get('defaultImage'),
-                    /*.width(wideTileWidth, true)*/  // undefined if not found
-                sizes = {
-                    'normal': normalTileWidth,
-                    'wide': wideTileWidth,
-                    'full': fullTileWidth
-                },
+                normalTileWidth = App.layoutEngine.width(),
+                // TODO: Make the configurable; perhaps a page property?
                 widable_templates = {
                     'image': true,
                     'youtube': true,
                     'banner': true
-                }; //TODO: Make the configurable; perhaps a page property?
+                }, columnDetails = {
+                    '1': '',
+                    '2': 'wide',
+                    '3': 'three-col',
+                    '4': 'full'
+                };
 
             // templates use this as obj.image.url
-            this.model.set('image',
-                this.model.get('defaultImage')/*.width(normalTileWidth, true)*/);
+            this.model.set('image', this.model.get('defaultImage'));
 
-            // 0.5 is an arbitrary 'lets make this tile wide' factor
-            if (widable_templates[self.model.get('template')] &&
-                wideImageInfo &&
-                Math.random() > App.option('imageTileWide', 0.5)) {
-                // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
-                this.$el.addClass('wide');
-                this.model.set({'image': wideImageInfo});
+            wideable = widable_templates[self.model.get('template')];
+            showWide = (Math.random() > App.option('imageTileWide', 0.5));
+
+            if (_.isNumber(self.model.get('colspan'))) {
+                columns = self.model.get('colspan');
+            } else if (wideable && showWide) {
+                columns = 2;
+            } else {
+                columns = 1;
+            }
+
+            while(0 <= columns) {
+                idealWidth = normalTileWidth * columns;
+                imageInfo = this.model.get('defaultImage').width(idealWidth, true);
+                if (imageInfo) {
+                    break;
+                }
+                columns--;
+            }
+
+            this.$el.addClass(columnDetails[columns]);
+            if (!App.support.mobile()) { // wide means nothing on mobile
+                this.model.set({'image': imageInfo});
             }
 
             // Listen for the image being removed from the DOM, if it is, remove
@@ -718,11 +727,19 @@ App.module('core', function (module, App) {
             }
             return templateRules;
         },
+
         'onBeforeRender': function () {
+            // Need to get an appropriate sized image
+            var image = $.extend(true, {},
+                this.model.get('defaultImage').attributes);
+            image = (new App.core.Image(image)).width(undefined, {
+                multiplier: 1.5
+            });
+
             // templates use this as obj.image.url
-            this.model.set('image',
-                    this.model.get('defaultImage').toJSON());
+            this.model.set('image', image);
         },
+
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
             var buttons, width;
@@ -766,6 +783,14 @@ App.module('core', function (module, App) {
 
             So, for now, only add no-scroll if the device is NOT an android.
              */
+            var width = Marionette.getOption(this, 'width');
+
+            if (width) {
+                this.$('.content').css('width', width + 'px');
+            } else if (App.support.mobile()) {
+                this.$el.width($(window).width()); // assign width
+            }
+
             if (!App.support.isAnAndroid()) {
                 $(document.body).addClass('no-scroll');
             }
