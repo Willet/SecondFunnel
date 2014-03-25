@@ -30,6 +30,8 @@ class MadewellProductScraper(Scraper):
         product.name = driver.find_element_by_xpath('//section[@class="description"]/header/h1').text
         product.description = driver.find_element_by_id('prodDtlBody').get_attribute('innerHTML')
         images = self._get_images(driver)
+
+        product.available = True
         return product
 
     def _get_images(self, driver):
@@ -65,9 +67,9 @@ class MadewellCategoryScraper(Scraper):
         return self.PRODUCT_CATEGORY
 
     def scrape(self, driver, store, **kwargs):
-        products = []
+        urls = []
         products_data = driver.find_elements_by_xpath('//td[@class="arrayProdCell"]//td[@class="arrayImg"]/a')
-        for product_data in products_data:
+        for product_data in products_data: ## need to paginate
             url = MadewellProductScraper().get_url(product_data.get_attribute('href'))
             sku = re.match(MadewellProductScraper().sku_regex, url).group(3)
             name = product_data.find_element_by_xpath('./img').get_attribute('alt')
@@ -75,9 +77,11 @@ class MadewellCategoryScraper(Scraper):
                 product, _ = Product.objects.get(store=store, url=url)
                 product.name = name
                 product.sku = sku
-                products.append(product)
             except Product.DoesNotExist:
-                products.append(Product(store=store, url=url, name=name, sku=sku))
+                product = Product(store=store, url=url, name=name, sku=sku)
 
-        return products
+            product.save()
+            urls.append(url)
+
+        return urls
 

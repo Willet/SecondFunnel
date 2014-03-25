@@ -1,5 +1,7 @@
 import re
 
+from selenium.common.exceptions import NoSuchElementException
+
 from apps.scraper.scrapers.scraper import Scraper
 from apps.assets.models import Product
 
@@ -18,13 +20,19 @@ class GapProductScraper(Scraper):
         return self.PRODUCT_DETAIL
 
     def scrape(self, driver, product, **kwargs):
+        try:
+            product.name = driver.find_element_by_class_name('productName').text
+        except NoSuchElementException:
+            product.available = False
+            return product
         product.sku = re.match(self.sku_regex, product.url).group(1)
-        product.name = driver.find_element_by_class_name('productName').text
         product.description = driver.find_element_by_id('tabWindow').get_attribute('innerHTML')
         product.price = driver.find_element_by_id('priceText').text
         driver.get('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
 
         self._get_images(driver.page_source)
+
+        product.available = True
 
         return product
 
@@ -47,7 +55,7 @@ class GapCategoryScraper(Scraper):
     product_sku_regex = r'^(?:https?://)?(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
 
     def get_regex(self):
-        return r'^(?:https?://)?(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d{6})\d*(?:&[^/\?]*)?$'
+        return r'^(?:https?://)?(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)(?:&[^/\?]*)?$'
 
     def get_url(self, url):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.get_regex(), url).group(1)
@@ -56,20 +64,31 @@ class GapCategoryScraper(Scraper):
         return self.PRODUCT_CATEGORY
 
     def scrape(self, driver, store, **kwargs):
-        products = []
-        for product_elem in driver.find_elements_by_xpath('//div[@id="mainContent"]//ul/li/div/a'):
-            href = product_elem.get_attribute('href')
+        url = driver.current_url
+        urls = []
+        page_text = driver.find_element_by_xpath('//label[@class="pagePaginatorLabel"]').text
+        pages = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))
+        page = 0
+        while page < int(pages):
+            driver.get(url + '#pageId=' + str(page))
+            for product_elem in driver.find_elements_by_xpath('//div[@id="mainContent"]//ul/li/div/a'):
+                href = product_elem.get_attribute('href')
+                match = re.match(self.product_sku_regex, href)
+                if not match:
+                    continue
+                sku = match.group(1)
+                url = 'http://www.gap.com/browse/product.do?pid=' + sku
+                name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
 
-            sku = re.match(self.product_sku_regex, href).group(1)
-            url = 'http://www.gap.com/browse/product.do?pid=' + sku
-            name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
+                try:
+                    product = Product.objects.get(store=store, url=url)
+                    product.sku = sku
+                    product.name = name
+                except Product.DoesNotExist:
+                    product = Product(store=store, url=url, sku=sku, name=name)
 
-            try:
-                product, _ = Product.objects.get(store=store, url=url)
-                product.sku = sku
-                product.name = name
-                products.append(product)
-            except Product.DoesNotExist:
-                products.append(Product(store=store, url=url, sku=sku, name=name))
+                product.save()
+                urls.append(url)
+            page+=1
 
-        return products
+        return urls

@@ -58,8 +58,11 @@ class Command(BaseCommand):
         if not self.store_id:
             raise CommandError("Not a valid store id for argument 0")
 
+
         self.import_store()
-        if any(s in args for s in ['products', 'content', 'pages']):
+        if('store' in args):
+            return
+        elif any(s in args for s in ['products', 'content', 'pages']):
             if 'products' in args:
                 self.import_products()
             if 'content' in args:

@@ -2,8 +2,9 @@ import sys
 import re
 
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 
-from apps.assets.models import Product, Store
+from apps.assets.models import Product, Store, Feed, Page, Tile
 from apps.scraper.scrapers.scraper import Scraper
 from apps.scraper.scrapers.gap.gap_product_scrapers import GapProductScraper, GapCategoryScraper
 from apps.scraper.scrapers.madewell.madewell_product_scrapers import MadewellProductScraper, MadewellCategoryScraper
@@ -35,6 +36,7 @@ def run_scraper(store, url):
                 break
         # if no scraper has been found, exit
         else:
+            print('no scraper found')
             return
 
         # initialize the head-less browser PhantomJS
@@ -48,11 +50,11 @@ def run_scraper(store, url):
                 product = Product(store=store, url=url)
             product = scraper.scrape(driver, product=product)
             print product.to_json()
+            product.save()
         elif scraper.get_type() == Scraper.PRODUCT_CATEGORY:
-            for product in scraper.scrape(driver, store=store):
-                #product.save()
-                #run_scraper(store, product.url)
-                print product.to_json()
+            for url in scraper.scrape(driver, store=store):
+                run_scraper(store, url)
+
     finally:
         if driver:
             driver.close()
