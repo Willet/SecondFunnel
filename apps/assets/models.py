@@ -224,7 +224,7 @@ class ProductImage(BaseModel):
 
 
 class Category(BaseModel):
-    products = models.ManyToManyField(Product)
+    products = models.ManyToManyField(Product, related_name='categories')
 
     store = models.ForeignKey(Store)
     name = models.CharField(max_length=255)
