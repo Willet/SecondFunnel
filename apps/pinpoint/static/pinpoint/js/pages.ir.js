@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, imagesLoaded, console, _, setTimeout, clearTimeout $ */
+/*global App, Backbone, Marionette, imagesLoaded, console, _, setTimeout, clearTimeout, $ */
 /**
  * @module intentRank
  */
@@ -13,7 +13,7 @@ App.module("intentRank", function (intentRank, App) {
     this.options = {
         'baseUrl': "/intentrank",  // or an absolute base url, e.g. http://tng-test.secondfunnel.com/intentrank
         'urlTemplates': {
-            'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>&algorithm=<%=IRAlgo%>",
+            'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>&algorithm=<%=IRAlgo%>&reqnum=<%=IRReqNum%>",
             'content': "<%=baseUrl%>/page/<%=campaign%>/content/<%=id%>/getresults"
         },
         'add': true,
@@ -23,6 +23,7 @@ App.module("intentRank", function (intentRank, App) {
         'backupResults': [],
         'IRResultsCount': 10,
         'IRAlgo': 'generic',
+        'IRReqNum': 0,
         'IRTimeout': 5000,
         'store': {},
         'content': []
@@ -51,6 +52,7 @@ App.module("intentRank", function (intentRank, App) {
             'backupResults': options.backupResults || [],
             'IRResultsCount': options.IRResultsCount || 10,
             'IRAlgo': options.IRAlgo || 'generic',
+            'IRReqNum': options.IRReqNum || 0,
             'IRTimeout': options.IRTimeout || 5000,
             'content': options.content || [],
             'filters': options.filters || [],
@@ -122,6 +124,7 @@ App.module("intentRank", function (intentRank, App) {
             data.shown = resultsAlreadyRequested.join(',');
         }
         data.algorithm = intentRank.options.IRAlgo;
+        data.reqNum = intentRank.options.IRReqNum;
 
         opts = $.extend({}, {
             'results': 10,
@@ -191,7 +194,7 @@ App.module("intentRank", function (intentRank, App) {
 
                 // Only prefetch if this isn't intentRank; prevents infinite
                 // calls.
-                if (collection != intentRank) {
+                if (collection !== intentRank) {
                     intentRank.prefetch();
                 }
             },
@@ -210,6 +213,10 @@ App.module("intentRank", function (intentRank, App) {
 
         // Make the request to Backbone collection and return deferred
         Backbone.Collection.prototype.sync('read', collection, opts);
+        deferred.done(function () {
+            App.options.IRReqNum++;
+            intentRank.options.IRReqNum++;
+        })
         return deferred.promise();
     };
 
