@@ -157,6 +157,9 @@ class TileSerializer(RawSerializer):
         if hasattr(obj, 'priority'):
             data['priority'] = obj.priority
 
+        if hasattr(obj, 'attributes') and obj.attributes.get('colspan'):
+            data['colspan'] = obj.attributes.get('colspan')
+
         return data
 
 
@@ -183,9 +186,7 @@ class ContentTileSerializer(TileSerializer):
         data = super(ContentTileSerializer, self).get_dump_object(obj)
         try:
             data.update(obj.content
-                        .prefetch_related('tagged_products')
-                        .select_subclasses()
-                        [0]
+                        .prefetch_related('tagged_products')[0]
                         .to_json())
         except IndexError as err:
             pass  # no content in this tile
