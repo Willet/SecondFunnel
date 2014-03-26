@@ -247,7 +247,7 @@ App.module("utils", function (utils, App) {
 
         options = _.extend({
             crop: 'fit',
-            quality: 81
+            quality: 75
             // New feature, undocumenated, trims background space, add :
             // for tolerance, e.g. trim: 20 (defaults to 10)
             // effect: 'trim:0'
