@@ -475,7 +475,7 @@ class Page(BaseModel):
 
 class Tile(BaseModel):
     def _validate_prioritized(status):
-        allowed =["", "request", "pageview", "session", "cookie", "custom"]
+        allowed = ["", "request", "pageview", "session", "cookie", "custom"]
         if type(status) == bool:
             status = "pageview" if status else ""
         if status not in allowed:
