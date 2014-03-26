@@ -82,7 +82,7 @@ def get_results_view(request, page_id):
     if request.GET.get('algorithm', None) == 'popular':
         algorithm = ir_popular
         results = 100  # temporary default to check if popularity is working
-    elif request.GET.get('algorithm', None) == 'ordered':
+    elif request.GET.get('algorithm', None) in ['ordered', 'sorted']:
         algorithm = ir_ordered
     else:
         algorithm = ir_generic
