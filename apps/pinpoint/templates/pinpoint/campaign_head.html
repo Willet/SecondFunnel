@@ -19,15 +19,20 @@
     (function() {
         // http://stackoverflow.com/questions/8567114/how-to-make-an-ajax-call-without-jquery
         // Initial call to IR
+        if ((!PAGES_INFO.IRReqNum) || (PAGES_INFO.IRReqNum === undefined)) {
+            PAGES_INFO.IRReqNum = 0;
+        }
+
         if (!(PAGES_INFO.initialResults && PAGES_INFO.initialResults.length)) {
             // Support for IE6/5 in the event that XMLHttpRequest doesn't exist
             var xmlhttp, data;
             xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
-            xmlhttp.open("GET", "{{ campaign.ir_base_url|default:ir_base_url }}/page/{{ campaign.intentrank_id|default:campaign.old_id }}/getresults?results=10&algorithm={{ algorithm }}&related={{ related_to_tile }}", true);
+            xmlhttp.open("GET", "{{ campaign.ir_base_url|default:ir_base_url }}/page/{{ campaign.intentrank_id|default:campaign.old_id }}/getresults?results=10&algorithm={{ algorithm }}&related={{ related_to_tile }}&reqNum=0", true);
 
             xmlhttp.onload = function () {
                 // Ensures that it's resolved on 200 or 404
                 if (xmlhttp.status === 200) { // success so resolve normally
+                    PAGES_INFO.IRReqNum++;
                     PAGES_INFO.initialResults = JSON.parse(xmlhttp.response || xmlhttp.responseText);
                 }
             };

@@ -164,37 +164,6 @@
             <div class="tap-indicator-target"></div>
             <div class='relative'>
                 <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
-                <!-- Varies depending on source (e.g. facebook, styldby, etc)-->
-                <div class="overlay">
-                    <div class='align-container'>
-                        <div class='cell'>
-                            <% /* "Shop product" is actually wanted for the tile overlay */ %>
-                            <div class="title">
-                                <% if (obj.title || obj.name || obj.caption) { %>
-                                    <%= (obj.title || obj.name || obj.caption) %>
-                                <% } else if (obj['related-products'] && obj['related-products'].length > 0) { %>
-                                    <span>Shop product</span>
-                                    <br/>
-                                    <% _.each(obj['related-products'], function (related) { %>
-                                        <span class='shop-products'><%= related.title || related.name || related.caption %></span>
-                                    <% }); %>
-                                <% } else { %>
-                                    Shop product
-                                <% } %>
-                            </div>
-                            <% var validSources = ['tumblr', 'instagram', 'facebook', 'styld.by']; %>
-                            <% if (_.indexOf(validSources, obj.source) != -1) { %>
-                                <div class='author'>
-                                    <% if (obj.source == "styld.by") { %>
-                                        <%= obj.source %><%= obj.user %>
-                                    <% } else if (_.indexOf(validSources, (obj.source||'').toLowerCase()) != -1) { %>
-                                        <span class='propercase'><%= obj.source %></span>
-                                    <% } %>
-                                </div>
-                            <% } %>
-                            </div>
-                    </div>
-                </div>
             </div>
             <% if (App.option("debug", 0) > 1) { %>
                 <span class="type"><%= obj["content-type"] %></span>
@@ -347,15 +316,21 @@
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
                     <div class='image'>
-                        <img src='<%= obj.defaultImage.url %>'/>
+                        <% if (obj.images.length > 1) { %>
+                            <span class="gallery-swipe-left"></span>
+                            <img src='<%= obj.defaultImage.url %>'/>
+                            <span class="gallery-swipe-right"></span>
+                        <% } else { %>
+                            <img src='<%= obj.defaultImage.url %>'/>
+                        <% } %>
                     </div>
                     <% if (obj.images.length > 1) { %>
-                    <div class='gallery'></div>
+                    <div class='gallery dots'></div>
                     <% } %>
                 </div>
                 <div class='cell info col-sm-6 col-md-6'>
                     <div class='description'>
-                        <div class='desc-title'>Overview</div>
+                        <div class='desc-title'>Product Details</div>
                         <p><%= obj.description %></p>
                         </ul>
                     </div>
@@ -506,15 +481,21 @@
                                     <span class="gallery-swipe-right gallery-related"></span>
                                 </div>
                             <% } else { %>
+                                <% if (product.images.length > 1) { %>
+                                <span class="gallery-swipe-left"></span>
                                 <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
+                                <span class="gallery-swipe-right"></span>
+                                <% } else { %>
+                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
+                                <% } %>
                             <% } %>
                             <% if (product.images.length > 1) { %>
-                                <div class='gallery'></div>
+                                <div class='gallery dots'></div>
                             <% } %>
                         </div>
                         <div class="cell col-sm-6 col-md-6"> <!-- info -->
                             <div class='description'>
-                                <div class='desc-title'>Overview</div>
+                                <div class='desc-title'>Product Details</div>
                                 <p><%= product.description %></p>
                             </div>
                             <div>
@@ -523,7 +504,7 @@
                             </div>
                             <div class='madewell-buttons'>
                                 <a class='button show-now'
-                                   href='<%= obj.url %>'
+                                   href='<%= product.url %>'
                                    target='_blank'>
                                     Shop Now
                                 </a>

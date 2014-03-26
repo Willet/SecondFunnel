@@ -66,7 +66,5 @@ def importer(instance_type='test', store_id=38, full_size_images=False):
     instances = get_instances(instance_type)
     instances_dns = [i.public_dns_name for i in instances]
 
-    with settings(hide('stdout', 'commands')):
-        # hosts is the kwargs for determining which instance to ssh into
-        execute(execute_importer, instance_type, store_id, full_size_images,
-                hosts=instances_dns)
+    execute(execute_importer, instance_type, store_id, full_size_images,
+            hosts=instances_dns)
