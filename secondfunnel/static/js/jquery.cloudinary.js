@@ -18,9 +18,6 @@
     // Browser globals:
     var $ = window.jQuery;
     factory($);
-    $(function() {
-      $("input.cloudinary-fileupload[type=file]").cloudinary_fileupload();
-    });
   }
 }(function ($) {
   'use strict';
