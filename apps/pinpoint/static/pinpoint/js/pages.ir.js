@@ -13,7 +13,7 @@ App.module("intentRank", function (intentRank, App) {
     this.options = {
         'baseUrl': "/intentrank",  // or an absolute base url, e.g. http://tng-test.secondfunnel.com/intentrank
         'urlTemplates': {
-            'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>&algorithm=<%=IRAlgo%>&reqnum=<%=IRReqNum%>",
+            'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>",
             'content': "<%=baseUrl%>/page/<%=campaign%>/content/<%=id%>/getresults"
         },
         'add': true,
