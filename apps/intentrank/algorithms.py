@@ -237,7 +237,7 @@ def ir_generic(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                                              exclude_set=exclude_set)
 
     # second, show the ones for the first request
-    if request and request.GET.get('reqnum', 0) in [0, '0']:
+    if request and request.GET.get('reqNum', 0) in [0, '0']:
         prioritized_tiles += ir_priority_pageview(feed=feed, results=1000,
                                                   exclude_set=exclude_set)
     if len(prioritized_tiles) >= results:
@@ -310,10 +310,15 @@ def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # second, show the ones for the first request
     exclude_set += [tile.old_id or tile.id for tile in prioritized_tiles]
-    if request and request.GET.get('reqnum', 0) in [0, '0']:
+    if request and request.GET.get('reqNum', 0) in [0, '0']:
         prioritized_tiles += ir_priority_pageview(feed=feed, results=1000,
                                                   exclude_set=exclude_set,
                                                   allowed_set=allowed_set)
+    else:  # else... NEVER show these per-request tiles again
+        x_prioritized_tiles = ir_priority_pageview(feed=feed, results=1000,
+                                                   exclude_set=exclude_set,
+                                                   allowed_set=allowed_set)
+        exclude_set += [tile.old_id or tile.id for tile in x_prioritized_tiles]
     if len(prioritized_tiles) >= results:
         return prioritized_tiles[:results]
 
