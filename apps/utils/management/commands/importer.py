@@ -260,7 +260,9 @@ class Command(BaseCommand):
                 feed = Feed.objects.get(id=page.feed_id)
             except Page.DoesNotExist:
                 feed = Feed()
-                feed.save()
+
+            feed.feed_algorithm = page_dict.get('ir-algorithm', 'generic')
+            feed.save()
 
             page_theme_fields = {}
 
@@ -298,11 +300,13 @@ class Command(BaseCommand):
             tile_old_id = tile_dict.get('id')
             tile_template = tile_dict.get('template')
             tile_prioritized = "pageview" if tile_dict.get('prioritized') in ['true', 'True'] else ""
+            tile_priority = tile_dict.get('priority', 0)
             tile_created_at = tile_dict.get('created')
             tile_updated_at = tile_dict.get('last-modified')
 
             tile_fields = {'feed': feed, 'template': tile_template,
-                           'prioritized': tile_prioritized}
+                           'prioritized': tile_prioritized,
+                           'priority': tile_priority, }
 
             # read redirect-url (among others) for banner tiles' stringified json
             if tile_template == "banner":
