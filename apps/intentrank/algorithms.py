@@ -40,7 +40,7 @@ def ir_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 
 def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                   prioritized_set='', exclude_set=None):
+                   prioritized_set='', exclude_set=None, allowed_set=None):
     """Return prioritized tiles in the feed, ordered by priority,
     except the ones in exclude_set, which is a list of old id integers.
     """
@@ -303,7 +303,8 @@ def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # first, always show the ones that are 'request' i.e. every request
     prioritized_tiles += ir_priority_request(feed=feed, results=1000,
-                                             exclude_set=exclude_set)
+                                             exclude_set=exclude_set,
+                                             allowed_set=allowed_set)
     if len(prioritized_tiles) >= results:
         return prioritized_tiles[:results]
 
@@ -311,7 +312,8 @@ def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     exclude_set += [tile.old_id or tile.id for tile in prioritized_tiles]
     if request and request.GET.get('reqnum', 0) in [0, '0']:
         prioritized_tiles += ir_priority_pageview(feed=feed, results=1000,
-                                                  exclude_set=exclude_set)
+                                                  exclude_set=exclude_set,
+                                                  allowed_set=allowed_set)
     if len(prioritized_tiles) >= results:
         return prioritized_tiles[:results]
 
@@ -320,7 +322,7 @@ def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if len(request.session.get('shown', [])) == 0:  # first page view
         prioritized_tiles += ir_priority_sorted(feed=feed, results=8,
                                                 exclude_set=exclude_set,
-                                               allowed_set=allowed_set)
+                                                allowed_set=allowed_set)
     if len(prioritized_tiles) >= results:
         return prioritized_tiles[:results]
 
