@@ -9,6 +9,10 @@ body {
     position: relative;
 }
 
+.bold {
+    font-weight: bold;
+}
+
 .centered {
     margin-left: auto;
     margin-right: auto;
@@ -669,10 +673,10 @@ div.header {
 
     .previewContainer .gallery .img {
         vertical-align: middle;
-        width: 10px;
-        height: 10px;
-        margin-left: 2px;
-        margin-right: 2px;
+        width: 6px;
+        height: 6px;
+        margin-left: 9px;
+        margin-right: 9px;
         border-radius: 10px;
         display: inline-block;
         background: #CCC;
@@ -930,7 +934,7 @@ div.header {
         float: left;
         width: 70px;
         line-height: 30px;
-        height: 30p`x;
+        height: 30px;
         position: relative;
     }
 
@@ -941,12 +945,22 @@ div.header {
         width: 100%;
     }
 
-    .previewContainer .content .info  {
-        padding: 5px;
+    .previewContainer .content .info {
+        padding: 5px 25px;
         max-width: 100%;
-        text-align: center;
+        text-align: left;
         background: white;
         border-bottom: 3px solid #FFFFFF;
+    }
+
+    .previewContainer .content .info .button {
+        padding: 5px 20px;
+        border: 1px solid black;
+        text-align: center;
+        margin: 10px 0;
+        cursor: pointer;
+        text-decoration: underline;
+        font-size: 21px;
     }
 
     .previewContainer .content .center {
