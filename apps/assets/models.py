@@ -229,6 +229,8 @@ class Category(BaseModel):
     store = models.ForeignKey(Store)
     name = models.CharField(max_length=255)
 
+    url = models.TextField()
+
 
 class Content(BaseModel):
     def _validate_status(status):

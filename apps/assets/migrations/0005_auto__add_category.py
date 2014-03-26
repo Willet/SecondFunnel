@@ -15,6 +15,7 @@ class Migration(SchemaMigration):
             ('updated_at', self.gf('django.db.models.fields.DateTimeField')()),
             ('store', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.Store'])),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('url', self.gf('django.db.models.fields.TextField')()),
         ))
         db.send_create_signal(u'assets', ['Category'])
 
@@ -42,9 +43,10 @@ class Migration(SchemaMigration):
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'products': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['assets.Product']", 'symmetrical': 'False'}),
+            'products': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'categories'", 'symmetrical': 'False', 'to': u"orm['assets.Product']"}),
             'store': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['assets.Store']"}),
-            'updated_at': ('django.db.models.fields.DateTimeField', [], {})
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {}),
+            'url': ('django.db.models.fields.TextField', [], {})
         },
         u'assets.content': {
             'Meta': {'object_name': 'Content'},

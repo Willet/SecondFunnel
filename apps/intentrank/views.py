@@ -8,7 +8,7 @@ from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import request_methods
-from apps.assets.models import Page, Tile, TileRelation
+from apps.assets.models import Page, Tile, TileRelation, Category
 from apps.intentrank.controllers import IntentRank
 from apps.intentrank.algorithms import ir_generic, ir_all, ir_popular, ir_ordered
 from apps.intentrank.utils import ajax_jsonp
@@ -166,8 +166,15 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
     request = kwargs.get('request', None)
+    category_name = kwargs.get('category', None)
+    if category_name:
+        category = Category.objects.get(name=category_name)
+        allowed_set = [tile.old_id for tile in list(Tile.objects.filter(tile__products__in=category.products))]
+    else:
+        allowed_set = None
     return ir.transform(algorithm(feed=feed, results=results,
-                                     exclude_set=exclude_set, request=request))
+                                     exclude_set=exclude_set, allowed_set=allowed_set,
+                                     request=request))
 
 
 @never_cache
