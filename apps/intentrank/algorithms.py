@@ -3,6 +3,7 @@ as the first positional argument, with all other arguments being kwargs.
 
 All algorithms must return <list>.
 """
+from functools import partial
 import random as real_random
 
 from django.conf import settings
@@ -33,22 +34,30 @@ def ir_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 
 def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                   exclude_set=None):
-    """Return prioritized tiles in the feed, ordered randomly,
+                   prioritized_set='', exclude_set=None):
+    """Return prioritized tiles in the feed, ordered by priority,
     except the ones in exclude_set, which is a list of old id integers.
     """
     tiles = list(
         feed.tiles
-            .filter(prioritized=True)
+            .filter(prioritized=prioritized_set)
             .exclude(old_id__in=exclude_set)
             .order_by('created_at')
             .select_related()
             .prefetch_related('content', 'products')
-            .order_by('?')[:results])
+            .order_by('-priority')[:results])
 
-    print "{0} tile(s) were manually prioritized".format(len(tiles))
+    print "{0} tile(s) were manually prioritized by {1}".format(
+        len(tiles), prioritized_set)
 
     return tiles
+
+
+ir_request_priority = partial(ir_prioritized, prioritized_set='request')
+ir_pageview_priority = partial(ir_prioritized, prioritized_set='pageview')
+ir_session_priority = partial(ir_prioritized, prioritized_set='session')
+ir_cookie_priority = partial(ir_prioritized, prioritized_set='cookie')
+ir_custom_priority = partial(ir_prioritized, prioritized_set='custom')
 
 
 def ir_priority_sorted(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
