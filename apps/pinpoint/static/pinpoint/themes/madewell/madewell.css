@@ -269,6 +269,14 @@ div.header {
     width: 404px;
 }
 
+.tile.three-col {
+    width: 606px;
+}
+
+.tile.full {
+    width: 808px;
+}
+
 .tile .caption {
     position: relative;
     background-color: transparent;
@@ -583,6 +591,40 @@ div.header {
     font-weight: bold;
 }
 
+/* indicate that the image can be swiped */
+.previewContainer .gallery-swipe-left, .previewContainer .gallery-swipe-right {
+    top: 50%;
+    z-index: 2;
+    color: #eee;
+    width: 45px;
+    height: 45px;
+    margin-top: -22px;
+    position: absolute;
+    background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
+}
+
+.previewContainer .gallery-related {
+    top: 70%;
+}
+
+.previewContainer .gallery-swipe-left {
+    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-left.png');
+    left: 8px;
+}
+
+.previewContainer .gallery-swipe-left.grey {
+    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-left.png');
+}
+
+.previewContainer .gallery-swipe-right {
+    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-right.png');
+    right: 8px;
+}
+
+.previewContainer .gallery-swipe-right.grey {
+    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-right.png');
+}
+
 @media screen and (min-width: 768px) {
     .previewContainer .image {
         text-align: center;
@@ -641,40 +683,6 @@ div.header {
         background: #000;
         border-color: #000;
     }
-
-    /* indicate that the image can be swiped */
-    .previewContainer .gallery-swipe-left, .previewContainer .gallery-swipe-right {
-        top: 50%;
-        z-index: 2;
-        color: #eee;
-        width: 45px;
-        height: 45px;
-        margin-top: -22px;
-        position: absolute;
-        background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
-    }
-
-    .previewContainer .gallery-related {
-        top: 70%;
-    }
-
-    .previewContainer .gallery-swipe-left {
-        background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-left.png');
-        left: 8px;
-    }
-
-    .previewContainer .gallery-swipe-left.grey {
-        background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-left.png');
-    }
-
-    .previewContainer .gallery-swipe-right {
-        background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-right.png');
-        right: 8px;
-    }
-
-    .previewContainer .gallery-swipe-right.grey {
-        background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-right.png');
-    }
 }
 
 .previewContainer .price {
@@ -715,8 +723,26 @@ div.header {
     width: auto;
     border: 1px solid #CECECE;
 }
-.previewContainer .gallery img.selected {
+.previewContainer .gallery img.selected,
+.previewContainer .gallery .selected > img {
     border: 1px solid black;
+}
+
+.previewContainer .gallery.dots img {
+    display: none;
+}
+
+.previewContainer .gallery.dots .img-wrapper {
+    border-radius: 50%;
+    width: 5px;
+    height: 5px;
+    background: #aaa;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.previewContainer .gallery.dots .img-wrapper.selected {
+    background: #000;
 }
 
 .previewContainer .madewell-buttons a,
