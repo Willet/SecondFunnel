@@ -297,7 +297,7 @@ class Command(BaseCommand):
         for tile_dict in get_contentgraph_data('page/' + str(page_id) + '/tile/'):
             tile_old_id = tile_dict.get('id')
             tile_template = tile_dict.get('template')
-            tile_prioritized = tile_dict.get('prioritized') in ['true', 'True']
+            tile_prioritized = "pageview" if tile_dict.get('prioritized') in ['true', 'True'] else ""
             tile_created_at = tile_dict.get('created')
             tile_updated_at = tile_dict.get('last-modified')
 
