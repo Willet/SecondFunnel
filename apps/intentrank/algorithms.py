@@ -47,14 +47,16 @@ def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tiles = list(
-        feed.tiles
-            .filter(prioritized=prioritized_set)
-            .exclude(old_id__in=exclude_set)
-            .order_by('created_at')
-            .select_related()
-            .prefetch_related('content', 'products')
-            .order_by('-priority')[:results])
+    tiles = feed.tiles.filter(prioritized=prioritized_set)
+    if exclude_set:
+        tiles = tiles.exclude(old_id__in=exclude_set)
+
+    tiles = (tiles.order_by('created_at')
+                  .select_related()
+                  .prefetch_related('content', 'products')
+                  .order_by('-priority'))
+
+    tiles = list(tiles[:results])
 
     print "{0} tile(s) were manually prioritized by {1}".format(
         len(tiles), prioritized_set or 'nothing')
@@ -77,14 +79,16 @@ def ir_priority_sorted(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tiles = list(
-        feed.tiles
-            .filter(prioritized=prioritized_state)
-            .exclude(old_id__in=exclude_set)
-            .order_by('-priority')
-            .select_related()
-            .prefetch_related('content', 'products')
-            [:results])
+    tiles = feed.tiles.filter(prioritized=prioritized_state)
+
+    if exclude_set:
+        tiles = tiles.exclude(old_id__in=exclude_set)
+
+    tiles = (tiles.order_by('-priority')
+                  .select_related()
+                  .prefetch_related('content', 'products'))
+
+    tiles = list(tiles[:results])
 
     print "{0} tile(s) were manually prioritized".format(len(tiles))
 
@@ -98,13 +102,16 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tiles = list(
-        feed.tiles
-            .exclude(old_id__in=exclude_set)
-            .select_related()
-            .prefetch_related('content', 'products')
-            # "Note: order_by('?') queries may be expensive and slow..."
-            .order_by("?")[:results])
+    tiles = feed.tiles
+    if exclude_set:
+        tiles = tiles.exclude(old_id__in=exclude_set)
+
+    tiles = (tiles.select_related()
+                  .prefetch_related('content', 'products')
+                  # "Note: order_by('?') queries may be expensive and slow..."
+                  .order_by("?"))
+
+    tiles = list(tiles[:results])
 
     print "{0} tile(s) were randomly added".format(len(tiles))
 
@@ -119,12 +126,17 @@ def ir_created_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     """
     if results < 1:
         return []
-    tiles = list(
-        feed.tiles
-            .exclude(old_id__in=exclude_set)
-            .select_related()
-            .prefetch_related('content', 'products')
-            .order_by("-created_at")[:results])
+
+    tiles = feed.tiles
+
+    if exclude_set:
+        tiles = tiles.exclude(old_id__in=exclude_set)
+
+    tiles = (tiles.select_related()
+                  .prefetch_related('content', 'products')
+                  .order_by("-created_at"))
+
+    tiles = list(tiles[:results])
 
     print "{0} tile(s) were automatically prioritized".format(len(tiles))
     return tiles
@@ -149,8 +161,13 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tiles = list(feed.tiles.exclude(old_id__in=exclude_set)
-        .select_related().prefetch_related('content', 'products'))
+    tiles = feed.tiles
+
+    if exclude_set:
+        tiles = tiles.exclude(old_id__in=exclude_set)
+
+    tiles = (tiles.select_related()
+                  .prefetch_related('content', 'products'))
 
     tiles = sorted(tiles, key=lambda tile: tile.click_score(), reverse=True)
 
@@ -210,8 +227,9 @@ def ir_generic(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             real_random.shuffle(new_tiles)
 
             prioritized_tiles += new_tiles
-            prioritized_tile_ids = [tile.old_id or tile.id
-                                    for tile in prioritized_tiles]
+
+    prioritized_tile_ids = [tile.old_id or tile.id
+                            for tile in prioritized_tiles]
 
     # get (10 - number of prioritized) tiles that are not already prioritized
     random_tiles = ir_random(feed=feed,
