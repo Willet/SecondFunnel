@@ -164,37 +164,6 @@
             <div class="tap-indicator-target"></div>
             <div class='relative'>
                 <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
-                <!-- Varies depending on source (e.g. facebook, styldby, etc)-->
-                <div class="overlay">
-                    <div class='align-container'>
-                        <div class='cell'>
-                            <% /* "Shop product" is actually wanted for the tile overlay */ %>
-                            <div class="title">
-                                <% if (obj.title || obj.name || obj.caption) { %>
-                                    <%= (obj.title || obj.name || obj.caption) %>
-                                <% } else if (obj['related-products'] && obj['related-products'].length > 0) { %>
-                                    <span>Shop product</span>
-                                    <br/>
-                                    <% _.each(obj['related-products'], function (related) { %>
-                                        <span class='shop-products'><%= related.title || related.name || related.caption %></span>
-                                    <% }); %>
-                                <% } else { %>
-                                    Shop product
-                                <% } %>
-                            </div>
-                            <% var validSources = ['tumblr', 'instagram', 'facebook', 'styld.by']; %>
-                            <% if (_.indexOf(validSources, obj.source) != -1) { %>
-                                <div class='author'>
-                                    <% if (obj.source == "styld.by") { %>
-                                        <%= obj.source %><%= obj.user %>
-                                    <% } else if (_.indexOf(validSources, (obj.source||'').toLowerCase()) != -1) { %>
-                                        <span class='propercase'><%= obj.source %></span>
-                                    <% } %>
-                                </div>
-                            <% } %>
-                            </div>
-                    </div>
-                </div>
             </div>
             <% if (App.option("debug", 0) > 1) { %>
                 <span class="type"><%= obj["content-type"] %></span>
