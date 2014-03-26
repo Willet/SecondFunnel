@@ -387,27 +387,6 @@
                 <% } else { %>
                     <div class="img" style="background-image: url('<%= obj.image.url %>');"></div>
                 <% } %>
-                <div class="gap-buttons">
-                    <a class="button in-store"
-                       href="<%= obj.url %>"
-                       target="_blank">
-                        Shop Now
-                    </a>
-                    <a class="button find-store"
-                       href="http://m.gap.com/storelocator.html"
-                       target="_blank">
-                        Find in Store
-                    </a>
-                    <!--
-                        <span class="close button">
-                          <% if (!App.initialPage || App.initialPage.length == 0) { %>
-                              Continue Browsing
-                          <% } else { %>
-                              Check out more in Store
-                          <% } %>
-                        </span>
-                    -->
-                </div>
             </div>
             <div class="info">
                 <div class="center">
@@ -434,29 +413,6 @@
                         <span class="gallery-swipe-left"></span>
                         <div class="main-image"></div>
                         <span class="gallery-swipe-right"></span>
-                        <div class="gap-buttons">
-                            <% if (product.url) { %>
-                                <a class="button in-store"
-                                   href="<%= product.url %>"
-                                   target="_blank">
-                                    Shop Now
-                                </a>
-                                <a class="button find-store"
-                                   href="http://m.gap.com/storelocator.html"
-                                   target="_blank">
-                                    Find in Store
-                                </a>
-                            <% } %>
-                            <!--
-                                <span class="close button">
-                                    <% if (!App.initialPage || App.initialPage.length == 0) { %>
-                                        Continue Browsing
-                                    <% } else { %>
-                                        Check out more in Store
-                                    <% } %>
-                                </span>
-                            -->
-                        </div>
                     <% } else { %>
                         <div class="img" style="background-image: url('<%= obj.defaultImage.url %>');"></div>
                     <% } %>
