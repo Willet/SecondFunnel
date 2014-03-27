@@ -599,7 +599,7 @@ class Tile(BaseModel):
         return serializer.to_json([self])
 
     def get_related(self):
-        return TileRelation.get_related_tiles([self.id])
+        return TileRelation.get_related_tiles([self])
 
 
 class TileRelation(BaseModel):
