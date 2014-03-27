@@ -233,6 +233,11 @@ App.module('core', function (module, App) {
                 columns = 1;
             }
 
+            this.$el.addClass(columnDetails[columns]);
+            if (App.support.mobile()) { // maximum of 2 columns
+                columns = Math.min(columns, 2);
+            }
+
             while(0 <= columns) {
                 idealWidth = normalTileWidth * columns;
                 imageInfo = this.model.get('defaultImage').width(idealWidth, true);
@@ -242,10 +247,7 @@ App.module('core', function (module, App) {
                 columns--;
             }
 
-            this.$el.addClass(columnDetails[columns]);
-            if (!App.support.mobile()) { // wide means nothing on mobile
-                this.model.set({'image': imageInfo});
-            }
+            this.model.set({'image': imageInfo});
 
             // Listen for the image being removed from the DOM, if it is, remove
             // the View/Model to free memory
