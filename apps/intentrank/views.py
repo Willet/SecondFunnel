@@ -186,8 +186,8 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
     request = kwargs.get('request', None)
-    return ir.transform(algorithm(feed=feed, results=results,
-                                     exclude_set=exclude_set, request=request))
+    return ir.render(algorithm, feed=feed, results=results,
+                     exclude_set=exclude_set, request=request)
 
 
 @never_cache

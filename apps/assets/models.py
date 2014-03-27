@@ -730,7 +730,7 @@ class Tile(BaseModel):
         else:
             try:
                 if not serializer:
-                    serializer = globals()[self.template.capitalize() + 'TileSerializer']()
+                    serializer = getattr(ir_serializers, self.template.capitalize() + 'TileSerializer')()
             except:  # cannot find e.g. 'Youtube'TileSerializer -- use default
                 serializer = ir_serializers.TileSerializer()
 
