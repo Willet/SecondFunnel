@@ -626,6 +626,15 @@ class Page(BaseModel):
 
 
 class Tile(BaseModel):
+    def _validate_prioritized(status):
+        allowed = ["", "request", "pageview", "session", "cookie", "custom"]
+        if type(status) == bool:
+            status = "pageview" if status else ""
+        if status not in allowed:
+            raise ValidationError("{0} is not an allowed status; "
+                                  "choices are {1}".format(status, allowed))
+        return status
+
     old_id = models.IntegerField(unique=True, db_index=True)
 
     # <Feed>.tiles.all() gives you... all its tiles
@@ -637,7 +646,16 @@ class Tile(BaseModel):
     # use content.select_subclasses() instead of content.all()!
     content = models.ManyToManyField(Content, blank=True, null=True)
 
-    prioritized = models.BooleanField()
+    # '': not prioritized.
+    # 'request': prioritized for every IR request made by the client.
+    # 'pageview': prioritized for every page view made by the client. (not implemented)
+    # 'session': prioritized for the beginning of each session.
+    # 'cookie': prioritized if the tile cookie does not exist. (not implemented)
+    # 'custom': run the tile's priority function that returns an int.
+    #           the tile will be as prioritized within the feed as the size
+    #           of that int. (not implemented)
+    prioritized = models.CharField(max_length=255, default="", blank=True,
+        null=True, validators=[_validate_prioritized])
 
     # if the feed's algorithm is 'generic', then priority is not used.
     # if the feed's algorithm is 'ordered', then prioritized tiles will be
@@ -666,6 +684,16 @@ class Tile(BaseModel):
     ratio = 1.5
 
     cg_serializer = cg_serializers.TileSerializer
+
+    def full_clean(self, exclude=None, validate_unique=True):
+        if type(self.prioritized) == bool:
+            self.prioritized = 1 if self.prioritized else 0
+        if self.prioritized == 'true':
+            self.prioritized = 'pageview'
+        if self.prioritized == 'false':
+            self.prioritized = ''
+        return super(Tile, self).full_clean(exclude=exclude,
+                                            validate_unique=validate_unique)
 
     def add_click(self):
         self.clicks += 1
@@ -725,7 +753,7 @@ class Tile(BaseModel):
         return serializer.to_json([self])
 
     def get_related(self):
-        return TileRelation.get_related_tiles([self.id])
+        return TileRelation.get_related_tiles([self])
 
     @property
     def tile_config(self):

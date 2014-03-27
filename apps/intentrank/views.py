@@ -51,7 +51,7 @@ def get_results_view(request, page_id):
             request.session['shown'] += exclude_set
         request.session['shown'] = list(set(request.session['shown']))  # uniq
 
-        if request.GET.get('algorithm', None) != 'ordered':
+        if not request.GET.get('algorithm', None) in ['ordered', 'sorted', 'custom']:
             # ordered algo keeps track of full list for zero repeats
             request.session['shown'] = request.session['shown'][:TRACK_SHOWN_TILES_NUM]
 
@@ -82,7 +82,7 @@ def get_results_view(request, page_id):
     if request.GET.get('algorithm', None) == 'popular':
         algorithm = ir_popular
         results = 100  # temporary default to check if popularity is working
-    elif request.GET.get('algorithm', None) == 'ordered':
+    elif request.GET.get('algorithm', None) in ['ordered', 'sorted']:
         algorithm = ir_ordered
     else:
         algorithm = ir_generic
@@ -149,6 +149,26 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
                       callback_name=callback)
 
 
+@never_cache
+@csrf_exempt
+@request_methods('GET')
+def get_related_tiles_view(request, page_id, tile_id=None, **kwargs):
+    """Returns a response containing a list of tiles related to the given
+    tile in order of popularity.
+
+    The tile format is the same as the ones from get_tiles_view.
+    """
+    callback = request.GET.get('callback', None)
+
+    # get tile
+    try:
+        tile = Tile.objects.get(old_id=tile_id)
+    except Tile.DoesNotExist:
+        return HttpResponseNotFound("No tile {0}".format(tile_id))
+
+    return ajax_jsonp(tile.get_related(), callback_name=callback)
+
+
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                 algorithm=ir_generic, **kwargs):
     """Converts a feed into a list of <any> using given parameters.
@@ -208,7 +228,17 @@ def update_tiles(request, tile_function, **kwargs):
 @csrf_exempt
 @request_methods('POST')
 def click_tile(request, **kwargs):
-    return update_tiles(request, tile_function=lambda t: t.add_click(), **kwargs)
+    """Register a click, doing whatever tracking it needs to do."""
+    def click_func(tile):
+        clicks = request.session.get('clicks', [])
+        if tile.old_id not in clicks:
+            for click in clicks:
+                TileRelation.relate(Tile.objects.get(old_id=click), tile)
+            clicks.append(tile.old_id)
+            request.session['clicks'] = clicks
+        tile.add_click()
+
+    return update_tiles(request, tile_function=click_func, **kwargs)
 
 
 @never_cache
