@@ -54,7 +54,7 @@ def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tiles = (tiles.order_by('created_at')
                   .select_related()
                   .prefetch_related('content', 'products')
-                  .order_by('-priority'))
+                  .order_by('-priority', '?'))
 
     tiles = list(tiles[:results])
 
@@ -300,6 +300,8 @@ def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     random_tiles = ir_prioritized(feed=feed, prioritized_set='',
         results=(results - len(prioritized_tiles)),
         exclude_set=exclude_set)
+
+    real_random.shuffle(random_tiles)
 
     tiles = prioritized_tiles + random_tiles
     return tiles[:results]
