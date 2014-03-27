@@ -391,6 +391,22 @@
                         <span><%= product.title || product.name || obj.title || obj.name ||
                                   obj.caption || obj.description %></span>
                     </div>
+                    <% if (products.length > 0) { %>
+                        <div>
+                            USD: <%= product.price %>
+                        </div>
+                        <a href='<%= product.url %>' target="_blank">
+                            <div class="button">
+                                shop on Madewell.com
+                            </div>
+                        </a>
+                        <div class="bold">
+                            Product Details:
+                        </div>
+                        <div>
+                            <%= product.description %>
+                        </div>
+                    <% } %>
                 </div>
             </div>
         </script>
