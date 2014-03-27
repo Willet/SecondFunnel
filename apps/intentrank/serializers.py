@@ -47,11 +47,11 @@ class ProductSerializer(RawSerializer):
 
         # if default image is missing...
         if hasattr(obj, 'default_image_id') and obj.default_image_id:
-            data["default-image"] = str(obj.default_image.old_id or
+            data["default-image"] = str(obj.default_image.id or
                 obj.default_image_id)
         elif len(product_images) > 0:
             # fall back to first image
-            data["default-image"] = str(product_images[0].old_id)
+            data["default-image"] = str(product_images[0].id)
 
         return data
 
@@ -67,7 +67,7 @@ class ContentSerializer(RawSerializer):
         from apps.assets.models import Product
 
         data = {
-            'store-id': str(obj.store.old_id if obj.store else 0),
+            'store-id': str(obj.store.id if obj.store else 0),
             'source': obj.source,
             'source_url': obj.source_url,
             'url': obj.url or obj.source_url,
@@ -133,9 +133,9 @@ class TileSerializer(RawSerializer):
         data = {
             # prefixed keys are for inspection only; the hyphen is designed to
             # prevent you from using it like a js object
-            '-dbg-real-tile-id': obj.old_id or obj.id,
+            '-dbg-real-tile-id': obj.id,
             '-dbg-attributes': obj.attributes,
-            'tile-id': obj.old_id or obj.id,
+            'tile-id': obj.id,
         }
 
         if hasattr(obj, 'template'):

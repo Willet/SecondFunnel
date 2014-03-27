@@ -13,7 +13,7 @@
             'displayName': '{{ store.display_name|default:'' }}'  // leave blank to use "Gap"
         }
         , 'page': {  // required
-            'id': '{{ campaign.intentrank_id|default:campaign.old_id }}'  // required
+            'id': '{{ campaign.intentrank_id|default:campaign.id }}'  // required
             , 'product': {{ product }}
             , 'pubDate': '{{ pub_date }}'  // for verifying the original upload date of a static campaign. for human use only
             , 'offline': false  // optional (if true, loads .content immediately)
@@ -31,7 +31,7 @@
             // 'featured-image': '{{ campaign.featured_image }}',  // DEPRECATED
             , 'description': "{{ campaign.description|escapejs }}"
         }
-        , 'campaign': '{{ campaign.intentrank_id|default:campaign.old_id }}' // required
+        , 'campaign': '{{ campaign.intentrank_id|default:campaign.id }}' // required
         , 'columnWidth': {{ column_width|default:'undefined' }}  // optional. controls how often tiles are wide.  // optional (defaults to 255, pixels)
         , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
         // , 'events': undefined  // page event bindings (optional)

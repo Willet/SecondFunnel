@@ -26,7 +26,7 @@ class StoreContentCGHandler(ContentCGHandler):
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
-        self.store = get_object_or_404(Store, old_id=store_id)
+        self.store = get_object_or_404(Store, id=store_id)
 
         return super(StoreContentCGHandler, self).dispatch(*args, **kwargs)
 
@@ -47,7 +47,7 @@ class StoreContentItemCGHandler(ContentCGHandler):
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
-        self.store = get_object_or_404(Store, old_id=store_id)
+        self.store = get_object_or_404(Store, id=store_id)
         self.content_id = kwargs.get(self.id_attr)
 
         return super(StoreContentItemCGHandler, self).dispatch(*args, **kwargs)
@@ -55,7 +55,7 @@ class StoreContentItemCGHandler(ContentCGHandler):
     def get_queryset(self, request=None):
         qs = super(StoreContentItemCGHandler, self).get_queryset()
         return qs.filter(store_id=self.store.id,
-                         old_id=self.content_id)
+                         id=self.content_id)
 
 
 class StorePageContentCGHandler(StoreContentCGHandler):
@@ -65,7 +65,7 @@ class StorePageContentCGHandler(StoreContentCGHandler):
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
-        page = get_object_or_404(Page, old_id=page_id)
+        page = get_object_or_404(Page, id=page_id)
         self.feed = page.feed
 
         return super(StorePageContentCGHandler, self).dispatch(*args, **kwargs)
@@ -86,7 +86,7 @@ class StorePageContentItemCGHandler(StoreContentItemCGHandler):
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
-        page = get_object_or_404(Page, old_id=page_id)
+        page = get_object_or_404(Page, id=page_id)
         self.feed = page.feed
 
         return super(StoreContentItemCGHandler, self).dispatch(*args, **kwargs)
@@ -111,12 +111,12 @@ class StorePageContentSuggestedCGHandler(StorePageContentCGHandler):
         store = self.store
 
         # find ids of content not already present in the current set of tiles
-        tile_content_ids = self.feed.tiles.values_list('content__old_id', flat=True)
-        not_in_feed = list(set(store.content.values_list('old_id', flat=True)) -
+        tile_content_ids = self.feed.tiles.values_list('content__id', flat=True)
+        not_in_feed = list(set(store.content.values_list('id', flat=True)) -
                            set(tile_content_ids))
 
         # mass select and initialize these content models
-        not_in_feed = (Content.objects.filter(old_id__in=not_in_feed)
+        not_in_feed = (Content.objects.filter(id__in=not_in_feed)
                                       .select_subclasses())
 
         return not_in_feed
@@ -143,23 +143,23 @@ class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
         request = args[0]
         content_id = kwargs.get('content_id')
         try:
-            self.content = Content.objects.filter(old_id=content_id).select_subclasses()[0]
+            self.content = Content.objects.filter(id=content_id).select_subclasses()[0]
         except ObjectDoesNotExist:
             raise Http404()
 
         return super(StorePageContentTagCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
-        return Content.objects.filter(old_id=request).select_subclasses()
+        return Content.objects.filter(id=request).select_subclasses()
 
     def get(self, request, *args, **kwargs):
         return ajax_jsonp({
-            'results': [x.old_id for x in self.content.tagged_products.all()]
+            'results': [x.id for x in self.content.tagged_products.all()]
         })
 
     def post(self, request, *args, **kwargs):
         product_id = kwargs.get('product_id')
-        tagged_product_ids = [x.old_id for x in self.content.tagged_products]
+        tagged_product_ids = [x.id for x in self.content.tagged_products]
         if not product_id in tagged_product_ids:
             tagged_product_ids.append(product_id)
 
@@ -169,7 +169,7 @@ class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
 
     def delete(self, request, *args, **kwargs):
         product_id = kwargs.get('product_id')
-        tagged_product_ids = [x.old_id for x in self.content.tagged_products]
+        tagged_product_ids = [x.id for x in self.content.tagged_products]
         try:
             # remove all instances of product_id
             tagged_product_ids = [i for i in tagged_product_ids if i != product_id]
@@ -200,10 +200,10 @@ class PageContentAllCGHandler(StorePageContentCGHandler):
     def put(self, request, *args, **kwargs):
         """:returns 200"""
         page_id = kwargs.get('page_id')
-        page = get_object_or_404(Page, old_id=page_id)
+        page = get_object_or_404(Page, id=page_id)
 
         content_ids = json.loads(request.body)
-        contents = Content.objects.filter(old_id__in=content_ids).select_subclasses()
+        contents = Content.objects.filter(id__in=content_ids).select_subclasses()
         for content in contents:
             page.add_content(content)
 

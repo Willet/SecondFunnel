@@ -12,7 +12,7 @@ class StoreCGHandler(BaseCGHandler):
 
     def get(self, request, *args, **kwargs):
         if kwargs.get('store_id'):
-            self.object_list = get_object_or_404(self.model, old_id=kwargs.get('store_id'))
+            self.object_list = get_object_or_404(self.model, id=kwargs.get('store_id'))
         else:
             self.object_list = Store.objects.all()
 

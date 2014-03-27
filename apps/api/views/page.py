@@ -26,7 +26,7 @@ class StorePageCGHandler(PageCGHandler):
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
-        store = get_object_or_404(Store, old_id=store_id)
+        store = get_object_or_404(Store, id=store_id)
         self.store_id = store.id
 
         return super(StorePageCGHandler, self).dispatch(*args, **kwargs)
@@ -50,11 +50,11 @@ class StorePageItemCGHandler(PageItemCGHandler):
         request = args[0]
 
         page_id = kwargs.get('page_id')
-        page = get_object_or_404(Page, old_id=page_id)
+        page = get_object_or_404(Page, id=page_id)
         self.page_id = page.id
 
         store_id = kwargs.get('store_id')
-        store = get_object_or_404(Store, old_id=store_id)
+        store = get_object_or_404(Store, id=store_id)
         self.store_id = store.id
 
         return super(StorePageItemCGHandler, self).dispatch(*args, **kwargs)

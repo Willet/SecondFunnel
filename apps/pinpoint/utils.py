@@ -101,7 +101,7 @@ def render_campaign(page_id, request, store_id=0):
         return mark_safe(json.dumps(escaped_product_dict))
 
     # grab required assets
-    page = get_object_or_404(Page, old_id=page_id)
+    page = get_object_or_404(Page, id=page_id)
     page_template = page.theme.load_theme()
     store = page.store
     product = None  # no featured product / STL functionality in place

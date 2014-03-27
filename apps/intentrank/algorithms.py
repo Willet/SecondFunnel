@@ -49,7 +49,7 @@ def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     tiles = feed.tiles.filter(prioritized=prioritized_set)
     if exclude_set:
-        tiles = tiles.exclude(old_id__in=exclude_set)
+        tiles = tiles.exclude(id__in=exclude_set)
 
     tiles = (tiles.order_by('created_at')
                   .select_related()
@@ -74,7 +74,7 @@ ir_priority_custom = partial(ir_prioritized, prioritized_set='custom')
 def ir_priority_sorted(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                        prioritized_state=True, exclude_set=None):
     """Return prioritized tiles in the feed, ordered by their priority values,
-    except the ones in exclude_set, which is a list of old id integers.
+    except the ones in exclude_set, which is a list of id integers.
     """
     if results < 1:
         return []
@@ -82,7 +82,7 @@ def ir_priority_sorted(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tiles = feed.tiles.filter(prioritized=prioritized_state)
 
     if exclude_set:
-        tiles = tiles.exclude(old_id__in=exclude_set)
+        tiles = tiles.exclude(id__in=exclude_set)
 
     tiles = (tiles.order_by('-priority')
                   .select_related()
@@ -104,7 +104,7 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     tiles = feed.tiles
     if exclude_set:
-        tiles = tiles.exclude(old_id__in=exclude_set)
+        tiles = tiles.exclude(id__in=exclude_set)
 
     tiles = (tiles.select_related()
                   .prefetch_related('content', 'products')
@@ -130,7 +130,7 @@ def ir_created_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tiles = feed.tiles
 
     if exclude_set:
-        tiles = tiles.exclude(old_id__in=exclude_set)
+        tiles = tiles.exclude(id__in=exclude_set)
 
     tiles = (tiles.select_related()
                   .prefetch_related('content', 'products')
@@ -164,7 +164,7 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tiles = feed.tiles
 
     if exclude_set:
-        tiles = tiles.exclude(old_id__in=exclude_set)
+        tiles = tiles.exclude(id__in=exclude_set)
 
     tiles = (tiles.select_related()
                   .prefetch_related('content', 'products'))
@@ -221,7 +221,7 @@ def ir_generic(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                                                 exclude_set=exclude_set)
 
             # fill the first two rows with (8) tiles that are known to be new
-            exclude_set += [tile.old_id for tile in prioritized_tiles]
+            exclude_set += [tile.id for tile in prioritized_tiles]
             new_tiles = ir_created_last(
                 feed=feed,
                 results=(num_new_tiles_to_autoprioritize - len(prioritized_tiles)),
@@ -232,7 +232,7 @@ def ir_generic(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if len(prioritized_tiles) >= results:
         return prioritized_tiles[:results]
 
-    prioritized_tile_ids = [tile.old_id or tile.id
+    prioritized_tile_ids = [tile.id or tile.id
                             for tile in prioritized_tiles]
 
     # get (10 - number of prioritized) tiles that are not already prioritized
@@ -276,19 +276,19 @@ def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         return prioritized_tiles[:results]
 
     # second, show the ones for the first request
-    exclude_set += [tile.old_id or tile.id for tile in prioritized_tiles]
+    exclude_set += [tile.id for tile in prioritized_tiles]
     if request and request.GET.get('reqNum', 0) in [0, '0']:
         prioritized_tiles += ir_priority_pageview(feed=feed, results=1000,
                                                   exclude_set=exclude_set)
     else:  # else... NEVER show these per-request tiles again
         x_prioritized_tiles = ir_priority_pageview(feed=feed, results=1000,
                                                    exclude_set=exclude_set)
-        exclude_set += [tile.old_id or tile.id for tile in x_prioritized_tiles]
+        exclude_set += [tile.id for tile in x_prioritized_tiles]
     if len(prioritized_tiles) >= results:
         return prioritized_tiles[:results]
 
     # fill the first two rows with (8) tiles that are known to be new
-    exclude_set += [tile.old_id or tile.id for tile in prioritized_tiles]
+    exclude_set += [tile.id for tile in prioritized_tiles]
     if len(request.session.get('shown', [])) == 0:  # first page view
         prioritized_tiles += ir_priority_sorted(feed=feed, results=8,
                                                 exclude_set=exclude_set)
@@ -296,7 +296,7 @@ def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         return prioritized_tiles[:results]
 
     # get (10 - number of prioritized) tiles that are not already prioritized
-    exclude_set += [tile.old_id or tile.id for tile in prioritized_tiles]
+    exclude_set += [tile.id for tile in prioritized_tiles]
     random_tiles = ir_prioritized(feed=feed, prioritized_set='',
         results=(results - len(prioritized_tiles)),
         exclude_set=exclude_set)

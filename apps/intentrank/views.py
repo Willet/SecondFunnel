@@ -58,7 +58,7 @@ def get_results_view(request, page_id):
     # otherwise, not a proxy
     try:
         page = (Page.objects
-                    .filter(old_id=page_id)
+                    .filter(id=page_id)
                     .select_related('feed__tiles',
                                     'feed__tiles__products',
                                     'feed__tiles__content')
@@ -75,7 +75,7 @@ def get_results_view(request, page_id):
     related = request.GET.get('related', '')
     if related:
         ir = IntentRank(feed=feed)
-        resp = ajax_jsonp(ir.transform(TileRelation.get_related_tiles([Tile.objects.get(old_id=related)])[:100]))
+        resp = ajax_jsonp(ir.transform(TileRelation.get_related_tiles([Tile.objects.get(id=related)])[:100]))
         print "{0} ended".format(this_thread.name)
         return resp
 
@@ -113,7 +113,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     if tile_id:
         try:
             tile = (Tile.objects
-                        .filter(old_id=tile_id)
+                        .filter(id=tile_id)
                         .select_related()
                         .prefetch_related('content', 'products')
                         .get())
@@ -124,7 +124,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
         clicks = request.session.get('clicks', [])
         if tile_id not in clicks:
             for click in clicks:
-                TileRelation.relate(Tile.objects.get(old_id=click), tile)
+                TileRelation.relate(Tile.objects.get(id=click), tile)
             clicks.append(tile_id)
             request.session['clicks'] = clicks
 
@@ -133,7 +133,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     # get all tiles
     try:
         page = (Page.objects
-                    .filter(old_id=page_id)
+                    .filter(id=page_id)
                     .select_related('feed__tiles__products',
                                     'feed__tiles__content')
                     .prefetch_related()
@@ -162,7 +162,7 @@ def get_related_tiles_view(request, page_id, tile_id=None, **kwargs):
 
     # get tile
     try:
-        tile = Tile.objects.get(old_id=tile_id)
+        tile = Tile.objects.get(id=tile_id)
     except Tile.DoesNotExist:
         return HttpResponseNotFound("No tile {0}".format(tile_id))
 
@@ -200,7 +200,7 @@ def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
         page = Page.objects.get(url_slug=page_slug)
     elif page_id:
         feed_link += str(page_id) + '/' + str(feed_name)
-        page = Page.objects.get(old_id=page_id)
+        page = Page.objects.get(id=page_id)
     else:
         raise Http404("Feed not found")
     feed = rss_feed.main(page, feed_name=feed_name, feed_link=feed_link)
@@ -211,11 +211,11 @@ def update_tiles(request, tile_function, **kwargs):
     tile_id = kwargs.get('tile_id', None) or request.GET.get('tile-id', None)
     tile_ids = request.GET.get('tile-ids', None)
     if tile_id:
-        tile = get_object_or_404(Tile, old_id=tile_id)
+        tile = get_object_or_404(Tile, id=tile_id)
         tile_function(tile)
     elif tile_ids:
         tile_ids = tile_ids.split(',')
-        tiles = get_list_or_404(Tile, old_id__in=tile_ids)
+        tiles = get_list_or_404(Tile, id__in=tile_ids)
         for tile in tiles:
             tile_function(tile)
     else:
@@ -231,10 +231,10 @@ def click_tile(request, **kwargs):
     """Register a click, doing whatever tracking it needs to do."""
     def click_func(tile):
         clicks = request.session.get('clicks', [])
-        if tile.old_id not in clicks:
+        if tile.id not in clicks:
             for click in clicks:
-                TileRelation.relate(Tile.objects.get(old_id=click), tile)
-            clicks.append(tile.old_id)
+                TileRelation.relate(Tile.objects.get(id=click), tile)
+            clicks.append(tile.id)
             request.session['clicks'] = clicks
         tile.add_click()
 

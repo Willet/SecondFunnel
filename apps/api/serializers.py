@@ -32,7 +32,7 @@ class StoreSerializer(RawSerializer):
     def get_dump_object(self, obj):
         """This will be the data used to generate the object."""
         data = {
-            "id": str(obj.old_id),
+            "id": str(obj.id),
             "name": obj.name,
             "display_name": obj.name,  # TODO: how's this different from name?
             "public-base-url": obj.public_base_url,
@@ -58,19 +58,19 @@ class ProductSerializer(RawSerializer):
 
         data = {
             "-dbg-id": str(obj.id),
-            "id": str(obj.old_id),
+            "id": str(obj.id),
             "created": obj.cg_created_at,
             "last-modified": obj.cg_updated_at,
-            "default-image-id": obj.default_image.old_id,
+            "default-image-id": obj.default_image.id,
             "product-set": "live",  # TODO
-            "image-ids": [str(o.old_id) for o in obj.product_images.all()],
+            "image-ids": [str(o.id) for o in obj.product_images.all()],
             "available": "true",  # TODO
             "sku": obj.sku,
             "url": obj.url,
             "price": obj.price,
             "description": obj.description,
             "name": obj.name,
-            "store-id": str(obj.store.old_id),
+            "store-id": str(obj.store.id),
             # "rescrape": "false",
             # "last-scraped": "1394775462303",
         }
@@ -82,14 +82,14 @@ class ContentSerializer(RawSerializer):
     def get_dump_object(self, obj):
         data = {
             "-dbg-id": str(obj.id),
-            "id": str(getattr(obj, 'old_id', obj.id)),
+            "id": str(getattr(obj, 'id', obj.id)),
             "source": obj.source,
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
-            "store-id": str(obj.store.old_id),
+            "store-id": str(obj.store.id),
             # e.g. ImageSerializer -> 'image'
             "type": self.__class__.__name__[:self.__class__.__name__.index('Serializer')].lower(),
-            "tagged-products": [str(p.old_id) for p in obj.tagged_products.all()],
+            "tagged-products": [str(p.id) for p in obj.tagged_products.all()],
             "url": obj.url,
             "status": obj.status,  # by default it is
         }
@@ -144,7 +144,7 @@ class PageSerializer(RawSerializer):
 
         data = {
             "-dbg-id": str(obj.id),
-            "id": str(getattr(obj, 'old_id', obj.id)),
+            "id": str(getattr(obj, 'id', obj.id)),
             "heroImageMobile": obj.desktop_hero_image,
             "intentrank_id": obj.intentrank_id,
             "ir_base_url": obj.ir_base_url,
@@ -162,7 +162,7 @@ class PageSerializer(RawSerializer):
             "name": obj.name,
             "layout": obj.template,
             "column-width": obj.column_width,
-            "store-id": str(obj.store.old_id),
+            "store-id": str(obj.store.id),
         }
 
         return data
@@ -184,8 +184,8 @@ class TileSerializer(RawSerializer):
         data = {
             "template": obj.template,
             '-dbg-id': obj.id,
-            "id": str(obj.old_id),
-            "page-id": str(obj.feed.page.all()[0].old_id),  # if this fails, it deserves an exception outright
+            "id": str(obj.id),
+            "page-id": str(obj.feed.page.all()[0].id),  # if this fails, it deserves an exception outright
             "last-modified": obj.cg_updated_at,
             "content-ids": [
                 "14035"
@@ -197,12 +197,12 @@ class TileSerializer(RawSerializer):
 
         if obj.content.count() > 0:
             data.update({
-                "content-ids": [str(c.old_id) for c in obj.content.all()],
+                "content-ids": [str(c.id) for c in obj.content.all()],
             })
 
         elif obj.products.count() > 0:  # content tiles with tagged products never shows tagged products
             data.update({
-                "product-ids": [str(p.old_id) for p in obj.products.all()],
+                "product-ids": [str(p.id) for p in obj.products.all()],
             })
 
         if type(obj.attributes) is dict:
@@ -216,8 +216,8 @@ class TileConfigSerializer(RawSerializer):
     def get_dump_object(self, obj):
         data =  {
             "template": obj.template,
-            "id": str(obj.old_id),
-            "page-id": str(obj.feed.page.all()[0].old_id),  # if this fails, it deserves an exception outright
+            "id": str(obj.id),
+            "page-id": str(obj.feed.page.all()[0].id),  # if this fails, it deserves an exception outright
             "is-content": "false" if obj.template == 'product' else "true",
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
@@ -227,12 +227,12 @@ class TileConfigSerializer(RawSerializer):
 
         if obj.content.count() > 0:
             data.update({
-                "content-ids": [str(c.old_id) for c in obj.content.all()],
+                "content-ids": [str(c.id) for c in obj.content.all()],
             })
 
         elif obj.products.count() > 0:  # content tiles with tagged products never shows tagged products
             data.update({
-                "product-ids": [str(p.old_id) for p in obj.products.all()],
+                "product-ids": [str(p.id) for p in obj.products.all()],
             })
 
         if type(obj.attributes) is dict:

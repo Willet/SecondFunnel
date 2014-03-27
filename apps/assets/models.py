@@ -103,11 +103,11 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         a model based on current state. Arguments are the same as the former.
 
         Examples:
-        >>> Store.update_or_create(id=2, defaults={"old_id": 3})
+        >>> Store.update_or_create(id=2, defaults={"id": 3})
         (<Store: Store object>, True, False)  # created
-        >>> Store.update_or_create(id=2, defaults={"old_id": 3})
+        >>> Store.update_or_create(id=2, defaults={"id": 3})
         (<Store: Store object>, False, False)  # found
-        >>> Store.update_or_create(id=2, old_id=4)
+        >>> Store.update_or_create(id=2, id=4)
         (<Store: Store object>, False, True)  # updated
 
         :raises <AllSortsOfException>s, depending on input
@@ -208,8 +208,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         return unicode(calendar.timegm(self.updated_at.utctimetuple()) * 1000)
 
 class Store(BaseModel):
-    old_id = models.IntegerField(unique=True)
-
     staff = models.ManyToManyField(User, related_name='stores')
 
     name = models.CharField(max_length=1024)
@@ -237,8 +235,6 @@ class Store(BaseModel):
 
 
 class Product(BaseModel):
-    old_id = models.IntegerField(unique=True)
-
     store = models.ForeignKey(Store)
 
     name = models.CharField(max_length=1024)
@@ -274,8 +270,6 @@ class ProductImage(BaseModel):
     """An Image-like model class that is explicitly an image depicting
     a product, rather than any other kind.
     """
-    old_id = models.IntegerField(unique=True)
-
     product = models.ForeignKey(Product, related_name="product_images")
 
     url = models.TextField()  # store/.../.jpg
@@ -300,7 +294,7 @@ class ProductImage(BaseModel):
             # TODO: deprecate "colour" to match up with CSS attr names
             "dominant-colour": self.dominant_color or "transparent",
             "url": self.url,
-            "id": str(self.old_id or self.id)
+            "id": str(self.id)
         }
         return dct
 
@@ -314,8 +308,6 @@ class Content(BaseModel):
 
     # Content.objects object for deserializing Content models as subclasses
     objects = InheritanceManager()
-
-    old_id = models.IntegerField(unique=True)
 
     store = models.ForeignKey(Store, related_name='content')
 
@@ -349,7 +341,7 @@ class Content(BaseModel):
         :returns dict objects.
         """
         dct = {
-            'store-id': str(self.store.old_id if self.store else 0),
+            'store-id': str(self.store.id if self.store else 0),
             'source': self.source,
             'source_url': self.source_url,
             'url': self.url or self.source_url,
@@ -396,7 +388,7 @@ class Image(Content):
             # TODO: deprecate "colour" to match up with CSS attr names
             "dominant-colour": self.dominant_color or "transparent",
             "url": self.url or self.source_url,
-            "id": str(self.old_id or self.id),
+            "id": str(self.id),
             "sizes": self.attributes.get('sizes', default_master_size),
             'status': self.attributes.get('status', 'undecided'),
         }
@@ -404,7 +396,7 @@ class Image(Content):
             # turn django's string list of strings into a real list of ids
             dct["related-products"] = [x.to_json() for x in self.tagged_products.all()]
         else:
-            dct["related-products"] = [x.old_id for x in self.tagged_products.all()]
+            dct["related-products"] = [x.id for x in self.tagged_products.all()]
 
         return dct
 
@@ -504,8 +496,6 @@ class Page(BaseModel):
     store = models.ForeignKey(Store, related_name='pages')
 
     name = models.CharField(max_length=256)  # e.g. Lived In
-    old_id = models.IntegerField(unique=True)
-
     theme = models.ForeignKey(Theme, related_name='page', blank=True, null=True)
 
     # attributes named differently
@@ -514,7 +504,7 @@ class Page(BaseModel):
     theme_settings_fields = [
         ('template', 'hero'), ('image_tile_wide', 0.5), ('hide_navigation_bar', ''),
         ('results_threshold', {}), ('desktop_hero_image', ''), ('mobile_hero_image', ''),
-        ('intentrank_id', old_id), ('column_width', 240), ('social_buttons', ''),
+        ('intentrank_id', id), ('column_width', 240), ('social_buttons', ''),
         ('enable_tracking', "true"), ('ir_base_url', ''), ('ga_account_number', ''),
     ]
 
@@ -589,9 +579,7 @@ class Page(BaseModel):
             if product in tile.products.all():
                 break
         else:  # there weren't any tiles with this product in them
-            next_old_id = Tile.objects.order_by('-old_id')[0].old_id + 1
-            new_product_tile = Tile(old_id=next_old_id,
-                                    feed = self.feed,
+            new_product_tile = Tile(feed = self.feed,
                                     template='product',
                                     prioritized=prioritized,
                                     priority=priority)
@@ -615,9 +603,7 @@ class Page(BaseModel):
             if content in tile.content.all():
                 break
         else:  # there weren't any tiles with this content in them
-            next_old_id = Tile.objects.order_by('-old_id')[0].old_id + 1
-            new_content_tile = Tile(old_id=next_old_id,
-                                    feed = self.feed,
+            new_content_tile = Tile(feed = self.feed,
                                     template='content',
                                     prioritized=prioritized,
                                     priority=priority)
@@ -634,8 +620,6 @@ class Tile(BaseModel):
             raise ValidationError("{0} is not an allowed status; "
                                   "choices are {1}".format(status, allowed))
         return status
-
-    old_id = models.IntegerField(unique=True, db_index=True)
 
     # <Feed>.tiles.all() gives you... all its tiles
     feed = models.ForeignKey(Feed, related_name='tiles')

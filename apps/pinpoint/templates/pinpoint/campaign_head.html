@@ -27,7 +27,7 @@
             // Support for IE6/5 in the event that XMLHttpRequest doesn't exist
             var xmlhttp, data;
             xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
-            xmlhttp.open("GET", "{{ campaign.ir_base_url|default:ir_base_url }}/page/{{ campaign.intentrank_id|default:campaign.old_id }}/getresults?results=10&algorithm={{ algorithm }}&related={{ related_to_tile }}&reqNum=0", true);
+            xmlhttp.open("GET", "{{ campaign.ir_base_url|default:ir_base_url }}/page/{{ campaign.intentrank_id|default:campaign.id }}/getresults?results=10&algorithm={{ algorithm }}&related={{ related_to_tile }}&reqNum=0", true);
 
             xmlhttp.onload = function () {
                 // Ensures that it's resolved on 200 or 404

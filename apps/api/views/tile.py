@@ -23,7 +23,7 @@ class PageTileCGHandler(TileCGHandler):
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
-        self.page = get_object_or_404(Page, old_id=page_id)
+        self.page = get_object_or_404(Page, id=page_id)
 
         return super(PageTileCGHandler, self).dispatch(*args, **kwargs)
 
@@ -39,7 +39,7 @@ class PageTileItemCGHandler(TileItemCGHandler):
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
-        self.page = get_object_or_404(Page, old_id=page_id)
+        self.page = get_object_or_404(Page, id=page_id)
 
         return super(PageTileItemCGHandler, self).dispatch(*args, **kwargs)
 

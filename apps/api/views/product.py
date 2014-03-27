@@ -25,7 +25,7 @@ class StoreProductCGHandler(ProductCGHandler):
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
-        store = get_object_or_404(Store, old_id=store_id)
+        store = get_object_or_404(Store, id=store_id)
         self.store_id = store.id
 
         return super(StoreProductCGHandler, self).dispatch(*args, **kwargs)
@@ -43,7 +43,7 @@ class StoreProductItemCGHandler(ProductCGHandler):
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
-        store = get_object_or_404(Store, old_id=store_id)
+        store = get_object_or_404(Store, id=store_id)
         self.store_id = store.id
         self.product_id = kwargs.get('product_id')
 
@@ -52,7 +52,7 @@ class StoreProductItemCGHandler(ProductCGHandler):
     def get_queryset(self, request=None):
         qs = super(StoreProductItemCGHandler, self).get_queryset()
         return qs.filter(store_id=self.store_id,
-                         old_id=self.product_id)
+                         id=self.product_id)
 
 
 class StorePageProductCGHandler(StoreProductCGHandler):
@@ -62,7 +62,7 @@ class StorePageProductCGHandler(StoreProductCGHandler):
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
-        page = get_object_or_404(Page, old_id=page_id)
+        page = get_object_or_404(Page, id=page_id)
         self.feed = page.feed
 
         return super(StoreProductCGHandler, self).dispatch(*args, **kwargs)
@@ -83,8 +83,8 @@ class StorePageProductItemCGHandler(StoreProductItemCGHandler):
         request = args[0]
         page_id = kwargs.get('page_id')
         product_id = kwargs.get('product_id')
-        page = get_object_or_404(Page, old_id=page_id)
-        product = get_object_or_404(Product, old_id=product_id)
+        page = get_object_or_404(Page, id=page_id)
+        product = get_object_or_404(Product, id=product_id)
         self.page = page
         self.product = product
 
@@ -139,11 +139,11 @@ class PageProductAllCGHandler(StorePageProductCGHandler):
     def put(self, request, *args, **kwargs):
         """:returns 200"""
         page_id = kwargs.get('page_id')
-        page = get_object_or_404(Page, old_id=page_id)
+        page = get_object_or_404(Page, id=page_id)
 
         product_ids = json.loads(request.body)
         for product_id in product_ids:
-            product = get_object_or_404(Product, old_id=product_id)
+            product = get_object_or_404(Product, id=product_id)
             page.add_product(product)
 
         return HttpResponse()

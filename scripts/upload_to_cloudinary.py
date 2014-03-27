@@ -26,8 +26,8 @@ def upload():
     ]
 
     secondfunnel_path = "http://images.secondfunnel.com/"
-    result_list = list(chain(Image.objects.filter(store__old_id__in=stores),
-                             ProductImage.objects.filter(product__store__old_id__in=stores)))
+    result_list = list(chain(Image.objects.filter(store_id__in=stores),
+                             ProductImage.objects.filter(product__store_id__in=stores)))
     base_url = "http:{0}".format(settings.CLOUDINARY_BASE_URL)
 
     for img in result_list:

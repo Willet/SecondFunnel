@@ -50,20 +50,20 @@ class BaseNamedImageAdmin(BaseAdmin):
 
 
 class StoreAdmin(BaseNamedAdmin):
-    list_display = ['old_id'] + BaseNamedAdmin.list_display + ['public_base_url']
+    list_display = BaseNamedAdmin.list_display + ['public_base_url']
     search_fields = ('id', 'name',)
 
 
 class PageAdmin(BaseAdmin):
-    list_display = ['old_id', 'name', 'url_slug'] + BaseAdmin.list_display
-    search_fields = ('id', 'old_id', 'name', 'url_slug')
+    list_display = ['name', 'url_slug'] + BaseAdmin.list_display
+    search_fields = ('id', 'name', 'url_slug')
 
 
 class TileAdmin(BaseAdmin):
-    list_display = ['old_id', 'feed', 'template', 'prioritized',
+    list_display = ['feed', 'template', 'prioritized',
                     'click_starting_score', 'click_score',
                     'view_starting_score', 'view_score'] + BaseAdmin.list_display
-    search_fields = ('id', 'old_id', 'template')
+    search_fields = ('id', 'template')
     list_filter = ('feed',)
 
 
@@ -89,24 +89,24 @@ class FeedAdmin(BaseAdmin):
 
 class ProductAdmin(BaseAdmin):
     ordering = ['name']
-    list_display = ['name', 'old_id'] + BaseAdmin.list_display
+    list_display = ['name'] + BaseAdmin.list_display
     search_fields = ('id', 'name', 'description', 'sku',)
 
 
 class ProductImageAdmin(BaseAdmin):
     ordering = ['created_at', 'original_url']
-    list_display = ['old_id', 'url'] + BaseAdmin.list_display + ['original_url']
+    list_display = ['url'] + BaseAdmin.list_display + ['original_url']
 
 
 class ImageAdmin(BaseAdmin):
     ordering = ['created_at', 'original_url']
-    list_display = ['old_id', 'url'] + BaseAdmin.list_display + ['original_url']
+    list_display = ['url'] + BaseAdmin.list_display + ['original_url']
 
 
 class ContentAdmin(BaseAdmin):
     ordering = ['url']
     list_display = ['url'] + BaseAdmin.list_display
-    search_fields = ('id', 'old_id', 'url',)
+    search_fields = ('id', 'url',)
 
 
 class ThemeAdmin(BaseAdmin):

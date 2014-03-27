@@ -88,7 +88,7 @@ class StoreResource(BaseCGResource):
 
         # changes the model's url (/store/123) to search by this field instead of the pk
         # http://stackoverflow.com/a/12517228/1558430
-        detail_uri_name = 'old_id'
+        detail_uri_name = 'id'
 
         authorization = UserPartOfStore()
 
@@ -115,9 +115,6 @@ class StoreResource(BaseCGResource):
         bundle.data['created'] = to_cg_datetime(bundle.data['created_at'])
         del bundle.data['created_at']
 
-        # an unfortunate CM condition that requires the id to be the old id
-        bundle.data['id'] = str(bundle.data['old_id'])
-
         return bundle
 
     '''
@@ -126,17 +123,17 @@ class StoreResource(BaseCGResource):
         http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
         """
         return [
-            url(r"^(?P<resource_name>%s)/(?P<old_id>[^/]*)/page/?$" % (self._meta.resource_name),
+            url(r"^(?P<resource_name>%s)/(?P<id>[^/]*)/page/?$" % (self._meta.resource_name),
                 self.wrap_view('get_pages'),
                 name="api_get_pages"),
-            url(r"^(?P<resource_name>%s)/(?P<old_id>[^/]*)/page/(?P<page_old_id>[^/]*)/?$" % (self._meta.resource_name),
+            url(r"^(?P<resource_name>%s)/(?P<id>[^/]*)/page/(?P<page_id>[^/]*)/?$" % (self._meta.resource_name),
                 self.wrap_view('get_page'),
                 name="api_get_page"),
         ]
 
     def get_pages(self, request, **kwargs):
         try:
-            bundle = self.build_bundle(data={'old_id': kwargs['old_id']}, request=request)
+            bundle = self.build_bundle(data={'id': kwargs['id']}, request=request)
             obj = self.cached_obj_get(bundle=bundle,
                                       **self.remove_api_resource_names(kwargs))
         except ObjectDoesNotExist:
@@ -153,7 +150,7 @@ class StoreResource(BaseCGResource):
 
     def get_page(self, request, **kwargs):
         try:
-            data = {'old_id': kwargs['old_id']}
+            data = {'id': kwargs['id']}
             bundle = self.build_bundle(data=data, request=request)
             obj = self.cached_obj_get(bundle=bundle,
                                       **self.remove_api_resource_names(data))
@@ -166,7 +163,7 @@ class StoreResource(BaseCGResource):
 
         # just one:
         return sub_resource.get_detail(request, store_id = obj.id,
-                                       old_id=kwargs['page_old_id'])
+                                       id=kwargs['page_id'])
         # more than one: http://stackoverflow.com/a/21763010/1558430
         # return sub_resource.get_list(request, store_id=obj.id)
     '''
@@ -210,7 +207,7 @@ class ContentResource(BaseCGResource):
 
         # changes the model's url (/store/123) to search by this field instead of the pk
         # http://stackoverflow.com/a/12517228/1558430
-        detail_uri_name = 'old_id'
+        detail_uri_name = 'id'
 
         filtering = {
             'store': ALL,
@@ -306,7 +303,7 @@ class PageResource(BaseCGResource):
 
         # changes the model's url (/store/123) to search by this field instead of the pk
         # http://stackoverflow.com/a/12517228/1558430
-        detail_uri_name = 'old_id'
+        detail_uri_name = 'id'
 
         filtering = {
             'store': ALL,
@@ -328,14 +325,11 @@ class PageResource(BaseCGResource):
         data['created'] = to_cg_datetime(data['created_at'])
         del data['created_at']
 
-        # an unfortunate CM condition that requires the id to be the old id
-        data['id'] = str(data['old_id'])
-
         data['url'] = str(data['url_slug'])
         del data['url_slug']
 
         # each page also has its own reference to the store
-        data['store-id'] = bundle.obj.store.old_id
+        data['store-id'] = bundle.obj.store.id
 
         bundle.data = data
         return bundle
@@ -345,10 +339,10 @@ class PageResource(BaseCGResource):
         http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
         """
         return [
-            url(r"^(?P<resource_name>%s)/(?P<old_id>[^/]*)/content/?$" % (self._meta.resource_name),
+            url(r"^(?P<resource_name>%s)/(?P<id>[^/]*)/content/?$" % (self._meta.resource_name),
                 self.wrap_view('get_contents'),
                 name="api_get_contents"),
-            url(r"^(?P<resource_name>%s)/(?P<old_id>[^/]*)/tile-config/?$" % (self._meta.resource_name),
+            url(r"^(?P<resource_name>%s)/(?P<id>[^/]*)/tile-config/?$" % (self._meta.resource_name),
                 self.wrap_view('get_tile_configs'),
                 name="api_get_tile_configs"),
         ]
@@ -361,7 +355,7 @@ class PageResource(BaseCGResource):
         TODO: /graph/v1/store/38/page/95/content/suggested
         """
         try:
-            page = Page.objects.get(old_id=kwargs['old_id'])
+            page = Page.objects.get(id=kwargs['id'])
             feed = page.feed
         except ObjectDoesNotExist:
             return HttpGone()
@@ -382,7 +376,7 @@ class PageResource(BaseCGResource):
         TODO: /graph/v1/store/38/page/95/tile-config/1234
         """
         try:
-            page = Page.objects.get(old_id=kwargs['old_id'])
+            page = Page.objects.get(id=kwargs['id'])
             feed = page.feed
         except ObjectDoesNotExist:
             return HttpGone()
@@ -408,7 +402,7 @@ class TileResource(BaseCGResource):
 
         # changes the model's url (/store/123) to search by this field instead of the pk
         # http://stackoverflow.com/a/12517228/1558430
-        detail_uri_name = 'old_id'
+        detail_uri_name = 'id'
 
         filtering = {
             'store': ALL,
@@ -424,7 +418,7 @@ class TileConfigResource(BaseCGResource):
 
         # changes the model's url (/store/123) to search by this field instead of the pk
         # http://stackoverflow.com/a/12517228/1558430
-        detail_uri_name = 'old_id'
+        detail_uri_name = 'id'
 
         filtering = {
             'store': ALL,
@@ -516,11 +510,11 @@ class UserResource(ModelResource):
 
 class StoreViewSet(viewsets.ModelViewSet):
     model = Store
-    lookup_field = 'old_id'
+    lookup_field = 'id'
 
 class PageViewSet(viewsets.ModelViewSet):
     model = Page
-    lookup_field = 'old_id'
+    lookup_field = 'id'
 
 class FeedViewSet(viewsets.ModelViewSet):
     model = Feed
