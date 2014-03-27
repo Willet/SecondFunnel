@@ -396,7 +396,7 @@ class Image(Content):
             # turn django's string list of strings into a real list of ids
             dct["related-products"] = [x.to_json() for x in self.tagged_products.all()]
         else:
-            dct["related-products"] = [x.id for x in self.tagged_products.all()]
+            dct["related-products"] = self.tagged_products.values_list('id', flat=True)
 
         return dct
 
@@ -670,6 +670,8 @@ class Tile(BaseModel):
     cg_serializer = cg_serializers.TileSerializer
 
     def full_clean(self, exclude=None, validate_unique=True):
+        # south turns False into string 'false', which isn't what we wanted.
+        # this turns 'true' and 'false' into appropriate priority flags.
         if type(self.prioritized) == bool:
             self.prioritized = 1 if self.prioritized else 0
         if self.prioritized == 'true':

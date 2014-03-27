@@ -159,7 +159,7 @@ class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
 
     def post(self, request, *args, **kwargs):
         product_id = kwargs.get('product_id')
-        tagged_product_ids = [x.id for x in self.content.tagged_products]
+        tagged_product_ids = self.content.tagged_products.values_list('id', flat=True)
         if not product_id in tagged_product_ids:
             tagged_product_ids.append(product_id)
 
@@ -169,7 +169,7 @@ class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
 
     def delete(self, request, *args, **kwargs):
         product_id = kwargs.get('product_id')
-        tagged_product_ids = [x.id for x in self.content.tagged_products]
+        tagged_product_ids = self.content.tagged_products.values_list('id', flat=True)
         try:
             # remove all instances of product_id
             tagged_product_ids = [i for i in tagged_product_ids if i != product_id]
