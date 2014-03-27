@@ -187,6 +187,10 @@ div.header {
     height: auto;
 }
 
+.visible-sm.jumbotron {
+    height: auto;
+}
+
 .visible-xs.jumbotron img, .visible-sm.jumbotron img {
     /* set a background image with ratio constraints http://stackoverflow.com/a/12098334/1558430 */
     visibility:  hidden;
