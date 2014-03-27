@@ -73,7 +73,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
      */
     this.recalculateWidth = function (view) {
         var width,
-            tileWidth = view.$(opts.itemSelector + ':not(.wide)').width();
+            tileWidth = view.$(opts.itemSelector + ':not(.wide, .full)').width();
 
         width = view.$el.outerWidth() / (opts.minColumns || 1);
         width = Math.max(tileWidth, width);
