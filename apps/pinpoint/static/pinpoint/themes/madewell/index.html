@@ -345,12 +345,12 @@
                     <% } %>
                 </div>
                 <div class="title">
-                    <%= obj.title || obj.name %>
+                    <%- obj.title || obj.name %>
                 </div>
                 <div>
-                    USD: <%= obj.price %>
+                    USD: <%- obj.price %>
                 </div>
-                <a href='<%= obj.url %>' target="_blank">
+                <a href='<%- obj.url %>' target="_blank">
                     <div class="button">
                         shop on Madewell.com
                     </div>
@@ -393,9 +393,9 @@
                     </div>
                     <% if (products.length > 0) { %>
                         <div>
-                            USD: <%= product.price %>
+                            USD: <%- product.price %>
                         </div>
-                        <a href='<%= product.url %>' target="_blank">
+                        <a href='<%- product.url %>' target="_blank">
                             <div class="button">
                                 shop on Madewell.com
                             </div>
