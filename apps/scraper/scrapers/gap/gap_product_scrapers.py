@@ -32,8 +32,6 @@ class GapProductScraper(Scraper):
 
         images = self._get_images(driver.page_source)
 
-        product.available = True
-
         return product
 
     def _get_images(self, product_data_page):
@@ -52,7 +50,7 @@ class GapProductScraper(Scraper):
 
 
 class GapCategoryScraper(Scraper):
-    product_sku_regex = r'^(?:https?://)?(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
+    product_sku_regex = r'^(?:(?:https?://)?(?:www\.)?gap\.com)?/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
 
     def get_regex(self):
         return r'^(?:https?://)?(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)(?:&[^/\?]*)?$'
@@ -65,9 +63,11 @@ class GapCategoryScraper(Scraper):
 
     def scrape(self, driver, store, **kwargs):
         url = driver.current_url
-        urls = []
         page_text = driver.find_element_by_xpath('//label[@class="pagePaginatorLabel"]').text
-        pages = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))
+        if page_text:
+            pages = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))
+        else:
+            pages = '1'
         page = 0
         while page < int(pages):
             driver.get(url + '#pageId=' + str(page))
@@ -86,9 +86,5 @@ class GapCategoryScraper(Scraper):
                     product.name = name
                 except Product.DoesNotExist:
                     product = Product(store=store, url=url, sku=sku, name=name)
-
-                product.save()
-                urls.append(url)
+                yield product
             page+=1
-
-        return urls

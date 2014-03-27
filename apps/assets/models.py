@@ -166,8 +166,6 @@ class Product(BaseModel):
 
     store = models.ForeignKey(Store)
 
-    available = models.BooleanField(default=False)
-
     name = models.CharField(blank=True, null=True, max_length=1024)
     description = models.TextField(blank=True, null=True)
     details = models.TextField(blank=True, null=True)

@@ -2,13 +2,11 @@ import sys
 import re
 
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
 
-from apps.assets.models import Product, Store, Feed, Page, Tile
+from apps.assets.models import Product, Store
 from apps.scraper.scrapers.scraper import Scraper
 from apps.scraper.scrapers.gap.gap_product_scrapers import GapProductScraper, GapCategoryScraper
 from apps.scraper.scrapers.madewell.madewell_product_scrapers import MadewellProductScraper, MadewellCategoryScraper
-
 
 # define all the possible scrapers
 scrapers = [
@@ -19,7 +17,7 @@ scrapers = [
 ]
 
 
-def run_scraper(store, url, values={}):
+def run_scraper(store, url, product=None, values={}):
     driver = None
     try:
         # "http://www.gap.com/browse/product.do?pid=941851"
@@ -32,11 +30,11 @@ def run_scraper(store, url, values={}):
                     break
 
             elif re.match(scraper.get_regex(), url):
-                url_return = scraper.parse_url(url)
+                url_return = scraper.parse_url(url, **values)
                 break
         # if no scraper has been found, exit
         else:
-            print('no scraper found')
+            logging.error('no scraper found for url ' + url)
             return
 
         if isinstance(url_return, dict):
@@ -46,21 +44,26 @@ def run_scraper(store, url, values={}):
             url = url_return or url
 
         # initialize the head-less browser PhantomJS
+        print('loading url - ' + url)
         driver = webdriver.PhantomJS()
         driver.get(url)
 
         if scraper.get_type() == Scraper.PRODUCT_DETAIL:
-            try:
-                product = Product.objects.get(store=store, url=url)
-            except Product.DoesNotExist:
-                product = Product(store=store, url=url)
+            if product is None:
+                try:
+                    product = Product.objects.get(store=store, url=url)
+                except Product.DoesNotExist:
+                    product = Product(store=store, url=url)
             product = scraper.scrape(driver, product=product, **values)
-            print product.to_json()
-            product.save()
+            print(product.to_json())
+            #validate(product)
+            #product.save()
         elif scraper.get_type() == Scraper.PRODUCT_CATEGORY:
-            for url in scraper.scrape(driver, store=store, **values):
-                run_scraper(store, url)
+            for product in scraper.scrape(driver, store=store, **values):
+                run_scraper(store, product.url, product, values=values.copy())
 
+    except BaseException:
+        print('There was a problem in the scraper')
     finally:
         if driver:
             driver.close()
