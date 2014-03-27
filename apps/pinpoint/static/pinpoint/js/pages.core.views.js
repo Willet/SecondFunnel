@@ -234,7 +234,11 @@ App.module('core', function (module, App) {
             }
 
             if (App.support.mobile()) { // maximum of 2 columns
-                columns = columns <= 2 ? 1 : 2;
+                if (columns <= 2) {
+                    columns = 1;
+                } else {
+                    columns = 2;
+                }
             }
 
             while(0 <= columns) {
