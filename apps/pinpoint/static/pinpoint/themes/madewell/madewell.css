@@ -464,20 +464,26 @@ div.header {
 
 @media (max-width: 992px) and (min-width: 769px) {
     #discovery-area {
+        width: 606px;
     }
 }
 @media (max-width: 768px) and (min-width: 510px) {
     #discovery-area {
+        width: 404px;
         /* center align discovery for smaller tiles */
     }
 }
 @media (max-width: 510px) and (min-width: 480px) {
     #discovery-area {
         /* center align discovery for smaller tiles */
+        width: 404px;
     }
 }
 
 @media (max-width: 480px) {
+    #discovery-area {
+        width: 202px;
+    }
     /* need extra margin change for when a wide youtube block is being squished */
     .tile.wide.youtube div.thumbnail:before {
         margin-top: -66px;
