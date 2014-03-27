@@ -331,6 +331,9 @@ class Content(BaseModel):
     serializer = ir_serializers.ContentSerializer
     cg_serializer = cg_serializers.ContentSerializer
 
+    def __unicode__(self):
+        return 'Content (#%s), old_id: %s' % (self.id, self.old_id)
+
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)
         if not self.attributes:
@@ -476,6 +479,10 @@ class Theme(BaseModel):
 class Feed(BaseModel):
     """"""
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
+
+    def __unicode__(self):
+        return 'Feed (#%s), page: %s' % (self.id, self.page.get().name)
+
     # and other representation specific of the Feed itself
     def to_json(self):
         serializer = ir_serializers.FeedSerializer(self.tiles.all())
