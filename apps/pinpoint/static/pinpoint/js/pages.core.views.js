@@ -233,9 +233,8 @@ App.module('core', function (module, App) {
                 columns = 1;
             }
 
-            this.$el.addClass(columnDetails[columns]);
             if (App.support.mobile()) { // maximum of 2 columns
-                columns = Math.min(columns, 2);
+                columns = columns <= 2 ? 1 : 2;
             }
 
             while(0 <= columns) {
@@ -248,7 +247,7 @@ App.module('core', function (module, App) {
             }
 
             this.model.set({'image': imageInfo});
-
+            this.$el.addClass(columnDetails[columns]);
             // Listen for the image being removed from the DOM, if it is, remove
             // the View/Model to free memory
             this.$el.on('remove', function (ev) {
