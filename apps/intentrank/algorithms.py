@@ -143,7 +143,7 @@ def ir_created_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     tiles = list(tiles[:results])
 
-    print "{0} tile(s) were automatically prioritized by date".format(len(tiles))
+    print "{0} tile(s) were automatically prioritized by -created".format(len(tiles))
     return tiles
 
 
