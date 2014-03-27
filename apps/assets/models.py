@@ -299,6 +299,15 @@ class ProductImage(BaseModel):
         return dct
 
 
+class Category(BaseModel):
+    products = models.ManyToManyField(Product, related_name='categories')
+
+    store = models.ForeignKey(Store)
+    name = models.CharField(max_length=255)
+
+    url = models.TextField()
+
+
 class Content(BaseModel):
     def _validate_status(status):
         allowed =["approved", "rejected", "needs-review"]
