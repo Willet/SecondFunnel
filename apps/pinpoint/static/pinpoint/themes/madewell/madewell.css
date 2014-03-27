@@ -603,11 +603,14 @@ div.header {
     top: 50%;
     z-index: 2;
     color: #eee;
-    width: 45px;
-    height: 45px;
+    width: 0px;
+    height: 0px;
+    background-color: transparent;
+    border-top: 22.5px solid transparent;
+    border-bottom: 22.5px solid transparent;
     margin-top: -22px;
     position: absolute;
-    background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
+    cursor: pointer;
 }
 
 .previewContainer .gallery-related {
@@ -615,21 +618,29 @@ div.header {
 }
 
 .previewContainer .gallery-swipe-left {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-left.png');
+    border-right: 25px solid #000;
     left: 8px;
 }
 
 .previewContainer .gallery-swipe-left.grey {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-left.png');
+    display: none;
+}
+
+.previewContainer .gallery-swipe-left:hover {
+    border-right-color: #7D7D7D;
 }
 
 .previewContainer .gallery-swipe-right {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-right.png');
+    border-left: 25px solid #000;
     right: 8px;
 }
 
 .previewContainer .gallery-swipe-right.grey {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-right.png');
+    display: none;
+}
+
+.previewContainer .gallery-swipe-right:hover {
+    border-left-color: #7D7D7D;
 }
 
 @media screen and (min-width: 768px) {
@@ -954,6 +965,7 @@ div.header {
         text-align: left;
         background: white;
         border-bottom: 3px solid #FFFFFF;
+        font-family: georgia serif;
     }
 
     .previewContainer .content .info .button {
