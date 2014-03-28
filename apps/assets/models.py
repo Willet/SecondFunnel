@@ -285,20 +285,10 @@ class ProductImage(BaseModel):
 
     attributes = JSONField(blank=True, null=True, default={})
 
+    cg_serializer = cg_serializers.ProductImageSerializer
+
     def __init__(self, *args, **kwargs):
         super(ProductImage, self).__init__(*args, **kwargs)
-
-    def to_json(self):
-        dct = {
-            "format": self.file_type or "jpg",
-            "type": "image",
-            "dominant-color": self.dominant_color or "transparent",
-            # TODO: deprecate "colour" to match up with CSS attr names
-            "dominant-colour": self.dominant_color or "transparent",
-            "url": self.url,
-            "id": str(self.id)
-        }
-        return dct
 
 
 class Category(BaseModel):

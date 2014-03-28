@@ -57,7 +57,6 @@ class ProductSerializer(RawSerializer):
         # product_images = obj.product_images.all()
 
         data = {
-            "-dbg-id": str(obj.id),
             "id": str(obj.id),
             "created": obj.cg_created_at,
             "last-modified": obj.cg_updated_at,
@@ -81,18 +80,19 @@ class ContentSerializer(RawSerializer):
 
     def get_dump_object(self, obj):
         data = {
-            "-dbg-id": str(obj.id),
             "id": str(getattr(obj, 'id', obj.id)),
             "source": obj.source,
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
-            "store-id": str(obj.store.id),
             # e.g. ImageSerializer -> 'image'
             "type": self.__class__.__name__[:self.__class__.__name__.index('Serializer')].lower(),
             "tagged-products": [str(p.id) for p in obj.tagged_products.all()],
             "url": obj.url,
             "status": obj.status,  # by default it is
         }
+
+        if hasattr(obj, 'store'):
+            data["store-id"] = str(obj.store.id)
 
         return data
 
@@ -106,6 +106,29 @@ class ImageSerializer(ContentSerializer):
             "format": obj.file_type,
             "hash": getattr(obj, 'file_checksum', ''),
         })
+
+        return data
+
+
+class ProductImageSerializer(RawSerializer):
+    """This will dump absolutely everything in a product as JSON."""
+    def get_dump_object(self, obj):
+
+        data = {
+            "id": str(obj.id),
+            "product-id": str(obj.product_id) if obj.product else "-1",
+            "url": obj.url,
+            "original-url": obj.original_url or obj.url,
+            "format": obj.file_type,
+            "hash": getattr(obj, 'file_checksum', ''),
+            "width": obj.width,
+            "height": obj.height,
+            "last-modified": obj.cg_updated_at,
+            "created": obj.cg_created_at,
+            "type": self.__class__.__name__[:self.__class__.__name__.index('Serializer')].lower(),
+            "dominant-colour": obj.dominant_color,
+            "dominant-color": obj.dominant_color,
+        }
 
         return data
 
@@ -143,7 +166,6 @@ class PageSerializer(RawSerializer):
         """
 
         data = {
-            "-dbg-id": str(obj.id),
             "id": str(getattr(obj, 'id', obj.id)),
             "heroImageMobile": obj.desktop_hero_image,
             "intentrank_id": obj.intentrank_id,
@@ -183,7 +205,6 @@ class TileSerializer(RawSerializer):
         """
         data = {
             "template": obj.template,
-            '-dbg-id': obj.id,
             "id": str(obj.id),
             "page-id": str(obj.feed.page.all()[0].id),  # if this fails, it deserves an exception outright
             "last-modified": obj.cg_updated_at,

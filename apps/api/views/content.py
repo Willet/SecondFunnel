@@ -5,7 +5,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 
 from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
-from apps.assets.models import Content, Store, Page
+from apps.assets.models import Content, Store, Page, ProductImage, Product
 from apps.intentrank.utils import ajax_jsonp
 
 
@@ -42,7 +42,23 @@ class StoreContentItemCGHandler(ContentCGHandler):
     id_attr = 'content_id'
 
     def get(self, request, *args, **kwargs):
+        # this handler needs to return either
+        content = Content.objects.filter(store=self.store)
+        product_ids = Product.objects.filter(store=self.store).values_list('id', flat=True)
+        product_images = ProductImage.objects.filter(product_id__in=product_ids)
+
+        content_id = kwargs.get('content_id', request.GET.get('content_id'))
+        if content_id:
+            content = content.filter(id=content_id)
+            product_images = product_images.filter(id=content_id)
+
+        if product_images.count():
+            self.object_list = product_images
+        else:
+            self.object_list = content
+
         return ajax_jsonp(self.serialize_one())
+
 
     def dispatch(self, *args, **kwargs):
         request = args[0]
