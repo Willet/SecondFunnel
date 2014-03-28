@@ -207,6 +207,11 @@ class ProductImage(BaseModel):
 
     attributes = JSONField(blank=True, null=True, default={})
 
+    def image_tag(self):
+        return u'<img src="%s" style="width: 400px;"/>' % self.url
+
+    image_tag.allow_tags = True
+
     def __init__(self, *args, **kwargs):
         super(ProductImage, self).__init__(*args, **kwargs)
 
