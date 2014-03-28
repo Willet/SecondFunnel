@@ -173,6 +173,8 @@ class BaseModel(models.Model, DirtyFieldsMixin):
             return self
 
         for key in other:
+            if key in ['created', 'last-modified']:
+                self.created_at = datetime.datetime.fromtimestamp(other[key] / 1000)
             setattr(self,
                     self._cg_attribute_name_to_python_attribute_name(key),
                     other[key])
@@ -520,7 +522,7 @@ class Page(BaseModel):
     theme_settings_fields = [
         ('template', 'hero'), ('image_tile_wide', 0.5), ('hide_navigation_bar', ''),
         ('results_threshold', {}), ('desktop_hero_image', ''), ('mobile_hero_image', ''),
-        ('intentrank_id', id), ('column_width', 240), ('social_buttons', ''),
+        ('intentrank_id', ''), ('column_width', 240), ('social_buttons', ''),
         ('enable_tracking', "true"), ('ir_base_url', ''), ('ga_account_number', ''),
     ]
 
