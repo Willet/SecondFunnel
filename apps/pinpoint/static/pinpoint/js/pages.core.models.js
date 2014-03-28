@@ -415,7 +415,7 @@ App.module('core', function (core, App) {
             );
 
             if (category) {
-                return url + "&category=" + category;
+                return url + "&category=" + encodeURIComponent(category);
             }
 
             return url;
