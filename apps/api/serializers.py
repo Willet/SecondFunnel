@@ -151,7 +151,7 @@ class PageSerializer(RawSerializer):
             # "IRSource": obj.ir_base_url,  # TOGO
             "last-modified": obj.cg_updated_at,
             "social-buttons": obj.social_buttons,
-            "theme": obj.theme.template,
+            "theme": obj.theme.template if obj.theme else None,
             "url": obj.url_slug,
             # "ir-last-generated": "1391710019",
             # "ir-stale": "true",

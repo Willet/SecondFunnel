@@ -4,10 +4,18 @@ from tastypie.api import Api
 from apps.api.resources import UserResource
 from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageContentCGHandler, ProductCGHandler, StoreProductCGHandler,
-    StorePageProductCGHandler, StoreCGHandler, PageCGHandler,
+    StorePageProductCGHandler, StoreCGHandler, StoreItemCGHandler, PageCGHandler,
     StorePageCGHandler, TileConfigCGHandler, PageTileConfigCGHandler,
     StorePageItemCGHandler, StoreProductItemCGHandler, StorePageContentItemCGHandler,
-    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler, PageTileConfigItemCGHandler, StorePageTileConfigCGHandler, StorePageTileConfigItemCGHandler, CategoryCGHandler, StorePageContentSuggestedCGHandler, TileCGHandler, TileItemCGHandler, PageTileCGHandler, PageTileItemCGHandler, StorePageTileCGHandler, StorePageTileItemCGHandler, PageItemCGHandler, StorePageContentTagCGHandler, PageProductAllCGHandler, StorePageProductItemCGHandler, StorePageProductPrioritizeItemCGHandler, StorePageProductDeprioritizeItemCGHandler)
+    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler,
+    PageTileConfigItemCGHandler, StorePageTileConfigCGHandler,
+    StorePageTileConfigItemCGHandler, CategoryCGHandler,
+    StorePageContentSuggestedCGHandler, TileCGHandler, TileItemCGHandler,
+    PageTileCGHandler, PageTileItemCGHandler, StorePageTileCGHandler,
+    StorePageTileItemCGHandler, PageItemCGHandler, StorePageContentTagCGHandler,
+    PageProductAllCGHandler, StorePageProductItemCGHandler,
+    StorePageProductPrioritizeItemCGHandler,
+    StorePageProductDeprioritizeItemCGHandler)
 from apps.api.views.content import PageContentAllCGHandler
 
 prefix = 'v1'
@@ -22,7 +30,7 @@ urlpatterns += patterns('apps.api.views',
     # primitive handlers
     # store
     url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreItemCGHandler.as_view()),
 
     url(r'^%s/category/?$' % prefix, CategoryCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/category/?$' % prefix, CategoryCGHandler.as_view()),
