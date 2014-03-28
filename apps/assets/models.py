@@ -342,6 +342,11 @@ class Content(BaseModel):
     serializer = ir_serializers.ContentSerializer
     cg_serializer = cg_serializers.ContentSerializer
 
+    def image_tag(self):
+        return u'<img src="%s" style="width: 400px;"/>' % self.url
+
+    image_tag.allow_tags = True
+
     def __unicode__(self):
         return 'Content (#%s), old_id: %s' % (self.id, self.old_id)
 

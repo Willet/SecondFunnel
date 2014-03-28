@@ -526,7 +526,7 @@ App.module('core', function (module, App) {
 
             // Vent Listeners
             App.vent.on("click:tile", this.updateContentStream, this);
-            // App.vent.on('change:campaign', this.categoryChanged, this);
+            App.vent.on('change:category', this.categoryChanged, this);
 
             App.vent.on("finished", _.once(function () {
                 // the first batch of results need to layout themselves
@@ -555,7 +555,7 @@ App.module('core', function (module, App) {
             }(App._globals));
 
             App.vent.off("click:tile");
-            // App.vent.off('change:campaign');
+            App.vent.off('change:category');
             App.vent.off("finished");
 
             App.vent.off('windowResize');  // in layoutEngine
@@ -627,7 +627,7 @@ App.module('core', function (module, App) {
         },
 
         'categoryChanged': function (ev, category) {
-            // Changes the category (campaign) by refreshing IntentRank, clearing
+            // Changes the category by refreshing IntentRank, clearing
             // the Layout Engine and collecting new tiles.
             var self = this;
             if (this.loading) {
@@ -635,8 +635,7 @@ App.module('core', function (module, App) {
                     self.categoryChanged(ev, category);
                 }, 100);
             } else {
-                App.intentRank.changeCategory(category.model.get('id'));
-                App.tracker.changeCampaign(category.model.get('id'));
+                App.tracker.changeCategory(category);
                 App.layoutEngine.empty(this);
                 this.getTiles();
             }
@@ -931,6 +930,72 @@ App.module('core', function (module, App) {
                 // area has an undefined height.
                 App.layoutEngine.layout(App.discovery);
             }
+        }
+    });
+
+    /**
+     * View for switching categories.
+     *
+     * @constructor
+     * @type {ItemView}
+     */
+    this.CategoryView = Marionette.ItemView.extend({
+        'tagName': "div",
+        'className': 'category',
+        'template': "#category_template",
+        'templates': function () {
+            var templateRules = [
+                "#<%= options.store.slug %>_mobile_category_template",
+                "#<%= options.store.slug %>_category_template",
+                "#mobile_category_template",
+                "#category_template"
+            ];
+
+            if (!App.support.mobile()) {
+                templateRules = _.reject(templateRules, function(t) {
+                    return t.indexOf('mobile') > -1;
+                });
+            }
+
+            return templateRules;
+        },
+
+        'events': {
+            'click': "onClick"
+        },
+
+        'onClick': function (ev) {
+            var category = this.model.get('name');
+
+            // Switch the selected category class to this element
+            $(this.className).removeClass('selected');
+            this.$el.addClass('selected');
+
+            App.intentRank.changeCategory(category);
+        }
+    });
+
+    /**
+     * A collection of Categories to display.
+     *
+     * @constrcutor
+     * @type {CollectionView}
+     */
+    this.CategoryCollectionView = Marionette.CollectionView.extend({
+        'tagName': "div",
+        'itemView': this.CategoryView,
+        'collection': null,
+
+        'initialize': function (options) {
+            var self = this,
+                categories = App.option('categories', []);
+            this.collection = new App.core.CategoryCollection();
+
+            // Initialize by adding all the categories to this view
+            _.each(categories, function (category) {
+                category = new App.core.Category(category);
+                self.collection.add(category);
+            });
         }
     });
 });

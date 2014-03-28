@@ -8,17 +8,6 @@
     <script type="text/javascript">
         window.OPTIMIZER_TESTS = [];
         window.OPTIMIZER_TESTS.push({
-            index: 1,
-            test: 'custom',
-            device: 'mobile',
-            custom: function (template) {
-                template = template || _.sample(["A", "B", "C", "D"]);
-                App.options.tests = App.options.tests ? App.options.tests : {};
-                App.options.tests[1] = template;
-                return template;
-            }
-        });
-        window.OPTIMIZER_TESTS.push({
             index: 6, // Two-column in Analytics
             test: 'custom',
             device: 'mobile',
@@ -325,16 +314,6 @@
         </script>
 
         <script type="text/template" id="product_mobile_preview_template">
-            <div class="info">
-                <div class="title">
-                    <%= obj.title || obj.name %>
-                </div>
-                <div class="center">
-                    <% if (obj.images.length > 1) { %>
-                        <div class='gallery'></div>
-                    <% } %>
-                </div>
-            </div>
             <% if (obj.images.length === 1) { %>
             <div class="image-region no-images">
             <% } else { %>
@@ -347,26 +326,29 @@
                 <% } else { %>
                     <div class="img" style="background-image: url('<%= obj.image.url %>');"></div>
                 <% } %>
-                <div class="gap-buttons">
-                    <a class="button in-store"
-                       href="<%= obj.url %>"
-                       target="_blank">
-                        Shop Now
-                    </a>
-                    <a class="button find-store"
-                       href="http://m.gap.com/storelocator.html"
-                       target="_blank">
-                        Find in Store
-                    </a>
-                    <!--
-                        <span class="close button">
-                          <% if (!App.initialPage || App.initialPage.length == 0) { %>
-                              Continue Browsing
-                          <% } else { %>
-                              Check out more in Store
-                          <% } %>
-                        </span>
-                    -->
+            </div>
+            <div class="info">
+                <div class="center">
+                    <% if (obj.images.length > 1) { %>
+                        <div class='gallery'></div>
+                    <% } %>
+                </div>
+                <div class="title">
+                    <%- obj.title || obj.name %>
+                </div>
+                <div>
+                    USD: <%- obj.price %>
+                </div>
+                <a href='<%- obj.url %>' target="_blank">
+                    <div class="button">
+                        shop on Madewell.com
+                    </div>
+                </a>
+                <div class="bold">
+                    Product Details:
+                </div>
+                <div>
+                    <%= obj.description %>
                 </div>
             </div>
         </script>
@@ -379,47 +361,40 @@
             <% } else { %>
             <div class="image-with-related-products">
             <% } %>
-                <div class="info">
-                    <div class="title">
-                        <span><%= product.title || product.name || obj.title || obj.name ||
-                                  obj.caption || obj.description %></span>
-                    </div>
-                    <div class="center">
-                        <% if (products.length > 0) { %>
-                            <div class='gallery'></div>
-                        <% } %>
-                    </div>
-                </div>
                 <div class="image-region">
                     <% if (products.length > 0) { %>
                         <span class="gallery-swipe-left"></span>
                         <div class="main-image"></div>
                         <span class="gallery-swipe-right"></span>
-                        <div class="gap-buttons">
-                            <% if (product.url) { %>
-                                <a class="button in-store"
-                                   href="<%= product.url %>"
-                                   target="_blank">
-                                    Shop Now
-                                </a>
-                                <a class="button find-store"
-                                   href="http://m.gap.com/storelocator.html"
-                                   target="_blank">
-                                    Find in Store
-                                </a>
-                            <% } %>
-                            <!--
-                                <span class="close button">
-                                    <% if (!App.initialPage || App.initialPage.length == 0) { %>
-                                        Continue Browsing
-                                    <% } else { %>
-                                        Check out more in Store
-                                    <% } %>
-                                </span>
-                            -->
-                        </div>
                     <% } else { %>
-                        <div class="img" style="background-image: url('<%= obj.defaultImage.url %>');"></div>
+                        <div class="img" style="background-image: url('<%= obj.image.url %>');"></div>
+                    <% } %>
+                </div>
+                <div class="info">
+                    <div class="center">
+                        <% if (products.length > 0) { %>
+                            <div class='gallery'></div>
+                        <% } %>
+                    </div>
+                    <div class="title">
+                        <span><%= product.title || product.name || obj.title || obj.name ||
+                                  obj.caption || obj.description %></span>
+                    </div>
+                    <% if (products.length > 0) { %>
+                        <div>
+                            USD: <%- product.price %>
+                        </div>
+                        <a href='<%- product.url %>' target="_blank">
+                            <div class="button">
+                                shop on Madewell.com
+                            </div>
+                        </a>
+                        <div class="bold">
+                            Product Details:
+                        </div>
+                        <div>
+                            <%= product.description %>
+                        </div>
                     <% } %>
                 </div>
             </div>
