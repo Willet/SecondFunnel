@@ -10,16 +10,16 @@ class GapProductScraper(Scraper):
     sku_regex = r'^http://www\.gap\.com/browse/product\.do\?pid=(\d{6})$'
     imageLabels = ["Z", "AV1_Z", "AV2_Z", "AV9_Z", "SC_OUT_Z"]
 
-    def get_regex(self):
+    def get_regex(self, **kwargs):
         return r'^(?:https?://)?(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
 
-    def get_type(self):
+    def get_type(self, **kwargs):
         return self.PRODUCT_DETAIL
 
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.get_regex(), url).group(1)
 
-    def scrape(self, driver, product, **kwargs):
+    def scrape(self, driver, url, product, **kwargs):
         try:
             product.name = driver.find_element_by_class_name('productName').text
         except NoSuchElementException:
@@ -34,6 +34,9 @@ class GapProductScraper(Scraper):
 
         return product
 
+    def validate(self, product, **kwargs):
+        return False
+
     def _get_images(self, product_data_page):
         images = set()
         picture_groups = re.finditer(re.compile(r"styleColorImagesMap\s*=\s*\{\s*([^\}]*)\}\s*;", flags=re.MULTILINE|re.DOTALL), product_data_page)
@@ -44,7 +47,7 @@ class GapProductScraper(Scraper):
                 name = pictures_match.group(1)
                 url = pictures_match.group(2)
                 if name in self.imageLabels:
-                    images.add(url)
+                    images.add(self._process_image(url))
 
         return list(images)
 
@@ -52,17 +55,16 @@ class GapProductScraper(Scraper):
 class GapCategoryScraper(Scraper):
     product_sku_regex = r'^(?:(?:https?://)?(?:www\.)?gap\.com)?/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
 
-    def get_regex(self):
+    def get_regex(self, **kwargs):
         return r'^(?:https?://)?(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)(?:&[^/\?]*)?$'
 
-    def get_type(self):
+    def get_type(self, **kwargs):
         return self.PRODUCT_CATEGORY
 
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.get_regex(), url).group(1)
 
-    def scrape(self, driver, store, **kwargs):
-        url = driver.current_url
+    def scrape(self, driver, url, store, **kwargs):
         page_text = driver.find_element_by_xpath('//label[@class="pagePaginatorLabel"]').text
         if page_text:
             pages = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))
