@@ -555,7 +555,7 @@ App.module('core', function (module, App) {
             }(App._globals));
 
             App.vent.off("click:tile");
-            // App.vent.off('change:campaign');
+            App.vent.off('change:category');
             App.vent.off("finished");
 
             App.vent.off('windowResize');  // in layoutEngine
@@ -627,7 +627,7 @@ App.module('core', function (module, App) {
         },
 
         'categoryChanged': function (ev, category) {
-            // Changes the category (campaign) by refreshing IntentRank, clearing
+            // Changes the category by refreshing IntentRank, clearing
             // the Layout Engine and collecting new tiles.
             var self = this;
             if (this.loading) {
