@@ -348,7 +348,7 @@ class Content(BaseModel):
     image_tag.allow_tags = True
 
     def __unicode__(self):
-        return 'Content (#%s), old_id: %s' % (self.id, self.old_id)
+        return 'Content (#%s), old_id: %s' % (self.id, getattr(self, 'old_id', ''))
 
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)

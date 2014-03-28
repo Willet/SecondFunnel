@@ -191,7 +191,8 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     category_name = kwargs.get('category', None)
     if category_name:
         category = Category.objects.get(name=category_name)
-        allowed_set = [tile.old_id for tile in list(Tile.objects.filter(tile__products__in=category.products))]
+        allowed_set = [getattr(tile, 'id', getattr(tile, 'old_id'))
+                       for tile in list(Tile.objects.filter(tile__products__in=category.products))]
     else:
         allowed_set = None
     return ir.render(algorithm, feed=feed, results=results,

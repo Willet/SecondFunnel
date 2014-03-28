@@ -63,7 +63,7 @@ class TileAdmin(BaseAdmin):
     list_display = ['feed', 'template', 'prioritized',
                     'click_starting_score', 'click_score',
                     'view_starting_score', 'view_score'] + BaseAdmin.list_display
-    search_fields = ('id', 'old_id', 'template')
+    search_fields = ('id', 'template')
     list_filter = ('feed',)
     filter_horizontal = ('products', 'content',)
 
