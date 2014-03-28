@@ -8,17 +8,6 @@
     <script type="text/javascript">
         window.OPTIMIZER_TESTS = [];
         window.OPTIMIZER_TESTS.push({
-            index: 1,
-            test: 'custom',
-            device: 'mobile',
-            custom: function (template) {
-                template = template || _.sample(["A", "B", "C", "D"]);
-                App.options.tests = App.options.tests ? App.options.tests : {};
-                App.options.tests[1] = template;
-                return template;
-            }
-        });
-        window.OPTIMIZER_TESTS.push({
             index: 6, // Two-column in Analytics
             test: 'custom',
             device: 'mobile',
