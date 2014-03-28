@@ -294,19 +294,19 @@ App.module("tracker", function (tracker, App) {
     };
 
     /**
-     * Records the fact that the campaign has been changed.
+     * Records the fact that the category has been changed.
      *
-     * @param campaignId {Number}   A campaign ID served by this page.
+     * @param category {String}   The category switched to
      * @returns undefined
      */
-    this.changeCampaign = function (campaignId) {
+    this.changeCategory = function (category) {
         setCustomVar({
-            'index': 2,
+            'index': 1,
             'type': 'dimension',
-            'value': campaignId
+            'value': category
         });
 
-        App.vent.trigger('trackerChangeCampaign', campaignId, this);
+        App.vent.trigger('trackerChangeCategory', category, this);
     };
 
     // Generally, we have views handle event tracking on their own.
