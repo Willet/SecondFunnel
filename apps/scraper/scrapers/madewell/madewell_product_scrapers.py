@@ -7,10 +7,10 @@ from apps.assets.models import Product
 
 
 class MadewellProductScraper(Scraper):
-    sku_regex = r'^http://www.madewell.com/madewell_category/PRDOVR~(\w*)/\1.jsp$'
+    sku_regex = r'^http://www\.madewell\.com/madewell_category/PRDOVR~(\w*)/\1\.jsp$'
 
     def get_regex(self, **kwargs):
-        return r'^(?:https?://)?(?:www\.)?madewell.com/madewell_category/(?:(\w*)/(?:(\w*)/)?)?PRD(?:OVR)?~(\w+)/\3.jsp(?:\?[^/\?]+)?$'
+        return r'^(?:https?://)?(?:www\.)?madewell\.com/madewell_category/(?:(\w*)/(?:(\w*)/)?)?PRD(?:OVR)?~(\w+)/\3\.jsp(?:\?[^/\?]+)?$'
 
     def get_type(self,**kwargs):
         return self.PRODUCT_DETAIL
@@ -68,10 +68,10 @@ class MadewellProductScraper(Scraper):
 
 
 class MadewellCategoryScraper(Scraper):
-    def get_regex(self):
-        return r'^(?:https?://)?(?:www\.)?madewell.com/madewell_category/(\w*)(?:/(\w*))?.jsp(?:\?[^/\?]+)?$'
+    def get_regex(self, **kwargs):
+        return r'^(?:https?://)?(?:www\.)?madewell\.com/madewell_category/(\w*)(?:/(\w*))?\.jsp(?:\?[^/\?]+)?$'
 
-    def get_type(self):
+    def get_type(self, **kwargs):
         return self.PRODUCT_CATEGORY
 
     def parse_url(self, url, values, **kwargs):
