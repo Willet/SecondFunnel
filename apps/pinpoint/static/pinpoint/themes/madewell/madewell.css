@@ -9,6 +9,10 @@ body {
     position: relative;
 }
 
+.bold {
+    font-weight: bold;
+}
+
 .centered {
     margin-left: auto;
     margin-right: auto;
@@ -460,20 +464,26 @@ div.header {
 
 @media (max-width: 992px) and (min-width: 769px) {
     #discovery-area {
+        width: 606px;
     }
 }
 @media (max-width: 768px) and (min-width: 510px) {
     #discovery-area {
+        width: 404px;
         /* center align discovery for smaller tiles */
     }
 }
 @media (max-width: 510px) and (min-width: 480px) {
     #discovery-area {
         /* center align discovery for smaller tiles */
+        width: 404px;
     }
 }
 
 @media (max-width: 480px) {
+    #discovery-area {
+        width: 202px;
+    }
     /* need extra margin change for when a wide youtube block is being squished */
     .tile.wide.youtube div.thumbnail:before {
         margin-top: -66px;
@@ -599,11 +609,14 @@ div.header {
     top: 50%;
     z-index: 2;
     color: #eee;
-    width: 45px;
-    height: 45px;
-    margin-top: -45px;
+    width: 0px;
+    height: 0px;
+    background-color: transparent;
+    border-top: 22.5px solid transparent;
+    border-bottom: 22.5px solid transparent;
+    margin-top: -22px;
     position: absolute;
-    background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
+    cursor: pointer;
 }
 
 .previewContainer .gallery-related {
@@ -611,21 +624,29 @@ div.header {
 }
 
 .previewContainer .gallery-swipe-left {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-left.png');
+    border-right: 25px solid #000;
     left: 8px;
 }
 
 .previewContainer .gallery-swipe-left.grey {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-left.png');
+    display: none;
+}
+
+.previewContainer .gallery-swipe-left:hover {
+    border-right-color: #7D7D7D;
 }
 
 .previewContainer .gallery-swipe-right {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-right.png');
+    border-left: 25px solid #000;
     right: 8px;
 }
 
 .previewContainer .gallery-swipe-right.grey {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-right.png');
+    display: none;
+}
+
+.previewContainer .gallery-swipe-right:hover {
+    border-left-color: #7D7D7D;
 }
 
 @media screen and (min-width: 768px) {
@@ -648,7 +669,7 @@ div.header {
     .previewContainer .image,
     .previewContainer .main-image {
         width: 100%;
-        height: 100%;
+        height: 400px;
     }
 
     .previewContainer div.img,
@@ -667,21 +688,24 @@ div.header {
         margin: 0 auto;
         padding: 3px;
         height: auto;
+        line-height: auto;
     }
 
     .previewContainer .gallery .img {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        margin-left: 2px;
-        margin-right: 2px;
+        vertical-align: middle;
+        width: 6px;
+        height: 6px;
+        margin-left: 9px;
+        margin-right: 9px;
+        border-radius: 10px;
         display: inline-block;
-        background: transparent;
-        border: 2px solid #FFFFFF;
+        background: #CCC;
+        border: 2px solid #CCC;
     }
 
     .previewContainer .gallery .img.selected {
-        background: rgba(255, 255, 255, 1);
+        background: #000;
+        border-color: #000;
     }
 }
 
@@ -772,7 +796,6 @@ div.header {
 
 @media screen and (max-width: 768px) {
     .previewContainer .title {
-        color: white;
         padding: 0px;
         height: 23px;
         overflow: hidden;
@@ -896,6 +919,9 @@ div.header {
         height: 71px;
         overflow-x: auto;
         overflow-y: hidden;
+        position: absolute;
+        left: 0;
+        right: 0;
     }
 
     .previewContainer .image-with-related-products .row .center.middle.cell {
@@ -942,12 +968,23 @@ div.header {
         width: 100%;
     }
 
-    .previewContainer .content .info  {
-        padding: 5px;
+    .previewContainer .content .info {
+        padding: 5px 25px;
         max-width: 100%;
-        text-align: center;
-        background: #000d41;
+        text-align: left;
+        background: white;
         border-bottom: 3px solid #FFFFFF;
+        font-family: georgia serif;
+    }
+
+    .previewContainer .content .info .button {
+        padding: 5px 20px;
+        border: 1px solid black;
+        text-align: center;
+        margin: 10px 0;
+        cursor: pointer;
+        text-decoration: underline;
+        font-size: 21px;
     }
 
     .previewContainer .content .center {
@@ -1001,11 +1038,7 @@ div.header {
     }
 
     .previewContainer .content .image-region {
-        top: 60px;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        position: absolute;
+        position: relative;
         border-top: 1px solid white;
         overflow: hidden;
     }

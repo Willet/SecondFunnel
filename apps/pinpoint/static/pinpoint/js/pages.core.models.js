@@ -406,10 +406,19 @@ App.module('core', function (core, App) {
          * @returns {Function|String}
          */
         'url': function () {
-            return _.template(
+            var url,
+                category = App.intentRank.options.category;
+
+            url = _.template(
                 '<%=apiUrl%>/page/<%=campaign%>/getresults?results=<%=results%>',
                 this.config
             );
+
+            if (category) {
+                return url + "&category=" + encodeURIComponent(category);
+            }
+
+            return url;
         },
 
         'initialize': function (arrayOfData, url, campaign, results) {
@@ -455,13 +464,27 @@ App.module('core', function (core, App) {
 
 
     /**
-     * Base empty category, no functionality needed here.
+     * Categories are used to filter results from IR.
      *
      * @constructor
      * @type {Model}
      */
     this.Category = Backbone.Model.extend({
-
+        'url': function () {
+            return _.template(
+                '<%=IRSource%>/page/<%=campaign%>/getresults?results=<%=IRResultsCount&category=<%=name%>',
+                _.extend({}, App.options, this.attributes)
+            );
+        }
     });
 
+    /**
+     * Container for categories, does nothing for now.
+     *
+     * @constructor
+     * @type {Collection}
+     */
+    this.CategoryCollection = Backbone.Collection.extend({
+        model: this.Category
+    });
 });

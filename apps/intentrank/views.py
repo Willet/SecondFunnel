@@ -87,9 +87,11 @@ def get_results_view(request, page_id):
     else:
         algorithm = ir_generic
 
+    category = request.GET.get('category', None)
+
     resp = ajax_jsonp(get_results(feed=feed, results=results,
                                   algorithm=algorithm, request=request,
-                                  exclude_set=exclude_set),
+                                  exclude_set=exclude_set, category=category),
                       callback_name=callback)
 
     print "{0} ended".format(this_thread.name)

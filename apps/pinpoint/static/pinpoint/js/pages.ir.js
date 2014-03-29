@@ -8,13 +8,14 @@ App.module("intentRank", function (intentRank, App) {
     var consecutiveFailures = 0,
         cachedResults = [],
         fetching = null,
-        resultsAlreadyRequested = []; // list of product IDs
+        resultsAlreadyRequested = [], // list of product IDs
+        urlTemplate;
 
     this.options = {
         'baseUrl': "/intentrank",  // or an absolute base url, e.g. http://tng-test.secondfunnel.com/intentrank
         'urlTemplates': {
             'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>",
-            'content': "<%=baseUrl%>/page/<%=campaign%>/content/<%=id%>/getresults"
+            'category': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>&category=<%=category%>"
         },
         'add': true,
         'merge': true,
@@ -61,6 +62,9 @@ App.module("intentRank", function (intentRank, App) {
             'IRCacheResultCount': options.IRResultsCount || 10
         });
 
+        // set the base url
+        urlTemplate = intentRank.options.urlTemplates.campaign;
+
         App.vent.trigger('intentRankInitialized', intentRank);
         return this;
     };
@@ -71,8 +75,7 @@ App.module("intentRank", function (intentRank, App) {
      * @returns {String}
      */
     this.url = function () {
-        return _.template(intentRank.options.urlTemplates.campaign,
-            intentRank.options);
+        return _.template(urlTemplate, intentRank.options);
     };
 
     /**
@@ -216,7 +219,7 @@ App.module("intentRank", function (intentRank, App) {
         deferred.done(function () {
             App.options.IRReqNum++;
             intentRank.options.IRReqNum++;
-        })
+        });
         return deferred.promise();
     };
 
@@ -319,21 +322,27 @@ App.module("intentRank", function (intentRank, App) {
     };
 
     /**
+     * Changes the intentRank category, consequently changing the url
+     * that is used as well.
+     *
      * @param {String} category
      * @return this
      */
     this.changeCategory = function (category) {
-        // Change the category
-        if (!_.findWhere(intentRank.options.categories,
-            {'id': Number(category)})) {
-            // requested category not configured for this page
-            console.warn('Category ' + category + ' not found');
-            return intentRank;
+        // Change the category, category is a string passed
+        // to data
+        intentRank.options.category = category;
+
+        if (!category) { // clear the category
+            urlTemplate = intentRank.options.urlTemplates.campaign;
+            console.warn("No category passed, clearing.");
+            delete intentRank.options.category;
+        } else { // Swap default url
+            urlTemplate = intentRank.options.urlTemplates.category;
         }
 
-        App.vent.trigger('intentRankChangeCategory', category, intentRank);
+        App.vent.trigger('change:category', category, intentRank);
 
-        intentRank.options.campaign = category;
         return intentRank;
     };
 });
