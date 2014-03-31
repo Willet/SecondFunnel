@@ -252,6 +252,7 @@ App.module('core', function (module, App) {
 
             this.model.set({'image': imageInfo});
             this.$el.addClass(columnDetails[columns]);
+
             // Listen for the image being removed from the DOM, if it is, remove
             // the View/Model to free memory
             this.$el.on('remove', function (ev) {
@@ -302,6 +303,16 @@ App.module('core', function (module, App) {
                 $tileImg[0].onerror = function () {
                     self.close();
                 };
+            }
+
+            if (this.$el.hasClass('full')) {
+                var socialButtons = $('.socialButtons', this.$el),
+                    buttons = new App.sharing.SocialButtons({
+                        'model': model,
+                        'buttonTypes': ['pinterest'] //TODO: this should be a page setting
+                    });
+
+                socialButtons.append(buttons.render().$el);
             }
 
             // add view to our database
