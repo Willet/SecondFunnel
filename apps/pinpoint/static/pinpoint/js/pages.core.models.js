@@ -221,7 +221,7 @@ App.module('core', function (core, App) {
         'initialize': function () {
             // add a name, colour, and a sized url to each size datum
             var self = this,
-                color = this.get('dominant-color');
+                color = this.get('dominant-colour');
 
             // the template needs something simpler.
             this.color = color;
