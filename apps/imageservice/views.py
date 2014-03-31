@@ -51,10 +51,6 @@ def has_image_key(fn):
                 'success': False
             }), content_type="application/json", status=400)
 
-        # This should never hit, if it does, something is clearly very very
-        # wrong.
-        return HttpResponse(status=500)
-
     return wrapped_function
 
 

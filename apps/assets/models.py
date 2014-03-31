@@ -41,7 +41,7 @@ class BaseModel(models.Model, DirtyFieldsMixin):
     _attribute_map = (
         # (cg attribute name, python attribute name)
         ('created', 'created_at'),
-        ('modified', 'updated_at'),
+        ('last-modified', 'updated_at'),
     )
 
     class Meta:
@@ -173,12 +173,16 @@ class BaseModel(models.Model, DirtyFieldsMixin):
             return self
 
         for key in other:
-            if key in ['created', 'last-modified']:
+            if key == 'created':
                 self.created_at = datetime.datetime.fromtimestamp(
                     int(other[key]) / 1000)
-            setattr(self,
-                    self._cg_attribute_name_to_python_attribute_name(key),
-                    other[key])
+            elif key in ['last-modified', 'modified']:
+                self.updated_at = datetime.datetime.fromtimestamp(
+                    int(other[key]) / 1000)
+            else:
+                setattr(self,
+                        self._cg_attribute_name_to_python_attribute_name(key),
+                        other[key])
             print "updated {0}.{1} to {2}".format(
                 self, self._cg_attribute_name_to_python_attribute_name(key),
                 other[key])
@@ -559,6 +563,15 @@ class Page(BaseModel):
     last_published_at = models.DateTimeField(blank=True, null=True)
 
     feed = models.ForeignKey(Feed, related_name='page')
+
+    _attribute_map = BaseModel._attribute_map + (
+        # (cg attribute name, python attribute name)
+        ('social-buttons', 'social_buttons'),
+        ('column-width', 'column_width'),
+        ('intentrank-id', 'intentrank_id'),
+        ('heroImageDesktop', 'desktop_hero_image'),
+        ('heroImageMobile', 'mobile_hero_image'),
+    )
 
     cg_serializer = cg_serializers.PageSerializer
 
