@@ -93,7 +93,7 @@ class StorePageProductItemCGHandler(StoreProductItemCGHandler):
     def put(self, request, *args, **kwargs):
         """special handler for adding a product to the page"""
         self.page.add_product(self.product)
-        return ajax_jsonp(self.product)
+        return ajax_jsonp(self.product.to_cg_json())
 
 
 class StorePageProductPrioritizeItemCGHandler(StorePageProductItemCGHandler):

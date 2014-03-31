@@ -54,7 +54,7 @@ class ProductSerializer(RawSerializer):
 
         Also, screw you for not having any docs.
         """
-        # product_images = obj.product_images.all()
+        from apps.assets.models import Tile
 
         data = {
             "id": str(obj.id),
@@ -73,6 +73,14 @@ class ProductSerializer(RawSerializer):
             # "rescrape": "false",
             # "last-scraped": "1394775462303",
         }
+
+        tile_configs = [tile.tile_config for tile in Tile.objects.filter(
+            products__id=obj.id
+        )]
+        data.update({
+            "tile-configs": tile_configs
+        })
+
         return data
 
 
@@ -242,9 +250,18 @@ class TileConfigSerializer(RawSerializer):
             "is-content": "false" if obj.template == 'product' else "true",
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
-            "prioritized": str(obj.prioritized).lower(),
+            "prioritized": "true" if obj.prioritized else "false",  # backwards compat means any len(string)>0 counts as prioritized from before
             # "stale": "false",  # useless
         }
+
+        _example_remove_me_ = [{
+            "created": "1396281278830",
+            "last-modified": "1396281278830",
+            "page-id": "100",
+            "template": "product",
+            "stale": "true",
+            "id": "6680"
+        }]
 
         if obj.content.count() > 0:
             data.update({

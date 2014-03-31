@@ -267,6 +267,9 @@ class Product(BaseModel):
     def to_json(self):
         return self.serializer().to_json([self])
 
+    def to_cg_json(self):
+        return self.cg_serializer().to_json([self])
+
 
 class ProductImage(BaseModel):
     """An Image-like model class that is explicitly an image depicting
