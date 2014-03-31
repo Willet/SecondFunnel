@@ -305,7 +305,7 @@ App.module('core', function (module, App) {
                 };
             }
 
-            if (this.$el.hasClass('full')) {
+            if (model.get('colspan') === 4) {
                 var socialButtons = $('.socialButtons', this.$el),
                     buttons = new App.sharing.SocialButtons({
                         'model': model,
