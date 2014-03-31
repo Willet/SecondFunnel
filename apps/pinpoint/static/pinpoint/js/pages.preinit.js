@@ -43,6 +43,37 @@ App.options.urlParams = window.location.search;
     }
 }(App.options));
 
+(function (window) {
+    "use strict";
+    /* https://app.asana.com/0/9719124443216/11060830366388
+     * Add ability to view feed in popular order using not
+     * http://test-gap.secondfunnel.com/livedin?algorithm=popular
+     * but
+     * http://test-gap.secondfunnel.com/livedin?popular
+     */
+    try {
+        if (window !== undefined &&
+            window.location &&
+            window.location.search &&
+            window.location.search.indexOf &&
+            typeof window.location.search.indexOf === 'function' &&
+            window.location.search.indexOf('popular') &&
+            window.location.search.indexOf('?popular') > -1 &&
+            window.location.search.indexOf('&popular') === -1) {
+            if (window.PAGES_INFO &&
+                typeof window.PAGES_INFO === 'object') {
+                window.PAGES_INFO.IRAlgo = 'popular';
+            }
+            if (window.App && window.App.options) {
+                // PAGES_INFO was read before this block; need to read again
+                App.options.IRAlgo = 'popular';
+            }
+        }
+    } catch (err) {
+        // fail silently
+    }
+}(window || {}));
+
 // A ?debug value of 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 (function (console, level, hash) {
