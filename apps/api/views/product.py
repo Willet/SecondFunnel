@@ -129,11 +129,15 @@ class StorePageProductDeprioritizeItemCGHandler(StorePageProductItemCGHandler):
 
         feed = self.page.feed
         tiles_with_this_product = feed.find_tiles(product=self.product)
-        for tile in tiles_with_this_product:
-            print "prioritized tile {0} for product {1}".format(
-                tile.id, self.product.id)
-            tile.prioritized = ""
-            tile.save()
+        if len(tiles_with_this_product):  # tile is already in the feed
+            for tile in tiles_with_this_product:
+                print "prioritized tile {0} for product {1}".format(
+                    tile.id, self.product.id)
+                tile.prioritized = ""
+                tile.save()
+        else:  # tile not in the feed, create a prioritized tile
+            self.page.add_product(product=self.product, prioritized='pageview')
+
 
         return ajax_jsonp(self.product.to_cg_json())
 

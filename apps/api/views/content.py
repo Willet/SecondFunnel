@@ -35,10 +35,11 @@ class StoreContentCGHandler(ContentCGHandler):
         return qs.filter(store_id=self.store.id)
 
 
-class StoreContentItemCGHandler(ContentCGHandler):
+class StoreContentItemCGHandler(ContentItemCGHandler):
     """Adds filtering by store"""
     store = None
-    content_id = None  # old ID
+    content_id = None
+    content = None
     id_attr = 'content_id'
 
     def get(self, request, *args, **kwargs):
@@ -65,6 +66,9 @@ class StoreContentItemCGHandler(ContentCGHandler):
         store_id = kwargs.get('store_id')
         self.store = get_object_or_404(Store, id=store_id)
         self.content_id = kwargs.get(self.id_attr)
+
+        if kwargs.get('content_id'):
+            self.content = get_object_or_404(Content, kwargs.get('content_id'))
 
         return super(StoreContentItemCGHandler, self).dispatch(*args, **kwargs)
 
@@ -102,7 +106,11 @@ class StorePageContentItemCGHandler(StoreContentItemCGHandler):
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
+        content_id = kwargs.get('content_id')
         page = get_object_or_404(Page, id=page_id)
+        self.content = get_object_or_404(Content, id=content_id)
+
+        self.page = page
         self.feed = page.feed
 
         return super(StoreContentItemCGHandler, self).dispatch(*args, **kwargs)
@@ -116,6 +124,18 @@ class StorePageContentItemCGHandler(StoreContentItemCGHandler):
         for tile in tiles:
             contents += tile.content.all()
         return contents
+
+    def put(self, request, *args, **kwargs):
+        """special handler for adding a content to the page"""
+        self.page.add_content(self.content)
+        return ajax_jsonp(self.content.to_cg_json())
+
+    def delete(self, request, *args, **kwargs):
+        """special handler for deleting a content from the page
+        (which means adding a content to a tile to the feed of the page)
+        """
+        self.page.delete_content(self.content)
+        return HttpResponse()
 
 
 class StorePageContentSuggestedCGHandler(StorePageContentCGHandler):
@@ -201,6 +221,48 @@ class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
 
     def patch(self, request, *args, **kwargs):
         raise NotImplementedError()
+
+
+class StorePageContentPrioritizeItemCGHandler(StorePageContentItemCGHandler):
+    def post(self, request, *args, **kwargs):
+
+        feed = self.page.feed
+        tiles_with_this_content = feed.find_tiles(content=self.content)
+        if len(tiles_with_this_content):  # tile is already in the feed
+            for tile in tiles_with_this_content:
+                print "prioritized tile {0} for content {1}".format(
+                    tile.id, self.content.id)
+                tile.prioritized = "pageview"
+                tile.save()
+        else:  # tile not in the feed, create a prioritized tile
+            self.page.add_content(content=self.content, prioritized='pageview')
+
+        return ajax_jsonp(self.content.to_cg_json())
+
+    def get(self, request, *args, **kwargs):
+        raise NotImplementedError()
+    put = patch = delete = get
+
+
+class StorePageContentDeprioritizeItemCGHandler(StorePageContentItemCGHandler):
+    """Finds the tile with this content in the feed that belongs to this page
+    and deprioritises it.
+    """
+    def post(self, request, *args, **kwargs):
+
+        feed = self.page.feed
+        tiles_with_this_content = feed.find_tiles(content=self.content)
+        for tile in tiles_with_this_content:
+            print "prioritized tile {0} for content {1}".format(
+                tile.id, self.content.id)
+            tile.prioritized = ""
+            tile.save()
+
+        return ajax_jsonp(self.content.to_cg_json())
+
+    def get(self, request, *args, **kwargs):
+        raise NotImplementedError()
+    put = patch = delete = get
 
 
 class PageContentAllCGHandler(StorePageContentCGHandler):

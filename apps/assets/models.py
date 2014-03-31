@@ -656,6 +656,26 @@ class Page(BaseModel):
                                if not t in product_tiles]
             tile.delete()
 
+    def delete_content(self, content):
+        """Deletes (if present) tiles with this content from the feed that
+        belongs to this page.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        TODO: can be faster
+
+        :raises AttributeError
+        """
+        content_tiles = self.feed.tiles.filter(content__id=content.id)
+        for tile in content_tiles:
+            # if you're going to do this, you'll notice that
+            # remove() isn't a thing like add() is
+            # self.feed.tiles.remove(tile)
+            self.feed.tiles = [t for t in self.feed.tiles.all()
+                               if not t in content_tiles]
+            tile.delete()
+
 
 class Tile(BaseModel):
     def _validate_prioritized(status):

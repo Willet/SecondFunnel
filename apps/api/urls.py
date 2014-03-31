@@ -15,7 +15,7 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageTileItemCGHandler, PageItemCGHandler, StorePageContentTagCGHandler,
     PageProductAllCGHandler, StorePageProductItemCGHandler,
     StorePageProductPrioritizeItemCGHandler,
-    StorePageProductDeprioritizeItemCGHandler)
+    StorePageProductDeprioritizeItemCGHandler, StorePageContentPrioritizeItemCGHandler, StorePageContentDeprioritizeItemCGHandler)
 from apps.api.views.content import PageContentAllCGHandler
 
 prefix = 'v1'
@@ -46,6 +46,9 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/suggested/?$' % prefix, StorePageContentSuggestedCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/all/?$' % prefix, StoreContentCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/add_all/?$' % prefix, PageContentAllCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, StorePageContentItemCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/prioritize/?$' % prefix, StorePageContentPrioritizeItemCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/deprioritize/?$' % prefix, StorePageContentDeprioritizeItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/approve/?$' % prefix, StoreContentItemCGHandler.as_view()),
     url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/reject/?$' % prefix, StoreContentItemCGHandler.as_view()),
     url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide/?$' % prefix, StoreContentItemCGHandler.as_view()),
