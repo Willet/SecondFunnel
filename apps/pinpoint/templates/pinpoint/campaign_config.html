@@ -55,6 +55,8 @@
             // and return false for a social button not to show
             return true;
         }
+        , 'conditionalSocialButtons': {{ conditional_social_buttons|safe }}
+
         , 'showCount': true  // optional, for social buttons (default: true)
         , 'enableTracking': {{ enable_tracking|default:"true" }}  // optional; default: true
         // , 'eventMap': undefined  // optional

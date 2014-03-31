@@ -305,11 +305,11 @@ App.module('core', function (module, App) {
                 };
             }
 
-            if (model.get('colspan') === 4) {
+            if (PAGES_INFO.conditionalSocialButtons[model.get('colspan')]) {
                 var socialButtons = $('.socialButtons', this.$el),
                     buttons = new App.sharing.SocialButtons({
                         'model': model,
-                        'buttonTypes': ['pinterest'] //TODO: this should be a page setting
+                        'buttonTypes': PAGES_INFO.conditionalSocialButtons[model.get('colspan')]
                     });
 
                 socialButtons.append(buttons.render().$el);
