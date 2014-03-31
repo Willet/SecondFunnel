@@ -595,14 +595,17 @@ class Page(BaseModel):
                          if tile.products.count() > 0]
         for tile in product_tiles:
             if product in tile.products.all():
+                print "product {0} is already in the feed.".format(product.id)
                 break
         else:  # there weren't any tiles with this product in them
             new_product_tile = Tile(feed = self.feed,
                                     template='product',
                                     prioritized=prioritized,
                                     priority=priority)
-            new_product_tile.products.add(product)
             new_product_tile.save()
+            new_product_tile.products.add(product)
+            print "product {0} added to the feed.".format(product.id)
+            self.feed.tiles.add(new_product_tile)
 
     def add_content(self, content, prioritized=False, priority=0):
         """Adds (if not present) a tile with this content to the feed that
@@ -625,8 +628,10 @@ class Page(BaseModel):
                                     template='content',
                                     prioritized=prioritized,
                                     priority=priority)
-            new_content_tile.content.add(content)
             new_content_tile.save()
+            new_content_tile.content.add(content)
+            print "content {0} added to the feed.".format(content.id)
+            self.feed.tiles.add(new_content_tile)
 
 
 class Tile(BaseModel):
@@ -694,7 +699,7 @@ class Tile(BaseModel):
             self.prioritized = 1 if self.prioritized else 0
         if self.prioritized == 'true':
             self.prioritized = 'pageview'
-        if self.prioritized == 'false':
+        if self.prioritized in [0, '0', 'false']:
             self.prioritized = ''
         return super(Tile, self).full_clean(exclude=exclude,
                                             validate_unique=validate_unique)

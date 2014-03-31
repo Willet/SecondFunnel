@@ -90,6 +90,11 @@ class StorePageProductItemCGHandler(StoreProductItemCGHandler):
 
         return super(StorePageProductItemCGHandler, self).dispatch(*args, **kwargs)
 
+    def put(self, request, *args, **kwargs):
+        """special handler for adding a product to the page"""
+        self.page.add_product(self.product)
+        return ajax_jsonp(self.product)
+
 
 class StorePageProductPrioritizeItemCGHandler(StorePageProductItemCGHandler):
     def post(self, request, *args, **kwargs):

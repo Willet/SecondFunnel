@@ -54,10 +54,13 @@ def ajax_jsonp(result, callback_name=None, status=200, request=None):
     if callback_name:
         resp = HttpResponse("{0}({1});".format(callback_name, response_text),
                             content_type='application/javascript', status=status)
-    else:
+    elif isinstance(response_text, basestring):
+        # already json dumps'd for whatever reason
         resp = HttpResponse(response_text,
                             content_type='application/json', status=status)
-
+    else:
+        resp = HttpResponse(json.dumps(response_text),
+                            content_type='application/json', status=status)
     return resp
 
 
