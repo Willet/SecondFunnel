@@ -32,8 +32,11 @@ class StoreContentCGHandler(ContentCGHandler):
 
     def get_queryset(self, request=None):
         qs = super(StoreContentCGHandler, self).get_queryset()
-        return qs.filter(store_id=self.store.id)
+        qs = qs.filter(store_id=self.store.id)
 
+        if request.GET.get('status', ''):
+            qs = qs.filter(status=request.GET.get('status'))
+        return qs
 
 class StoreContentItemCGHandler(ContentItemCGHandler):
     """Adds filtering by store"""
