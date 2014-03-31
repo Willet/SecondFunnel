@@ -60,7 +60,6 @@ class StoreContentItemCGHandler(ContentItemCGHandler):
 
         return ajax_jsonp(self.serialize_one())
 
-
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
@@ -68,7 +67,8 @@ class StoreContentItemCGHandler(ContentItemCGHandler):
         self.content_id = kwargs.get(self.id_attr)
 
         if kwargs.get('content_id'):
-            self.content = get_object_or_404(Content, kwargs.get('content_id'))
+            self.content = get_object_or_404(Content,
+                                             id=kwargs.get('content_id'))
 
         return super(StoreContentItemCGHandler, self).dispatch(*args, **kwargs)
 

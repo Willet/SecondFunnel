@@ -174,10 +174,14 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
         for key in other:
             if key in ['created', 'last-modified']:
-                self.created_at = datetime.datetime.fromtimestamp(other[key] / 1000)
+                self.created_at = datetime.datetime.fromtimestamp(
+                    int(other[key]) / 1000)
             setattr(self,
                     self._cg_attribute_name_to_python_attribute_name(key),
                     other[key])
+            print "updated {0}.{1} to {2}".format(
+                self, self._cg_attribute_name_to_python_attribute_name(key),
+                other[key])
 
         return self
 
@@ -337,6 +341,12 @@ class Content(BaseModel):
                               default="approved",
                               validators=[_validate_status])
 
+    _attribute_map = BaseModel._attribute_map + (
+        # (cg attribute name, python attribute name)
+        ('tagged-products', 'tagged_products'),
+        ('page-prioritized', 'deprecated_attribute?'),
+    )
+
     serializer = ir_serializers.ContentSerializer
     cg_serializer = cg_serializers.ContentSerializer
 
@@ -345,13 +355,26 @@ class Content(BaseModel):
 
     image_tag.allow_tags = True
 
-    def __unicode__(self):
-        return 'Content (#%s), old_id: %s' % (self.id, getattr(self, 'old_id', ''))
-
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)
         if not self.attributes:
             self.attributes = {}
+
+    def update(self, other=None, **kwargs):
+        """Additional operations for converting tagged-products: [123] into
+        actual tagged_products: [<Product>]s
+        """
+        if not other:
+            other = kwargs
+
+        if not other:
+            return self
+
+        if 'tagged-products' in other:
+            other['tagged-products'] = [Product.objects.get(id=x) for x in
+                                        other['tagged-products']]
+
+        return super(Content, self).update(other=other)
 
     def to_json(self):
         """subclasses may implement their own to_json methods that

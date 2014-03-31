@@ -138,7 +138,6 @@ class StorePageProductDeprioritizeItemCGHandler(StorePageProductItemCGHandler):
         else:  # tile not in the feed, create a prioritized tile
             self.page.add_product(product=self.product, prioritized='pageview')
 
-
         return ajax_jsonp(self.product.to_cg_json())
 
     def get(self, request, *args, **kwargs):
