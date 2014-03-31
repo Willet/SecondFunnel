@@ -184,7 +184,7 @@ def process_image_now(source, path, sizes=None):
     data.update({
         'url': master_url,
         'format': img.format.lower().replace("jpeg", "jpg"),
-        'dominant-colour': img.dominant_color
+        'dominant-color': img.dominant_color
     })
 
     return data

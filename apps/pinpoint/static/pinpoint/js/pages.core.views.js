@@ -288,8 +288,8 @@ App.module('core', function (module, App) {
 
             // set dominant colour on tile, and set the height of the tile
             // so it looks like it is all-ready
-            if (model.get('dominant-colour')) {
-                hexColor = model.get('dominant-colour');
+            if (model.get('dominant-color')) {
+                hexColor = model.get('dominant-color');
                 rgbaColor = App.utils.hex2rgba(hexColor, 0.5);
 
                 $tileImg.css({

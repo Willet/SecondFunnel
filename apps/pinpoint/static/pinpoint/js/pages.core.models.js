@@ -48,7 +48,7 @@ App.module('core', function (core, App) {
             // 'tile-class': 'tile',  // what used tile-class?
             // 'content-type': ''  // where did content-type go?
             'related-products': [],
-            'dominant-colour': "transparent"
+            'dominant-color': "transparent"
         },
 
         'parse': function (resp, options) {
@@ -75,7 +75,7 @@ App.module('core', function (core, App) {
                     // TODO: Do we still need this?
                     localImageVariable = {
                         'format': "jpg",
-                        'dominant-colour': "transparent",
+                        'dominant-color': "transparent",
                         'url': image,
                         'id': self.getDefaultImageId() || 0
                     };
@@ -88,7 +88,7 @@ App.module('core', function (core, App) {
             // this tile has no images, or can be an image itself
             if (imgInstances.length === 0) {
                 imgInstances.push(new core.Image({
-                    'dominant-colour': this.get('dominant-color'),
+                    'dominant-color': this.get('dominant-color'),
                     'url': this.get('url')
                 }));
             }
@@ -114,7 +114,7 @@ App.module('core', function (core, App) {
                 'images': imgInstances,
                 'defaultImage': defaultImage,
                 'related-products': relatedProducts,
-                'dominant-colour': defaultImage.get('dominant-colour')
+                'dominant-color': defaultImage.get('dominant-color')
             });
 
             App.vent.trigger('tileModelInitialized', this);
@@ -215,13 +215,13 @@ App.module('core', function (core, App) {
     this.Image = Backbone.Model.extend({
         'defaults': {
             'url': 'http://placehold.it/2048&text=blank',
-            'dominant-colour': 'transparent'
+            'dominant-color': 'transparent'
         },
 
         'initialize': function () {
             // add a name, colour, and a sized url to each size datum
             var self = this,
-                color = this.get('dominant-colour');
+                color = this.get('dominant-color');
 
             // the template needs something simpler.
             this.color = color;

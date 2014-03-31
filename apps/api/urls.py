@@ -17,6 +17,7 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageProductPrioritizeItemCGHandler,
     StorePageProductDeprioritizeItemCGHandler, StorePageContentPrioritizeItemCGHandler, StorePageContentDeprioritizeItemCGHandler)
 from apps.api.views.content import PageContentAllCGHandler
+from apps.imageservice.views import create as imageservice_create
 
 prefix = 'v1'
 
@@ -93,6 +94,9 @@ urlpatterns += patterns('apps.api.views',
     # Scraper
     url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
     url(r'^%s/scraper/store/(?P<store_id>\d+)/(?P<scraper_name>.*?)/?$' % prefix, 'delete_scraper', name='delete_scraper'),
+
+    # image service graph alias (needed for proxy)
+    url(r'%s/imageservice/create/?$' % prefix, imageservice_create),
 
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/?$' % prefix, 'product_operations', name='product_operations'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/prioritize/?$' % prefix, 'prioritize_product', name='prioritize_product'),

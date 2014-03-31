@@ -429,8 +429,6 @@ class Image(Content):
             "format": self.file_type,
             "type": "image",
             "dominant-color": self.dominant_color or "transparent",
-            # TODO: deprecate "colour" to match up with CSS attr names
-            "dominant-colour": self.dominant_color or "transparent",
             "url": self.url or self.source_url,
             "id": str(self.id),
             "sizes": self.attributes.get('sizes', default_master_size),
