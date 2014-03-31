@@ -26,6 +26,7 @@ class Controller(object):
         ]
 
     def run_scraper(self, url, product=None, content=None, scraper=None, values={}):
+        # strip outer spaces from the url
         url = url.strip()
         driver = None
         try:
@@ -33,7 +34,6 @@ class Controller(object):
                 # checking if any scraper has the correct regex to scrape the given url
                 for temp_scraper in self.scrapers:
                     scraper_regex = temp_scraper.get_regex(values=values)
-                    print(scraper_regex)
                     if isinstance(scraper_regex, list):
                         if any(re.match(regex, url) for regex in scraper_regex):
                             scraper = temp_scraper
@@ -47,17 +47,19 @@ class Controller(object):
                 print('no scraper found for url - ' + url)
                 return
 
+            # retrieve the url for the driver to load
             url = scraper.parse_url(url=url, values=values)
 
             # initialize the head-less browser PhantomJS
-            #print('loading url - ' + url)
             driver = webdriver.PhantomJS()
             driver.get(url)
-            #print('loaded')
 
+            # get tye type of scraper
             scraper_type = scraper.get_type(values=values)
 
             if scraper_type == Scraper.PRODUCT_DETAIL:
+                # find or make a new product
+                # Product.objects.find_or_create not used as we do not want to save right now
                 if product is None:
                     try:
                         product = Product.objects.get(store=self.store, url=url)
@@ -73,6 +75,8 @@ class Controller(object):
                         next_scraper = scraper.next_scraper(values=values)
                         self.run_scraper(url=product.url, product=product, values=values.copy(), scraper=next_scraper)
             elif scraper_type == Scraper.CONTENT_DETAIL:
+                # there is no way to retrieve content from loaded url as the url
+                # variable in content is not consistent
                 content = scraper.scrape(driver=driver, url=url, content=content, values=values)
                 print(content.to_json())
                 if not self.dry_run and scraper.validate(content=content, values=values):
@@ -83,10 +87,13 @@ class Controller(object):
                         next_scraper = scraper.next_scraper(values=values)
                         self.run_scraper(url=content_url, content=content, values=values.copy(), scraper=next_scraper)
 
-        except Exception:
+        except BaseException:
+            # catches all exceptions so that if one detail scraper were to have an error
+            # any content scraper that may have called it would keep working
             print('There was a problem while scraping ' + url)
             traceback.print_exc()
         finally:
+            # make sure to close the driver if it exists
             if driver:
                 driver.close()
 

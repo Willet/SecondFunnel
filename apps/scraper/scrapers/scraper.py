@@ -51,6 +51,10 @@ class Scraper(object):
         return None
 
     def _wrap_regex(self, regex, has_parameters=False, allow_parameters=True):
+        """
+        Makes creation of regexes easier, wraps with matching for https? at the beginning
+        of the regex and parameters and #'s at the end of the regex
+        """
         regex = r'^(?:https?://)?' + regex
         if allow_parameters:
             if has_parameters:
@@ -61,6 +65,11 @@ class Scraper(object):
         return regex
 
     def _process_image(self, url, image=None, product=None):
+        """
+        This function uploads the image from the url and adds all necessary data to the image object
+
+        If no image object is passed in, it creates a ProductImage as the default image object type
+        """
 
         if image is None and product is None:
             raise ScraperException('no model or product provided for processing image')
@@ -75,8 +84,11 @@ class Scraper(object):
                 image.source_url = url
             elif isinstance(image, ProductImage):
                 image.original_url = url
+            else:
+                raise ScraperException('unknown image type passed into process image')
 
-        # temporary do not upload images
+        # temporarily do not allow upload
+        # TODO: allow update(remove ' and False')
         if not self.dry_run and False:
             data = process_image(url, create_image_path(self.store.id))
             image.url = data.get('url')
@@ -85,18 +97,26 @@ class Scraper(object):
         else:
             image.url = url
 
+        # save the image if not in a dryrun
         if not self.dry_run:
             image.save()
 
         if product and not product.default_image:
             product.default_image = image
 
+        # if image is instance of ProductImage, assume it was created in this function
+        # and print it out, else assume it will be printed elsewhere
         if isinstance(image, ProductImage):
-            print('created image')
             print(image.to_json())
         return image
 
     def _add_to_category(self, product, name=None, url=None):
+        """
+        This function will add the product to the category specified by
+        the name and url passed in. Only one is  needed if the category
+        exists. If the category does not exist, both name and url must
+        be passed in so that the category can be created.
+        """
         if url is None and name is None:
             raise ScraperException('at least one of url or name must be provided to add to a category')
 
@@ -110,9 +130,13 @@ class Scraper(object):
                 raise ScraperException('url and name must be provided if category does not exist')
             category = Category(store=self.store, name=name, url=url)
 
+        # products can only be added to a category if the category is saved
+        # TODO: maybe find a better way to dryrun category creation
         if not self.dry_run:
             category.save()
             category.products.add(product)
+
+        return category
 
     def scrape(self, driver, url, values={}, **kwargs):
         """
