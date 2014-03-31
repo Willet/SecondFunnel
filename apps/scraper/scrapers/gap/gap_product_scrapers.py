@@ -11,7 +11,7 @@ class GapProductScraper(Scraper):
     imageLabels = ["Z", "AV1_Z", "AV2_Z", "AV9_Z", "SC_OUT_Z"]
 
     def get_regex(self, **kwargs):
-        return r'^(?:https?://)?(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
+        return self._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)
 
     def get_type(self, **kwargs):
         return self.PRODUCT_DETAIL
@@ -56,7 +56,7 @@ class GapCategoryScraper(Scraper):
     product_sku_regex = r'^(?:(?:https?://)?(?:www\.)?gap\.com)?/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
 
     def get_regex(self, **kwargs):
-        return r'^(?:https?://)?(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)(?:&[^/\?]*)?$'
+        return self._wrap_regex(r'(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)', True)
 
     def get_type(self, **kwargs):
         return self.PRODUCT_CATEGORY

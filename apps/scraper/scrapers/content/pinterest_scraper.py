@@ -7,7 +7,7 @@ from apps.assets.models import Image
 class PinterestPinScraper(Scraper):
 
     def get_regex(self, **kwargs):
-        return r'^(?:https?://)?(?:www\.)?pinterest\.com/pin/(\d*)/?(?:\?[^\?/]*)?$'
+        return self._wrap_regex(r'(?:www\.)?pinterest\.com/pin/(\d*)/?')
 
     def get_type(self, **kwargs):
         return self.CONTENT_DETAIL
@@ -35,7 +35,7 @@ class PinterestPinScraper(Scraper):
 class PinterestAlbumScraper(Scraper):
 
     def get_regex(self, **kwargs):
-        return r'^(?:https?://)?(?:www\.)?pinterest\.com/(\w*)/(\w*)/?(?:\?[^\?/]*)?$'
+        return self._wrap_regex(r'(?:www\.)?pinterest\.com/(\w*)/(\w*)/?')
 
     def get_type(self, **kwargs):
         return self.CONTENT_CATEGORY

@@ -1,10 +1,11 @@
 import sys
 import re
 import traceback
+import argparse
 
 from selenium import webdriver
 
-from apps.assets.models import Product, Store, Content
+from apps.assets.models import Product, Store
 from apps.scraper.scrapers.scraper import Scraper
 from apps.scraper.scrapers.gap.gap_product_scrapers import GapProductScraper, GapCategoryScraper
 from apps.scraper.scrapers.madewell.madewell_product_scrapers import MadewellProductScraper, MadewellCategoryScraper
@@ -32,6 +33,7 @@ class Controller(object):
                 # checking if any scraper has the correct regex to scrape the given url
                 for temp_scraper in self.scrapers:
                     scraper_regex = temp_scraper.get_regex(values=values)
+                    print(scraper_regex)
                     if isinstance(scraper_regex, list):
                         if any(re.match(regex, url) for regex in scraper_regex):
                             scraper = temp_scraper
@@ -89,10 +91,13 @@ class Controller(object):
                 driver.close()
 
 
-start_store_id = sys.argv[1]
-start_url = sys.argv[2]
-start_store = Store.objects.get(id=start_store_id)
+parser = argparse.ArgumentParser(description='run a scraper.')
+parser.add_argument('store_id', type=int, help='the id for the store for the scraper')
+parser.add_argument('url', help='the url to scrape')
+parser.add_argument('--dryrun', default=False, action='store_true', help='test the scraper without saving anything')
 
-controller = Controller(start_store)
+args, unknown = parser.parse_known_args()
 
-controller.run_scraper(start_url)
+controller = Controller(Store.objects.get(id=args.store_id), args.dryrun)
+
+controller.run_scraper(args.url)

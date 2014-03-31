@@ -10,7 +10,7 @@ class MadewellProductScraper(Scraper):
     sku_regex = r'^http://www\.madewell\.com/madewell_category/PRDOVR~(\w*)/\1\.jsp$'
 
     def get_regex(self, **kwargs):
-        return r'^(?:https?://)?(?:www\.)?madewell\.com/madewell_category/(?:(\w*)/(?:(\w*)/)?)?PRD(?:OVR)?~(\w+)/\3\.jsp(?:\?[^/\?]+)?$'
+        return self._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(?:(\w*)/(?:(\w*)/)?)?PRD(?:OVR)?~(\w+)/\3\.jsp')
 
     def get_type(self,**kwargs):
         return self.PRODUCT_DETAIL
@@ -69,7 +69,7 @@ class MadewellProductScraper(Scraper):
 
 class MadewellCategoryScraper(Scraper):
     def get_regex(self, **kwargs):
-        return r'^(?:https?://)?(?:www\.)?madewell\.com/madewell_category/(\w*)(?:/(\w*))?\.jsp(?:\?[^/\?]+)?$'
+        return self._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(\w*)(?:/(\w*))?\.jsp')
 
     def get_type(self, **kwargs):
         return self.PRODUCT_CATEGORY
@@ -86,7 +86,7 @@ class MadewellCategoryScraper(Scraper):
         values['category_url'] = 'http://www.madewell.com/madewell_category/{0}.jsp'.format(category)
         if sub_category:
             values['sub_category'] = sub_category
-            values['sub_category_url'] = 'http://www.madewell.com/madewell_category/{0}/{1}'.format(category, sub_category)
+            values['sub_category_url'] = 'http://www.madewell.com/madewell_category/{0}/{1}.jsp'.format(category, sub_category)
         return url
 
     def scrape(self, driver, url, store, **kwargs):
