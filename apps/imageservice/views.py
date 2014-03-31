@@ -1,6 +1,7 @@
 import json
 import random
 
+from django import forms
 from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -54,11 +55,20 @@ def has_image_key(fn):
     return wrapped_function
 
 
+class UploadFileForm(forms.Form):
+    file = forms.FileField()
+
+    def handle_uploaded_file(self, f):
+        with open('some/file/name.txt', 'wb+') as destination:
+            for chunk in f.chunks():
+                destination.write(chunk)
+
+
 @csrf_exempt
-@login_required
-@require_http_methods(["POST"])
-@has_image_key
-def create(request, img):
+# @login_required
+# @require_http_methods(["POST"])
+# @has_image_key
+def create(request, *args, **kwargs):
     """
     Processes an image and uploads it to the specified MEDIA_URL.
 
@@ -66,6 +76,9 @@ def create(request, img):
     @param img: str
     @return: HttpResponse
     """
+    form = UploadFileForm(request.POST, request.FILES)
+    form.handle_uploaded_file(request.FILES['file'])
+
     path = settings.MEDIA_URL
     data = process_image(img)
 
