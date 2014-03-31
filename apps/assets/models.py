@@ -719,7 +719,7 @@ class Tile(BaseModel):
         # south turns False into string 'false', which isn't what we wanted.
         # this turns 'true' and 'false' into appropriate priority flags.
         if type(self.prioritized) == bool:
-            self.prioritized = 1 if self.prioritized else 0
+            self.prioritized = 'pageview' if self.prioritized else ''
         if self.prioritized == 'true':
             self.prioritized = 'pageview'
         if self.prioritized in [0, '0', 'false']:

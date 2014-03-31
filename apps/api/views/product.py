@@ -107,12 +107,14 @@ class StorePageProductPrioritizeItemCGHandler(StorePageProductItemCGHandler):
     def post(self, request, *args, **kwargs):
 
         feed = self.page.feed
-        tiles_with_this_product = feed.find_tiles(self.product)
+        tiles_with_this_product = feed.find_tiles(product=self.product)
         for tile in tiles_with_this_product:
-            tile.prioritized = True
+            print "prioritized tile {0} for product {1}".format(
+                tile.id, self.product.id)
+            tile.prioritized = "pageview"
             tile.save()
 
-        return HttpResponse()
+        return ajax_jsonp(self.product.to_cg_json())
 
     def get(self, request, *args, **kwargs):
         raise NotImplementedError()
@@ -126,12 +128,14 @@ class StorePageProductDeprioritizeItemCGHandler(StorePageProductItemCGHandler):
     def post(self, request, *args, **kwargs):
 
         feed = self.page.feed
-        tiles_with_this_product = feed.find_tiles(self.product)
+        tiles_with_this_product = feed.find_tiles(product=self.product)
         for tile in tiles_with_this_product:
-            tile.prioritized = False
+            print "prioritized tile {0} for product {1}".format(
+                tile.id, self.product.id)
+            tile.prioritized = ""
             tile.save()
 
-        return HttpResponse()
+        return ajax_jsonp(self.product.to_cg_json())
 
     def get(self, request, *args, **kwargs):
         raise NotImplementedError()
