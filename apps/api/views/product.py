@@ -1,4 +1,5 @@
 import json
+from django.db.models import Q
 from django.http import HttpResponse
 
 from django.shortcuts import get_object_or_404
@@ -32,6 +33,15 @@ class StoreProductCGHandler(ProductCGHandler):
 
     def get_queryset(self, request=None):
         qs = super(StoreProductCGHandler, self).get_queryset()
+        qs = qs.filter(store_id=self.store_id)
+
+        # filtering for the select2 tagging
+        search_name = request.GET.get('search-name', '')
+        if search_name:
+            # if search present, search in name or description
+            qs = qs.filter(Q(name__icontains=search_name) |
+                           Q(description__icontains=search_name))
+
         return qs.filter(store_id=self.store_id)
 
 
