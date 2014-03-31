@@ -120,6 +120,8 @@ class Scraper(object):
         For category scrapers, a store is also added to the arguments
         For detail scrapers, a product or content object is added to the arguments
 
+        If the scraper is a category scraper, models must be returned using yield
+
         If it is a content scraper, the content must be created inside the scraper
         if the passed in content is None
         """
