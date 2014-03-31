@@ -601,7 +601,7 @@ class Page(BaseModel):
                 print "product {0} is already in the feed.".format(product.id)
                 break
         else:  # there weren't any tiles with this product in them
-            new_product_tile = Tile(feed = self.feed,
+            new_product_tile = Tile(feed=self.feed,
                                     template='product',
                                     prioritized=prioritized,
                                     priority=priority)
@@ -627,7 +627,7 @@ class Page(BaseModel):
             if content in tile.content.all():
                 break
         else:  # there weren't any tiles with this content in them
-            new_content_tile = Tile(feed = self.feed,
+            new_content_tile = Tile(feed=self.feed,
                                     template='content',
                                     prioritized=prioritized,
                                     priority=priority)
@@ -635,6 +635,26 @@ class Page(BaseModel):
             new_content_tile.content.add(content)
             print "content {0} added to the feed.".format(content.id)
             self.feed.tiles.add(new_content_tile)
+
+    def delete_product(self, product):
+        """Deletes (if present) tiles with this product from the feed that
+        belongs to this page.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        TODO: can be faster
+
+        :raises AttributeError
+        """
+        product_tiles = self.feed.tiles.filter(products__id=product.id)
+        for tile in product_tiles:
+            # if you're going to do this, you'll notice that
+            # remove() isn't a thing like add() is
+            # self.feed.tiles.remove(tile)
+            self.feed.tiles = [t for t in self.feed.tiles.all()
+                               if not t in product_tiles]
+            tile.delete()
 
 
 class Tile(BaseModel):

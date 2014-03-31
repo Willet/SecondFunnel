@@ -87,6 +87,8 @@ class ProductSerializer(RawSerializer):
 class ContentSerializer(RawSerializer):
 
     def get_dump_object(self, obj):
+        from apps.assets.models import Tile
+
         data = {
             "id": str(getattr(obj, 'id', obj.id)),
             "source": obj.source,
@@ -101,6 +103,13 @@ class ContentSerializer(RawSerializer):
 
         if hasattr(obj, 'store'):
             data["store-id"] = str(obj.store.id)
+
+        tile_configs = [tile.tile_config for tile in Tile.objects.filter(
+            content__id=obj.id
+        )]
+        data.update({
+            "tile-configs": tile_configs
+        })
 
         return data
 
