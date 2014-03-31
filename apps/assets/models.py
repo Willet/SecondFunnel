@@ -162,19 +162,19 @@ class Store(BaseModel):
 
 
 class Product(BaseModel):
-    old_id = models.IntegerField(blank=True, null=True)
+    old_id = models.IntegerField(unique=True)
 
     store = models.ForeignKey(Store)
 
-    name = models.CharField(blank=True, null=True, max_length=1024)
+    name = models.CharField(max_length=1024)
     description = models.TextField(blank=True, null=True)
     details = models.TextField(blank=True, null=True)
     url = models.TextField()
-    sku = models.CharField(blank=True, null=True, max_length=255)
-    price = models.CharField(blank=True, null=True, max_length=16)  # DEFER: could make more sense to be an integer (# of cents)
+    sku = models.CharField(max_length=255)
+    price = models.CharField(max_length=16)  # DEFER: could make more sense to be an integer (# of cents)
 
     default_image = models.ForeignKey('ProductImage', related_name='default_image',
-                                      blank=True, null=True, on_delete=models.SET_NULL)
+                                      blank=True, null=True)
 
     last_scraped_at = models.DateTimeField(blank=True, null=True)
 
