@@ -2,8 +2,10 @@ from apps.assets.models import Category, ProductImage, Image
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 
+
 class ScraperException(Exception):
     pass
+
 
 class Scraper(object):
     """
@@ -19,30 +21,29 @@ class Scraper(object):
     CONTENT_DETAIL = 'content-detail'
     CONTENT_CATEGORY = 'content-category'
 
-    def __init__(self, store, dry_run):
+    def __init__(self, store):
         self.store = store
-        self.dry_run = dry_run
 
-    def get_regex(self, values={}, **kwargs):
+    def get_regex(self, values, **kwargs):
         """
         The regex or list of regexs that match the urls for this scraper
         """
         raise NotImplementedError
 
-    def parse_url(self, url, values={}, **kwargs):
+    def parse_url(self, url, values, **kwargs):
         """
         Optional method
         Returns a condensed url from the passed in url
         """
         return url
 
-    def get_type(self, values={}, **kwargs):
+    def get_type(self, values, **kwargs):
         """
         Returns the type of scraper, all types are defined as constants in the scraper class
         """
         raise NotImplementedError
 
-    def next_scraper(self, values={}, **kwargs):
+    def next_scraper(self, values, **kwargs):
         """
         Optional Method
         Returns a scraper if there is a need to explicitly define the next scraper
@@ -87,19 +88,13 @@ class Scraper(object):
             else:
                 raise ScraperException('unknown image type passed into process image')
 
-        # temporarily do not allow upload
-        # TODO: allow update(remove ' and False')
-        if not self.dry_run and False:
-            data = process_image(url, create_image_path(self.store.id))
-            image.url = data.get('url')
-            image.file_type = data.get('format')
-            image.dominant_color = data.get('dominant_colour')
-        else:
-            image.url = url
+        data = process_image(url, create_image_path(self.store.id))
+        image.url = data.get('url')
+        image.file_type = data.get('format')
+        image.dominant_color = data.get('dominant_colour')
 
-        # save the image if not in a dryrun
-        if not self.dry_run:
-            image.save()
+        # save the image
+        image.save()
 
         if product and not product.default_image:
             product.default_image = image
@@ -126,35 +121,26 @@ class Scraper(object):
             else:
                 category = Category.objects.get(store=self.store, url=url)
         except Category.DoesNotExist:
+            # if the category does not exist, create it
             if url is None or name is None:
                 raise ScraperException('url and name must be provided if category does not exist')
             category = Category(store=self.store, name=name, url=url)
-
-        # products can only be added to a category if the category is saved
-        # TODO: maybe find a better way to dryrun category creation
-        if not self.dry_run:
             category.save()
-            category.products.add(product)
+
+        # add the product to the category
+        category.products.add(product)
 
         return category
 
-    def scrape(self, driver, url, values={}, **kwargs):
+    def scrape(self, driver, url, values, **kwargs):
         """
         The method used to run the scraper
         For category scrapers, a store is also added to the arguments
         For detail scrapers, a product or content object is added to the arguments
 
-        If the scraper is a category scraper, models must be returned using yield
+        Models must be returned using yield
 
         If it is a content scraper, the content must be created inside the scraper
         if the passed in content is None
         """
         raise NotImplementedError
-
-    def validate(self, values={}, **kwargs):
-        """
-        Optional method
-        Is used to validate products or content
-        If false is returned, the model is not saved or passed on to any next scrapers
-        """
-        return True

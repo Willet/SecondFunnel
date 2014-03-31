@@ -13,35 +13,42 @@ from apps.scraper.scrapers.content.pinterest_scraper import PinterestPinScraper,
 
 
 class Controller(object):
-    def __init__(self, store, dry_run=False):
-        self.dry_run = dry_run
+    def __init__(self, store):
         self.store = store
         self.scrapers = [
-            GapProductScraper(store, dry_run),
-            GapCategoryScraper(store, dry_run),
-            MadewellProductScraper(store, dry_run),
-            MadewellCategoryScraper(store, dry_run),
-            PinterestPinScraper(store, dry_run),
-            PinterestAlbumScraper(store, dry_run),
+            GapProductScraper(store),
+            GapCategoryScraper(store),
+            MadewellProductScraper(store),
+            MadewellCategoryScraper(store),
+            PinterestPinScraper(store),
+            PinterestAlbumScraper(store),
         ]
 
-    def run_scraper(self, url, product=None, content=None, scraper=None, values={}):
+    def get_scraper(self, url, values=None):
+        if values == None:
+            values = {}
+
+        for temp_scraper in self.scrapers:
+            scraper_regex = temp_scraper.get_regex(values=values)
+            if isinstance(scraper_regex, list):
+                if any(re.match(regex, url) for regex in scraper_regex):
+                    return temp_scraper
+
+            elif re.match(scraper_regex, url):
+                return temp_scraper
+        return None
+
+    def run_scraper(self, url, product=None, content=None, scraper=None, values=None):
+        if values == None:
+            values = {}
         # strip outer spaces from the url
         url = url.strip()
         driver = None
         try:
             if scraper is None:
                 # checking if any scraper has the correct regex to scrape the given url
-                for temp_scraper in self.scrapers:
-                    scraper_regex = temp_scraper.get_regex(values=values)
-                    if isinstance(scraper_regex, list):
-                        if any(re.match(regex, url) for regex in scraper_regex):
-                            scraper = temp_scraper
-                            break
+                scraper = self.get_scraper(url, values)
 
-                    elif re.match(scraper_regex, url):
-                        scraper = temp_scraper
-                        break
             # if no scraper has been found, exit
             if scraper is None:
                 print('no scraper found for url - ' + url)
@@ -60,15 +67,15 @@ class Controller(object):
             if scraper_type == Scraper.PRODUCT_DETAIL:
                 # find or make a new product
                 # Product.objects.find_or_create not used as we do not want to save right now
-                if product is None:
+                if not product:
                     try:
                         product = Product.objects.get(store=self.store, url=url)
                     except Product.DoesNotExist:
                         product = Product(store=self.store, url=url)
-                product = scraper.scrape(driver=driver, url=url, product=product, values=values)
-                print(product.to_json())
-                if not self.dry_run and scraper.validate(product=product, values=values):
+                for product in scraper.scrape(driver=driver, url=url, product=product, values=values):
+                    print(product.to_json())
                     product.save()
+                    break
             elif scraper_type == Scraper.PRODUCT_CATEGORY:
                 for product in scraper.scrape(driver=driver, url=url, values=values):
                     if scraper.validate(product=product, values=values):
@@ -77,10 +84,10 @@ class Controller(object):
             elif scraper_type == Scraper.CONTENT_DETAIL:
                 # there is no way to retrieve content from loaded url as the url
                 # variable in content is not consistent
-                content = scraper.scrape(driver=driver, url=url, content=content, values=values)
-                print(content.to_json())
-                if not self.dry_run and scraper.validate(content=content, values=values):
+                for content in scraper.scrape(driver=driver, url=url, content=content, values=values):
+                    print(content.to_json())
                     content.save()
+                    break
             elif scraper_type == Scraper.CONTENT_CATEGORY:
                 for content, content_url in scraper.scrape(driver=driver, url=url, values=values):
                     if scraper.validate(content=content, values=values):
@@ -98,13 +105,13 @@ class Controller(object):
                 driver.close()
 
 
-parser = argparse.ArgumentParser(description='run a scraper.')
-parser.add_argument('store_id', type=int, help='the id for the store for the scraper')
-parser.add_argument('url', help='the url to scrape')
-parser.add_argument('--dryrun', default=False, action='store_true', help='test the scraper without saving anything')
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='run a scraper.')
+    parser.add_argument('store_id', type=int, help='the id for the store for the scraper')
+    parser.add_argument('url', help='the url to scrape')
 
-args, unknown = parser.parse_known_args()
+    args, unknown = parser.parse_known_args()
 
-controller = Controller(Store.objects.get(id=args.store_id), args.dryrun)
+    controller = Controller(Store.objects.get(id=args.store_id))
 
-controller.run_scraper(args.url)
+    controller.run_scraper(args.url)

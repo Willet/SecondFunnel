@@ -47,8 +47,7 @@ class MadewellProductScraper(Scraper):
 
         images = self._get_images(driver)
 
-        product.available = True
-        return product
+        yield product
 
     def _get_images(self, driver):
         images = set()
@@ -103,4 +102,3 @@ class MadewellCategoryScraper(Scraper):
                 product = Product(store=store, url=url, name=name, sku=sku)
 
             yield product
-

@@ -23,8 +23,8 @@ class GapProductScraper(Scraper):
         try:
             product.name = driver.find_element_by_class_name('productName').text
         except NoSuchElementException:
-            product.available = False
-            return product
+            yield product
+            return
         product.sku = re.match(self.sku_regex, product.url).group(1)
         product.description = driver.find_element_by_id('tabWindow').get_attribute('innerHTML')
         product.price = driver.find_element_by_id('priceText').text
@@ -32,10 +32,7 @@ class GapProductScraper(Scraper):
 
         images = self._get_images(driver.page_source)
 
-        return product
-
-    def validate(self, product, **kwargs):
-        return False
+        yield product
 
     def _get_images(self, product_data_page):
         images = set()
@@ -69,7 +66,7 @@ class GapCategoryScraper(Scraper):
         if page_text:
             pages = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))
         else:
-            pages = '1'
+            pages = 1
         page = 0
         while page < int(pages):
             driver.get(url + '#pageId=' + str(page))
@@ -89,4 +86,4 @@ class GapCategoryScraper(Scraper):
                 except Product.DoesNotExist:
                     product = Product(store=store, url=url, sku=sku, name=name)
                 yield product
-            page+=1
+            page += 1

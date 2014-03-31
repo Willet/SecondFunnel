@@ -26,10 +26,7 @@ class PinterestPinScraper(Scraper):
         content.original_url = driver.find_element_by_xpath('//div[@class="imageContainer"]/img').get_attribute('src')
         content = self._process_image(content.original_url, content)
         content.description = driver.find_element_by_class_name('commentDescriptionContent').text
-        return content
-
-    def validate(self, **kwargs):
-        False
+        yield content
 
 
 class PinterestAlbumScraper(Scraper):
@@ -56,4 +53,3 @@ class PinterestAlbumScraper(Scraper):
             content.source = 'pinterest'
 
             yield content, url
-
