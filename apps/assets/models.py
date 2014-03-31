@@ -603,7 +603,7 @@ class Tile(BaseModel):
     def to_json(self):
         # determine what kind of tile this is
         serializer = None
-        if self.template == 'image':
+        if self.template in ['mega', 'image']:
             serializer = ContentTileSerializer()
         else:
             try:

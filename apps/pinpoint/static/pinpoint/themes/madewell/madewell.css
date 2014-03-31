@@ -659,8 +659,8 @@ div.header {
         /*
         max-width: 150px;
         margin: 0 20px 0 0;
-        max-height: 200px;
         */
+        max-height: 250px;
     }
 }
 
@@ -889,6 +889,10 @@ div.header {
     max-width: 400px;
 }
 
+.previewContainer .row .cell.col-sm-6.col-md-6.middle {
+    text-align: center;
+}
+
 .previewContainer .row .cell.middle {
     vertical-align: middle;
 }
@@ -1077,5 +1081,50 @@ div.header {
 @media only screen and (min-device-width: 640px) and (max-device-width: 800px) {
     .previewContainer .image img {
         max-height: 550px;
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    .tile.mega .stl-image {
+        width: 100%;
+        float: left;
+    }
+
+    .tile.mega .look-images {
+        float: left;
+        display: none;
+    }
+
+    .mega img.focus {
+        width: 99%;
+    }
+
+    .stl-target {
+        border-bottom: 1px solid #DDD;
+    }
+
+    .stl-target img {
+        width: auto;
+    }
+
+    .stl-look {
+        padding-top: 10px;
+        max-height: 210px;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        padding-bottom: 10px;
+    }
+
+    .stl-look img {
+        height: 99%;
+        width: inherit;
+        max-width: 99%;
+        max-height: 200px;
+    }
+
+    .stl-look img:hover {
+        cursor: pointer;
+        border-radius: 15px;
+        border: 1px solid #DDD;
     }
 }
