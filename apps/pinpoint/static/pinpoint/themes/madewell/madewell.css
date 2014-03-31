@@ -1109,7 +1109,8 @@ div.header {
 
     .stl-look {
         padding-top: 10px;
-        max-height: 210px;
+        max-height: 110px;
+        text-align: center;
         overflow-x: scroll;
         overflow-y: hidden;
         padding-bottom: 10px;
@@ -1119,7 +1120,7 @@ div.header {
         height: 99%;
         width: inherit;
         max-width: 99%;
-        max-height: 200px;
+        max-height: 100px;
     }
 
     .stl-look img:hover {
