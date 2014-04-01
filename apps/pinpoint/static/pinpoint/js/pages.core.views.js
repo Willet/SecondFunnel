@@ -986,7 +986,7 @@ App.module('core', function (module, App) {
             }
 
             ContentClass = App.utils.findClass('PreviewContent',
-                template, module.PreviewContent),
+                template, module.PreviewContent);
 
             this.content.show(new ContentClass(contentOpts));
             previewLoadingScreen.hide();
