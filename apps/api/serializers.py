@@ -139,7 +139,7 @@ class ProductImageSerializer(RawSerializer):
             "height": obj.height,
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
-            "type": self.__class__.__name__[:self.__class__.__name__.index('Serializer')].lower(),
+            "type": "image",
             "dominant-colour": obj.dominant_color,  # deprecated
             "dominant-color": obj.dominant_color,
         }
