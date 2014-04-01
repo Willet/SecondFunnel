@@ -184,7 +184,7 @@ class PageSerializer(RawSerializer):
 
         data = {
             "id": str(getattr(obj, 'id', obj.id)),
-            "heroImageMobile": obj.desktop_hero_image,
+            "heroImageDesktop": obj.desktop_hero_image,
             "intentrank_id": obj.intentrank_id,
             "ir_base_url": obj.ir_base_url,
             # "IRSource": obj.ir_base_url,  # TOGO
@@ -197,7 +197,7 @@ class PageSerializer(RawSerializer):
             "imageTileWide": obj.theme_settings.get('image_tile_wide'),
             "created": obj.cg_created_at,
             # "last-queued-stale-tile": "1394056998",
-            "heroImageDesktop": obj.mobile_hero_image,
+            "heroImageMobile": obj.mobile_hero_image,
             "name": obj.name,
             "layout": obj.template,
             "column-width": obj.column_width,

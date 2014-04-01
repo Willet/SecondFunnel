@@ -11,6 +11,7 @@ from django.views.decorators.http import require_http_methods
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 from apps.assets.models import ProductImage, Image, Product, Store
+from apps.intentrank.utils import ajax_jsonp
 
 
 def has_image_key(fn):
@@ -65,10 +66,9 @@ class UploadFileForm(forms.Form):
 
 
 @csrf_exempt
-# @login_required
-# @require_http_methods(["POST"])
-# @has_image_key
-def create(request, *args, **kwargs):
+@login_required
+@require_http_methods(["POST"])
+def create(request):
     """
     Processes an image and uploads it to the specified MEDIA_URL.
 
@@ -76,13 +76,12 @@ def create(request, *args, **kwargs):
     @param img: str
     @return: HttpResponse
     """
-    form = UploadFileForm(request.POST, request.FILES)
-    form.handle_uploaded_file(request.FILES['file'])
+    file = request.FILES['file']
 
     path = settings.MEDIA_URL
-    data = process_image(img)
+    data = process_image(file)
 
-    return data
+    return ajax_jsonp({'url': data['url']})
 
 
 @csrf_exempt

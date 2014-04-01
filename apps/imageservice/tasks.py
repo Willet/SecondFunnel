@@ -11,6 +11,7 @@ import cloudinary.uploader
 from threading import Semaphore
 from django.conf import settings
 from PIL import ImageFilter, Image
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from apps.pinpoint.utils import read_remote_file
 from apps.imageservice.utils import create_image, IMAGE_SIZES
@@ -143,7 +144,9 @@ def process_image_now(source, path, sizes=None):
         sizes = []
 
     # TODO: More sophisticated determination of file object
-    if re.match(r'^https?:', source):
+    if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"
+        img = ExtendedImage.open(source)
+    elif re.match(r'^https?:', source):
         img, _ = read_remote_file(source)
         img = create_image(img)
     else:
