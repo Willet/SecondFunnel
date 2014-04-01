@@ -122,6 +122,19 @@ class BaseCGHandler(JSONResponseMixin, ListView):
         except:
             self.object_list = self.get_queryset()
 
+        # order the results by a param that the UI has defined
+        order = request.GET.get('order')
+        if order == 'ascending':
+            self.object_list = self.object_list.order_by('created_at')
+        elif order == 'descending':
+            self.object_list = self.object_list.order_by('-created_at')
+        else:
+            order = request.GET.get('time-posted')
+            if order == 'ascending':
+                self.object_list = self.object_list.order_by('updated_at')
+            elif order == 'descending':
+                self.object_list = self.object_list.order_by('-updated_at')
+
         self.paginate_by = request.GET.get('results', settings.API_LIMIT_PER_PAGE)
         return super(BaseCGHandler, self).dispatch(*args, **kwargs)
 
