@@ -1,6 +1,7 @@
 import json
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.query_utils import Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 
@@ -36,6 +37,12 @@ class StoreContentCGHandler(ContentCGHandler):
 
         if request.GET.get('status', ''):
             qs = qs.filter(status=request.GET.get('status'))
+
+        # search by what the UI refers to as "tags"
+        tagged_products = request.GET.get('tagged-products', '')
+        if tagged_products:
+            qs = qs.filter(Q(tagged_products__name__icontains=tagged_products) |
+                           Q(tagged_products__description__icontains=tagged_products))
         return qs
 
 class StoreContentItemCGHandler(ContentItemCGHandler):
