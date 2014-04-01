@@ -113,7 +113,7 @@ class StorePageProductItemCGHandler(StoreProductItemCGHandler):
         (which means adding a product to a tile to the feed of the page)
         """
         self.page.delete_product(self.product)
-        return HttpResponse()
+        return ajax_jsonp(self.product)
 
 
 class StorePageProductPrioritizeItemCGHandler(StorePageProductItemCGHandler):

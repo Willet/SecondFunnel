@@ -160,7 +160,7 @@ class StorePageContentItemCGHandler(StoreContentItemCGHandler):
         (which means adding a content to a tile to the feed of the page)
         """
         self.page.delete_content(self.content)
-        return HttpResponse()
+        return ajax_jsonp(self.content)
 
 
 class StorePageContentSuggestedCGHandler(StorePageContentCGHandler):
