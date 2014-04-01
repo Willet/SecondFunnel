@@ -65,6 +65,7 @@ class TileAdmin(BaseAdmin):
                     'view_starting_score', 'view_score'] + BaseAdmin.list_display
     list_filter = ('feed',)
     search_fields = ('id', 'old_id', 'template')
+    filter_horizontal = ('products', 'content',)
 
 
 class TileRelationAdmin(BaseAdmin):
@@ -95,7 +96,7 @@ class ProductAdmin(BaseAdmin):
 
 class ProductImageAdmin(BaseAdmin):
     ordering = ['created_at', 'original_url']
-    list_display = ['old_id', 'url'] + BaseAdmin.list_display + ['original_url']
+    list_display = ['old_id', 'image_tag'] + BaseAdmin.list_display + ['original_url']
 
 
 class ImageAdmin(BaseAdmin):
@@ -104,9 +105,10 @@ class ImageAdmin(BaseAdmin):
 
 
 class ContentAdmin(BaseAdmin):
-    ordering = ['url']
-    list_display = ['url'] + BaseAdmin.list_display
+    ordering = ['id']
+    list_display = ['image_tag'] + BaseAdmin.list_display
     search_fields = ('id', 'url',)
+    filter_horizontal = ('tagged_products',)
 
 
 class ThemeAdmin(BaseAdmin):

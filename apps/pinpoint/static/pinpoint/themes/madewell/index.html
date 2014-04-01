@@ -8,17 +8,6 @@
     <script type="text/javascript">
         window.OPTIMIZER_TESTS = [];
         window.OPTIMIZER_TESTS.push({
-            index: 1,
-            test: 'custom',
-            device: 'mobile',
-            custom: function (template) {
-                template = template || _.sample(["A", "B", "C", "D"]);
-                App.options.tests = App.options.tests ? App.options.tests : {};
-                App.options.tests[1] = template;
-                return template;
-            }
-        });
-        window.OPTIMIZER_TESTS.push({
             index: 6, // Two-column in Analytics
             test: 'custom',
             device: 'mobile',
@@ -307,7 +296,7 @@
             <hr>
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
-                    <div class='image'>
+                    <div class='image relative'>
                         <% if (obj.images.length > 1) { %>
                             <span class="gallery-swipe-left"></span>
                             <img src='<%= obj.defaultImage.url %>'/>

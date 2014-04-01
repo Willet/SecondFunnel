@@ -11,6 +11,7 @@ function reinitialize(app) {
     if (!app.heroArea) {
         app.addRegions({
             'heroArea': '#hero-area',
+            'categoryArea': '#category-area',
             'discoveryArea': '#discovery-area',
             'previewArea': '#preview-area'
         });
@@ -32,6 +33,13 @@ function reinitialize(app) {
         app.options.initialWidth = $(window).width();
         app.optimizer.initialize();
         app.tracker.initialize();
+    });
+
+    app.addInitializer(function () {
+        var ca = new app.core.CategoryCollectionView();
+        app.categoryArea.show(ca);
+
+        app.vent.trigger('categoryAreaRendered', ca);
     });
 
     app.addInitializer(function () {
