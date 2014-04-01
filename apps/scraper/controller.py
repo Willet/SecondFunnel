@@ -5,11 +5,12 @@ import argparse
 
 from selenium import webdriver
 
-from apps.assets.models import Product, Store
-from apps.scraper.scrapers.scraper import Scraper, ProductDetailScraper, ProductCategoryScraper, ContentDetailScraper, \
+from apps.assets.models import Product, Store, Video
+from apps.scraper.scrapers.scraper import ProductDetailScraper, ProductCategoryScraper, ContentDetailScraper, \
     ContentCategoryScraper
 from apps.scraper.scrapers.gap.gap_product_scrapers import GapProductScraper, GapCategoryScraper
-from apps.scraper.scrapers.madewell.madewell_product_scrapers import MadewellProductScraper, MadewellCategoryScraper
+from apps.scraper.scrapers.madewell.madewell_product_scrapers import MadewellProductScraper, MadewellCategoryScraper, \
+    MadewellMultiProductScraper
 from apps.scraper.scrapers.content.pinterest_scraper import PinterestPinScraper, PinterestAlbumScraper
 
 
@@ -21,6 +22,7 @@ class Controller(object):
             GapCategoryScraper(store),
             MadewellProductScraper(store),
             MadewellCategoryScraper(store),
+            MadewellMultiProductScraper(store),
             PinterestPinScraper(store),
             PinterestAlbumScraper(store),
         ]
@@ -59,6 +61,7 @@ class Controller(object):
             url = scraper.parse_url(url=url, values=values)
 
             # initialize the head-less browser PhantomJS
+            print('loading url - ' + url)
             driver = webdriver.PhantomJS()
             driver.get(url)
 
@@ -87,9 +90,13 @@ class Controller(object):
                     print(content.to_json())
                     break
             elif isinstance(scraper, ContentCategoryScraper):
-                for content, content_url in scraper.scrape(driver=driver, url=url, values=values):
+                for content in scraper.scrape(driver=driver, url=url, values=values):
                     next_scraper = scraper.next_scraper(values=values)
-                    self.run_scraper(url=content_url, content=content, values=values.copy(), scraper=next_scraper)
+                    if isinstance(content, Video):
+                        self.run_scraper(url=content.url, content=content, values=values.copy(), scraper=next_scraper)
+                    else:
+                        self.run_scraper(url=content.original_url, content=content, values=values.copy(),
+                                         scraper=next_scraper)
 
         except BaseException:
             # catches all exceptions so that if one detail scraper were to have an error
