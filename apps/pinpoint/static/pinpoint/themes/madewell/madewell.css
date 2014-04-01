@@ -1107,22 +1107,8 @@ div.header {
 }
 
 @media only screen and (min-width: 768px) {
-    .tile.mega .stl-image {
-        width: 100%;
-        float: left;
-    }
-
-    .tile.mega .look-images {
-        float: left;
-        display: none;
-    }
-
     .template.target .shop-the-look > hr:last-child {
         margin-bottom: 0px;
-    }
-
-    .mega img.focus {
-        width: 99%;
     }
 
     .shop-the-look .stl-target img {
