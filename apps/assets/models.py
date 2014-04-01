@@ -262,6 +262,9 @@ class Product(BaseModel):
 
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
+    # currently known used attrs:
+    # - available
+    # - product_set
     attributes = JSONField(blank=True, null=True, default={})
 
     serializer = ir_serializers.ProductSerializer

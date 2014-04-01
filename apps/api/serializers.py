@@ -38,9 +38,8 @@ class StoreSerializer(RawSerializer):
             "public-base-url": obj.public_base_url,
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
-            "social-buttons": "[\"tumblr\", \"pinterest\", \"facebook\"]",  # TODO
+            "social-buttons": "[\"tumblr\", \"pinterest\", \"facebook\"]",  # Stores don't have those anymore... just going to fake it
             "theme": obj.default_theme.template if getattr(obj, 'default_theme_id', False) else None,
-            "column-width": "220",  # TODO
             "slug": slugify(obj.name),  # major design flaw dictates that our stores don't have slugs
         }
         return data
@@ -61,9 +60,9 @@ class ProductSerializer(RawSerializer):
             "created": obj.cg_created_at,
             "last-modified": obj.cg_updated_at,
             "default-image-id": obj.default_image.id,
-            "product-set": "live",  # TODO
+            "product-set": obj.attributes.get('product_set', 'live'),
             "image-ids": [str(o.id) for o in obj.product_images.all()],
-            "available": "true",  # TODO
+            "available": obj.attributes.get('available', True),
             "sku": obj.sku,
             "url": obj.url,
             "price": obj.price,
