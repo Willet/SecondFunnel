@@ -49,6 +49,9 @@ hammock==0.2.4
 requests==1.2.2
 requests-oauthlib==0.3.2
 
+## Scraping
+selenium==2.40.0
+
 # Image Processing
 Pillow==2.3.0
 cloudinary==1.0.15
