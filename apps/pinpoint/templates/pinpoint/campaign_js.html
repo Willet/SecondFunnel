@@ -1,5 +1,6 @@
 {% load staticfiles %}
 
+<script type="text/javascript" src="{% static 'js/brainfuck.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/jquery.xdr.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/jquery.animate-enhanced.js' %}"></script>
@@ -12,17 +13,18 @@
 <script type="text/javascript" src="{% static 'js/jquery.masonry.pkgd.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/jquery.cloudinary.js' %}"></script><!-- anywhere before our app -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.preinit.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.core.js' %}"></script><!-- after preinit -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.ir.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.utils.js' %}"></script><!-- before pages -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.core.models.js' %}"></script><!-- after preinit -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.core.views.js' %}"></script><!-- after preinit -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.support.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.tracker.js' %}"></script><!-- before optimizer -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.optimizer.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.layoutengine.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.sharing.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.viewport.js' %}"></script><!-- after pages -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.init.js' %}"></script><!-- after pages -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.widget.gallery.js' %}"></script>
+
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.preinit.b' %}"></script><!-- after marionette -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.core.b' %}"></script><!-- after preinit -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.ir.b' %}"></script><!-- after marionette -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.utils.b' %}"></script><!-- before pages -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.core.models.b' %}"></script><!-- after preinit -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.core.views.b' %}"></script><!-- after preinit -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.support.b' %}"></script><!-- after marionette -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.tracker.b' %}"></script><!-- before optimizer -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.optimizer.b' %}"></script><!-- after marionette -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.layoutengine.b' %}"></script><!-- after marionette -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.sharing.b' %}"></script><!-- after marionette -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.viewport.b' %}"></script><!-- after pages -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.init.b' %}"></script><!-- after pages -->
+<script type="text/brainfuck" src="{% static 'pinpoint/js/pages.widget.gallery.b' %}"></script>
