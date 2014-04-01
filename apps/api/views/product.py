@@ -36,7 +36,10 @@ class StoreProductCGHandler(ProductCGHandler):
         qs = qs.filter(store_id=self.store_id)
 
         # filtering for the select2 tagging
-        search_name = request.GET.get('search-name', '')
+        # or
+        # filtering for page manager
+        search_name = request.GET.get('search-name', '') or \
+                      request.GET.get('tags', '')
         if search_name:
             # if search present, search in name or description
             qs = qs.filter(Q(name__icontains=search_name) |
