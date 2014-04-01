@@ -6,7 +6,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 
 from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
-from apps.assets.models import Content, Store, Page, ProductImage, Product
+from apps.assets.models import Content, Store, Page, ProductImage, Product, Image, Video
 from apps.intentrank.utils import ajax_jsonp
 
 
@@ -38,11 +38,23 @@ class StoreContentCGHandler(ContentCGHandler):
         if request.GET.get('status', ''):
             qs = qs.filter(status=request.GET.get('status'))
 
+        if request.GET.get('source', ''):
+            qs = qs.filter(source=request.GET.get('source'))
+
         # search by what the UI refers to as "tags"
         tagged_products = request.GET.get('tagged-products', '')
         if tagged_products:
             qs = qs.filter(Q(tagged_products__name__icontains=tagged_products) |
                            Q(tagged_products__description__icontains=tagged_products))
+
+        # search by what the UI refers to as "type"
+        # this is an EXPENSIVE operation!
+        content_type = request.GET.get('type', '')
+        if content_type:
+            if content_type == 'image':
+                qs = [x for x in qs.select_subclasses() if isinstance(x, Image)]
+            elif content_type == 'video':
+                qs = [x for x in qs.select_subclasses() if isinstance(x, Video)]
         return qs
 
 class StoreContentItemCGHandler(ContentItemCGHandler):
