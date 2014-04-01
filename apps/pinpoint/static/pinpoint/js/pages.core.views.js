@@ -305,11 +305,11 @@ App.module('core', function (module, App) {
                 };
             }
 
-            if (PAGES_INFO.conditionalSocialButtons[model.get('colspan')]) {
+            if (App.option('conditionalSocialButtons', {})[model.get('colspan')]) {
                 var socialButtons = $('.socialButtons', this.$el),
                     buttons = new App.sharing.SocialButtons({
                         'model': model,
-                        'buttonTypes': PAGES_INFO.conditionalSocialButtons[model.get('colspan')]
+                        'buttonTypes': App.option('conditionalSocialButtons', {})[model.get('colspan')]
                     });
 
                 socialButtons.append(buttons.render().$el);
