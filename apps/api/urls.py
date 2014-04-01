@@ -17,7 +17,8 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageProductPrioritizeItemCGHandler,
     StorePageProductDeprioritizeItemCGHandler,
     StorePageContentPrioritizeItemCGHandler,
-    StorePageContentDeprioritizeItemCGHandler, StoreContentApproveItemCGHandler, StoreContentRejectItemCGHandler, StoreContentUndecideItemCGHandler)
+    StorePageContentDeprioritizeItemCGHandler, StoreContentApproveItemCGHandler,
+    StoreContentRejectItemCGHandler, StoreContentUndecideItemCGHandler)
 from apps.api.views.content import PageContentAllCGHandler
 from apps.imageservice.views import create as imageservice_create
 

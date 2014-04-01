@@ -1,7 +1,5 @@
 import json
-import random
 
-from django import forms
 from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -54,15 +52,6 @@ def has_image_key(fn):
             }), content_type="application/json", status=400)
 
     return wrapped_function
-
-
-class UploadFileForm(forms.Form):
-    file = forms.FileField()
-
-    def handle_uploaded_file(self, f):
-        with open('some/file/name.txt', 'wb+') as destination:
-            for chunk in f.chunks():
-                destination.write(chunk)
 
 
 @csrf_exempt
