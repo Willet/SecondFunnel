@@ -7,7 +7,7 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageProductCGHandler, StoreCGHandler, StoreItemCGHandler, PageCGHandler,
     StorePageCGHandler, TileConfigCGHandler, PageTileConfigCGHandler,
     StorePageItemCGHandler, StoreProductItemCGHandler, StorePageContentItemCGHandler,
-    StoreContentCGHandler, StoreContentItemCGHandler, TileConfigItemCGHandler,
+    StoreContentItemCGHandler, TileConfigItemCGHandler,
     PageTileConfigItemCGHandler, StorePageTileConfigCGHandler,
     StorePageTileConfigItemCGHandler, CategoryCGHandler,
     StorePageContentSuggestedCGHandler, TileCGHandler, TileItemCGHandler,
@@ -15,7 +15,9 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageTileItemCGHandler, PageItemCGHandler, StorePageContentTagCGHandler,
     PageProductAllCGHandler, StorePageProductItemCGHandler,
     StorePageProductPrioritizeItemCGHandler,
-    StorePageProductDeprioritizeItemCGHandler, StorePageContentPrioritizeItemCGHandler, StorePageContentDeprioritizeItemCGHandler)
+    StorePageProductDeprioritizeItemCGHandler,
+    StorePageContentPrioritizeItemCGHandler,
+    StorePageContentDeprioritizeItemCGHandler)
 from apps.api.views.content import PageContentAllCGHandler
 from apps.imageservice.views import create as imageservice_create
 
@@ -57,8 +59,8 @@ urlpatterns += patterns('apps.api.views',
     # product
     url(r'^%s/product/?$' % prefix, ProductCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/product/?$' % prefix, StoreProductCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_set>\w+)/?$' % prefix, StoreProductCGHandler.as_view()),  # TODO: actually filter by sets (live, all, ...)
-    url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_set>\w+)/(?P<product_id>\d+)/?$' % prefix, StoreProductItemCGHandler.as_view()),  # TODO: actually filter by sets (live, all, ...)
+    url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_set>\w+)/?$' % prefix, StoreProductCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_set>\w+)/(?P<product_id>\d+)/?$' % prefix, StoreProductItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/?$' % prefix, StorePageProductCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/all/?$' % prefix, StoreProductCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/add_all/?$' % prefix, PageProductAllCGHandler.as_view()),
@@ -93,19 +95,9 @@ urlpatterns += patterns('apps.api.views',
 
     # Scraper
     url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
-    url(r'^%s/scraper/store/(?P<store_id>\d+)/(?P<scraper_name>.*?)/?$' % prefix, 'delete_scraper', name='delete_scraper'),
 
     # image service graph alias (needed for proxy)
     url(r'%s/imageservice/create/?$' % prefix, imageservice_create),
-
-    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/?$' % prefix, 'product_operations', name='product_operations'),
-    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/prioritize/?$' % prefix, 'prioritize_product', name='prioritize_product'),
-    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/deprioritize/?$' % prefix, 'deprioritize_product', name='deprioritize_product'),
-
-    # url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/?$' % prefix, 'list_page_tile_configs', name='list_page_tile_configs'),
-    # url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/?$' % prefix, 'get_page_tile_config', name='get_page_tile_config'),
-    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/prioritize/?$' % prefix, 'prioritize_tile', name='prioritize_tile'),
-    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/deprioritize/?$' % prefix, 'deprioritize_tile', name='deprioritize_tile'),
 
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/generate/?$' % prefix, 'generate_static_page', name='generate_static_page'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/transfer/?$' % prefix, 'transfer_static_page', name='transfer_static_page'),

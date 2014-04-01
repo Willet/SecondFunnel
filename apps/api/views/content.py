@@ -89,8 +89,11 @@ class StoreContentItemCGHandler(ContentItemCGHandler):
         self.content_id = kwargs.get(self.id_attr)
 
         if kwargs.get('content_id'):
-            self.content = get_object_or_404(Content,
-                                             id=kwargs.get('content_id'))
+            try:
+                self.content = Content.objects.get(id=kwargs.get('content_id'))
+            except Content.DoesNotExist:
+                self.content = get_object_or_404(ProductImage,
+                                                 id=kwargs.get('content_id'))
 
         return super(StoreContentItemCGHandler, self).dispatch(*args, **kwargs)
 

@@ -8,15 +8,6 @@ from apps.api.utils import mimic_response
 from secondfunnel.errors import deprecated
 
 
-@request_methods('DELETE')
-@check_login
-@never_cache
-@csrf_exempt
-@deprecated
-def delete_scraper(request, store_id, scraper_name):
-    return HttpResponse(staus=200)
-
-
 @request_methods('GET')
 @check_login
 @never_cache

@@ -30,8 +30,8 @@ def generate_ir_config(store_id, ir_id):
         'classname': 'com.willetinc.intentrank.engine.config.worker.ConfigWriterTask',
         'conf': json.dumps({
             'storeId': store_id,
-            'pageId': ir_id
-        })
+            'pageId': ir_id,
+        }),
     }
 
     # Post to SQS Queue

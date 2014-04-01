@@ -70,8 +70,6 @@ class ProductSerializer(RawSerializer):
             "description": obj.description,
             "name": obj.name,
             "store-id": str(obj.store.id),
-            # "rescrape": "false",
-            # "last-scraped": "1394775462303",
         }
 
         tile_configs = [tile.tile_config for tile in Tile.objects.filter(
@@ -187,18 +185,14 @@ class PageSerializer(RawSerializer):
             "heroImageDesktop": obj.desktop_hero_image,
             "intentrank_id": obj.intentrank_id,
             "ir_base_url": obj.ir_base_url,
-            # "IRSource": obj.ir_base_url,  # TOGO
             "last-modified": obj.cg_updated_at,
             "social-buttons": obj.social_buttons,
             "theme": obj.theme.template if obj.theme else None,
             "url": obj.url_slug,
-            # "ir-last-generated": "1391710019",
-            # "ir-stale": "true",
             "imageTileWide": obj.theme_settings.get('image_tile_wide'),
             "legalCopy": obj.legal_copy,
             "shareText": obj.description,
             "created": obj.cg_created_at,
-            # "last-queued-stale-tile": "1394056998",
             "heroImageMobile": obj.mobile_hero_image,
             "name": obj.name,
             "layout": obj.template,
@@ -261,18 +255,9 @@ class TileConfigSerializer(RawSerializer):
             "is-content": "false" if obj.template == 'product' else "true",
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
-            "prioritized": "true" if obj.prioritized else "false",  # backwards compat means any len(string)>0 counts as prioritized from before
-            # "stale": "false",  # useless
+            # backwards compat means any len(string)>0 counts as prioritized from before
+            "prioritized": "true" if obj.prioritized else "false",
         }
-
-        _example_remove_me_ = [{
-            "created": "1396281278830",
-            "last-modified": "1396281278830",
-            "page-id": "100",
-            "template": "product",
-            "stale": "true",
-            "id": "6680"
-        }]
 
         if obj.content.count() > 0:
             data.update({

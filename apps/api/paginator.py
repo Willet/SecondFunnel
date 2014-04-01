@@ -3,20 +3,17 @@ import json
 from django import http
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView
 from model_utils.managers import InheritanceQuerySet
 from tastypie.exceptions import BadRequest
 from tastypie.paginator import Paginator
-from apps.api.decorators import request_methods, check_login
 from apps.assets.models import BaseModel
-from apps.intentrank.utils import returns_cg_json, ajax_jsonp
+from apps.intentrank.utils import ajax_jsonp
 
 
 class ContentGraphPaginator(Paginator):
@@ -80,22 +77,6 @@ class JSONResponseMixin(object):
         # objects -- such as Django model instances or querysets
         # -- can be serialized as JSON.
         return json.dumps(context)
-
-
-def cg_endpoint(fn):
-    """Repetitive shorthand for common decorators applied to CG handlers.
-    You don't have to use this.
-
-    """
-    @request_methods('GET', 'POST', 'PATCH', 'DELETE')
-    @check_login
-    @never_cache
-    #@csrf_exempt
-    @returns_cg_json
-    def wrapped(*args, **kwargs):
-        return fn(*args, **kwargs)
-
-    return wrapped
 
 
 class BaseCGHandler(JSONResponseMixin, ListView):
@@ -210,7 +191,6 @@ class BaseCGHandler(JSONResponseMixin, ListView):
         new_object.save()  # :raises ValidationError
         return ajax_jsonp(new_object.to_cg_json())
 
-    #@csrf_exempt
     def put(self, request, *args, **kwargs):
         """default PUT behaviour
 

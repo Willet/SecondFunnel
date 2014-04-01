@@ -57,7 +57,10 @@ class UserPartOfStore(Authorization):
 
 
 class BaseCGResource(ExtendedModelResource):
-    """Alters the 'objects' and 'meta' keys given by the default paginator."""
+    """V2 APIs (we can believe)
+
+    Alters the 'objects' and 'meta' keys given by the default paginator.
+    """
     class Meta:
         serializer = Serializer(formats=['json'])
         paginator_class = ContentGraphPaginator
@@ -117,57 +120,6 @@ class StoreResource(BaseCGResource):
 
         return bundle
 
-    '''
-    def prepend_urls(self):
-        """
-        http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
-        """
-        return [
-            url(r"^(?P<resource_name>%s)/(?P<id>[^/]*)/page/?$" % (self._meta.resource_name),
-                self.wrap_view('get_pages'),
-                name="api_get_pages"),
-            url(r"^(?P<resource_name>%s)/(?P<id>[^/]*)/page/(?P<page_id>[^/]*)/?$" % (self._meta.resource_name),
-                self.wrap_view('get_page'),
-                name="api_get_page"),
-        ]
-
-    def get_pages(self, request, **kwargs):
-        try:
-            bundle = self.build_bundle(data={'id': kwargs['id']}, request=request)
-            obj = self.cached_obj_get(bundle=bundle,
-                                      **self.remove_api_resource_names(kwargs))
-        except ObjectDoesNotExist:
-            return HttpGone()
-        except MultipleObjectsReturned:
-            return HttpMultipleChoices("More than one resource is found at this URI.")
-
-        sub_resource = PageResource()
-
-        # just one:
-        # return sub_resource.get_detail(request, store_id=obj.id)
-        # more than one: http://stackoverflow.com/a/21763010/1558430
-        return sub_resource.get_list(request, store_id=obj.id)
-
-    def get_page(self, request, **kwargs):
-        try:
-            data = {'id': kwargs['id']}
-            bundle = self.build_bundle(data=data, request=request)
-            obj = self.cached_obj_get(bundle=bundle,
-                                      **self.remove_api_resource_names(data))
-        except ObjectDoesNotExist:
-            return HttpGone()
-        except MultipleObjectsReturned:
-            return HttpMultipleChoices("More than one resource is found at this URI.")
-
-        sub_resource = PageResource()
-
-        # just one:
-        return sub_resource.get_detail(request, store_id = obj.id,
-                                       id=kwargs['page_id'])
-        # more than one: http://stackoverflow.com/a/21763010/1558430
-        # return sub_resource.get_list(request, store_id=obj.id)
-    '''
-
 
 class ProductResource(BaseCGResource):
     """REST (tastypie) version of a Product."""
@@ -219,14 +171,6 @@ class ContentResource(BaseCGResource):
 
         # convert a piece of content to its subclass, then serialize that
         bundle.obj = Content.objects.filter(pk=bundle.obj.pk).select_subclasses()[0]
-
-        '''
-        bundle_class = (globals()[bundle.obj.__class__.__name__ + 'Resource'])
-
-        if bundle_class.__name__ != self.__class__.__name__:
-            return bundle_class.dehydrate(bundle_class(), bundle)
-        '''
-
         bundle.data = bundle.obj.to_json(expand_products=False)
 
         return bundle
