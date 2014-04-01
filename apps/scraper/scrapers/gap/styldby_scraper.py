@@ -21,7 +21,6 @@ class StyldByFilterScraper(ContentCategoryScraper):
 
     def scrape(self, driver, url, values, **kwargs):
         for element in driver.find_elements_by_xpath('//div[@role="main"]/ul/li/article'):
-            print('article')
             title_element = element.find_element_by_xpath('.//h2[@class="title"]/a')
             name = title_element.text
             original_url = title_element.get_attribute('href')
