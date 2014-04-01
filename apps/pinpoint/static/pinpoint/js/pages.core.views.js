@@ -963,6 +963,7 @@ App.module('core', function (module, App) {
      * @type {Layout}
      */
     this.MegaPreviewContent = Marionette.Layout.extend({
+        'className': "shop-the-look",
         'template': "#mega_tile_preview_template",
         'regions': {
             'target': '.stl-target',
@@ -1005,11 +1006,17 @@ App.module('core', function (module, App) {
                                 self.target.show(new ContentClass({
                                     'model': model
                                 }));
+
+                                $(this).addClass('selected')
+                                       .siblings()
+                                       .removeClass('selected');
                             }
                             return click;
                         })(img, self, ContentClass, model))
                 );
             });
+            // First image is always selected
+            this.$('.stl-look').find('img').first().addClass('selected');
         }
     });
 
