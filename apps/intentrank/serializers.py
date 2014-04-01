@@ -193,6 +193,9 @@ class ContentTileSerializer(TileSerializer):
         return data
 
 
+MegaTileSerializer = ContentTileSerializer
+
+
 class BannerTileSerializer(ContentTileSerializer):
     def get_dump_object(self, obj):
         """

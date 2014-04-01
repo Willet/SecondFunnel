@@ -211,7 +211,8 @@ App.module('core', function (module, App) {
                 widable_templates = {
                     'image': true,
                     'youtube': true,
-                    'banner': true
+                    'banner': true,
+                    'mega': true
                 }, columnDetails = {
                     '1': '',
                     '2': 'wide',
@@ -222,7 +223,7 @@ App.module('core', function (module, App) {
             // templates use this as obj.image.url
             this.model.set('image', this.model.get('defaultImage'));
 
-            wideable = widable_templates[self.model.get('template')];
+            wideable = widable_templates[this.model.get('template')];
             showWide = (Math.random() > App.option('imageTileWide', 0.5));
 
             if (_.isNumber(self.model.get('colspan'))) {
@@ -427,35 +428,180 @@ App.module('core', function (module, App) {
     });
 
     /**
+     * A Generic collection of TileViews
+     *
+     * @constructor
+     * @type {CollectionView}
+     */
+    this.TileCollectionView = Marionette.CollectionView.extend({
+        'initialize': function (options) {
+            var self = this;
+            this.on('itemview:item:clicked', function (childView) {
+                self.trigger('collection:item:clicked', childView);
+            });
+        }
+    });
+
+    /**
+     * A MiniTileView is a tile inside a MegaTile
+     *
+     * @constructor
+     * @type {Layout}
+     */
+    this.MiniTileView = this.TileView.extend({
+        'template': "#mini_tile_template",
+        'templates': function () {
+            var templateRules = [
+                "#<%= options.store.slug %>_mobile_mini_tile_template",
+                "#<%= options.store.slug %>_mini_tile_template",
+
+                "#mini_mobile_tile_template",
+                "#mini_tile_template"
+            ];
+
+            if (!App.support.mobile()) {
+                templateRules = _.reject(templateRules,
+                   function (t) {
+                       return t.indexOf('mobile') >= 0;
+                       }
+                );
+            }
+
+            return templateRules;
+        },
+        'className': 'mini',
+        'events': {
+            'hover': $.noop,
+            'click': function () {
+                this.trigger('item:clicked', this);
+            }
+        }
+    });
+
+    /**
+     * A MegaTileView is a TileView that displays several MiniTileViews where
+     * one is focused.
+     *
+     * @constructor
+     * @type {Layout}
+     */
+    this.MegaTileView = this.TileView.extend({
+        'template': "#mega_tile_template",
+        'templates': function () {
+            var templateRules = [
+                "#<%= options.store.slug %>_mobile_mega_tile_template",
+                "#<%= options.store.slug %>_mega_tile_template",
+
+                "#mega_mobile_tile_template",
+                "#mega_tile_template"
+            ];
+
+            if (!App.support.mobile()) {
+                templateRules = _.reject(templateRules,
+                   function (t) {
+                       return t.indexOf('mobile') >= 0;
+                       }
+                );
+            }
+
+            return templateRules;
+        },
+
+        'events': {
+        },
+
+        'className': App.option('itemSelector', '').substring(1) + ' full mega',
+
+        'regions': {
+            'stl': ".stl-image",
+            'related': ".look-images"
+        },
+
+        'onHover': $.noop,
+
+        'onClick': function (view) {
+            var tile = this.model,
+                id = tile.get('tile-id'),
+                related = this.model.get('related-products');
+
+            if (!view.model) {
+                return;
+            }
+
+            // Tile is a banner tile
+            if (tile.get('redirect-url')) {
+                window.open(tile.get('redirect-url'), '_blank');
+                return;
+            }
+
+            if (view.model.get('template') != 'mega') {
+                // Only add if not a lifestyle image
+                related = _.filter(related.slice(0), function (product) {
+                    return product.name != view.model.get('name');
+                });
+                related.unshift(view.model.attributes);
+            }
+
+            // clicking on social buttons is not clicking on the tile.
+            App.router.navigate(String(tile.get('tile-id')), {
+                trigger: true
+            });
+        },
+
+        /**
+         * onRender
+         */
+        'onRender': function () {
+            var self = this,
+                tiles = new App.core.TileCollection(),
+                related = this.model.get('related-products');
+
+            _.each(related, function (tile) {
+                tile = new App.core.Tile(tile);
+                tiles.add(tile);
+            });
+
+            // Show the views in the created regions
+            this.related.show(new App.core.TileCollectionView({
+                'itemView': App.core.MiniTileView,
+                'collection': tiles
+            }));
+            this.stl.show(new App.core.MiniTileView({model: this.model}));
+
+            // Listen for the tiles being clicked in the region
+            _.bindAll(this, 'onClick');
+            this.related.currentView.on('collection:item:clicked', this.onClick);
+            this.stl.currentView.on('item:clicked', this.onClick);
+        }
+    });
+
+    /**
      * Manages the HTML/View of ALL the tiles on the page (our discovery area)
      *
      * @class Feed
      * @constructor
-     * @type {CompositeView}
+     * @type {CollectioneView}
      */
-    this.Feed = Marionette.CollectionView.extend({
+    this.Feed = this.TileCollectionView.extend({
         'lastScrollTop': 0,
         'loading': false,
-
         'collection': null,
 
+        // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
         /**
+         * Oeveride getItemView to allow different itemViews to be
+         * used.
+         *
          * @param {Model} item
          * @return {TileView}
          */
         'getItemView': function (item) {
-            //TODO: hack for newegg, provide better way
-            if (item.get('type') === 'video') {
-                item.set('type', item.get('template'));
-            }
-
             return App.utils.findClass('TileView',
                 App.core.getModifiedTemplateName(
                     item.get('type') || item.get('template')),
                 module.TileView);
         },
 
-        // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
 
         'initialize': function (opts) {
             var self = this,
@@ -816,6 +962,72 @@ App.module('core', function (module, App) {
             if (!App.support.isAnAndroid()) {
                 $(document.body).removeClass('no-scroll');
             }
+        }
+    });
+
+    /**
+     * A Preview that is a Layout that includes PreviewContent within
+     * it's target region as well as the additional products that compromise
+     * the look in the related region.
+     *
+     * @constructor
+     * @type {Layout}
+     */
+    this.MegaPreviewContent = Marionette.Layout.extend({
+        'className': "shop-the-look",
+        'template': "#mega_tile_preview_template",
+        'regions': {
+            'target': '.stl-target',
+            'related': '.stl-look'
+        },
+
+        'onRender': function() {
+            var self = this,
+                model = new App.core.Tile(_.extend({},
+                    this.options.model.attributes)),
+                template = model.get('template'),
+                ContentClass;
+
+            if (template == 'mega') {
+                model = new App.core.Tile(model.attributes);
+                model.set('template', 'image');
+            }
+
+            ContentClass = App.utils.findClass('PreviewContent',
+                model.get('template'), module.PreviewContent);
+
+           // Layout the focused image and related products
+            this.target.show(new ContentClass({
+                'model': model
+            }));
+
+            _.each(model.get('related-products'), function (img) {
+                self.$('.stl-look').append(
+                    $('<img/>')
+                        .attr('src', img.images[0].get('url'))
+                        .click((function (view, self, cls, model) {
+                            function click () {
+                                // On click, change the focused image
+                                var related = _.filter(self.model.get('related-products').slice(0), function (product) {
+                                    return product.name != view.name;
+                                });
+                                related.unshift(view); // first image in related is always shown
+                                model.set('related-products', related);
+
+                                self.target.show(new ContentClass({
+                                    'model': model
+                                }));
+
+                                $(this).addClass('selected')
+                                       .siblings()
+                                       .removeClass('selected');
+                            }
+                            return click;
+                        })(img, self, ContentClass, model))
+                );
+            });
+            // First image is always selected
+            this.$('.stl-look').find('img').first().addClass('selected');
         }
     });
 
