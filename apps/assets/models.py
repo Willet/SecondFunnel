@@ -89,7 +89,7 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
         :returns str
         """
-        for cg_py in self._attribute_map:
+        for cg_py in reversed(self._attribute_map):
             if cg_py[1] == python_attribute_name:
                 return cg_py[0]
         return python_attribute_name  # not found, assume identical
@@ -570,6 +570,9 @@ class Page(BaseModel):
         ('intentrank-id', 'intentrank_id'),
         ('heroImageDesktop', 'desktop_hero_image'),
         ('heroImageMobile', 'mobile_hero_image'),
+        ('legalCopy', 'legal_copy'),  # ordered for cg -> sf
+        ('description', 'description'),  # ordered for cg -> sf
+        ('shareText', 'description'),  # ordered for cg <- sf
     )
 
     cg_serializer = cg_serializers.PageSerializer

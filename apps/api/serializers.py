@@ -195,6 +195,8 @@ class PageSerializer(RawSerializer):
             # "ir-last-generated": "1391710019",
             # "ir-stale": "true",
             "imageTileWide": obj.theme_settings.get('image_tile_wide'),
+            "legalCopy": obj.legal_copy,
+            "shareText": obj.description,
             "created": obj.cg_created_at,
             # "last-queued-stale-tile": "1394056998",
             "heroImageMobile": obj.mobile_hero_image,
