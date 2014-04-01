@@ -70,7 +70,7 @@ class ContentSerializer(RawSerializer):
             'source_url': obj.source_url,
             'url': obj.url or obj.source_url,
             'author': obj.author,
-            'status': obj.attributes.get('status', 'undecided'),
+            'status': obj.status,
         }
 
         if obj.tagged_products.count() > 0:

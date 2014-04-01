@@ -248,6 +248,55 @@ class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
         raise NotImplementedError()
 
 
+class StoreContentStateItemCGHandler(ContentItemCGHandler):
+    """Approves/Unapproves/Undecides a piece of content, depending on class name"""
+    def post(self, request, *args, **kwargs):
+        raise NotImplementedError()
+
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        store_id = kwargs.get('store_id')
+        self.store = get_object_or_404(Store, id=store_id)
+        self.content_id = kwargs.get(self.id_attr)
+
+        # can't tag ProductImage classes, which is fine for this set of
+        # API urls
+        self.content = get_object_or_404(Content, id=kwargs.get('content_id'))
+
+        return super(StoreContentStateItemCGHandler, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self, request=None):
+        qs = super(StoreContentStateItemCGHandler, self).get_queryset()
+        return qs.filter(store_id=self.store.id,
+                         id=self.content_id)
+
+
+class StoreContentApproveItemCGHandler(StoreContentStateItemCGHandler):
+    """Approves a piece of content"""
+    def post(self, request, *args, **kwargs):
+        self.content.status = "approved"
+        self.content.save()
+        return ajax_jsonp(self.content)
+
+
+class StoreContentRejectItemCGHandler(StoreContentStateItemCGHandler):
+    """Rejects a piece of content (not that it has any effect)"""
+    def post(self, request, *args, **kwargs):
+        self.content.status = "rejected"
+        self.content.save()
+        return ajax_jsonp(self.content)
+
+
+class StoreContentUndecideItemCGHandler(StoreContentStateItemCGHandler):
+    """Since the new default value is "approved", this status is actually
+    discouraged.
+    """
+    def post(self, request, *args, **kwargs):
+        self.content.status = "needs-review"
+        self.content.save()
+        return ajax_jsonp(self.content)
+
+
 class StorePageContentPrioritizeItemCGHandler(StorePageContentItemCGHandler):
     def post(self, request, *args, **kwargs):
 

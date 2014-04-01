@@ -393,7 +393,7 @@ class Content(BaseModel):
             'source_url': self.source_url,
             'url': self.url or self.source_url,
             'author': self.author,
-            'status': self.attributes.get('status', 'undecided'),
+            'status': self.status,
         }
 
         if self.tagged_products.count() > 0:
@@ -435,7 +435,7 @@ class Image(Content):
             "url": self.url or self.source_url,
             "id": str(self.id),
             "sizes": self.attributes.get('sizes', default_master_size),
-            'status': self.attributes.get('status', 'undecided'),
+            'status': self.status,
         }
         if expand_products:
             # turn django's string list of strings into a real list of ids

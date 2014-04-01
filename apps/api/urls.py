@@ -17,7 +17,7 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageProductPrioritizeItemCGHandler,
     StorePageProductDeprioritizeItemCGHandler,
     StorePageContentPrioritizeItemCGHandler,
-    StorePageContentDeprioritizeItemCGHandler)
+    StorePageContentDeprioritizeItemCGHandler, StoreContentApproveItemCGHandler, StoreContentRejectItemCGHandler, StoreContentUndecideItemCGHandler)
 from apps.api.views.content import PageContentAllCGHandler
 from apps.imageservice.views import create as imageservice_create
 
@@ -52,9 +52,9 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, StorePageContentItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/prioritize/?$' % prefix, StorePageContentPrioritizeItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/deprioritize/?$' % prefix, StorePageContentDeprioritizeItemCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/approve/?$' % prefix, StoreContentItemCGHandler.as_view()),
-    url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/reject/?$' % prefix, StoreContentItemCGHandler.as_view()),
-    url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide/?$' % prefix, StoreContentItemCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/approve/?$' % prefix, StoreContentApproveItemCGHandler.as_view()),
+    url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/reject/?$' % prefix, StoreContentRejectItemCGHandler.as_view()),
+    url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide/?$' % prefix, StoreContentUndecideItemCGHandler.as_view()),
 
     # product
     url(r'^%s/product/?$' % prefix, ProductCGHandler.as_view()),
