@@ -50,8 +50,6 @@ class ProductSerializer(RawSerializer):
     def get_dump_object(self, obj):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
-
-        Also, screw you for not having any docs.
         """
         from apps.assets.models import Tile
 
@@ -175,8 +173,6 @@ class PageSerializer(RawSerializer):
     def get_dump_object(self, obj):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
-
-        Also, screw you for not having any docs.
         """
 
         data = {
@@ -212,8 +208,6 @@ class TileSerializer(RawSerializer):
     def get_dump_object(self, obj):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
-
-        Also, screw you for not having any docs.
         """
         data = {
             "template": obj.template,

@@ -32,8 +32,6 @@ class ProductSerializer(RawSerializer):
     def get_dump_object(self, obj):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
-
-        Also, screw you for not having any docs.
         """
         product_images = obj.product_images.all()
 
@@ -127,8 +125,6 @@ class TileSerializer(RawSerializer):
     def get_dump_object(self, obj):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
-
-        Also, screw you for not having any docs.
         """
         data = {
             # prefixed keys are for inspection only; the hyphen is designed to
