@@ -46,6 +46,8 @@ class PinterestAlbumScraper(ContentCategoryScraper):
                 content = Image.objects.get(store=self.store, original_url=url)
             except Image.DoesNotExist:
                 content = Image(store=self.store, original_url=url)
+                last = Image.objects.all().order_by('-old_id')[0]
+                content.old_id = last.old_id + 1
             content.source = 'pinterest'
 
             yield content, url

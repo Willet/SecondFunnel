@@ -12,6 +12,7 @@ from apps.scraper.scrapers.gap.gap_product_scrapers import GapProductScraper, Ga
 from apps.scraper.scrapers.madewell.madewell_product_scrapers import MadewellProductScraper, MadewellCategoryScraper, \
     MadewellMultiProductScraper
 from apps.scraper.scrapers.content.pinterest_scraper import PinterestPinScraper, PinterestAlbumScraper
+from apps.scraper.scrapers.gap.styldby_scraper import StyldByFilterScraper
 
 
 class Controller(object):
@@ -25,6 +26,7 @@ class Controller(object):
             MadewellMultiProductScraper(store),
             PinterestPinScraper(store),
             PinterestAlbumScraper(store),
+            StyldByFilterScraper(store),
         ]
 
     def get_scraper(self, url, values=None):
@@ -91,6 +93,9 @@ class Controller(object):
                     break
             elif isinstance(scraper, ContentCategoryScraper):
                 for content in scraper.scrape(driver=driver, url=url, values=values):
+                    if not scraper.has_next_scraper(values=values):
+                        print(content.to_json())
+                        continue
                     next_scraper = scraper.next_scraper(values=values)
                     if isinstance(content, Video):
                         self.run_scraper(url=content.url, content=content, values=values.copy(), scraper=next_scraper)

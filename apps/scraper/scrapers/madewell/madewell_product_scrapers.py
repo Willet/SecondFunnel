@@ -32,9 +32,13 @@ class MadewellProductScraper(ProductDetailScraper):
         try:
             product.price = re.sub(r'USD *', '$', driver.find_element_by_class_name('selected-color-price').text)
         except NoSuchElementException:
-            product.price = re.sub(r'USD *', '$', driver.find_element_by_class_name('full-price').text)
+            product.price = re.sub(r'USD *', '$', driver.find_element_by_xpath('//div[@class="full-price"]/span').text)
 
-        product.name = driver.find_element_by_xpath('//section[@class="description"]/header/h1').text
+        try:
+            product.name = driver.find_element_by_xpath('//section[@class="description"]/header/h1').text
+        except NoSuchElementException:
+            product.name = driver.find_element_by_xpath('//section[@id="description"]/header/h1').text
+
         product.description = driver.find_element_by_id('prodDtlBody').get_attribute('innerHTML')
 
         if values.get('category', None):
@@ -91,5 +95,30 @@ class MadewellCategoryScraper(ProductCategoryScraper):
                 product.sku = sku
             except Product.DoesNotExist:
                 product = Product(store=store, url=url, name=name, sku=sku)
+
+            yield product
+
+
+class MadewellMultiProductScraper(ProductCategoryScraper):
+    def get_regex(self, **kwargs):
+        return [self._wrap_regex(r'(?:www\.)?madewell\.com/browse/multi_product_detail.jsp\?(?:[^/\?]+&)?externalProductCodes=([^&\?/]+)', True)]
+
+    def parse_url(self, url, **kwargs):
+        product_codes = re.match(self.get_regex()[0], url).group(1)
+        return 'http://www.madewell.com/browse/multi_product_detail.jsp?externalProductCodes=' + product_codes
+
+    def scrape(self, driver, url, **kwargs):
+        product_codes = re.match(self.get_regex()[0], url).group(1)
+        codes = product_codes.split(r'%3A')
+        for code in codes:
+            if code == '00000':
+                continue
+            product_url = 'http://www.madewell.com/madewell_category/PRDOVR~{0}/{0}.jsp'.format(code)
+            try:
+                product = Product.objects.get(store=self.store, url=product_url)
+            except Product.DoesNotExist:
+                product = Product(store=self.store, url=product_url)
+                last = Product.objects.all().order_by('-old_id')[0]
+                product.old_id = last.old_id + 1
 
             yield product

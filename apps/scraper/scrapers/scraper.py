@@ -1,4 +1,4 @@
-from apps.assets.models import Category, ProductImage, Image
+from apps.assets.models import Category, ProductImage
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 
@@ -157,7 +157,8 @@ class ContentScraper(Scraper):
 
 
 class ContentCategoryScraper(ContentScraper):
-    pass
+    def has_next_scraper(self, values, **kwargs):
+        return True
 
 
 class ContentDetailScraper(ContentScraper):
