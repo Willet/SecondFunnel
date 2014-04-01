@@ -211,8 +211,7 @@ App.module('core', function (module, App) {
                 widable_templates = {
                     'image': true,
                     'youtube': true,
-                    'banner': true,
-                    'mega': true
+                    'banner': true
                 }, columnDetails = {
                     '1': '',
                     '2': 'wide',
@@ -439,139 +438,6 @@ App.module('core', function (module, App) {
             this.on('itemview:item:clicked', function (childView) {
                 self.trigger('collection:item:clicked', childView);
             });
-        }
-    });
-
-    /**
-     * A MiniTileView is a tile inside a MegaTile
-     *
-     * @constructor
-     * @type {Layout}
-     */
-    this.MiniTileView = this.TileView.extend({
-        'template': "#mini_tile_template",
-        'templates': function () {
-            var templateRules = [
-                "#<%= options.store.slug %>_mobile_mini_tile_template",
-                "#<%= options.store.slug %>_mini_tile_template",
-
-                "#mini_mobile_tile_template",
-                "#mini_tile_template"
-            ];
-
-            if (!App.support.mobile()) {
-                templateRules = _.reject(templateRules,
-                   function (t) {
-                       return t.indexOf('mobile') >= 0;
-                       }
-                );
-            }
-
-            return templateRules;
-        },
-        'className': 'mini',
-        'events': {
-            'hover': $.noop,
-            'click': function () {
-                this.trigger('item:clicked', this);
-            }
-        }
-    });
-
-    /**
-     * A MegaTileView is a TileView that displays several MiniTileViews where
-     * one is focused.
-     *
-     * @constructor
-     * @type {Layout}
-     */
-    this.MegaTileView = this.TileView.extend({
-        'template': "#mega_tile_template",
-        'templates': function () {
-            var templateRules = [
-                "#<%= options.store.slug %>_mobile_mega_tile_template",
-                "#<%= options.store.slug %>_mega_tile_template",
-
-                "#mega_mobile_tile_template",
-                "#mega_tile_template"
-            ];
-
-            if (!App.support.mobile()) {
-                templateRules = _.reject(templateRules,
-                   function (t) {
-                       return t.indexOf('mobile') >= 0;
-                       }
-                );
-            }
-
-            return templateRules;
-        },
-
-        'events': {
-        },
-
-        'className': App.option('itemSelector', '').substring(1) + ' full mega',
-
-        'regions': {
-            'stl': ".stl-image",
-            'related': ".look-images"
-        },
-
-        'onHover': $.noop,
-
-        'onClick': function (view) {
-            var tile = this.model,
-                id = tile.get('tile-id'),
-                related = this.model.get('related-products');
-
-            if (!view.model) {
-                return;
-            }
-
-            // Tile is a banner tile
-            if (tile.get('redirect-url')) {
-                window.open(tile.get('redirect-url'), '_blank');
-                return;
-            }
-
-            if (view.model.get('template') != 'mega') {
-                // Only add if not a lifestyle image
-                related = _.filter(related.slice(0), function (product) {
-                    return product.name != view.model.get('name');
-                });
-                related.unshift(view.model.attributes);
-            }
-
-            // clicking on social buttons is not clicking on the tile.
-            App.router.navigate(String(tile.get('tile-id')), {
-                trigger: true
-            });
-        },
-
-        /**
-         * onRender
-         */
-        'onRender': function () {
-            var self = this,
-                tiles = new App.core.TileCollection(),
-                related = this.model.get('related-products');
-
-            _.each(related, function (tile) {
-                tile = new App.core.Tile(tile);
-                tiles.add(tile);
-            });
-
-            // Show the views in the created regions
-            this.related.show(new App.core.TileCollectionView({
-                'itemView': App.core.MiniTileView,
-                'collection': tiles
-            }));
-            this.stl.show(new App.core.MiniTileView({model: this.model}));
-
-            // Listen for the tiles being clicked in the region
-            _.bindAll(this, 'onClick');
-            this.related.currentView.on('collection:item:clicked', this.onClick);
-            this.stl.currentView.on('item:clicked', this.onClick);
         }
     });
 
@@ -988,10 +854,7 @@ App.module('core', function (module, App) {
                 template = model.get('template'),
                 ContentClass;
 
-            if (template == 'mega') {
-                model = new App.core.Tile(model.attributes);
-                model.set('template', 'image');
-            }
+            model = new App.core.Tile(model.attributes);
 
             ContentClass = App.utils.findClass('PreviewContent',
                 model.get('template'), module.PreviewContent);
@@ -1111,11 +974,19 @@ App.module('core', function (module, App) {
                     $(window).height() : ""
             });
 
-            var ContentClass = App.utils.findClass('PreviewContent',
-                    this.options.model.get('template'), module.PreviewContent),
+            var ContentClass,
+                template = this.options.model.get('template'),
+                related = this.options.model.get('related-products') || [],
                 contentOpts = {
                     'model': this.options.model
                 };
+
+            if (template == 'image' && related.length > 1) {
+                template = 'mega';
+            }
+
+            ContentClass = App.utils.findClass('PreviewContent',
+                template, module.PreviewContent),
 
             this.content.show(new ContentClass(contentOpts));
             previewLoadingScreen.hide();
