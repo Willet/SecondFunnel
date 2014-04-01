@@ -149,7 +149,7 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
             focusCurrent = $selected.index();
         }
         self.selectImage();
-    }
+    };
 
     /**
      * Initializes the regular version of the gallery.

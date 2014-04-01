@@ -13,6 +13,10 @@ body {
     font-weight: bold;
 }
 
+.text-centered {
+    text-align: center;
+}
+
 .centered {
     margin-left: auto;
     margin-right: auto;
@@ -322,6 +326,16 @@ div.header {
     text-align: center;
     margin: 0 auto;
     line-height: 21px;
+}
+
+/* This doesn't affect code that auto hides/shows social buttons */
+.tile .socialButtons {
+    position: absolute;
+    bottom: 114px;
+    right: 0;
+    line-height: 21px;
+    margin: 0 auto;
+    text-align: center;
 }
 
 .previewContainer img {
@@ -659,8 +673,9 @@ div.header {
         /*
         max-width: 150px;
         margin: 0 20px 0 0;
-        max-height: 200px;
         */
+        min-height: 250px;
+        max-height: 250px;
     }
 }
 
@@ -889,6 +904,10 @@ div.header {
     max-width: 400px;
 }
 
+.previewContainer .row .cell.col-sm-6.col-md-6.middle {
+    text-align: center;
+}
+
 .previewContainer .row .cell.middle {
     vertical-align: middle;
 }
@@ -912,6 +931,10 @@ div.header {
 @media screen and (min-width: 769px) {
     .previewContainer .content {
         overflow: hidden;
+    }
+
+    .previewContainer .image-with-related-products .row .gallery.dots {
+        height: 15px;
     }
 
     .previewContainer .image-with-related-products .row .gallery {
@@ -1080,5 +1103,65 @@ div.header {
 @media only screen and (min-device-width: 640px) and (max-device-width: 800px) {
     .previewContainer .image img {
         max-height: 550px;
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    .tile.mega .stl-image {
+        width: 100%;
+        float: left;
+    }
+
+    .tile.mega .look-images {
+        float: left;
+        display: none;
+    }
+
+    .template.target .shop-the-look > hr:last-child {
+        margin-bottom: 0px;
+    }
+
+    .mega img.focus {
+        width: 99%;
+    }
+
+    .shop-the-look .stl-target img {
+        width: auto;
+    }
+
+    .shop-the-look > .desc-title {
+        font-weight: normal;
+    }
+
+    .shop-the-look .stl-target .image-with-related-products .cell.col-sm-6.col-md-6 .description {
+        min-height: 195px;
+    }
+
+    .shop-the-look .stl-look {
+        max-height: 110px;
+        text-align: center;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        padding-bottom: 10px;
+    }
+
+    .shop-the-look .stl-look img {
+        height: 99%;
+        opacity: 0.7;
+        width: inherit;
+        max-width: 99%;
+        max-height: 100px;
+    }
+
+    .shop-the-look .stl-look img.selected {
+        opacity: 1;
+    }
+
+    .shop-the-look .stl-look img:hover {
+        opacity: 1;
+    }
+
+    .shop-the-look .stl-look img:hover {
+        cursor: pointer;
     }
 }

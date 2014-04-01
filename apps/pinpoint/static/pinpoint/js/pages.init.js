@@ -120,7 +120,6 @@ function reinitialize(app) {
                 app.discovery.collection.tiles[tileId] :
                 undefined;
 
-
             previewLoadingScreen.show();
 
             if (tile !== undefined) {

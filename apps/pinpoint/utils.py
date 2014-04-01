@@ -130,6 +130,7 @@ def render_campaign(page_id, request, store_id=0):
         "initial_results": [],  # JS now fetches its own initial results
         "backup_results": map(json_postprocessor, backup_results),
         "social_buttons": page.social_buttons or store.get('social-buttons', ''),
+        "conditional_social_buttons": json.dumps(page.get('conditional_social_buttons', {})),
         "column_width": page.column_width or store.get('column-width', ''),
         "enable_tracking": page.enable_tracking,  # jsbool
         # apparently {{ campaign.image_tile_wide|default:0.5 }} is too confusing for django

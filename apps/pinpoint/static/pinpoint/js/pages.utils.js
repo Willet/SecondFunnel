@@ -253,8 +253,11 @@ App.module("utils", function (utils, App) {
             // effect: 'trim:0'
         }, options);
 
-        url = url.replace(App.CLOUDINARY_DOMAIN, ""); // remove absolute uri
-        url = $.cloudinary.url(url, options);
+        if (url.indexOf('c_fit') == -1) { // Cloudinary can't process Cloudinary urls
+            url = url.replace(App.CLOUDINARY_DOMAIN, ""); // remove absolute uri
+            url = $.cloudinary.url(url, options);
+        }
+
         return url;
     };
 });

@@ -552,6 +552,7 @@ class Page(BaseModel):
         ('results_threshold', {}), ('desktop_hero_image', ''), ('mobile_hero_image', ''),
         ('intentrank_id', ''), ('column_width', 240), ('social_buttons', ''),
         ('enable_tracking', "true"), ('ir_base_url', ''), ('ga_account_number', ''),
+        ('conditional_social_buttons', {}),
     ]
 
     description = models.TextField(blank=True, null=True)
