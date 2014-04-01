@@ -106,15 +106,17 @@ def upload_to_s3(path, folder, img, size):
     return os.path.join(bucket, filename)
 
 
-def process_image(source, path, sizes=[]):
+def process_image(source, path, sizes=None):
     """
     Acquires a lock in order to process the image.
 
     @param source: The source file
     @param path: The path to save the object to
-    @param sizes: List of sizes to create
     @return: object
     """
+    if not sizes:
+        sizes = []
+
     PROCESSING_SEM.acquire()
     try:
         data = process_image_now(source, path)
@@ -122,12 +124,13 @@ def process_image(source, path, sizes=[]):
         # Need to ensure semaphore is released
         PROCESSING_SEM.release()
         raise e
+
     PROCESSING_SEM.release()
 
     return data
 
 
-def process_image_now(source, path, sizes=[]):
+def process_image_now(source, path, sizes=None):
     """
     Delegates to resize to create the necessary sizes.
 
@@ -136,7 +139,9 @@ def process_image_now(source, path, sizes=[]):
     @param sizes: List of sizes to create
     @return: object
     """
-    # TODO: More sophisticated determination of file object
+    if not sizes:
+        sizes = []
+
     if re.match(r'^https?:', source):
         img, _ = read_remote_file(source)
         img = create_image(img)
