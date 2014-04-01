@@ -6,7 +6,8 @@ import argparse
 from selenium import webdriver
 
 from apps.assets.models import Product, Store
-from apps.scraper.scrapers.scraper import Scraper
+from apps.scraper.scrapers.scraper import Scraper, ProductDetailScraper, ProductCategoryScraper, ContentDetailScraper, \
+    ContentCategoryScraper
 from apps.scraper.scrapers.gap.gap_product_scrapers import GapProductScraper, GapCategoryScraper
 from apps.scraper.scrapers.madewell.madewell_product_scrapers import MadewellProductScraper, MadewellCategoryScraper
 from apps.scraper.scrapers.content.pinterest_scraper import PinterestPinScraper, PinterestAlbumScraper
@@ -25,28 +26,28 @@ class Controller(object):
         ]
 
     def get_scraper(self, url, values=None):
-        if values == None:
+        """
+        If a scraper exists with a regex that matches the given url, then
+        that scraper is returned, else None is returned
+        """
+        if values is None:
             values = {}
 
-        for temp_scraper in self.scrapers:
-            scraper_regex = temp_scraper.get_regex(values=values)
-            if isinstance(scraper_regex, list):
-                if any(re.match(regex, url) for regex in scraper_regex):
-                    return temp_scraper
+        for scraper in self.scrapers:
+            regexs = scraper.get_regex(values=values)
+            if any(re.match(regex, url) for regex in regexs):
+                return scraper
 
-            elif re.match(scraper_regex, url):
-                return temp_scraper
         return None
 
     def run_scraper(self, url, product=None, content=None, scraper=None, values=None):
-        if values == None:
+        if values is None:
             values = {}
         # strip outer spaces from the url
         url = url.strip()
         driver = None
         try:
             if scraper is None:
-                # checking if any scraper has the correct regex to scrape the given url
                 scraper = self.get_scraper(url, values)
 
             # if no scraper has been found, exit
@@ -61,10 +62,7 @@ class Controller(object):
             driver = webdriver.PhantomJS()
             driver.get(url)
 
-            # get tye type of scraper
-            scraper_type = scraper.get_type(values=values)
-
-            if scraper_type == Scraper.PRODUCT_DETAIL:
+            if isinstance(scraper, ProductDetailScraper):
                 # find or make a new product
                 # Product.objects.find_or_create not used as we do not want to save right now
                 if not product:
@@ -72,27 +70,26 @@ class Controller(object):
                         product = Product.objects.get(store=self.store, url=url)
                     except Product.DoesNotExist:
                         product = Product(store=self.store, url=url)
+                    last = Product.objects.all().order_by('-old_id')[0]
+                    product.old_id = last.old_id + 1
                 for product in scraper.scrape(driver=driver, url=url, product=product, values=values):
                     print(product.to_json())
-                    product.save()
                     break
-            elif scraper_type == Scraper.PRODUCT_CATEGORY:
+            elif isinstance(scraper, ProductCategoryScraper):
                 for product in scraper.scrape(driver=driver, url=url, values=values):
-                    if scraper.validate(product=product, values=values):
-                        next_scraper = scraper.next_scraper(values=values)
-                        self.run_scraper(url=product.url, product=product, values=values.copy(), scraper=next_scraper)
-            elif scraper_type == Scraper.CONTENT_DETAIL:
+                    next_scraper = scraper.next_scraper(values=values)
+                    self.run_scraper(url=product.url, product=product, values=values.copy(), scraper=next_scraper)
+            elif isinstance(scraper, ContentDetailScraper):
                 # there is no way to retrieve content from loaded url as the url
                 # variable in content is not consistent
                 for content in scraper.scrape(driver=driver, url=url, content=content, values=values):
-                    print(content.to_json())
                     content.save()
+                    print(content.to_json())
                     break
-            elif scraper_type == Scraper.CONTENT_CATEGORY:
+            elif isinstance(scraper, ContentCategoryScraper):
                 for content, content_url in scraper.scrape(driver=driver, url=url, values=values):
-                    if scraper.validate(content=content, values=values):
-                        next_scraper = scraper.next_scraper(values=values)
-                        self.run_scraper(url=content_url, content=content, values=values.copy(), scraper=next_scraper)
+                    next_scraper = scraper.next_scraper(values=values)
+                    self.run_scraper(url=content_url, content=content, values=values.copy(), scraper=next_scraper)
 
         except BaseException:
             # catches all exceptions so that if one detail scraper were to have an error

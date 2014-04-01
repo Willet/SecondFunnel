@@ -16,17 +16,12 @@ class Scraper(object):
     by any function and is not changed by the controller
     """
 
-    PRODUCT_DETAIL = 'product-detail'
-    PRODUCT_CATEGORY = 'product-category'
-    CONTENT_DETAIL = 'content-detail'
-    CONTENT_CATEGORY = 'content-category'
-
     def __init__(self, store):
         self.store = store
 
     def get_regex(self, values, **kwargs):
         """
-        The regex or list of regexs that match the urls for this scraper
+        The list of regexs that match the urls for this scraper
         """
         raise NotImplementedError
 
@@ -36,12 +31,6 @@ class Scraper(object):
         Returns a condensed url from the passed in url
         """
         return url
-
-    def get_type(self, values, **kwargs):
-        """
-        Returns the type of scraper, all types are defined as constants in the scraper class
-        """
-        raise NotImplementedError
 
     def next_scraper(self, values, **kwargs):
         """
@@ -65,30 +54,38 @@ class Scraper(object):
         regex += r'(?:#.*)?$'
         return regex
 
-    def _process_image(self, url, image=None, product=None):
+    def scrape(self, driver, url, values, **kwargs):
+        """
+        The method used to run the scraper
+        For category scrapers, a store is also added to the arguments
+        For detail scrapers, a product or content object is added to the arguments
+
+        Models must be returned using yield
+
+        If it is a content scraper, the content must be created inside the scraper
+        if the passed in content is None
+        """
+        raise NotImplementedError
+
+
+class ProductScraper(Scraper):
+    def _process_image(self, original_url, product):
         """
         This function uploads the image from the url and adds all necessary data to the image object
 
         If no image object is passed in, it creates a ProductImage as the default image object type
         """
 
-        if image is None and product is None:
-            raise ScraperException('no model or product provided for processing image')
+        try:
+            image = ProductImage.objects.get(original_url=original_url, product=product)
+        except ProductImage.DoesNotExist:
+            image = ProductImage(original_url=original_url, product=product)
+            # TODO: remove old_id
+            last = ProductImage.objects.all().order_by('-old_id')[0]
+            image.old_id = last.old_id + 1
 
-        if image is None:
-            try:
-                image = ProductImage.objects.get(store=self.store, original_url=url, product=product)
-            except ProductImage.DoesNotExist:
-                image = ProductImage(store=self.store, original_url=url, product=product)
-        else:
-            if isinstance(image, Image):
-                image.source_url = url
-            elif isinstance(image, ProductImage):
-                image.original_url = url
-            else:
-                raise ScraperException('unknown image type passed into process image')
-
-        data = process_image(url, create_image_path(self.store.id))
+        print('processing image - ' + original_url)
+        data = process_image(original_url, create_image_path(self.store.id))
         image.url = data.get('url')
         image.file_type = data.get('format')
         image.dominant_color = data.get('dominant_colour')
@@ -98,12 +95,12 @@ class Scraper(object):
 
         if product and not product.default_image:
             product.default_image = image
+            product.save()
 
-        # if image is instance of ProductImage, assume it was created in this function
-        # and print it out, else assume it will be printed elsewhere
-        if isinstance(image, ProductImage):
-            print(image.to_json())
+        print(image.to_json())
+
         return image
+
 
     def _add_to_category(self, product, name=None, url=None):
         """
@@ -132,15 +129,36 @@ class Scraper(object):
 
         return category
 
-    def scrape(self, driver, url, values, **kwargs):
-        """
-        The method used to run the scraper
-        For category scrapers, a store is also added to the arguments
-        For detail scrapers, a product or content object is added to the arguments
 
-        Models must be returned using yield
+class ProductCategoryScraper(ProductScraper):
+    pass
 
-        If it is a content scraper, the content must be created inside the scraper
-        if the passed in content is None
+
+class ProductDetailScraper(ProductScraper):
+    pass
+
+
+class ContentScraper(Scraper):
+    def _process_image(self, source_url, image):
         """
-        raise NotImplementedError
+        This function uploads the image from the url and adds all necessary data to the image object
+
+        If no image object is passed in, it creates a ProductImage as the default image object type
+        """
+
+        print('processing image - ' + source_url)
+        data = process_image(source_url, create_image_path(self.store.id))
+        image.url = data.get('url')
+        image.file_type = data.get('format')
+        image.dominant_color = data.get('dominant_colour')
+        image.source_url = source_url
+
+        return image
+
+
+class ContentCategoryScraper(ContentScraper):
+    pass
+
+
+class ContentDetailScraper(ContentScraper):
+    pass

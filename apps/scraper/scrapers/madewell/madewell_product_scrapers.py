@@ -2,21 +2,18 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 
-from apps.scraper.scrapers.scraper import Scraper
+from apps.scraper.scrapers.scraper import ProductDetailScraper, ProductCategoryScraper
 from apps.assets.models import Product
 
 
-class MadewellProductScraper(Scraper):
-    sku_regex = r'^http://www\.madewell\.com/madewell_category/PRDOVR~(\w*)/\1\.jsp$'
+class MadewellProductScraper(ProductDetailScraper):
+    sku_regex = r'^http://www\.madewell\.com/madewell_category/PRDOVR~(\w+)/\1\.jsp$'
 
     def get_regex(self, **kwargs):
-        return self._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(?:(\w*)/(?:(\w*)/)?)?PRD(?:OVR)?~(\w+)/\3\.jsp')
-
-    def get_type(self,**kwargs):
-        return self.PRODUCT_DETAIL
+        return [self._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(?:(\w+)/(?:(\w+)/)?)?PRD(?:OVR)?~(\w+)/\3\.jsp')]
 
     def parse_url(self, url, values, **kwargs):
-        match = re.match(self.get_regex(), url)
+        match = re.match(self.get_regex()[0], url)
         url = 'http://www.madewell.com/madewell_category/PRDOVR~{0}/{0}.jsp'.format(match.group(3))
         category = match.group(1)
         sub_category = match.group(2)
@@ -45,36 +42,30 @@ class MadewellProductScraper(Scraper):
         if values.get('sub_category', None):
             self._add_to_category(product, values.get('sub_category', None), values.get('sub_category_url'), None)
 
-        images = self._get_images(driver)
+        product.save()
+
+        self._get_images(driver, product)
 
         yield product
 
-    def _get_images(self, driver):
-        images = set()
+    def _get_images(self, driver, product):
         images_data = driver.find_elements_by_xpath('//div[@class="float-left"]/img')
         if images_data:
             for img in images_data:
                 image = img.get_attribute('data-imgurl')
-                images.add(image)
+                self._process_image(image, product)
         else:
             image = driver.find_element_by_class_name('prod-main-img').get_attribute('src')
-            images.add(image)
-
-        for image in images:
-            print image
-
-        return list(images)
+            self._process_image(image, product)
 
 
-class MadewellCategoryScraper(Scraper):
+
+class MadewellCategoryScraper(ProductCategoryScraper):
     def get_regex(self, **kwargs):
-        return self._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(\w*)(?:/(\w*))?\.jsp')
-
-    def get_type(self, **kwargs):
-        return self.PRODUCT_CATEGORY
+        return [self._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(\w+)(?:/(\w+))?\.jsp')]
 
     def parse_url(self, url, values, **kwargs):
-        match = re.match(self.get_regex(), url)
+        match = re.match(self.get_regex()[0], url)
         category = match.group(1)
         sub_category = match.group(2)
         url = 'http://www.madewell.com/madewell_category/' + category
