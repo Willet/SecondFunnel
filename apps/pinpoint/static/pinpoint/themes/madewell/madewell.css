@@ -331,7 +331,7 @@ div.header {
 /* This doesn't affect code that auto hides/shows social buttons */
 .tile .socialButtons {
     position: absolute;
-    bottom: 20px;
+    bottom: 114px;
     right: 0;
     line-height: 21px;
     margin: 0 auto;
