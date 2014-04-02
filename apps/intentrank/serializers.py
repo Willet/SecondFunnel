@@ -54,6 +54,21 @@ class ProductSerializer(RawSerializer):
         return data
 
 
+class ProductImageSerializer(RawSerializer):
+    """This dumps some fields from the image as JSON."""
+    def get_dump_object(self, obj):
+        """This will be the data used to generate the object."""
+        data = {
+            "format": obj.file_type or "jpg",
+            "type": "image",
+            "dominant-color": obj.dominant_color or "transparent",
+            "url": obj.url,
+            "id": obj.id
+         }
+
+        return data
+
+
 class ContentSerializer(RawSerializer):
 
     expand_products = True
