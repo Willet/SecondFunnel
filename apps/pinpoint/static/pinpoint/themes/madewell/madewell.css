@@ -1124,9 +1124,9 @@ div.header {
     }
 
     .shop-the-look .stl-look {
+        overflow-x: auto;
         max-height: 110px;
         text-align: center;
-        overflow-x: scroll;
         overflow-y: hidden;
         white-space: nowrap;
         padding-bottom: 10px;
