@@ -1128,6 +1128,7 @@ div.header {
         text-align: center;
         overflow-x: scroll;
         overflow-y: hidden;
+        white-space: nowrap;
         padding-bottom: 10px;
     }
 
