@@ -27,7 +27,7 @@ def has_image_key(fn):
         url = request.POST.get('url', None)
         fileObj = request.FILES.get('file', None)
 
-        if url is not None and fileObj is not None:
+        if url and fileObj:
             raise Exception("Expected one file, found multiple.")
 
         img = url if url is not None else fileObj
