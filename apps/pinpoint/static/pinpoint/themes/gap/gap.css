@@ -198,7 +198,7 @@ div.header {
 
 #hero-area .overlay {
     position: absolute;
-    right: 4px;
+    right: 5px;
     bottom: 3px;
     text-align: center;
 }
@@ -227,6 +227,12 @@ div.header {
     text-transform: uppercase;
     color: #010e3f;
     text-decoration: underline;
+}
+
+#hero-area .find.white a,
+#hero-area .find.white a:hover,
+#hero-area .find.white a:visited {
+    color: white;
 }
 
 #hero-area .buttons img {
