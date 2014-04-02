@@ -693,16 +693,16 @@
                                 + 'body=' + encodeURIComponent(share);
                         %>
                         <a href='<%= fbLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon.png' />
+                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon{% ifequal campaign.url_slug "dressedup" %}_white{% endifequal %}.png' />
                         </a>
                         <a href='<%= twtLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon.png' />
+                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon{% ifequal campaign.url_slug "dressedup" %}_white{% endifequal %}.png' />
                         </a>
                         <a href='<%= mailLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon.png' />
+                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon{% ifequal campaign.url_slug "dressedup" %}_white{% endifequal %}.png' />
                         </a>
                     </div>
-                    <span class='find'>
+                    <span class='find{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}'>
                         <% if (!App.support.mobile()) { %>
                             <a href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
                         <% } else { %>
