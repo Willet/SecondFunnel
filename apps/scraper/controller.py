@@ -64,7 +64,7 @@ class Controller(object):
 
             # initialize the head-less browser PhantomJS
             print('loading url - ' + url)
-            driver = webdriver.PhantomJS()
+            driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
             driver.get(url)
 
             if isinstance(scraper, ProductDetailScraper):
