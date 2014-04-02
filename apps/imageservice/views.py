@@ -30,7 +30,7 @@ def has_image_key(fn):
         if url and fileObj:
             raise Exception("Expected one file, found multiple.")
 
-        img = url if url is not None else fileObj
+        img = url if url else fileObj
 
         try:
             data = fn(request, img, *args, **kwargs)
