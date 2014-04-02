@@ -23,23 +23,20 @@ def has_image_key(fn):
         Wrapper that calls the view.
         """
         img = None
-        query_keys = ['file', 'url']
 
-        for k in query_keys: # Ensure mutual exclusion in keys
-            if request.POST.get(k, None) is not None:
-                if img is not None:
-                    raise Exception("Expected one file, found multiple.")
-                img = k
+        url = request.POST.get('url', None)
+        fileObj = request.FILES.get('file', None)
 
-        # Determine which sort of image we have
-        if img is None:
-            raise Exception("Expected a file, found nothing.")
+        if url and fileObj:
+            raise Exception("Expected one file, found multiple.")
 
-        img = request.POST.get(img)
+        if not url and not fileObj:
+            raise Exception("Expected one of url or file, found nothing.")
+
+        img = url if url else fileObj
 
         try:
             data = fn(request, img, *args, **kwargs)
-
             return HttpResponse(json.dumps(data), content_type="application/json",
                 status=200)
 
@@ -65,10 +62,10 @@ def create(request):
     @param img: str
     @return: HttpResponse
     """
-    file = request.FILES['file']
+    img = request.FILES['file']
 
     path = settings.MEDIA_URL
-    data = process_image(file)
+    data = process_image(img, path)
 
     return ajax_jsonp({'url': data['url']})
 

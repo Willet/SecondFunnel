@@ -126,6 +126,7 @@ def process_image(source, path='', sizes=None):
         # Need to ensure semaphore is released
         PROCESSING_SEM.release()
         raise e
+
     PROCESSING_SEM.release()
 
     return data
@@ -143,7 +144,6 @@ def process_image_now(source, path, sizes=None):
     if not sizes:
         sizes = []
 
-    # TODO: More sophisticated determination of file object
     if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"
         img = ExtendedImage.open(source)
     elif re.match(r'^https?:', source):
