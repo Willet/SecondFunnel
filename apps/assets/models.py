@@ -299,6 +299,7 @@ class ProductImage(BaseModel):
 
     attributes = JSONField(blank=True, null=True, default={})
 
+    serializer = ir_serializers.ProductImageSerializer
     cg_serializer = cg_serializers.ProductImageSerializer
 
     def image_tag(self):
@@ -308,6 +309,12 @@ class ProductImage(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super(ProductImage, self).__init__(*args, **kwargs)
+
+    def to_json(self):
+        return self.serializer().to_json([self])
+
+    def to_cg_json(self):
+        return self.cg_serializer().to_json([self])
 
 
 class Category(BaseModel):
