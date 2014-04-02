@@ -65,8 +65,8 @@ def campaign_by_slug(request, page_slug):
     except Page.DoesNotExist:
         return HttpResponseNotFound()
 
-    store_id = page.store.old_id
-    return campaign(request, store_id=store_id, page_id=page.old_id)
+    store_id = page.store.id
+    return campaign(request, store_id=store_id, page_id=page.id)
 
 
 def generate_static_campaign(request, store_id, page_id):

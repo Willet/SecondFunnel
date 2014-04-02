@@ -28,7 +28,7 @@ def ir_first(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tile_filter = {'prioritized': True}
 
     if allowed_set:
-        tile_filter.update({'old_id__in': allowed_set})
+        tile_filter.update({'id__in': allowed_set})
 
     prioritized_tiles = list(
         feed.tiles
@@ -51,7 +51,7 @@ def ir_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tile_filter = {}
 
     if allowed_set:
-        tile_filter.update({'old_id__in': allowed_set})
+        tile_filter.update({'id__in': allowed_set})
 
     return list(feed.tiles.filter(**tile_filter).order_by('id')[:-results])
 
@@ -67,11 +67,11 @@ def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tile_filter = {'prioritized': prioritized_set}
 
     if allowed_set:
-        tile_filter.update({'old_id__in': allowed_set})
+        tile_filter.update({'id__in': allowed_set})
 
     tiles = feed.tiles.filter(**tile_filter)
     if exclude_set:
-        tiles = tiles.exclude(old_id__in=exclude_set)
+        tiles = tiles.exclude(id__in=exclude_set)
 
     tiles = (tiles.order_by('created_at')
                   .select_related()
@@ -96,7 +96,7 @@ ir_priority_custom = partial(ir_prioritized, prioritized_set='custom')
 def ir_priority_sorted(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                        prioritized_state=True, exclude_set=None, allowed_set=None):
     """Return prioritized tiles in the feed, ordered by their priority values,
-    except the ones in exclude_set, which is a list of old id integers.
+    except the ones in exclude_set, which is a list of id integers.
     """
 
     if results < 1:
@@ -105,12 +105,12 @@ def ir_priority_sorted(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tile_filter = {'prioritized': prioritized_state}
 
     if allowed_set:
-        tile_filter.update({'old_id__in': allowed_set})
+        tile_filter.update({'id__in': allowed_set})
 
     tiles = feed.tiles.filter(**tile_filter)
 
     if exclude_set:
-        tiles = tiles.exclude(old_id__in=exclude_set)
+        tiles = tiles.exclude(id__in=exclude_set)
 
     tiles = (tiles.order_by('-priority')
                   .select_related()
@@ -133,11 +133,11 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tile_filter = {}
 
     if allowed_set:
-        tile_filter.update({'old_id__in': allowed_set})
+        tile_filter.update({'id__in': allowed_set})
 
     tiles = feed.tiles.filter(**tile_filter)
     if exclude_set:
-        tiles = tiles.exclude(old_id__in=exclude_set)
+        tiles = tiles.exclude(id__in=exclude_set)
 
     tiles = (tiles.select_related()
                   .prefetch_related('content', 'products')
@@ -163,12 +163,12 @@ def ir_created_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tile_filter = {}
 
     if allowed_set:
-        tile_filter.update({'old_id__in': allowed_set})
+        tile_filter.update({'id__in': allowed_set})
 
     tiles = feed.tiles.filter(**tile_filter)
 
     if exclude_set:
-        tiles = tiles.exclude(old_id__in=exclude_set)
+        tiles = tiles.exclude(id__in=exclude_set)
 
     tiles = (tiles.select_related()
                   .prefetch_related('content', 'products')
@@ -203,12 +203,12 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tile_filter = {}
 
     if allowed_set:
-        tile_filter.update({'old_id__in': allowed_set})
+        tile_filter.update({'id__in': allowed_set})
 
     tiles = feed.tiles.filter(**tile_filter)
 
     if exclude_set:
-        tiles = tiles.exclude(old_id__in=exclude_set)
+        tiles = tiles.exclude(id__in=exclude_set)
 
     tiles = (tiles.select_related()
                   .prefetch_related('content', 'products'))

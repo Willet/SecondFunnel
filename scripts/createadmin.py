@@ -11,6 +11,7 @@ if User.objects.count() == 0 and len(sys.argv) >= 4:
     admin.is_staff = True
     admin.save()
 elif len(sys.argv) == 1:  # no args
+    # this is partly useless in because manage.py createsuperuser also does this
     admin = User.objects.create_user("admin", "admin@willetinc.com", "secretpassword")
     admin.is_superuser = True
     admin.is_staff = True

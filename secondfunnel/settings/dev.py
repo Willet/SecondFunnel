@@ -48,6 +48,7 @@ MIDDLEWARE_CLASSES += (
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     # oddly enough, this goes *after* debug_toolbar
     'apps.utils.models.NonHtmlDebugToolbarMiddleware',
+    'apps.utils.models.ShowHandlerMiddleware',
 )
 
 # force show toolbar

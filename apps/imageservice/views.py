@@ -1,5 +1,4 @@
 import json
-import random
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -10,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 from apps.assets.models import ProductImage, Image, Product, Store
+from apps.intentrank.utils import ajax_jsonp
 
 
 def has_image_key(fn):
@@ -45,18 +45,13 @@ def has_image_key(fn):
                 'success': False
             }), content_type="application/json", status=400)
 
-        # This should never hit, if it does, something is clearly very very
-        # wrong.
-        return HttpResponse(status=500)
-
     return wrapped_function
 
 
 @csrf_exempt
 @login_required
 @require_http_methods(["POST"])
-@has_image_key
-def create(request, img):
+def create(request):
     """
     Processes an image and uploads it to the specified MEDIA_URL.
 
@@ -64,10 +59,12 @@ def create(request, img):
     @param img: str
     @return: HttpResponse
     """
+    img = request.FILES['file']
+
     path = settings.MEDIA_URL
     data = process_image(img, path)
 
-    return data
+    return ajax_jsonp({'url': data['url']})
 
 
 @csrf_exempt
@@ -91,11 +88,9 @@ def create_image(request, img, store_id, source):
 
     # Get the last old id to use for this object
     # TODO: This will eventually be phased out
-    last = Image.objects.all().order_by('-old_id')[0]
-    old_id = last.old_id + 1
     image = Image(original_url=request.POST['url'], attributes=data['sizes'],
-        dominant_color=data['dominant-colour'], url=data['url'], store=store,
-        source=source, old_id=old_id, file_type=data['format'])
+        dominant_color=data['dominant-color'], url=data['url'], store=store,
+        source=source, file_type=data['format'])
 
     image.save()
     return image.to_json()
@@ -123,11 +118,9 @@ def create_product_image(request, img, store_id, product_id, source):
 
     # Get the last old id to use for this object
     # TODO: This will eventually be phased out
-    last = ProductImage.objects.all().order_by('-old_id')[0]
-    old_id = last.old_id + 1
     image = ProductImage(product=product, original_url=request.POST['url'],
-        attributes=data['sizes'], dominant_color=data['dominant-colour'],
-        url=data['url'], old_id=old_id, file_type=data['format'])
+        attributes=data['sizes'], dominant_color=data['dominant-color'],
+        url=data['url'], file_type=data['format'])
 
     image.save()
     return image.to_json()

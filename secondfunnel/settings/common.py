@@ -231,7 +231,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # Uncomment the next line for CSRF protection:
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
@@ -273,6 +274,7 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
+    'rest_framework',
     'ajax_forms',
     'compressor',
     'corsheaders',
@@ -287,7 +289,8 @@ INSTALLED_APPS = (
     'apps.static_pages',
     'apps.tracking',
     'apps.utils',
-    'apps.imageservice'
+    'apps.imageservice',
+    'apps.scraper',
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = (
@@ -400,6 +403,8 @@ CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
 
 CELERY_IMPORTS = ('apps.utils.tasks', )
 
+API_LIMIT_PER_PAGE = 20
+
 # only celery workers use this setting.
 # run a celery worker with manage.py.
 CELERYBEAT_SCHEDULE = {
@@ -432,6 +437,8 @@ CELERYBEAT_SCHEDULE = {
 
 STALE_TILE_RETRY_THRESHOLD = 240  # seconds
 IRCONFIG_RETRY_THRESHOLD = 240  # seconds
+
+TASTYPIE_ALLOW_MISSING_SLASH = True  # allow missing trailing slashes
 
 TRACKING_COOKIE_AGE = 60 * 60 * 24 * 30 # seconds: s*m*h*d; 30 days
 TRACKING_COOKIE_DOMAIN = 'px.secondfunnel.com'

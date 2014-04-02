@@ -58,8 +58,11 @@ class Command(BaseCommand):
         if not self.store_id:
             raise CommandError("Not a valid store id for argument 0")
 
+
         self.import_store()
-        if any(s in args for s in ['products', 'content', 'pages']):
+        if('store' in args):
+            return
+        elif any(s in args for s in ['products', 'content', 'pages']):
             if 'products' in args:
                 self.import_products()
             if 'content' in args:
@@ -136,7 +139,8 @@ class Command(BaseCommand):
 
                 product_image_url = product_image.get('url')
                 product_image_original_url = product_image.get('original-url')
-                product_image_dominant_color = product_image.get('dominant-colour')
+                product_image_dominant_color = product_image.get('dominant-color') or \
+                                               product_image.get('dominant-colour')
 
                 product_image_fields.update({'url': product_image_url,
                                              'original_url': product_image_original_url,
@@ -168,6 +172,7 @@ class Command(BaseCommand):
             # if the image has source 'image' (product image), skip
             if content_source == 'image':
                 continue
+
             content_type = content_dict.get('type')
 
             content_name = content_dict.get('name')
@@ -185,7 +190,8 @@ class Command(BaseCommand):
                 content_url = content_dict.get('url')
                 content_original_url = content_dict.get('original-url')
                 content_source_url = content_dict.get('source-url')
-                content_dominant_color = content_dict.get('dominant-colour')
+                content_dominant_color = content_dict.get('dominant-color') or \
+                                         content_dict.get('dominant-colour')
 
                 content_fields.update(
                     {'url': content_url,
