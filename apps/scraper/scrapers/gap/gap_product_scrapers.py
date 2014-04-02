@@ -80,7 +80,5 @@ class GapCategoryScraper(ProductCategoryScraper):
                     product.name = name
                 except Product.DoesNotExist:
                     product = Product(store=self.store, url=url, sku=sku, name=name)
-                    last = Product.objects.all().order_by('-old_id')[0]
-                    product.old_id = last.old_id + 1
                 yield product
             page += 1

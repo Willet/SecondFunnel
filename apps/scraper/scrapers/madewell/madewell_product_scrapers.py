@@ -41,12 +41,12 @@ class MadewellProductScraper(ProductDetailScraper):
 
         product.description = driver.find_element_by_id('prodDtlBody').get_attribute('innerHTML')
 
-        if values.get('category', None):
-            self._add_to_category(product, values.get('category', None), values.get('category_url'), None)
-        if values.get('sub_category', None):
-            self._add_to_category(product, values.get('sub_category', None), values.get('sub_category_url'), None)
-
         product.save()
+
+        if values.get('category', None):
+            self._add_to_category(product, values.get('category', None), values.get('category_url'))
+        if values.get('sub_category', None):
+            self._add_to_category(product, values.get('sub_category', None), values.get('sub_category_url'))
 
         self._get_images(driver, product)
 
@@ -118,7 +118,5 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
                 product = Product.objects.get(store=self.store, url=product_url)
             except Product.DoesNotExist:
                 product = Product(store=self.store, url=product_url)
-                last = Product.objects.all().order_by('-old_id')[0]
-                product.old_id = last.old_id + 1
 
             yield product
