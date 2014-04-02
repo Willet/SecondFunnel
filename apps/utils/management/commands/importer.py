@@ -139,7 +139,8 @@ class Command(BaseCommand):
 
                 product_image_url = product_image.get('url')
                 product_image_original_url = product_image.get('original-url')
-                product_image_dominant_color = product_image.get('dominant-colour')
+                product_image_dominant_color = product_image.get('dominant-color') or \
+                                               product_image.get('dominant-colour')
 
                 product_image_fields.update({'url': product_image_url,
                                              'original_url': product_image_original_url,
@@ -189,7 +190,8 @@ class Command(BaseCommand):
                 content_url = content_dict.get('url')
                 content_original_url = content_dict.get('original-url')
                 content_source_url = content_dict.get('source-url')
-                content_dominant_color = content_dict.get('dominant-colour')
+                content_dominant_color = content_dict.get('dominant-color') or \
+                                         content_dict.get('dominant-colour')
 
                 content_fields.update(
                     {'url': content_url,

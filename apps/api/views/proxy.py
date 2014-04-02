@@ -6,10 +6,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import (HttpResponse, HttpResponseBadRequest)
 from django.conf import settings
 
-from apps.api.decorators import check_login, append_headers, request_methods
+from apps.api.decorators import request_methods, append_headers, check_login
 
 
 # login_required decorator?
+from secondfunnel.errors import deprecated
+
+
 @never_cache
 @csrf_exempt
 @request_methods('GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH')
@@ -170,30 +173,6 @@ def tile_request(url, method='POST', data=None):
 @check_login
 @never_cache
 @csrf_exempt
+@deprecated
 def proxy_view(request, path):
-    """Nick is not a security expert.
-
-    He does, however, recommend we read up security policy to see if using
-    CORS is sufficient to prevent against CSRF, because he is having a hard
-    time handling that...
-    """
-
-    target_url = settings.CONTENTGRAPH_BASE_URL
-
-    url = '%s/%s' % (target_url, path)
-    if request.META.get('QUERY_STRING', False):
-        url += '?' + request.META['QUERY_STRING']
-
-    h = httplib2.Http()
-    response, content = h.request(
-        url,
-        method=request.method,
-        body=request.body or None,
-        headers=request.NEW_HEADERS
-    )
-
-    return HttpResponse(
-        content=content,
-        status=int(response['status']),
-        content_type=response['content-type']
-    )
+    raise NotImplementedError("{0} is no longer.".format(path))

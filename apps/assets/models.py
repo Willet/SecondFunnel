@@ -1,3 +1,4 @@
+import calendar
 import math
 import datetime
 import pytz
@@ -14,7 +15,8 @@ from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
 
-from apps.intentrank.serializers import *
+import apps.api.serializers as cg_serializers
+import apps.intentrank.serializers as ir_serializers
 from apps.utils import returns_unicode
 
 
@@ -32,7 +34,15 @@ class BaseModel(models.Model, DirtyFieldsMixin):
     # To change this value, use model.save(skip_updated_at=True)
     updated_at = models.DateTimeField()
 
-    serializer = Serializer
+    serializer = Serializer     # @override IntentRank serializer
+    cg_serializer = cg_serializers.RawSerializer  # @override ContentGraph serializer
+
+    # @override
+    _attribute_map = (
+        # (cg attribute name, python attribute name)
+        ('created', 'created_at'),
+        ('last-modified', 'updated_at'),
+    )
 
     class Meta:
         abstract = True
@@ -58,6 +68,32 @@ class BaseModel(models.Model, DirtyFieldsMixin):
             class_name=self.__class__.__name__,
             obj_id=self.pk)
 
+    def _cg_attribute_name_to_python_attribute_name(self, cg_attribute_name):
+        """(method name can be shorter, but something about PEP 20)
+
+        reads the model's key conversion map and returns whichever model
+        attribute name it is that matches the given cg_attribute_name.
+
+        :returns str
+        """
+        for cg_py in self._attribute_map:
+            if cg_py[0] == cg_attribute_name:
+                return cg_py[1]
+        return cg_attribute_name  # not found, assume identical
+
+    def _python_attribute_name_to_cg_attribute_name(self, python_attribute_name):
+        """(method name can be shorter, but something about PEP 20)
+
+        reads the model's key conversion map and returns whichever model
+        attribute name it is that matches the given python_attribute_name.
+
+        :returns str
+        """
+        for cg_py in reversed(self._attribute_map):
+            if cg_py[1] == python_attribute_name:
+                return cg_py[0]
+        return python_attribute_name  # not found, assume identical
+
     def days_since_creation(self):
         return (timezone.now() - self.created_at).days
 
@@ -67,11 +103,11 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         a model based on current state. Arguments are the same as the former.
 
         Examples:
-        >>> Store.update_or_create(id=2, defaults={"old_id": 3})
+        >>> Store.update_or_create(id=2, defaults={"id": 3})
         (<Store: Store object>, True, False)  # created
-        >>> Store.update_or_create(id=2, defaults={"old_id": 3})
+        >>> Store.update_or_create(id=2, defaults={"id": 3})
         (<Store: Store object>, False, False)  # found
-        >>> Store.update_or_create(id=2, old_id=4)
+        >>> Store.update_or_create(id=2, id=4)
         (<Store: Store object>, False, True)  # updated
 
         :raises <AllSortsOfException>s, depending on input
@@ -119,6 +155,40 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         if hasattr(self, 'attributes'):
             return self.attributes.get(key, default=default)
 
+    def update(self, other=None, **kwargs):
+        """This is not <dict>.update().
+
+        Setting attributes of non-model fields does not raise exceptions..
+
+        :param {dict} other    overwrites matching attributes in self.
+        :param {dict} kwargs   only if other is not supplied, use kwargs
+                               as other.
+
+        :returns self (<dict>.update() does not return anything)
+        """
+        if not other:
+            other = kwargs
+
+        if not other:
+            return self
+
+        for key in other:
+            if key == 'created':
+                self.created_at = datetime.datetime.fromtimestamp(
+                    int(other[key]) / 1000)
+            elif key in ['last-modified', 'modified']:
+                self.updated_at = datetime.datetime.fromtimestamp(
+                    int(other[key]) / 1000)
+            else:
+                setattr(self,
+                        self._cg_attribute_name_to_python_attribute_name(key),
+                        other[key])
+            print "updated {0}.{1} to {2}".format(
+                self, self._cg_attribute_name_to_python_attribute_name(key),
+                other[key])
+
+        return self
+
     def save(self, *args, **kwargs):
         # http://stackoverflow.com/a/7502498/1558430
         # allows modification of a last-modified timestamp
@@ -133,10 +203,21 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         """default method for all models to have a json representation."""
         return self.serializer().serialize(iter([self]))
 
+    def to_cg_json(self):
+        """serialize into CG model. This is an instance shorthand."""
+        return self.cg_serializer.dump(self)
+
+    @property
+    def cg_created_at(self):
+        """(readonly) representation of the content graph timestamp"""
+        return unicode(calendar.timegm(self.created_at.utctimetuple()) * 1000)
+
+    @property
+    def cg_updated_at(self):
+        """(readonly) representation of the content graph timestamp"""
+        return unicode(calendar.timegm(self.updated_at.utctimetuple()) * 1000)
 
 class Store(BaseModel):
-    old_id = models.IntegerField(unique=True)
-
     staff = models.ManyToManyField(User, related_name='stores')
 
     name = models.CharField(max_length=1024)
@@ -147,6 +228,8 @@ class Store(BaseModel):
 
     public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com",
                                       blank=True, null=True)
+
+    cg_serializer = cg_serializers.StoreSerializer
 
     @classmethod
     def from_json(cls, json_data):
@@ -162,8 +245,6 @@ class Store(BaseModel):
 
 
 class Product(BaseModel):
-    old_id = models.IntegerField(unique=True)
-
     store = models.ForeignKey(Store)
 
     name = models.CharField(max_length=1024)
@@ -172,6 +253,7 @@ class Product(BaseModel):
     url = models.TextField()
     sku = models.CharField(max_length=255)
     price = models.CharField(max_length=16)  # DEFER: could make more sense to be an integer (# of cents)
+                                             # ... or, maybe a composite field with currency too
 
     default_image = models.ForeignKey('ProductImage', related_name='default_image',
                                       blank=True, null=True)
@@ -180,20 +262,30 @@ class Product(BaseModel):
 
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
+    # currently known used attrs:
+    # - available
+    # - product_set
     attributes = JSONField(blank=True, null=True, default={})
 
-    serializer = ProductSerializer
+    serializer = ir_serializers.ProductSerializer
+    cg_serializer = cg_serializers.ProductSerializer
+
+    def __init__(self, *args, **kwargs):
+        super(Product, self).__init__(*args, **kwargs)
+        if not self.attributes:
+            self.attributes = {}
 
     def to_json(self):
         return self.serializer().to_json([self])
+
+    def to_cg_json(self):
+        return self.cg_serializer().to_json([self])
 
 
 class ProductImage(BaseModel):
     """An Image-like model class that is explicitly an image depicting
     a product, rather than any other kind.
     """
-    old_id = models.IntegerField(unique=True)
-
     product = models.ForeignKey(Product, related_name="product_images")
 
     url = models.TextField()  # store/.../.jpg
@@ -207,6 +299,8 @@ class ProductImage(BaseModel):
 
     attributes = JSONField(blank=True, null=True, default={})
 
+    cg_serializer = cg_serializers.ProductImageSerializer
+
     def image_tag(self):
         return u'<img src="%s" style="width: 400px;"/>' % self.url
 
@@ -214,18 +308,6 @@ class ProductImage(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super(ProductImage, self).__init__(*args, **kwargs)
-
-    def to_json(self):
-        dct = {
-            "format": self.file_type or "jpg",
-            "type": "image",
-            "dominant-color": self.dominant_color or "transparent",
-            # TODO: deprecate "colour" to match up with CSS attr names
-            "dominant-colour": self.dominant_color or "transparent",
-            "url": self.url,
-            "id": str(self.old_id or self.id)
-        }
-        return dct
 
 
 class Category(BaseModel):
@@ -247,8 +329,6 @@ class Content(BaseModel):
     # Content.objects object for deserializing Content models as subclasses
     objects = InheritanceManager()
 
-    old_id = models.IntegerField(unique=True)
-
     store = models.ForeignKey(Store, related_name='content')
 
     url = models.TextField()  # 2f.com/.jpg
@@ -268,31 +348,52 @@ class Content(BaseModel):
                               default="approved",
                               validators=[_validate_status])
 
-    serializer = ContentSerializer
+    _attribute_map = BaseModel._attribute_map + (
+        # (cg attribute name, python attribute name)
+        ('tagged-products', 'tagged_products'),
+        ('page-prioritized', 'deprecated_attribute?'),
+    )
+
+    serializer = ir_serializers.ContentSerializer
+    cg_serializer = cg_serializers.ContentSerializer
 
     def image_tag(self):
         return u'<img src="%s" style="width: 400px;"/>' % self.url
 
     image_tag.allow_tags = True
 
-    def __unicode__(self):
-        return 'Content (#%s), old_id: %s' % (self.id, self.old_id)
-
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)
         if not self.attributes:
             self.attributes = {}
+
+    def update(self, other=None, **kwargs):
+        """Additional operations for converting tagged-products: [123] into
+        actual tagged_products: [<Product>]s
+        """
+        if not other:
+            other = kwargs
+
+        if not other:
+            return self
+
+        if 'tagged-products' in other:
+            other['tagged-products'] = [Product.objects.get(id=x) for x in
+                                        other['tagged-products']]
+
+        return super(Content, self).update(other=other)
 
     def to_json(self):
         """subclasses may implement their own to_json methods that
         :returns dict objects.
         """
         dct = {
-            'store-id': str(self.store.old_id if self.store else 0),
+            'store-id': str(self.store.id if self.store else 0),
             'source': self.source,
             'source_url': self.source_url,
             'url': self.url or self.source_url,
             'author': self.author,
+            'status': self.status,
         }
 
         if self.tagged_products.count() > 0:
@@ -322,7 +423,8 @@ class Image(Content):
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
-    serializer = ContentTileSerializer
+    serializer = ir_serializers.ContentTileSerializer
+    cg_serializer = cg_serializers.ImageSerializer
 
     def to_json(self, expand_products=True):
         """Only Images (not ProductImages) can have related-products."""
@@ -330,16 +432,16 @@ class Image(Content):
             "format": self.file_type,
             "type": "image",
             "dominant-color": self.dominant_color or "transparent",
-            # TODO: deprecate "colour" to match up with CSS attr names
-            "dominant-colour": self.dominant_color or "transparent",
             "url": self.url or self.source_url,
-            "id": str(self.old_id or self.id)
+            "id": str(self.id),
+            "sizes": self.attributes.get('sizes', default_master_size),
+            'status': self.status,
         }
         if expand_products:
             # turn django's string list of strings into a real list of ids
             dct["related-products"] = [x.to_json() for x in self.tagged_products.all()]
         else:
-            dct["related-products"] = [x.old_id for x in self.tagged_products.all()]
+            dct["related-products"] = self.tagged_products.values_list('id', flat=True)
 
         return dct
 
@@ -358,10 +460,11 @@ class Video(Content):
     # e.g. oHg5SJYRHA0
     original_id = models.CharField(max_length=255, blank=True, null=True)
 
-    serializer = VideoSerializer
+    serializer = ir_serializers.VideoSerializer
+    cg_serializer = cg_serializers.VideoSerializer
 
-    def to_json(self):
-        return self.serializer().to_json([self])
+    def to_json(self, expand_products=True):
+        return self.serializer(expand_products=expand_products).to_json([self])
 
 
 class Review(Content):
@@ -424,16 +527,24 @@ class Feed(BaseModel):
 
     # and other representation specific of the Feed itself
     def to_json(self):
-        serializer = FeedSerializer(self.tiles.all())
+        serializer = ir_serializers.FeedSerializer(self.tiles.all())
         return serializer.serialize()
 
+    def find_tiles(self, content=None, product=None):
+        """:returns list of tiles with this product/content (if given)"""
+        if content:
+            tiles = self.tiles.filter(content__id=content.id)
+        else:
+            tiles = self.tiles.all()
+
+        if not product:
+            return tiles
+        return tiles.filter(products__id=product.id)
 
 class Page(BaseModel):
     store = models.ForeignKey(Store, related_name='pages')
 
     name = models.CharField(max_length=256)  # e.g. Lived In
-    old_id = models.IntegerField(unique=True)
-
     theme = models.ForeignKey(Theme, related_name='page', blank=True, null=True)
 
     # attributes named differently
@@ -442,7 +553,7 @@ class Page(BaseModel):
     theme_settings_fields = [
         ('template', 'hero'), ('image_tile_wide', 0.5), ('hide_navigation_bar', ''),
         ('results_threshold', {}), ('desktop_hero_image', ''), ('mobile_hero_image', ''),
-        ('intentrank_id', old_id), ('column_width', 240), ('social_buttons', ''),
+        ('intentrank_id', ''), ('column_width', 240), ('social_buttons', ''),
         ('enable_tracking', "true"), ('ir_base_url', ''), ('ga_account_number', ''),
         ('conditional_social_buttons', {}),
     ]
@@ -454,6 +565,20 @@ class Page(BaseModel):
     last_published_at = models.DateTimeField(blank=True, null=True)
 
     feed = models.ForeignKey(Feed, related_name='page')
+
+    _attribute_map = BaseModel._attribute_map + (
+        # (cg attribute name, python attribute name)
+        ('social-buttons', 'social_buttons'),
+        ('column-width', 'column_width'),
+        ('intentrank-id', 'intentrank_id'),
+        ('heroImageDesktop', 'desktop_hero_image'),
+        ('heroImageMobile', 'mobile_hero_image'),
+        ('legalCopy', 'legal_copy'),  # ordered for cg -> sf
+        ('description', 'description'),  # ordered for cg -> sf
+        ('shareText', 'description'),  # ordered for cg <- sf
+    )
+
+    cg_serializer = cg_serializers.PageSerializer
 
     def __init__(self, *args, **kwargs):
         super(Page, self).__init__(*args, **kwargs)
@@ -499,6 +624,99 @@ class Page(BaseModel):
             setattr(instance, field, json_data[field])
         return instance
 
+    def add_product(self, product, prioritized=False, priority=0):
+        """Adds (if not present) a tile with this product to the feed that
+        belongs to this page.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        TODO: can be faster
+
+        :raises AttributeError
+        """
+        product_tiles = [tile for tile in self.feed.tiles.all()
+                         if tile.products.count() > 0]
+        for tile in product_tiles:
+            if product in tile.products.all():
+                print "product {0} is already in the feed.".format(product.id)
+                break
+        else:  # there weren't any tiles with this product in them
+            new_product_tile = Tile(feed=self.feed,
+                                    template='product',
+                                    prioritized=prioritized,
+                                    priority=priority)
+            new_product_tile.save()
+            new_product_tile.products.add(product)
+            print "product {0} added to the feed.".format(product.id)
+            self.feed.tiles.add(new_product_tile)
+
+    def add_content(self, content, prioritized=False, priority=0):
+        """Adds (if not present) a tile with this content to the feed that
+        belongs to this page.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        TODO: can be faster
+
+        :raises AttributeError
+        """
+        content_tiles = [tile for tile in self.feed.tiles.all()
+                         if tile.content.count() > 0]
+        for tile in content_tiles:
+            if content in tile.content.all():
+                break
+        else:  # there weren't any tiles with this content in them
+            new_content_tile = Tile(feed=self.feed,
+                                    template='content',
+                                    prioritized=prioritized,
+                                    priority=priority)
+            new_content_tile.save()
+            new_content_tile.content.add(content)
+            print "content {0} added to the feed.".format(content.id)
+            self.feed.tiles.add(new_content_tile)
+
+    def delete_product(self, product):
+        """Deletes (if present) tiles with this product from the feed that
+        belongs to this page.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        TODO: can be faster
+
+        :raises AttributeError
+        """
+        product_tiles = self.feed.tiles.filter(products__id=product.id)
+        for tile in product_tiles:
+            # if you're going to do this, you'll notice that
+            # remove() isn't a thing like add() is
+            # self.feed.tiles.remove(tile)
+            self.feed.tiles = [t for t in self.feed.tiles.all()
+                               if not t in product_tiles]
+            tile.delete()
+
+    def delete_content(self, content):
+        """Deletes (if present) tiles with this content from the feed that
+        belongs to this page.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        TODO: can be faster
+
+        :raises AttributeError
+        """
+        content_tiles = self.feed.tiles.filter(content__id=content.id)
+        for tile in content_tiles:
+            # if you're going to do this, you'll notice that
+            # remove() isn't a thing like add() is
+            # self.feed.tiles.remove(tile)
+            self.feed.tiles = [t for t in self.feed.tiles.all()
+                               if not t in content_tiles]
+            tile.delete()
+
 
 class Tile(BaseModel):
     def _validate_prioritized(status):
@@ -509,8 +727,6 @@ class Tile(BaseModel):
             raise ValidationError("{0} is not an allowed status; "
                                   "choices are {1}".format(status, allowed))
         return status
-
-    old_id = models.IntegerField(unique=True, db_index=True)
 
     # <Feed>.tiles.all() gives you... all its tiles
     feed = models.ForeignKey(Feed, related_name='tiles')
@@ -558,12 +774,16 @@ class Tile(BaseModel):
     # the lower the ratio, the bigger the range between low and high log_scores
     ratio = 1.5
 
+    cg_serializer = cg_serializers.TileSerializer
+
     def full_clean(self, exclude=None, validate_unique=True):
+        # south turns False into string 'false', which isn't what we wanted.
+        # this turns 'true' and 'false' into appropriate priority flags.
         if type(self.prioritized) == bool:
-            self.prioritized = 1 if self.prioritized else 0
+            self.prioritized = 'pageview' if self.prioritized else ''
         if self.prioritized == 'true':
             self.prioritized = 'pageview'
-        if self.prioritized == 'false':
+        if self.prioritized in [0, '0', 'false']:
             self.prioritized = ''
         return super(Tile, self).full_clean(exclude=exclude,
                                             validate_unique=validate_unique)
@@ -615,18 +835,24 @@ class Tile(BaseModel):
         # determine what kind of tile this is
         serializer = None
         if self.template == 'image':
-            serializer = ContentTileSerializer()
+            serializer = ir_serializers.ContentTileSerializer()
         else:
             try:
                 if not serializer:
-                    serializer = globals()[self.template.capitalize() + 'TileSerializer']()
+                    serializer = getattr(ir_serializers, self.template.capitalize() + 'TileSerializer')()
             except:  # cannot find e.g. 'Youtube'TileSerializer -- use default
-                serializer = TileSerializer()
+                serializer = ir_serializers.TileSerializer()
 
         return serializer.to_json([self])
 
     def get_related(self):
         return TileRelation.get_related_tiles([self])
+
+    @property
+    def tile_config(self):
+        """(read-only) representation of the tile as its content graph
+        tileconfig."""
+        return cg_serializers.TileConfigSerializer().to_json([self])
 
 
 class TileRelation(BaseModel):

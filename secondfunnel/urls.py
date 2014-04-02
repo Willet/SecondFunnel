@@ -31,7 +31,6 @@ urlpatterns = patterns('',
     # APIs
     url(r'^contentgraph/', include('apps.contentgraph.urls')),
     url(r'^static_pages/', include('apps.static_pages.urls')),
-    url(r'^api/assets/', include('apps.assets.api_urls')),
     url(r'^graph/', include('apps.api.urls')),
 
     # WEBSITE

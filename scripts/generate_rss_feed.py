@@ -87,7 +87,7 @@ def tile_to_XML(url, tile, current_time):
         return None
 
     link = SubElement(item, 'link')
-    link.text = url + '#' + str(tile.old_id)
+    link.text = url + '#' + str(tile.id)
 
     m = hashlib.md5()
     m.update(str(tile.id))
@@ -186,4 +186,3 @@ if __name__ == "__main__":
     page = Page.objects.get(id=args.page_id)
 
     print main(page)
-    

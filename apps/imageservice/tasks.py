@@ -11,6 +11,7 @@ import cloudinary.uploader
 from threading import Semaphore
 from django.conf import settings
 from PIL import ImageFilter, Image
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from apps.pinpoint.utils import read_remote_file
 from apps.imageservice.utils import create_image, IMAGE_SIZES
@@ -95,7 +96,7 @@ def upload_to_s3(path, folder, img, size):
 
     file_format = "jpg" if img.format is None else img.format
     filename = "{0}.{1}".format(size.name, file_format)
-    bucket = os.path.join(IMAGE_SERVICE_BUCKET, path, folder)
+    bucket = os.path.join(settings.IMAGE_SERVICE_BUCKET, path, folder)
 
     if not upload_to_bucket(bucket_name=bucket,
         filename=filename, content=output,
@@ -106,15 +107,18 @@ def upload_to_s3(path, folder, img, size):
     return os.path.join(bucket, filename)
 
 
-def process_image(source, path, sizes=[]):
+def process_image(source, path='', sizes=None):
     """
     Acquires a lock in order to process the image.
 
     @param source: The source file
     @param path: The path to save the object to
-    @param sizes: List of sizes to create
+    @param sizes: List of sizes to create (unused)
     @return: object
     """
+    if not sizes:
+        sizes = []
+
     PROCESSING_SEM.acquire()
     try:
         data = process_image_now(source, path)
@@ -127,7 +131,7 @@ def process_image(source, path, sizes=[]):
     return data
 
 
-def process_image_now(source, path, sizes=[]):
+def process_image_now(source, path, sizes=None):
     """
     Delegates to resize to create the necessary sizes.
 
@@ -136,8 +140,13 @@ def process_image_now(source, path, sizes=[]):
     @param sizes: List of sizes to create
     @return: object
     """
+    if not sizes:
+        sizes = []
+
     # TODO: More sophisticated determination of file object
-    if re.match(r'^https?:', source):
+    if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"
+        img = ExtendedImage.open(source)
+    elif re.match(r'^https?:', source):
         img, _ = read_remote_file(source)
         img = create_image(img)
     else:
@@ -178,7 +187,7 @@ def process_image_now(source, path, sizes=[]):
     data.update({
         'url': master_url,
         'format': img.format.lower().replace("jpeg", "jpg"),
-        'dominant-colour': img.dominant_color
+        'dominant-color': img.dominant_color
     })
 
     return data
