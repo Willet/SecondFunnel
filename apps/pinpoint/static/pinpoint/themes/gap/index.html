@@ -22,23 +22,19 @@
             }
         });
         window.OPTIMIZER_TESTS.push({
-            index: 7, // Null A/B Test in Analytics
-            test: 'custom',
-            custom: function (template) {
-                return template || _.sample(["A", "B"]);
-            }
-        });
-        window.OPTIMIZER_TESTS.push({
             index: 8,
             test: 'custom',
             device: 'mobile',
+            disabled: true,
             custom: function (template) {
                 template = template || _.sample(["A", "B"]);
                 App.options.tests = App.options.tests || {};
                 App.options.tests[2] = template;
                 if (template == "B") {
                     $('head').ready(function () {
+                        App.options.minColumns = 2;
                         $('head').append($('#such-cards-much-wow').html());
+                        $($('#two-column-css').html()).appendTo($('head'));
                     });
                 }
                 return template;
@@ -101,7 +97,6 @@
                     width: 50% !important;
                 }
                 .tile.wide {
-                    width: 100% !important;
                     min-height: inherit !important;
                 }
                 .visible-xs.jumbotron {
