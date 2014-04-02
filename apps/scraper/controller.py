@@ -75,8 +75,6 @@ class Controller(object):
                         product = Product.objects.get(store=self.store, url=url)
                     except Product.DoesNotExist:
                         product = Product(store=self.store, url=url)
-                    last = Product.objects.all().order_by('-old_id')[0]
-                    product.old_id = last.old_id + 1
                 for product in scraper.scrape(driver=driver, url=url, product=product, values=values):
                     print(product.to_json())
                     break

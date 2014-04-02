@@ -32,8 +32,6 @@ class StyldByFilterScraper(ContentCategoryScraper):
                     image = Image.objects.get(store=self.store, original_url=original_url, url=image_url)
                 except Image.DoesNotExist:
                     image = Image(store=self.store, original_url=original_url, url=image_url)
-                    last = Image.objects.all().order_by('-old_id')[0]
-                    image.old_id = last.old_id + 1
                 image.name = name
                 image.description = description
                 image.author = author

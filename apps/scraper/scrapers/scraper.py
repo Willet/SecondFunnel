@@ -80,9 +80,6 @@ class ProductScraper(Scraper):
             image = ProductImage.objects.get(original_url=original_url, product=product)
         except ProductImage.DoesNotExist:
             image = ProductImage(original_url=original_url, product=product)
-            # TODO: remove old_id
-            last = ProductImage.objects.all().order_by('-old_id')[0]
-            image.old_id = last.old_id + 1
 
         print('processing image - ' + original_url)
         data = process_image(original_url, create_image_path(self.store.id))
