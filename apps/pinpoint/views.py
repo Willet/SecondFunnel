@@ -12,7 +12,7 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_headers
 
 from apps.assets.models import Page
-from apps.pinpoint.utils import render_campaign
+from apps.pinpoint.utils import render_campaign, get_store_from_request
 
 
 @login_required
@@ -51,14 +51,22 @@ def campaign_by_slug(request, page_slug):
     If two pages have the same name (which was possible in CG), then django
     decides which page to render.
     """
-    #page = get_object_or_404(Page, url_slug=page_slug)  # why doesn't this work?
+    page_kwargs = {
+        'url_slug': page_slug
+    }
+
+    store = get_store_from_request(request)
+
+    if store:
+        page_kwargs['store'] = store
+
     try:
-        page = Page.objects.get(url_slug=page_slug)
+        page = Page.objects.get(**page_kwargs)
     except Page.DoesNotExist:
         return HttpResponseNotFound()
 
-    store_id = page.store.old_id
-    return campaign(request, store_id=store_id, page_id=page.old_id)
+    store_id = page.store.id
+    return campaign(request, store_id=store_id, page_id=page.id)
 
 
 def generate_static_campaign(request, store_id, page_id):

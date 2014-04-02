@@ -1,5 +1,7 @@
 # python.net/~goodger/projects/pycon/2007/idiomatic/handout.html#importing
 from functools import wraps
+import itertools
+
 from functional import async, check_keys_exist, memoize, noop, proxy, where
 
 
@@ -19,3 +21,11 @@ def returns_unicode(fn, encoding='utf-8'):
             return rtn
 
     return unicode_func
+
+
+def flatten(list_of_lists):
+    """
+    Takes an iterable of iterables, returns a single iterable containing all items
+    """
+    # todo: test me
+    return itertools.chain(*list_of_lists)

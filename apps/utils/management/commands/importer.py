@@ -58,8 +58,11 @@ class Command(BaseCommand):
         if not self.store_id:
             raise CommandError("Not a valid store id for argument 0")
 
+
         self.import_store()
-        if any(s in args for s in ['products', 'content', 'pages']):
+        if('store' in args):
+            return
+        elif any(s in args for s in ['products', 'content', 'pages']):
             if 'products' in args:
                 self.import_products()
             if 'content' in args:
@@ -136,7 +139,8 @@ class Command(BaseCommand):
 
                 product_image_url = product_image.get('url')
                 product_image_original_url = product_image.get('original-url')
-                product_image_dominant_color = product_image.get('dominant-colour')
+                product_image_dominant_color = product_image.get('dominant-color') or \
+                                               product_image.get('dominant-colour')
 
                 product_image_fields.update({'url': product_image_url,
                                              'original_url': product_image_original_url,
@@ -168,14 +172,17 @@ class Command(BaseCommand):
             # if the image has source 'image' (product image), skip
             if content_source == 'image':
                 continue
+
             content_type = content_dict.get('type')
 
             content_name = content_dict.get('name')
+            content_status = content_dict.get('status', 'approved')
             content_description = content_dict.get('description')
 
             content_fields = {'store': self.store,
                               'source': content_source,
                               'name': content_name,
+                              'status': content_status,
                               'description': content_description}
 
             if content_type == 'image':
@@ -183,7 +190,8 @@ class Command(BaseCommand):
                 content_url = content_dict.get('url')
                 content_original_url = content_dict.get('original-url')
                 content_source_url = content_dict.get('source-url')
-                content_dominant_color = content_dict.get('dominant-colour')
+                content_dominant_color = content_dict.get('dominant-color') or \
+                                         content_dict.get('dominant-colour')
 
                 content_fields.update(
                     {'url': content_url,
@@ -235,7 +243,7 @@ class Command(BaseCommand):
         store_id = store_id or self.store_id
         for page_dict in get_contentgraph_data(self._store_url() + 'page/'):
             page_old_id = page_dict.get('id')
-            if not page_old_id in ['53', '91', '95', '98']:
+            if not page_old_id in ['53', '91', '95', '98', '102']:
                 continue
             page_name = page_dict.get('name')
             page_legal_copy = page_dict.get('legalCopy')
@@ -258,7 +266,9 @@ class Command(BaseCommand):
                 feed = Feed.objects.get(id=page.feed_id)
             except Page.DoesNotExist:
                 feed = Feed()
-                feed.save()
+
+            feed.feed_algorithm = page_dict.get('ir-algorithm', 'generic')
+            feed.save()
 
             page_theme_fields = {}
 
@@ -295,12 +305,14 @@ class Command(BaseCommand):
         for tile_dict in get_contentgraph_data('page/' + str(page_id) + '/tile/'):
             tile_old_id = tile_dict.get('id')
             tile_template = tile_dict.get('template')
-            tile_prioritized = tile_dict.get('prioritized') in ['true', 'True']
+            tile_prioritized = "pageview" if tile_dict.get('prioritized') in ['true', 'True'] else ""
+            tile_priority = tile_dict.get('priority', 0)
             tile_created_at = tile_dict.get('created')
             tile_updated_at = tile_dict.get('last-modified')
 
             tile_fields = {'feed': feed, 'template': tile_template,
-                           'prioritized': tile_prioritized}
+                           'prioritized': tile_prioritized,
+                           'priority': tile_priority, }
 
             # read redirect-url (among others) for banner tiles' stringified json
             if tile_template == "banner":

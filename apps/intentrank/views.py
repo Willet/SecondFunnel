@@ -8,9 +8,9 @@ from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import request_methods
-from apps.assets.models import Page, Tile, TileRelation
+from apps.assets.models import Page, Tile, TileRelation, Category
 from apps.intentrank.controllers import IntentRank
-from apps.intentrank.algorithms import ir_generic, ir_all, ir_popular
+from apps.intentrank.algorithms import ir_generic, ir_all, ir_popular, ir_ordered
 from apps.intentrank.utils import ajax_jsonp
 
 
@@ -50,12 +50,15 @@ def get_results_view(request, page_id):
         else:
             request.session['shown'] += exclude_set
         request.session['shown'] = list(set(request.session['shown']))  # uniq
-        request.session['shown'] = request.session['shown'][:TRACK_SHOWN_TILES_NUM]
+
+        if not request.GET.get('algorithm', None) in ['ordered', 'sorted', 'custom']:
+            # ordered algo keeps track of full list for zero repeats
+            request.session['shown'] = request.session['shown'][:TRACK_SHOWN_TILES_NUM]
 
     # otherwise, not a proxy
     try:
         page = (Page.objects
-                    .filter(old_id=page_id)
+                    .filter(id=page_id)
                     .select_related('feed__tiles',
                                     'feed__tiles__products',
                                     'feed__tiles__content')
@@ -72,18 +75,23 @@ def get_results_view(request, page_id):
     related = request.GET.get('related', '')
     if related:
         ir = IntentRank(feed=feed)
-        resp = ajax_jsonp(ir.transform(TileRelation.get_related_tiles([Tile.objects.get(old_id=related)])[:100]))
+        resp = ajax_jsonp(ir.transform(TileRelation.get_related_tiles([Tile.objects.get(id=related)])[:100]))
         print "{0} ended".format(this_thread.name)
         return resp
 
     if request.GET.get('algorithm', None) == 'popular':
         algorithm = ir_popular
+        results = 100  # temporary default to check if popularity is working
+    elif request.GET.get('algorithm', None) in ['ordered', 'sorted']:
+        algorithm = ir_ordered
     else:
         algorithm = ir_generic
 
+    category = request.GET.get('category', None)
+
     resp = ajax_jsonp(get_results(feed=feed, results=results,
                                   algorithm=algorithm, request=request,
-                                  exclude_set=exclude_set),
+                                  exclude_set=exclude_set, category=category),
                       callback_name=callback)
 
     print "{0} ended".format(this_thread.name)
@@ -107,7 +115,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     if tile_id:
         try:
             tile = (Tile.objects
-                        .filter(old_id=tile_id)
+                        .filter(id=tile_id)
                         .select_related()
                         .prefetch_related('content', 'products')
                         .get())
@@ -118,7 +126,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
         clicks = request.session.get('clicks', [])
         if tile_id not in clicks:
             for click in clicks:
-                TileRelation.relate(Tile.objects.get(old_id=click), tile)
+                TileRelation.relate(Tile.objects.get(id=click), tile)
             clicks.append(tile_id)
             request.session['clicks'] = clicks
 
@@ -127,7 +135,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     # get all tiles
     try:
         page = (Page.objects
-                    .filter(old_id=page_id)
+                    .filter(id=page_id)
                     .select_related('feed__tiles__products',
                                     'feed__tiles__content')
                     .prefetch_related()
@@ -141,6 +149,26 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
 
     return ajax_jsonp(get_results(feed=feed, request=request, algorithm=ir_all),
                       callback_name=callback)
+
+
+@never_cache
+@csrf_exempt
+@request_methods('GET')
+def get_related_tiles_view(request, page_id, tile_id=None, **kwargs):
+    """Returns a response containing a list of tiles related to the given
+    tile in order of popularity.
+
+    The tile format is the same as the ones from get_tiles_view.
+    """
+    callback = request.GET.get('callback', None)
+
+    # get tile
+    try:
+        tile = Tile.objects.get(id=tile_id)
+    except Tile.DoesNotExist:
+        return HttpResponseNotFound("No tile {0}".format(tile_id))
+
+    return ajax_jsonp(tile.get_related(), callback_name=callback)
 
 
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
@@ -160,8 +188,16 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
     request = kwargs.get('request', None)
-    return ir.transform(algorithm(feed=feed, results=results,
-                                     exclude_set=exclude_set, request=request))
+    category_name = kwargs.get('category', None)
+    if category_name:
+        category = Category.objects.get(name=category_name)
+        allowed_set = [getattr(tile, 'id', getattr(tile, 'old_id'))
+                       for tile in list(Tile.objects.filter(tile__products__in=category.products))]
+    else:
+        allowed_set = None
+    return ir.render(algorithm, feed=feed, results=results,
+                     exclude_set=exclude_set, allowed_set=allowed_set,
+                     request=request)
 
 
 @never_cache
@@ -174,7 +210,7 @@ def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
         page = Page.objects.get(url_slug=page_slug)
     elif page_id:
         feed_link += str(page_id) + '/' + str(feed_name)
-        page = Page.objects.get(old_id=page_id)
+        page = Page.objects.get(id=page_id)
     else:
         raise Http404("Feed not found")
     feed = rss_feed.main(page, feed_name=feed_name, feed_link=feed_link)
@@ -185,11 +221,11 @@ def update_tiles(request, tile_function, **kwargs):
     tile_id = kwargs.get('tile_id', None) or request.GET.get('tile-id', None)
     tile_ids = request.GET.get('tile-ids', None)
     if tile_id:
-        tile = get_object_or_404(Tile, old_id=tile_id)
+        tile = get_object_or_404(Tile, id=tile_id)
         tile_function(tile)
     elif tile_ids:
         tile_ids = tile_ids.split(',')
-        tiles = get_list_or_404(Tile, old_id__in=tile_ids)
+        tiles = get_list_or_404(Tile, id__in=tile_ids)
         for tile in tiles:
             tile_function(tile)
     else:
@@ -202,7 +238,17 @@ def update_tiles(request, tile_function, **kwargs):
 @csrf_exempt
 @request_methods('POST')
 def click_tile(request, **kwargs):
-    return update_tiles(request, tile_function=lambda t: t.add_click(), **kwargs)
+    """Register a click, doing whatever tracking it needs to do."""
+    def click_func(tile):
+        clicks = request.session.get('clicks', [])
+        if tile.id not in clicks:
+            for click in clicks:
+                TileRelation.relate(Tile.objects.get(id=click), tile)
+            clicks.append(tile.id)
+            request.session['clicks'] = clicks
+        tile.add_click()
+
+    return update_tiles(request, tile_function=click_func, **kwargs)
 
 
 @never_cache

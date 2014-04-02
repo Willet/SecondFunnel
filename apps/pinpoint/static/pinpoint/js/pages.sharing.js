@@ -100,6 +100,8 @@ App.module("sharing", function (sharing, App) {
             this.loadSocial(_.bind(this.initSocial, this));
             this.views = [];  // list of button views (used by marionette)
 
+            self.buttonTypes = options.buttonTypes || self.buttonTypes;
+
             _.each(_.compact(self.buttonTypes), function (type) {
                 var count = options.showCount || true,
                     ButtonClass,

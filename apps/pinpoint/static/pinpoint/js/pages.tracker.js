@@ -294,19 +294,19 @@ App.module("tracker", function (tracker, App) {
     };
 
     /**
-     * Records the fact that the campaign has been changed.
+     * Records the fact that the category has been changed.
      *
-     * @param campaignId {Number}   A campaign ID served by this page.
+     * @param category {String}   The category switched to
      * @returns undefined
      */
-    this.changeCampaign = function (campaignId) {
+    this.changeCategory = function (category) {
         setCustomVar({
-            'index': 2,
+            'index': 1,
             'type': 'dimension',
-            'value': campaignId
+            'value': category
         });
 
-        App.vent.trigger('trackerChangeCampaign', campaignId, this);
+        App.vent.trigger('trackerChangeCategory', category, this);
     };
 
     // Generally, we have views handle event tracking on their own.
@@ -341,6 +341,15 @@ App.module("tracker", function (tracker, App) {
 
                 // add click to our database
                 $.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.page.id + "/tile/" + tileId + "/click");
+
+                // Be super explicit about what the hash is
+                // rather than relying on the window
+                //
+                // adb: use '/' instead of '#' because it seems like google analytics will attribute
+                // http://gap.secondfunnel.com/livedin#foo to http://gap.secondfunnel.com/livedin
+                trackPageview('/' + tileId);
+            } else {
+                console.warn('No tile id present for for tile: ' + label);
             }
 
             trackEvent({
@@ -348,10 +357,6 @@ App.module("tracker", function (tracker, App) {
                 'action': 'Preview',
                 'label': label
             });
-
-            // Be super explicit about what the hash is
-            // rather than relying on the window
-            // trackPageview('#' + tileId);
         },
 
         // Content Share
@@ -542,8 +547,17 @@ App.module("tracker", function (tracker, App) {
      */
     this.initialize = function () {
         addItem('create', App.option('gaAccountNumber'), 'auto');
+
+        // Register custom dimensions in-case they weren't already
+        // registered.
+        _.each(App.optimizer.dimensions(),
+            function (obj) {
+                setCustomVar(obj);
+            }
+        );
+
         // Track a pageview, eg like https://developers.google.com/analytics/devguides/collection/analyticsjs/
-        addItem('send', 'pageview', App.optimizer.getCustomDimensions());
+        addItem('send', 'pageview');
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?

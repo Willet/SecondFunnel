@@ -23,7 +23,7 @@ class BaseAdmin(admin.ModelAdmin):
         },
     }
 
-    search_fields = ('pk', )
+    search_fields = ('id', )
 
 
 class BaseNamedAdmin(BaseAdmin):
@@ -50,25 +50,27 @@ class BaseNamedImageAdmin(BaseAdmin):
 
 
 class StoreAdmin(BaseNamedAdmin):
-    list_display = ['old_id'] + BaseNamedAdmin.list_display + ['public_base_url']
-    search_fields = ('pk', 'name',)
+    list_display = BaseNamedAdmin.list_display + ['public_base_url']
+    search_fields = ('id', 'name',)
 
 
 class PageAdmin(BaseAdmin):
-    list_display = ['old_id', 'name', 'url_slug'] + BaseAdmin.list_display
-    search_fields = ('pk', 'old_id', 'name', 'url_slug')
+    list_display = ['name', 'url_slug'] + BaseAdmin.list_display
+    search_fields = ('id', 'name', 'url_slug')
 
 
 class TileAdmin(BaseAdmin):
-    list_display = ['old_id', 'feed', 'template', 'prioritized',
+    list_display = ['feed', 'template', 'prioritized',
                     'click_starting_score', 'click_score',
                     'view_starting_score', 'view_score'] + BaseAdmin.list_display
-    search_fields = ('pk', 'old_id', 'template')
+    search_fields = ('id', 'template')
+    list_filter = ('feed',)
+    filter_horizontal = ('products', 'content',)
 
 
 class TileRelationAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display + ['tile_a_id', 'tile_b_id', 'starting_score', 'score']
-    search_fields = ('pk', 'tile_a_id', 'tile_b_id',)
+    search_fields = ('id', 'tile_a_id', 'tile_b_id',)
 
     def tile_a_id(self, obj):
         return str(obj.tile_a.id)
@@ -83,34 +85,35 @@ class TileRelationAdmin(BaseAdmin):
 
 class FeedAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display
-    search_fields = ('pk', 'page_id',)
+    search_fields = ('id', 'page_id',)
 
 
 class ProductAdmin(BaseAdmin):
     ordering = ['name']
-    list_display = ['name', 'old_id'] + BaseAdmin.list_display
-    search_fields = ('pk', 'name', 'description', 'sku',)
+    list_display = ['name'] + BaseAdmin.list_display
+    search_fields = ('id', 'name', 'description', 'sku',)
 
 
 class ProductImageAdmin(BaseAdmin):
     ordering = ['created_at', 'original_url']
-    list_display = ['old_id', 'url'] + BaseAdmin.list_display + ['original_url']
+    list_display = ['id', 'image_tag'] + BaseAdmin.list_display + ['original_url']
 
 
 class ImageAdmin(BaseAdmin):
     ordering = ['created_at', 'original_url']
-    list_display = ['old_id', 'url'] + BaseAdmin.list_display + ['original_url']
+    list_display = ['url'] + BaseAdmin.list_display + ['original_url']
 
 
 class ContentAdmin(BaseAdmin):
-    ordering = ['url']
-    list_display = ['url'] + BaseAdmin.list_display
-    search_fields = ('pk', 'url',)
+    ordering = ['id']
+    list_display = ['image_tag'] + BaseAdmin.list_display
+    search_fields = ('id', 'url',)
+    filter_horizontal = ('tagged_products',)
 
 
 class ThemeAdmin(BaseAdmin):
     list_display = ['name'] + BaseAdmin.list_display + ['store', 'template']
-    search_fields = ('pk', 'name', 'template',)
+    search_fields = ('id', 'name', 'template',)
 
 
 class ReviewAdmin(BaseAdmin):
@@ -119,7 +122,7 @@ class ReviewAdmin(BaseAdmin):
 
 class VideoAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display + ['url', 'source_url']
-    search_fields = ('pk', 'url', 'source_url',)
+    search_fields = ('id', 'url', 'source_url',)
 
 
 admin.site.register(Store, StoreAdmin)

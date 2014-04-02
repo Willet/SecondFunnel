@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, imagesLoaded, console, _, setTimeout, clearTimeout $ */
+/*global App, Backbone, Marionette, imagesLoaded, console, _, setTimeout, clearTimeout, $ */
 /**
  * @module intentRank
  */
@@ -8,13 +8,14 @@ App.module("intentRank", function (intentRank, App) {
     var consecutiveFailures = 0,
         cachedResults = [],
         fetching = null,
-        resultsAlreadyRequested = []; // list of product IDs
+        resultsAlreadyRequested = [], // list of product IDs
+        urlTemplate;
 
     this.options = {
         'baseUrl': "/intentrank",  // or an absolute base url, e.g. http://tng-test.secondfunnel.com/intentrank
         'urlTemplates': {
             'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>",
-            'content': "<%=baseUrl%>/page/<%=campaign%>/content/<%=id%>/getresults"
+            'category': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>&category=<%=category%>"
         },
         'add': true,
         'merge': true,
@@ -22,6 +23,8 @@ App.module("intentRank", function (intentRank, App) {
         'categories': {},
         'backupResults': [],
         'IRResultsCount': 10,
+        'IRAlgo': 'generic',
+        'IRReqNum': 0,
         'IRTimeout': 5000,
         'store': {},
         'content': []
@@ -49,6 +52,8 @@ App.module("intentRank", function (intentRank, App) {
             'categories': page.categories || options.categories || {},
             'backupResults': options.backupResults || [],
             'IRResultsCount': options.IRResultsCount || 10,
+            'IRAlgo': options.IRAlgo || 'generic',
+            'IRReqNum': options.IRReqNum || 0,
             'IRTimeout': options.IRTimeout || 5000,
             'content': options.content || [],
             'filters': options.filters || [],
@@ -56,6 +61,9 @@ App.module("intentRank", function (intentRank, App) {
             // request
             'IRCacheResultCount': options.IRResultsCount || 10
         });
+
+        // set the base url
+        urlTemplate = intentRank.options.urlTemplates.campaign;
 
         App.vent.trigger('intentRankInitialized', intentRank);
         return this;
@@ -67,8 +75,7 @@ App.module("intentRank", function (intentRank, App) {
      * @returns {String}
      */
     this.url = function () {
-        return _.template(intentRank.options.urlTemplates.campaign,
-            intentRank.options);
+        return _.template(urlTemplate, intentRank.options);
     };
 
     /**
@@ -107,27 +114,33 @@ App.module("intentRank", function (intentRank, App) {
         var collection = this,
             deferred = new $.Deferred(),
             online = !App.option('page:offline', false),
-            data = (resultsAlreadyRequested.length ? {
-                'shown': resultsAlreadyRequested.join(',')
-            } : undefined),
-            opts = $.extend({}, {
-                'results': 10,
-                'add': true,
-                'merge': true,
-                'remove': false,
-                'crossDomain': true,
-                'xhrFields': {
-                    'withCredentials': true
-                },
-                parse: true,
-                'data': data
-            }, this.config, intentRank.options, options),
+            data = {},
+            opts,
             prepopulatedResults = [],
             backupResults = _.chain(intentRank.options.backupResults)
                 .filter(intentRank.filter)
                 .shuffle()
                 .first(intentRank.options.IRResultsCount)
                 .value();
+
+        if (resultsAlreadyRequested.length) {
+            data.shown = resultsAlreadyRequested.join(',');
+        }
+        data.algorithm = intentRank.options.IRAlgo;
+        data.reqNum = intentRank.options.IRReqNum;
+
+        opts = $.extend({}, {
+            'results': 10,
+            'add': true,
+            'merge': true,
+            'remove': false,
+            'crossDomain': true,
+            'xhrFields': {
+                'withCredentials': true
+            },
+            parse: true,
+            'data': data
+        }, this.config, intentRank.options, options);
 
         // if offline, return a backup list
         if (!online || collection.ajaxFailCount > 5) {
@@ -184,7 +197,7 @@ App.module("intentRank", function (intentRank, App) {
 
                 // Only prefetch if this isn't intentRank; prevents infinite
                 // calls.
-                if (collection != intentRank) {
+                if (collection !== intentRank) {
                     intentRank.prefetch();
                 }
             },
@@ -203,6 +216,10 @@ App.module("intentRank", function (intentRank, App) {
 
         // Make the request to Backbone collection and return deferred
         Backbone.Collection.prototype.sync('read', collection, opts);
+        deferred.done(function () {
+            App.options.IRReqNum++;
+            intentRank.options.IRReqNum++;
+        });
         return deferred.promise();
     };
 
@@ -305,21 +322,27 @@ App.module("intentRank", function (intentRank, App) {
     };
 
     /**
+     * Changes the intentRank category, consequently changing the url
+     * that is used as well.
+     *
      * @param {String} category
      * @return this
      */
     this.changeCategory = function (category) {
-        // Change the category
-        if (!_.findWhere(intentRank.options.categories,
-            {'id': Number(category)})) {
-            // requested category not configured for this page
-            console.warn('Category ' + category + ' not found');
-            return intentRank;
+        // Change the category, category is a string passed
+        // to data
+        intentRank.options.category = category;
+
+        if (!category) { // clear the category
+            urlTemplate = intentRank.options.urlTemplates.campaign;
+            console.warn("No category passed, clearing.");
+            delete intentRank.options.category;
+        } else { // Swap default url
+            urlTemplate = intentRank.options.urlTemplates.category;
         }
 
-        App.vent.trigger('intentRankChangeCategory', category, intentRank);
+        App.vent.trigger('change:category', category, intentRank);
 
-        intentRank.options.campaign = category;
         return intentRank;
     };
 });

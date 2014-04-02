@@ -1,25 +1,4 @@
-import json
-
-from django.core.serializers.json import Serializer as JSONSerializer
-
-
-class RawSerializer(JSONSerializer):
-    """This removes the square brackets introduced by the JSONSerializer."""
-    def start_serialization(self):
-        if json.__version__.split('.') >= ['2', '1', '3']:
-            # Use JS strings to represent Python Decimal instances (ticket #16850)
-            self.options.update({'use_decimal': False})
-        self._current = None
-        self.json_kwargs = self.options.copy()
-        self.json_kwargs.pop('stream', None)
-        self.json_kwargs.pop('fields', None)
-
-    def end_serialization(self):
-        """Do not want the original behaviour (adding commas)"""
-        pass
-
-    def to_json(self, queryset, **options):
-        return json.loads(self.serialize(queryset=queryset, **options))
+from apps.api.serializers import RawSerializer
 
 
 class FeedSerializer(RawSerializer):
@@ -53,8 +32,6 @@ class ProductSerializer(RawSerializer):
     def get_dump_object(self, obj):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
-
-        Also, screw you for not having any docs.
         """
         product_images = obj.product_images.all()
 
@@ -68,25 +45,32 @@ class ProductSerializer(RawSerializer):
 
         # if default image is missing...
         if hasattr(obj, 'default_image_id') and obj.default_image_id:
-            data["default-image"] = str(obj.default_image.old_id or
+            data["default-image"] = str(obj.default_image.id or
                 obj.default_image_id)
         elif len(product_images) > 0:
             # fall back to first image
-            data["default-image"] = str(product_images[0].old_id)
+            data["default-image"] = str(product_images[0].id)
 
         return data
 
 
 class ContentSerializer(RawSerializer):
+
+    expand_products = True
+
+    def __init__(self, expand_products=True):
+        self.expand_products = expand_products
+
     def get_dump_object(self, obj):
         from apps.assets.models import Product
 
         data = {
-            'store-id': str(obj.store.old_id if obj.store else 0),
+            'store-id': str(obj.store.id if obj.store else 0),
             'source': obj.source,
             'source_url': obj.source_url,
             'url': obj.url or obj.source_url,
             'author': obj.author,
+            'status': obj.status,
         }
 
         if obj.tagged_products.count() > 0:
@@ -99,7 +83,11 @@ class ContentSerializer(RawSerializer):
                             .select_related('default_image', 'product_images')
                             .all()):
             try:
-                data['related-products'].append(product.to_json())
+                if self.expand_products:
+                    data['related-products'].append(product.to_json())
+                else:
+                    data['related-products'].append(product.id)
+
             except Product.DoesNotExist as err:
                 data['-dbg-related-products'].append(str(err.message))
 
@@ -137,15 +125,13 @@ class TileSerializer(RawSerializer):
     def get_dump_object(self, obj):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
-
-        Also, screw you for not having any docs.
         """
         data = {
             # prefixed keys are for inspection only; the hyphen is designed to
             # prevent you from using it like a js object
-            '-dbg-real-tile-id': obj.old_id or obj.id,
+            '-dbg-real-tile-id': obj.id,
             '-dbg-attributes': obj.attributes,
-            'tile-id': obj.old_id or obj.id,
+            'tile-id': obj.id,
         }
 
         if hasattr(obj, 'template'):
@@ -153,6 +139,12 @@ class TileSerializer(RawSerializer):
 
         if hasattr(obj, 'prioritized'):
             data['prioritized'] = obj.prioritized
+
+        if hasattr(obj, 'priority'):
+            data['priority'] = obj.priority
+
+        if hasattr(obj, 'attributes') and obj.attributes.get('colspan'):
+            data['colspan'] = obj.attributes.get('colspan')
 
         return data
 
@@ -180,13 +172,14 @@ class ContentTileSerializer(TileSerializer):
         data = super(ContentTileSerializer, self).get_dump_object(obj)
         try:
             data.update(obj.content
-                        .prefetch_related('tagged_products')
-                        .select_subclasses()
-                        [0]
+                        .prefetch_related('tagged_products')[0]
                         .to_json())
         except IndexError as err:
             pass  # no content in this tile
         return data
+
+
+MegaTileSerializer = ContentTileSerializer
 
 
 class BannerTileSerializer(ContentTileSerializer):

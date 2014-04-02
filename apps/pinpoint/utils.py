@@ -14,7 +14,7 @@ from django.template import RequestContext, loader, Template
 from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Theme, Page
+from apps.assets.models import Theme, Page, Store
 from secondfunnel.errors import deprecated
 
 
@@ -55,6 +55,16 @@ def read_remote_file(url, default_value=''):
     except (TypeError, ValueError, urllib2.HTTPError) as err:
         return default_value, False
 
+def get_store_from_request(request):
+    current_url = 'http://%s/' % request.get_host()
+
+    try:
+        store = Store.objects.get(public_base_url=current_url)
+    except Store.DoesNotExist:
+        store = None
+
+    return store
+
 
 def render_campaign(page_id, request, store_id=0):
     """Generates the HTML page for a standard pinpoint product page.
@@ -91,7 +101,7 @@ def render_campaign(page_id, request, store_id=0):
         return mark_safe(json.dumps(escaped_product_dict))
 
     # grab required assets
-    page = get_object_or_404(Page, old_id=page_id)
+    page = get_object_or_404(Page, id=page_id)
     page_template = page.theme.load_theme()
     store = page.store
     product = None  # no featured product / STL functionality in place
@@ -107,6 +117,10 @@ def render_campaign(page_id, request, store_id=0):
         # (because you can't test local IR like this)
         setattr(page, 'ir_base_url', '')
 
+    algorithm = request.GET.get('algorithm', page.feed.feed_algorithm or 'generic')
+    if request.GET.get('popular', None) == '':
+        algorithm = 'popular'
+
     attributes = {
         "campaign": page,
         "store": store,
@@ -116,6 +130,7 @@ def render_campaign(page_id, request, store_id=0):
         "initial_results": [],  # JS now fetches its own initial results
         "backup_results": map(json_postprocessor, backup_results),
         "social_buttons": page.social_buttons or store.get('social-buttons', ''),
+        "conditional_social_buttons": json.dumps(page.get('conditional_social_buttons', {})),
         "column_width": page.column_width or store.get('column-width', ''),
         "enable_tracking": page.enable_tracking,  # jsbool
         # apparently {{ campaign.image_tile_wide|default:0.5 }} is too confusing for django
@@ -128,7 +143,8 @@ def render_campaign(page_id, request, store_id=0):
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
         "url": page.get('url', ''),
         "related_to_tile": request.GET.get('related', ''),
-        "environment": settings.ENVIRONMENT
+        "algorithm": algorithm,
+        "environment": settings.ENVIRONMENT,
     }
 
     context = RequestContext(request, attributes)

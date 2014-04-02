@@ -48,7 +48,7 @@ App.module('core', function (core, App) {
             // 'tile-class': 'tile',  // what used tile-class?
             // 'content-type': ''  // where did content-type go?
             'related-products': [],
-            'dominant-colour': "transparent"
+            'dominant-color': "transparent"
         },
 
         'parse': function (resp, options) {
@@ -71,22 +71,15 @@ App.module('core', function (core, App) {
             _.each(this.get('images'), function (image) {
                 var localImageVariable;
                 if (typeof image === 'string') {
-                    // patch old IR image response with this new dummy format,
-                    // wild guessing every attribute in the process.
+                    // Patch old IR responses.
+                    // TODO: Do we still need this?
                     localImageVariable = {
                         'format': "jpg",
-                        'dominant-colour': "transparent",
+                        'dominant-color': "transparent",
                         'url': image,
-                        'id': self.getDefaultImageId() || 0,
-                        'sizes': {
-                            'master': {
-                                'width': 2048,
-                                'height': 2048
-                            }
-                        }
+                        'id': self.getDefaultImageId() || 0
                     };
-                } else {
-                    // make a copy...
+                } else { // make a copy
                     localImageVariable = $.extend(true, {}, image);
                 }
                 imgInstances.push(new core.Image(localImageVariable));
@@ -95,7 +88,6 @@ App.module('core', function (core, App) {
             // this tile has no images, or can be an image itself
             if (imgInstances.length === 0) {
                 imgInstances.push(new core.Image({
-                    'sizes': this.get('sizes'),
                     'dominant-color': this.get('dominant-color'),
                     'url': this.get('url')
                 }));
@@ -122,7 +114,7 @@ App.module('core', function (core, App) {
                 'images': imgInstances,
                 'defaultImage': defaultImage,
                 'related-products': relatedProducts,
-                'dominant-colour': defaultImage.get('dominant-colour')
+                'dominant-color': defaultImage.get('dominant-color')
             });
 
             App.vent.trigger('tileModelInitialized', this);
@@ -156,21 +148,13 @@ App.module('core', function (core, App) {
                 } catch (err) {
                     // if all fails, this is most likely a lifestyle image
                     return new core.Image({
-                        'sizes': this.get('sizes'),
                         'dominant-color': this.get('dominant-color'),
                         'url': this.get('url')
                     });
                 }
-            }
-
-            // found default image or undefined
-            if (defImg instanceof core.Image) {
+            } else if  (defImg instanceof core.Image) { // found default image
                 // timing: attributes.images already coverted to Images
                 return defImg;
-            }
-
-            if (!defImg) {
-                console.warn('getImage is going to return an Image stub.');
             }
 
             return new core.Image(defImg);
@@ -231,58 +215,23 @@ App.module('core', function (core, App) {
     this.Image = Backbone.Model.extend({
         'defaults': {
             'url': 'http://placehold.it/2048&text=blank',
-            'sizes': {
-                'master': {
-                    'name': 'master',  // easier to know what this is as an obj
-                    'dominant-colour': 'transparent',
-                    'width': 2048,
-                    'height': 2048
-                }
-            }
+            'dominant-color': 'transparent'
         },
 
         'initialize': function () {
             // add a name, colour, and a sized url to each size datum
             var self = this,
-                color = this.get('dominant-colour'),
-
-                // this might be the 36-hour line
-                mySizes = $.extend(true, {}, this.get('sizes'));
-
-            _.map(mySizes, function (size, sizeName) {
-                mySizes[sizeName].url =
-                    self.get('url').replace(/master\./, sizeName + '.');
-
-                mySizes[sizeName].name = sizeName;
-                mySizes[sizeName]['dominant-colour'] = color;
-            });
-
-            self.set('sizes', mySizes);
+                color = this.get('dominant-color');
 
             // the template needs something simpler.
             this.color = color;
-            this.normal = this.width(255);
-            this.wide = this.width(510);
-            this.full = this.width(1020);
-            this.url = this.normal;  // overwrites backbone method
+            this.url = this.width(App.layoutEngine.width());
         },
 
         'sync': function () {
             return false;
         },
 
-        'size': function (size) {
-            // get url by size name, e.g. 'pico'
-            var sizes = this.get('sizes');
-
-            size = size || 'large';  // first size above 255px wide
-
-            try {
-                return sizes[size].url;
-            } catch (e) {  // size not available ==> master.jpg
-                return this.get('url');
-            }
-        },
         /**
          *
          * @param width
@@ -292,39 +241,32 @@ App.module('core', function (core, App) {
          * @returns {*}
          */
         'dimens': function (width, height, obj) {
-            var first,
-                sizes = this.get('sizes'),
-                sortedImages;
-            try {
-                // [{master}] if mocked
-                sortedImages = _(sizes)
-                    .sortBy('width')
-                    .filter(function (size) {
-                        return size.width >= width && size.height >= height;
-                    });
+            var resized,
+                options = $.extend({}, obj);
+            resized = $.extend({}, this.defaults, this.attributes);
 
-                // {master} if mocked
-                first = _.first(sortedImages) ||  // if one image is large enough
-                    // the largest one if none of the images are large enough
-                    // (unstable sort if widths equal for any two sizes)
-                    _(sizes).sortBy('width').reverse()[0];
-
-                if (obj) {
-                    return first;
-                }
-                return first.url;
-            } catch (e) {  // size not available
-
-                if (obj) {
-                    return $.extend({}, this.defaults, this.get('url'));
-                }
-                return this.get('url');
+            if (width > 0) {
+                options.width = width;
             }
+
+            if (height > 0) {
+                options.height = height;
+            }
+
+            resized.url = App.utils.getResizedImage(this.get('url'), options);
+
+            if (obj) {
+                return resized;
+            }
+
+            return resized.url;
         },
+
         'width': function (width, obj) {
             // get url by min width
             return this.dimens(width, 0, obj);
         },
+
         'height': function (height, obj) {
             // get url by min height
             return this.dimens(0, height, obj);
@@ -464,10 +406,19 @@ App.module('core', function (core, App) {
          * @returns {Function|String}
          */
         'url': function () {
-            return _.template(
+            var url,
+                category = App.intentRank.options.category;
+
+            url = _.template(
                 '<%=apiUrl%>/page/<%=campaign%>/getresults?results=<%=results%>',
                 this.config
             );
+
+            if (category) {
+                return url + "&category=" + encodeURIComponent(category);
+            }
+
+            return url;
         },
 
         'initialize': function (arrayOfData, url, campaign, results) {
@@ -513,13 +464,27 @@ App.module('core', function (core, App) {
 
 
     /**
-     * Base empty category, no functionality needed here.
+     * Categories are used to filter results from IR.
      *
      * @constructor
      * @type {Model}
      */
     this.Category = Backbone.Model.extend({
-
+        'url': function () {
+            return _.template(
+                '<%=IRSource%>/page/<%=campaign%>/getresults?results=<%=IRResultsCount&category=<%=name%>',
+                _.extend({}, App.options, this.attributes)
+            );
+        }
     });
 
+    /**
+     * Container for categories, does nothing for now.
+     *
+     * @constructor
+     * @type {Collection}
+     */
+    this.CategoryCollection = Backbone.Collection.extend({
+        model: this.Category
+    });
 });

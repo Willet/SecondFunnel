@@ -7,17 +7,6 @@
     <script type="text/javascript">
         window.OPTIMIZER_TESTS = [];
         window.OPTIMIZER_TESTS.push({
-            index: 1,
-            test: 'custom',
-            device: 'mobile',
-            custom: function (template) {
-                template = template || _.sample(["A", "B", "C", "D"]);
-                App.options.tests = App.options.tests ? App.options.tests : {};
-                App.options.tests[1] = template;
-                return template;
-            }
-        });
-        window.OPTIMIZER_TESTS.push({
             index: 6, // Two-column in Analytics
             test: 'custom',
             device: 'mobile',
@@ -27,9 +16,7 @@
                 template = template || _.sample(["A", "B"]);
                 if (template != "A") {
                     App.options.minColumns = 2;
-                    $('head').ready(function() {
-                        s.appendTo($('head'));
-                    });
+                    s.appendTo($('head'));
                 }
                 return template;
             }
@@ -37,7 +24,6 @@
         window.OPTIMIZER_TESTS.push({
             index: 7, // Null A/B Test in Analytics
             test: 'custom',
-            device: 'mobile',
             custom: function (template) {
                 return template || _.sample(["A", "B"]);
             }
@@ -115,6 +101,7 @@
                     width: 50% !important;
                 }
                 .tile.wide {
+                    width: 100% !important;
                     min-height: inherit !important;
                 }
                 .visible-xs.jumbotron {
@@ -518,7 +505,7 @@
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
                     <div class='image'>
-                        <img src='<%= obj.defaultImage.url %>'/>
+                        <img src='<%= obj.image.url %>'/>
                     </div>
                     <% if (obj.images.length > 1) { %>
                     <div class='gallery'></div>
@@ -655,7 +642,7 @@
                             -->
                         </div>
                     <% } else { %>
-                        <div class="img" style="background-image: url('<%= obj.defaultImage.url %>');"></div>
+                        <div class="img" style="background-image: url('<%= obj.image.url %>');"></div>
                     <% } %>
                 </div>
             </div>
@@ -667,7 +654,7 @@
             <div class="image-with-related-products">
                 <div class="row">
                     <div class="image middle cell capped-width">
-                        <img src="<%= obj.defaultImage.url %>" alt="image"/>
+                        <img src="<%= obj.image.url %>" alt="image"/>
                         <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                         <% var validSources = ['tumblr', 'instagram', 'facebook', 'styld.by']; %>
                         <% if (_.indexOf(validSources, obj.source) != -1) { %>
@@ -681,16 +668,8 @@
                         <% } %>
                     </div>
                     <div class="middle cell center">
-                        <% if (product.images.length > 1 && App.support.mobile()) { %>
-                            <div class="main-image">
-                                <span class="gallery-swipe-left gallery-related"></span>
-                                <img class="main-image" src="<%= product.defaultImage.url %>" alt="related product"/>
-                                <span class="gallery-swipe-right gallery-related"></span>
-                            </div>
-                        <% } else { %>
-                            <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                        <% } %>
                         <% if (product.images.length > 1) { %>
+                            <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
                             <div class='gallery'></div>
                         <% } %>
                     </div>
@@ -731,7 +710,7 @@
             <div class="image-without-related-products">
                 <div class="row">
                     <div class="image middle cell capped-width">
-                        <img src="<%= obj.defaultImage.url %>" alt="image"/>
+                        <img src="<%= obj.image.url %>" alt="image"/>
                     </div>
                     <div class="middle cell">
                         <div class="info">
