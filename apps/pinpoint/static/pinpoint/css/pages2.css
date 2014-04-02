@@ -541,6 +541,10 @@ div.loading {
     .previewContainer .image img {
         min-height: 300px; /* mandatory android webkit patch (because standards) */
     }
+
+    .stl-look {
+        display: none;
+    }
 }
 
 /* desktop-grade preview container styles */
@@ -584,6 +588,51 @@ div.loading {
         -ms-border-radius: 4px;
         -o-border-radius: 4px;
         box-shadow: 0px 10px 30px 0px #CECECE;
+    }
+
+    .template.target .shop-the-look > hr:last-child {
+        margin-bottom: 0px;
+    }
+
+    .shop-the-look .stl-target img {
+        width: auto;
+    }
+
+    .shop-the-look > .desc-title {
+        font-weight: normal;
+    }
+
+    .shop-the-look .stl-target .image-with-related-products .cell.col-sm-6.col-md-6 .description {
+        min-height: 195px;
+    }
+
+    .shop-the-look .stl-look {
+        overflow-x: auto;
+        max-height: 110px;
+        text-align: center;
+        overflow-y: hidden;
+        white-space: nowrap;
+        padding-bottom: 10px;
+    }
+
+    .shop-the-look .stl-look img {
+        height: 99%;
+        opacity: 0.7;
+        width: inherit;
+        max-width: 99%;
+        max-height: 100px;
+    }
+
+    .shop-the-look .stl-look img.selected {
+        opacity: 1;
+    }
+
+    .shop-the-look .stl-look img:hover {
+        opacity: 1;
+    }
+
+    .shop-the-look .stl-look img:hover {
+        cursor: pointer;
     }
 }
 

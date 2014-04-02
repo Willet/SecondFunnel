@@ -1,4 +1,4 @@
-/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _, console, App */
+/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _, console, App, parseFloat */
 /**
  * @module core
  */
@@ -872,6 +872,7 @@ App.module('core', function (module, App) {
                 model = new App.core.Tile(_.extend({},
                     this.options.model.attributes)),
                 template = model.get('template'),
+                related,
                 ContentClass;
 
             model = new App.core.Tile(model.attributes);
@@ -884,7 +885,11 @@ App.module('core', function (module, App) {
                 'model': model
             }));
 
-            _.each(model.get('related-products'), function (img) {
+            // Reverse price sort to push jewelerry et. al to the back
+            related = _.sortBy(model.get('related-products'), function (obj) {
+                return -1 * parseFloat((obj.price || '$0').substr(1), 10);
+            });
+            _.each(related, function (img) {
                 self.$('.stl-look').append(
                     $('<img/>')
                         .attr('src', img.images[0].get('url'))
@@ -910,7 +915,7 @@ App.module('core', function (module, App) {
                 );
             });
             // First image is always selected
-            this.$('.stl-look').find('img').first().addClass('selected');
+            this.$('.stl-look').find('img').first().click();
         }
     });
 
