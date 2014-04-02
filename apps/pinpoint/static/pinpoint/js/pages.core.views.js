@@ -842,6 +842,26 @@ App.module('core', function (module, App) {
     this.MegaPreviewContent = Marionette.Layout.extend({
         'className': "shop-the-look",
         'template': "#mega_tile_preview_template",
+        'templates': function () {
+            var templateRules = [
+                '#<%= options.store.slug %>_<%= data.template %>_mobile_mega_preview_template',
+                '#<%= data.template %>_mobile_mega_preview_template',
+                '#<%= options.store.slug %>_<%= data.template %>_mega_preview_template',
+                '#<%= data.template %>_mega_preview_template',
+                '#mobile_mega_tile_preview_template', // fallback
+                '#mega_tile_preview_template' // fallback
+            ];
+
+            if (!App.support.mobile()) {
+                // remove mobile templates if it isn't mobile, since they take
+                // higher precedence by default
+                templateRules = _.reject(templateRules,
+                    function (t) {
+                        return t.indexOf('mobile') >= 0;
+                    });
+            }
+            return templateRules;
+        },
         'regions': {
             'target': '.stl-target',
             'related': '.stl-look'
