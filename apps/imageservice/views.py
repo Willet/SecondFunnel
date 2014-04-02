@@ -30,6 +30,9 @@ def has_image_key(fn):
         if url and fileObj:
             raise Exception("Expected one file, found multiple.")
 
+        if not url and not fileObj:
+            raise Exception("Expected one of url or file, found nothing.")
+
         img = url if url else fileObj
 
         try:
