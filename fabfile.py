@@ -3,6 +3,7 @@ Automated deployment tasks
 """
 from fabric.api import roles, run, cd, execute, settings, env, sudo, hide
 from fabric.colors import green, yellow, red
+from fabric.decorators import hosts
 from secondfunnel.settings import common as django_settings
 from scripts.import_ops import importer as real_importer
 
@@ -222,3 +223,9 @@ def deploy(cluster_type='test', branch='master'):
 def importer(*args, **kwargs):
     """Alias for fabfile"""
     return real_importer(*args, **kwargs)
+
+# Doesn't work for some reason...
+# @hosts('ec2-user@tng-master.secondfunnel.com')
+@hosts('ec2-user@tng-test.secondfunnel.com')
+def test_testfn():
+    run('python manage.py diffsettings')
