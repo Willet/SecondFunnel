@@ -341,7 +341,6 @@ def ir_finite(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # fill the first two rows with (8) tiles that are known to be new
     exclude_set += ids_of(prioritized_tiles)
-    print len(request.session.get('shown', []))
     if len(request.session.get('shown', [])) == 0:  # first page view
         prioritized_tiles += ir_created_last(feed=feed, results=8,
                                              exclude_set=exclude_set,
