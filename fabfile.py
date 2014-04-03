@@ -1,6 +1,7 @@
 """
 Automated deployment tasks
 """
+from datetime import datetime
 import os
 from fabric.api import roles, run, cd, execute, settings, env, sudo, hide
 from fabric.colors import green, yellow, red
@@ -235,7 +236,7 @@ def get_postgres_arguments():
     )
     from django.conf import settings
 
-    password = 'PGPASSWORD="{}"'.format(
+    password = 'export PGPASSWORD="{}"'.format(
         settings.DATABASES['default']['PASSWORD']
     )
 
@@ -285,14 +286,10 @@ def dump_test_database(native=True):
     if not native:
         pass # Error; not implemented
 
-    ok = raw_input(
-        'WARNING: This will blow up your local database!'
-        'Is that ok? [Y\\n]'
-    ) or 'Y'
+    now = datetime.now()
+    str_now = now.strftime('%Y-%m-%dT%H:%M.sql')
 
-    if not ok == 'Y':
-        return
-
+    local('fab dump_database_postgres:{}'.format(str_now))
     run('fab dump_database_postgres')
     get('/tmp/db.sql', 'db.sql')
     local('python manage.py flush')
