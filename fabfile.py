@@ -285,6 +285,15 @@ def dump_test_database(native=True):
     if not native:
         pass # Error; not implemented
 
+    ok = raw_input(
+        'WARNING: This will blow up your local database!'
+        'Is that ok? [Y\\n]'
+    ) or 'Y'
+
+    if not ok == 'Y':
+        return
+
     run('fab dump_database_postgres')
     get('/tmp/db.sql', 'db.sql')
+    local('python manage.py flush')
     local('fab load_database_postgres')
