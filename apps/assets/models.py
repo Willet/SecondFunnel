@@ -5,7 +5,7 @@ import pytz
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.core.serializers.json import Serializer
 from django.db import models
 from django.db.models import Q
@@ -883,7 +883,14 @@ class TileRelation(BaseModel):
 
         id_a = tile_a.id
         id_b = tile_b.id
-        related_tile, _ = cls.objects.get_or_create(tile_a_id=id_a, tile_b_id=id_b)
+
+        try:  # get or create if possible, or select most recent one if multiple
+            related_tile, _ = cls.objects.get_or_create(tile_a_id=id_a, tile_b_id=id_b)
+        except MultipleObjectsReturned as err:
+            related_tile = (cls.objects
+                               .filter(tile_a_id=id_a, tile_b_id=id_b)
+                               .order_by('-updated_at')[0])
+
         update_score = TileRelation.popularity_devalue_rate * related_tile.days_since_creation()
         starting_score = related_tile.starting_score
         related_tile.starting_score = max(starting_score, update_score) + math.log(
