@@ -151,7 +151,7 @@ class BaseCGHandler(JSONResponseMixin, ListView):
                 return {
                     'results': result_set,
                     'meta': {
-                        'cursor': {
+                        'cursors': {
                             'next': str(page.next_page_number()),
                         },
                     },

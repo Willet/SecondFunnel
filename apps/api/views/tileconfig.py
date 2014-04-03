@@ -42,7 +42,7 @@ class TileConfigCGHandler(BaseCGHandler):
                 return {
                     'results': result_set,
                     'meta': {
-                        'cursor': {
+                        'cursors': {
                             'next': page.next_page_number(),
                         },
                     },
