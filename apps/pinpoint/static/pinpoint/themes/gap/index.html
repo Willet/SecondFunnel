@@ -521,15 +521,16 @@
                     <div class='red marker price'><%= obj.price %></div>
                     <div class='description'>
                         <div class='desc-title'>Overview</div>
-                        <ul>
-                            <% var sentences =
-                            _.compact(obj.description.split('.')); %>
-                            <% _.each(sentences, function(sentence) { %>
-                            <li><%= SecondFunnel.utils.safeString(sentence)
-                                %>
-                            </li>
-                            <% }); %>
-                        </ul>
+                        <% var sentences = _.compact(obj.description.split('.')); %>
+                        <% if (obj.description.indexOf('<li>') == -1) { %>
+                            <ul>
+                                <% _.each(sentences, function(sentence) { %>
+                                    <li><%= SecondFunnel.utils.safeString(sentence) %></li>
+                                <% }); %>
+                            </ul>
+                        <% } else { %>
+                            <%= SecondFunnel.utils.safeString(obj.description) %>
+                        <% } %>
                     </div>
                     <div>
                         <div class="social-buttons"></div>
@@ -673,15 +674,17 @@
                         <div class='price'><%= product.price %></div>
                         <div class='description'>
                             <div class='desc-title'>Overview</div>
-                            <ul>
-                                <% var sentences =
-                                _.compact((product.description || "").split('.'));%>
-                                <% _.each(sentences, function(sentence) { %>
-                                <li><%= SecondFunnel.utils.safeString(sentence)
-                                    %>
-                                </li>
-                                <% }); %>
-                            </ul>
+                            <% var description = (product.description || ""); %>
+                            <% if (description.indexOf('<li>') == -1) { %>
+                                <% var sentences = _.compact(description.split('.')); %>
+                                <ul>
+                                    <% _.each(sentences, function(sentence) { %>
+                                        <li><%= SecondFunnel.utils.safeString(sentence) %></li>
+                                    <% }); %>
+                                </ul>
+                            <% } else { %>
+                                <%= SecondFunnel.utils.safeString(description) %>
+                            <% } %>
                         </div>
                         <div>
                             <div class="social-buttons"></div>
