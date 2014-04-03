@@ -41,17 +41,9 @@
         }
     })();
 </script>
-<!--[if gte IE 9]><!-->
 {% compress js %}
    {% include "pinpoint/campaign_js.html" %}
 {% endcompress %}
-<!--<![endif]-->
-
-<!--[if lte IE 8]>
-{% compress js %}
-   {% include "pinpoint/campaign_js.html" %}
-{% endcompress %}
-<![endif]-->
 
 <script type="text/javascript">
       var lazyLoad;
