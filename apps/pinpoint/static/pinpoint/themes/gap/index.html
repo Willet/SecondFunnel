@@ -21,12 +21,71 @@
             }
         });
         window.OPTIMIZER_TESTS.push({
-            index: 7, // Null A/B Test in Analytics
+            index: 8,
             test: 'custom',
+            device: 'mobile',
+            disabled: true,
             custom: function (template) {
-                return template || _.sample(["A", "B"]);
+                template = template || _.sample(["A", "B"]);
+                App.options.tests = App.options.tests || {};
+                App.options.tests[2] = template;
+                if (template == "B") {
+                    $('head').ready(function () {
+                        App.options.minColumns = 2;
+                        $('head').append($('#such-cards-much-wow').html());
+                        $($('#two-column-css').html()).appendTo($('head'));
+                    });
+                }
+                return template;
             }
         });
+    </script>
+    <script type="text/template" id="such-cards-much-wow">
+        <style type="text/css">
+            @media only screen and (max-width: 768px) {
+                #discovery-area {
+                    padding-top: 10px;
+                    background-color: rgba(102, 102, 102, 0.2);
+                }
+                #discovery-area > div {
+                    margin: 0 auto;
+                    max-width: 95% !important;
+                }
+                #hero-area {
+                    background-color: #FFF;
+                }
+                .tile {
+                    padding: 0px;
+                    margin: 1% 1%;
+                    max-width: 48%;
+                    overflow: hidden;
+                    border-radius: 10px;
+                    background-color: rgb(255, 255, 255);
+                    border: 1px solid rgba(0, 0, 0, 0.2);
+                }
+                .tile .caption {
+                    width: 100%;
+                    bottom: 0px;
+                    color: #1B1464;
+                    font-size: 11px;
+                    padding-top: 5px;
+                    padding-bottom: 5px;
+                    font-weight: 100;
+                    font-family: arial, sans-serif;
+                }
+                .tile .caption span {
+                    max-width: 90%;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    display: inline-block;
+                    text-overflow: ellipsis;
+                    text-decoration: underline;
+                }
+                .legal.us {
+                    margin-top: 0px !important;
+                }
+            }
+        </style>
     </script>
     <script type="text/template" id="two-column-css">
         <style type="text/css">
@@ -35,7 +94,6 @@
                     width: 50% !important;
                 }
                 .tile.wide {
-                    width: 100% !important;
                     min-height: inherit !important;
                 }
                 .visible-xs.jumbotron {
@@ -67,6 +125,9 @@
                 #discovery-area {
                     width: 100% !important;
                     overflow-x: hidden;
+                }
+                .legal.us {
+                    margin-top: 0px !important;
                 }
             }
         </style>
@@ -296,6 +357,12 @@
                     </div>
                 </div>
             </div>
+            <% if (App.option('tests') && App.option('tests')[2] == 'B' &&
+                      obj['related-products'] && obj['related-products'].length > 0) { %>
+                <div class="caption">
+                    <span><%= obj['related-products'][0].name %></span>
+                </div>
+            <% } %>
             <% if (App.option("debug", 0) > 1) { %>
                 <span class="type"><%= obj["content-type"] %></span>
             <% } %>
