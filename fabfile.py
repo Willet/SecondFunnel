@@ -6,7 +6,7 @@ from fabric.api import roles, run, cd, execute, settings, env, sudo, hide
 from fabric.colors import green, yellow, red
 from fabric.contrib import django
 from fabric.decorators import hosts
-from fabric.operations import local
+from fabric.operations import local, get
 from secondfunnel.settings import common as django_settings
 from scripts.import_ops import importer as real_importer
 
@@ -227,7 +227,7 @@ def importer(*args, **kwargs):
     """Alias for fabfile"""
     return real_importer(*args, **kwargs)
 
-def dump_database_postgres():
+def get_postgres_arguments():
     environment_type = os.getenv('PARAM1', '').upper() or 'DEV'
 
     django.settings_module(
@@ -235,19 +235,41 @@ def dump_database_postgres():
     )
     from django.conf import settings
 
+    password = 'PGPASSWORD="{}"'.format(
+        settings.DATABASES['default']['PASSWORD']
+    )
 
-    command = 'PGPASSWORD="%s" && ' \
-        'pg_dump ' \
-        '--host=%s --port=%s --username=%s %s ' \
-        '> /tmp/db.sql' % (
-            settings.DATABASES['default']['PASSWORD'],
+    arguments = '--host=%s --port=%s --username=%s %s' % (
             settings.DATABASES['default']['HOST'],
             settings.DATABASES['default']['PORT'],
             settings.DATABASES['default']['USER'],
             settings.DATABASES['default']['NAME']
         )
 
-    print(command)
+    return {
+        'password': password,
+        'arguments': arguments
+    }
+
+def load_database_postgres(path='db.sql'):
+    args = get_postgres_arguments()
+    arguments = args['arguments']
+    password = args['password']
+
+    command = '{} && psql {} < {}'.format(
+        password, arguments, path
+    )
+
+    local(command)
+
+def dump_database_postgres(path='/tmp/db.sql'):
+    args = get_postgres_arguments()
+    arguments = args['arguments']
+    password = args['password']
+
+    command = '{} && pg_dump {} > {}'.format(
+        password, arguments, path
+    )
 
     local(command)
 
@@ -264,3 +286,5 @@ def dump_test_database(native=True):
         pass # Error; not implemented
 
     run('fab dump_database_postgres')
+    get('/tmp/db.sql', 'db.sql')
+    local('fab load_database_postgres')
