@@ -66,7 +66,7 @@ def get_results_view(request, page_id):
     if not request.GET.get('algorithm', None) in ['ordered', 'sorted',
         'finite', 'custom']:
         # ordered algo keeps track of full list for zero repeats
-        request.session['shown'] = request.session['shown'][:TRACK_SHOWN_TILES_NUM]
+        request.session['shown'] = request.session.get('shown', [])[:TRACK_SHOWN_TILES_NUM]
 
     # otherwise, not a proxy
     try:
