@@ -1,9 +1,12 @@
 """
 Automated deployment tasks
 """
+import os
 from fabric.api import roles, run, cd, execute, settings, env, sudo, hide
 from fabric.colors import green, yellow, red
+from fabric.contrib import django
 from fabric.decorators import hosts
+from fabric.operations import local
 from secondfunnel.settings import common as django_settings
 from scripts.import_ops import importer as real_importer
 
@@ -224,8 +227,40 @@ def importer(*args, **kwargs):
     """Alias for fabfile"""
     return real_importer(*args, **kwargs)
 
+def dump_database_postgres():
+    environment_type = os.getenv('PARAM1', '').upper() or 'DEV'
+
+    django.settings_module(
+        'secondfunnel.settings.{0}'.format(environment_type.lower())
+    )
+    from django.conf import settings
+
+
+    command = 'PGPASSWORD="%s" && ' \
+        'pg_dump ' \
+        '--host=%s --port=%s --username=%s %s ' \
+        '> /tmp/db.sql' % (
+            settings.DATABASES['default']['PASSWORD'],
+            settings.DATABASES['default']['HOST'],
+            settings.DATABASES['default']['PORT'],
+            settings.DATABASES['default']['USER'],
+            settings.DATABASES['default']['NAME']
+        )
+
+    print(command)
+
+    local(command)
+
 # Doesn't work for some reason...
 # @hosts('ec2-user@tng-master.secondfunnel.com')
 @hosts('ec2-user@tng-test.secondfunnel.com')
-def test_testfn():
-    run('python manage.py diffsettings')
+def dump_test_database(native=True):
+    # We assume that by SSH'ing in, we are in the right environment and path
+
+    # More details on Django integration here:
+    # http://docs.fabfile.org/en/1.6/api/contrib/django.html
+
+    if not native:
+        pass # Error; not implemented
+
+    run('fab dump_database_postgres')
