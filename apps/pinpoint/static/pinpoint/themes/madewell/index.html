@@ -423,16 +423,6 @@
                     <div class="image middle cell capped-width">
                         <img src="<%= obj.defaultImage.url %>" alt="image"/>
                         <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
-                        <% var validSources = ['tumblr', 'instagram', 'facebook', 'styld.by']; %>
-                        <% if (_.indexOf(validSources, obj.source) != -1) { %>
-                            <div class='author'>
-                                <% if (obj.source == "styld.by") { %>
-                                    <%= obj.source %><a href="<%= obj['source-url']%>"><%= obj.user %></a>
-                                <% } else if (_.indexOf(validSources, (obj.source||'').toLowerCase()) != -1) { %>
-                                    <span class='propercase'><a href="<%= obj['source-url']%>"><%= obj.source %></a></span>
-                                <% } %>
-                            </div>
-                        <% } %>
                     </div>
                     <div class="middle cell">
                         <div class='title'><%= product.title || product.name %></div>
@@ -488,11 +478,6 @@
                         <div class="info">
                             <div class='title'><%= obj.title || obj.name || "Shop Product" %></div>
                             <div class='author'>
-                                <% if(obj.source == "styld.by") { %>
-                                    <%= obj.source %><%= obj.user %>
-                                <% } else if (_.indexOf(validSources, (obj.source||'').toLowerCase()) != -1) { %>
-                                    <span class='propercase'><%= obj.source %></span>
-                                <% } %>
                             </div>
                             <div class='description'>
                                 <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
