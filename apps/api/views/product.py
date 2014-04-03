@@ -48,7 +48,7 @@ class StoreProductCGHandler(ProductCGHandler):
         return qs.filter(store_id=self.store_id)
 
 
-class StoreProductItemCGHandler(ProductCGHandler):
+class StoreProductItemCGHandler(ProductItemCGHandler):
     """Adds filtering by store"""
     store_id = None  # new ID
     product_id = None  # old ID
