@@ -292,10 +292,10 @@ def ir_generic(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     return tiles[:results]
 
 
-def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-               product_tiles_only=False, content_tiles_only=False,
-               exclude_set=None, allowed_set=None, request=None,
-               *args, **kwargs):
+def ir_finite(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+              product_tiles_only=False, content_tiles_only=False,
+              exclude_set=None, allowed_set=None, request=None,
+              *args, **kwargs):
     """Return tiles in the following order:
 
     - prioritized ones (ordered by priority)
@@ -341,6 +341,7 @@ def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # fill the first two rows with (8) tiles that are known to be new
     exclude_set += ids_of(prioritized_tiles)
+    print len(request.session.get('shown', []))
     if len(request.session.get('shown', [])) == 0:  # first page view
         prioritized_tiles += ir_created_last(feed=feed, results=8,
                                              exclude_set=exclude_set,
@@ -358,4 +359,29 @@ def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     real_random.shuffle(random_tiles)
 
     tiles = prioritized_tiles + random_tiles
+    return tiles[:results]
+
+
+def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+               product_tiles_only=False, content_tiles_only=False,
+               exclude_set=None, allowed_set=None, request=None,
+               *args, **kwargs):
+    """Retrieve whichever finite tiles there are that have not been shown.
+    If all have been shown, continue to show random ones.
+    """
+    tiles = ir_finite(feed=feed, results=results,
+                      product_tiles_only=product_tiles_only,
+                      content_tiles_only=content_tiles_only,
+                      exclude_set=exclude_set, allowed_set=allowed_set,
+                      request=request, **kwargs)
+    if len(tiles) >= results:
+        return tiles[:results]
+
+    # get random tiles, with *no* exclusion restriction applied
+    random_tiles = ir_prioritized(feed=feed, prioritized_set='',
+        results=results, allowed_set=allowed_set)
+
+    real_random.shuffle(random_tiles)
+    tiles += random_tiles
+
     return tiles[:results]
