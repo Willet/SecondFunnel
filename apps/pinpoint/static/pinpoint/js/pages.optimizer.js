@@ -208,7 +208,11 @@ App.module('optimizer', function (optimizer, App) {
         ENABLED_TESTS = App.utils.getQuery('activate-test').split(',');
         _.each(ENABLED_TESTS, function (t) {
             t = t.split('.');
-            tests[t[0]] = t[1].toUpperCase();
+            if (t[1]) {
+                tests[t[0]] = t[1].toUpperCase();
+            } else {
+                tests[t[0]] = t[1];
+            }
         });
         ENABLED_TESTS = tests;
 
