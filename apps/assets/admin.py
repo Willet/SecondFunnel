@@ -96,7 +96,8 @@ class ProductAdmin(BaseAdmin):
 
 class ProductImageAdmin(BaseAdmin):
     ordering = ['created_at', 'original_url']
-    list_display = ['id', 'image_tag'] + BaseAdmin.list_display + ['original_url']
+    list_display = ['product', 'image_tag'] + BaseAdmin.list_display + ['original_url']
+    search_fields = ('product__id', 'id',)
 
 
 class ImageAdmin(BaseAdmin):
