@@ -34,6 +34,10 @@ a, a:hover, a:focus {
     color: inherit;
 }
 
+.text-centered {
+    text-align: center;
+}
+
 .navbar {
     background: white;
 }
@@ -602,7 +606,7 @@ div.loading {
         font-weight: normal;
     }
 
-    .shop-the-look .stl-target .image-with-related-products .cell.col-sm-6.col-md-6 .description {
+    .shop-the-look .stl-target .image-with-related-products .middle.cell .description {
         min-height: 195px;
     }
 
