@@ -97,7 +97,10 @@
                     min-height: inherit !important;
                 }
                 .visible-xs.jumbotron {
+                    {% ifequal campaign.url_slug "dressedup" %}
+                    {% else %}
                     background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/mobile_small.png') !important;
+                    {% endifequal %}
                     margin: 10px 0px 10px 5px;
                     border: none;
                     width: 125px;
