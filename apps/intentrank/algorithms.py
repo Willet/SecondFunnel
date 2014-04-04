@@ -218,25 +218,6 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     return tiles[:results]
 
 
-def ir_popular_finite(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-    request=None, offset=0, *args, **kwargs):
-    """Implements *exactly* the following goals:
-
-    ... simpler code/algo, deterministic order and set of tiles (same on every pageview) ...
-    ... sort by popularity ...
-
-    Which means, if offset is not provided by the client, then the first 10
-    will always be shown regardless of the number of requests made.
-    """
-    if results < 1:
-        return []
-
-    tiles = feed.tiles.all()
-    tiles = sorted(tiles, key=lambda tile: tile.click_score(), reverse=True)
-
-    return tiles[offset:results]  # all edge cases return []
-
-
 def ir_generic(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                product_tiles_only=False, content_tiles_only=False,
                exclude_set=None, allowed_set=None, request=None,
@@ -378,6 +359,27 @@ def ir_finite(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     tiles = prioritized_tiles + random_tiles
     return tiles[:results]
+
+
+def ir_finite_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+    request=None, offset=0, *args, **kwargs):
+    """Implements *exactly* the following goals:
+
+    ... simpler code/algo, deterministic order and set of tiles (same on every pageview) ...
+    ... sort by popularity ...
+
+    Which means, if offset is not provided by the client, then the first 10
+    will always be shown regardless of the number of requests made.
+    """
+    if results < 1:
+        return []
+
+    tiles = feed.tiles.all()
+    tiles = sorted(tiles, key=lambda tile: tile.click_score(), reverse=True)
+
+    print "Returning popular tiles {0} through {1}".format(
+        offset, offset + results)
+    return tiles[offset:offset+results]  # all edge cases return []
 
 
 def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,

@@ -69,7 +69,7 @@ def get_results_view(request, page_id):
     algorithm_name = request.GET.get('algorithm', 'generic').lower()
     callback = request.GET.get('callback', None)
     category = request.GET.get('category', None)
-    offset = request.GET.get('offset', 0)  # used only by some deterministic algos
+    offset = int(request.GET.get('offset', 0))  # used only by some deterministic algos
     related = request.GET.get('related', '')
     results = int(request.GET.get('results', 10))
     shown = filter(bool, request.GET.get('shown', "").split(","))
@@ -91,7 +91,7 @@ def get_results_view(request, page_id):
     page = get_object_or_404(Page, id=page_id)
     feed = page.feed
     ir = IntentRank(feed=feed)
-    algorithm = getattr(ir, 'ir_' + algorithm_name)  # :raises AttributeError
+    algorithm = getattr(ir, 'ir_' + algorithm_name) or ir.ir_generic
 
     resp = ajax_jsonp(get_results(feed=feed, results=results,
                                   algorithm=algorithm, request=request,
@@ -175,7 +175,7 @@ def get_related_tiles_view(request, page_id, tile_id=None, **kwargs):
 
 
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                algorithm=ir_generic, tile_id=0, **kwargs):
+                algorithm=ir_generic, tile_id=0, offset=0, **kwargs):
     """Converts a feed into a list of <any> using given parameters.
 
     :param feed        a <Feed>
@@ -201,7 +201,7 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         allowed_set = None
     return ir.render(algorithm, feed=feed, results=results,
                      exclude_set=exclude_set, allowed_set=allowed_set,
-                     request=request, tile_id=tile_id)
+                     request=request, offset=offset, tile_id=tile_id)
 
 
 @never_cache

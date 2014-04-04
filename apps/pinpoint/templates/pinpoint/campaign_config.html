@@ -77,6 +77,7 @@
         , 'IRSource': "{{ campaign.ir_base_url|default:ir_base_url }}"  // optional
         , 'IRAlgo': "{{ algorithm|default:"generic" }}"  // optional
         , 'IRReqNum': 0  // optional
+        , 'IROffset': 0
         , 'gaAccountNumber': '{{ campaign.ga_account_number|default:ga_account_number }}'  // required
 
         // number of viewports worth of results to keep below the page.

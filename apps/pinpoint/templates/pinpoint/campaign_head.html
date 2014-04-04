@@ -33,6 +33,7 @@
                 // Ensures that it's resolved on 200 or 404
                 if (xmlhttp.status === 200) { // success so resolve normally
                     PAGES_INFO.IRReqNum++;
+                    PAGES_INFO.IROffset += 10;
                     PAGES_INFO.initialResults = JSON.parse(xmlhttp.response || xmlhttp.responseText);
                 }
             };

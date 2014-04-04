@@ -146,6 +146,7 @@ class TileSerializer(RawSerializer):
             # prevent you from using it like a js object
             '-dbg-real-tile-id': obj.id,
             '-dbg-attributes': obj.attributes,
+            '-dbg-pop': obj.click_score(),
             'tile-id': obj.id,
         }
 
