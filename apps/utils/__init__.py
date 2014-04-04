@@ -1,6 +1,7 @@
 # python.net/~goodger/projects/pycon/2007/idiomatic/handout.html#importing
 from functools import wraps
 import itertools
+from threading import current_thread
 
 from functional import async, check_keys_exist, memoize, noop, proxy, where
 
@@ -21,6 +22,21 @@ def returns_unicode(fn, encoding='utf-8'):
             return rtn
 
     return unicode_func
+
+
+def thread_id(fn):
+    """Says "thread started" / "thread ended" before and after a django view
+    runs.
+    """
+    @wraps(fn)
+    def func(*args, **kwargs):
+        this_thread = current_thread()
+        print "{0} started".format(this_thread.name)
+        rtn = fn(*args, **kwargs)
+        print "{0} ended".format(this_thread.name)
+        return rtn
+
+    return func
 
 
 def flatten(list_of_lists):

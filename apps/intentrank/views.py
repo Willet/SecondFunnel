@@ -12,7 +12,7 @@ from apps.assets.models import Page, Tile, TileRelation, Category
 from apps.intentrank.controllers import IntentRank
 from apps.intentrank.algorithms import ir_generic, ir_all, ir_popular, ir_ordered, ir_finite
 from apps.intentrank.utils import ajax_jsonp
-
+from apps.utils import thread_id
 
 import scripts.generate_rss_feed as rss_feed
 
@@ -29,6 +29,8 @@ def track_tile_view(request, tile_id):
     if not hasattr(request, 'session'):
         return
 
+    tile_id = int(tile_id)
+
     if not request.session.get('shown', []):
         request.session['shown'] = [tile_id]
     else:
@@ -36,80 +38,67 @@ def track_tile_view(request, tile_id):
     request.session['shown'] = list(set(request.session['shown']))  # uniq
 
 
+def track_tiles_view(request, tile_ids):
+    """Shorthand"""
+    for tile_id in tile_ids:
+        track_tile_view(request=request, tile_id=tile_id)
+
+
+def limit_showns(request, n=TRACK_SHOWN_TILES_NUM):
+    """
+    :param n: how many to keep
+    """
+    # ordered algos keep track of full list for zero repeats
+    if not request.GET.get('algorithm', None) in [
+        'ordered', 'sorted', 'finite', 'custom']:
+        request.session['shown'] = request.session.get('shown', [])[-n:]
+
+
 @never_cache
 @csrf_exempt
+@thread_id
 @request_methods('GET')
 def get_results_view(request, page_id):
     """Returns random results for a campaign
 
+    :var callback: if given, jsonp callback
     :var url: if given, proxy directly to intentrank.
     :var page: page id
     :var results: int number of results
 
     :returns HttpResponse/Http404
     """
-    this_thread = current_thread()
-    print "{0} started".format(this_thread.name)
-
+    algorithm_name = request.GET.get('algorithm', 'generic').lower()
     callback = request.GET.get('callback', None)
+    category = request.GET.get('category', None)
+    offset = request.GET.get('offset', 0)  # used only by some deterministic algos
+    related = request.GET.get('related', '')
     results = int(request.GET.get('results', 10))
+    shown = filter(bool, request.GET.get('shown', "").split(","))
 
     # keep track of the last (unique) tiles have been shown.
-    # limit is controlled by TRACK_SHOWN_TILES_NUM
-    shown = filter(bool, request.GET.get('shown', "").split(","))
-    for tile_id in shown:
-        track_tile_view(request=request, tile_id=tile_id)
+    track_tiles_view(request, tile_ids=shown)
 
     # "show everything except these tile ids"
     exclude_set = map(int, request.session.get('shown', []))
 
-    if not request.GET.get('algorithm', None) in ['ordered', 'sorted',
-        'finite', 'custom']:
-        # ordered algo keeps track of full list for zero repeats
-        request.session['shown'] = request.session.get('shown', [])[:TRACK_SHOWN_TILES_NUM]
+    limit_showns(request)  # limit is controlled by TRACK_SHOWN_TILES_NUM
 
-    # otherwise, not a proxy
-    try:
-        page = (Page.objects
-                    .filter(id=page_id)
-                    .select_related('feed__tiles',
-                                    'feed__tiles__products',
-                                    'feed__tiles__content')
-                    .prefetch_related()
-                    .get())
-    except Page.DoesNotExist:
-        return HttpResponseNotFound("No page {0}".format(page_id))
-
+    page = get_object_or_404(Page, id=page_id)
     feed = page.feed
-    if not feed:
-        return HttpResponseNotFound("No feed for page {0}".format(page_id))
+    ir = IntentRank(feed=feed)
+    algorithm = getattr(ir, 'ir_' + algorithm_name)  # :raises AttributeError
 
     #if related is specified, return all related tile to the given tile-id
-    related = request.GET.get('related', '')
     if related:
-        ir = IntentRank(feed=feed)
-        resp = ajax_jsonp(ir.transform(TileRelation.get_related_tiles([Tile.objects.get(id=related)])[:100]))
-        print "{0} ended".format(this_thread.name)
-        return resp
-
-    if request.GET.get('algorithm', None) == 'popular':
-        algorithm = ir_popular
-        results = 100  # temporary default to check if popularity is working
-    elif request.GET.get('algorithm', None) in ['ordered', 'sorted']:
-        algorithm = ir_ordered
-    elif request.GET.get('algorithm', None) == 'finite':
-        algorithm = ir_finite
-    else:
-        algorithm = ir_generic
-
-    category = request.GET.get('category', None)
+        return ajax_jsonp(ir.transform(TileRelation.get_related_tiles([
+            Tile.objects.get(id=related)])[:100]))
 
     resp = ajax_jsonp(get_results(feed=feed, results=results,
                                   algorithm=algorithm, request=request,
-                                  exclude_set=exclude_set, category=category),
+                                  exclude_set=exclude_set, category=category,
+                                  offset=offset),
                       callback_name=callback)
-
-    print "{0} ended".format(this_thread.name)
     return resp
 
 
