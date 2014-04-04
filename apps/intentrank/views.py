@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile, TileRelation, Category
 from apps.intentrank.controllers import IntentRank
-from apps.intentrank.algorithms import ir_generic, ir_all, ir_popular, ir_ordered
+from apps.intentrank.algorithms import ir_generic, ir_all, ir_popular, ir_ordered, ir_finite
 from apps.intentrank.utils import ajax_jsonp
 
 
@@ -18,6 +18,22 @@ import scripts.generate_rss_feed as rss_feed
 
 
 TRACK_SHOWN_TILES_NUM = 20  # move to settings when appropriate
+
+
+def track_tile_view(request, tile_id):
+    """This is a function that accepts a request, not a View.
+
+    Records this tile_id as having been shown for this session.
+    If tracking fails, fails silently.
+    """
+    if not hasattr(request, 'session'):
+        return
+
+    if not request.session.get('shown', []):
+        request.session['shown'] = [tile_id]
+    else:
+        request.session['shown'].append(tile_id)
+    request.session['shown'] = list(set(request.session['shown']))  # uniq
 
 
 @never_cache
@@ -38,22 +54,19 @@ def get_results_view(request, page_id):
     callback = request.GET.get('callback', None)
     results = int(request.GET.get('results', 10))
 
-    # "show everything except these tile ids"
-    shown = filter(bool, request.GET.get('shown', "").split(","))
-    exclude_set = map(int, shown)
-
     # keep track of the last (unique) tiles have been shown.
     # limit is controlled by TRACK_SHOWN_TILES_NUM
-    if request.session:
-        if not request.session.get('shown', []):
-            request.session['shown'] = exclude_set
-        else:
-            request.session['shown'] += exclude_set
-        request.session['shown'] = list(set(request.session['shown']))  # uniq
+    shown = filter(bool, request.GET.get('shown', "").split(","))
+    for tile_id in shown:
+        track_tile_view(request=request, tile_id=tile_id)
 
-        if not request.GET.get('algorithm', None) in ['ordered', 'sorted', 'custom']:
-            # ordered algo keeps track of full list for zero repeats
-            request.session['shown'] = request.session['shown'][:TRACK_SHOWN_TILES_NUM]
+    # "show everything except these tile ids"
+    exclude_set = map(int, request.session.get('shown', []))
+
+    if not request.GET.get('algorithm', None) in ['ordered', 'sorted',
+        'finite', 'custom']:
+        # ordered algo keeps track of full list for zero repeats
+        request.session['shown'] = request.session.get('shown', [])[:TRACK_SHOWN_TILES_NUM]
 
     # otherwise, not a proxy
     try:
@@ -84,6 +97,8 @@ def get_results_view(request, page_id):
         results = 100  # temporary default to check if popularity is working
     elif request.GET.get('algorithm', None) in ['ordered', 'sorted']:
         algorithm = ir_ordered
+    elif request.GET.get('algorithm', None) == 'finite':
+        algorithm = ir_finite
     else:
         algorithm = ir_generic
 
@@ -255,6 +270,8 @@ def click_tile(request, **kwargs):
 @csrf_exempt
 @request_methods('POST')
 def view_tile(request, **kwargs):
-    return update_tiles(request, tile_function=lambda t: t.add_view(), **kwargs)
+    def view_func(tile):
+        tile.add_view()
+        track_tile_view(request=request, tile_id=tile.id)
 
-
+    return update_tiles(request, tile_function=view_func, **kwargs)

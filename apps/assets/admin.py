@@ -3,7 +3,7 @@ from django.db import models
 from django.forms import SelectMultiple
 
 from apps.assets.models import (Store, Page, Tile, Feed, Product, ProductImage,
-                                Image, Content, Theme, Review, Video, TileRelation)
+                                Image, Content, Theme, Review, Video, TileRelation, Category)
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -54,6 +54,10 @@ class StoreAdmin(BaseNamedAdmin):
     search_fields = ('id', 'name',)
 
 
+class CategoryAdmin(BaseAdmin):
+    list_display = ['name', 'id'] + BaseAdmin.list_display + ['store', 'url']
+
+
 class PageAdmin(BaseAdmin):
     list_display = ['name', 'url_slug'] + BaseAdmin.list_display
     search_fields = ('id', 'name', 'url_slug')
@@ -91,8 +95,8 @@ class FeedAdmin(BaseAdmin):
 class ProductAdmin(BaseAdmin):
     ordering = ['name']
     list_display = ['name'] + BaseAdmin.list_display
+    list_filter = ('categories__name',)
     search_fields = ('id', 'name', 'description', 'sku',)
-
 
 class ProductImageAdmin(BaseAdmin):
     ordering = ['created_at', 'original_url']
@@ -127,6 +131,7 @@ class VideoAdmin(BaseAdmin):
 
 
 admin.site.register(Store, StoreAdmin)
+admin.site.register(Category, CategoryAdmin)
 admin.site.register(Page, PageAdmin)
 admin.site.register(Tile, TileAdmin)
 admin.site.register(TileRelation, TileRelationAdmin)
