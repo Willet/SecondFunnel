@@ -13,6 +13,7 @@ django-htmlmin==0.6.3
 django-model-utils==2.0.2
 django-storages==1.1.8
 django-tastypie==0.11.0
+git+git://github.com/kux/django-admin-extend.git@7daa4f56
 git+git://github.com/felixleong/django-tastypie-extendedmodelresource.git@0c773b660
 django-jsonfield==0.9.12
 django-snippetscream==0.0.7

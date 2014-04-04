@@ -11,7 +11,8 @@ class StoreCGHandler(BaseCGHandler):
     model = Store
 
     def get(self, request, *args, **kwargs):
-        stores = self.model.objects.all()
+        # if request doesn't have a user, this line deserves to 500
+        stores = self.model.objects.filter(staff__id=request.user.id)
 
         store_id = kwargs.get('store_id', request.GET.get('store_id'))
         if store_id:
