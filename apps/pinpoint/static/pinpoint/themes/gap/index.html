@@ -10,6 +10,7 @@
             index: 6, // Two-column in Analytics
             test: 'custom',
             device: 'mobile',
+            disabled: true,
             custom: function (template) {
                 var s = $($('#two-column-css').html());
                 template = template || _.sample(["A", "B"]);
@@ -24,17 +25,14 @@
             index: 8,
             test: 'custom',
             device: 'mobile',
-            disabled: true,
             custom: function (template) {
-                template = template || _.sample(["A", "B"]);
+                template = template || _.sample(["B", "C"]);
                 App.options.tests = App.options.tests || {};
                 App.options.tests[2] = template;
-                if (template == "B") {
-                    $('head').ready(function () {
-                        App.options.minColumns = 2;
-                        $('head').append($('#such-cards-much-wow').html());
-                        $($('#two-column-css').html()).appendTo($('head'));
-                    });
+                App.options.minColumns = 2;
+                $($('#two-column-css').html()).appendTo($('head'));
+                if (template == "C") {
+                    $('head').append($('#such-cards-much-wow').html());
                 }
                 return template;
             }
