@@ -91,7 +91,6 @@ class ContentSerializer(RawSerializer):
         if obj.tagged_products.count() > 0:
             data['related-products'] = []
         else:
-            data['-dbg-no-related-products'] = True
             data['-dbg-related-products'] = []
 
         for product in (obj.tagged_products
@@ -144,7 +143,6 @@ class TileSerializer(RawSerializer):
         data = {
             # prefixed keys are for inspection only; the hyphen is designed to
             # prevent you from using it like a js object
-            '-dbg-real-tile-id': obj.id,
             '-dbg-attributes': obj.attributes,
             'tile-id': obj.id,
         }

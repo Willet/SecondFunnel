@@ -247,9 +247,9 @@ class Store(BaseModel):
 class Product(BaseModel):
     store = models.ForeignKey(Store)
 
-    name = models.CharField(max_length=1024)
-    description = models.TextField(blank=True, null=True)
-    details = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=1024, default="")
+    description = models.TextField(blank=True, null=True, default="")
+    details = models.TextField(blank=True, null=True, default="")
     url = models.TextField()
     sku = models.CharField(max_length=255)
     price = models.CharField(max_length=16)  # DEFER: could make more sense to be an integer (# of cents)
