@@ -849,6 +849,22 @@ div.header {
         margin-bottom: 20px;
         margin-top: 20px;
     }
+
+    .previewContainer .shop-the-look .image-with-related-products .gap-buttons,
+    .previewCotnainer .shop-the-look .image-with-related-products .social-buttons {
+        margin-bottom: 20px;
+    }
+
+    .previewContainer .shop-the-look hr {
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+
+    .previewContainer .shop-the-look .text-centered.desc-title {
+        color: #4e5c85;
+        margin: 5px 0px;
+        margin-bottom: 10px;
+    }
 }
 
 @media screen and (max-width: 768px) {
