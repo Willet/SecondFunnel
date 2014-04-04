@@ -17,6 +17,7 @@ class GapProductScraper(ProductDetailScraper):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.get_regex()[0], url).group(1)
 
     def scrape(self, driver, url, product, **kwargs):
+        driver.get(url)
         try:
             product.name = driver.find_element_by_class_name('productName').text
         except NoSuchElementException:
@@ -57,6 +58,7 @@ class GapCategoryScraper(ProductCategoryScraper):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.get_regex()[0], url).group(1)
 
     def scrape(self, driver, url, **kwargs):
+        driver.get(url)
         page_text = driver.find_element_by_xpath('//label[@class="pagePaginatorLabel"]').text
         if page_text:
             pages = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))

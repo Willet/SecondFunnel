@@ -1,4 +1,4 @@
-from apps.assets.models import Category, ProductImage
+from apps.assets.models import Category, ProductImage, Product
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 
@@ -69,6 +69,14 @@ class Scraper(object):
 
 
 class ProductScraper(Scraper):
+    def _get_product(self, url):
+        try:
+            product = Product.objects.get(store=self.store, url=url)
+        except Product.DoesNotExist:
+            product = Product(store=self.store, url=url)
+
+        print product
+
     def _process_image(self, original_url, product):
         """
         This function uploads the image from the url and adds all necessary data to the image object

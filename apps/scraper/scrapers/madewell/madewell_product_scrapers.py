@@ -28,6 +28,7 @@ class MadewellProductScraper(ProductDetailScraper):
         return url
 
     def scrape(self, driver, url, product, values, **kwargs):
+        driver.get(url)
         product.sku = re.match(self.sku_regex, product.url).group(1)
         try:
             product.price = re.sub(r'USD *', '$', driver.find_element_by_class_name('selected-color-price').text)
@@ -73,17 +74,17 @@ class MadewellCategoryScraper(ProductCategoryScraper):
         category = match.group(1)
         sub_category = match.group(2)
         url = 'http://www.madewell.com/madewell_category/' + category
-        if sub_category:
-            url += '/' + sub_category
-        url += '.jsp'
         values['category'] = category
         values['category_url'] = 'http://www.madewell.com/madewell_category/{0}.jsp'.format(category)
         if sub_category:
+            url += '/' + sub_category
             values['sub_category'] = sub_category
             values['sub_category_url'] = 'http://www.madewell.com/madewell_category/{0}/{1}.jsp'.format(category, sub_category)
+        url += '.jsp'
         return url
 
     def scrape(self, driver, url, store, **kwargs):
+        driver.get(url)
         products_data = driver.find_elements_by_xpath('//td[@class="arrayProdCell"]//td[@class="arrayImg"]/a')
         for product_data in products_data:
             url = MadewellProductScraper().parse_url(product_data.get_attribute('href')).get('url')
@@ -102,10 +103,6 @@ class MadewellCategoryScraper(ProductCategoryScraper):
 class MadewellMultiProductScraper(ProductCategoryScraper):
     def get_regex(self, **kwargs):
         return [self._wrap_regex(r'(?:www\.)?madewell\.com/browse/multi_product_detail.jsp\?(?:[^/\?]+&)?externalProductCodes=([^&\?/]+)', True)]
-
-    def parse_url(self, url, **kwargs):
-        product_codes = re.match(self.get_regex()[0], url).group(1)
-        return 'http://www.madewell.com/browse/multi_product_detail.jsp?externalProductCodes=' + product_codes
 
     def scrape(self, driver, url, **kwargs):
         product_codes = re.match(self.get_regex()[0], url).group(1)
