@@ -403,3 +403,9 @@ def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tiles += random_tiles
 
     return tiles[:results]
+
+
+def ir_related(feed, tile_id, *args, **kwargs):
+    """refactored from views. Doesn't actually use the feed."""
+    from apps.assets.models import Tile
+    return Tile.objects.get(id=tile_id).get_related()[:100]

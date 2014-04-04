@@ -1,5 +1,3 @@
-from threading import Thread, current_thread
-
 from django.conf import settings
 from django.http import HttpResponse
 from django.http.response import Http404, HttpResponseNotFound
@@ -10,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile, TileRelation, Category
 from apps.intentrank.controllers import IntentRank
-from apps.intentrank.algorithms import ir_generic, ir_all, ir_popular, ir_ordered, ir_finite
+from apps.intentrank.algorithms import ir_generic, ir_all
 from apps.intentrank.utils import ajax_jsonp
 from apps.utils import thread_id
 
@@ -75,6 +73,12 @@ def get_results_view(request, page_id):
     related = request.GET.get('related', '')
     results = int(request.GET.get('results', 10))
     shown = filter(bool, request.GET.get('shown', "").split(","))
+    tile_id = request.GET.get('tile-id', 0)  # for related
+
+    #if related is specified, return all related tile to the given tile-id
+    if related:
+        algorithm_name = 'related'
+        tile_id = related
 
     # keep track of the last (unique) tiles have been shown.
     track_tiles_view(request, tile_ids=shown)
@@ -89,15 +93,10 @@ def get_results_view(request, page_id):
     ir = IntentRank(feed=feed)
     algorithm = getattr(ir, 'ir_' + algorithm_name)  # :raises AttributeError
 
-    #if related is specified, return all related tile to the given tile-id
-    if related:
-        return ajax_jsonp(ir.transform(TileRelation.get_related_tiles([
-            Tile.objects.get(id=related)])[:100]))
-
     resp = ajax_jsonp(get_results(feed=feed, results=results,
                                   algorithm=algorithm, request=request,
                                   exclude_set=exclude_set, category=category,
-                                  offset=offset),
+                                  offset=offset, tile_id=tile_id),
                       callback_name=callback)
     return resp
 
@@ -176,7 +175,7 @@ def get_related_tiles_view(request, page_id, tile_id=None, **kwargs):
 
 
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                algorithm=ir_generic, **kwargs):
+                algorithm=ir_generic, tile_id=0, **kwargs):
     """Converts a feed into a list of <any> using given parameters.
 
     :param feed        a <Feed>
@@ -184,6 +183,7 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     :param exclude_set IDs of items in the feed to never consider
     :param request     (relay)
     :param algorithm   reference to a <Feed> => [<Tile>] function
+    :param tile_id     for getting related tiles
 
     :returns           a list of <any>
     """
@@ -201,7 +201,7 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         allowed_set = None
     return ir.render(algorithm, feed=feed, results=results,
                      exclude_set=exclude_set, allowed_set=allowed_set,
-                     request=request)
+                     request=request, tile_id=tile_id)
 
 
 @never_cache

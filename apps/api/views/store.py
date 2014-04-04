@@ -1,7 +1,3 @@
-import json
-
-from django.shortcuts import get_object_or_404
-
 from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
 from apps.assets.models import Store
 from apps.intentrank.utils import ajax_jsonp

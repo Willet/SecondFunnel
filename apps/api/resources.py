@@ -1,7 +1,5 @@
 import calendar
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.http.response import Http404
-from django.shortcuts import get_object_or_404
 from extendedmodelresource import ExtendedModelResource
 import hammock
 import json
@@ -456,9 +454,11 @@ class StoreViewSet(viewsets.ModelViewSet):
     model = Store
     lookup_field = 'id'
 
+
 class PageViewSet(viewsets.ModelViewSet):
     model = Page
     lookup_field = 'id'
+
 
 class FeedViewSet(viewsets.ModelViewSet):
     model = Feed
