@@ -89,18 +89,22 @@ class ProductScraper(Scraper):
         except ProductImage.DoesNotExist:
             image = ProductImage(original_url=original_url, product=product)
 
-        print('processing image - ' + original_url)
-        data = process_image(original_url, create_image_path(self.store.id))
-        image.url = data.get('url')
-        image.file_type = data.get('format')
-        image.dominant_color = data.get('dominant_colour')
+        print('')
+        if not (image.url and image.file_type):
+            print('processing image - ' + original_url)
+            data = process_image(original_url, create_image_path(self.store.id))
+            image.url = data.get('url')
+            image.file_type = data.get('format')
+            image.dominant_color = data.get('dominant_colour')
 
-        # save the image
-        image.save()
+            # save the image
+            image.save()
 
-        if product and not product.default_image:
-            product.default_image = image
-            product.save()
+            if product and not product.default_image:
+                product.default_image = image
+                product.save()
+        else:
+            print('image has already been processed')
 
         print(image.to_json())
 
@@ -151,6 +155,10 @@ class ContentScraper(Scraper):
         If no image object is passed in, it creates a ProductImage as the default image object type
         """
 
+        if image.url and image.file_type and image.source_url:
+            return image
+
+        print('')
         print('processing image - ' + source_url)
         data = process_image(source_url, create_image_path(self.store.id))
         image.url = data.get('url')

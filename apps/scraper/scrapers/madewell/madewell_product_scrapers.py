@@ -54,14 +54,18 @@ class MadewellProductScraper(ProductDetailScraper):
         yield product
 
     def _get_images(self, driver, product):
+        images = []
         images_data = driver.find_elements_by_xpath('//div[@class="float-left"]/img')
         if images_data:
             for img in images_data:
                 image = img.get_attribute('data-imgurl')
-                self._process_image(image, product)
+                images.append(self._process_image(image, product))
         else:
             image = driver.find_element_by_class_name('prod-main-img').get_attribute('src')
-            self._process_image(image, product)
+            images.append(self._process_image(image, product))
+
+        for image in product.product_images.exclude(id__in=[image.id for image in images]):
+            image.delete()
 
 
 

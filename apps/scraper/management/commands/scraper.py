@@ -1,8 +1,6 @@
-import sys
 import os
 import re
 import traceback
-import argparse
 
 from selenium import webdriver
 from optparse import make_option
@@ -111,7 +109,7 @@ class Command(BaseCommand):
                     except Product.DoesNotExist:
                         product = Product(store=self.store, url=url)
                 for product in scraper.scrape(driver=driver, url=url, product=product, values=values):
-                    print(product.to_json())
+                    print('\n' + str(product.to_json()))
                     break
             elif isinstance(scraper, ProductCategoryScraper):
                 for product in scraper.scrape(driver=driver, url=url, values=values):

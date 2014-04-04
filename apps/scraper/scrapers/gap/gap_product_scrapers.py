@@ -35,6 +35,7 @@ class GapProductScraper(ProductDetailScraper):
         yield product
 
     def _get_images(self, product_data_page, product):
+        images = []
         picture_groups = re.finditer(re.compile(r"styleColorImagesMap\s*=\s*\{\s*([^\}]*)\}\s*;", flags=re.MULTILINE|re.DOTALL), product_data_page)
         for group_match in picture_groups:
             images_text = group_match.group(1)
@@ -45,7 +46,10 @@ class GapProductScraper(ProductDetailScraper):
                 if name in self.imageLabels:
                     if url.startswith('/'):
                         url = 'http://www.gap.com' + url
-                    self._process_image(url, product)
+                    images.append(self._process_image(url, product))
+
+        for image in product.product_images.exclude(id__in=[image.id for image in images]):
+            image.delete()
 
 
 class GapCategoryScraper(ProductCategoryScraper):
