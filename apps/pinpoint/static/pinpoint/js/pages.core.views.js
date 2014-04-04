@@ -613,6 +613,7 @@ App.module('core', function (module, App) {
                 // feed ended / IR busted
                 if (tileInfo && tileInfo.length === 0) {
                     self.toggleLoading(false);
+                    App.vent.trigger("feedEnded", this);
                 }
             });
 
