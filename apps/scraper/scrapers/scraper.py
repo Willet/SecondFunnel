@@ -89,9 +89,8 @@ class ProductScraper(Scraper):
         except ProductImage.DoesNotExist:
             image = ProductImage(original_url=original_url, product=product)
 
-        print('')
         if not (image.url and image.file_type):
-            print('processing image - ' + original_url)
+            print('\nprocessing image - ' + original_url)
             data = process_image(original_url, create_image_path(self.store.id))
             image.url = data.get('url')
             image.file_type = data.get('format')
@@ -104,7 +103,7 @@ class ProductScraper(Scraper):
                 product.default_image = image
                 product.save()
         else:
-            print('image has already been processed')
+            print('\nimage has already been processed')
 
         print(image.to_json())
 
