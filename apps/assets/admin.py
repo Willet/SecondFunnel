@@ -94,9 +94,16 @@ class FeedAdmin(BaseAdmin):
 
 class ProductAdmin(BaseAdmin):
     ordering = ['name']
-    list_display = ['name'] + BaseAdmin.list_display
+    list_display = ['name', '_category_names'] + BaseAdmin.list_display
     list_filter = ('categories__name',)
     search_fields = ('id', 'name', 'description', 'sku',)
+
+    def _categories(self, obj):
+        return [cat.name for cat in obj.categories.all()]
+
+    def _category_names(self, obj):
+        return ", ".join(self._categories(obj))
+    _category_names.admin_order_field = 'categories'
 
 class ProductImageAdmin(BaseAdmin):
     ordering = ['created_at', 'original_url']
