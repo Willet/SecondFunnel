@@ -21,8 +21,8 @@ def upload():
     SecondFunnel front-facing application.
     """
     stores = [
-        38, # GAP
-        23 # Tee Time
+        1, # GAP
+        2 # Tee Time
     ]
 
     secondfunnel_path = "http://images.secondfunnel.com/"

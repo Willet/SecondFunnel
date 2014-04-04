@@ -523,7 +523,7 @@
                     <div class='description'>
                         <div class='desc-title'>Overview</div>
                         <% var sentences = _.compact(obj.description.split('.')); %>
-                        <% if (obj.description.indexOf('<li>') == -1) { %>
+                        <% if (!obj.description.match(/<li(?:.|\n)*?>/)) { %>
                             <ul>
                                 <% _.each(sentences, function(sentence) { %>
                                     <li><%= SecondFunnel.utils.safeString(sentence) %></li>
@@ -676,7 +676,7 @@
                         <div class='description'>
                             <div class='desc-title'>Overview</div>
                             <% var description = (product.description || ""); %>
-                            <% if (description.indexOf('<li>') == -1) { %>
+                            <% if (!description.match(/<li(?:.|\n)*?>/)) { %>
                                 <% var sentences = _.compact(description.split('.')); %>
                                 <ul>
                                     <% _.each(sentences, function(sentence) { %>

@@ -132,7 +132,7 @@ def process_image(source, path='', sizes=None):
     return data
 
 
-def process_image_now(source, path, sizes=None):
+def process_image_now(source, path='', sizes=None):
     """
     Delegates to resize to create the necessary sizes.
 
