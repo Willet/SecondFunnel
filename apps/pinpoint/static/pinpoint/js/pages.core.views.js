@@ -316,7 +316,7 @@ App.module('core', function (module, App) {
             }
 
             // add view to our database
-            $.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.page.id + "/tile/" + model.get('tile-id') + "/view");
+            //$.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.page.id + "/tile/" + model.get('tile-id') + "/view");
 
             $tileImg.load(allocateTile);
         }
