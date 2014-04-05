@@ -340,7 +340,7 @@ App.module("tracker", function (tracker, App) {
                 label += " (Tile " + tileId + ")";
 
                 // add click to our database
-                $.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.page.id + "/tile/" + tileId + "/click");
+                // $.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.page.id + "/tile/" + tileId + "/click");
 
                 // Be super explicit about what the hash is
                 // rather than relying on the window
