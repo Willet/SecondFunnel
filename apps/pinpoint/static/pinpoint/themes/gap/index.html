@@ -96,6 +96,7 @@
                 }
                 .visible-xs.jumbotron {
                     {% ifequal campaign.url_slug "dressedup" %}
+                    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/mobile_small_red.png') !important;
                     {% else %}
                     background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/mobile_small.png') !important;
                     {% endifequal %}
@@ -348,7 +349,7 @@
                     </div>
                 </div>
             </div>
-            <% if (App.option('tests') && App.option('tests')[2] == 'B' &&
+            <% if (App.option('tests') && App.option('tests')[2] == 'C' &&
                       obj['related-products'] && obj['related-products'].length > 0) { %>
                 <div class="caption">
                     <span><%= obj['related-products'][0].name %></span>
@@ -756,16 +757,40 @@
                                 + 'body=' + encodeURIComponent(share);
                         %>
                         <a href='<%= fbLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon{% ifequal campaign.url_slug "dressedup" %}_white{% endifequal %}.png' />
+                            {% ifequal campaign.url_slug "dressedup" %}
+                                <% if (App.option('tests') && App.option('tests')[2]) { %>
+                                    <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_red.png' />
+                                <% } else { %>
+                                    <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_white.png' />
+                                <% } %>
+                            {% else %}
+                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon.png' />
+                            {% endifequal %}
                         </a>
                         <a href='<%= twtLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon{% ifequal campaign.url_slug "dressedup" %}_white{% endifequal %}.png' />
+                            {% ifequal campaign.url_slug "dressedup" %}
+                                <% if (App.option('tests') && App.option('tests')[2]) { %>
+                                    <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_red.png' />
+                                <% } else { %>
+                                    <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_white.png' />
+                                <% } %>
+                            {% else %}
+                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon.png' />
+                            {% endifequal %}
                         </a>
                         <a href='<%= mailLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon{% ifequal campaign.url_slug "dressedup" %}_white{% endifequal %}.png' />
+                            {% ifequal campaign.url_slug "dressedup" %}
+                                <% if (App.option('tests') && App.option('tests')[2]) { %>
+                                    <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_red.png' />
+                                <% } else { %>
+                                    <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_white.png' />
+                                <% } %>
+                            {% else %}
+                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon.png' />
+                            {% endifequal %}
                         </a>
                     </div>
-                    <span class='find{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}'>
+                    <span class='find{% ifequal campaign.url_slug "dressedup" %}<% if (App.option('tests') && App.option('tests')[2]) { %> red <% } else { %> white <% } %>{% endifequal %}'>
                         <% if (!App.support.mobile()) { %>
                             <a href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
                         <% } else { %>

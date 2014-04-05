@@ -235,6 +235,12 @@ div.header {
     color: white;
 }
 
+#hero-area .find.red a,
+#hero-area .find.red a:hover,
+#hero-area .find.red a:visited {
+    color: red;
+}
+
 #hero-area .buttons img {
     width: 33px;
     height: 33px;
