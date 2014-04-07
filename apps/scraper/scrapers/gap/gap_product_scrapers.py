@@ -22,6 +22,16 @@ class GapProductScraper(ProductDetailScraper):
         except NoSuchElementException:
             yield product
             return
+
+        try:
+            sale_price_text = self.driver.find_element_by_id('productPageMupMessageStyle').text
+            match = re.match(r'Now (\$\d+\.\d{2})', sale_price_text)
+            if match:
+                sale_price = match.group(1)
+                print(sale_price)
+                product.attributes.update({'sale_price': sale_price})
+        except NoSuchElementException:
+            pass
         product.sku = re.match(self.sku_regex, product.url).group(1)
         product.description = self.driver.find_element_by_id('tabWindow').get_attribute("innerHTML")
         product.price = self.driver.find_element_by_id('priceText').text
