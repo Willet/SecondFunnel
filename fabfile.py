@@ -10,6 +10,7 @@ from fabric.decorators import hosts
 from fabric.operations import local, get
 from secondfunnel.settings import common as django_settings
 from scripts.import_ops import importer as real_importer
+from scripts.import_ops import scraper as real_scraper
 
 import boto.ec2
 import itertools
@@ -227,6 +228,11 @@ def deploy(cluster_type='test', branch='master'):
 def importer(*args, **kwargs):
     """Alias for fabfile"""
     return real_importer(*args, **kwargs)
+
+def scraper(*args, **kwargs):
+    """Alias for fabfile"""
+    return real_scraper(*args, **kwargs)
+
 
 def get_postgres_arguments():
     environment_type = os.getenv('PARAM1', '').upper() or 'DEV'
