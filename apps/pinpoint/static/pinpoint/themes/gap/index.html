@@ -43,17 +43,7 @@
             custom: function (template) {
                 template = template || _.sample(["A", "B"]);
                 if (template == "B") {
-                    App.options.categories = [
-                        {
-                            name: "Home"
-                        },
-                        {
-                            name: "Mens"
-                        },
-                        {
-                            name: "Womens"
-                        }
-                    ];
+                    App.options.categories = ["home", "mens", "womens"];
                 }
             }
         });

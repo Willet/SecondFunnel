@@ -1133,7 +1133,9 @@ App.module('core', function (module, App) {
 
             // Initialize by adding all the categories to this view
             _.each(categories, function (category) {
-                category = new App.core.Category(category);
+                category = new App.core.Category({
+                  'name': category
+                });
                 self.collection.add(category);
             });
         },
