@@ -154,7 +154,7 @@ def process_image_now(source, path='', sizes=None):
 
     if getattr(settings, 'CLOUDINARY', None) is not None:
         image_object = cloudinary.uploader.upload(source,
-            folder=path, public_id="master", colors=True)
+            folder=path, colors=True)
         # Grab the dominant colour from cloudinary
         colors = image_object['colors']
         colors = sorted(colors, key=lambda c: c[1], reverse=True)
