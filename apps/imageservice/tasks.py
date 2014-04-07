@@ -144,8 +144,7 @@ def process_image_now(source, path='', sizes=None):
     if not sizes:
         sizes = []
 
-    master_url, dominant_color = None, "transparent"
-    img_format = None
+    master_url, dominant_color, img_format = None, "transparent", None
     data = {'sizes': []}
 
     # Get the unique folder where we'll store the image
@@ -153,14 +152,22 @@ def process_image_now(source, path='', sizes=None):
         upload_to_s3
 
     if getattr(settings, 'CLOUDINARY', None) is not None:
-        image_object = cloudinary.uploader.upload(source,
-            folder=path, colors=True)
-        # Grab the dominant colour from cloudinary
-        colors = image_object['colors']
-        colors = sorted(colors, key=lambda c: c[1], reverse=True)
-        dominant_color = colors[0][0]
-        master_url = image_object['url']
-        img_format = image_object['format']
+        if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"
+            img = ExtendedImage.open(source)
+            dominant_color = img.dominant_color
+            img_format = img.format.lower().replace("jpeg", "jpg")
+            image_object = cloudinary.uploader.upload_image(source,
+                folder=path)
+            master_url = image_object.url
+        else:
+            image_object = cloudinary.uploader.upload(source,
+                folder=path, colors=True)
+            # Grab the dominant colour from cloudinary
+            colors = image_object['colors']
+            colors = sorted(colors, key=lambda c: c[1], reverse=True)
+            dominant_color = colors[0][0]
+            master_url = image_object['url']
+            img_format = image_object['format']
 
     else: # fall back to default ImageService is Cloudinary is not available
         if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"
