@@ -4,6 +4,7 @@ import json
 from django.core import serializers
 from algorithms import ir_generic
 
+
 class IntentRank(object):
     """Consider this an engine. Initializing one of those will emulate
     behaviour of a Feed object.

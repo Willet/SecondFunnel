@@ -321,7 +321,6 @@ def ir_finite(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # first, always show the ones that are 'request' i.e. every request
     prioritized_tiles += ir_priority_request(feed=feed, results=1000,
-                                             exclude_set=exclude_set,
                                              allowed_set=allowed_set)
     if len(prioritized_tiles) >= results:
         return prioritized_tiles[:results]
@@ -330,11 +329,9 @@ def ir_finite(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     exclude_set += ids_of(prioritized_tiles)
     if request and request.GET.get('reqNum', 0) in [0, '0']:
         prioritized_tiles += ir_priority_pageview(feed=feed, results=1000,
-                                                  exclude_set=exclude_set,
                                                   allowed_set=allowed_set)
     else:  # else... NEVER show these per-request tiles again
         x_prioritized_tiles = ir_priority_pageview(feed=feed, results=1000,
-                                                   exclude_set=exclude_set,
                                                    allowed_set=allowed_set)
         exclude_set += ids_of(x_prioritized_tiles)
     if len(prioritized_tiles) >= results:
@@ -394,7 +391,7 @@ def ir_finite_by(attribute='created_at', reversed_=False):
 
     def algo(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
              request=None, offset=0, *args, **kwargs):
-
+        """Outputs tiles, based on tiles' {attribute}, in offset slices."""
         def sort_fn(tile):
             """Turns a tile into a number"""
             try:
@@ -409,8 +406,14 @@ def ir_finite_by(attribute='created_at', reversed_=False):
         tiles = feed.tiles.all()
         tiles = sorted(tiles, key=sort_fn, reverse=reversed_)
 
-        print "Returning popular tiles, by '{0}', {1} through {2}".format(
-            attribute, offset, offset + results)
+        # generate a verbose id:value map that shows exactly why a tile was
+        # sorted this way
+        tile_dump = "\n".join(
+            ["{0}: {1}".format(tile.id, result(getattr(tile, attribute)))
+             for tile in tiles][offset:offset+results])
+
+        print "Returning popular tiles, by '{0}', {1} through {2}\n{3}".format(
+            attribute, offset, offset + results, tile_dump)
         return tiles[offset:offset+results]  # all edge cases return []
     return algo
 
