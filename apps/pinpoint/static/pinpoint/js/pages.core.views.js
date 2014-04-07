@@ -825,7 +825,6 @@ App.module('core', function (module, App) {
             if (!App.support.isAnAndroid()) {
                 $(document.body).addClass('no-scroll');
             }
-
         },
 
         'close': function () {
