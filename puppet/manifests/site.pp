@@ -21,7 +21,7 @@ class python {
     require => Package['build-essential'],
   }
 
-  exec { "easy_install pip":
+  exec { "sudo easy_install pip":
     path => "/usr/local/bin:/usr/bin:/bin",
     refreshonly => true,
     require => Package["python-setuptools"],
@@ -29,7 +29,7 @@ class python {
   }
      
   exec { "pip-install-req":
-    command => "pip install -r /vagrant/requirements/dev.txt",
+    command => "sudo pip install -r /vagrant/requirements/dev.txt",
     path => "/usr/local/bin:/usr/bin:/bin",
     require => Package['git', 'libxml2-dev', 'libxslt-dev','libpq-dev'],
   }
