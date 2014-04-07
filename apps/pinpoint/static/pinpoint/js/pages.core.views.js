@@ -781,17 +781,10 @@ App.module('core', function (module, App) {
 
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
-            var buttons, width;
+            var buttons;
             if (this.$('.social-buttons').length >= 1) {
                 buttons = new App.sharing.SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
-            }
-            width = Marionette.getOption(this, 'width');
-
-            if (width) {
-                this.$('.content').css('width', width + 'px');
-            } else if (App.support.mobile()) {
-                this.$el.width($(window).width()); // assign width
             }
 
             // hide discovery, then show this window as a page.
@@ -822,6 +815,15 @@ App.module('core', function (module, App) {
 
             So, for now, only add no-scroll if the device is NOT an android.
              */
+            var width;
+            width = Marionette.getOption(this, 'width');
+
+            if (width) {
+                this.$('.content').css('width', width + 'px');
+            } else if (App.support.mobile()) {
+                this.$el.width($(window).width()); // assign width
+            }
+
             if (!App.support.isAnAndroid()) {
                 $(document.body).addClass('no-scroll');
             }
