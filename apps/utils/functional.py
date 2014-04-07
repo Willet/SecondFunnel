@@ -112,3 +112,15 @@ def async(fn):
             return fn(*args, **kwargs)  # fake an async
 
     return async_func
+
+
+def result(obj, arg=None):
+    """Like _.result():
+    If the object is a callable, return its return.
+    If not, return the object.
+    """
+    if hasattr(obj, '__call__'):
+        if arg:  # such a distinction prevents a non-None default to be overridden
+            return obj(arg)
+        return obj()
+    return obj
