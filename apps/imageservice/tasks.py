@@ -159,9 +159,10 @@ def process_image_now(source, path='', sizes=None):
             image_object = cloudinary.uploader.upload_image(source,
                 folder=path)
             master_url = image_object.url
+
         else:
             image_object = cloudinary.uploader.upload(source,
-                folder=path, colors=True)
+                folder=path, colors=True, format = 'jpg')
             # Grab the dominant colour from cloudinary
             colors = image_object['colors']
             colors = sorted(colors, key=lambda c: c[1], reverse=True)
