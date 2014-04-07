@@ -31,7 +31,7 @@
                 App.options.tests[2] = template;
                 App.options.minColumns = 2;
                 $($('#two-column-css').html()).appendTo($('head'));
-                if (template == "C") {
+                if (template === "C") {
                     $('head').append($('#such-cards-much-wow').html());
                 }
                 return template;
@@ -42,7 +42,7 @@
             test: 'custom',
             custom: function (template) {
                 template = template || _.sample(["A", "B"]);
-                if (template == "B") {
+                if (template === "B") {
                     App.options.categories = ["home", "mens", "womens"];
                 }
             }
@@ -1031,7 +1031,7 @@
             // 12 - Scroll for more
             var pagesScrolled = 1;
             App.vent.on('tracking:trackEvent', function (o) {
-                if (o.action == 'scroll') {
+                if (o.action === 'scroll') {
                     recordEvent('page_scroll', 'scroll', 'page_scroll', 'scroll - ' + o.label);
                 }
             });
@@ -1097,7 +1097,7 @@
         // _pa.revenue = "19.99"; // OPTIONAL: attach dynamic purchase values to conversions
         // _pa.productId = "myProductId"; // OPTIONAL: Include product ID for use with dynamic ads
         var pa = document.createElement('script'); pa.type = 'text/javascript'; pa.async = true;
-        pa.src = ('https:' == document.location.protocol ? 'https:' : 'http:') + "//tag.perfectaudience.com/serve/52fd209b01a11d23fd000004.js";
+        pa.src = ('https:' === document.location.protocol ? 'https:' : 'http:') + "//tag.perfectaudience.com/serve/52fd209b01a11d23fd000004.js";
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(pa, s);
       })();
     </script>
@@ -1109,7 +1109,7 @@
     (function () {
        __adroll_loaded=true;
        var scr = document.createElement("script");
-       var host = (("https:" == document.location.protocol) ? "https://s.adroll.com" : "http://a.adroll.com");
+       var host = (("https:" === document.location.protocol) ? "https://s.adroll.com" : "http://a.adroll.com");
        scr.setAttribute('async', 'true');
        scr.type = "text/javascript";
        scr.src = host + "/j/roundtrip.js";
