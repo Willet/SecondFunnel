@@ -1023,22 +1023,18 @@ div.header {
     }
 }
 
-.discovery-filters {
+#category-area {
     width: 100%;
     text-align: center;
 }
 
-.discovery-filters .filter {
-    width: 33%;
+#category-area .category {
     color: white;
-    padding: 10px;
-    font-size: 16px;
-    text-align: center;
-    display: inline-block;
     border: 1px solid white;
     background-color: #555555;
 }
 
-.discovery-filters .filter.selected {
+#category-area .category.selected {
+    color: white;
     background-color: #000d41;
 }

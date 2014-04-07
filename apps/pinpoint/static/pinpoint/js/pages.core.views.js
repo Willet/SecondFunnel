@@ -1105,12 +1105,11 @@ App.module('core', function (module, App) {
         },
 
         'onClick': function (ev) {
-            var category = this.model.get('name');
+            var category = this.model.get('value');
 
             // Switch the selected category class to this element
-            $(this.className).removeClass('selected');
+            this.$el.siblings().removeClass('selected');
             this.$el.addClass('selected');
-
             App.intentRank.changeCategory(category);
         }
     });
@@ -1123,6 +1122,7 @@ App.module('core', function (module, App) {
      */
     this.CategoryCollectionView = Marionette.CollectionView.extend({
         'tagName': "div",
+        'className': "category-area",
         'itemView': this.CategoryView,
         'collection': null,
 
@@ -1136,6 +1136,10 @@ App.module('core', function (module, App) {
                 category = new App.core.Category(category);
                 self.collection.add(category);
             });
+        },
+
+        'onRender': function () {
+            this.$el.children().eq(0).addClass('selected');
         }
     });
 });

@@ -37,6 +37,26 @@
                 return template;
             }
         });
+        window.OPTIMIZER_TESTS.push({
+            index: 9,
+            test: 'custom',
+            custom: function (template) {
+                template = template || _.sample(["A", "B"]);
+                if (template == "B") {
+                    App.options.categories = [
+                        {
+                            name: "Home"
+                        },
+                        {
+                            name: "Mens"
+                        },
+                        {
+                            name: "Womens"
+                        }
+                    ];
+                }
+            }
+        });
     </script>
     <script type="text/template" id="such-cards-much-wow">
         <style type="text/css">
@@ -51,6 +71,9 @@
                 }
                 #hero-area {
                     background-color: #FFF;
+                }
+                #category-area {
+                    background-color: rgba(102, 102, 102, 0.2);
                 }
                 .tile {
                     padding: 0px;
@@ -285,6 +308,10 @@
 
     <div>
         <!-- generic templates -->
+        <script type="text/template" id="category_template">
+            <span><%= obj.name %></span>
+        </script>
+
         <script type="text/template" id="disabled_featured_template">
             <div class='featured product'>
                 <!-- Main Display Area -->
@@ -816,11 +843,7 @@
     <div class="container">
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
         <div id="hero-area"></div>
-        <div id="discovery-filters" class="discovery-filters">
-            <div class="filter selected">Home
-            </div><div class="filter">Womens
-            </div><div class="filter">Mens</div>
-        </div>
+        <div id="category-area"></div>
         <div id="discovery-area" class="discovery-area"></div>
         <div class="no-noscript loading"></div>
         <noscript>
