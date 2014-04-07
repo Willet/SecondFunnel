@@ -987,6 +987,18 @@ div.header {
         width: auto;
         font-weight: inherit;
     }
+
+    .previewContainer .price {
+        position: absolute;
+        top: 72px;
+        left: 10px;
+        background-color: #555;
+        color: white;
+        z-index: 1;
+        border: 1px solid white;
+        padding: 10px 10px;
+        font-size: 24px;
+    }
 }
 
 /* Galaxy S1-3, iPhone 3GS, iPhone 4, et al */
