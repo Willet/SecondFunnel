@@ -268,7 +268,10 @@ def dump_database_postgres(path='/tmp/db.sql'):
     arguments = args['arguments']
     password = args['password']
 
-    command = '{} && pg_dump {} > {}'.format(
+    #'--exclude-schema='
+    command = '{} && pg_dump ' \
+        '--data-only ' \
+        '{} > {}'.format(
         password, arguments, path
     )
 
