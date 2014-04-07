@@ -222,6 +222,29 @@ div.header {
         margin-left: 6px;
     }
 
+    #hero-area .overlay .buttons .white {
+        background-repeat: no-repeat;
+        background-size: contain;
+        width: 33px;
+        height: 33px;
+        display: inline-block;
+    }
+
+    #hero-area .overlay .buttons .white.facebook_button {
+        background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_orange.png');
+    }
+
+    #hero-area .overlay .buttons .white.twitter_button {
+        background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_orange.png');
+    }
+
+    #hero-area .overlay .buttons .white.email_button {
+        background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_orange.png');
+    }
+
+    #hero-area .overlay .buttons .white img {
+        visibility: hidden;
+    }
 }
 
 #hero-area .buttons {
@@ -247,6 +270,14 @@ div.header {
 #hero-area .find.white a:hover,
 #hero-area .find.white a:visited {
     color: white;
+}
+
+@media screen and (max-width: 768px) {
+    #hero-area .find.white a,
+    #hero-area .find.white a:hover,
+    #hero-area .find.white a:visited {
+        color: #f14945;
+    }
 }
 
 #hero-area .find.red a,

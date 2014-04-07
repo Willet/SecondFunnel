@@ -703,7 +703,7 @@
                             var mailLink = 'mailto:?'
                                 + 'body=' + encodeURIComponent(share);
                         %>
-                        <a href='<%= fbLink %>' target='_blank'>
+                        <a href='<%= fbLink %>' target='_blank' class="facebook_button{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}">
                             {% ifequal campaign.url_slug "dressedup" %}
                                 <% if (App.option('tests') && App.option('tests')[2]) { %>
                                     <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_red.png' />
@@ -714,7 +714,7 @@
                                 <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon.png' />
                             {% endifequal %}
                         </a>
-                        <a href='<%= twtLink %>' target='_blank'>
+                        <a href='<%= twtLink %>' target='_blank' class="twitter_button{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}">
                             {% ifequal campaign.url_slug "dressedup" %}
                                 <% if (App.option('tests') && App.option('tests')[2]) { %>
                                     <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_red.png' />
@@ -725,7 +725,7 @@
                                 <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon.png' />
                             {% endifequal %}
                         </a>
-                        <a href='<%= mailLink %>' target='_blank'>
+                        <a href='<%= mailLink %>' target='_blank' class="email_button{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}">
                             {% ifequal campaign.url_slug "dressedup" %}
                                 <% if (App.option('tests') && App.option('tests')[2]) { %>
                                     <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_red.png' />
