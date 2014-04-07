@@ -1141,7 +1141,7 @@ App.module('core', function (module, App) {
         },
 
         'onRender': function () {
-            this.$el.children().eq(0).addClass('selected');
+            this.$el.children().eq(0).click();
         }
     });
 });
