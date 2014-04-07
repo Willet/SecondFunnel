@@ -41,11 +41,14 @@ class Command(BaseCommand):
                 if not folder.endswith('/'):
                     folder += '/'
                 url_file = open(folder + file_name)
-                store_id = int(url_file.readline())
-                store = Store.objects.get(id=store_id)
-                self.set_store(store)
-                for line in url_file:
-                    self.run_scraper(url=line)
+                store_slug = file_name.split('.')[0]
+                try:
+                    store = Store.objects.get(slug=store_slug)
+                    self.set_store(store)
+                    for line in url_file:
+                        self.run_scraper(url=line)
+                except Store.DoesNotExist:
+                    print('store %s does not exist' % store_slug)
 
 
 
@@ -120,7 +123,7 @@ class Command(BaseCommand):
                 # variable in content is not consistent
                 for content in scraper.scrape(driver=driver, url=url, content=content, values=values):
                     content.save()
-                    print(content.to_json())
+                    print('\n' + str(content.to_json()))
                     break
             elif isinstance(scraper, ContentCategoryScraper):
                 for content in scraper.scrape(driver=driver, url=url, values=values):

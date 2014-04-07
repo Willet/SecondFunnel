@@ -3,7 +3,6 @@ import re
 from selenium.common.exceptions import NoSuchElementException
 
 from apps.scraper.scrapers.scraper import ProductDetailScraper, ProductCategoryScraper
-from apps.assets.models import Product
 
 
 class GapProductScraper(ProductDetailScraper):
@@ -24,7 +23,7 @@ class GapProductScraper(ProductDetailScraper):
             yield product
             return
         product.sku = re.match(self.sku_regex, product.url).group(1)
-        product.description = driver.find_element_by_id('tabWindow').get_attribute('innerHTML')
+        product.description = driver.find_element_by_id('tabWindow').innerHTML()
         product.price = driver.find_element_by_id('priceText').text
         driver.get('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
 
@@ -62,13 +61,16 @@ class GapCategoryScraper(ProductCategoryScraper):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.get_regex()[0], url).group(1)
 
     def scrape(self, driver, url, **kwargs):
-        page_text = driver.find_element_by_xpath('//label[@class="pagePaginatorLabel"]').text
-        if page_text:
-            pages = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))
-        else:
+        try:
+            page_text = driver.find_element_by_xpath('//label[@class="pagePaginatorLabel"]').text
+            if page_text:
+                pages = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))
+            else:
+                pages = 1
+        except NoSuchElementException:
             pages = 1
         page = 0
-        while page < int(pages):
+        while page < pages:
             driver.get(url + '#pageId=' + str(page))
             for product_elem in driver.find_elements_by_xpath('//div[@id="mainContent"]//ul/li/div/a'):
                 href = product_elem.get_attribute('href')
@@ -76,14 +78,11 @@ class GapCategoryScraper(ProductCategoryScraper):
                 if not match:
                     continue
                 sku = match.group(1)
-                url = 'http://www.gap.com/browse/product.do?pid=' + sku
+                product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
                 name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
 
-                try:
-                    product = Product.objects.get(store=self.store, url=url)
-                    product.sku = sku
-                    product.name = name
-                except Product.DoesNotExist:
-                    product = Product(store=self.store, url=url, sku=sku, name=name)
+                product = self._get_product(product_url)
+                product.sku = sku
+                product.name = name
                 yield product
             page += 1

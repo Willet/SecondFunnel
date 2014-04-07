@@ -3,7 +3,6 @@ import re
 from selenium.common.exceptions import NoSuchElementException
 
 from apps.scraper.scrapers.scraper import ProductDetailScraper, ProductCategoryScraper
-from apps.assets.models import Product
 
 
 class MadewellProductScraper(ProductDetailScraper):
@@ -40,7 +39,7 @@ class MadewellProductScraper(ProductDetailScraper):
         except NoSuchElementException:
             product.name = driver.find_element_by_xpath('//section[@id="description"]/header/h1').text
 
-        product.description = driver.find_element_by_id('prodDtlBody').get_attribute('innerHTML')
+        product.description = driver.find_element_by_id('prodDtlBody').innerHTML()
 
         product.save()
 
@@ -91,15 +90,14 @@ class MadewellCategoryScraper(ProductCategoryScraper):
         driver.get(url)
         products_data = driver.find_elements_by_xpath('//td[@class="arrayProdCell"]//td[@class="arrayImg"]/a')
         for product_data in products_data:
-            url = MadewellProductScraper().parse_url(product_data.get_attribute('href')).get('url')
+            product_url = MadewellProductScraper().parse_url(product_data.get_attribute('href')).get('url')
             sku = re.match(MadewellProductScraper().sku_regex, url).group(3)
             name = product_data.find_element_by_xpath('./img').get_attribute('alt')
-            try:
-                product, _ = Product.objects.get(store=store, url=url)
-                product.name = name
-                product.sku = sku
-            except Product.DoesNotExist:
-                product = Product(store=store, url=url, name=name, sku=sku)
+
+            product = self._get_product(product_url)
+
+            product.name = name
+            product.sku = sku
 
             yield product
 
@@ -111,13 +109,12 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
     def scrape(self, driver, url, **kwargs):
         product_codes = re.match(self.get_regex()[0], url).group(1)
         codes = product_codes.split(r'%3A')
-        for code in codes:
-            if code == '00000':
+        for sku in codes:
+            if sku == '00000':
                 continue
-            product_url = 'http://www.madewell.com/madewell_category/PRDOVR~{0}/{0}.jsp'.format(code)
-            try:
-                product = Product.objects.get(store=self.store, url=product_url)
-            except Product.DoesNotExist:
-                product = Product(store=self.store, url=product_url)
+            product_url = 'http://www.madewell.com/madewell_category/PRDOVR~{0}/{0}.jsp'.format(sku)
+
+            product = self._get_product(product_url)
+            product.sku = sku
 
             yield product
