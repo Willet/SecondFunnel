@@ -27,7 +27,7 @@ class MadewellProductScraper(ProductDetailScraper):
         return url
 
     def scrape(self, driver, url, product, values, **kwargs):
-        driver.get(url)
+        self.driver.get(url)
         product.sku = re.match(self.sku_regex, product.url).group(1)
         try:
             product.price = re.sub(r'USD *', '$', driver.find_element_by_class_name('selected-color-price').text)
@@ -87,7 +87,7 @@ class MadewellCategoryScraper(ProductCategoryScraper):
         return url
 
     def scrape(self, driver, url, store, **kwargs):
-        driver.get(url)
+        self.driver.get(url)
         products_data = driver.find_elements_by_xpath('//td[@class="arrayProdCell"]//td[@class="arrayImg"]/a')
         for product_data in products_data:
             product_url = MadewellProductScraper().parse_url(product_data.get_attribute('href')).get('url')

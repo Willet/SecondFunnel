@@ -1,3 +1,6 @@
+
+from selenium import webdriver
+
 from apps.assets.models import Category, ProductImage, Product
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
@@ -17,6 +20,9 @@ class Scraper(object):
     """
 
     def __init__(self, store):
+        # initialize the head-less browser PhantomJS
+        # hmm... might not run on windows
+        self.driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
         self.store = store
 
     def get_regex(self, values, **kwargs):

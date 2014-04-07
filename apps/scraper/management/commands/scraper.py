@@ -2,7 +2,6 @@ import os
 import re
 import traceback
 
-from selenium import webdriver
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
 
@@ -99,10 +98,6 @@ class Command(BaseCommand):
             # retrieve the url for the driver to load
             url = scraper.parse_url(url=url, values=values)
 
-            # initialize the head-less browser PhantomJS
-            # hmm... might not run on windows
-            driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
-
             if isinstance(scraper, ProductDetailScraper):
                 # find or make a new product
                 # Product.objects.find_or_create not used as we do not want to save right now
@@ -111,22 +106,22 @@ class Command(BaseCommand):
                         product = Product.objects.get(store=self.store, url=url)
                     except Product.DoesNotExist:
                         product = Product(store=self.store, url=url)
-                for product in scraper.scrape(driver=driver, url=url, product=product, values=values):
+                for product in scraper.scrape(url=url, product=product, values=values):
                     print('\n' + str(product.to_json()))
                     break
             elif isinstance(scraper, ProductCategoryScraper):
-                for product in scraper.scrape(driver=driver, url=url, values=values):
+                for product in scraper.scrape(url=url, values=values):
                     next_scraper = scraper.next_scraper(values=values)
                     self.run_scraper(url=product.url, product=product, values=values.copy(), scraper=next_scraper)
             elif isinstance(scraper, ContentDetailScraper):
                 # there is no way to retrieve content from loaded url as the url
                 # variable in content is not consistent
-                for content in scraper.scrape(driver=driver, url=url, content=content, values=values):
+                for content in scraper.scrape(url=url, content=content, values=values):
                     content.save()
                     print('\n' + str(content.to_json()))
                     break
             elif isinstance(scraper, ContentCategoryScraper):
-                for content in scraper.scrape(driver=driver, url=url, values=values):
+                for content in scraper.scrape(url=url, values=values):
                     if not scraper.has_next_scraper(values=values):
                         print(content.to_json())
                         continue

@@ -20,7 +20,7 @@ class StyldByPartnersScraper(ContentCategoryScraper):
         return False
 
     def scrape(self, driver, url, **kwargs):
-        driver.get(url)
+        self.driver.get(url)
         name = driver.find_element_by_xpath('.//h2[@class="title"]').text
         description = driver.find_element_by_xpath('.//div[@class="content"]/p').text
         author = driver.find_element_by_xpath('.//div[@class="contributor"]/a').text
@@ -56,8 +56,7 @@ class StyldByFilterScraper(ContentCategoryScraper):
     def scrape(self, driver, url, values, **kwargs):
         page = 1
         while True:
-            driver.get(url + '/page/' + str(page))
-            print(page)
+            self.driver.get(url + '/page/' + str(page))
             for element in driver.find_elements_by_xpath('//div[@role="main"]/ul/li/article'):
                 title_element = element.find_element_by_xpath('.//h2[@class="title"]/a')
                 name = title_element.text

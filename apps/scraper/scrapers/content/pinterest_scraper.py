@@ -15,7 +15,7 @@ class PinterestPinScraper(ContentDetailScraper):
         return 'http://www.pinterest.com/pin/{0}/'.format(sku)
 
     def scrape(self, driver, url, content, **kwargs):
-        driver.get(url)
+        self.driver.get(url)
         if content is None:
             try:
                 content = Image.objects.get(store=self.store, original_url=url)
@@ -23,7 +23,8 @@ class PinterestPinScraper(ContentDetailScraper):
                 content = Image(store=self.store, original_url=url)
         content.description = driver.find_element_by_class_name('commentDescriptionContent').text
         content.source = self.SOURCE
-        content = self._process_image(driver.find_element_by_xpath('//div[@class="imageContainer"]/img').get_attribute('src'), content)
+        source_url = driver.find_element_by_xpath('//div[@class="imageContainer"]/img').get_attribute('src')
+        content = self._process_image(source_url, content)
         yield content
 
 
@@ -39,7 +40,7 @@ class PinterestAlbumScraper(ContentCategoryScraper):
         return 'http://www.pinterest.com/{0}/{1}/'.format(user, album)
 
     def scrape(self, driver, url, **kwargs):
-        driver.get(url)
+        self.driver.get(url)
         for element in driver.find_elements_by_xpath('//div[@class="pinHolder"]/a'):
             url = element.get_attribute('href')
             try:
