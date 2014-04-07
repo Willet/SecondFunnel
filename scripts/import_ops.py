@@ -95,4 +95,4 @@ def scraper(instance_type='test'):
     print green("Scraping to {0}...".format(instance_type))
     instances = get_instances(instance_type)
     instances_dns = [i.public_dns_name for i in instances]
-    execute(execute_scraper, instance_type, hosts=instances_dns[0])
+    execute(execute_scraper, instance_type, hosts=[instances_dns[0]])
