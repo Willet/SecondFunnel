@@ -295,5 +295,5 @@ def dump_test_database(native=True):
     local('fab dump_database_postgres:{}'.format(str_now))
     run('fab dump_database_postgres')
     get('/tmp/db.sql', 'db.sql')
-    local('python manage.py flush')
+    local('python manage.py flush --noinput')
     local('fab load_database_postgres')
