@@ -5,6 +5,7 @@ from django.contrib.sites.models import Site
 from django.db import models
 from django.forms import SelectMultiple, ModelMultipleChoiceField
 
+from apps.assets.forms import CategoryForm
 from apps.assets.models import (Store, Page, Tile, Feed, Product, ProductImage,
                                 Image, Content, Theme, Review, Video, TileRelation, Category)
 
@@ -60,6 +61,7 @@ class StoreAdmin(BaseNamedAdmin):
 class CategoryAdmin(BaseAdmin):
     list_display = ['name', 'id'] + BaseAdmin.list_display + ['store', 'url']
     filter_horizontal = ('products',)
+    form = CategoryForm
 
 
 class PageAdmin(BaseAdmin):
