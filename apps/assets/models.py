@@ -839,6 +839,26 @@ class Tile(BaseModel):
         score = self.view_score()
         return self.log_score(score)
 
+    def clicks_per_view(self):
+        if self.views > 0:
+            return self.clicks / float(self.views)
+        return 0
+
+    def weighted_clicks_per_view(self):
+        """Like clicks per view, with lower score for tiles with more views.
+
+        more clicks than views: > 1
+        0 clicks, 1 view: 1
+        0 clicks, 10 views: 0.01
+        0 clicks, 100 views: 0.0001
+        1 click, 0 views: this is not possible, unseen tiles can't be clicked
+        1 click, 10 views: 0.02
+        1 click, 100 views: 0.0002
+        """
+        if self.views > 0:
+            return (self.clicks + 1) / (float(self.views) ** 2)
+        return 0
+
     def to_json(self):
         # determine what kind of tile this is
         serializer = None

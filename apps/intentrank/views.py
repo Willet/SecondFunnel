@@ -91,7 +91,15 @@ def get_results_view(request, page_id):
     page = get_object_or_404(Page, id=page_id)
     feed = page.feed
     ir = IntentRank(feed=feed)
-    algorithm = getattr(ir, 'ir_' + algorithm_name) or ir.ir_generic
+
+    # find the appropriate algorithm.
+    if algorithm_name == 'finite_popular':
+        # the client calls it something else.
+        algorithm = getattr(ir, 'ir_finite_by')('-weighted_clicks_per_view')
+    elif 'finite_by_' in algorithm_name:
+        algorithm = ir.ir_finite_by(algorithm_name[10:])
+    else:
+        algorithm = getattr(ir, 'ir_' + algorithm_name) or ir.ir_generic
 
     resp = ajax_jsonp(get_results(feed=feed, results=results,
                                   algorithm=algorithm, request=request,
