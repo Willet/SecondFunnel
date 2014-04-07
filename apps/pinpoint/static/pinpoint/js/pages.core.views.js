@@ -446,7 +446,7 @@ App.module('core', function (module, App) {
      *
      * @class Feed
      * @constructor
-     * @type {CollectioneView}
+     * @type {TileCollectionView}
      */
     this.Feed = this.TileCollectionView.extend({
         'lastScrollTop': 0,
@@ -599,13 +599,25 @@ App.module('core', function (module, App) {
          * @returns deferred
          */
         'getTiles': function (options, tile) {
+            var self = this;
             if (this.loading) {
                 // do nothing
                 return (new $.Deferred()).promise();
             }
-            return this.toggleLoading(true)
+
+            var xhr = this.toggleLoading(true)
                 .collection
                 .fetch();
+
+            xhr.done(function (tileInfo) {
+                // feed ended / IR busted
+                if (tileInfo && tileInfo.length === 0) {
+                    self.toggleLoading(false);
+                    App.vent.trigger("feedEnded", this);
+                }
+            });
+
+            return xhr;
         },
 
         'render': _.throttle(function () {
@@ -671,6 +683,15 @@ App.module('core', function (module, App) {
             } else {
                 this.loading = !this.loading;
             }
+
+            var loadingIndicator = this.$el.parents('.container')
+                .find('.loading:last');
+            if (this.loading) {
+                loadingIndicator.show();
+            } else {
+                loadingIndicator.hide();
+            }
+
             return this;
         },
 

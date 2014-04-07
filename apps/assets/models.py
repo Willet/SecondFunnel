@@ -548,6 +548,7 @@ class Feed(BaseModel):
             return tiles
         return tiles.filter(products__id=product.id)
 
+
 class Page(BaseModel):
     store = models.ForeignKey(Store, related_name='pages')
 

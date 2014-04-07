@@ -144,6 +144,7 @@ class TileSerializer(RawSerializer):
             # prefixed keys are for inspection only; the hyphen is designed to
             # prevent you from using it like a js object
             '-dbg-attributes': obj.attributes,
+            '-dbg-pop': obj.click_score(),
             'tile-id': obj.id,
         }
 

@@ -26,6 +26,7 @@ App.module("intentRank", function (intentRank, App) {
         'IRAlgo': 'generic',
         'IRReqNum': 0,
         'IRTimeout': 5000,
+        'IROffset': 0,  // specific to some deterministic algorithms
         'store': {},
         'content': []
     };
@@ -59,7 +60,8 @@ App.module("intentRank", function (intentRank, App) {
             'filters': options.filters || [],
             // Use this to intelligently guess what our cache calls should
             // request
-            'IRCacheResultCount': options.IRResultsCount || 10
+            'IRCacheResultCount': options.IRResultsCount || 10,
+            'IROffset': options.IROffset || 0
         });
 
         // set the base url
@@ -128,6 +130,7 @@ App.module("intentRank", function (intentRank, App) {
         }
         data.algorithm = intentRank.options.IRAlgo;
         data.reqNum = intentRank.options.IRReqNum;
+        data.offset = intentRank.options.IROffset;
 
         opts = $.extend({}, {
             'results': 10,
@@ -149,7 +152,7 @@ App.module("intentRank", function (intentRank, App) {
 
         // check if cached results, and options is undefined
         // don't do this if we are actually the intentRank module
-        if (!options && !(this == intentRank)) {
+        if (!options && this !== intentRank) {
             var len = cachedResults.length,
                 method = opts.reset ? 'reset' : 'set';
             prepopulatedResults = cachedResults.splice(0, len);
@@ -160,7 +163,9 @@ App.module("intentRank", function (intentRank, App) {
                     collection[method](results, opts);
                     collection.trigger('sync', collection, results, opts);
                 });
-            } else if (len >= opts.results) {
+            }
+
+            if (len >= opts.results) {
                 // Use a dummy deferred object
                 console.debug("Using existing results.");
                 return $.when(prepopulatedResults).done(function(results) {
@@ -219,6 +224,7 @@ App.module("intentRank", function (intentRank, App) {
         deferred.done(function () {
             App.options.IRReqNum++;
             intentRank.options.IRReqNum++;
+            intentRank.options.IROffset += opts.results;
         });
         return deferred.promise();
     };

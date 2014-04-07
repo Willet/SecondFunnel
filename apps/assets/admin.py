@@ -1,6 +1,9 @@
+from admin_extend.extend import extend_registered, add_bidirectional_m2m, registered_form
 from django.contrib import admin
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.sites.models import Site
 from django.db import models
-from django.forms import SelectMultiple
+from django.forms import SelectMultiple, ModelMultipleChoiceField
 
 from apps.assets.models import (Store, Page, Tile, Feed, Product, ProductImage,
                                 Image, Content, Theme, Review, Video, TileRelation, Category)
@@ -56,6 +59,7 @@ class StoreAdmin(BaseNamedAdmin):
 
 class CategoryAdmin(BaseAdmin):
     list_display = ['name', 'id'] + BaseAdmin.list_display + ['store', 'url']
+    filter_horizontal = ('products',)
 
 
 class PageAdmin(BaseAdmin):
@@ -150,3 +154,18 @@ admin.site.register(Content, ContentAdmin)
 admin.site.register(Theme, ThemeAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(Video, VideoAdmin)
+
+
+@extend_registered
+class ExtendedProductAdminForm(add_bidirectional_m2m(registered_form(Product))):
+
+    categories = ModelMultipleChoiceField(
+        queryset=Category.objects.all(),
+        widget=FilteredSelectMultiple(verbose_name='categories', is_stacked=False),
+        required=False,
+    )
+
+    def _get_bidirectional_m2m_fields(self):
+        return super(ExtendedProductAdminForm, self).\
+            _get_bidirectional_m2m_fields() + [('categories', 'categories')]
+

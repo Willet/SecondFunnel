@@ -104,8 +104,6 @@ urlpatterns += patterns('apps.api.views',
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/generate/?$' % prefix, 'generate_static_page', name='generate_static_page'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/transfer/?$' % prefix, 'transfer_static_page', name='transfer_static_page'),
 
-    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/(?P<object_type>\w+)/(?P<object_id>\d+)/?$' % prefix, 'proxy_tile', name='proxy_tile'),
-
     # If all else fails, proxy
     url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
 )
