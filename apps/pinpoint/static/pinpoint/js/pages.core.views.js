@@ -535,9 +535,15 @@ App.module('core', function (module, App) {
                     .resize(globals.resizeHandler);
 
                 // serve orientation change event via vent
-                if (window.addEventListener) {  // IE 8
-                    window.addEventListener("orientationchange",
-                        globals.orientationChangeHandler, false);
+                if (App.support.mobile() && window.addEventListener) {  // IE 8
+                    // http://stackoverflow.com/questions/1649086/detect-rotation-of-android-phone-in-the-browser-with-javascript
+                    if ("onorientationchange" in window) {
+                        window.addEventListener("orientationchange",
+                           globals.orientationChangeHandler, false);
+                    } else {
+                        window.addEventListener("resize",
+                           globals.orientationChangeHandler, false);
+                    }
                 }
             }(App._globals));
 
@@ -991,7 +997,8 @@ App.module('core', function (module, App) {
         },
 
         'onRender': function () {
-            var previewLoadingScreen = $('#preview-loading');
+            var self = this,
+                previewLoadingScreen = $('#preview-loading');
             // cannot declare display:table in marionette class.
             this.$el.css({
                 'display': "table",
@@ -1015,6 +1022,16 @@ App.module('core', function (module, App) {
 
             this.content.show(new ContentClass(contentOpts));
             previewLoadingScreen.hide();
+
+            this.listenTo(App.vent, 'rotate', function (width) {
+                // On change in orientation, we want to rerender our layout
+                // this is automatically unbound on close, so we don't have to clean
+                self.content.show(new ContentClass(contentOpts));
+                self.$el.css({
+                    'height': App.support.mobile() ?
+                        $(window).height() : ""
+                });
+            });
         },
 
         'onShow': function () {
