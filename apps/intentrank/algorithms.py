@@ -7,6 +7,7 @@ from functools import partial
 import random as real_random
 
 from django.conf import settings
+from apps.utils.functional import result
 
 
 def ids_of(tiles):  # shorthand (got too annoying)
@@ -380,6 +381,38 @@ def ir_finite_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     print "Returning popular tiles {0} through {1}".format(
         offset, offset + results)
     return tiles[offset:offset+results]  # all edge cases return []
+
+
+def ir_finite_by(attribute='created_at', reversed_=False):
+    """Returns a finite algorithm that orders its tiles based on a field,
+    such as 'created_at'.
+
+    Adding '-' will reverse the sort.
+    """
+    if attribute[0] == '-':
+        attribute, reversed_ = attribute[1:], True
+
+    def algo(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+             request=None, offset=0, *args, **kwargs):
+
+        def sort_fn(tile):
+            """Turns a tile into a number"""
+            try:
+                sort_val = result(getattr(tile, attribute), arg=tile)
+            except:
+                sort_val = result(getattr(tile, attribute))
+            return sort_val
+
+        if results < 1:
+            return []
+
+        tiles = feed.tiles.all()
+        tiles = sorted(tiles, key=sort_fn, reverse=reversed_)
+
+        print "Returning popular tiles, by '{0}', {1} through {2}".format(
+            attribute, offset, offset + results)
+        return tiles[offset:offset+results]  # all edge cases return []
+    return algo
 
 
 def ir_ordered(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
