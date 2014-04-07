@@ -264,7 +264,7 @@ def load_database_postgres(path='db.sql'):
     arguments = args['arguments']
     password = args['password']
 
-    command = '{} && psql {} < {}'.format(
+    command = '{} && psql {} -f {}'.format(
         password, arguments, path
     )
 
@@ -275,8 +275,22 @@ def dump_database_postgres(path='/tmp/db.sql'):
     arguments = args['arguments']
     password = args['password']
 
-    command = '{} && pg_dump {} > {}'.format(
+    #'--exclude-schema='
+    command = '{} && pg_dump ' \
+        '--data-only ' \
+        '{} > {}'.format(
         password, arguments, path
+    )
+
+    local(command)
+
+def flush_database_postgres():
+    args = get_postgres_arguments()
+    arguments = args['arguments']
+    password = args['password']
+
+    command = '{} && psql {} -f scripts/flush.sql'.format(
+        password, arguments
     )
 
     local(command)
@@ -296,8 +310,15 @@ def dump_test_database(native=True):
     now = datetime.now()
     str_now = now.strftime('%Y-%m-%dT%H:%M.sql')
 
+    # Dump our local database to backup, then flush it out
     local('fab dump_database_postgres:{}'.format(str_now))
+    # ./manage.py flush does not do what you might expect...
+    local('python manage.py sqlflush > scripts/flush.sql')
+    local('fab flush_database_postgres')
+
+    # Dump the remote database
     run('fab dump_database_postgres')
     get('/tmp/db.sql', 'db.sql')
-    local('python manage.py flush')
+
+    # Finally, load the data
     local('fab load_database_postgres')
