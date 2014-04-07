@@ -536,7 +536,7 @@ App.module('core', function (module, App) {
 
                 // serve orientation change event via vent
                 if (App.support.mobile() && window.addEventListener) {  // IE 8
-                    // http://stackoverflow.com/questions/1649086/detect-rotation-of-android-phone-in-the-browser-with-javascript
+                    // http://stackoverflow.com/questions/1649086/
                     if ("onorientationchange" in window) {
                         window.addEventListener("orientationchange",
                            globals.orientationChangeHandler, false);
