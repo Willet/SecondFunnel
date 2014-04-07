@@ -175,21 +175,24 @@ div.header {
     width: 1024px;
     height: 300px;  /* adjusts image size */
     border-bottom: 1px silver solid;
-    margin: 10px auto 40px auto;
+    margin: 10px auto 0px auto;
 }
 
-.visible-xs.jumbotron {
+.visible-xs.jumbotron, .visible-sm.jumbotron {
     padding: 0;
     height: auto;
 }
 
-.visible-xs.jumbotron img, .visible-sm.jumbotron img {
+.visible-xs.jumbotron img {
     /* set a background image with ratio constraints http://stackoverflow.com/a/12098334/1558430 */
     visibility:  hidden;
     width: 100%;
 }
 
-/* TODO: START make non-desktop specific*/
+.visible-sm.jumbotron img {
+    width: 100%;
+}
+
 #hero-area {
     position: relative;
     font-family: "Helvetica Neue Light", "Arial", sans-serif;
@@ -204,10 +207,21 @@ div.header {
 }
 
 @media screen and (max-width: 768px) {
-    #hero-area .overlay {
-        left: 25px;
-        right: auto;
+    .jumbotron {
+        border-bottom: none;
     }
+
+    #hero-area .overlay {
+        position: static;
+        display: block;
+        width: 100%;
+    }
+
+    #hero-area .overlay .buttons {
+        display: inline-block;
+        margin-left: 6px;
+    }
+
 }
 
 #hero-area .buttons {
@@ -252,10 +266,6 @@ div.header {
     text-decoration: none;
 }
 /* End make non-desktop specific*/
-
-.legal.us {
-    margin-top: -35px;
-}
 
 .featured.product {
     background-color: #fff;
