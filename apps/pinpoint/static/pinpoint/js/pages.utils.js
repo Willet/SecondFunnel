@@ -104,21 +104,12 @@ App.module("utils", function (utils, App) {
     };
 
     /**
-     * Returns the orientation of the screen.
-     *
-     * @returns {Integer}
-     */
-    this.orientation = function () {
-        return $(window).height() > $(window).width();
-    };
-
-    /**
      * Returns true if landscape.
      *
      * @returns {Boolean}
      */
     this.landscape = function () {
-        return !this.orientation();
+        return $(window).height() < $(window).width();
     };
 
     /**
@@ -127,7 +118,7 @@ App.module("utils", function (utils, App) {
      * @returns {Boolean}
      */
     this.portrait = function () {
-        return this.orientation();
+        return $(window).height() > $(window).width();
     };
 
     /**
