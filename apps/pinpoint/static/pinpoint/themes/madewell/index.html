@@ -7,48 +7,6 @@
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
         window.OPTIMIZER_TESTS = [];
-        window.OPTIMIZER_TESTS.push({
-            index: 6, // Two-column in Analytics
-            test: 'custom',
-            device: 'mobile',
-            disabled: true,
-            custom: function (template) {
-                var s = $($('#two-column-css').html());
-                template = template || _.sample(["A", "B"]);
-                if (template != "A") {
-                    App.options.minColumns = 2;
-                    $('head').ready(function() {
-                        s.appendTo($('head'));
-                    });
-                }
-                return template;
-            }
-        });
-        window.OPTIMIZER_TESTS.push({
-            index: 7, // Null A/B Test in Analytics
-            test: 'custom',
-            device: 'mobile',
-            custom: function (template) {
-                return template || _.sample(["A", "B"]);
-            }
-        });
-    </script>
-    <script type="text/template" id="two-column-css">
-        <style type="text/css">
-            @media only screen and (max-width: 510px) {
-                .tile {
-                    width: 50% !important;
-                }
-                .tile.wide, .tile.full {
-                    width: 100% !important;
-                    min-height: inherit !important;
-                }
-                #discovery-area {
-                    width: 100% !important;
-                    overflow-x: hidden;
-                }
-            }
-        </style>
     </script>
     <!-- End Optimizer Tests -->
     {% include "pinpoint/campaign_head.html" %}

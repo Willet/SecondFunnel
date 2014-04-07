@@ -7,21 +7,6 @@
     <script type="text/javascript">
         window.OPTIMIZER_TESTS = [];
         window.OPTIMIZER_TESTS.push({
-            index: 6, // Two-column in Analytics
-            test: 'custom',
-            device: 'mobile',
-            disabled: true,
-            custom: function (template) {
-                var s = $($('#two-column-css').html());
-                template = template || _.sample(["A", "B"]);
-                if (template != "A") {
-                    App.options.minColumns = 2;
-                    s.appendTo($('head'));
-                }
-                return template;
-            }
-        });
-        window.OPTIMIZER_TESTS.push({
             index: 8,
             test: 'custom',
             device: 'mobile',
@@ -29,9 +14,7 @@
                 template = template || _.sample(["B", "C"]);
                 App.options.tests = App.options.tests || {};
                 App.options.tests[2] = template;
-                App.options.minColumns = 2;
-                $($('#two-column-css').html()).appendTo($('head'));
-                if (template == "C") {
+                if (template === "C") {
                     $('head').append($('#such-cards-much-wow').html());
                 }
                 return template;
@@ -78,55 +61,6 @@
                     display: inline-block;
                     text-overflow: ellipsis;
                     text-decoration: underline;
-                }
-                .legal.us {
-                    margin-top: 0px !important;
-                }
-            }
-        </style>
-    </script>
-    <script type="text/template" id="two-column-css">
-        <style type="text/css">
-            @media only screen and (max-width: 510px) {
-                .tile {
-                    width: 50% !important;
-                }
-                .tile.wide {
-                    min-height: inherit !important;
-                }
-                .visible-xs.jumbotron {
-                    {% ifequal campaign.url_slug "dressedup" %}
-                    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/mobile_small_red.png') !important;
-                    {% else %}
-                    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/mobile_small.png') !important;
-                    {% endifequal %}
-                    margin: 10px 0px 10px 5px;
-                    border: none;
-                    width: 125px;
-                    height: 60px;
-                    display: inline-block !important;
-                }
-                #hero-area .overlay {
-                    position: relative !important;
-                    display: inline-block !important;
-                    left: 5px;
-                    top: 8px;
-                    right: 0px;
-                }
-                #hero-area .buttons a img {
-                    width: 27px;
-                    height: 27px;
-                }
-                #hero-area .find a {
-                    font-size: 12px;
-                }
-                #hero-area .overlay .buttons {
-                    display: inline-block;
-                    margin-right: 1px;
-                }
-                #discovery-area {
-                    width: 100% !important;
-                    overflow-x: hidden;
                 }
                 .legal.us {
                     margin-top: 0px !important;
@@ -744,6 +678,13 @@
                 </div>
                 <div class="visible-md visible-lg jumbotron"></div>
                 <div class="overlay">
+                    <span class='find{% ifequal campaign.url_slug "dressedup" %}<% if (App.option('tests') && App.option('tests')[2]) { %> red <% } else { %> white <% } %>{% endifequal %}'>
+                        <% if (!App.support.mobile()) { %>
+                            <a href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
+                        <% } else { %>
+                            <a href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
+                        <% } %>
+                    </span>
                     <div class='buttons'>
                         <%
                             var share = App.options.page.description;
@@ -796,13 +737,6 @@
                             {% endifequal %}
                         </a>
                     </div>
-                    <span class='find{% ifequal campaign.url_slug "dressedup" %}<% if (App.option('tests') && App.option('tests')[2]) { %> red <% } else { %> white <% } %>{% endifequal %}'>
-                        <% if (!App.support.mobile()) { %>
-                            <a href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
-                        <% } else { %>
-                            <a href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
-                        <% } %>
-                    </span>
                 </div>
             </div>
             {% if legal_copy %}

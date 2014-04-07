@@ -295,20 +295,11 @@ div.loading {
 }
 
 @media (max-width: 480px) { /* phone */
-    #discovery-area {
-        width: 255px;
-    }
     .tile.wide.youtube div.thumbnail {
         height: 141px;
     }
     .tile.wide.youtube div.thumbnail:before {
         margin-top: -59.5px;
-    }
-}
-
-@media (min-width: 480px) and (max-width: 510px) {
-    #discovery-area {
-        width: 255px;
     }
 }
 
@@ -327,13 +318,6 @@ div.loading {
     .navbar-nav {
         margin-right: 0;
         margin-left: 0;
-    }
-    #discovery-area {
-        width: 510px;
-    }
-    .tile.wide {
-        /* visual width compensation */
-        margin-left: 20px;
     }
 }
 @media (min-width: 768px) and (max-width: 992px) { /* desktop */
@@ -548,6 +532,18 @@ div.loading {
 
     .stl-look {
         display: none;
+    }
+
+    #discovery-area {
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    .tile {
+        width: 50% !important;
+    }
+    .tile.wide {
+        min-height: inherit;
     }
 }
 

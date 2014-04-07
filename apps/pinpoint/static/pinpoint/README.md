@@ -2,7 +2,7 @@
 
 ## Edit the page's styles
 
-1. Create `styles.css` in the `css/` directory. Do not edit `pages2.css`.
+1. Create `styles.css` in the `css/` directory. Do not edit `base.css`.
 2. Override any styles you wish in `styles.css`. 
 3. Never use inline styles.
 
