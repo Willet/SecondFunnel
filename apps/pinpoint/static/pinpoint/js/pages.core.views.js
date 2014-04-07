@@ -765,9 +765,15 @@ App.module('core', function (module, App) {
             // Need to get an appropriate sized image
             var image = $.extend(true, {},
                 this.model.get('defaultImage').attributes);
-            image = (new App.core.Image(image)).width(undefined, {
-                multiplier: 1.5
-            });
+            image = new App.core.Image(image);
+
+            if (App.support.mobile()) {
+                image.url = image.width($(window).width());
+            } else {
+                image = image.width(undefined, {
+                    multiplier: 1.5
+                });
+            }
 
             // templates use this as obj.image.url
             this.model.set('image', image);
@@ -816,17 +822,10 @@ App.module('core', function (module, App) {
 
             So, for now, only add no-scroll if the device is NOT an android.
              */
-            var width = Marionette.getOption(this, 'width');
-
-            if (width) {
-                this.$('.content').css('width', width + 'px');
-            } else if (App.support.mobile()) {
-                this.$el.width($(window).width()); // assign width
-            }
-
             if (!App.support.isAnAndroid()) {
                 $(document.body).addClass('no-scroll');
             }
+
         },
 
         'close': function () {
@@ -997,13 +996,15 @@ App.module('core', function (module, App) {
         },
 
         'onRender': function () {
-            var self = this,
+            var desiredHeight,
+                self = this,
                 previewLoadingScreen = $('#preview-loading');
             // cannot declare display:table in marionette class.
+            desiredHeight = App.utils.portrait() ? 1 : 2;
             this.$el.css({
                 'display': "table",
                 'height': App.support.mobile() ?
-                    $(window).height() : ""
+                    desiredHeight * $(window).height() : ""
             });
 
             var ContentClass,
@@ -1026,11 +1027,12 @@ App.module('core', function (module, App) {
             this.listenTo(App.vent, 'rotate', function (width) {
                 // On change in orientation, we want to rerender our layout
                 // this is automatically unbound on close, so we don't have to clean
-                self.content.show(new ContentClass(contentOpts));
+                desiredHeight = App.utils.portrait() ? 1 : 2;
                 self.$el.css({
                     'height': App.support.mobile() ?
-                        $(window).height() : ""
+                        desiredHeight * $(window).height() : ""
                 });
+                self.content.show(new ContentClass(contentOpts));
             });
         },
 

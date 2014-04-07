@@ -104,6 +104,33 @@ App.module("utils", function (utils, App) {
     };
 
     /**
+     * Returns the orientation of the screen.
+     *
+     * @returns {Integer}
+     */
+    this.orientation = function () {
+        return $(window).height() > $(window).width();
+    };
+
+    /**
+     * Returns true if landscape.
+     *
+     * @returns {Boolean}
+     */
+    this.landscape = function () {
+        return !this.orientation();
+    };
+
+    /**
+     * Returns true if portrait.
+     *
+     * @returns {Boolean}
+     */
+    this.portrait = function () {
+        return this.orientation();
+    };
+
+    /**
      * allows designers to add a custom (tile) class.
      * if class name is already taken, the original class is overwritten.
      *
@@ -253,10 +280,14 @@ App.module("utils", function (utils, App) {
             // effect: 'trim:0'
         }, options);
 
-        if (url.indexOf('c_fit') == -1) { // Cloudinary can't process Cloudinary urls
-            url = url.replace(App.CLOUDINARY_DOMAIN, ""); // remove absolute uri
-            url = $.cloudinary.url(url, options);
+        if (url.indexOf('c_fit') > -1) {
+            // Transformation has been applied to this url, Cloudinary is not smart
+            // with these, so lets be instead.
+            url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+?)\/v1/, "");
         }
+
+        url = url.replace(App.CLOUDINARY_DOMAIN, ""); // remove absolute uri
+        url = $.cloudinary.url(url, options);
 
         return url;
     };
