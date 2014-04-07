@@ -78,6 +78,21 @@
             return offset;
         };
 
+        //Get cross domain xhr object in a cross browser way
+        var get_xhr = function (method, url) {
+            var xhr = new XMLHttpRequest();
+
+            //IE
+            if (typeof XDomainRequest !== 'undefined') {
+                xhr = new XDomainRequest();
+                xhr.open(method, url);
+            } else { //Everything else
+                xhr.open(method, url, true);
+            }
+
+            return xhr;
+        };
+
         /*
          * Second funnel code
          */
@@ -98,7 +113,9 @@
             url,
             origin,
             port,
-            load_event_handler;
+            load_event_handler,
+            load_timeout,
+            load_timeout_handler;
 
         //verify container element is correct
         if (!second_funnel_container) {
@@ -137,6 +154,25 @@
         second_funnel.setAttribute('style', 'overflow: hidden;');
         second_funnel_container.appendChild(second_funnel);
 
+        //Load the page via ajax as well to see if it is up.
+        load_timeout_handler = function () {
+            if (load_timeout.status !== 200) {
+                remove_event_listener(second_funnel, 'load', load_event_handler);
+                second_funnel_container.removeChild(second_funnel);
+                second_funnel_container.appendChild(document.createTextNode('The page you tried to load is not available at the moment.'));
+                second_funnel_container.appendChild(document.createElement('br'));
+                second_funnel_container.appendChild(document.createElement('br'));
+                second_funnel_container.appendChild(document.createTextNode('Please try again later.'));
+                second_funnel_container.setAttribute('style', 'font-size: 20px;');
+            }
+        };
+
+        load_timeout = get_xhr('GET', url);
+
+        load_timeout.onload = load_timeout_handler;
+        load_timeout.onerror = load_timeout_handler;
+        load_timeout.send();
+
         //wait until load then attach the scroll listener
         load_event_handler = function () {
             add_event_listener(window, 'scroll', function () {
@@ -173,7 +209,8 @@
                         second_funnel.contentWindow.postMessage(JSON.stringify({
                             'target': 'second_funnel',
                             'type': 'window_location',
-                            'window_middle': (get_scroll_top() + get_inner_window_height() / 2) - get_absolute_top_offset(second_funnel)
+                            'window_middle': (get_scroll_top() + get_inner_window_height() / 2) - get_absolute_top_offset(second_funnel),
+                            'window_height': get_inner_window_height()
                         }), origin);
                     }
                 }

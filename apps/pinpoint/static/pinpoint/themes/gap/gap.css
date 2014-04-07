@@ -199,7 +199,7 @@ div.header {
 
 #hero-area .overlay {
     position: absolute;
-    right: 4px;
+    right: 5px;
     bottom: 3px;
     text-align: center;
 }
@@ -228,6 +228,18 @@ div.header {
     text-transform: uppercase;
     color: #010e3f;
     text-decoration: underline;
+}
+
+#hero-area .find.white a,
+#hero-area .find.white a:hover,
+#hero-area .find.white a:visited {
+    color: white;
+}
+
+#hero-area .find.red a,
+#hero-area .find.red a:hover,
+#hero-area .find.red a:visited {
+    color: red;
 }
 
 #hero-area .buttons img {
@@ -623,7 +635,6 @@ div.header {
         height: 45px;
         margin-top: -45px;
         position: absolute;
-        pointer-events: none;
         background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
     }
 
@@ -845,6 +856,22 @@ div.header {
         margin-bottom: 20px;
         margin-top: 20px;
     }
+
+    .previewContainer .shop-the-look .image-with-related-products .gap-buttons,
+    .previewCotnainer .shop-the-look .image-with-related-products .social-buttons {
+        margin-bottom: 20px;
+    }
+
+    .previewContainer .shop-the-look hr {
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+
+    .previewContainer .shop-the-look .text-centered.desc-title {
+        color: #4e5c85;
+        margin: 5px 0px;
+        margin-bottom: 10px;
+    }
 }
 
 @media screen and (max-width: 768px) {
@@ -960,6 +987,18 @@ div.header {
         text-transform: none;
         width: auto;
         font-weight: inherit;
+    }
+
+    .previewContainer .price {
+        position: absolute;
+        top: 72px;
+        left: 10px;
+        background-color: #555;
+        color: white;
+        z-index: 1;
+        border: 1px solid white;
+        padding: 10px 10px;
+        font-size: 24px;
     }
 }
 

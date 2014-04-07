@@ -1,7 +1,12 @@
+from admin_extend.extend import extend_registered, add_bidirectional_m2m, registered_form
 from django.contrib import admin
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.sites.models import Site
+from django.db import models
+from django.forms import SelectMultiple, ModelMultipleChoiceField
 
 from apps.assets.models import (Store, Page, Tile, Feed, Product, ProductImage,
-                                Image, Content, Theme, Review, Video, TileRelation)
+                                Image, Content, Theme, Review, Video, TileRelation, Category)
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -15,6 +20,14 @@ class BaseAdmin(admin.ModelAdmin):
 
     date_hierarchy = 'created_at'
 
+    formfield_overrides = {
+        models.ManyToManyField: {
+            'widget': SelectMultiple(attrs={'size':'10'})
+        },
+    }
+
+    search_fields = ('id', )
+
 
 class BaseNamedAdmin(BaseAdmin):
     list_display = [
@@ -24,6 +37,7 @@ class BaseNamedAdmin(BaseAdmin):
                    ] + BaseAdmin.list_display
 
     search_fields = ['name']
+    ordering = ['name']
 
     prepopulated_fields = {"slug": ("name",)}
 
@@ -39,20 +53,32 @@ class BaseNamedImageAdmin(BaseAdmin):
 
 
 class StoreAdmin(BaseNamedAdmin):
-    list_display = ['old_id'] + BaseNamedAdmin.list_display + ['public_base_url']
+    list_display = BaseNamedAdmin.list_display + ['public_base_url']
+    search_fields = ('id', 'name',)
+
+
+class CategoryAdmin(BaseAdmin):
+    list_display = ['name', 'id'] + BaseAdmin.list_display + ['store', 'url']
+    filter_horizontal = ('products',)
 
 
 class PageAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display
+    list_display = ['name', 'url_slug'] + BaseAdmin.list_display
+    search_fields = ('id', 'name', 'url_slug')
 
 
 class TileAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display + ['template', 'click_starting_score', 'click_score',
-                                                          'view_starting_score', 'view_score']
+    list_display = ['feed', 'template', 'prioritized',
+                    'click_starting_score', 'click_score',
+                    'view_starting_score', 'view_score'] + BaseAdmin.list_display
+    search_fields = ('id', 'template')
+    list_filter = ('feed',)
+    filter_horizontal = ('products', 'content',)
 
 
 class TileRelationAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display + ['tile_a_id', 'tile_b_id', 'starting_score', 'score']
+    search_fields = ('id', 'tile_a_id', 'tile_b_id',)
 
     def tile_a_id(self, obj):
         return str(obj.tile_a.id)
@@ -67,26 +93,43 @@ class TileRelationAdmin(BaseAdmin):
 
 class FeedAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display
+    search_fields = ('id', 'page_id',)
 
 
 class ProductAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display
+    ordering = ['name']
+    list_display = ['name', '_category_names'] + BaseAdmin.list_display
+    list_filter = ('categories__name',)
+    search_fields = ('id', 'name', 'description', 'sku',)
 
+    def _categories(self, obj):
+        return [cat.name for cat in obj.categories.all()]
+
+    def _category_names(self, obj):
+        return ", ".join(self._categories(obj))
+    _category_names.admin_order_field = 'categories'
 
 class ProductImageAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display + ['url', 'original_url']
+    ordering = ['created_at', 'original_url']
+    list_display = ['product', 'image_tag'] + BaseAdmin.list_display + ['original_url']
+    search_fields = ('product__id', 'id',)
 
 
 class ImageAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display + ['url', 'original_url']
+    ordering = ['created_at', 'original_url']
+    list_display = ['url'] + BaseAdmin.list_display + ['original_url']
 
 
 class ContentAdmin(BaseAdmin):
-    list_display = BaseAdmin.list_display
+    ordering = ['id']
+    list_display = ['image_tag'] + BaseAdmin.list_display
+    search_fields = ('id', 'url',)
+    filter_horizontal = ('tagged_products',)
 
 
 class ThemeAdmin(BaseAdmin):
-    list_display = BaseAdmin.list_display + ['store', 'template']
+    list_display = ['name'] + BaseAdmin.list_display + ['store', 'template']
+    search_fields = ('id', 'name', 'template',)
 
 
 class ReviewAdmin(BaseAdmin):
@@ -95,9 +138,11 @@ class ReviewAdmin(BaseAdmin):
 
 class VideoAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display + ['url', 'source_url']
+    search_fields = ('id', 'url', 'source_url',)
 
 
 admin.site.register(Store, StoreAdmin)
+admin.site.register(Category, CategoryAdmin)
 admin.site.register(Page, PageAdmin)
 admin.site.register(Tile, TileAdmin)
 admin.site.register(TileRelation, TileRelationAdmin)
@@ -109,3 +154,18 @@ admin.site.register(Content, ContentAdmin)
 admin.site.register(Theme, ThemeAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(Video, VideoAdmin)
+
+
+@extend_registered
+class ExtendedProductAdminForm(add_bidirectional_m2m(registered_form(Product))):
+
+    categories = ModelMultipleChoiceField(
+        queryset=Category.objects.all(),
+        widget=FilteredSelectMultiple(verbose_name='categories', is_stacked=False),
+        required=False,
+    )
+
+    def _get_bidirectional_m2m_fields(self):
+        return super(ExtendedProductAdminForm, self).\
+            _get_bidirectional_m2m_fields() + [('categories', 'categories')]
+

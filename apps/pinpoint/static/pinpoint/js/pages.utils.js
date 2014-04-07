@@ -55,8 +55,13 @@ App.module("utils", function (utils, App) {
             loadUntilHeight(data.height);
         } else if (data.type === 'window_location') {
             App.window_middle = data.window_middle;
+            App.windowHeight = data.window_height;
 
             if (App.previewArea.currentView) {
+                if (App.support.mobile()) {
+                    App.previewArea.currentView.$el.css('height', App.window_height);
+                }
+
                 App.previewArea.currentView.$el.css('top',
                     Math.max(App.window_middle - (App.previewArea.currentView.el.height() / 2), 0)
                 );
@@ -213,5 +218,46 @@ App.module("utils", function (utils, App) {
         var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
             results = regex.exec(location.search);
         return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    };
+
+    /**
+     * Returns a formatted url for a cloudinary image
+     *
+     * @param {string} url
+     * @param {Object} options
+     *
+     * @returns {Object}
+     */
+    this.getResizedImage = function (url, options) {
+        var columnWidth = App.layoutEngine.width(),
+            width = options.width || columnWidth,
+            height = options.height || width * 2,
+            multiplier = (options.multiplier || 1.1);
+
+        // Round to the nearest whole hundred pixel dimension;
+        // prevents creating a ridiculous number of images.
+        if (width > height) {
+            height = (height / width) * columnWidth;
+            height = Math.ceil((height * multiplier) / 100.0) * 100;
+            options.height = height;
+        } else {
+            width = Math.ceil((width * multiplier) / 100.0) * 100;
+            options.width = width;
+        }
+
+        options = _.extend({
+            crop: 'fit',
+            quality: 75
+            // New feature, undocumenated, trims background space, add :
+            // for tolerance, e.g. trim: 20 (defaults to 10)
+            // effect: 'trim:0'
+        }, options);
+
+        if (url.indexOf('c_fit') == -1) { // Cloudinary can't process Cloudinary urls
+            url = url.replace(App.CLOUDINARY_DOMAIN, ""); // remove absolute uri
+            url = $.cloudinary.url(url, options);
+        }
+
+        return url;
     };
 });

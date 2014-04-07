@@ -1,8 +1,13 @@
 """
 Automated deployment tasks
 """
+from datetime import datetime
+import os
 from fabric.api import roles, run, cd, execute, settings, env, sudo, hide
 from fabric.colors import green, yellow, red
+from fabric.contrib import django
+from fabric.decorators import hosts
+from fabric.operations import local, get
 from secondfunnel.settings import common as django_settings
 from scripts.import_ops import importer as real_importer
 
@@ -222,3 +227,70 @@ def deploy(cluster_type='test', branch='master'):
 def importer(*args, **kwargs):
     """Alias for fabfile"""
     return real_importer(*args, **kwargs)
+
+def get_postgres_arguments():
+    environment_type = os.getenv('PARAM1', '').upper() or 'DEV'
+
+    django.settings_module(
+        'secondfunnel.settings.{0}'.format(environment_type.lower())
+    )
+    from django.conf import settings
+
+    password = 'export PGPASSWORD="{}"'.format(
+        settings.DATABASES['default']['PASSWORD']
+    )
+
+    arguments = '--host=%s --port=%s --username=%s %s' % (
+            settings.DATABASES['default']['HOST'],
+            settings.DATABASES['default']['PORT'],
+            settings.DATABASES['default']['USER'],
+            settings.DATABASES['default']['NAME']
+        )
+
+    return {
+        'password': password,
+        'arguments': arguments
+    }
+
+def load_database_postgres(path='db.sql'):
+    args = get_postgres_arguments()
+    arguments = args['arguments']
+    password = args['password']
+
+    command = '{} && psql {} < {}'.format(
+        password, arguments, path
+    )
+
+    local(command)
+
+def dump_database_postgres(path='/tmp/db.sql'):
+    args = get_postgres_arguments()
+    arguments = args['arguments']
+    password = args['password']
+
+    command = '{} && pg_dump {} > {}'.format(
+        password, arguments, path
+    )
+
+    local(command)
+
+# Doesn't work for some reason...
+# @hosts('ec2-user@tng-master.secondfunnel.com')
+@hosts('ec2-user@tng-test.secondfunnel.com')
+def dump_test_database(native=True):
+    # We assume that by SSH'ing in, we are in the right environment and path
+
+    # More details on Django integration here:
+    # http://docs.fabfile.org/en/1.6/api/contrib/django.html
+
+    if not native:
+        pass # Error; not implemented
+
+    now = datetime.now()
+    str_now = now.strftime('%Y-%m-%dT%H:%M.sql')
+
+    local('fab dump_database_postgres:{}'.format(str_now))
+    run('fab dump_database_postgres')
+    get('/tmp/db.sql', 'db.sql')
+    local('python manage.py flush')
+    local('fab load_database_postgres')

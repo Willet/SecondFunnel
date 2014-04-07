@@ -30,3 +30,15 @@ class NonHtmlDebugToolbarMiddleware(object):
                                         '</pre></body></html>'.format(content))
 
         return response
+
+
+class ShowHandlerMiddleware(object):
+    """If in dev, reveal which handler processed the request."""
+    @staticmethod
+    def process_response(request, response):
+        try:
+            response['Handler'] = request.resolver_match.view_name
+        except:
+            pass
+
+        return response

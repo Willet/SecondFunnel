@@ -2,6 +2,8 @@ import json
 import mock
 import requests
 import random
+
+from django.test import TestCase
 from tastypie.test import ResourceTestCase, TestApiClient
 from apps.api.tests.utils import (AuthenticatedResourceTestCase,
                                   configure_mock_request,
@@ -10,13 +12,16 @@ from apps.api.tests.utils import (AuthenticatedResourceTestCase,
                                   BaseMethodNotAllowedTests)
 from django.conf import settings
 
-class UnauthenticatedContentTestSuite(ResourceTestCase):
-    def test_unauthorized(self):
-        response = self.api_client.get(
-            '/graph/v1/store/1/page/1/content/1',
-            format='json'
-        )
-        self.assertHttpUnauthorized(response)
+
+class ContentTestCase(TestCase):
+    """Tests for:
+    - GET /content
+    """
+    fixtures = ['test_data.json']
+
+    def test_get(self):
+        pass
+
 
 class BaseContentTests(BaseNotAuthenticatedTests, BaseMethodNotAllowedTests):
     def test_valid_calls(self):

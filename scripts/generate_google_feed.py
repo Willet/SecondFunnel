@@ -1,4 +1,5 @@
 import argparse
+from collections import defaultdict
 import json
 import sys
 
@@ -110,6 +111,9 @@ def json_to_XMLItem(tile, store_info=None, page_info=None):
 
     if len(tile.get('related-products', [])) > 0:
         product = tile.get('related-products')[0]
+    elif tile.get('type') in ('image', 'banner'):
+        # Sometimes, content is untagged. This is a small problem.
+        product = defaultdict(dict)
     else:
         product = tile
 

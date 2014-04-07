@@ -1,259 +1,364 @@
 import json
-from urlparse import parse_qs
 
-from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_exempt
-from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseNotAllowed)
-from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.query_utils import Q
+from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404
 
-from apps.api.decorators import check_login, append_headers, request_methods
+from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
+from apps.assets.models import Content, Store, Page, ProductImage, Product, Image, Video
 from apps.intentrank.utils import ajax_jsonp
 
-from apps.assets.api import ContentGraphClient
-from apps.api.utils import mimic_response, get_proxy_results
-from apps.api.views.tileconfig import add_content_to_page, page_add_product
 
-from apps.contentgraph.models import TileConfigObject
-
-
-@request_methods('GET', 'PATCH')
-@check_login
-@never_cache
-@csrf_exempt
-def content_operations(request, store_id, content_id):
-    try:
-        if request.method == 'GET':
-            r = ContentGraphClient.store(store_id).content(content_id).GET(params=request.GET)
-        elif request.method == 'PATCH':
-            r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=request.body)
-            # add an item to the TileGenerator's queue to have it updated
-            tile_config_object = TileConfigObject(store_id=store_id)
-            # caller handles error
-            tile_config_object.mark_tile_for_regeneration(content_id=content_id)
-        return mimic_response(r)
-    except ValueError:
-        return HttpResponse(status=500)
+class ContentItemCGHandler(BaseItemCGHandler):
+    model = Content
+    id_attr = 'content_id'  # the arg in the url pattern used to select something
 
 
-@request_methods('POST')
-@check_login
-@never_cache
-@csrf_exempt
-def reject_content(request, store_id, content_id):
-    payload = json.dumps({'status': 'rejected'})
-
-    r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
-
-    return mimic_response(r)
+class ContentCGHandler(BaseCGHandler):
+    model = Content
+    id_attr = 'content_id'  # the arg in the url pattern used to select something
 
 
-@request_methods('POST')
-@check_login
-@never_cache
-@csrf_exempt
-def undecide_content(request, store_id, content_id):
-    payload = json.dumps({'status': 'needs-review'})
+class StoreContentCGHandler(ContentCGHandler):
+    """Adds filtering by store"""
+    store = None
 
-    r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        store_id = kwargs.get('store_id')
+        self.store = get_object_or_404(Store, id=store_id)
 
-    return mimic_response(r)
+        return super(StoreContentCGHandler, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self, request=None):
+        qs = super(StoreContentCGHandler, self).get_queryset()
+        qs = qs.filter(store_id=self.store.id)
+
+        if request.GET.get('status', ''):
+            qs = qs.filter(status=request.GET.get('status'))
+
+        if request.GET.get('source', ''):
+            qs = qs.filter(source=request.GET.get('source'))
+
+        # search by what the UI refers to as "tags"
+        tagged_products = request.GET.get('tagged-products', '')
+        if tagged_products:
+            qs = qs.filter(Q(tagged_products__name__icontains=tagged_products) |
+                           Q(tagged_products__description__icontains=tagged_products))
+
+        # search by what the UI refers to as "type"
+        # this is an EXPENSIVE operation!
+        content_type = request.GET.get('type', '')
+        if content_type:
+            if content_type == 'image':
+                qs = [x for x in qs.select_subclasses() if isinstance(x, Image)]
+            elif content_type == 'video':
+                qs = [x for x in qs.select_subclasses() if isinstance(x, Video)]
+        return qs
+
+class StoreContentItemCGHandler(ContentItemCGHandler):
+    """Adds filtering by store"""
+    store = None
+    content_id = None
+    content = None
+    id_attr = 'content_id'
+
+    def get(self, request, *args, **kwargs):
+        # this handler needs to return either
+        content = Content.objects.filter(store=self.store)
+        product_ids = Product.objects.filter(store=self.store).values_list('id', flat=True)
+        product_images = ProductImage.objects.filter(product_id__in=product_ids)
+
+        content_id = kwargs.get('content_id', request.GET.get('content_id'))
+        if content_id:
+            content = content.filter(id=content_id)
+            product_images = product_images.filter(id=content_id)
+
+        if product_images.count():
+            self.object_list = product_images
+        else:
+            self.object_list = content
+
+        return ajax_jsonp(self.serialize_one())
+
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        store_id = kwargs.get('store_id')
+        self.store = get_object_or_404(Store, id=store_id)
+        self.content_id = kwargs.get(self.id_attr)
+
+        if kwargs.get('content_id'):
+            try:
+                self.content = Content.objects.get(id=kwargs.get('content_id'))
+            except Content.DoesNotExist:
+                self.content = get_object_or_404(ProductImage,
+                                                 id=kwargs.get('content_id'))
+
+        return super(StoreContentItemCGHandler, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self, request=None):
+        qs = super(StoreContentItemCGHandler, self).get_queryset()
+        return qs.filter(store_id=self.store.id,
+                         id=self.content_id)
 
 
-@request_methods('POST')
-@check_login
-@never_cache
-@csrf_exempt
-def approve_content(request, store_id, content_id):
-    payload = json.dumps({'status': 'approved'})
+class StorePageContentCGHandler(StoreContentCGHandler):
+    """Adds filtering by page/feed"""
+    feed = None
 
-    r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        page_id = kwargs.get('page_id')
+        page = get_object_or_404(Page, id=page_id)
+        self.feed = page.feed
 
-    return mimic_response(r)
+        return super(StorePageContentCGHandler, self).dispatch(*args, **kwargs)
 
-
-@request_methods('PUT')
-@check_login
-@never_cache
-@csrf_exempt
-def add_all_content(request, store_id, page_id):
-    try:
-        content_ids = json.loads(request.body)
-    except ValueError:
-        return HttpResponse(status=500)
-
-    if type(content_ids) != type([]):
-        return HttpResponse(status=500)
-
-    for content_id in content_ids:
-        if type(content_id) != type(1):
-            return HttpResponse(status=500)
-
-        try:
-            add_content_to_page(store_id, page_id, content_id)
-        except ValueError:
-            return HttpResponse(status=500)
-
-    return HttpResponse()
+    def get_queryset(self, request=None):
+        """get all the contents in the feed, which is
+        all the feed's tiles' contents
+        """
+        tile_content_ids = self.feed.tiles.values_list('content__id', flat=True)
+        contents = Content.objects.filter(id__in=tile_content_ids)
+        return contents
 
 
-@request_methods('PUT')
-@check_login
-@never_cache
-@csrf_exempt
-def add_all_products(request, store_id, page_id):
-    """Mirror of add_all_content."""
-    try:
-        product_ids = json.loads(request.body)
-    except ValueError:
-        return HttpResponse(status=500)
+class StorePageContentItemCGHandler(StoreContentItemCGHandler):
+    """Adds filtering by page/feed"""
+    feed = None
 
-    if type(product_ids) != type([]):
-        return HttpResponse(status=500)
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        page_id = kwargs.get('page_id')
+        content_id = kwargs.get('content_id')
+        page = get_object_or_404(Page, id=page_id)
+        self.content = get_object_or_404(Content, id=content_id)
 
-    for product_id in product_ids:
-        if type(product_id) != type(1):
-            return HttpResponse(status=500)
+        self.page = page
+        self.feed = page.feed
 
-        try:
-            page_add_product(store_id, page_id, product_id)
-        except ValueError:
-            return HttpResponse(status=500)
+        return super(StoreContentItemCGHandler, self).dispatch(*args, **kwargs)
 
-    return HttpResponse()
+    def get_queryset(self, request=None):
+        """get all the contents in the feed, which is
+        all the feed's tiles' contents
+        """
+        tiles = self.feed.tiles.all()
+        contents = []
+        for tile in tiles:
+            contents += tile.content.all()
+        return contents
+
+    def put(self, request, *args, **kwargs):
+        """special handler for adding a content to the page"""
+        self.page.add_content(self.content)
+        return ajax_jsonp(self.content.to_cg_json())
+
+    def delete(self, request, *args, **kwargs):
+        """special handler for deleting a content from the page
+        (which means adding a content to a tile to the feed of the page)
+        """
+        self.page.delete_content(self.content)
+        return ajax_jsonp(self.content)
 
 
-@append_headers
-@check_login
-@never_cache
-@csrf_exempt
-def get_suggested_content_by_page(request, store_id, page_id):
-    """Returns a multiple lists of product content grouped by
-    their product id.
+class StorePageContentSuggestedCGHandler(StorePageContentCGHandler):
+    """GET only; compute list of content based on products on page."""
+    def get_queryset(self, request=None):
+        """get all the contents in the feed, which is
+        all the feed's tiles' contents
+        """
+        store = self.store
+
+        # find ids of content not already present in the current set of tiles
+        tile_content_ids = self.feed.tiles.values_list('content__id', flat=True)
+        not_in_feed = list(set(store.content.values_list('id', flat=True)) -
+                           set(tile_content_ids))
+
+        # mass select and initialize these content models
+        not_in_feed = (Content.objects.filter(id__in=not_in_feed)
+                                      .select_subclasses())
+
+        return not_in_feed
+
+    def post(self, request, *args, **kwargs):
+        raise NotImplementedError()
+    put = patch = delete = post
+
+
+class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
+    """Supports content tagging
+
+    GET content id: list tagged product ids on that product
+    POST content id with product id: add (not replace) that product tag
+                                     returns updated content
+    DELETE content id with product id: remove that product tag
+                                       returns updated content
+
+    All other operations: not supported
     """
-    if request.method != 'GET':
-        return HttpResponseNotAllowed(['GET'])
+    content = None
 
-    # {'key': ['val']}
-    params = parse_qs(request.META.get('QUERY_STRING', ''))
-    for key in params:
-        # {'key': 'val'}
-        params[key] = params[key][0]
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        content_id = kwargs.get('content_id')
+        try:
+            self.content = Content.objects.filter(id=content_id).select_subclasses()[0]
+        except ObjectDoesNotExist:
+            raise Http404()
 
-    tile_config_url = "%s/page/%s/tile-config?template=product" % (
-        settings.CONTENTGRAPH_BASE_URL, page_id)
-    content_url = "%s/store/%s/content?is-content=true&tagged-products=%s"
+        return super(StorePageContentTagCGHandler, self).dispatch(*args, **kwargs)
 
-    results = []
+    def get_queryset(self, request=None):
+        return Content.objects.filter(id=request).select_subclasses()
 
-    # { "template": "product", "page": this page, "product-ids": ["123"]}
-    tile_configs, meta = get_proxy_results(request=request,
-                                           url=tile_config_url)
-
-    # this makes a flat (chain), unique (set) list of
-    # attributes (product-ids) from a list of objects' (tile configs)
-    # http://stackoverflow.com/a/952946/1558430
-    product_ids = list(set(sum(
-        [x.get('product-ids', []) for x in tile_configs], [])))
-
-    for product_id in product_ids:  # ["123", "124, ...]
-        contents, _ = get_proxy_results(request=request,
-            url=content_url % (settings.CONTENTGRAPH_BASE_URL,
-                               store_id, product_id))
-        for content in contents:
-            if content in results:  # this works because __hash__
-                continue
-
-            # do not recommended content that hasn't been approved
-            if content.get('status', 'needs-review') != 'approved':
-                continue
-
-            # if filter exists and content attribute exists, then filter on it
-            if params.get('source') and (content.get('source') != params.get('source')):
-                continue
-
-            if params.get('type') and (content.get('type') != params.get('type')):
-                continue
-
-            results.append(content)
-
-    return ajax_jsonp({'results': results,
-                       'meta': meta})
-
-
-@append_headers
-@check_login
-@never_cache
-@csrf_exempt
-def tag_content(request, store_id, page_id, content_id, product_id=0):
-    """Add a API endpoint to the backend for tagging content with products.
-
-    Tag content with a product
-    POST /page/:page_id/content/:content_id/tag
-    <product-id>
-    "Post adds a new tag to the set of existing tags stored in tagged-products."
-
-    List tags
-    GET /page/:page_id/content/:content_id/tag
-    Tags are all strings.
-
-    Delete a tag
-    DELETE /page/:page_id/content/:content_id/tag/<product-id>
-
-    As far as the spec is concerned, product_id is a query parameter
-    for the DELETE case, and from content body for the POST case.
-
-    :raises (ValueError, TypeError)
-    """
-    store_content_url = '{url}/store/{store_id}/content/{content_id}'.format(
-        url=settings.CONTENTGRAPH_BASE_URL, store_id=store_id,
-        content_id=content_id)
-    page_content_url = '{url}/store/{store_id}/page/{page_id}/content/{content_id}'.format(
-        url=settings.CONTENTGRAPH_BASE_URL, store_id=store_id, page_id=page_id,
-        content_id=content_id)
-
-    # get the content (it's a json string)
-    resp, cont = get_proxy_results(request=request, url=store_content_url,
-                                   raw=True, method='GET')
-    content = json.loads(cont)  # raises ValueError here if fetching failed
-
-    if request.method == 'GET':
-        # return the list of tags on this product
+    def get(self, request, *args, **kwargs):
         return ajax_jsonp({
-            'results': content.get('tagged-products', [])
+            'results': [x.id for x in self.content.tagged_products.all()]
         })
 
-    tagged_products = content.get('tagged-products', [])  # :type list
-    if not product_id:
-        product_id = (request.body or '')
+    def post(self, request, *args, **kwargs):
+        product_id = kwargs.get('product_id')
+        tagged_product_ids = self.content.tagged_products.values_list('id', flat=True)
+        if not product_id in tagged_product_ids:
+            tagged_product_ids.append(product_id)
 
-    # add one tag to the list of tags (if it doesn't already exist)
-    if request.method == 'POST':
-        if not str(product_id) in tagged_products:
-            tagged_products.append(str(product_id))
-            # new product not in list? patch the content with new list
-            resp, cont = get_proxy_results(request=request, url=store_content_url,
-                body=json.dumps({"tagged-products": tagged_products}),
-                method='PATCH', raw=True)
+        self.content.update({'tagged_products': tagged_product_ids})
+        self.content.save()
+        return ajax_jsonp(self.content.to_cg_json())
 
-            # return an ajax response instead of just the text
-            return ajax_jsonp(result=json.loads(cont), status=resp.status)
+    def delete(self, request, *args, **kwargs):
+        product_id = kwargs.get('product_id')
+        tagged_product_ids = self.content.tagged_products.values_list('id', flat=True)
+        try:
+            # remove all instances of product_id
+            tagged_product_ids = [i for i in tagged_product_ids if i != product_id]
+        except IndexError:
+            pass
 
-        else:  # already in the list
-            return HttpResponse(status=200)
+        self.content.update({'tagged_products': tagged_product_ids})
+        self.content.save()
+        return ajax_jsonp(self.content.to_cg_json())
 
-    # remove one tag from the list of tags
-    if product_id and request.method == 'DELETE':
-        if not str(product_id) in tagged_products:
-            return HttpResponse(status=200)  # already out of the list
+    def put(self, request, *args, **kwargs):
+        raise NotImplementedError()
 
-        tagged_products.remove(str(product_id))
-        # new product in list? patch the content with new list
-        resp, cont = get_proxy_results(request=request, url=store_content_url,
-            body=json.dumps({"tagged-products": tagged_products}),
-            method='PATCH', raw=True)
+    def patch(self, request, *args, **kwargs):
+        raise NotImplementedError()
 
-        # return an ajax response instead of just the text
-        return ajax_jsonp(result=json.loads(cont), status=resp.status)
 
-    return HttpResponseBadRequest()  # missing something (say, product id)
+class StoreContentStateItemCGHandler(ContentItemCGHandler):
+    """Approves/Unapproves/Undecides a piece of content, depending on class name"""
+    def post(self, request, *args, **kwargs):
+        raise NotImplementedError()
+
+    def dispatch(self, *args, **kwargs):
+        request = args[0]
+        store_id = kwargs.get('store_id')
+        self.store = get_object_or_404(Store, id=store_id)
+        self.content_id = kwargs.get(self.id_attr)
+
+        # can't tag ProductImage classes, which is fine for this set of
+        # API urls
+        self.content = get_object_or_404(Content, id=kwargs.get('content_id'))
+
+        return super(StoreContentStateItemCGHandler, self).dispatch(*args, **kwargs)
+
+    def get_queryset(self, request=None):
+        qs = super(StoreContentStateItemCGHandler, self).get_queryset()
+        return qs.filter(store_id=self.store.id,
+                         id=self.content_id)
+
+
+class StoreContentApproveItemCGHandler(StoreContentStateItemCGHandler):
+    """Approves a piece of content"""
+    def post(self, request, *args, **kwargs):
+        self.content.status = "approved"
+        self.content.save()
+        return ajax_jsonp(self.content)
+
+
+class StoreContentRejectItemCGHandler(StoreContentStateItemCGHandler):
+    """Rejects a piece of content (not that it has any effect)"""
+    def post(self, request, *args, **kwargs):
+        self.content.status = "rejected"
+        self.content.save()
+        return ajax_jsonp(self.content)
+
+
+class StoreContentUndecideItemCGHandler(StoreContentStateItemCGHandler):
+    """Since the new default value is "approved", this status is actually
+    discouraged.
+    """
+    def post(self, request, *args, **kwargs):
+        self.content.status = "needs-review"
+        self.content.save()
+        return ajax_jsonp(self.content)
+
+
+class StorePageContentPrioritizeItemCGHandler(StorePageContentItemCGHandler):
+    def post(self, request, *args, **kwargs):
+
+        feed = self.page.feed
+        tiles_with_this_content = feed.find_tiles(content=self.content)
+        if len(tiles_with_this_content):  # tile is already in the feed
+            for tile in tiles_with_this_content:
+                print "prioritized tile {0} for content {1}".format(
+                    tile.id, self.content.id)
+                tile.prioritized = "pageview"
+                tile.save()
+        else:  # tile not in the feed, create a prioritized tile
+            self.page.add_content(content=self.content, prioritized='pageview')
+
+        return ajax_jsonp(self.content.to_cg_json())
+
+    def get(self, request, *args, **kwargs):
+        raise NotImplementedError()
+    put = patch = delete = get
+
+
+class StorePageContentDeprioritizeItemCGHandler(StorePageContentItemCGHandler):
+    """Finds the tile with this content in the feed that belongs to this page
+    and deprioritises it.
+    """
+    def post(self, request, *args, **kwargs):
+
+        feed = self.page.feed
+        tiles_with_this_content = feed.find_tiles(content=self.content)
+        for tile in tiles_with_this_content:
+            print "prioritized tile {0} for content {1}".format(
+                tile.id, self.content.id)
+            tile.prioritized = ""
+            tile.save()
+
+        return ajax_jsonp(self.content.to_cg_json())
+
+    def get(self, request, *args, **kwargs):
+        raise NotImplementedError()
+    put = patch = delete = get
+
+
+class PageContentAllCGHandler(StorePageContentCGHandler):
+    """PUT adds all content specified in the request body to the page.
+
+    No other HTTP verb is supported.
+
+    This view is identical to PageProductAllCGHandler.
+    """
+    def get(self, request, *args, **kwargs):
+        raise NotImplementedError()
+
+    def put(self, request, *args, **kwargs):
+        """:returns 200"""
+        page_id = kwargs.get('page_id')
+        page = get_object_or_404(Page, id=page_id)
+
+        content_ids = json.loads(request.body)
+        contents = Content.objects.filter(id__in=content_ids).select_subclasses()
+        for content in contents:
+            page.add_content(content)
+
+        return HttpResponse()
+
+    post = patch = delete = get

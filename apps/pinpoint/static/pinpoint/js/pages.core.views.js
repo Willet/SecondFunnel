@@ -1,4 +1,4 @@
-/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _, console, App */
+/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _, console, App, parseFloat */
 /**
  * @module core
  */
@@ -9,7 +9,8 @@ App.module('core', function (module, App) {
         $document = $(document),
         // specifically, pages scrolled downwards; pagesScrolled defaults
         // to 1 because the user always sees the first page.
-        pagesScrolled = 1;
+        pagesScrolled = 1,
+        everScrolled = false;
 
     /**
      * View responsible for the "Hero Area"
@@ -203,39 +204,54 @@ App.module('core', function (module, App) {
          * Before the View is rendered. this.$el is still an empty div.
          */
         'onBeforeRender': function () {
-            var maxImageSize,
+            var columns, wideable, showWide, idealWidth, imageInfo,
                 self = this,
-                defaultImage = self.model.getDefaultImage(),  // obj
-                normalTileWidth = App.option('columnWidth', 255),
-                wideTileWidth = normalTileWidth * 2,
-                fullTileWidth = normalTileWidth * 4,  // 4col (standby)
-                normalImageInfo = this.model.get('defaultImage')
-                    .width(normalTileWidth, true),  // undefined if not found
-                wideImageInfo = this.model.get('defaultImage'),
-                    /*.width(wideTileWidth, true)*/  // undefined if not found
-                sizes = {
-                    'normal': normalTileWidth,
-                    'wide': wideTileWidth,
-                    'full': fullTileWidth
-                },
+                normalTileWidth = App.layoutEngine.width(),
+                // TODO: Make the configurable; perhaps a page property?
                 widable_templates = {
                     'image': true,
                     'youtube': true,
                     'banner': true
-                }; //TODO: Make the configurable; perhaps a page property?
+                }, columnDetails = {
+                    '1': '',
+                    '2': 'wide',
+                    '3': 'three-col',
+                    '4': 'full'
+                };
 
             // templates use this as obj.image.url
-            this.model.set('image',
-                this.model.get('defaultImage')/*.width(normalTileWidth, true)*/);
+            this.model.set('image', this.model.get('defaultImage'));
 
-            // 0.5 is an arbitrary 'lets make this tile wide' factor
-            if (widable_templates[self.model.get('template')] &&
-                wideImageInfo &&
-                Math.random() > App.option('imageTileWide', 0.5)) {
-                // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
-                this.$el.addClass('wide');
-                this.model.set({'image': wideImageInfo});
+            wideable = widable_templates[this.model.get('template')];
+            showWide = (Math.random() > App.option('imageTileWide', 0.5));
+
+            if (_.isNumber(self.model.get('colspan'))) {
+                columns = self.model.get('colspan');
+            } else if (wideable && showWide) {
+                columns = 2;
+            } else {
+                columns = 1;
             }
+
+            if (App.support.mobile()) { // maximum of 2 columns
+                if (columns <= 2) {
+                    columns = 1;
+                } else {
+                    columns = 2;
+                }
+            }
+
+            while(0 <= columns) {
+                idealWidth = normalTileWidth * columns;
+                imageInfo = this.model.get('defaultImage').width(idealWidth, true);
+                if (imageInfo) {
+                    break;
+                }
+                columns--;
+            }
+
+            this.model.set({'image': imageInfo});
+            this.$el.addClass(columnDetails[columns]);
 
             // Listen for the image being removed from the DOM, if it is, remove
             // the View/Model to free memory
@@ -273,8 +289,8 @@ App.module('core', function (module, App) {
 
             // set dominant colour on tile, and set the height of the tile
             // so it looks like it is all-ready
-            if (model.get('dominant-colour')) {
-                hexColor = model.get('dominant-colour');
+            if (model.get('dominant-color')) {
+                hexColor = model.get('dominant-color');
                 rgbaColor = App.utils.hex2rgba(hexColor, 0.5);
 
                 $tileImg.css({
@@ -288,6 +304,19 @@ App.module('core', function (module, App) {
                     self.close();
                 };
             }
+
+            if (App.option('conditionalSocialButtons', {})[model.get('colspan')]) {
+                var socialButtons = $('.socialButtons', this.$el),
+                    buttons = new App.sharing.SocialButtons({
+                        'model': model,
+                        'buttonTypes': App.option('conditionalSocialButtons', {})[model.get('colspan')]
+                    });
+
+                socialButtons.append(buttons.render().$el);
+            }
+
+            // add view to our database
+            //$.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.page.id + "/tile/" + model.get('tile-id') + "/view");
 
             $tileImg.load(allocateTile);
         }
@@ -398,35 +427,47 @@ App.module('core', function (module, App) {
     });
 
     /**
+     * A Generic collection of TileViews
+     *
+     * @constructor
+     * @type {CollectionView}
+     */
+    this.TileCollectionView = Marionette.CollectionView.extend({
+        'initialize': function (options) {
+            var self = this;
+            this.on('itemview:item:clicked', function (childView) {
+                self.trigger('collection:item:clicked', childView);
+            });
+        }
+    });
+
+    /**
      * Manages the HTML/View of ALL the tiles on the page (our discovery area)
      *
      * @class Feed
      * @constructor
-     * @type {CompositeView}
+     * @type {TileCollectionView}
      */
-    this.Feed = Marionette.CollectionView.extend({
+    this.Feed = this.TileCollectionView.extend({
         'lastScrollTop': 0,
         'loading': false,
-
         'collection': null,
 
+        // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
         /**
+         * Oeveride getItemView to allow different itemViews to be
+         * used.
+         *
          * @param {Model} item
          * @return {TileView}
          */
         'getItemView': function (item) {
-            //TODO: hack for newegg, provide better way
-            if (item.get('type') === 'video') {
-                item.set('type', item.get('template'));
-            }
-
             return App.utils.findClass('TileView',
                 App.core.getModifiedTemplateName(
                     item.get('type') || item.get('template')),
                 module.TileView);
         },
 
-        // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
 
         'initialize': function (opts) {
             var self = this,
@@ -508,7 +549,7 @@ App.module('core', function (module, App) {
 
             // Vent Listeners
             App.vent.on("click:tile", this.updateContentStream, this);
-            // App.vent.on('change:campaign', this.categoryChanged, this);
+            App.vent.on('change:category', this.categoryChanged, this);
 
             App.vent.on("finished", _.once(function () {
                 // the first batch of results need to layout themselves
@@ -537,7 +578,7 @@ App.module('core', function (module, App) {
             }(App._globals));
 
             App.vent.off("click:tile");
-            // App.vent.off('change:campaign');
+            App.vent.off('change:category');
             App.vent.off("finished");
 
             App.vent.off('windowResize');  // in layoutEngine
@@ -558,13 +599,25 @@ App.module('core', function (module, App) {
          * @returns deferred
          */
         'getTiles': function (options, tile) {
+            var self = this;
             if (this.loading) {
                 // do nothing
                 return (new $.Deferred()).promise();
             }
-            return this.toggleLoading(true)
+
+            var xhr = this.toggleLoading(true)
                 .collection
                 .fetch();
+
+            xhr.done(function (tileInfo) {
+                // feed ended / IR busted
+                if (tileInfo && tileInfo.length === 0) {
+                    self.toggleLoading(false);
+                    App.vent.trigger("feedEnded", this);
+                }
+            });
+
+            return xhr;
         },
 
         'render': _.throttle(function () {
@@ -609,7 +662,7 @@ App.module('core', function (module, App) {
         },
 
         'categoryChanged': function (ev, category) {
-            // Changes the category (campaign) by refreshing IntentRank, clearing
+            // Changes the category by refreshing IntentRank, clearing
             // the Layout Engine and collecting new tiles.
             var self = this;
             if (this.loading) {
@@ -617,8 +670,7 @@ App.module('core', function (module, App) {
                     self.categoryChanged(ev, category);
                 }, 100);
             } else {
-                App.intentRank.changeCategory(category.model.get('id'));
-                App.tracker.changeCampaign(category.model.get('id'));
+                App.tracker.changeCategory(category);
                 App.layoutEngine.empty(this);
                 this.getTiles();
             }
@@ -631,6 +683,15 @@ App.module('core', function (module, App) {
             } else {
                 this.loading = !this.loading;
             }
+
+            var loadingIndicator = this.$el.parents('.container')
+                .find('.loading:last');
+            if (this.loading) {
+                loadingIndicator.show();
+            } else {
+                loadingIndicator.hide();
+            }
+
             return this;
         },
 
@@ -646,6 +707,17 @@ App.module('core', function (module, App) {
                     pageBottomPos >= documentBottomPos - viewportHeights) {
                 // get more tiles to fill the screen.
                 this.getTiles();
+            }
+
+            // Did the user scroll ever?
+            if ($window.scrollTop() > 0 && !everScrolled) {
+                // only log this event once per user
+                everScrolled = true;
+                App.vent.trigger('tracking:trackEvent', {
+                    'category': 'visit',
+                    'action': 'first_scroll',
+                    'nonInteraction': true
+                });
             }
 
             // "did user scroll down more than a page?"
@@ -703,11 +775,19 @@ App.module('core', function (module, App) {
             }
             return templateRules;
         },
+
         'onBeforeRender': function () {
+            // Need to get an appropriate sized image
+            var image = $.extend(true, {},
+                this.model.get('defaultImage').attributes);
+            image = (new App.core.Image(image)).width(undefined, {
+                multiplier: 1.5
+            });
+
             // templates use this as obj.image.url
-            this.model.set('image',
-                    this.model.get('defaultImage').toJSON());
+            this.model.set('image', image);
         },
+
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
             var buttons, width;
@@ -751,6 +831,14 @@ App.module('core', function (module, App) {
 
             So, for now, only add no-scroll if the device is NOT an android.
              */
+            var width = Marionette.getOption(this, 'width');
+
+            if (width) {
+                this.$('.content').css('width', width + 'px');
+            } else if (App.support.mobile()) {
+                this.$el.width($(window).width()); // assign width
+            }
+
             if (!App.support.isAnAndroid()) {
                 $(document.body).addClass('no-scroll');
             }
@@ -761,6 +849,94 @@ App.module('core', function (module, App) {
             if (!App.support.isAnAndroid()) {
                 $(document.body).removeClass('no-scroll');
             }
+        }
+    });
+
+    /**
+     * A Preview that is a Layout that includes PreviewContent within
+     * it's target region as well as the additional products that compromise
+     * the look in the related region.
+     *
+     * @constructor
+     * @type {Layout}
+     */
+    this.MegaPreviewContent = Marionette.Layout.extend({
+        'className': "shop-the-look",
+        'template': "#mega_tile_preview_template",
+        'templates': function () {
+            var templateRules = [
+                '#<%= options.store.slug %>_<%= data.template %>_mobile_mega_preview_template',
+                '#<%= data.template %>_mobile_mega_preview_template',
+                '#<%= options.store.slug %>_<%= data.template %>_mega_preview_template',
+                '#<%= data.template %>_mega_preview_template',
+                '#mobile_mega_tile_preview_template', // fallback
+                '#mega_tile_preview_template' // fallback
+            ];
+
+            if (!App.support.mobile()) {
+                // remove mobile templates if it isn't mobile, since they take
+                // higher precedence by default
+                templateRules = _.reject(templateRules,
+                    function (t) {
+                        return t.indexOf('mobile') >= 0;
+                    });
+            }
+            return templateRules;
+        },
+        'regions': {
+            'target': '.stl-target',
+            'related': '.stl-look'
+        },
+
+        'onRender': function() {
+            var self = this,
+                model = new App.core.Tile(_.extend({},
+                    this.options.model.attributes)),
+                template = model.get('template'),
+                related,
+                ContentClass;
+
+            model = new App.core.Tile(model.attributes);
+
+            ContentClass = App.utils.findClass('PreviewContent',
+                model.get('template'), module.PreviewContent);
+
+           // Layout the focused image and related products
+            this.target.show(new ContentClass({
+                'model': model
+            }));
+
+            // Reverse price sort to push jewelerry et. al to the back
+            related = _.sortBy(model.get('related-products'), function (obj) {
+                return -1 * parseFloat((obj.price || '$0').substr(1), 10);
+            });
+            _.each(related, function (img) {
+                self.$('.stl-look').append(
+                    $('<img/>')
+                        .attr('src', img.images[0].get('url'))
+                        .click((function (view, self, cls, model) {
+                            function click () {
+                                // On click, change the focused image
+                                var related = _.filter(self.model.get('related-products').slice(0), function (product) {
+                                    return product.name != view.name;
+                                });
+                                related.unshift(view); // first image in related is always shown
+                                model.set('related-products', related);
+
+                                self.target.show(new ContentClass({
+                                    'model': model
+                                }));
+
+                                $(this).addClass('selected')
+                                       .siblings()
+                                       .removeClass('selected');
+                            }
+                            return click;
+                        })(img, self, ContentClass, model))
+                );
+            });
+            // First image is always selected
+            this.$('.stl-look').find('img').first().click();
         }
     });
 
@@ -836,6 +1012,7 @@ App.module('core', function (module, App) {
         },
 
         'onRender': function () {
+            var previewLoadingScreen = $('#preview-loading');
             // cannot declare display:table in marionette class.
             this.$el.css({
                 'display': "table",
@@ -843,13 +1020,22 @@ App.module('core', function (module, App) {
                     $(window).height() : ""
             });
 
-            var ContentClass = App.utils.findClass('PreviewContent',
-                    this.options.model.get('template'), module.PreviewContent),
+            var ContentClass,
+                template = this.options.model.get('template'),
+                related = this.options.model.get('related-products') || [],
                 contentOpts = {
                     'model': this.options.model
                 };
 
+            if (template == 'image' && related.length > 1) {
+                template = 'mega';
+            }
+
+            ContentClass = App.utils.findClass('PreviewContent',
+                template, module.PreviewContent);
+
             this.content.show(new ContentClass(contentOpts));
+            previewLoadingScreen.hide();
         },
 
         'onShow': function () {
@@ -861,9 +1047,11 @@ App.module('core', function (module, App) {
                         window_middle = App.window_middle;
                     }
 
-                    if (!App.support.mobile()) {
-                        previewWindow.$el.css('top', Math.max(window_middle - (previewWindow.$el.height() / 2), 0));
+                    if (App.windowHeight && App.support.mobile()) {
+                        previewWindow.$el.css('height', App.windowHeight);
                     }
+
+                    previewWindow.$el.css('top', Math.max(window_middle - (previewWindow.$el.height() / 2), 0));
                 };
             }(this));
 
@@ -882,6 +1070,72 @@ App.module('core', function (module, App) {
                 // area has an undefined height.
                 App.layoutEngine.layout(App.discovery);
             }
+        }
+    });
+
+    /**
+     * View for switching categories.
+     *
+     * @constructor
+     * @type {ItemView}
+     */
+    this.CategoryView = Marionette.ItemView.extend({
+        'tagName': "div",
+        'className': 'category',
+        'template': "#category_template",
+        'templates': function () {
+            var templateRules = [
+                "#<%= options.store.slug %>_mobile_category_template",
+                "#<%= options.store.slug %>_category_template",
+                "#mobile_category_template",
+                "#category_template"
+            ];
+
+            if (!App.support.mobile()) {
+                templateRules = _.reject(templateRules, function(t) {
+                    return t.indexOf('mobile') > -1;
+                });
+            }
+
+            return templateRules;
+        },
+
+        'events': {
+            'click': "onClick"
+        },
+
+        'onClick': function (ev) {
+            var category = this.model.get('name');
+
+            // Switch the selected category class to this element
+            $(this.className).removeClass('selected');
+            this.$el.addClass('selected');
+
+            App.intentRank.changeCategory(category);
+        }
+    });
+
+    /**
+     * A collection of Categories to display.
+     *
+     * @constrcutor
+     * @type {CollectionView}
+     */
+    this.CategoryCollectionView = Marionette.CollectionView.extend({
+        'tagName': "div",
+        'itemView': this.CategoryView,
+        'collection': null,
+
+        'initialize': function (options) {
+            var self = this,
+                categories = App.option('categories', []);
+            this.collection = new App.core.CategoryCollection();
+
+            // Initialize by adding all the categories to this view
+            _.each(categories, function (category) {
+                category = new App.core.Category(category);
+                self.collection.add(category);
+            });
         }
     });
 });

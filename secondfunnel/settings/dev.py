@@ -48,6 +48,7 @@ MIDDLEWARE_CLASSES += (
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     # oddly enough, this goes *after* debug_toolbar
     'apps.utils.models.NonHtmlDebugToolbarMiddleware',
+    'apps.utils.models.ShowHandlerMiddleware',
 )
 
 # force show toolbar
@@ -67,9 +68,6 @@ COMPRESS_PRECOMPILERS = (
 )
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-
-GOOGLE_ANALYTICS_PROFILE = '67271131'
-GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-15'
 
 GOOGLE_API_PRIVATE_KEY = 'google-service-account-prod.p12'
 GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
@@ -119,4 +117,5 @@ AWS_SQS_POLLING_QUEUES = {
     }
 }
 
-TRACKING_COOKIE_AGE = 30 # seconds: 30 seconds
+TRACKING_COOKIE_AGE = 30  # seconds: 30 seconds
+TRACKING_COOKIE_DOMAIN = None  # No need to set specific domain for local tests

@@ -20,6 +20,10 @@ INTENTRANK_DEFAULT_NUM_RESULTS = 10
 MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 CLOUDFRONT_DOMAIN = 'cdn.secondfunnel.com'
 
+# Google analytics
+GOOGLE_ANALYTICS_PROFILE = '67271131'         
+GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17' # dev and test (production has a separate profile, -16)  
+
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
@@ -116,6 +120,18 @@ STATIC_ROOT = from_project_root('static')
 # "Storing static files as is" mode
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+# Cloudinary ImageService settings
+CLOUDINARY_API_URL = "//api.cloudinary.com/v1_1/secondfunnel"
+CLOUDINARY_BASE_URL = "//res.cloudinary.com/secondfunnel"
+CLOUDINARY_NAME = "secondfunnel"
+CLOUDINARY_API_KEY = "471718281466152"
+CLOUDINARY_API_SECRET = "_CR94qpFu7EGChMbwmc4xqCsbXo"
+CLOUDINARY = {
+    'cloud_name': CLOUDINARY_NAME,
+    'api_key': CLOUDINARY_API_KEY,
+    'api_secret': CLOUDINARY_API_SECRET
+}
 
 # http://django_compressor.readthedocs.org/en/latest/remote-storages/
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
@@ -215,7 +231,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # Uncomment the next line for CSRF protection:
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
@@ -244,6 +261,9 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_admin_bootstrapped.bootstrap3', # before 'django_admin_bootstrapped'
+    'django_admin_bootstrapped',  # before 'django.contrib.admin'
+    'adminactions',  # before 'django.contrib.admin'
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.humanize',
@@ -254,6 +274,7 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
+    'rest_framework',
     'ajax_forms',
     'compressor',
     'corsheaders',
@@ -268,6 +289,8 @@ INSTALLED_APPS = (
     'apps.static_pages',
     'apps.tracking',
     'apps.utils',
+    'apps.imageservice',
+    'apps.scraper',
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = (
@@ -275,6 +298,8 @@ CORS_ORIGIN_REGEX_WHITELIST = (
     r'^(https?://)?(localhost|127.0.0.1):(\d+)$',
     r'^(https?://)?[\w-]+\.secondfunnel\.com$',
     r'^(https?://)?[\w-]+\.elasticbeanstalk\.com$',
+    r'^(https?://)?[\w-]+\.myshopify\.com$',
+    r'^(https?://)?[\w-]+\.amazonaws\.com$',
 )
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
@@ -346,6 +371,7 @@ TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     # add custom context processors here
     'secondfunnel.context_processors.environment',
     'secondfunnel.context_processors.required_dimensions',
+    'django.core.context_processors.request',
 )
 
 FIXTURE_DIRS = (
@@ -367,12 +393,17 @@ JENKINS_TASKS = (
 
 IMAGE_SERVICE_API = "http://imageservice.elasticbeanstalk.com"
 IMAGE_SERVICE_STORE = "http://images.secondfunnel.com"
+IMAGE_SERVICE_USER_AGENT = "Mozilla/5.0 (compatible; SecondFunnelBot/1.0; +http://secondfunnel.com/bot.hml)"
+IMAGE_SERVICE_USER_AGENT_NAME = "SecondFunnelBot"
+IMAGE_SERVICE_BUCKET = "images.secondfunnel.com"
 
 STALE_TILE_QUEUE_NAME = 'tiles-worker-test-queue'
 
 CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
 
 CELERY_IMPORTS = ('apps.utils.tasks', )
+
+API_LIMIT_PER_PAGE = 20
 
 # only celery workers use this setting.
 # run a celery worker with manage.py.
@@ -407,6 +438,9 @@ CELERYBEAT_SCHEDULE = {
 STALE_TILE_RETRY_THRESHOLD = 240  # seconds
 IRCONFIG_RETRY_THRESHOLD = 240  # seconds
 
+TASTYPIE_ALLOW_MISSING_SLASH = True  # allow missing trailing slashes
+
 TRACKING_COOKIE_AGE = 60 * 60 * 24 * 30 # seconds: s*m*h*d; 30 days
+TRACKING_COOKIE_DOMAIN = 'px.secondfunnel.com'
 
 djcelery.setup_loader()
