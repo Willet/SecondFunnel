@@ -16,7 +16,7 @@ from apps.scraper.scrapers.gap.styldby_scraper import StyldByFilterScraper, Styl
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (make_option('--store-id', default=None),
+    option_list = BaseCommand.option_list + (make_option('--store-id', default=None, dest='store-id'),
                                              make_option('--url', default=None),
                                              make_option('--folder', default=None))
 

@@ -19,12 +19,12 @@ class StyldByPartnersScraper(ContentCategoryScraper):
     def has_next_scraper(self, **kwargs):
         return False
 
-    def scrape(self, driver, url, **kwargs):
+    def scrape(self, url, **kwargs):
         self.driver.get(url)
-        name = driver.find_element_by_xpath('.//h2[@class="title"]').text
-        description = driver.find_element_by_xpath('.//div[@class="content"]/p').text
-        author = driver.find_element_by_xpath('.//div[@class="contributor"]/a').text
-        for image_element in driver.find_elements_by_xpath('.//div[@class="swipe"]//div[@class="bandwrapper"]/img'):
+        name = self.driver.find_element_by_xpath('.//h2[@class="title"]').text
+        description = self.driver.find_element_by_xpath('.//div[@class="content"]/p').text
+        author = self.driver.find_element_by_xpath('.//div[@class="contributor"]/a').text
+        for image_element in self.driver.find_elements_by_xpath('.//div[@class="swipe"]//div[@class="bandwrapper"]/img'):
             image_url = image_element.get_attribute('data-src').replace('medium', 'large')
             image_url = image_url.split('?')[0]
             try:
@@ -53,11 +53,11 @@ class StyldByFilterScraper(ContentCategoryScraper):
     def has_next_scraper(self, **kwargs):
         return False
 
-    def scrape(self, driver, url, values, **kwargs):
+    def scrape(self, url, values, **kwargs):
         page = 1
         while True:
             self.driver.get(url + '/page/' + str(page))
-            for element in driver.find_elements_by_xpath('//div[@role="main"]/ul/li/article'):
+            for element in self.driver.find_elements_by_xpath('//div[@role="main"]/ul/li/article'):
                 title_element = element.find_element_by_xpath('.//h2[@class="title"]/a')
                 name = title_element.text
                 original_url = title_element.get_attribute('href')
@@ -77,7 +77,7 @@ class StyldByFilterScraper(ContentCategoryScraper):
                     image.save()
                     yield image
             try:
-                driver.find_element_by_xpath('//div[@class="pagination"]/a[@rel="next"]')
+                self.driver.find_element_by_xpath('//div[@class="pagination"]/a[@rel="next"]')
                 page += 1
             except NoSuchElementException:
                 break

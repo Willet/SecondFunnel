@@ -60,7 +60,7 @@ class Scraper(object):
         regex += r'(?:#.*)?$'
         return regex
 
-    def scrape(self, driver, url, values, **kwargs):
+    def scrape(self, url, values, **kwargs):
         """
         The method used to run the scraper
         For category scrapers, a store is also added to the arguments
@@ -81,7 +81,7 @@ class ProductScraper(Scraper):
         except Product.DoesNotExist:
             product = Product(store=self.store, url=url)
 
-        print product
+        return product
 
     def _process_image(self, original_url, product):
         """
