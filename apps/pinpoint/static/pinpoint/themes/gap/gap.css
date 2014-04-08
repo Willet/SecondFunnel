@@ -826,6 +826,8 @@ div.header {
     }
 
     .previewContainer .price.sale {
+        color: white;
+        font-weight: normal;
         background-color: #f44c43;
     }
 
