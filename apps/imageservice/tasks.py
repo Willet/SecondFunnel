@@ -6,7 +6,6 @@ import tempfile
 import cStringIO
 import mimetypes
 
-import cloudinary.api
 import cloudinary.utils
 import cloudinary.uploader
 from threading import Semaphore
@@ -16,29 +15,14 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from apps.pinpoint.utils import read_remote_file
 from apps.imageservice.models import SizeConf, ExtendedImage
+from apps.imageservice.utils import create_image, IMAGE_SIZES
 from apps.static_pages.aws_utils import upload_to_bucket, s3_key_exists
-from apps.imageservice.utils import create_image, IMAGE_SIZES, get_public_id
 
 
 # Use a semaphore as image processing is an CPU expensive operation
 # and don't want to drive our service into the ground
 MAX_CONNECTIONS = getattr(settings, 'MAX_CONNECTIONS', 3)
 PROCESSING_SEM = Semaphore(value=MAX_CONNECTIONS)
-
-
-def delete_cloudinary_resource(public_id):
-    """
-    Deletes the Cloudinary resource pointed to by the specified
-    public id, or url.
-
-    @param public_id: Url/id of resource, a string.
-    @return: None
-    """
-    try:
-        cloudinary.api.delete_resources(list(public_id))
-    except cloudinary.api.NotFound:
-        public_id = get_public_id(public_id)
-        cloudinary.api.delete_resources(list(public_id))
 
 
 def check_configurations():

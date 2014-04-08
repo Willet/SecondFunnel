@@ -7,10 +7,10 @@ import urlparse
 import cStringIO
 from collections import namedtuple
 
+import cloudinary.api
 from django.conf import settings
 from django.core.files.storage import default_storage
 
-from apps.assets.models import Store
 from apps.imageservice.models import ExtendedImage
 
 
@@ -44,6 +44,21 @@ def get_public_id(url):
     public_id = ".".join(url.split('.')[:-1])
 
     return public_id
+
+
+def delete_cloudinary_resource(public_id):
+    """
+    Deletes the Cloudinary resource pointed to by the specified
+    public id, or url.
+
+    @param public_id: Url/id of resource, a string.
+    @return: None
+    """
+    try:
+        cloudinary.api.delete_resources(list(public_id))
+    except cloudinary.api.NotFound:
+        public_id = get_public_id(public_id)
+        cloudinary.api.delete_resources(list(public_id))
 
 
 def create_configuration(xpos, ypos, width, height):
@@ -94,6 +109,8 @@ def create_image_path(store_id, *args):
     """
     Determine endpoint path for a url.
     """
+    from apps.assets.models import Store
+
     store = Store.objects.get(id=store_id)
     name = store.name.lower()
 
