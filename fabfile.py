@@ -330,7 +330,7 @@ def flush_database_postgres():
 
     local(command)
 
-def master():
+def production():
     env.hosts = [i.public_dns_name for i in get_instances('tng-test2')][-1:]
 
 def test():
