@@ -257,7 +257,6 @@ $.getScripts = function (urls, callback, options) {
     });
 };
 
-// underscore's fancy pants capitalize()
 _.mixin({
     'buffer': function (fn, wait) {
         // a variant of _.debounce, whose called function receives an array
@@ -280,6 +279,7 @@ _.mixin({
         };
     },
     'capitalize': function (string) {
+        // underscore's fancy pants capitalize()
         var str = string || "";
         return str.charAt(0).toUpperCase() + str.substring(1);
     },
