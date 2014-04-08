@@ -323,7 +323,7 @@ class Category(BaseModel):
     store = models.ForeignKey(Store)
     name = models.CharField(max_length=255)
 
-    url = models.TextField()
+    url = models.TextField(blank=True, null=True)
 
 
 class Content(BaseModel):
