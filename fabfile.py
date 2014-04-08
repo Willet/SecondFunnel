@@ -18,6 +18,18 @@ import time
 
 env.user = 'ec2-user'
 
+def prepend(filepath, content):
+    data = ''
+    with open(filepath, 'r') as original:
+        data = original.read()
+
+    with open(filepath, 'w') as new:
+        new.write(content + r'\r\n' + data)
+
+def append(filepath, content):
+    with open(filepath, 'a') as f:
+        f.write(content)
+
 def get_ec2_conn():
     return boto.ec2.connect_to_region("us-west-2",
         aws_access_key_id=django_settings.AWS_ACCESS_KEY_ID,
@@ -289,8 +301,14 @@ def dump_database_postgres(path='/tmp/db.sql'):
 
     # Appending to beginning and end of file:
     # http://unix.stackexchange.com/a/65514
-    local('sed -i "1ibegin; SET CONSTRAINTS ALL DEFERRED;" {}'.format(path))
-    local('echo "commit;" >> {}'.format(path))
+    local('fab prepend:'
+        'filepath={},content="begin; SET CONSTRAINTS ALL DEFERRED;"'
+        .format(path)
+    )
+    local('fab append:'
+        'filepath={},content="commit;"'
+        .format(path)
+    )
 
 def flush_database_postgres():
     args = get_postgres_arguments()
