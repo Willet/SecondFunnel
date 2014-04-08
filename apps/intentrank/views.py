@@ -1,3 +1,4 @@
+import json
 from django.conf import settings
 from django.http import HttpResponse
 from django.http.response import Http404, HttpResponseNotFound
@@ -231,7 +232,7 @@ def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
 
 def update_tiles(request, tile_function, **kwargs):
     tile_id = kwargs.get('tile_id', None) or request.GET.get('tile-id', None)
-    tile_ids = request.GET.get('tile-ids', None)
+    tile_ids = request.GET.get('tile-ids', None) or request.POST.get('tile-ids', '')
     if tile_id:
         tile = get_object_or_404(Tile, id=tile_id)
         tile_function(tile)

@@ -316,7 +316,7 @@ App.module('core', function (module, App) {
             }
 
             // add view to our database
-            //$.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.page.id + "/tile/" + model.get('tile-id') + "/view");
+            App.vent.trigger('tracking:trackTileView', model.get('tile-id'));
 
             $tileImg.load(allocateTile);
         }
@@ -643,6 +643,8 @@ App.module('core', function (module, App) {
             setTimeout(function () {
                 self.toggleLoading(false).pageScroll();
             }, 500);
+
+            return this;
         },
 
         /**
