@@ -15,7 +15,7 @@ class GapProductScraper(ProductDetailScraper):
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.get_regex()[0], url).group(1)
 
-    def scrape(self, url, product, **kwargs):
+    def scrape(self, url, product, values, **kwargs):
         self.driver.get(url)
         try:
             product.name = self.driver.find_element_by_class_name('productName').text
@@ -50,7 +50,10 @@ class GapProductScraper(ProductDetailScraper):
         try:
             category_elem = self.driver.find_element_by_xpath('//li/a[contains(@class, "_selected")]')
             category_url = category_elem.get_attribute('href')
-            self._add_to_category(product, category_elem.text, category_url)
+            category_name = category_elem.text.lower()
+            if category_name == 'body' or category_name == 'gapfit' or category_name == 'maternity':
+                self._add_to_category(product, 'women', 'http://www.gap.com/browse/subDivision.do?cid=5646')
+            self._add_to_category(product, category_name, category_url)
         except NoSuchElementException:
             pass
 
@@ -87,8 +90,10 @@ class GapCategoryScraper(ProductCategoryScraper):
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.get_regex()[0], url).group(1)
 
-    def scrape(self, url, **kwargs):
+    def scrape(self, url, values, **kwargs):
         self.driver.get(url)
+        values['category'] = self.driver.find_element_by_xpath('//span[@id=subcatname]').text.strip()
+        values['category_url'] = url
         try:
             page_text = self.driver.find_element_by_xpath('//label[@class="pagePaginatorLabel"]').text
             if page_text:

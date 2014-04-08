@@ -126,17 +126,25 @@ class ProductScraper(Scraper):
         if url is None and name is None:
             raise ScraperException('at least one of url or name must be provided to add to a category')
 
+        if name is not None:
+            name = name.lower()
+
         try:
-            if url is None:
-                category = Category.objects.get(store=self.store, name=name)
-            else:
+            if name is None:
                 category = Category.objects.get(store=self.store, url=url)
+            else:
+                category = Category.objects.get(store=self.store, name__iexact=name)
         except Category.DoesNotExist:
             # if the category does not exist, create it
-            if url is None or name is None:
-                raise ScraperException('url and name must be provided if category does not exist')
-            category = Category(store=self.store, name=name, url=url)
-            category.save()
+            if name is None:
+                raise ScraperException('name must be provided if category does not exist')
+            category = Category(store=self.store, name=name)
+
+        if url:
+            category.url = url
+        if name:
+            category.name = name
+        category.save()
 
         # add the product to the category
         category.products.add(product)
