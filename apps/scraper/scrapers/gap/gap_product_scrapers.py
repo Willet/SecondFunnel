@@ -92,7 +92,7 @@ class GapCategoryScraper(ProductCategoryScraper):
 
     def scrape(self, url, values, **kwargs):
         self.driver.get(url)
-        values['category'] = self.driver.find_element_by_xpath('//span[@id=subcatname]').text.strip()
+        values['category'] = self.driver.find_element_by_xpath('//span[@id="subcatname"]').text.strip()
         try:
             page_text = self.driver.find_element_by_xpath('//label[@class="pagePaginatorLabel"]').text
             if page_text:
@@ -104,17 +104,23 @@ class GapCategoryScraper(ProductCategoryScraper):
         page = 0
         while page < pages:
             self.driver.get(url + '#pageId=' + str(page))
-            for product_elem in self.driver.find_elements_by_xpath('//div[@id="mainContent"]//ul/li/div/a'):
-                href = product_elem.get_attribute('href')
-                match = re.match(self.product_sku_regex, href)
-                if not match:
-                    continue
-                sku = match.group(1)
-                product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
-                name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
+            try:
+                sub_categories = self.driver.find_elements_by_xpath('//div[@id="mainContent"]//div[@class="clearfix"]/h2')
+            except NoSuchElementException:
+                sub_categories = []
 
-                product = self._get_product(product_url)
-                product.sku = sku
-                product.name = name
-                yield product
+            for product_group in self.driver.find_elements_by_xpath('//div[@id="mainContent"]//div[@class="clearfix"]/ul'):
+                for product_elem in self.driver.find_elements_by_xpath('//div[@id="mainContent"]//ul/li/div/a'):
+                    href = product_elem.get_attribute('href')
+                    match = re.match(self.product_sku_regex, href)
+                    if not match:
+                        continue
+                    sku = match.group(1)
+                    product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
+                    name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
+
+                    product = self._get_product(product_url)
+                    product.sku = sku
+                    product.name = name
+                    yield product
             page += 1
