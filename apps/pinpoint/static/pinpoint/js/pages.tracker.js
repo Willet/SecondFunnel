@@ -75,7 +75,37 @@ App.module("tracker", function (tracker, App) {
             window.ga.apply(window, arguments);
         },
 
-        trackPageview = function(hash) {
+        /**
+         * Semi-private function for wrapping trackTileClick and trackTileView
+         */
+        trackTile = function (interactionType, tileIds) {
+            return $.ajax({
+                'url': App.option('IRSource') + "/page/" +
+                       App.option('page:id') + "/tile/" + interactionType,
+                'type': 'POST',
+                'data': {
+                    'tile-ids': tileIds.join(',')
+                }
+            });
+        },
+
+        /**
+         * real argument: {int} tileId
+         * waits for a second, then tracks those tile ids
+         */
+        trackTileClick = _.buffer(function (tileIds) {
+            return trackTile('click', tileIds);
+        }, 1000),
+
+        /**
+         * real argument: {int} tileId
+         * waits for a second, then tracks those tile ids
+         */
+        trackTileView = _.buffer(function (tileIds) {
+            return trackTile('view', tileIds);
+        }, 1000),
+
+        trackPageView = function (hash) {
             var base = window.location.pathname + window.location.search,
                 host = window.location.protocol +'//' + window.location.hostname;
             hash = hash || window.location.hash;
@@ -104,7 +134,7 @@ App.module("tracker", function (tracker, App) {
 
             if (o.action === 'scroll') {
                 var hash = '#page' + o.label;
-                trackPageview(hash);
+                trackPageView(hash);
             }*/
         },
 
@@ -340,14 +370,14 @@ App.module("tracker", function (tracker, App) {
                 label += " (Tile " + tileId + ")";
 
                 // add click to our database
-                // $.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.page.id + "/tile/" + tileId + "/click");
+                App.vent.trigger('tracking:trackTileClick', tileId);
 
                 // Be super explicit about what the hash is
                 // rather than relying on the window
                 //
                 // adb: use '/' instead of '#' because it seems like google analytics will attribute
                 // http://gap.secondfunnel.com/livedin#foo to http://gap.secondfunnel.com/livedin
-                trackPageview('/' + tileId);
+                trackPageView('/' + tileId);
             } else {
                 console.warn('No tile id present for for tile: ' + label);
             }
@@ -596,7 +626,9 @@ App.module("tracker", function (tracker, App) {
     // add mediator triggers if the module exists.
     App.vent.on({
         'tracking:trackEvent': trackEvent,
-        'tracking:trackPageView': function() {}, //trackPageview,
+        'tracking:trackTileView': trackTileView,
+        'tracking:trackTileClick': trackTileClick,
+        'tracking:trackPageView': $.noop, //trackPageView,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,
         'tracking:registerFacebookListeners': this.registerFacebookListeners,
         'tracking:videoStateChange': this.videoStateChange,

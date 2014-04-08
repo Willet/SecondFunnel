@@ -306,9 +306,29 @@ $.getScripts = function (urls, callback, options) {
     });
 };
 
-// underscore's fancy pants capitalize()
 _.mixin({
+    'buffer': function (fn, wait) {
+        // a variant of _.debounce, whose called function receives an array
+        // of buffered args (i.e. fn([arg, arg, arg...])
+        //
+        // the fn will receive only one argument.
+        "use strict";
+        var args = [],
+            originalContext = this,
+            newFn = _.debounce(function () {
+                // newFn calls the function and clears the arg buffer
+                var result = fn.call(originalContext, args);
+                args = [];
+                return result;
+            }, wait);
+
+        return function (arg) {
+            args.push(arg);
+            return newFn.call(originalContext, args);
+        };
+    },
     'capitalize': function (string) {
+        // underscore's fancy pants capitalize()
         var str = string || "";
         return str.charAt(0).toUpperCase() + str.substring(1);
     },
