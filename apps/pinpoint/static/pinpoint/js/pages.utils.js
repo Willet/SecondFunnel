@@ -273,10 +273,10 @@ App.module("utils", function (utils, App) {
 
         // Round to the nearest whole hundred pixel dimension;
         // prevents creating a ridiculous number of images.
-        if (width || height > width) {
+        if ((width && !height) || height > width) {
             width = Math.ceil((width * multiplier) / 100.0) * 100;
             options.width = width;
-        } else if (height || width > height) {
+        } else if ((height && !width) || width > height) {
             options.height = Math.ceil((height * multiplier) / 100.0) * 100;
         } else {
             options.width = App.layoutEngine.width();
