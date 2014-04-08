@@ -93,7 +93,6 @@ class GapCategoryScraper(ProductCategoryScraper):
     def scrape(self, url, values, **kwargs):
         self.driver.get(url)
         values['category'] = self.driver.find_element_by_xpath('//span[@id=subcatname]').text.strip()
-        values['category_url'] = url
         try:
             page_text = self.driver.find_element_by_xpath('//label[@class="pagePaginatorLabel"]').text
             if page_text:
