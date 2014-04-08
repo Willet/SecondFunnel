@@ -1,3 +1,6 @@
+from xml.dom import minidom
+from xml.etree.ElementTree import Element, SubElement, tostring
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -6,12 +9,12 @@ except ImportError:
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseServerError
 from django.http.response import HttpResponseNotFound
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.template import Context, loader
-from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
 
-from apps.assets.models import Page
+from apps.assets.models import Page, Tile
 from apps.pinpoint.utils import render_campaign, get_store_from_request
 
 
@@ -68,6 +71,41 @@ def campaign_by_slug(request, page_slug):
     store_id = page.store.id
     return campaign(request, store_id=store_id, page_id=page.id)
 
+# TODO: THis could probably just be a serializer on the Page object...
+@never_cache
+def product_feed(request, page_slug):
+    page = get_object_or_404(Page, url_slug=page_slug)
+
+    root = Element('rss')
+    root.set('xmlns:g', 'http://base.google.com/ns/1.0')
+    root.set('version', '2.0')
+
+    channel = SubElement(root, 'channel')
+
+    title = SubElement(channel, 'title')
+    title.text = page.name
+
+    link = SubElement(channel, 'link')
+    link.text = request.build_absolute_uri()
+
+    description = SubElement(channel, 'description')
+    description.text = page.description
+
+    for obj in page.feed.tiles.all():
+        tile = obj.to_json()
+        print(tile)
+        item = Element('item')
+
+        # Begin - Always Required
+        title = SubElement(item, 'title')
+        title.text = tile.get('name')
+
+        channel.append(item)
+
+    feed = tostring(root, 'utf-8')
+    pretty_feed = minidom.parseString(feed).toprettyxml(indent='\t')
+
+    return HttpResponse(pretty_feed, content_type='application/rss+xml')
 
 def generate_static_campaign(request, store_id, page_id):
     """Too much confusion over the endpoint. Create alias for
