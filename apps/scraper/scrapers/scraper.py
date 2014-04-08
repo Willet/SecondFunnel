@@ -83,8 +83,8 @@ class ProductScraper(Scraper):
         except Product.MultipleObjectsReturned:
             #temporary fix for multiple products with the same url
             products = Product.objects.filter(store=self.store, url=url)
-            product1 = products[1]
-            product2 = products[2]
+            product1 = products[0]
+            product2 = products[1]
 
             #change all refrences from the second product to the first product
             contents = Content.objects.filter(tagged_products=product2)
