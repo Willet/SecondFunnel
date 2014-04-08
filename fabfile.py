@@ -284,6 +284,14 @@ def dump_database_postgres(path='/tmp/db.sql'):
 
     local(command)
 
+    # Disabling constraints:
+    # http://www.openscope.net/2012/08/23/subverting-foreign-key-constraints-in-postgres-or-mysql/
+
+    # Appending to beginning and end of file:
+    # http://unix.stackexchange.com/a/65514
+    local('sed -i "1ibegin; SET CONSTRAINTS ALL DEFERRED;" {}'.format(path))
+    local('echo "commit;" >> {}'.format(path))
+
 def flush_database_postgres():
     args = get_postgres_arguments()
     arguments = args['arguments']
