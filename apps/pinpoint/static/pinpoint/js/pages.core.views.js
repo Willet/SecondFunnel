@@ -829,16 +829,15 @@ App.module('core', function (module, App) {
 
             So, for now, only add no-scroll if the device is NOT an android.
              */
-            var width;
-            width = Marionette.getOption(this, 'width');
-
-            if (width) {
-                this.$('.content').css('width', width + 'px');
-            } else if (App.support.mobile()) {
-                this.$el.width($window.width()); // assign width
-            }
-
             if (!App.support.isAnAndroid()) {
+                var width;
+                width = Marionette.getOption(this, 'width');
+
+                if (width) {
+                    this.$('.content').css('width', width + 'px');
+                } else if (App.support.mobile()) {
+                    this.$el.width($window.width()); // assign width
+                }
                 $(document.body).addClass('no-scroll');
             }
         },
