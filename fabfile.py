@@ -30,6 +30,9 @@ def append(filepath, content):
     with open(filepath, 'a') as f:
         f.write(content)
 
+def is_windows():
+    return os.name == 'nt'
+
 def get_ec2_conn():
     return boto.ec2.connect_to_region("us-west-2",
         aws_access_key_id=django_settings.AWS_ACCESS_KEY_ID,
@@ -275,6 +278,10 @@ def get_postgres_arguments():
             settings.DATABASES['default']['NAME']
         )
 
+    if is_windows():
+        password = ''
+        arguments = '-W ' + arguments
+
     return {
         'password': password,
         'arguments': arguments
@@ -285,9 +292,14 @@ def load_database_postgres(path='db.sql'):
     arguments = args['arguments']
     password = args['password']
 
-    command = '{} && psql {} -f {}'.format(
-        password, arguments, path
-    )
+    if password:
+        command = '{} && psql -f {} {}'.format(
+            password, path, arguments,
+        )
+    else:
+        command = 'psql -f {} {}'.format(
+            path, arguments,
+        )
 
     local(command)
 
@@ -296,12 +308,18 @@ def dump_database_postgres(path='/tmp/db.sql'):
     arguments = args['arguments']
     password = args['password']
 
-    #'--exclude-schema='
-    command = '{} && pg_dump ' \
-        '--data-only ' \
-        '{} > {}'.format(
-        password, arguments, path
-    )
+    if password:
+        command = '{} && pg_dump ' \
+            '--data-only ' \
+            '{} > {}'.format(
+            password, arguments, path
+        )
+    else:
+        command = 'pg_dump ' \
+            '--data-only ' \
+            '{} > {}'.format(
+            arguments, path
+        )
 
     local(command)
 
@@ -324,9 +342,14 @@ def flush_database_postgres():
     arguments = args['arguments']
     password = args['password']
 
-    command = '{} && psql {} -f scripts/flush.sql'.format(
-        password, arguments
-    )
+    if password:
+        command = '{} && psql -f scripts/flush.sql {}'.format(
+            password, arguments
+        )
+    else:
+        command = 'psql -f scripts/flush.sql {}'.format(
+            arguments
+        )
 
     local(command)
 
