@@ -200,6 +200,55 @@ $.fn.getClasses = $.fn.getClasses || function () {
     return _.compact(_.map($(this).attr('class').split(' '), $.trim));
 };
 
+
+(function ($) {
+    /**
+     * Special jQuery listener for rotation events.  A rotation event occurs
+     * when the orientation of the page triggers.  A rotation can also be triggered
+     * by the user.
+     */
+    var listener,
+        $window = $(window);
+    // On iOS devices, orientationchange does not exist, so we have to
+    // listen for resize.  Similarly, the use of orientationchange is not
+    // standard.  Reference: http://stackoverflow.com/questions/1649086/
+    if ("onorientationchange" in window) {
+        listener = "orientationchange";
+    } else {
+        listener = "resize";
+    }
+
+    $window.on(listener, function () {
+        $window.trigger('rotate');
+    });
+
+    /**
+     * Executes if the handler is an instance of a function, otherwise if it is an
+     * Integer or undefined, rotates the element by that many degrees or 90.
+     *
+     * @param {Object} e   Degrees to rotate or function
+     * @returns {undefined}
+     */
+    $.fn.rotate = function (e) {
+        var degrees,
+            orientation = $(this).data('rotate') || 0;
+        if (e !== undefined && _.isFunction(e)) {
+            $(this).on(listener, e);
+        } else {
+            degrees = e || 90;
+            orientation = (orientation + degrees) % 360;
+            $(this).data('rotate', orientation);
+            $(this).css({
+                'transform': 'rotate(' + orientation + 'deg)',
+                '-o-transform': 'rotate(' + orientation + 'deg)',
+                '-ms-transform': 'rotate(' + orientation + 'deg)',
+                '-moz-transform': 'rotate(' + orientation + 'deg)',
+                '-webkit-transform': 'rotate(' + orientation + 'deg)'
+            });
+        }
+    };
+})($ || {});
+
 /**
  * Retrieve the first selected element's TileView and Tile, if applicable.
  * Applicability largely depends on whether or not you had selected a tile.
@@ -257,9 +306,29 @@ $.getScripts = function (urls, callback, options) {
     });
 };
 
-// underscore's fancy pants capitalize()
 _.mixin({
+    'buffer': function (fn, wait) {
+        // a variant of _.debounce, whose called function receives an array
+        // of buffered args (i.e. fn([arg, arg, arg...])
+        //
+        // the fn will receive only one argument.
+        "use strict";
+        var args = [],
+            originalContext = this,
+            newFn = _.debounce(function () {
+                // newFn calls the function and clears the arg buffer
+                var result = fn.call(originalContext, args);
+                args = [];
+                return result;
+            }, wait);
+
+        return function (arg) {
+            args.push(arg);
+            return newFn.call(originalContext, args);
+        };
+    },
     'capitalize': function (string) {
+        // underscore's fancy pants capitalize()
         var str = string || "";
         return str.charAt(0).toUpperCase() + str.substring(1);
     },

@@ -14,8 +14,8 @@ from PIL import ImageFilter, Image
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from apps.pinpoint.utils import read_remote_file
-from apps.imageservice.utils import create_image, IMAGE_SIZES
 from apps.imageservice.models import SizeConf, ExtendedImage
+from apps.imageservice.utils import create_image, IMAGE_SIZES
 from apps.static_pages.aws_utils import upload_to_bucket, s3_key_exists
 
 
@@ -144,32 +144,38 @@ def process_image_now(source, path='', sizes=None):
     if not sizes:
         sizes = []
 
-    if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"
-        img = ExtendedImage.open(source)
-    elif re.match(r'^https?:', source):
-        img, _ = read_remote_file(source)
-        img = create_image(img)
-    else:
-        img = create_image(source)
-
-    master_url, dominant_color = None, None
+    master_url, dominant_color, img_format = None, "transparent", None
     data = {'sizes': []}
 
-    if len(sizes) == 0:
-        sizes = (SizeConf(width=width, height=height, name=name)  for \
-                 (name, width, height) in IMAGE_SIZES)
-
     # Get the unique folder where we'll store the image
-    folder = hashlib.sha224(img.tobytes()).hexdigest()
     upload = upload_to_local if settings.ENVIRONMENT == 'dev' else \
         upload_to_s3
 
     if getattr(settings, 'CLOUDINARY', None) is not None:
-        image_object = cloudinary.uploader.upload_image(source,
-            folder=os.path.join(path, folder), public_id="master")
-        master_url = image_object.url
+        image_object = cloudinary.uploader.upload(source,
+            folder=path, colors=True, format = 'jpg')
+        # Grab the dominant colour from cloudinary
+        colors = image_object['colors']
+        colors = sorted(colors, key=lambda c: c[1], reverse=True)
+        dominant_color = colors[0][0]
+        master_url = image_object['url']
+        img_format = image_object['format']
 
     else: # fall back to default ImageService is Cloudinary is not available
+        if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"
+            img = ExtendedImage.open(source)
+        elif re.match(r'^https?:', source):
+            img, _ = read_remote_file(source)
+            img = create_image(img)
+        else:
+            img = create_image(source)
+
+        folder = hashlib.sha224(img.tobytes()).hexdigest()
+
+        if len(sizes) == 0:
+            sizes = (SizeConf(width=width, height=height, name=name)  for \
+                     (name, width, height) in IMAGE_SIZES)
+
         for size in sorted(sizes, key=lambda size: size.width):
             name, width, height = size.name, size.width, size.height
             resized = img.resize(width, height, Image.ANTIALIAS)
@@ -184,10 +190,13 @@ def process_image_now(source, path='', sizes=None):
             except (OSError, IOError) as e: # upload failed, don't add to our json
                 continue
 
+        dominant_color = img.dominant_color
+        img_format = img.format.lower().replace("jpeg", "jpg")
+
     data.update({
         'url': master_url,
-        'format': img.format.lower().replace("jpeg", "jpg"),
-        'dominant-color': img.dominant_color
+        'format': img_format,
+        'dominant-color': dominant_color
     })
 
     return data

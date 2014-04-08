@@ -18,7 +18,7 @@ COMPRESS_ENABLED = True
 AWS_IS_GZIPPED = True
 AWS_HEADERS =  {
     'Expires': BROWSER_CACHE_EXPIRATION_DATE,
-    'Cache-Control': "public, max-age=604800",
+    'Cache-Control': "public, max-age=1800",
     'Vary': 'Accept-Encoding',
 }
 

@@ -1,4 +1,7 @@
-from apps.assets.models import Category, ProductImage
+
+from selenium import webdriver
+
+from apps.assets.models import Category, ProductImage, Product
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 
@@ -17,6 +20,9 @@ class Scraper(object):
     """
 
     def __init__(self, store):
+        # initialize the head-less browser PhantomJS
+        # hmm... might not run on windows
+        self.driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
         self.store = store
 
     def get_regex(self, values, **kwargs):
@@ -54,7 +60,7 @@ class Scraper(object):
         regex += r'(?:#.*)?$'
         return regex
 
-    def scrape(self, driver, url, values, **kwargs):
+    def scrape(self, url, values, **kwargs):
         """
         The method used to run the scraper
         For category scrapers, a store is also added to the arguments
@@ -69,6 +75,14 @@ class Scraper(object):
 
 
 class ProductScraper(Scraper):
+    def _get_product(self, url):
+        try:
+            product = Product.objects.get(store=self.store, url=url)
+        except Product.DoesNotExist:
+            product = Product(store=self.store, url=url)
+
+        return product
+
     def _process_image(self, original_url, product):
         """
         This function uploads the image from the url and adds all necessary data to the image object
@@ -81,18 +95,21 @@ class ProductScraper(Scraper):
         except ProductImage.DoesNotExist:
             image = ProductImage(original_url=original_url, product=product)
 
-        print('processing image - ' + original_url)
-        data = process_image(original_url, create_image_path(self.store.id))
-        image.url = data.get('url')
-        image.file_type = data.get('format')
-        image.dominant_color = data.get('dominant_colour')
+        if not (image.url and image.file_type):
+            print('\nprocessing image - ' + original_url)
+            data = process_image(original_url, create_image_path(self.store.id))
+            image.url = data.get('url')
+            image.file_type = data.get('format')
+            image.dominant_color = data.get('dominant_colour')
 
-        # save the image
-        image.save()
+            # save the image
+            image.save()
 
-        if product and not product.default_image:
-            product.default_image = image
-            product.save()
+            if product and not product.default_image:
+                product.default_image = image
+                product.save()
+        else:
+            print('\nimage has already been processed')
 
         print(image.to_json())
 
@@ -143,6 +160,10 @@ class ContentScraper(Scraper):
         If no image object is passed in, it creates a ProductImage as the default image object type
         """
 
+        if image.url and image.file_type and image.source_url:
+            return image
+
+        print('')
         print('processing image - ' + source_url)
         data = process_image(source_url, create_image_path(self.store.id))
         image.url = data.get('url')

@@ -32,7 +32,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
                 '-webkit-transform': 'scale(1)',
                 '-moz-transform': 'none'
             },
-            'minColumns': 1 // minimum number of columns (default: 1)
+            'minColumns': 2 // minimum number of columns (default: 2)
         },
         frags = [],  // common fragment storage
         opts;  // last-used options (used by clear())
@@ -75,10 +75,10 @@ App.module("layoutEngine", function (layoutEngine, App) {
         var width,
             tileWidth = view.$(opts.itemSelector + ':not(.wide, .full)').width();
 
-        width = view.$el.outerWidth() / (opts.minColumns || 1);
+        width = view.$el.outerWidth() / (opts.minColumns || 2);
         width = Math.max(tileWidth, width);
 
-        if (!(tileWidth && width < opts.columnWidth)) {
+        if (!App.support.mobile()) {
             width = opts.columnWidth;
         }
 

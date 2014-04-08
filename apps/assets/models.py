@@ -15,9 +15,10 @@ from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
 
+from apps.utils import returns_unicode
 import apps.api.serializers as cg_serializers
 import apps.intentrank.serializers as ir_serializers
-from apps.utils import returns_unicode
+from apps.imageservice.utils import delete_cloudinary_resource
 
 
 default_master_size = {
@@ -316,6 +317,11 @@ class ProductImage(BaseModel):
     def to_cg_json(self):
         return self.cg_serializer().to_json([self])
 
+    def delete(self, *args, **kwargs):
+        if settings.CLOUDINARY_BASE_URL in self.url:
+            delete_cloudinary_resource(self.url)
+        super(ProductImage, self).delete(*args, **kwargs)
+
 
 class Category(BaseModel):
     products = models.ManyToManyField(Product, related_name='categories')
@@ -451,6 +457,11 @@ class Image(Content):
             dct["related-products"] = self.tagged_products.values_list('id', flat=True)
 
         return dct
+
+    def delete(self, *args, **kwargs):
+        if settings.CLOUDINARY_BASE_URL in self.url:
+            delete_cloudinary_resource(self.url)
+        super(Image, self).delete(*args, **kwargs)
 
 
 class Video(Content):
@@ -797,6 +808,7 @@ class Tile(BaseModel):
                                             validate_unique=validate_unique)
 
     def add_click(self):
+        """TODO: this is a controller operation"""
         self.clicks += 1
         # the value used to increase click_starting_score per click
         update_score = Tile.popularity_devalue_rate * self.days_since_creation()
@@ -806,6 +818,7 @@ class Tile(BaseModel):
         self.save(skip_updated_at=True)
 
     def add_view(self):
+        """TODO: this is a controller operation"""
         self.views += 1
         # the value used to view_increase starting_score per click
         update_score = Tile.popularity_devalue_rate * self.days_since_creation()
@@ -838,6 +851,26 @@ class Tile(BaseModel):
     def view_log_score(self):
         score = self.view_score()
         return self.log_score(score)
+
+    def clicks_per_view(self):
+        if self.views > 0:
+            return self.clicks / float(self.views)
+        return 0
+
+    def weighted_clicks_per_view(self):
+        """Like clicks per view, with lower score for tiles with more views.
+
+        more clicks than views: > 1
+        0 clicks, 1 view: 1
+        0 clicks, 10 views: 0.01
+        0 clicks, 100 views: 0.0001
+        1 click, 0 views: this is not possible, unseen tiles can't be clicked
+        1 click, 10 views: 0.02
+        1 click, 100 views: 0.0002
+        """
+        if self.views > 0:
+            return (self.clicks + 1) / (float(self.views) ** 2)
+        return 0
 
     def to_json(self):
         # determine what kind of tile this is

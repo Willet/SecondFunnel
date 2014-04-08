@@ -1,9 +1,14 @@
+from django.template import loader
+from django.forms import ModelForm
+from django.utils.http import int_to_base36
+from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import get_current_site
 from django.core.mail import EmailMessage, get_connection
-from django.template import loader
-from django.utils.http import int_to_base36
+from django.contrib.auth.tokens import default_token_generator
+
+from apps.assets.models import Category
+
 
 class HTMLPasswordResetForm(PasswordResetForm):
     # duplicated from django.contrib.auth.forms.PasswordResetForm
@@ -66,3 +71,23 @@ class HTMLPasswordResetForm(PasswordResetForm):
         if content_subtype:
             msg.content_subtype = content_subtype
         return msg.send()
+
+
+class CategoryForm(ModelForm):
+    class Meta:
+        model = Category
+
+    def clean(self):
+        """
+        Validation for a category ensures that we can't add products to a category for which
+        the stores do not match.
+        """
+        store = self.cleaned_data.get('store')
+        products = self.cleaned_data.get('products')
+
+        if products:
+            for p in products.all():
+                if not p.store == store:
+                    raise ValidationError("Products in category must have same store as category.")
+
+        return self.cleaned_data

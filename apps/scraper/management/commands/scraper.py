@@ -1,9 +1,9 @@
-import sys
+import os
 import re
 import traceback
-import argparse
 
-from selenium import webdriver
+from optparse import make_option
+from django.core.management.base import BaseCommand, CommandError
 
 from apps.assets.models import Product, Store, Video
 from apps.scraper.scrapers.scraper import ProductDetailScraper, ProductCategoryScraper, ContentDetailScraper, \
@@ -12,11 +12,46 @@ from apps.scraper.scrapers.gap.gap_product_scrapers import GapProductScraper, Ga
 from apps.scraper.scrapers.madewell.madewell_product_scrapers import MadewellProductScraper, MadewellCategoryScraper, \
     MadewellMultiProductScraper
 from apps.scraper.scrapers.content.pinterest_scraper import PinterestPinScraper, PinterestAlbumScraper
-from apps.scraper.scrapers.gap.styldby_scraper import StyldByFilterScraper
+from apps.scraper.scrapers.gap.styldby_scraper import StyldByFilterScraper, StyldByPartnersScraper
 
 
-class Controller(object):
-    def __init__(self, store):
+class Command(BaseCommand):
+    option_list = BaseCommand.option_list + (make_option('--store-id', default=None, dest='store-id'),
+                                             make_option('--url', default=None),
+                                             make_option('--folder', default=None))
+
+    def handle(self, *args, **kwargs):
+        store_id = kwargs.pop('store-id', None)
+        url = kwargs.pop('url', None)
+        folder = kwargs.pop('folder', None)
+        if url:
+            if not store_id:
+                raise CommandError('store-id must be specified if url is included')
+            store = Store.objects.get(id=store_id)
+            self.set_store(store)
+            self.run_scraper(url=url)
+        else:
+            if not folder:
+                folder = ''
+                for item in os.path.abspath(__file__).split('/')[:-3]:
+                    folder += item + '/'
+                folder += 'urls'
+            for file_name in os.listdir(folder):
+                if not folder.endswith('/'):
+                    folder += '/'
+                url_file = open(folder + file_name)
+                store_slug = file_name.split('.')[0]
+                try:
+                    store = Store.objects.get(slug=store_slug)
+                    self.set_store(store)
+                    for line in url_file:
+                        self.run_scraper(url=line)
+                except Store.DoesNotExist:
+                    print('store %s does not exist' % store_slug)
+
+
+
+    def set_store(self, store):
         self.store = store
         self.scrapers = [
             GapProductScraper(store),
@@ -27,6 +62,7 @@ class Controller(object):
             PinterestPinScraper(store),
             PinterestAlbumScraper(store),
             StyldByFilterScraper(store),
+            StyldByPartnersScraper(store),
         ]
 
     def get_scraper(self, url, values=None):
@@ -62,12 +98,6 @@ class Controller(object):
             # retrieve the url for the driver to load
             url = scraper.parse_url(url=url, values=values)
 
-            # initialize the head-less browser PhantomJS
-            print('loading url - ' + url)
-            # hmm... might not run on windows
-            driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
-            driver.get(url)
-
             if isinstance(scraper, ProductDetailScraper):
                 # find or make a new product
                 # Product.objects.find_or_create not used as we do not want to save right now
@@ -76,22 +106,22 @@ class Controller(object):
                         product = Product.objects.get(store=self.store, url=url)
                     except Product.DoesNotExist:
                         product = Product(store=self.store, url=url)
-                for product in scraper.scrape(driver=driver, url=url, product=product, values=values):
-                    print(product.to_json())
+                for product in scraper.scrape(url=url, product=product, values=values):
+                    print('\n' + str(product.to_json()))
                     break
             elif isinstance(scraper, ProductCategoryScraper):
-                for product in scraper.scrape(driver=driver, url=url, values=values):
+                for product in scraper.scrape(url=url, values=values):
                     next_scraper = scraper.next_scraper(values=values)
                     self.run_scraper(url=product.url, product=product, values=values.copy(), scraper=next_scraper)
             elif isinstance(scraper, ContentDetailScraper):
                 # there is no way to retrieve content from loaded url as the url
                 # variable in content is not consistent
-                for content in scraper.scrape(driver=driver, url=url, content=content, values=values):
+                for content in scraper.scrape(url=url, content=content, values=values):
                     content.save()
-                    print(content.to_json())
+                    print('\n' + str(content.to_json()))
                     break
             elif isinstance(scraper, ContentCategoryScraper):
-                for content in scraper.scrape(driver=driver, url=url, values=values):
+                for content in scraper.scrape(url=url, values=values):
                     if not scraper.has_next_scraper(values=values):
                         print(content.to_json())
                         continue
@@ -111,15 +141,3 @@ class Controller(object):
             # make sure to close the driver if it exists
             if driver:
                 driver.close()
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='run a scraper.')
-    parser.add_argument('store_id', type=int, help='the id for the store for the scraper')
-    parser.add_argument('url', help='the url to scrape')
-
-    args, unknown = parser.parse_known_args()
-
-    controller = Controller(Store.objects.get(id=args.store_id))
-
-    controller.run_scraper(args.url)

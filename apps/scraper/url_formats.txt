@@ -5,4 +5,6 @@ Madewell Product - http://www.madewell.com/madewell_category/PRDOVR~<sku>/<sku>.
 Madewell Category - http://www.madewell.com/madewell_category/<category>.jsp
 Madewell Sub Category - http://www.madewell.com/madewell_category/<category>/<sub_category>.jsp
 
-Pinterest - http://www.pinterest.com/pin/\d*/
+Pinterest - http://www.pinterest.com/pin/\d+/
+
+Facebook Image - http://www.facebook.com/gap/photos/\d+/

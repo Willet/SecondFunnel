@@ -94,6 +94,14 @@ div.header {
     background-color: #fff;
     /* background-position: 0px -127px; */
 }
+
+@media screen and (max-width: 767px) {
+    .navbar .gap,
+    .navbar-fixed-top {
+        position: absolute;
+    }
+}
+
 .navbar .gap a:hover, .navbar .gap a:focus {
 }
 
@@ -175,22 +183,25 @@ div.header {
     width: 1024px;
     height: 300px;  /* adjusts image size */
     border-bottom: 1px silver solid;
-    margin: 10px auto 40px auto;
+    margin: 10px auto 0px auto;
 }
 
-.visible-xs.jumbotron {
+.visible-xs.jumbotron, .visible-sm.jumbotron {
     padding: 0;
     height: auto;
     margin-bottom: 5px;
 }
 
-.visible-xs.jumbotron img, .visible-sm.jumbotron img {
+.visible-xs.jumbotron img {
     /* set a background image with ratio constraints http://stackoverflow.com/a/12098334/1558430 */
     visibility:  hidden;
     width: 100%;
 }
 
-/* TODO: START make non-desktop specific*/
+.visible-sm.jumbotron img {
+    width: 100%;
+}
+
 #hero-area {
     position: relative;
     font-family: "Helvetica Neue Light", "Arial", sans-serif;
@@ -205,9 +216,43 @@ div.header {
 }
 
 @media screen and (max-width: 768px) {
+    .jumbotron {
+        border-bottom: none;
+    }
+
     #hero-area .overlay {
-        left: 25px;
-        right: auto;
+        position: static;
+        display: block;
+        width: 100%;
+    }
+
+    #hero-area .overlay .buttons {
+        display: inline-block;
+        margin-left: 6px;
+    }
+
+    #hero-area .overlay .buttons .white {
+        background-repeat: no-repeat;
+        background-size: contain;
+        width: 33px;
+        height: 33px;
+        display: inline-block;
+    }
+
+    #hero-area .overlay .buttons .white.facebook-button {
+        background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_orange.png');
+    }
+
+    #hero-area .overlay .buttons .white.twitter-button {
+        background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_orange.png');
+    }
+
+    #hero-area .overlay .buttons .white.email-button {
+        background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_orange.png');
+    }
+
+    #hero-area .overlay .buttons .white img {
+        visibility: hidden;
     }
 }
 
@@ -236,6 +281,14 @@ div.header {
     color: white;
 }
 
+@media screen and (max-width: 768px) {
+    #hero-area .find.white a,
+    #hero-area .find.white a:hover,
+    #hero-area .find.white a:visited {
+        color: #f14945;
+    }
+}
+
 #hero-area .find.red a,
 #hero-area .find.red a:hover,
 #hero-area .find.red a:visited {
@@ -253,10 +306,6 @@ div.header {
     text-decoration: none;
 }
 /* End make non-desktop specific*/
-
-.legal.us {
-    margin-top: -35px;
-}
 
 .featured.product {
     background-color: #fff;
@@ -598,6 +647,7 @@ div.header {
     .previewContainer .main-image div.img {
         width: 100%;
         height: 100%;
+        max-width: 100%;
         display: inline-block;
         background-size: cover;
         background-position: center;
@@ -966,9 +1016,10 @@ div.header {
         left: 0;
         right: 0;
         bottom: 0;
+        max-width: 100%;
+        overflow: hidden;
         position: absolute;
         border-top: 1px solid white;
-        overflow: hidden;
     }
 
     .previewContainer .content .image-region.no-images {

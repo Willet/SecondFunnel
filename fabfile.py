@@ -10,12 +10,25 @@ from fabric.decorators import hosts
 from fabric.operations import local, get
 from secondfunnel.settings import common as django_settings
 from scripts.import_ops import importer as real_importer
+from scripts.import_ops import scraper as real_scraper
 
 import boto.ec2
 import itertools
 import time
 
 env.user = 'ec2-user'
+
+def prepend(filepath, content):
+    data = ''
+    with open(filepath, 'r') as original:
+        data = original.read()
+
+    with open(filepath, 'w') as new:
+        new.write(content + r'\r\n' + data)
+
+def append(filepath, content):
+    with open(filepath, 'a') as f:
+        f.write(content)
 
 def get_ec2_conn():
     return boto.ec2.connect_to_region("us-west-2",
@@ -228,6 +241,12 @@ def importer(*args, **kwargs):
     """Alias for fabfile"""
     return real_importer(*args, **kwargs)
 
+
+def scraper(*args, **kwargs):
+    """Alias for fabfile"""
+    return real_scraper(*args, **kwargs)
+
+
 def get_postgres_arguments():
     environment_type = os.getenv('PARAM1', '').upper() or 'DEV'
 
@@ -257,7 +276,7 @@ def load_database_postgres(path='db.sql'):
     arguments = args['arguments']
     password = args['password']
 
-    command = '{} && psql {} < {}'.format(
+    command = '{} && psql {} -f {}'.format(
         password, arguments, path
     )
 
@@ -268,8 +287,36 @@ def dump_database_postgres(path='/tmp/db.sql'):
     arguments = args['arguments']
     password = args['password']
 
-    command = '{} && pg_dump {} > {}'.format(
+    #'--exclude-schema='
+    command = '{} && pg_dump ' \
+        '--data-only ' \
+        '{} > {}'.format(
         password, arguments, path
+    )
+
+    local(command)
+
+    # Disabling constraints:
+    # http://www.openscope.net/2012/08/23/subverting-foreign-key-constraints-in-postgres-or-mysql/
+
+    # Appending to beginning and end of file:
+    # http://unix.stackexchange.com/a/65514
+    local('fab prepend:'
+        'filepath={},content="begin; SET CONSTRAINTS ALL DEFERRED;"'
+        .format(path)
+    )
+    local('fab append:'
+        'filepath={},content="commit;"'
+        .format(path)
+    )
+
+def flush_database_postgres():
+    args = get_postgres_arguments()
+    arguments = args['arguments']
+    password = args['password']
+
+    command = '{} && psql {} -f scripts/flush.sql'.format(
+        password, arguments
     )
 
     local(command)
@@ -289,8 +336,15 @@ def dump_test_database(native=True):
     now = datetime.now()
     str_now = now.strftime('%Y-%m-%dT%H:%M.sql')
 
+    # Dump our local database to backup, then flush it out
     local('fab dump_database_postgres:{}'.format(str_now))
+    # ./manage.py flush does not do what you might expect...
+    local('python manage.py sqlflush > scripts/flush.sql')
+    local('fab flush_database_postgres')
+
+    # Dump the remote database
     run('fab dump_database_postgres')
     get('/tmp/db.sql', 'db.sql')
-    local('python manage.py flush')
+
+    # Finally, load the data
     local('fab load_database_postgres')
