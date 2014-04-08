@@ -104,6 +104,7 @@ class ProductScraper(Scraper):
                 category.products.add(product1)
             #remove product after removing refrences to product
             product2.delete()
+            return product1
 
         return product
 
