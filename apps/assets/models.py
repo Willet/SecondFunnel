@@ -797,6 +797,7 @@ class Tile(BaseModel):
                                             validate_unique=validate_unique)
 
     def add_click(self):
+        """TODO: this is a controller operation"""
         self.clicks += 1
         # the value used to increase click_starting_score per click
         update_score = Tile.popularity_devalue_rate * self.days_since_creation()
@@ -806,6 +807,7 @@ class Tile(BaseModel):
         self.save(skip_updated_at=True)
 
     def add_view(self):
+        """TODO: this is a controller operation"""
         self.views += 1
         # the value used to view_increase starting_score per click
         update_score = Tile.popularity_devalue_rate * self.days_since_creation()

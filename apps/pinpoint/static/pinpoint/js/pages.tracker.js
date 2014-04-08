@@ -79,7 +79,6 @@ App.module("tracker", function (tracker, App) {
          * Semi-private function for wrapping trackTileClick and trackTileView
          */
         trackTile = function (interactionType, tileIds) {
-            console.error("tracking tiles " + interactionType, tileIds);
             return $.ajax({
                 'url': window.PAGES_INFO.IRSource + "/page/" +
                        window.PAGES_INFO.page.id + "/tile/" + interactionType,

@@ -1,7 +1,7 @@
-import json
 from django.conf import settings
+from django.db.transaction import atomic
 from django.http import HttpResponse
-from django.http.response import Http404, HttpResponseNotFound
+from django.http.response import Http404, HttpResponseNotFound, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
@@ -230,7 +230,9 @@ def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
     return HttpResponse(feed, content_type='application/rss+xml')
 
 
+@atomic
 def update_tiles(request, tile_function, **kwargs):
+    """This is a view helper that happens to accept 'request'."""
     tile_id = kwargs.get('tile_id', None) or request.GET.get('tile-id', None)
     tile_ids = request.GET.get('tile-ids', None) or request.POST.get('tile-ids', '')
     if tile_id:
@@ -242,8 +244,7 @@ def update_tiles(request, tile_function, **kwargs):
         for tile in tiles:
             tile_function(tile)
     else:
-        raise Http404('no argument provided')
-
+        return HttpResponseBadRequest()
     return HttpResponse('', status=204)
 
 
