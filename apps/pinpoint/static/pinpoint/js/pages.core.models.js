@@ -253,6 +253,10 @@ App.module('core', function (core, App) {
                 options.height = height;
             }
 
+            if (!(width || height)) {
+                options.width = App.layoutEngine.width();
+            }
+
             resized.url = App.utils.getResizedImage(this.get('url'), options);
 
             if (obj) {
