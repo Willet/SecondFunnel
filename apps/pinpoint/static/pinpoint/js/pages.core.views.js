@@ -1122,9 +1122,11 @@ App.module('core', function (module, App) {
             var category = this.model.get('name');
 
             // Switch the selected category class to this element
-            $(this.className).removeClass('selected');
+            this.$el.siblings().removeClass('selected');
             this.$el.addClass('selected');
-
+            if (category === "home") {
+                category = "";
+            }
             App.intentRank.changeCategory(category);
         }
     });
@@ -1137,6 +1139,7 @@ App.module('core', function (module, App) {
      */
     this.CategoryCollectionView = Marionette.CollectionView.extend({
         'tagName': "div",
+        'className': "category-area",
         'itemView': this.CategoryView,
         'collection': null,
 
@@ -1147,9 +1150,15 @@ App.module('core', function (module, App) {
 
             // Initialize by adding all the categories to this view
             _.each(categories, function (category) {
-                category = new App.core.Category(category);
+                category = new App.core.Category({
+                  'name': category
+                });
                 self.collection.add(category);
             });
+        },
+
+        'onRender': function () {
+            this.$el.children().eq(0).click();
         }
     });
 });

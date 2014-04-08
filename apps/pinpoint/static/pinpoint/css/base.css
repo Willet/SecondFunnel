@@ -692,6 +692,29 @@ div.loading {
     }
 }
 
+#category-area {
+    width: 100%;
+    text-align: center;
+}
+
+#category-area .category {
+    width: 33%;
+    color: #000;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+    display: inline-block;
+    border: 1px solid #000;
+    background-color: #FFF;
+    text-transform:capitalize
+}
+
+#category-area .category.selected {
+    color: #FFF;
+    background-color: #000;
+}
+
 /* Disable hover events (enabled when scrolling) */
 .disable-hover {
     pointer-events: none;

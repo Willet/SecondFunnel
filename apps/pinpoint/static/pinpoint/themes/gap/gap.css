@@ -189,6 +189,7 @@ div.header {
 .visible-xs.jumbotron, .visible-sm.jumbotron {
     padding: 0;
     height: auto;
+    margin-bottom: 5px;
 }
 
 .visible-xs.jumbotron img {
@@ -1071,4 +1072,20 @@ div.header {
     .previewContainer .image img {
         max-height: 550px;
     }
+}
+
+#category-area {
+    width: 100%;
+    text-align: center;
+}
+
+#category-area .category {
+    color: white;
+    border: 1px solid white;
+    background-color: #555555;
+}
+
+#category-area .category.selected {
+    color: white;
+    background-color: #000d41;
 }
