@@ -7,132 +7,15 @@
     <script type="text/javascript">
         window.OPTIMIZER_TESTS = [];
         window.OPTIMIZER_TESTS.push({
-            index: 6, // Two-column in Analytics
+            index: 10,
             test: 'custom',
-            device: 'mobile',
-            disabled: true,
             custom: function (template) {
-                var s = $($('#two-column-css').html());
                 template = template || _.sample(["A", "B"]);
-                if (template != "A") {
-                    App.options.minColumns = 2;
-                    s.appendTo($('head'));
+                if (template === "B") {
+                    App.intentRank.options.IRAlgo = "finite_popular";
                 }
-                return template;
             }
         });
-        window.OPTIMIZER_TESTS.push({
-            index: 8,
-            test: 'custom',
-            device: 'mobile',
-            custom: function (template) {
-                template = template || _.sample(["B", "C"]);
-                App.options.tests = App.options.tests || {};
-                App.options.tests[2] = template;
-                App.options.minColumns = 2;
-                $($('#two-column-css').html()).appendTo($('head'));
-                if (template == "C") {
-                    $('head').append($('#such-cards-much-wow').html());
-                }
-                return template;
-            }
-        });
-    </script>
-    <script type="text/template" id="such-cards-much-wow">
-        <style type="text/css">
-            @media only screen and (max-width: 768px) {
-                #discovery-area {
-                    padding-top: 10px;
-                    background-color: rgba(102, 102, 102, 0.2);
-                }
-                #discovery-area > div {
-                    margin: 0 auto;
-                    max-width: 95% !important;
-                }
-                #hero-area {
-                    background-color: #FFF;
-                }
-                .tile {
-                    padding: 0px;
-                    margin: 1% 1%;
-                    max-width: 48%;
-                    overflow: hidden;
-                    border-radius: 10px;
-                    background-color: rgb(255, 255, 255);
-                    border: 1px solid rgba(0, 0, 0, 0.2);
-                }
-                .tile .caption {
-                    width: 100%;
-                    bottom: 0px;
-                    color: #1B1464;
-                    font-size: 11px;
-                    padding-top: 5px;
-                    padding-bottom: 5px;
-                    font-weight: 100;
-                    font-family: arial, sans-serif;
-                }
-                .tile .caption span {
-                    max-width: 90%;
-                    overflow: hidden;
-                    white-space: nowrap;
-                    display: inline-block;
-                    text-overflow: ellipsis;
-                    text-decoration: underline;
-                }
-                .legal.us {
-                    margin-top: 0px !important;
-                }
-            }
-        </style>
-    </script>
-    <script type="text/template" id="two-column-css">
-        <style type="text/css">
-            @media only screen and (max-width: 510px) {
-                .tile {
-                    width: 50% !important;
-                }
-                .tile.wide {
-                    min-height: inherit !important;
-                }
-                .visible-xs.jumbotron {
-                    {% ifequal campaign.url_slug "dressedup" %}
-                    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/mobile_small_red.png') !important;
-                    {% else %}
-                    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/mobile_small.png') !important;
-                    {% endifequal %}
-                    margin: 10px 0px 10px 5px;
-                    border: none;
-                    width: 125px;
-                    height: 60px;
-                    display: inline-block !important;
-                }
-                #hero-area .overlay {
-                    position: relative !important;
-                    display: inline-block !important;
-                    left: 5px;
-                    top: 8px;
-                    right: 0px;
-                }
-                #hero-area .buttons a img {
-                    width: 27px;
-                    height: 27px;
-                }
-                #hero-area .find a {
-                    font-size: 12px;
-                }
-                #hero-area .overlay .buttons {
-                    display: inline-block;
-                    margin-right: 1px;
-                }
-                #discovery-area {
-                    width: 100% !important;
-                    overflow-x: hidden;
-                }
-                .legal.us {
-                    margin-top: 0px !important;
-                }
-            }
-        </style>
     </script>
     <!-- End Optimizer Tests -->
     {% include "pinpoint/campaign_head.html" %}
@@ -349,12 +232,6 @@
                     </div>
                 </div>
             </div>
-            <% if (App.option('tests') && App.option('tests')[2] == 'C' &&
-                      obj['related-products'] && obj['related-products'].length > 0) { %>
-                <div class="caption">
-                    <span><%= obj['related-products'][0].name %></span>
-                </div>
-            <% } %>
             <% if (App.option("debug", 0) > 1) { %>
                 <span class="type"><%= obj["content-type"] %></span>
             <% } %>
@@ -740,10 +617,17 @@
                     <img src="{{ mobile_hero_image }}" alt="Hero" />
                 </div>
                 <div class="visible-sm jumbotron">
-                    <img src="{{ mobile_hero_image }}" alt="Hero" />
+                    <img src="{{ desktop_hero_image }}" alt="Hero" />
                 </div>
                 <div class="visible-md visible-lg jumbotron"></div>
                 <div class="overlay">
+                    <span class='find{% ifequal campaign.url_slug "dressedup" %} white {% endifequal %}'>
+                        <% if (!App.support.mobile()) { %>
+                            <a href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
+                        <% } else { %>
+                            <a href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
+                        <% } %>
+                    </span>
                     <div class='buttons'>
                         <%
                             var share = App.options.page.description;
@@ -762,47 +646,28 @@
                             var mailLink = 'mailto:?'
                                 + 'body=' + encodeURIComponent(share);
                         %>
-                        <a href='<%= fbLink %>' target='_blank'>
+                        <a href='<%= fbLink %>' target='_blank' class="facebook-button{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}">
                             {% ifequal campaign.url_slug "dressedup" %}
-                                <% if (App.option('tests') && App.option('tests')[2]) { %>
-                                    <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_red.png' />
-                                <% } else { %>
-                                    <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_white.png' />
-                                <% } %>
+                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_white.png' />
                             {% else %}
                                 <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon.png' />
                             {% endifequal %}
                         </a>
-                        <a href='<%= twtLink %>' target='_blank'>
+                        <a href='<%= twtLink %>' target='_blank' class="twitter-button{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}">
                             {% ifequal campaign.url_slug "dressedup" %}
-                                <% if (App.option('tests') && App.option('tests')[2]) { %>
-                                    <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_red.png' />
-                                <% } else { %>
-                                    <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_white.png' />
-                                <% } %>
+                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_white.png' />
                             {% else %}
                                 <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon.png' />
                             {% endifequal %}
                         </a>
-                        <a href='<%= mailLink %>' target='_blank'>
+                        <a href='<%= mailLink %>' target='_blank' class="email-button{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}">
                             {% ifequal campaign.url_slug "dressedup" %}
-                                <% if (App.option('tests') && App.option('tests')[2]) { %>
-                                    <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_red.png' />
-                                <% } else { %>
-                                    <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_white.png' />
-                                <% } %>
+                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_white.png' />
                             {% else %}
                                 <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon.png' />
                             {% endifequal %}
                         </a>
                     </div>
-                    <span class='find{% ifequal campaign.url_slug "dressedup" %}<% if (App.option('tests') && App.option('tests')[2]) { %> red <% } else { %> white <% } %>{% endifequal %}'>
-                        <% if (!App.support.mobile()) { %>
-                            <a href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
-                        <% } else { %>
-                            <a href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
-                        <% } %>
-                    </span>
                 </div>
             </div>
             {% if legal_copy %}
