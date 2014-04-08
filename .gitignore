@@ -19,6 +19,7 @@ MySQL-python-1.2.3
 apps/pinpoint/static/campaigns
 .vagrant
 scripts/flush.sql
+db.sql
 
 # Testing directories
 apps/testing/resources
