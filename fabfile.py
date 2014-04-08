@@ -288,6 +288,25 @@ def flush_database_postgres():
 
     local(command)
 
+# TODO: Generalize to work more than just locally
+def alter_foreign_key_postgres(disable=True):
+    args = get_postgres_arguments()
+    arguments = args['arguments']
+    password = args['password']
+
+    disable_string = 'DISABLE' if disable else 'ENABLE'
+
+    # http://resetroot.wordpress.com/2010/11/15/postgresql-alter-all-tables-to-user-myuser/
+    command = "{} && psql {} " \
+        "-qAt -c \"select 'ALTER TABLE '||table_name||' {} TRIGGER USER;'" \
+        "from information_schema.tables where table_schema = 'public'\"" \
+        "| psql {}"\
+        .format(
+            password, arguments, disable_string, arguments
+        )
+
+    local(command)
+
 # Doesn't work for some reason...
 # @hosts('ec2-user@tng-master.secondfunnel.com')
 @hosts('ec2-user@tng-test.secondfunnel.com')
@@ -314,4 +333,9 @@ def dump_test_database(native=True):
     get('/tmp/db.sql', 'db.sql')
 
     # Finally, load the data
+    # Because our data has a circular foreign key constraint,
+    # we either need to resolve that or disable foreign key checks
+    # temporarily on the affected tables.
+    local('fab alter_foreign_key_postgres')
     local('fab load_database_postgres')
+    local('fab alter_foreign_key_postgres:False')
