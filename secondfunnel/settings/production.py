@@ -14,7 +14,7 @@ AWS_S3_CUSTOM_DOMAIN = CLOUDFRONT_DOMAIN
 AWS_S3_SECURE_URLS = False
 AWS_HEADERS =  {
     'Expires': BROWSER_CACHE_EXPIRATION_DATE,
-    'Cache-Control': "public, max-age=604800",
+    'Cache-Control': "public, max-age=1800",
     'Vary': 'Accept-Encoding',
 }
 
