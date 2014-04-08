@@ -6,6 +6,7 @@ import tempfile
 import cStringIO
 import mimetypes
 
+import cloudinary.api
 import cloudinary.utils
 import cloudinary.uploader
 from threading import Semaphore
@@ -14,15 +15,30 @@ from PIL import ImageFilter, Image
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from apps.pinpoint.utils import read_remote_file
-from apps.imageservice.utils import create_image, IMAGE_SIZES
 from apps.imageservice.models import SizeConf, ExtendedImage
 from apps.static_pages.aws_utils import upload_to_bucket, s3_key_exists
+from apps.imageservice.utils import create_image, IMAGE_SIZES, get_public_id
 
 
 # Use a semaphore as image processing is an CPU expensive operation
 # and don't want to drive our service into the ground
 MAX_CONNECTIONS = getattr(settings, 'MAX_CONNECTIONS', 3)
 PROCESSING_SEM = Semaphore(value=MAX_CONNECTIONS)
+
+
+def delete_cloudinary_resource(public_id):
+    """
+    Deletes the Cloudinary resource pointed to by the specified
+    public id, or url.
+
+    @param public_id: Url/id of resource, a string.
+    @return: None
+    """
+    try:
+        cloudinary.api.delete_resources(list(public_id))
+    except cloudinary.api.NotFound:
+        public_id = get_public_id(public_id)
+        cloudinary.api.delete_resources(list(public_id))
 
 
 def check_configurations():
@@ -152,23 +168,14 @@ def process_image_now(source, path='', sizes=None):
         upload_to_s3
 
     if getattr(settings, 'CLOUDINARY', None) is not None:
-        if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"
-            img = ExtendedImage.open(source)
-            dominant_color = img.dominant_color
-            img_format = img.format.lower().replace("jpeg", "jpg")
-            image_object = cloudinary.uploader.upload_image(source,
-                folder=path)
-            master_url = image_object.url
-
-        else:
-            image_object = cloudinary.uploader.upload(source,
-                folder=path, colors=True, format = 'jpg')
-            # Grab the dominant colour from cloudinary
-            colors = image_object['colors']
-            colors = sorted(colors, key=lambda c: c[1], reverse=True)
-            dominant_color = colors[0][0]
-            master_url = image_object['url']
-            img_format = image_object['format']
+        image_object = cloudinary.uploader.upload(source,
+            folder=path, colors=True, format = 'jpg')
+        # Grab the dominant colour from cloudinary
+        colors = image_object['colors']
+        colors = sorted(colors, key=lambda c: c[1], reverse=True)
+        dominant_color = colors[0][0]
+        master_url = image_object['url']
+        img_format = image_object['format']
 
     else: # fall back to default ImageService is Cloudinary is not available
         if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"

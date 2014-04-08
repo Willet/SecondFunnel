@@ -1,3 +1,4 @@
+import re
 import os
 import math
 import numpy
@@ -29,6 +30,20 @@ IMAGE_SIZES = getattr(settings, 'IMAGE_SIZES', (
 
 Point = namedtuple('Point', ('coords', 'n', 'ct'))
 Cluster = namedtuple('Cluster', ('points', 'center', 'n'))
+
+
+def get_public_id(url):
+    """
+    Returns the public ID of a cloudinary resource.
+
+    @param url: The url of the uploaded resource
+    @return: String
+    """
+    url = re.sub(r'(https?:)?' + settings.CLOUDINARY_BASE_URL, '', url)
+    url = re.sub(r'/?image/upload/(.*?)/', '', url)
+    public_id = ".".join(url.split('.')[:-1])
+
+    return public_id
 
 
 def create_configuration(xpos, ypos, width, height):
