@@ -80,8 +80,8 @@ App.module("tracker", function (tracker, App) {
          */
         trackTile = function (interactionType, tileIds) {
             return $.ajax({
-                'url': window.PAGES_INFO.IRSource + "/page/" +
-                       window.PAGES_INFO.page.id + "/tile/" + interactionType,
+                'url': App.option('IRSource') + "/page/" +
+                       App.option('page:id') + "/tile/" + interactionType,
                 'type': 'POST',
                 'data': {
                     'tile-ids': tileIds.join(',')
