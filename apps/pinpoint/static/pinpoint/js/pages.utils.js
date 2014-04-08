@@ -293,7 +293,7 @@ App.module("utils", function (utils, App) {
         if (url.indexOf('c_fit') > -1) {
             // Transformation has been applied to this url, Cloudinary is not smart
             // with these, so lets be instead.
-            url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+?)\/v1/, "");
+            url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, "/");
         }
 
         url = url.replace(App.CLOUDINARY_DOMAIN, ""); // remove absolute uri
