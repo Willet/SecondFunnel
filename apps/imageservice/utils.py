@@ -1,3 +1,4 @@
+import re
 import os
 import math
 import numpy
@@ -6,10 +7,10 @@ import urlparse
 import cStringIO
 from collections import namedtuple
 
+import cloudinary.api
 from django.conf import settings
 from django.core.files.storage import default_storage
 
-from apps.assets.models import Store
 from apps.imageservice.models import ExtendedImage
 
 
@@ -29,6 +30,35 @@ IMAGE_SIZES = getattr(settings, 'IMAGE_SIZES', (
 
 Point = namedtuple('Point', ('coords', 'n', 'ct'))
 Cluster = namedtuple('Cluster', ('points', 'center', 'n'))
+
+
+def get_public_id(url):
+    """
+    Returns the public ID of a cloudinary resource.
+
+    @param url: The url of the uploaded resource
+    @return: String
+    """
+    url = re.sub(r'(https?:)?' + settings.CLOUDINARY_BASE_URL, '', url)
+    url = re.sub(r'/?image/upload/(.*?)/', '', url)
+    public_id = ".".join(url.split('.')[:-1])
+
+    return public_id
+
+
+def delete_cloudinary_resource(public_id):
+    """
+    Deletes the Cloudinary resource pointed to by the specified
+    public id, or url.
+
+    @param public_id: Url/id of resource, a string.
+    @return: None
+    """
+    try:
+        cloudinary.api.delete_resources(list(public_id))
+    except cloudinary.api.NotFound:
+        public_id = get_public_id(public_id)
+        cloudinary.api.delete_resources(list(public_id))
 
 
 def create_configuration(xpos, ypos, width, height):
@@ -79,6 +109,8 @@ def create_image_path(store_id, *args):
     """
     Determine endpoint path for a url.
     """
+    from apps.assets.models import Store
+
     store = Store.objects.get(id=store_id)
     name = store.name.lower()
 

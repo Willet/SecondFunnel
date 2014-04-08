@@ -7,6 +7,17 @@
     <script type="text/javascript">
         window.OPTIMIZER_TESTS = [];
         window.OPTIMIZER_TESTS.push({
+            index: 9,
+            test: 'custom',
+            disabled: true,
+            custom: function (template) {
+                template = template || _.sample(["A", "B"]);
+                if (template === "B") {
+                    App.options.categories = ["home", "mens", "womens"];
+                }
+            }
+        });
+        window.OPTIMIZER_TESTS.push({
             index: 10,
             test: 'custom',
             custom: function (template) {
@@ -168,6 +179,10 @@
 
     <div>
         <!-- generic templates -->
+        <script type="text/template" id="category_template">
+            <span><%= obj.name %></span>
+        </script>
+
         <script type="text/template" id="disabled_featured_template">
             <div class='featured product'>
                 <!-- Main Display Area -->
@@ -395,7 +410,16 @@
                 </div>
                 <div class='cell middle info col-sm-6 col-md-6'>
                     <div class='title'><%= obj.title || obj.name %></div>
-                    <div class='red marker price'><%= obj.price %></div>
+                    <div class='price<% if (obj.sale_price) { %> sale<% } %>'>
+                        <% if (obj.sale_price) { %>
+                            <div class="strike inline">
+                                <%- obj.price %>
+                            </div>
+                            <%- obj.sale_price %>
+                        <% } else { %>
+                            <%- obj.price %>
+                        <% } %>
+                    </div>
                     <div class='description'>
                         <div class='desc-title'>Overview</div>
                         <% var sentences = _.compact(obj.description.split('.')); %>
@@ -441,8 +465,15 @@
                     <% } %>
                 </div>
             </div>
-            <div class="price">
-                <%- obj.price %>
+            <div class="price<% if (obj.sale_price) { %> sale<% } %>">
+                <% if (obj.sale_price) { %>
+                    <%- obj.sale_price %>
+                    <div class="strike">
+                        <%- obj.price %>
+                    </div>
+                <% } else { %>
+                    <%- obj.price %>
+                <% } %>
             </div>
             <% if (obj.images.length === 1) { %>
             <div class="image-region no-images">
@@ -499,8 +530,15 @@
                         <% } %>
                     </div>
                 </div>
-                <div class="price">
-                    <%- product.price %>
+                <div class="price<% if (product.sale_price) { %> sale<% } %>">
+                    <% if (product.sale_price) { %>
+                        <%- product.sale_price %>
+                        <div class="strike">
+                            <%- product.price %>
+                        </div>
+                    <% } else { %>
+                        <%- product.price %>
+                    <% } %>
                 </div>
                 <div class="image-region">
                     <% if (products.length > 0) { %>
@@ -554,7 +592,16 @@
                     </div>
                     <div class="middle cell">
                         <div class='title'><%= product.title || product.name%></div>
-                        <div class='price'><%= product.price %></div>
+                        <div class='price<% if (product.sale_price) { %> sale<% } %>'>
+                            <% if (product.sale_price) { %>
+                                <div class="strike inline">
+                                    <%- product.price %>
+                                </div>
+                                <%- product.sale_price %>
+                            <% } else { %>
+                                <%- product.price %>
+                            <% } %>
+                        </div>
                         <div class='description'>
                             <div class='desc-title'>Overview</div>
                             <% var description = (product.description || ""); %>
@@ -681,6 +728,7 @@
     <div class="container">
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
         <div id="hero-area"></div>
+        <div id="category-area"></div>
         <div id="discovery-area" class="discovery-area"></div>
         <div class="no-noscript loading"></div>
         <noscript>
@@ -878,7 +926,7 @@
             // 12 - Scroll for more
             var pagesScrolled = 1;
             App.vent.on('tracking:trackEvent', function (o) {
-                if (o.action == 'scroll') {
+                if (o.action === 'scroll') {
                     recordEvent('page_scroll', 'scroll', 'page_scroll', 'scroll - ' + o.label);
                 }
             });
@@ -944,7 +992,7 @@
         // _pa.revenue = "19.99"; // OPTIONAL: attach dynamic purchase values to conversions
         // _pa.productId = "myProductId"; // OPTIONAL: Include product ID for use with dynamic ads
         var pa = document.createElement('script'); pa.type = 'text/javascript'; pa.async = true;
-        pa.src = ('https:' == document.location.protocol ? 'https:' : 'http:') + "//tag.perfectaudience.com/serve/52fd209b01a11d23fd000004.js";
+        pa.src = ('https:' === document.location.protocol ? 'https:' : 'http:') + "//tag.perfectaudience.com/serve/52fd209b01a11d23fd000004.js";
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(pa, s);
       })();
     </script>
@@ -956,7 +1004,7 @@
     (function () {
        __adroll_loaded=true;
        var scr = document.createElement("script");
-       var host = (("https:" == document.location.protocol) ? "https://s.adroll.com" : "http://a.adroll.com");
+       var host = (("https:" === document.location.protocol) ? "https://s.adroll.com" : "http://a.adroll.com");
        scr.setAttribute('async', 'true');
        scr.type = "text/javascript";
        scr.src = host + "/j/roundtrip.js";

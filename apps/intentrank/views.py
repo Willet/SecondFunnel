@@ -136,10 +136,18 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
 
         # Update clicks
         clicks = request.session.get('clicks', [])
+        expired_tiles = []
         if tile_id not in clicks:
             for click in clicks:
-                TileRelation.relate(Tile.objects.get(id=click), tile)
+                try:
+                    TileRelation.relate(Tile.objects.get(id=click), tile)
+                except Tile.DoesNotExist as err:
+                    # session kept track of a tile that isn't in the db;
+                    # remove tile from session
+                    expired_tiles.append(click)
+
             clicks.append(tile_id)
+            clicks = [x for x in clicks if not x in expired_tiles]
             request.session['clicks'] = clicks
 
         return ajax_jsonp(tile.to_json())

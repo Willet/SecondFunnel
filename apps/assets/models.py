@@ -15,9 +15,10 @@ from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
 
+from apps.utils import returns_unicode
 import apps.api.serializers as cg_serializers
 import apps.intentrank.serializers as ir_serializers
-from apps.utils import returns_unicode
+from apps.imageservice.utils import delete_cloudinary_resource
 
 
 default_master_size = {
@@ -316,6 +317,11 @@ class ProductImage(BaseModel):
     def to_cg_json(self):
         return self.cg_serializer().to_json([self])
 
+    def delete(self, *args, **kwargs):
+        if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
+            delete_cloudinary_resource(self.url)
+        super(ProductImage, self).delete(*args, **kwargs)
+
 
 class Category(BaseModel):
     products = models.ManyToManyField(Product, related_name='categories')
@@ -451,6 +457,11 @@ class Image(Content):
             dct["related-products"] = self.tagged_products.values_list('id', flat=True)
 
         return dct
+
+    def delete(self, *args, **kwargs):
+        if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
+            delete_cloudinary_resource(self.url)
+        super(Image, self).delete(*args, **kwargs)
 
 
 class Video(Content):

@@ -341,7 +341,7 @@ App.module("intentRank", function (intentRank, App) {
 
         if (!category) { // clear the category
             urlTemplate = intentRank.options.urlTemplates.campaign;
-            console.warn("No category passed, clearing.");
+            console.debug("No category passed, clearing.");
             delete intentRank.options.category;
         } else { // Swap default url
             urlTemplate = intentRank.options.urlTemplates.category;
