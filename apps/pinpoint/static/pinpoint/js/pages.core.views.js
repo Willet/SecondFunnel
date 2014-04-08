@@ -535,9 +535,8 @@ App.module('core', function (module, App) {
                     .resize(globals.resizeHandler);
 
                 // serve orientation change event via vent
-                if (window.addEventListener) {  // IE 8
-                    window.addEventListener("orientationchange",
-                        globals.orientationChangeHandler, false);
+                if (App.support.mobile()) {
+                    $(window).on('rotate', globals.orientationChangeHandler);
                 }
             }(App._globals));
 
@@ -780,9 +779,15 @@ App.module('core', function (module, App) {
             // Need to get an appropriate sized image
             var image = $.extend(true, {},
                 this.model.get('defaultImage').attributes);
-            image = (new App.core.Image(image)).width(undefined, {
-                multiplier: 1.5
-            });
+            image = new App.core.Image(image);
+
+            if (App.support.mobile()) {
+                image.url = image.width($window.width());
+            } else {
+                image = image.width(undefined, {
+                    multiplier: 1.5
+                });
+            }
 
             // templates use this as obj.image.url
             this.model.set('image', image);
@@ -790,17 +795,10 @@ App.module('core', function (module, App) {
 
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
-            var buttons, width;
+            var buttons;
             if (this.$('.social-buttons').length >= 1) {
                 buttons = new App.sharing.SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
-            }
-            width = Marionette.getOption(this, 'width');
-
-            if (width) {
-                this.$('.content').css('width', width + 'px');
-            } else if (App.support.mobile()) {
-                this.$el.width($(window).width()); // assign width
             }
 
             // hide discovery, then show this window as a page.
@@ -831,12 +829,13 @@ App.module('core', function (module, App) {
 
             So, for now, only add no-scroll if the device is NOT an android.
              */
-            var width = Marionette.getOption(this, 'width');
+            var width;
+            width = Marionette.getOption(this, 'width');
 
             if (width) {
                 this.$('.content').css('width', width + 'px');
             } else if (App.support.mobile()) {
-                this.$el.width($(window).width()); // assign width
+                this.$el.width($window.width()); // assign width
             }
 
             if (!App.support.isAnAndroid()) {
@@ -1012,12 +1011,15 @@ App.module('core', function (module, App) {
         },
 
         'onRender': function () {
-            var previewLoadingScreen = $('#preview-loading');
+            var heightMultiplier,
+                self = this,
+                previewLoadingScreen = $('#preview-loading');
             // cannot declare display:table in marionette class.
+            heightMultiplier = App.utils.portrait() ? 1 : 2;
             this.$el.css({
                 'display': "table",
                 'height': App.support.mobile() ?
-                    $(window).height() : ""
+                    heightMultiplier * $window.height() : ""
             });
 
             var ContentClass,
@@ -1036,12 +1038,23 @@ App.module('core', function (module, App) {
 
             this.content.show(new ContentClass(contentOpts));
             previewLoadingScreen.hide();
+
+            this.listenTo(App.vent, 'rotate', function (width) {
+                // On change in orientation, we want to rerender our layout
+                // this is automatically unbound on close, so we don't have to clean
+                heightMultiplier = App.utils.portrait() ? 1 : 2;
+                self.$el.css({
+                    'height': App.support.mobile() ?
+                        heightMultiplier * $window.height() : ""
+                });
+                self.content.show(new ContentClass(contentOpts));
+            });
         },
 
         'onShow': function () {
             var position_window = (function (previewWindow) {
                 return function () {
-                    var window_middle = $(window).scrollTop() + $(window).height() / 2;
+                    var window_middle = $window.scrollTop() + $window.height() / 2;
 
                     if (App.window_middle) {
                         window_middle = App.window_middle;
