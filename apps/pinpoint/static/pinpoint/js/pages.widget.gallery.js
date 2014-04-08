@@ -242,7 +242,7 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
         var $img, $wrapper;
         $img = App.support.mobile() ?
             $('<div></div>').css('background-image', 'url(' + image.width(windowWidth * 1.5) + ')') :
-            $('<img />').attr('src', image.width(undefined, {multiplier: 1.5}).url);
+            $('<img />').attr('src', image.height(App.utils.getViewportSized()));
 
         $img
             .addClass('img')
