@@ -277,6 +277,14 @@ def dump_database_postgres(path='/tmp/db.sql'):
 
     local(command)
 
+    # Disabling constraints:
+    # http://www.openscope.net/2012/08/23/subverting-foreign-key-constraints-in-postgres-or-mysql/
+
+    # Appending to beginning and end of file:
+    # http://unix.stackexchange.com/a/65514
+    local('sed -i "1ibegin; SET CONSTRAINTS ALL DEFERRED;" {}'.format(path))
+    local('echo "commit;" >> {}'.format(path))
+
 def flush_database_postgres():
     args = get_postgres_arguments()
     arguments = args['arguments']
@@ -285,25 +293,6 @@ def flush_database_postgres():
     command = '{} && psql {} -f scripts/flush.sql'.format(
         password, arguments
     )
-
-    local(command)
-
-# TODO: Generalize to work more than just locally
-def alter_foreign_key_postgres(disable=True):
-    args = get_postgres_arguments()
-    arguments = args['arguments']
-    password = args['password']
-
-    disable_string = 'DISABLE' if disable else 'ENABLE'
-
-    # http://resetroot.wordpress.com/2010/11/15/postgresql-alter-all-tables-to-user-myuser/
-    command = "{} && psql {} " \
-        "-qAt -c \"select 'ALTER TABLE '||table_name||' {} TRIGGER USER;'" \
-        "from information_schema.tables where table_schema = 'public'\"" \
-        "| psql {}"\
-        .format(
-            password, arguments, disable_string, arguments
-        )
 
     local(command)
 
@@ -333,9 +322,4 @@ def dump_test_database(native=True):
     get('/tmp/db.sql', 'db.sql')
 
     # Finally, load the data
-    # Because our data has a circular foreign key constraint,
-    # we either need to resolve that or disable foreign key checks
-    # temporarily on the affected tables.
-    local('fab alter_foreign_key_postgres')
     local('fab load_database_postgres')
-    local('fab alter_foreign_key_postgres:False')
