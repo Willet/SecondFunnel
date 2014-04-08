@@ -82,7 +82,7 @@ class ProductScraper(Scraper):
             product = Product(store=self.store, url=url)
         except Product.MultipleObjectsReturned:
             #temporary fix for multiple products with the same url
-            products = Product.objects.get(store=self.store, url=url)
+            products = Product.objects.filter(store=self.store, url=url)
             product1 = products[1]
             product2 = products[2]
 
