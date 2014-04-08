@@ -470,14 +470,6 @@ App.module('core', function (core, App) {
      * @type {Model}
      */
     this.Category = Backbone.Model.extend({
-        'initialize': function (options) {
-            var name = this.get('name'),
-                value = name.toLowerCase();
-
-            this.set('value', value == 'home' ? "" : value);
-            this.set('name',
-                name.charAt(0).toUpperCase() + name.substring(1));
-        },
         'url': function () {
             return _.template(
                 '<%=IRSource%>/page/<%=campaign%>/getresults?results=<%=IRResultsCount&category=<%=name%>',

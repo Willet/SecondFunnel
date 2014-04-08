@@ -697,21 +697,17 @@ div.loading {
     text-align: center;
 }
 
-@media screen and (min-width: 768px) {
-    #category-area {
-        margin-top: -40px;
-    }
-}
-
 #category-area .category {
     width: 33%;
     color: #000;
     padding: 10px;
+    cursor: pointer;
     font-size: 16px;
     text-align: center;
     display: inline-block;
     border: 1px solid #000;
     background-color: #FFF;
+    text-transform:capitalize
 }
 
 #category-area .category.selected {

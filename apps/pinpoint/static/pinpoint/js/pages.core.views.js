@@ -1119,11 +1119,14 @@ App.module('core', function (module, App) {
         },
 
         'onClick': function (ev) {
-            var category = this.model.get('value');
+            var category = this.model.get('name');
 
             // Switch the selected category class to this element
             this.$el.siblings().removeClass('selected');
             this.$el.addClass('selected');
+            if (category === "home") {
+                category = "";
+            }
             App.intentRank.changeCategory(category);
         }
     });
