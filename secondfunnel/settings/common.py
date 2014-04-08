@@ -166,7 +166,7 @@ COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
 COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
                        'compressor.filters.jsmin.JSMinFilter']
 
-COMPRESS_REBUILD_TIMEOUT = 2592000  # Rebuilds compressed files after 30 days (in seconds)
+COMPRESS_REBUILD_TIMEOUT = 30 * 60  # Rebuilds compressed files after 30 mins (in seconds)
 
 COMPRESS_STORAGE = STATICFILES_STORAGE
 
@@ -241,7 +241,7 @@ MIDDLEWARE_CLASSES = (
 
 KEEP_COMMENTS_ON_MINIFYING = True
 
-CACHE_MIDDLEWARE_SECONDS = 604800  # Set the cache to at least a week; will only affect production/test/demo
+CACHE_MIDDLEWARE_SECONDS = 30 * 60  # Set the cache to at least 30 mins; will only affect production/test/demo
 
 ROOT_URLCONF = 'secondfunnel.urls'
 
