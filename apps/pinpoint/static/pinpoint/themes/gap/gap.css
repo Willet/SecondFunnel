@@ -230,15 +230,15 @@ div.header {
         display: inline-block;
     }
 
-    #hero-area .overlay .buttons .white.facebook_button {
+    #hero-area .overlay .buttons .white.facebook-button {
         background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_orange.png');
     }
 
-    #hero-area .overlay .buttons .white.twitter_button {
+    #hero-area .overlay .buttons .white.twitter-button {
         background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_orange.png');
     }
 
-    #hero-area .overlay .buttons .white.email_button {
+    #hero-area .overlay .buttons .white.email-button {
         background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_orange.png');
     }
 
