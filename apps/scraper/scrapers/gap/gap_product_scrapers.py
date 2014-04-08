@@ -59,6 +59,9 @@ class GapProductScraper(ProductDetailScraper):
                         url = 'http://www.gap.com' + url
                     images.append(self._process_image(url, product))
 
+        if len(images) == 0:
+            return images
+
         for image in product.product_images.exclude(id__in=[image.id for image in images]):
             image.delete()
 

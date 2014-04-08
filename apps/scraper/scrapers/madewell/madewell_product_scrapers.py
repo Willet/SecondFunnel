@@ -66,6 +66,9 @@ class MadewellProductScraper(ProductDetailScraper):
             image = driver.find_element_by_class_name('prod-main-img').get_attribute('src')
             images.append(self._process_image(image, product))
 
+        if len(images) == 0:
+            return images
+
         for image in product.product_images.exclude(id__in=[image.id for image in images]):
             image.delete()
 
