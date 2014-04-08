@@ -43,6 +43,8 @@ class ProductSerializer(RawSerializer):
             "images": [image.to_json() for image in product_images],
         }
 
+        data.update(obj.attributes)
+
         # if default image is missing...
         if hasattr(obj, 'default_image_id') and obj.default_image_id:
             data["default-image"] = str(obj.default_image.id or

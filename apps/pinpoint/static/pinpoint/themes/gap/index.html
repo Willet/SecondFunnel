@@ -410,7 +410,16 @@
                 </div>
                 <div class='cell middle info col-sm-6 col-md-6'>
                     <div class='title'><%= obj.title || obj.name %></div>
-                    <div class='red marker price'><%= obj.price %></div>
+                    <div class='price<% if (obj.sale_price) { %> sale<% } %>'>
+                        <% if (obj.sale_price) { %>
+                            <div class="strike inline">
+                                <%- obj.price %>
+                            </div>
+                            <%- obj.sale_price %>
+                        <% } else { %>
+                            <%- obj.price %>
+                        <% } %>
+                    </div>
                     <div class='description'>
                         <div class='desc-title'>Overview</div>
                         <% var sentences = _.compact(obj.description.split('.')); %>
@@ -456,8 +465,15 @@
                     <% } %>
                 </div>
             </div>
-            <div class="price">
-                <%- obj.price %>
+            <div class="price<% if (obj.sale_price) { %> sale<% } %>">
+                <% if (obj.sale_price) { %>
+                    <%- obj.sale_price %>
+                    <div class="strike">
+                        <%- obj.price %>
+                    </div>
+                <% } else { %>
+                    <%- obj.price %>
+                <% } %>
             </div>
             <% if (obj.images.length === 1) { %>
             <div class="image-region no-images">
@@ -514,8 +530,15 @@
                         <% } %>
                     </div>
                 </div>
-                <div class="price">
-                    <%- product.price %>
+                <div class="price<% if (product.sale_price) { %> sale<% } %>">
+                    <% if (product.sale_price) { %>
+                        <%- product.sale_price %>
+                        <div class="strike">
+                            <%- product.price %>
+                        </div>
+                    <% } else { %>
+                        <%- product.price %>
+                    <% } %>
                 </div>
                 <div class="image-region">
                     <% if (products.length > 0) { %>
@@ -569,7 +592,16 @@
                     </div>
                     <div class="middle cell">
                         <div class='title'><%= product.title || product.name%></div>
-                        <div class='price'><%= product.price %></div>
+                        <div class='price<% if (product.sale_price) { %> sale<% } %>'>
+                            <% if (product.sale_price) { %>
+                                <div class="strike inline">
+                                    <%- product.price %>
+                                </div>
+                                <%- product.sale_price %>
+                            <% } else { %>
+                                <%- product.price %>
+                            <% } %>
+                        </div>
                         <div class='description'>
                             <div class='desc-title'>Overview</div>
                             <% var description = (product.description || ""); %>
