@@ -318,7 +318,7 @@ class ProductImage(BaseModel):
         return self.cg_serializer().to_json([self])
 
     def delete(self, *args, **kwargs):
-        if settings.CLOUDINARY_BASE_URL in self.url:
+        if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
             delete_cloudinary_resource(self.url)
         super(ProductImage, self).delete(*args, **kwargs)
 
@@ -459,7 +459,7 @@ class Image(Content):
         return dct
 
     def delete(self, *args, **kwargs):
-        if settings.CLOUDINARY_BASE_URL in self.url:
+        if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
             delete_cloudinary_resource(self.url)
         super(Image, self).delete(*args, **kwargs)
 
