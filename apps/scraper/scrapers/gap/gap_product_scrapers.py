@@ -23,21 +23,36 @@ class GapProductScraper(ProductDetailScraper):
             yield product
             return
 
+        # retrieving the sales price for the product if it exists
         try:
             sale_price_text = self.driver.find_element_by_id('productPageMupMessageStyle').text
             match = re.match(r'Now (\$\d+\.\d{2})', sale_price_text)
             if match:
                 sale_price = match.group(1)
-                print(sale_price)
                 product.attributes.update({'sale_price': sale_price})
+
+            product.price = self.driver.find_element_by_id('priceText').text
         except NoSuchElementException:
-            pass
+            try:
+                sale_price = self.driver.find_element_by_xpath('//span[@id="priceText"]/span[@class="salePrice"]').text
+                product.price = self.driver.find_element_by_xpath('//span[@id="priceText"]/strike').text
+                product.attributes.update({'sale_price': sale_price})
+            except NoSuchElementException:
+                product.price = self.driver.find_element_by_id('priceText').text
+
         product.sku = re.match(self.sku_regex, product.url).group(1)
         product.description = self.driver.find_element_by_id('tabWindow').get_attribute("innerHTML")
-        product.price = self.driver.find_element_by_id('priceText').text
         self.driver.get('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
 
         product.save()
+
+        # retrieving the major category for the product
+        try:
+            category_elem = self.driver.find_element_by_xpath('//li/a[contains(@class, "_selected")]')
+            category_url = category_elem.get_attribute('href')
+            self._add_to_category(product, category_elem.text, category_url)
+        except NoSuchElementException:
+            pass
 
         self._get_images(self.driver.page_source, product)
 
@@ -56,6 +71,8 @@ class GapProductScraper(ProductDetailScraper):
                     if url.startswith('/'):
                         url = 'http://www.gap.com' + url
                     images.append(self._process_image(url, product))
+
+        product.default_image = images[0]
 
         for image in product.product_images.exclude(id__in=[image.id for image in images]):
             image.delete()
