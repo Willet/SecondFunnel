@@ -42,6 +42,15 @@ def flatten_reservations(reservations):
 
     return [i for i in list(chain)]
 
+def get_instances(name):
+    ec2 = get_ec2_conn()
+    res = ec2.get_all_instances(filters={
+        'tag:Name': name
+    })
+
+    # we only want running instances
+    return [i for i in flatten_reservations(res) if i.state in ['running', 'pending']]
+
 
 def get_celery_workers(cluster_type):
     """Gets Celery workers belonging to specified cluster type"""
@@ -321,10 +330,14 @@ def flush_database_postgres():
 
     local(command)
 
-# Doesn't work for some reason...
-# @hosts('ec2-user@tng-master.secondfunnel.com')
-@hosts('ec2-user@tng-test.secondfunnel.com')
-def dump_test_database(native=True):
+def master():
+    env.hosts = [i.public_dns_name for i in get_instances('tng-test2')][-1:]
+
+def test():
+    env.hosts = [i.public_dns_name for i in get_instances('tng-test2')][-1:]
+
+# TODO: Should probably check that psql and pg_dump versions are compatible
+def to_local_database(native=True):
     # We assume that by SSH'ing in, we are in the right environment and path
 
     # More details on Django integration here:
