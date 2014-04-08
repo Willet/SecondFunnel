@@ -717,6 +717,16 @@ div.header {
     margin: 0 0 20px 0;
 }
 
+.previewContainer .price.sale {
+    color: #f44c43;
+    font-weight: bold;
+}
+
+.previewContainer .price.sale .strike {
+    color: #CCC;
+    font-weight: normal;
+}
+
 .previewContainer .description {
     color: #000d41;
     font-family: "Verdana", proxima-nova-soft, sans-serif;
@@ -813,6 +823,16 @@ div.header {
 
     .previewContainer .price {
         margin-bottom: 5px;
+    }
+
+    .previewContainer .price.sale {
+        background-color: #f44c43;
+    }
+
+    .previewContainer .price.sale .strike {
+        font-size: 14px;
+        text-align: center;
+        color: #CCC;
     }
 }
 
