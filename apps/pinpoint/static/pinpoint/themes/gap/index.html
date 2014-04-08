@@ -20,6 +20,16 @@
                 return template;
             }
         });
+        window.OPTIMIZER_TESTS.push({
+            index: 10,
+            test: 'custom',
+            custom: function (template) {
+                template = template || _.sample(["A", "B"]);
+                if (template === "B") {
+                    App.intentRank.options.IRAlgo = "finite_popular";
+                }
+            }
+        });
     </script>
     <script type="text/template" id="such-cards-much-wow">
         <style type="text/css">
