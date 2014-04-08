@@ -535,15 +535,8 @@ App.module('core', function (module, App) {
                     .resize(globals.resizeHandler);
 
                 // serve orientation change event via vent
-                if (App.support.mobile() && window.addEventListener) {  // IE 8
-                    // http://stackoverflow.com/questions/1649086/
-                    if ("onorientationchange" in window) {
-                        window.addEventListener("orientationchange",
-                           globals.orientationChangeHandler, false);
-                    } else {
-                        window.addEventListener("resize",
-                           globals.orientationChangeHandler, false);
-                    }
+                if (App.support.mobile()) {
+                    $(window).on('rotate', globals.orientationChangeHandler);
                 }
             }(App._globals));
 
@@ -768,7 +761,7 @@ App.module('core', function (module, App) {
             image = new App.core.Image(image);
 
             if (App.support.mobile()) {
-                image.url = image.width($(window).width());
+                image.url = image.width($window.width());
             } else {
                 image = image.width(undefined, {
                     multiplier: 1.5
@@ -821,7 +814,7 @@ App.module('core', function (module, App) {
             if (width) {
                 this.$('.content').css('width', width + 'px');
             } else if (App.support.mobile()) {
-                this.$el.width($(window).width()); // assign width
+                this.$el.width($window.width()); // assign width
             }
 
             if (!App.support.isAnAndroid()) {
@@ -997,15 +990,15 @@ App.module('core', function (module, App) {
         },
 
         'onRender': function () {
-            var desiredHeight,
+            var heightMultiplier,
                 self = this,
                 previewLoadingScreen = $('#preview-loading');
             // cannot declare display:table in marionette class.
-            desiredHeight = App.utils.portrait() ? 1 : 2;
+            heightMultiplier = App.utils.portrait() ? 1 : 2;
             this.$el.css({
                 'display': "table",
                 'height': App.support.mobile() ?
-                    desiredHeight * $(window).height() : ""
+                    heightMultiplier * $window.height() : ""
             });
 
             var ContentClass,
@@ -1028,10 +1021,10 @@ App.module('core', function (module, App) {
             this.listenTo(App.vent, 'rotate', function (width) {
                 // On change in orientation, we want to rerender our layout
                 // this is automatically unbound on close, so we don't have to clean
-                desiredHeight = App.utils.portrait() ? 1 : 2;
+                heightMultiplier = App.utils.portrait() ? 1 : 2;
                 self.$el.css({
                     'height': App.support.mobile() ?
-                        desiredHeight * $(window).height() : ""
+                        heightMultiplier * $window.height() : ""
                 });
                 self.content.show(new ContentClass(contentOpts));
             });
@@ -1040,7 +1033,7 @@ App.module('core', function (module, App) {
         'onShow': function () {
             var position_window = (function (previewWindow) {
                 return function () {
-                    var window_middle = $(window).scrollTop() + $(window).height() / 2;
+                    var window_middle = $window.scrollTop() + $window.height() / 2;
 
                     if (App.window_middle) {
                         window_middle = App.window_middle;

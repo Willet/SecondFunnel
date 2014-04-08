@@ -118,7 +118,7 @@ App.module("utils", function (utils, App) {
      * @returns {Boolean}
      */
     this.portrait = function () {
-        return $(window).height() > $(window).width();
+        return !this.landscape();
     };
 
     /**
