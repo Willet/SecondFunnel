@@ -126,7 +126,7 @@ class ProductScraper(Scraper):
         if url is None and name is None:
             raise ScraperException('at least one of url or name must be provided to add to a category')
 
-        if name is not None:
+        if isinstance(name, basestring):
             name = name.lower()
 
         try:
