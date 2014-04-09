@@ -28,6 +28,7 @@ ADMINS = (
     ('Nick "The Goat" Terwoord', 'nick@willetinc.com'),
     ('Brian "The Lai" Lai', 'brian@willetinc.com'),
     ('Kevin "The Awesome" Simpson', 'kevin@willetinc.com'),
+    ('Alex "The Knight" Black', 'alexb@willetinc.com'),
     # ('Your Name', 'your_email@example.com'),
 )
 
