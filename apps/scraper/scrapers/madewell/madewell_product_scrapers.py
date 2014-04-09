@@ -49,9 +49,9 @@ class MadewellProductScraper(ProductDetailScraper):
             self._add_to_category(product, values.get('sub_category', None), values.get('sub_category_url'))
 
         images = self._get_images(self.driver, product)
-        product.default_image = images[0]
-
-        product.save()
+        if len(images) > 0:
+            product.default_image = images[0]
+            product.save()
 
         yield product
 
