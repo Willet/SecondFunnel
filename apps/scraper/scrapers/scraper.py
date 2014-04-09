@@ -115,7 +115,6 @@ class ProductScraper(Scraper):
 
         return image
 
-
     def _add_to_category(self, product, name=None, url=None):
         """
         This function will add the product to the category specified by
@@ -132,7 +131,7 @@ class ProductScraper(Scraper):
         name = name.lower()
 
         try:
-            if name is None:
+            if not name:
                 category = Category.objects.get(store=self.store, url=url)
             else:
                 category = Category.objects.get(store=self.store, name__iexact=name)
