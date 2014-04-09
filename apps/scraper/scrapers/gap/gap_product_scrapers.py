@@ -46,28 +46,26 @@ class GapProductScraper(ProductDetailScraper):
 
         product.sku = re.match(self.sku_regex, product.url).group(1)
         product.description = self.driver.find_element_by_id('tabWindow').get_attribute("innerHTML")
-        self.driver.get('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
 
         product.save()
 
         # retrieving the major category for the product
         try:
-            print("TRYING TO DO GOOD STUFF")
             category_elem = self.driver.find_element_by_xpath('//li/a[contains(@class, "_selected")]')
-            print("GOOD STUFF HAPPENING HERE")
             category_url = 'http://www.gap.com' + category_elem.get_attribute('href')
             category_name = category_elem.text.lower()
             if category_name == 'body' or category_name == 'gapfit' or category_name == 'maternity':
                 self._add_to_category(product, 'women', 'http://www.gap.com/browse/subDivision.do?cid=5646')
             self._add_to_category(product, category_name, category_url)
         except NoSuchElementException:
-            print("GOOD STUFF IS NOT HAPPENING ANYWHERE")
             pass
 
         if values.get('category', None):
             self._add_to_category(product, values.get('category', None))
         if values.get('sub_category', None):
             self._add_to_category(product, values.get('sub_category', None))
+
+        self.driver.get('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
 
         images = self._get_images(self.driver.page_source, product)
         if len(images) > 0:
@@ -98,8 +96,6 @@ class GapProductScraper(ProductDetailScraper):
             return images
 
         for image in product.product_images.exclude(id__in=[image.id for image in images]):
-            print(image.id)
-            print(image.to_json())
             image.delete()
 
         return images
