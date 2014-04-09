@@ -165,6 +165,7 @@ ALLOWED_HOSTS = ['.secondfunnel.com',
                  '.secondfunnel.com.',
                  '.elasticbeanstalk.com',
                  '.elasticbeanstalk.com.',
+                 'localhost',
                  ]
 
 # Disable signature/accesskey/expire attrs being appended to s3 links
