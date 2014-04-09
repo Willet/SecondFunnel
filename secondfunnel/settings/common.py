@@ -25,8 +25,18 @@ GOOGLE_ANALYTICS_PROFILE = '67271131'
 GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17' # dev and test (production has a separate profile, -16)  
 
 ADMINS = (
+    ('Nick "The Goat" Terwoord', 'nick@willetinc.com'),
+    ('Brian "The Lai" Lai', 'brian@willetinc.com'),
+    ('Kevin "The Awesome" Simpson', 'kevin@willetinc.com'),
+    ('Alex "The Knight" Black', 'alexb@willetinc.com'),
     # ('Your Name', 'your_email@example.com'),
 )
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'fraser@getwillet.com'
+EMAIL_HOST_PASSWORD = 'w1llet!!'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
 MANAGERS = ADMINS
 
