@@ -16,7 +16,9 @@ class GapProductScraper(ProductDetailScraper):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.get_regex()[0], url).group(1)
 
     def scrape(self, url, product, **kwargs):
+        print('loading ' + url)
         self.driver.get(url)
+        print('loaded')
         try:
             product.name = self.driver.find_element_by_class_name('productName').text
         except NoSuchElementException:
@@ -28,7 +30,6 @@ class GapProductScraper(ProductDetailScraper):
             match = re.match(r'Now (\$\d+\.\d{2})', sale_price_text)
             if match:
                 sale_price = match.group(1)
-                print(sale_price)
                 product.attributes.update({'sale_price': sale_price})
         except NoSuchElementException:
             pass
@@ -39,11 +40,18 @@ class GapProductScraper(ProductDetailScraper):
 
         product.save()
 
-        self._get_images(self.driver.page_source, product)
+        images = self._get_images(self.driver.page_source, product)
+        if len(images) > 0:
+            product.default_image = images[0]
+            product.save()
 
         yield product
 
     def _get_images(self, product_data_page, product):
+        """
+        Retrieves the images for the specified product from the gap website
+        Removes all old product images from the product by deleting them
+        """
         images = []
         picture_groups = re.finditer(re.compile(r"styleColorImagesMap\s*=\s*\{\s*([^\}]*)\}\s*;", flags=re.MULTILINE|re.DOTALL), product_data_page)
         for group_match in picture_groups:
@@ -57,8 +65,13 @@ class GapProductScraper(ProductDetailScraper):
                         url = 'http://www.gap.com' + url
                     images.append(self._process_image(url, product))
 
+        if len(images) == 0:
+            return images
+
         for image in product.product_images.exclude(id__in=[image.id for image in images]):
             image.delete()
+
+        return images
 
 
 class GapCategoryScraper(ProductCategoryScraper):
