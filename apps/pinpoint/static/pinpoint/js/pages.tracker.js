@@ -81,7 +81,8 @@ App.module("tracker", function (tracker, App) {
         trackTile = function (interactionType, tileIds) {
             // if gap sends us too many visitors --> track tiles less often.
             // 0.2 is arbitrary
-            if (App.option('store:slug', '').lower() === 'gap' && Math.random() < 0.2) {
+            if (App.option('store:slug', '').toLowerCase() === 'gap' &&
+                Math.random() < 0.2) {
                 return $.Deferred().promise();
             }
             return $.ajax({
