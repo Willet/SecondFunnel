@@ -161,12 +161,7 @@ AWS_SQS_POLLING_QUEUES = {
 }
 
 # a (seemingly new) setting similar to SESSION_COOKIE_DOMAIN.
-ALLOWED_HOSTS = ['.secondfunnel.com',
-                 '.secondfunnel.com.',
-                 '.elasticbeanstalk.com',
-                 '.elasticbeanstalk.com.',
-                 'localhost',
-                 ]
+ALLOWED_HOSTS = ['*',]
 
 # Disable signature/accesskey/expire attrs being appended to s3 links
 AWS_QUERYSTRING_AUTH = False
