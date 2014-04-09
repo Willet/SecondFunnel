@@ -79,6 +79,11 @@ App.module("tracker", function (tracker, App) {
          * Semi-private function for wrapping trackTileClick and trackTileView
          */
         trackTile = function (interactionType, tileIds) {
+            // if gap sends us too many visitors --> track tiles less often.
+            // 0.2 is arbitrary
+            if (App.option('store:slug', '').lower() === 'gap' && Math.random() < 0.2) {
+                return $.Deferred().promise();
+            }
             return $.ajax({
                 'url': App.option('IRSource') + "/page/" +
                        App.option('page:id') + "/tile/" + interactionType,
