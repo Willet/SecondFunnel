@@ -96,7 +96,6 @@ def product_feed(request, page_slug):
 
     for obj in page.feed.tiles.all():
         tile = obj.to_json()
-        print(tile)
         item = Element('item')
 
         # Begin - Always Required
