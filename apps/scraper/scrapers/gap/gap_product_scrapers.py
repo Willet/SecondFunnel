@@ -27,22 +27,26 @@ class GapProductScraper(ProductDetailScraper):
             yield product
             return
 
-        # retrieving the sales price for the product if it exists
+        # retrieve the price of the product
+        try:
+            product.price = self.driver.find_element_by_xpath('//span[@id="priceText"]/strike').text
+        except NoSuchElementException:
+            product.price = self.driver.find_element_by_id('priceText').text
+
+        # retrieve the sale price of the product
+        try:
+            sale_price = self.driver.find_element_by_xpath('//span[@id="priceText"]/span[@class="salePrice"]').text
+            product.attributes.update({'sale_price': sale_price})
+        except NoSuchElementException:
+            pass
         try:
             sale_price_text = self.driver.find_element_by_id('productPageMupMessageStyle').text
             match = re.match(r'Now (\$\d+\.\d{2})', sale_price_text)
             if match:
                 sale_price = match.group(1)
                 product.attributes.update({'sale_price': sale_price})
-
-            product.price = self.driver.find_element_by_id('priceText').text
         except NoSuchElementException:
-            try:
-                sale_price = self.driver.find_element_by_xpath('//span[@id="priceText"]/span[@class="salePrice"]').text
-                product.price = self.driver.find_element_by_xpath('//span[@id="priceText"]/strike').text
-                product.attributes.update({'sale_price': sale_price})
-            except NoSuchElementException:
-                product.price = self.driver.find_element_by_id('priceText').text
+            pass
 
         product.sku = re.match(self.sku_regex, product.url).group(1)
         product.description = self.driver.find_element_by_id('tabWindow').get_attribute("innerHTML")

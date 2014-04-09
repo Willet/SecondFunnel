@@ -14,7 +14,7 @@ class Scraper(object):
     """
     Base class for all scrapers
 
-    The value variable is a dictionary that is passed around by the controller
+    The values variable is a dictionary that is passed around by the controller
     to all functions in the scraper and to all sub-scrapers, it can be added to
     by any function and is not changed by the controller
     """
