@@ -12,6 +12,7 @@ from apps.intentrank.controllers import IntentRank
 from apps.intentrank.algorithms import ir_generic, ir_all
 from apps.intentrank.utils import ajax_jsonp
 from apps.utils import thread_id
+from apps.utils.models import MemcacheSetting
 
 import scripts.generate_rss_feed as rss_feed
 
@@ -261,6 +262,10 @@ def update_tiles(request, tile_function, **kwargs):
 @request_methods('POST')
 def click_tile(request, **kwargs):
     """Register a click, doing whatever tracking it needs to do."""
+
+    track_tiles = MemcacheSetting.get('track_tiles', True)
+    MemcacheSetting.set('track_tiles', track_tiles)  # extend memcache
+
     def click_func(tile):
         clicks = request.session.get('clicks', [])
         if tile.id not in clicks:
@@ -270,15 +275,37 @@ def click_tile(request, **kwargs):
             request.session['clicks'] = clicks
         tile.add_click()
 
-    return update_tiles(request, tile_function=click_func, **kwargs)
+    if not track_tiles:
+        print "Tile tracking disabled by memory-bound setting"
+        return HttpResponse(status=204)
+
+    try:
+        return update_tiles(request, tile_function=click_func, **kwargs)
+    except:
+        # for whatever reason it failed, pause for a while
+        MemcacheSetting.set('track_tiles', False)
+    return HttpResponse(status=204)  # pretend it succeeded
 
 
 @never_cache
 @csrf_exempt
 @request_methods('POST')
 def view_tile(request, **kwargs):
+
+    track_tiles = MemcacheSetting.get('track_tiles', True)
+    MemcacheSetting.set('track_tiles', track_tiles)  # extend memcache
+
     def view_func(tile):
         tile.add_view()
         track_tile_view(request=request, tile_id=tile.id)
 
-    return update_tiles(request, tile_function=view_func, **kwargs)
+    if not track_tiles:
+        print "Tile tracking disabled by memory-bound setting"
+        return HttpResponse(status=204)
+
+    try:
+        return update_tiles(request, tile_function=view_func, **kwargs)
+    except:
+        # for whatever reason it failed, pause for a while
+        MemcacheSetting.set('track_tiles', False)
+    return HttpResponse(status=204)  # pretend it succeeded
