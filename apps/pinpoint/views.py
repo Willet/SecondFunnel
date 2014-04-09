@@ -98,9 +98,15 @@ def product_feed(request, page_slug):
         tile = obj.to_json()
         item = Element('item')
 
+        related_products = tile.get('related-products', [])
+        if len(related_products) > 0:
+            product = related_products[0]
+        else:
+            product = tile
+
         # Begin - Always Required
         title = SubElement(item, 'title')
-        title.text = tile.get('name')
+        title.text = product.get('name')
 
         # Since we can't link to gap.com and have the feed validate, need to
         # build the URL.
@@ -114,7 +120,7 @@ def product_feed(request, page_slug):
         )
 
         description = SubElement(item, 'description')
-        description.text = tile.get('description')
+        description.text = product.get('description')
 
         # Needs to be unique across everything!
         # Assumption: Product ids are unique across stores
@@ -129,13 +135,13 @@ def product_feed(request, page_slug):
         condition.text = 'new'
 
         price = SubElement(item, 'g:price')
-        price.text = tile.get('price')
+        price.text = product.get('sale_price') or product.get('price')
 
         availability = SubElement(item, 'g:availability')
         availability.text = 'in stock'
 
-        image_id = int(tile.get('default-image', 0))
-        images = tile.get('images', [])
+        image_id = int(product.get('default-image', 0))
+        images = product.get('images', [])
         image = next(ifilter(lambda x: x.get('id') == image_id, images), {})
 
         image_link = SubElement(item, 'g:image_link')
