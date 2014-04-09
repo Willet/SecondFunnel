@@ -1,5 +1,8 @@
+from itertools import ifilter
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, tostring
+from django.core.urlresolvers import reverse
+from django.template.defaulttags import url
 
 try:
     from collections import OrderedDict
@@ -82,14 +85,14 @@ def product_feed(request, page_slug):
 
     channel = SubElement(root, 'channel')
 
-    title = SubElement(channel, 'title')
-    title.text = page.name
+    page_title = SubElement(channel, 'title')
+    page_title.text = page.name
 
-    link = SubElement(channel, 'link')
-    link.text = request.build_absolute_uri()
+    page_link = SubElement(channel, 'link')
+    page_link.text = request.build_absolute_uri()
 
-    description = SubElement(channel, 'description')
-    description.text = page.description
+    page_description = SubElement(channel, 'description')
+    page_description.text = page.description
 
     for obj in page.feed.tiles.all():
         tile = obj.to_json()
@@ -99,6 +102,80 @@ def product_feed(request, page_slug):
         # Begin - Always Required
         title = SubElement(item, 'title')
         title.text = tile.get('name')
+
+        # Since we can't link to gap.com and have the feed validate, need to
+        # build the URL.
+
+        # So, this is only really a solution in the short term.
+        link = SubElement(item, 'link')
+        link.text = 'http://{}/{}#{}'.format(
+             request.get_host(),
+             page_slug,
+             tile.get('tile-id')
+        )
+
+        description = SubElement(item, 'description')
+        description.text = tile.get('description')
+
+        # Needs to be unique across everything!
+        # Assumption: Product ids are unique across stores
+        id = SubElement(item, 'g:id')
+        id.text = '{0}P{1}T{2}'.format(
+            page.store.slug,
+            page.id,
+            tile.get('tile-id')
+        )
+
+        condition = SubElement(item, 'g:condition')
+        condition.text = 'new'
+
+        price = SubElement(item, 'g:price')
+        price.text = tile.get('price')
+
+        availability = SubElement(item, 'g:availability')
+        availability.text = 'in stock'
+
+        image_id = int(tile.get('default-image', 0))
+        images = tile.get('images', [])
+        image = next(ifilter(lambda x: x.get('id') == image_id, images), {})
+
+        image_link = SubElement(item, 'g:image_link')
+        image_link.text = image.get('url')
+        # End - Always Required
+
+        # Begin - Required (Apparel)
+        google_category = SubElement(item, 'g:google_product_category')
+        google_category.text = 'Apparel &amp; Accessories &gt; Clothing'
+
+        brand = SubElement(item, 'g:brand')
+        brand.text = page.store.name
+
+        # Our own categories
+        product_type = SubElement(item, 'g:product_type')
+        product_type.text = 'Uncategorized'
+
+        # Hack: Force the product gender until we have it
+        gender = SubElement(item, 'g:gender')
+        gender.text = 'unisex'
+
+        # Hack: Force the product age group until we have it
+        age_group = SubElement(item, 'g:age_group')
+        age_group.text = 'adult'
+
+        # Hack: Force the product color until we have it
+        color = SubElement(item, 'g:color')
+        color.text = 'white'
+
+        # Hack: Force the product size until we have it
+        size = SubElement(item, 'g:size')
+        size.text = 'M'
+
+        # Shipping / Tax is required for US orders, see
+        # https://support.google.com/merchants/answer/160162?hl=en&ref_topic=3404778
+
+        # Don't worry about variants for now.
+
+        # End - Required (Apparel)
 
         channel.append(item)
 
