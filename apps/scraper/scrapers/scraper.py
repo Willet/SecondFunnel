@@ -137,7 +137,7 @@ class ProductScraper(Scraper):
                 category = Category.objects.get(store=self.store, name__iexact=name)
         except Category.DoesNotExist:
             # if the category does not exist, create it
-            if name is None:
+            if not name:
                 raise ScraperException('name must be provided if category does not exist')
             category = Category(store=self.store, name=name)
 
