@@ -239,6 +239,25 @@ App.module("utils", function (utils, App) {
     };
 
     /**
+     * Returns a ViewportSized Height based on the Viewport size of the browser, taking into
+     * account the chrome.
+     */
+    this.getViewportSized = function () {
+        var height = $(window).height();
+
+        if (height >= 959) {
+            return 700;
+        } else if (height >= 900) {
+            return 600;
+        } else if (height >= 800) {
+            return 500;
+        } else if (height > 656) {
+            return 400;
+        }
+        return 300;
+    },
+
+    /**
      * Returns a formatted url for a cloudinary image
      *
      * @param {string} url
@@ -247,20 +266,20 @@ App.module("utils", function (utils, App) {
      * @returns {Object}
      */
     this.getResizedImage = function (url, options) {
-        var columnWidth = App.layoutEngine.width(),
-            width = options.width || columnWidth,
-            height = options.height || width * 2,
-            multiplier = (options.multiplier || 1.1);
+        var width = options.width,
+            height = options.height,
+            multiplier = options.multiplier || 1;
+        options = {};
 
         // Round to the nearest whole hundred pixel dimension;
         // prevents creating a ridiculous number of images.
-        if (width > height) {
-            height = (height / width) * columnWidth;
-            height = Math.ceil((height * multiplier) / 100.0) * 100;
-            options.height = height;
-        } else {
+        if ((width && !height) || height > width) {
             width = Math.ceil((width * multiplier) / 100.0) * 100;
             options.width = width;
+        } else if ((height && !width) || width > height) {
+            options.height = Math.ceil((height * multiplier) / 100.0) * 100;
+        } else {
+            options.width = App.layoutEngine.width();
         }
 
         options = _.extend({
@@ -274,7 +293,7 @@ App.module("utils", function (utils, App) {
         if (url.indexOf('c_fit') > -1) {
             // Transformation has been applied to this url, Cloudinary is not smart
             // with these, so lets be instead.
-            url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+?)\/v1/, "");
+            url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, "/");
         }
 
         url = url.replace(App.CLOUDINARY_DOMAIN, ""); // remove absolute uri

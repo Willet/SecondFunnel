@@ -784,11 +784,9 @@ App.module('core', function (module, App) {
             image = new App.core.Image(image);
 
             if (App.support.mobile()) {
-                image.url = image.width($window.width());
+                image.url = image.height($window.height());
             } else {
-                image = image.width(undefined, {
-                    multiplier: 1.5
-                });
+                image = image.height(App.utils.getViewportSized(), true);
             }
 
             // templates use this as obj.image.url

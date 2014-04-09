@@ -218,6 +218,7 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         """(readonly) representation of the content graph timestamp"""
         return unicode(calendar.timegm(self.updated_at.utctimetuple()) * 1000)
 
+
 class Store(BaseModel):
     staff = models.ManyToManyField(User, related_name='stores')
 
@@ -225,7 +226,7 @@ class Store(BaseModel):
     description = models.TextField(blank=True, null=True)
     slug = models.CharField(max_length=64)
 
-    default_theme = models.ForeignKey('Theme', related_name='store', blank=True, null=True)
+    default_theme = models.ForeignKey('Theme', related_name='store', blank=True, null=True, on_delete=models.SET_NULL)
 
     public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com",
                                       blank=True, null=True)
@@ -257,7 +258,7 @@ class Product(BaseModel):
                                              # ... or, maybe a composite field with currency too
 
     default_image = models.ForeignKey('ProductImage', related_name='default_image',
-                                      blank=True, null=True)
+                                      blank=True, null=True, on_delete=models.SET_NULL)
 
     last_scraped_at = models.DateTimeField(blank=True, null=True)
 

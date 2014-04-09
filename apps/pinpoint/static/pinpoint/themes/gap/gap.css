@@ -360,7 +360,6 @@ div.header {
     /* limit how big preview images can be */
     max-width: 99%;
     max-height: 99%;
-    width: 99%;
 }
 
 .social-buttons .facebook {

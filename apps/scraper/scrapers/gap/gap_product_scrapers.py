@@ -18,7 +18,9 @@ class GapProductScraper(ProductDetailScraper):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.get_regex()[0], url).group(1)
 
     def scrape(self, url, product, values, **kwargs):
+        print('loading ' + url)
         self.driver.get(url)
+        print('loaded')
         try:
             product.name = self.driver.find_element_by_class_name('productName').text
         except NoSuchElementException:
@@ -64,14 +66,21 @@ class GapProductScraper(ProductDetailScraper):
 
         if values.get('category', None):
             self._add_to_category(product, values.get('category', None))
-        if valuesg.get('sub_category', None):
+        if values.get('sub_category', None):
             self._add_to_category(product, values.get('sub_category', None))
 
-        self._get_images(self.driver.page_source, product)
+        images = self._get_images(self.driver.page_source, product)
+        if len(images) > 0:
+            product.default_image = images[0]
+            product.save()
 
         yield product
 
     def _get_images(self, product_data_page, product):
+        """
+        Retrieves the images for the specified product from the gap website
+        Removes all old product images from the product by deleting them
+        """
         images = []
         picture_groups = re.finditer(re.compile(r"styleColorImagesMap\s*=\s*\{\s*([^\}]*)\}\s*;", flags=re.MULTILINE|re.DOTALL), product_data_page)
         for group_match in picture_groups:
@@ -85,34 +94,15 @@ class GapProductScraper(ProductDetailScraper):
                         url = 'http://www.gap.com' + url
                     images.append(self._process_image(url, product))
 
-        print('magic tile')
-        print(Tile.objects.get(id=726).products.all()[0].to_json())
-
-        product.default_image = images[0]
-
-        print(product.default_image.to_json())
-
-        print('\n\n\n')
-
-        for image in images:
-            print(image.id)
-
-        print('\n\n\n')
-
-        for image in product.product_images.all():
-            print(image.id)
-
-        print('\n\n\n')
+        if len(images) == 0:
+            return images
 
         for image in product.product_images.exclude(id__in=[image.id for image in images]):
             print(image.id)
             print(image.to_json())
             image.delete()
 
-        print('\n\n\n')
-
-        print('magic tile')
-        print(Tile.objects.get(id=726).products.all()[0].to_json())
+        return images
 
 
 class GapCategoryScraper(ProductCategoryScraper):

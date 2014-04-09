@@ -48,7 +48,10 @@ class MadewellProductScraper(ProductDetailScraper):
         if values.get('sub_category', None):
             self._add_to_category(product, values.get('sub_category', None), values.get('sub_category_url'))
 
-        self._get_images(self.driver, product)
+        images = self._get_images(self.driver, product)
+        if len(images) > 0:
+            product.default_image = images[0]
+            product.save()
 
         yield product
 
@@ -63,10 +66,13 @@ class MadewellProductScraper(ProductDetailScraper):
             image = driver.find_element_by_class_name('prod-main-img').get_attribute('src')
             images.append(self._process_image(image, product))
 
-        product.default_image = images[0]
+        if len(images) == 0:
+            return images
 
         for image in product.product_images.exclude(id__in=[image.id for image in images]):
             image.delete()
+
+        return images
 
 
 
