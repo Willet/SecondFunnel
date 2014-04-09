@@ -80,31 +80,6 @@ class ProductScraper(Scraper):
             product = Product.objects.get(store=self.store, url=url)
         except Product.DoesNotExist:
             product = Product(store=self.store, url=url)
-        except Product.MultipleObjectsReturned:
-            #temporary fix for multiple products with the same url
-            products = Product.objects.filter(store=self.store, url=url)
-            product1 = products[0]
-            product2 = products[1]
-
-            #change all refrences from the second product to the first product
-            contents = Content.objects.filter(tagged_products=product2)
-            for content in contents:
-                content.tagged_products.remove(product2)
-                content.tagged_products.add(product1)
-            tiles = Tile.objects.filter(products=product2)
-            for tile in tiles:
-                tile.products.remove(product2)
-                tile.products.add(product1)
-            reviews = Review.objects.filter(product=product2)
-            for review in reviews:
-                review.product = product1
-            categories = Category.objects.filter(products=product2)
-            for category in categories:
-                category.products.remove(product2)
-                category.products.add(product1)
-            #remove product after removing refrences to product
-            product2.delete()
-            return product1
 
         return product
 
