@@ -1,7 +1,7 @@
 
 from selenium import webdriver
 
-from apps.assets.models import Category, ProductImage, Product, Content, Tile, Review
+from apps.assets.models import Category, ProductImage, Product
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 
