@@ -56,7 +56,9 @@ class GapProductScraper(ProductDetailScraper):
         # retrieving the major category for the product
         try:
             category_elem = self.driver.find_element_by_xpath('//li/a[contains(@class, "_selected")]')
-            category_url = 'http://www.gap.com' + category_elem.get_attribute('href')
+            category_url = category_elem.get_attribute('href')
+            if category_url.startswith('/'):
+                category_url = 'http://www.gap.com' + category_url
             category_name = category_elem.text.lower()
             if category_name == 'body' or category_name == 'gapfit' or category_name == 'maternity':
                 self._add_to_category(product, 'women', 'http://www.gap.com/browse/subDivision.do?cid=5646')
