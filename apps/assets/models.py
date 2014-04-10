@@ -359,7 +359,7 @@ class Content(BaseModel):
 
     # "approved", "rejected", "needs-review"
     status = models.CharField(max_length=255, blank=True, null=True,
-                              default="approved",
+                              default="needs-review",
                               validators=[_validate_status])
 
     _attribute_map = BaseModel._attribute_map + (
