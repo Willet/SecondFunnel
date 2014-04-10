@@ -4,6 +4,8 @@ from selenium.common.exceptions import NoSuchElementException
 
 from apps.scraper.scrapers.scraper import ProductDetailScraper, ProductCategoryScraper
 
+from apps.assets.models import Tile
+
 
 class GapProductScraper(ProductDetailScraper):
     sku_regex = r'^http://www\.gap\.com/browse/product\.do\?pid=(\d{6})$'
@@ -15,7 +17,7 @@ class GapProductScraper(ProductDetailScraper):
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.get_regex()[0], url).group(1)
 
-    def scrape(self, url, product, **kwargs):
+    def scrape(self, url, product, values, **kwargs):
         print('loading ' + url)
         self.driver.get(url)
         print('loaded')
@@ -25,6 +27,18 @@ class GapProductScraper(ProductDetailScraper):
             yield product
             return
 
+        # retrieve the price of the product
+        try:
+            product.price = self.driver.find_element_by_xpath('//span[@id="priceText"]/strike').text
+        except NoSuchElementException:
+            product.price = self.driver.find_element_by_id('priceText').text
+
+        # retrieve the sale price of the product
+        try:
+            sale_price = self.driver.find_element_by_xpath('//span[@id="priceText"]/span[@class="salePrice"]').text
+            product.attributes.update({'sale_price': sale_price})
+        except NoSuchElementException:
+            pass
         try:
             sale_price_text = self.driver.find_element_by_id('productPageMupMessageStyle').text
             match = re.match(r'Now (\$\d+\.\d{2})', sale_price_text)
@@ -33,12 +47,31 @@ class GapProductScraper(ProductDetailScraper):
                 product.attributes.update({'sale_price': sale_price})
         except NoSuchElementException:
             pass
+
         product.sku = re.match(self.sku_regex, product.url).group(1)
         product.description = self.driver.find_element_by_id('tabWindow').get_attribute("innerHTML")
-        product.price = self.driver.find_element_by_id('priceText').text
-        self.driver.get('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
 
         product.save()
+
+        # retrieving the major category for the product
+        try:
+            category_elem = self.driver.find_element_by_xpath('//li/a[contains(@class, "_selected")]')
+            category_url = category_elem.get_attribute('href')
+            if category_url.startswith('/'):
+                category_url = 'http://www.gap.com' + category_url
+            category_name = category_elem.text.lower()
+            if category_name == 'body' or category_name == 'gapfit' or category_name == 'maternity':
+                self._add_to_category(product, 'women', 'http://www.gap.com/browse/subDivision.do?cid=5646')
+            self._add_to_category(product, category_name, category_url)
+        except NoSuchElementException:
+            pass
+
+        if values.get('category', None):
+            self._add_to_category(product, values.get('category', None))
+        if values.get('sub_category', None):
+            self._add_to_category(product, values.get('sub_category', None))
+
+        self.driver.get('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
 
         images = self._get_images(self.driver.page_source, product)
         if len(images) > 0:
@@ -83,8 +116,16 @@ class GapCategoryScraper(ProductCategoryScraper):
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.get_regex()[0], url).group(1)
 
-    def scrape(self, url, **kwargs):
+    def scrape(self, url, values, **kwargs):
         self.driver.get(url)
+
+        # get category name
+        try:
+            values['category'] = self.driver.find_element_by_xpath('//span[@id="subcatname"]').text.strip()
+        except NoSuchElementException:
+            pass
+
+        # get number of pages
         try:
             page_text = self.driver.find_element_by_xpath('//label[@class="pagePaginatorLabel"]').text
             if page_text:
@@ -96,17 +137,31 @@ class GapCategoryScraper(ProductCategoryScraper):
         page = 0
         while page < pages:
             self.driver.get(url + '#pageId=' + str(page))
-            for product_elem in self.driver.find_elements_by_xpath('//div[@id="mainContent"]//ul/li/div/a'):
-                href = product_elem.get_attribute('href')
-                match = re.match(self.product_sku_regex, href)
-                if not match:
-                    continue
-                sku = match.group(1)
-                product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
-                name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
 
-                product = self._get_product(product_url)
-                product.sku = sku
-                product.name = name
-                yield product
+            # get all sub categories on the page
+            try:
+                sub_categories = self.driver.find_elements_by_xpath('//div[@id="mainContent"]//div[@class="clearfix"]/h2')
+            except NoSuchElementException:
+                sub_categories = []
+
+            product_groups = self.driver.find_elements_by_xpath('//div[@id="mainContent"]//div[@class="clearfix"]/ul')
+
+            for i in range(len(product_groups)):
+                if sub_categories:
+                    values['sub_category'] = sub_categories[i].text
+                else:
+                    values['sub_category'] = None
+                for product_elem in product_groups[i].find_elements_by_xpath('./li/div/a'):
+                    href = product_elem.get_attribute('href')
+                    match = re.match(self.product_sku_regex, href)
+                    if not match:
+                        continue
+                    sku = match.group(1)
+                    product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
+                    name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
+
+                    product = self._get_product(product_url)
+                    product.sku = sku
+                    product.name = name
+                    yield product
             page += 1

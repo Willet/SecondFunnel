@@ -14,7 +14,7 @@ class Scraper(object):
     """
     Base class for all scrapers
 
-    The value variable is a dictionary that is passed around by the controller
+    The values variable is a dictionary that is passed around by the controller
     to all functions in the scraper and to all sub-scrapers, it can be added to
     by any function and is not changed by the controller
     """
@@ -115,7 +115,6 @@ class ProductScraper(Scraper):
 
         return image
 
-
     def _add_to_category(self, product, name=None, url=None):
         """
         This function will add the product to the category specified by
@@ -126,17 +125,27 @@ class ProductScraper(Scraper):
         if url is None and name is None:
             raise ScraperException('at least one of url or name must be provided to add to a category')
 
+        if not name:
+            name = ''
+        
+        name = name.lower()
+
         try:
-            if url is None:
-                category = Category.objects.get(store=self.store, name=name)
-            else:
+            if not name:
                 category = Category.objects.get(store=self.store, url=url)
+            else:
+                category = Category.objects.get(store=self.store, name__iexact=name)
         except Category.DoesNotExist:
             # if the category does not exist, create it
-            if url is None or name is None:
-                raise ScraperException('url and name must be provided if category does not exist')
-            category = Category(store=self.store, name=name, url=url)
-            category.save()
+            if not name:
+                raise ScraperException('name must be provided if category does not exist')
+            category = Category(store=self.store, name=name)
+
+        if url:
+            category.url = url
+        if name:
+            category.name = name
+        category.save()
 
         # add the product to the category
         category.products.add(product)
