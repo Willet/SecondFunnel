@@ -61,7 +61,7 @@ class GapProductScraper(ProductDetailScraper):
             if category_url.startswith('/'):
                 category_url = 'http://www.gap.com' + category_url
             # using innerHTML because category_elem.text does not seem to work here
-            category_name = category_elem.get_attribute('innerHTML')
+            category_name = category_elem.get_attribute('innerHTML').replace('<p>', '').replace('</p>', '')
             if category_name == 'body' or category_name == 'gapfit' or category_name == 'maternity':
                 self._add_to_category(product, 'women', 'http://www.gap.com/browse/subDivision.do?cid=5646')
             else:
