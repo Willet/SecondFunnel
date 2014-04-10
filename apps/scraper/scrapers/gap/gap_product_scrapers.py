@@ -38,15 +38,16 @@ class GapProductScraper(ProductDetailScraper):
             sale_price = self.driver.find_element_by_xpath('//span[@id="priceText"]/span[@class="salePrice"]').text
             product.attributes.update({'sale_price': sale_price})
         except NoSuchElementException:
-            pass
-        try:
-            sale_price_text = self.driver.find_element_by_id('productPageMupMessageStyle').text
-            match = re.match(r'Now (\$\d+\.\d{2})', sale_price_text)
-            if match:
-                sale_price = match.group(1)
-                product.attributes.update({'sale_price': sale_price})
-        except NoSuchElementException:
-            pass
+            try:
+                sale_price_text = self.driver.find_element_by_id('productPageMupMessageStyle').text
+                match = re.match(r'Now (\$\d+\.\d{2})', sale_price_text)
+                if match:
+                    sale_price = match.group(1)
+                    product.attributes.update({'sale_price': sale_price})
+                else:
+                    product.attributes.pop('sales_price', None)
+            except NoSuchElementException:
+                product.attributes.pop('sales_price', None)
 
         product.sku = re.match(self.sku_regex, product.url).group(1)
         product.description = self.driver.find_element_by_id('tabWindow').get_attribute("innerHTML")
@@ -59,10 +60,12 @@ class GapProductScraper(ProductDetailScraper):
             category_url = category_elem.get_attribute('href')
             if category_url.startswith('/'):
                 category_url = 'http://www.gap.com' + category_url
-            category_name = category_elem.text.lower()
+            # using innerHTML because category_elem.text does not seem to work here
+            category_name = category_elem.get_attribute('innerHTML')
             if category_name == 'body' or category_name == 'gapfit' or category_name == 'maternity':
                 self._add_to_category(product, 'women', 'http://www.gap.com/browse/subDivision.do?cid=5646')
-            self._add_to_category(product, category_name, category_url)
+            else:
+                self._add_to_category(product, category_name, category_url)
         except NoSuchElementException:
             pass
 

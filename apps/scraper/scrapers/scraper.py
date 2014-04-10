@@ -148,6 +148,7 @@ class ProductScraper(Scraper):
         category.save()
 
         # add the product to the category
+        print('adding product to category ' + name)
         category.products.add(product)
 
         return category
