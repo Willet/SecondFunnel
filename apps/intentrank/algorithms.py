@@ -19,7 +19,8 @@ def ir_base(feed, **kwargs):
 
     returns {QuerySet}  which is not a list
     """
-    qs = feed.tiles.filter(products__in_stock=True)
+    qs = (feed.tiles.filter(products__in_stock=True)
+                    .filter(content__tagged_products__in_stock=True))
 
     if kwargs:  # filter additional
         qs = qs.filter(**kwargs)
