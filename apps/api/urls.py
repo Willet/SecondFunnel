@@ -99,7 +99,7 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
 
     # image service graph alias (needed for proxy)
-    url(r'%s/imageservice/create/?$' % prefix, imageservice_create),
+    url(r'%s/imageservice/' % prefix, include('apps.imageservice.urls')),
 
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/generate/?$' % prefix, 'generate_static_page', name='generate_static_page'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/transfer/?$' % prefix, 'transfer_static_page', name='transfer_static_page'),

@@ -3,35 +3,43 @@
 <html lang="en">
 <head>
     {% include "pinpoint/campaign_opengraph_tags.html" %}
+    {% include "pinpoint/campaign_head.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
+        var algo_cookie;
+        if (Math.random() < 0.5) {
+            algo_cookie = "A";
+            PAGES_INFO['IRAlgo'] = "generic";
+        } else {
+            algo_cookie = "B";
+            PAGES_INFO['IRAlgo'] = "finite_popular";
+        }
         window.OPTIMIZER_TESTS = [];
         window.OPTIMIZER_TESTS.push({
             index: 9,
             test: 'custom',
             disabled: true,
-            custom: function (template) {
-                template = template || _.sample(["A", "B"]);
-                if (template === "B") {
+            custom: function (cookie) {
+                cookie = cookie || _.sample(["A", "B"]);
+                if (cookie === "B") {
                     App.options.categories = ["home", "mens", "womens"];
                 }
-                return template;
+                return cookie;
             }
         });
         window.OPTIMIZER_TESTS.push({
             index: 10,
             test: 'custom',
-            custom: function (template) {
-                template = template || _.sample(["A", "B"]);
-                if (template === "B") {
+            custom: function (cookie) {
+                cookie = algo_cookie;
+                if (cookie === "B") {
                     App.intentRank.options.IRAlgo = "finite_popular";
                 }
-                return template;
+                return cookie;
             }
         });
     </script>
     <!-- End Optimizer Tests -->
-    {% include "pinpoint/campaign_head.html" %}
     <link rel="shortcut icon"
          href="http://www.gap.com/favicon.ico" />
     <link rel="stylesheet"

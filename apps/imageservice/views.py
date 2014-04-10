@@ -17,28 +17,22 @@ def has_image_key(fn):
     Decorator that checks for the file being present and reads it into
     a string provided it exists, otherwise throws an error.
     """
-
     def wrapped_function(request, *args, **kwargs):
         """
         Wrapper that calls the view.
         """
-        img = None
-
-        url = request.POST.get('url', None)
-        fileObj = request.FILES.get('file', None)
-
-        if url and fileObj:
-            raise Exception("Expected one file, found multiple.")
-
-        if not url and not fileObj:
-            raise Exception("Expected one of url or file, found nothing.")
-
-        img = url if url else fileObj
+        img, data = None, {}
 
         try:
-            data = fn(request, img, *args, **kwargs)
-            return HttpResponse(json.dumps(data), content_type="application/json",
-                status=200)
+            if len(request.FILES.keys()) > 0:
+                files = request.FILES.values()
+                data = []
+                for f in files:
+                    data.append(fn(request, f, *args, **kwargs))
+                data = data[0] if len(data) == 1 else data
+            elif request.POST.get('url', None):
+                data = fn(request, request.POST.get('url'), *args, **kwargs)
+            return HttpResponse(json.dumps(data), content_type="application/json", status=200)
 
         except Exception as e:
             return HttpResponse(json.dumps({
@@ -54,7 +48,8 @@ def has_image_key(fn):
 @csrf_exempt
 @login_required
 @require_http_methods(["POST"])
-def create(request):
+@has_image_key
+def create(request, img):
     """
     Processes an image and uploads it to the specified MEDIA_URL.
 
@@ -62,8 +57,6 @@ def create(request):
     @param img: str
     @return: HttpResponse
     """
-    img = request.FILES['file']
-
     path = settings.MEDIA_URL
     data = process_image(img, path)
 
@@ -90,8 +83,7 @@ def create_image(request, img, store_id, source):
     store = Store.objects.get(pk=store_id)
 
     # Get the last old id to use for this object
-    # TODO: This will eventually be phased out
-    image = Image(original_url=request.POST['url'], attributes=data['sizes'],
+    image = Image(original_url=request.POST.get('url'), attributes=data['sizes'],
         dominant_color=data['dominant-color'], url=data['url'], store=store,
         source=source, file_type=data['format'])
 
