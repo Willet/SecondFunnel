@@ -13,14 +13,9 @@ from apps.intentrank.utils import ajax_jsonp
 
 
 def has_image_key(fn):
-    """
-    Decorator that checks for the file being present and reads it into
-    a string provided it exists, otherwise throws an error.
-    """
+    """Decorator that ensures a file or url was passed."""
     def wrapped_function(request, *args, **kwargs):
-        """
-        Wrapper that calls the view.
-        """
+        """Wrapper that calls the view."""
         img, data = None, {}
 
         try:
