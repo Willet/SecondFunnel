@@ -1,8 +1,6 @@
 from itertools import ifilter
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, tostring
-from django.core.urlresolvers import reverse
-from django.template.defaulttags import url
 
 try:
     from collections import OrderedDict
@@ -18,7 +16,7 @@ from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
 
 from apps.assets.models import Page, Tile
-from apps.pinpoint.utils import render_campaign, get_store_from_request
+from apps.pinpoint.utils import render_campaign, get_store_from_request, read_a_file
 
 
 @login_required
@@ -186,6 +184,28 @@ def product_feed(request, page_slug):
 
     feed = tostring(root, 'utf-8')
     pretty_feed = minidom.parseString(feed).toprettyxml(indent='\t')
+
+    # TODO: Remove this code after the livedin campaign is finished
+    # This code is being included so that past visitors may still be retargeted
+    if page_slug == 'livedin':
+        old_feed = read_a_file(
+            'apps/pinpoint/static/pinpoint/legacy/lived_in.xml'
+        )
+        start_item = '<item>\n'
+        end_item = '</item>\n'
+
+        items = old_feed[
+            old_feed.find(start_item):
+            old_feed.rfind(end_item)+len(end_item)
+        ]
+
+        revised_feed = ''
+        for line in pretty_feed.split('\n'):
+            if '</channel>' in line:
+                revised_feed += items
+            revised_feed += line + '\n'
+
+        pretty_feed = revised_feed
 
     return HttpResponse(pretty_feed, content_type='application/rss+xml')
 
