@@ -88,12 +88,13 @@ def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
-    tiles = (tiles.order_by('created_at')
-                  .select_related()
-                  .prefetch_related('content', 'products')
-                  .order_by('-priority', '?'))
+    tiles = list(tiles.select_related()
+                      .prefetch_related('content', 'products')
+                      .order_by('-priority'))
 
-    tiles = list(tiles[:results])
+    real_random.shuffle(tiles)
+
+    tiles = tiles[:results]
 
     print "{0} tile(s) were manually prioritized by {1}".format(
         len(tiles), prioritized_set or 'nothing')
@@ -154,16 +155,14 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
-    tiles = (tiles.select_related()
-                  .prefetch_related('content', 'products')
-                  # "Note: order_by('?') queries may be expensive and slow..."
-                  .order_by("?"))
+    tiles = list(tiles.select_related()
+                      .prefetch_related('content', 'products'))
 
-    tiles = list(tiles[:results])
+    real_random.shuffle(tiles)
+    tiles = tiles[:results]
 
     print "{0} tile(s) were randomly added".format(len(tiles))
 
-    real_random.shuffle(tiles)
     return tiles
 
 
