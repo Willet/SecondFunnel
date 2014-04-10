@@ -283,6 +283,11 @@ class Product(BaseModel):
             match = re.match(r'\-?\$\ ?(?:\d{1,3}(?:,\d{3})+|\d*)(?:\.\d{1,2})?', self.price)
             if not match:
                 raise ValidationError('Product price does not validate')
+        sale_price = self.attributes.get('sale_price', None)
+        if sale_price:
+            match = re.match(r'\-?\$\ ?(?:\d{1,3}(?:,\d{3})+|\d*)(?:\.\d{1,2})?', sale_price)
+            if not match:
+                raise ValidationError('Product sale price does not validate')
 
     def to_json(self):
         return self.serializer().to_json([self])
