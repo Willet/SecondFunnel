@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'Product.in_stock'
         db.add_column(u'assets_product', 'in_stock',
-                      self.gf('django.db.models.fields.NullBooleanField')(default=True, null=True, blank=True),
+                      self.gf('django.db.models.fields.BooleanField')(default=True),
                       keep_default=False)
 
 
@@ -86,7 +86,7 @@ class Migration(SchemaMigration):
             'description': ('django.db.models.fields.TextField', [], {'default': "''", 'null': 'True', 'blank': 'True'}),
             'details': ('django.db.models.fields.TextField', [], {'default': "''", 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'in_stock': ('django.db.models.fields.NullBooleanField', [], {'default': 'True', 'null': 'True', 'blank': 'True'}),
+            'in_stock': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'last_scraped_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '1024'}),
             'price': ('django.db.models.fields.CharField', [], {'max_length': '16'}),
