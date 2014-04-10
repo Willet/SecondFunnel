@@ -202,7 +202,6 @@ def product_feed(request, page_slug):
         revised_feed = ''
         for line in pretty_feed.split('\n'):
             if '</channel>' in line:
-                print line
                 revised_feed += items
             revised_feed += line + '\n'
 
