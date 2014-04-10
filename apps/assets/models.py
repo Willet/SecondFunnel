@@ -2,6 +2,7 @@ import calendar
 import math
 import datetime
 import pytz
+import re
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -276,6 +277,12 @@ class Product(BaseModel):
         super(Product, self).__init__(*args, **kwargs)
         if not self.attributes:
             self.attributes = {}
+
+    def clean(self):
+        if self.price:
+            match = re.match(r'\-?\$\ ?(?:\d{1,3}(?:,\d{3})+|\d*)(?:\.\d{1,2})?', self.price)
+            if not match:
+                raise ValidationError('Product price does not validate')
 
     def to_json(self):
         return self.serializer().to_json([self])
