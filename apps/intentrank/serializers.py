@@ -97,7 +97,7 @@ class ContentSerializer(RawSerializer):
 
         for product in (obj.tagged_products
                             .select_related('default_image', 'product_images')
-                            .all()):
+                            .filter(in_stock=True)):
             try:
                 if self.expand_products:
                     data['related-products'].append(product.to_json())
