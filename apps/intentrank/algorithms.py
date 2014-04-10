@@ -14,6 +14,18 @@ def ids_of(tiles):  # shorthand (got too annoying)
     return [getattr(tile, 'old_id', getattr(tile, 'id')) for tile in tiles]
 
 
+def ir_base(feed, **kwargs):
+    """Common algo for removes tiles that no IR algorithm will ever serve.
+
+    returns {QuerySet}  which is not a list
+    """
+    qs = feed.tiles.filter(products__in_stock=True)
+
+    if kwargs:  # filter additional
+        qs = qs.filter(**kwargs)
+    return qs
+
+
 def ir_all(feed, *args, **kwargs):
     """sample whichever ones come last"""
     return list(feed.tiles.all())
@@ -32,7 +44,7 @@ def ir_first(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         tile_filter.update({'id__in': allowed_set})
 
     prioritized_tiles = list(
-        feed.tiles
+        ir_base(feed)
         .filter(**tile_filter)
         .order_by('updated_at')
         .select_related()
@@ -54,7 +66,7 @@ def ir_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if allowed_set:
         tile_filter.update({'id__in': allowed_set})
 
-    return list(feed.tiles.filter(**tile_filter).order_by('id')[:-results])
+    return list(ir_base(feed).filter(**tile_filter).order_by('id')[:-results])
 
 
 def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
@@ -70,7 +82,7 @@ def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if allowed_set:
         tile_filter.update({'id__in': allowed_set})
 
-    tiles = feed.tiles.filter(**tile_filter)
+    tiles = ir_base(feed).filter(**tile_filter)
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
@@ -108,7 +120,7 @@ def ir_priority_sorted(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if allowed_set:
         tile_filter.update({'id__in': allowed_set})
 
-    tiles = feed.tiles.filter(**tile_filter)
+    tiles = ir_base(feed).filter(**tile_filter)
 
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
@@ -136,7 +148,7 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if allowed_set:
         tile_filter.update({'id__in': allowed_set})
 
-    tiles = feed.tiles.filter(**tile_filter)
+    tiles = ir_base(feed).filter(**tile_filter)
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
@@ -166,7 +178,7 @@ def ir_created_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if allowed_set:
         tile_filter.update({'id__in': allowed_set})
 
-    tiles = feed.tiles.filter(**tile_filter)
+    tiles = ir_base(feed).filter(**tile_filter)
 
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
@@ -206,7 +218,7 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if allowed_set:
         tile_filter.update({'id__in': allowed_set})
 
-    tiles = feed.tiles.filter(**tile_filter)
+    tiles = ir_base(feed).filter(**tile_filter)
 
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
@@ -372,7 +384,7 @@ def ir_finite_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tiles = feed.tiles.all()
+    tiles = ir_base(feed)
     tiles = sorted(tiles, key=lambda tile: tile.click_score(), reverse=True)
 
     print "Returning popular tiles {0} through {1}".format(

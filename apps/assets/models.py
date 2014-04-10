@@ -262,6 +262,9 @@ class Product(BaseModel):
 
     last_scraped_at = models.DateTimeField(blank=True, null=True)
 
+    # keeps track of if/when a product is available but ran out
+    in_stock = models.NullBooleanField(default=True)
+
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
     # currently known used attrs:
