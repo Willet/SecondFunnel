@@ -177,7 +177,7 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 
 def ir_created_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                    exclude_set=None, allowed_set=None):
+                    exclude_set=None, allowed_set=None, *args, **kwargs):
     """Return most recently-created tiles in the feed, except the ones in
     exclude_set, which is a list of old id integers.
     """
@@ -293,13 +293,13 @@ def ir_generic(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                 exclude_set=prioritized_tile_ids)
             exclude_set += ids_of(prioritized_tiles)
 
-            # fill the first two rows with (8) tiles that are known to be new
-            new_tiles = ir_created_last(feed=feed, exclude_set=exclude_set,
-                                        allowed_set=allowed_set,
-                                        results=num_new_tiles_to_autoprioritize)
-            real_random.shuffle(new_tiles)
-
-            prioritized_tiles += new_tiles
+    # fill the first two rows with (8) tiles that are known to be new
+    if request and request.GET.get('reqNum', 0) in [0, '0']:
+        new_tiles = ir_created_last(feed=feed, exclude_set=exclude_set,
+                                    allowed_set=allowed_set,
+                                    results=num_new_tiles_to_autoprioritize)
+        real_random.shuffle(new_tiles)
+        prioritized_tiles += new_tiles
 
     if len(prioritized_tiles) >= results:
         return prioritized_tiles[:results]
