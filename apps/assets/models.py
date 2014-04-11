@@ -279,13 +279,14 @@ class Product(BaseModel):
             self.attributes = {}
 
     def clean(self):
+        price_regex = re.compile(r'\$\ ?(?:\d{1,3}(?:,\d{3})+|\d*)(?:\.\d{1,2})?')
         if self.price:
-            match = re.match(r'\-?\$\ ?(?:\d{1,3}(?:,\d{3})+|\d*)(?:\.\d{1,2})?', self.price)
+            match = re.match(price_regex, self.price)
             if not match:
                 raise ValidationError('Product price does not validate')
         sale_price = self.attributes.get('sale_price', None)
         if sale_price:
-            match = re.match(r'\-?\$\ ?(?:\d{1,3}(?:,\d{3})+|\d*)(?:\.\d{1,2})?', sale_price)
+            match = re.match(price_regex, sale_price)
             if not match:
                 raise ValidationError('Product sale price does not validate')
 
