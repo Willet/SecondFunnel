@@ -545,7 +545,10 @@ class Feed(BaseModel):
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
 
     def __unicode__(self):
-        return 'Feed (#%s), page: %s' % (self.id, self.page.get().name)
+        try:
+            return 'Feed (#%s), page: %s' % (self.id, self.page.get().name)
+        except ObjectDoesNotExist:
+            return 'Feed (#%s)' % self.id
 
     # and other representation specific of the Feed itself
     def to_json(self):
