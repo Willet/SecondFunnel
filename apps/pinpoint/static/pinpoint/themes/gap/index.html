@@ -949,9 +949,9 @@
                         );
 
                         analyticsTile = {
-                            'url': obj.get('image').get('url'),
+                            'url': obj.get('image').url,
                             'id': obj.get('tile-id'),
-                            'type': obj.get('type')
+                            'type': obj.get('template')
                         };
 
                         analyticsPage = _.pick(
