@@ -7,6 +7,7 @@ from functools import partial
 import random as real_random
 
 from django.conf import settings
+from apps.assets.models import Tile
 from apps.utils.functional import result
 
 
@@ -19,9 +20,16 @@ def ir_base(feed, **kwargs):
 
     returns {QuerySet}  which is not a list
     """
-    qs = (feed.tiles.filter(products__in_stock=True)
-                    .filter(content__tagged_products__in_stock=True)
-                    .distinct())
+    qs = feed.tiles.filter(products__in_stock=True)
+
+    # "filter out all content tiles for which none of the content's
+    # tagged products are in stock"
+    tids = []
+    for tile in qs.all():
+        if any(tile.content.values_list('tagged_products__in_stock', flat=True)):
+            tids.append(tile.id)
+
+    qs = Tile.objects.filter(id__in=tids)
 
     if kwargs:  # filter additional
         qs = qs.filter(**kwargs)
@@ -68,7 +76,8 @@ def ir_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if allowed_set:
         tile_filter.update({'id__in': allowed_set})
 
-    return list(ir_base(feed).filter(**tile_filter).order_by('id')[:-results])
+    tiles = ir_base(feed).filter(**tile_filter).order_by('id')
+    return list(tiles.reverse()[:results])
 
 
 def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
@@ -88,13 +97,11 @@ def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
-    tiles = list(tiles.select_related()
-                      .prefetch_related('content', 'products')
-                      .order_by('-priority'))
+    tiles = (tiles.select_related()
+                  .prefetch_related('content', 'products')
+                  .order_by('-priority', '?'))
 
-    real_random.shuffle(tiles)
-
-    tiles = tiles[:results]
+    tiles = list(tiles[:results])
 
     print "{0} tile(s) were manually prioritized by {1}".format(
         len(tiles), prioritized_set or 'nothing')
@@ -155,11 +162,11 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
-    tiles = list(tiles.select_related()
-                      .prefetch_related('content', 'products'))
+    tiles = (tiles.select_related()
+                  .prefetch_related('content', 'products')
+                  .order_by('?'))
 
-    real_random.shuffle(tiles)
-    tiles = tiles[:results]
+    tiles = list(tiles[:results])
 
     print "{0} tile(s) were randomly added".format(len(tiles))
 
