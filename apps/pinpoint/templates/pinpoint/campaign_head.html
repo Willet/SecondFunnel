@@ -19,15 +19,21 @@
     (function() {
         // http://stackoverflow.com/questions/8567114/how-to-make-an-ajax-call-without-jquery
         // Initial call to IR
+        if ((!PAGES_INFO.IRReqNum) || (PAGES_INFO.IRReqNum === undefined)) {
+            PAGES_INFO.IRReqNum = 0;
+        }
+
         if (!(PAGES_INFO.initialResults && PAGES_INFO.initialResults.length)) {
             // Support for IE6/5 in the event that XMLHttpRequest doesn't exist
             var xmlhttp, data;
             xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
-            xmlhttp.open("GET", "{{ campaign.ir_base_url|default:ir_base_url }}/page/{{ campaign.intentrank_id|default:campaign.old_id }}/getresults?results=10&related={{ related_to_tile }}", true);
+            xmlhttp.open("GET", "{{ campaign.ir_base_url|default:ir_base_url }}/page/{{ campaign.intentrank_id|default:campaign.id }}/getresults?results=10&algorithm={{ algorithm }}&related={{ related_to_tile }}&reqNum=0", true);
+            PAGES_INFO.IROffset += 10;
 
             xmlhttp.onload = function () {
                 // Ensures that it's resolved on 200 or 404
                 if (xmlhttp.status === 200) { // success so resolve normally
+                    PAGES_INFO.IRReqNum++;
                     PAGES_INFO.initialResults = JSON.parse(xmlhttp.response || xmlhttp.responseText);
                 }
             };
@@ -36,17 +42,9 @@
         }
     })();
 </script>
-<!--[if gte IE 9]><!-->
 {% compress js %}
    {% include "pinpoint/campaign_js.html" %}
 {% endcompress %}
-<!--<![endif]-->
-
-<!--[if lte IE 8]>
-{% compress js %}
-   {% include "pinpoint/campaign_js.html" %}
-{% endcompress %}
-<![endif]-->
 
 <script type="text/javascript">
       var lazyLoad;
@@ -62,7 +60,7 @@
 <!--Begin CSS-->
 {% compress css %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}" />
-<link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/pages2.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/base.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/5col.css' %}">
 {% endcompress css %}
 

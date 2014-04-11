@@ -3,90 +3,43 @@
 <html lang="en">
 <head>
     {% include "pinpoint/campaign_opengraph_tags.html" %}
+    {% include "pinpoint/campaign_head.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
+        var algo_cookie;
+        if (Math.random() < 0.5) {
+            algo_cookie = "A";
+            PAGES_INFO['IRAlgo'] = "generic";
+        } else {
+            algo_cookie = "B";
+            PAGES_INFO['IRAlgo'] = "finite_popular";
+        }
         window.OPTIMIZER_TESTS = [];
         window.OPTIMIZER_TESTS.push({
-            index: 1,
+            index: 9,
             test: 'custom',
-            device: 'mobile',
-            custom: function (template) {
-                template = template || _.sample(["A", "B", "C", "D"]);
-                App.options.tests = App.options.tests ? App.options.tests : {};
-                App.options.tests[1] = template;
-                return template;
-            }
-        });
-        window.OPTIMIZER_TESTS.push({
-            index: 6, // Two-column in Analytics
-            test: 'custom',
-            device: 'mobile',
             disabled: true,
-            custom: function (template) {
-                var s = $($('#two-column-css').html());
-                template = template || _.sample(["A", "B"]);
-                if (template != "A") {
-                    App.options.minColumns = 2;
-                    $('head').ready(function() {
-                        s.appendTo($('head'));
-                    });
+            custom: function (cookie) {
+                cookie = cookie || _.sample(["A", "B"]);
+                if (cookie === "B") {
+                    App.options.categories = ["home", "mens", "womens"];
                 }
-                return template;
+                return cookie;
             }
         });
         window.OPTIMIZER_TESTS.push({
-            index: 7, // Null A/B Test in Analytics
+            index: 10,
             test: 'custom',
-            device: 'mobile',
-            custom: function (template) {
-                return template || _.sample(["A", "B"]);
+            custom: function (cookie) {
+                cookie = algo_cookie;
+                if (cookie === "B") {
+                    App.intentRank.options.IRAlgo = "finite_popular";
+                }
+                return cookie;
             }
         });
-    </script>
-    <script type="text/template" id="two-column-css">
-        <style type="text/css">
-            @media only screen and (max-width: 510px) {
-                .tile {
-                    width: 50% !important;
-                }
-                .tile.wide {
-                    min-height: inherit !important;
-                }
-                .visible-xs.jumbotron {
-                    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/mobile_small.png') !important;
-                    margin: 10px 0px 10px 5px;
-                    border: none;
-                    width: 125px;
-                    height: 60px;
-                    display: inline-block !important;
-                }
-                #hero-area .overlay {
-                    position: relative !important;
-                    display: inline-block !important;
-                    left: 5px;
-                    top: 8px;
-                    right: 0px;
-                }
-                #hero-area .buttons a img {
-                    width: 27px;
-                    height: 27px;
-                }
-                #hero-area .find a {
-                    font-size: 12px;
-                }
-                #hero-area .overlay .buttons {
-                    display: inline-block;
-                    margin-right: 1px;
-                }
-                #discovery-area {
-                    width: 100% !important;
-                    overflow-x: hidden;
-                }
-            }
-        </style>
     </script>
     <!-- End Optimizer Tests -->
-    {% include "pinpoint/campaign_head.html" %}
     <link rel="shortcut icon"
          href="http://www.gap.com/favicon.ico" />
     <link rel="stylesheet"
@@ -118,11 +71,11 @@
                 <div class="container">
                     <ul class="nav navbar-nav navbar-left">
                         <li>
-                            <a class="navbar-brand gap" href="http://www.gap.com" target="_blank">&nbsp;</a>
-                            <a class="navbar-brand old_navy navbar-brand hidden-xs hidden-sm" href="http://www.oldnavy.com" target="_blank">&nbsp;</a>
-                            <a class="navbar-brand banana_republic hidden-xs hidden-sm" href="http://www.bananarepublic.com" target="_blank">&nbsp;</a>
-                            <a class="navbar-brand piperlime hidden-xs hidden-sm" href="http://www.piperlime.com" target="_blank">&nbsp;</a>
-                            <a class="navbar-brand athleta hidden-xs hidden-sm"  href="http://www.athleta.com" target="_blank">&nbsp;</a>
+                            <a data-brand="Gap" class="navbar-brand gap" href="http://www.gap.com" target="_blank">&nbsp;</a>
+                            <a data-brand="Old Navy" class="navbar-brand old_navy navbar-brand hidden-xs hidden-sm" href="http://www.oldnavy.com" target="_blank">&nbsp;</a>
+                            <a data-brand="Banana Republic" class="navbar-brand banana_republic hidden-xs hidden-sm" href="http://www.bananarepublic.com" target="_blank">&nbsp;</a>
+                            <a data-brand="Piperlime" class="navbar-brand piperlime hidden-xs hidden-sm" href="http://www.piperlime.com" target="_blank">&nbsp;</a>
+                            <a data-brand="Athleta" class="navbar-brand athleta hidden-xs hidden-sm"  href="http://www.athleta.com" target="_blank">&nbsp;</a>
                         </li>
                         <li class="other-brands dropdown hidden-md hidden-lg">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">&nbsp;</a>
@@ -236,6 +189,10 @@
 
     <div>
         <!-- generic templates -->
+        <script type="text/template" id="category_template">
+            <span><%= obj.name %></span>
+        </script>
+
         <script type="text/template" id="disabled_featured_template">
             <div class='featured product'>
                 <!-- Main Display Area -->
@@ -296,17 +253,7 @@
                                     Shop product
                                 <% } %>
                             </div>
-                            <% var validSources = ['tumblr', 'instagram', 'facebook', 'styld.by']; %>
-                            <% if (_.indexOf(validSources, obj.source) != -1) { %>
-                                <div class='author'>
-                                    <% if (obj.source == "styld.by") { %>
-                                        <%= obj.source %><%= obj.user %>
-                                    <% } else if (_.indexOf(validSources, (obj.source||'').toLowerCase()) != -1) { %>
-                                        <span class='propercase'><%= obj.source %></span>
-                                    <% } %>
-                                </div>
-                            <% } %>
-                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -356,6 +303,18 @@
             </ul>
         </script>
 
+        <script type="text/template" id="mega_tile_preview_template">
+            <div class="stl-target"></div>
+            <hr>
+            <div class="text-centered desc-title">Shop the Look</div>
+            <div class="stl-look"></div>
+        </script>
+
+        <script type="text/template" id="mobile_mega_tile_preview_template">
+            <div class="stl-target"></div>
+            <div class="stl-look"></div>
+        </script>
+
         <script type="text/template" id="tap_indicator_template">
             +
             <div>
@@ -371,18 +330,20 @@
         </script>
 
         <script type="text/template" id="twitter_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
             <% if (showCount) { %>
                 <div class='button twitter' style='height: 13px; width: 77px;'>
                     <a href="//twitter.com/share"
                        class="twitter-share-button"
-                       data-text="<%= caption || description || name %> <%= url %>"
+                       data-text="<%= cleanDesc %> <%= url %>"
                        data-lang="en" data-height= "15">
                       Tweet
                     </a>
                 </div>
             <% } else { %>
                 <div class='button twitter'>
-                    <a href="//twitter.com/share?url=<%= url %>&text=<%= caption || description || name %>"
+                    <a href="//twitter.com/share?url=<%= url %>&text=<%= cleanDesc %>"
                        target="_blank">
                         <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
                     </a>
@@ -391,8 +352,10 @@
         </script>
 
         <script type="text/template" id="pinterest_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
             <div class='button pinterest'>
-                <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= caption || description || name %>"
+                <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= cleanDesc %>"
                    target="_blank"><img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/></a>
             </div>
         </script>
@@ -408,8 +371,10 @@
         </script>
 
         <script type="text/template" id="tumblr_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
             <div class="button tumblr">
-                <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= caption || description || name %>&click_thru=<%= url %>"
+                <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= cleanDesc %>&click_thru=<%= url %>"
                      target='_blank'><img src="http://platform.tumblr.com/v1/share_1.png"/></a>
             </div>
         </script>
@@ -447,7 +412,7 @@
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
                     <div class='image'>
-                        <img src='<%= obj.defaultImage.url %>'/>
+                        <img src='<%= obj.image.url %>'/>
                     </div>
                     <% if (obj.images.length > 1) { %>
                     <div class='gallery'></div>
@@ -455,18 +420,28 @@
                 </div>
                 <div class='cell middle info col-sm-6 col-md-6'>
                     <div class='title'><%= obj.title || obj.name %></div>
-                    <div class='red marker price'><%= obj.price %></div>
+                    <div class='price<% if (obj.sale_price) { %> sale<% } %>'>
+                        <% if (obj.sale_price) { %>
+                            <div class="strike inline">
+                                <%- obj.price %>
+                            </div>
+                            <%- obj.sale_price %>
+                        <% } else { %>
+                            <%- obj.price %>
+                        <% } %>
+                    </div>
                     <div class='description'>
                         <div class='desc-title'>Overview</div>
-                        <ul>
-                            <% var sentences =
-                            _.compact(obj.description.split('.')); %>
-                            <% _.each(sentences, function(sentence) { %>
-                            <li><%= SecondFunnel.utils.safeString(sentence)
-                                %>
-                            </li>
-                            <% }); %>
-                        </ul>
+                        <% var sentences = _.compact(obj.description.split('.')); %>
+                        <% if (!obj.description.match(/<li(?:.|\n)*?>/)) { %>
+                            <ul>
+                                <% _.each(sentences, function(sentence) { %>
+                                    <li><%= SecondFunnel.utils.safeString(sentence) %></li>
+                                <% }); %>
+                            </ul>
+                        <% } else { %>
+                            <%= SecondFunnel.utils.safeString(obj.description) %>
+                        <% } %>
                     </div>
                     <div>
                         <div class="social-buttons"></div>
@@ -499,6 +474,16 @@
                         <div class='gallery'></div>
                     <% } %>
                 </div>
+            </div>
+            <div class="price<% if (obj.sale_price) { %> sale<% } %>">
+                <% if (obj.sale_price) { %>
+                    <%- obj.sale_price %>
+                    <div class="strike">
+                        <%- obj.price %>
+                    </div>
+                <% } else { %>
+                    <%- obj.price %>
+                <% } %>
             </div>
             <% if (obj.images.length === 1) { %>
             <div class="image-region no-images">
@@ -555,6 +540,16 @@
                         <% } %>
                     </div>
                 </div>
+                <div class="price<% if (product.sale_price) { %> sale<% } %>">
+                    <% if (product.sale_price) { %>
+                        <%- product.sale_price %>
+                        <div class="strike">
+                            <%- product.price %>
+                        </div>
+                    <% } else { %>
+                        <%- product.price %>
+                    <% } %>
+                </div>
                 <div class="image-region">
                     <% if (products.length > 0) { %>
                         <span class="gallery-swipe-left"></span>
@@ -584,7 +579,7 @@
                             -->
                         </div>
                     <% } else { %>
-                        <div class="img" style="background-image: url('<%= obj.defaultImage.url %>');"></div>
+                        <div class="img" style="background-image: url('<%= obj.image.url %>');"></div>
                     <% } %>
                 </div>
             </div>
@@ -596,47 +591,40 @@
             <div class="image-with-related-products">
                 <div class="row">
                     <div class="image middle cell capped-width">
-                        <img src="<%= obj.defaultImage.url %>" alt="image"/>
+                        <img src="<%= obj.image.url %>" alt="image"/>
                         <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
-                        <% var validSources = ['tumblr', 'instagram', 'facebook', 'styld.by']; %>
-                        <% if (_.indexOf(validSources, obj.source) != -1) { %>
-                            <div class='author'>
-                                <% if (obj.source == "styld.by") { %>
-                                    <%= obj.source %><a href="<%= obj['source-url']%>"><%= obj.user %></a>
-                                <% } else if (_.indexOf(validSources, (obj.source||'').toLowerCase()) != -1) { %>
-                                    <span class='propercase'><a href="<%= obj['source-url']%>"><%= obj.source %></a></span>
-                                <% } %>
-                            </div>
-                        <% } %>
                     </div>
                     <div class="middle cell center">
-                        <% if (product.images.length > 1 && App.support.mobile()) { %>
-                            <div class="main-image">
-                                <span class="gallery-swipe-left gallery-related"></span>
-                                <img class="main-image" src="<%= product.defaultImage.url %>" alt="related product"/>
-                                <span class="gallery-swipe-right gallery-related"></span>
-                            </div>
-                        <% } else { %>
-                            <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                        <% } %>
                         <% if (product.images.length > 1) { %>
+                            <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
                             <div class='gallery'></div>
                         <% } %>
                     </div>
                     <div class="middle cell">
                         <div class='title'><%= product.title || product.name%></div>
-                        <div class='price'><%= product.price %></div>
+                        <div class='price<% if (product.sale_price) { %> sale<% } %>'>
+                            <% if (product.sale_price) { %>
+                                <div class="strike inline">
+                                    <%- product.price %>
+                                </div>
+                                <%- product.sale_price %>
+                            <% } else { %>
+                                <%- product.price %>
+                            <% } %>
+                        </div>
                         <div class='description'>
                             <div class='desc-title'>Overview</div>
-                            <ul>
-                                <% var sentences =
-                                _.compact((product.description || "").split('.'));%>
-                                <% _.each(sentences, function(sentence) { %>
-                                <li><%= SecondFunnel.utils.safeString(sentence)
-                                    %>
-                                </li>
-                                <% }); %>
-                            </ul>
+                            <% var description = (product.description || ""); %>
+                            <% if (!description.match(/<li(?:.|\n)*?>/)) { %>
+                                <% var sentences = _.compact(description.split('.')); %>
+                                <ul>
+                                    <% _.each(sentences, function(sentence) { %>
+                                        <li><%= SecondFunnel.utils.safeString(sentence) %></li>
+                                    <% }); %>
+                                </ul>
+                            <% } else { %>
+                                <%= SecondFunnel.utils.safeString(description) %>
+                            <% } %>
                         </div>
                         <div>
                             <div class="social-buttons"></div>
@@ -660,17 +648,12 @@
             <div class="image-without-related-products">
                 <div class="row">
                     <div class="image middle cell capped-width">
-                        <img src="<%= obj.defaultImage.url %>" alt="image"/>
+                        <img src="<%= obj.image.url %>" alt="image"/>
                     </div>
                     <div class="middle cell">
                         <div class="info">
                             <div class='title'><%= obj.title || obj.name || "Shop Product" %></div>
                             <div class='author'>
-                                <% if(obj.source == "styld.by") { %>
-                                    <%= obj.source %><%= obj.user %>
-                                <% } else if (_.indexOf(validSources, (obj.source||'').toLowerCase()) != -1) { %>
-                                    <span class='propercase'><%= obj.source %></span>
-                                <% } %>
                             </div>
                             <div class='description'>
                                 <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
@@ -691,10 +674,17 @@
                     <img src="{{ mobile_hero_image }}" alt="Hero" />
                 </div>
                 <div class="visible-sm jumbotron">
-                    <img src="{{ mobile_hero_image }}" alt="Hero" />
+                    <img src="{{ desktop_hero_image }}" alt="Hero" />
                 </div>
                 <div class="visible-md visible-lg jumbotron"></div>
                 <div class="overlay">
+                    <span class='find{% ifequal campaign.url_slug "dressedup" %} white {% endifequal %}'>
+                        <% if (!App.support.mobile()) { %>
+                            <a href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
+                        <% } else { %>
+                            <a href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
+                        <% } %>
+                    </span>
                     <div class='buttons'>
                         <%
                             var share = App.options.page.description;
@@ -713,23 +703,28 @@
                             var mailLink = 'mailto:?'
                                 + 'body=' + encodeURIComponent(share);
                         %>
-                        <a href='<%= fbLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon.png' />
+                        <a href='<%= fbLink %>' target='_blank' class="facebook-button{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}">
+                            {% ifequal campaign.url_slug "dressedup" %}
+                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_white.png' />
+                            {% else %}
+                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon.png' />
+                            {% endifequal %}
                         </a>
-                        <a href='<%= twtLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon.png' />
+                        <a href='<%= twtLink %>' target='_blank' class="twitter-button{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}">
+                            {% ifequal campaign.url_slug "dressedup" %}
+                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_white.png' />
+                            {% else %}
+                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon.png' />
+                            {% endifequal %}
                         </a>
-                        <a href='<%= mailLink %>' target='_blank'>
-                            <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon.png' />
+                        <a href='<%= mailLink %>' target='_blank' class="email-button{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}">
+                            {% ifequal campaign.url_slug "dressedup" %}
+                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_white.png' />
+                            {% else %}
+                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon.png' />
+                            {% endifequal %}
                         </a>
                     </div>
-                    <span class='find'>
-                        <% if (!App.support.mobile()) { %>
-                            <a href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
-                        <% } else { %>
-                            <a href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
-                        <% } %>
-                    </span>
                 </div>
             </div>
             {% if legal_copy %}
@@ -743,6 +738,7 @@
     <div class="container">
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
         <div id="hero-area"></div>
+        <div id="category-area"></div>
         <div id="discovery-area" class="discovery-area"></div>
         <div class="no-noscript loading"></div>
         <noscript>
@@ -791,12 +787,17 @@
             window.GAP_ANALYTICS = new App.tracker.EventManager({
                 // 1 - Top Nav
                 'click a.navbar-brand, .other-brands.dropdown a:not(.dropdown-toggle)': function () {
-                    var brand;
-                    if ($(this).text().length) {
-                        brand = $(this).text().toLowerCase();
+                    var dataBrand = $(this).data('brand');
+                    var brand = "(Unknown)";
+                    if (dataBrand && $.trim(dataBrand).length > 0) {
+                        brand = dataBrand;
                     } else {
-                        brand = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
+                        var textBrand = $.trim($(this).text().toLowerCase());
+                        if (textBrand.length > 0 ) {
+                            brand = textBrand;
+                        }
                     }
+
                     recordEvent('gap_nav', 'nav', 'exit', 'nav - ' + brand);
                 },
                 // 2 - Header Logo
@@ -925,11 +926,18 @@
                         _pq.push(['trackProduct', feed_id]);
                     } catch(err) {}
 
+                    {% comment %}
+                    Adroll's retargeting is less sophisticated with regard to
+                    including and excluding visitors. To avoid any problems,
+                    only allow retargeting for the livedin campaign.
+                    {% endcomment %}
+                    {% ifequal campaign.url_slug "livedin" %}
                     try {
                         __adroll.record_user({"adroll_segments": segment});
                         __adroll.record_user({"adroll_segments": 'PopUp'});
                         __adroll.record_user({"product_id": feed_id});
                     } catch(err) {}
+                    {% endifequal %}
 
                     try {
                         related = _.isEmpty(obj.get('related-products')) ?
@@ -969,7 +977,7 @@
             // 12 - Scroll for more
             var pagesScrolled = 1;
             App.vent.on('tracking:trackEvent', function (o) {
-                if (o.action == 'scroll') {
+                if (o.action === 'scroll') {
                     recordEvent('page_scroll', 'scroll', 'page_scroll', 'scroll - ' + o.label);
                 }
             });
@@ -1035,7 +1043,7 @@
         // _pa.revenue = "19.99"; // OPTIONAL: attach dynamic purchase values to conversions
         // _pa.productId = "myProductId"; // OPTIONAL: Include product ID for use with dynamic ads
         var pa = document.createElement('script'); pa.type = 'text/javascript'; pa.async = true;
-        pa.src = ('https:' == document.location.protocol ? 'https:' : 'http:') + "//tag.perfectaudience.com/serve/52fd209b01a11d23fd000004.js";
+        pa.src = ('https:' === document.location.protocol ? 'https:' : 'http:') + "//tag.perfectaudience.com/serve/52fd209b01a11d23fd000004.js";
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(pa, s);
       })();
     </script>
@@ -1047,7 +1055,7 @@
     (function () {
        __adroll_loaded=true;
        var scr = document.createElement("script");
-       var host = (("https:" == document.location.protocol) ? "https://s.adroll.com" : "http://a.adroll.com");
+       var host = (("https:" === document.location.protocol) ? "https://s.adroll.com" : "http://a.adroll.com");
        scr.setAttribute('async', 'true');
        scr.type = "text/javascript";
        scr.src = host + "/j/roundtrip.js";

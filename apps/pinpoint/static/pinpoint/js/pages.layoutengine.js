@@ -12,6 +12,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
 
     var $document = $(document),
         $window = $(window),
+        currentWidth = 0,
         defaults = {
             'columnWidth': 255,
             'isAnimated': App.support.transform3d() &&  // only if it is fast
@@ -31,7 +32,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
                 '-webkit-transform': 'scale(1)',
                 '-moz-transform': 'none'
             },
-            'minColumns': 1 // minimum number of columns (default: 1)
+            'minColumns': 2 // minimum number of columns (default: 2)
         },
         frags = [],  // common fragment storage
         opts;  // last-used options (used by clear())
@@ -72,12 +73,12 @@ App.module("layoutEngine", function (layoutEngine, App) {
      */
     this.recalculateWidth = function (view) {
         var width,
-            tileWidth = view.$(opts.itemSelector + ':not(.wide)').width();
+            tileWidth = view.$(opts.itemSelector + ':not(.wide, .full)').width();
 
-        width = view.$el.outerWidth() / (opts.minColumns || 1);
+        width = view.$el.outerWidth() / (opts.minColumns || 2);
         width = Math.max(tileWidth, width);
 
-        if (!(tileWidth && width < opts.columnWidth)) {
+        if (!App.support.mobile()) {
             width = opts.columnWidth;
         }
 
@@ -91,12 +92,22 @@ App.module("layoutEngine", function (layoutEngine, App) {
      * @returns this
      */
     this.layout = function (view) {
-        // Dynamic columnWidth recalculation
         var _opts = _.extend({}, opts);
+        // Dynamic columnWidth recalculation
         _opts.columnWidth = this.recalculateWidth(view);
+        currentWidth = _opts.columnWidth;
         view.$el.masonry(_opts);
 
         return this;
+    };
+
+    /**
+     * Returns the current column width.
+     *
+     * @returns this
+     */
+    this.width = function () {
+        return currentWidth;
     };
 
     /**

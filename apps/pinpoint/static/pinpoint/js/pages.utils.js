@@ -55,8 +55,13 @@ App.module("utils", function (utils, App) {
             loadUntilHeight(data.height);
         } else if (data.type === 'window_location') {
             App.window_middle = data.window_middle;
+            App.windowHeight = data.window_height;
 
             if (App.previewArea.currentView) {
+                if (App.support.mobile()) {
+                    App.previewArea.currentView.$el.css('height', App.window_height);
+                }
+
                 App.previewArea.currentView.$el.css('top',
                     Math.max(App.window_middle - (App.previewArea.currentView.el.height() / 2), 0)
                 );
@@ -96,6 +101,24 @@ App.module("utils", function (utils, App) {
         App.vent.trigger('widgetRegistered', name, selector, functionality,
             regions, regionWidgets);
         return true;  // success
+    };
+
+    /**
+     * Returns true if landscape.
+     *
+     * @returns {Boolean}
+     */
+    this.landscape = function () {
+        return $(window).height() < $(window).width();
+    };
+
+    /**
+     * Returns true if portrait.
+     *
+     * @returns {Boolean}
+     */
+    this.portrait = function () {
+        return !this.landscape();
     };
 
     /**
@@ -213,5 +236,69 @@ App.module("utils", function (utils, App) {
         var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
             results = regex.exec(location.search);
         return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    };
+
+    /**
+     * Returns a ViewportSized Height based on the Viewport size of the browser, taking into
+     * account the chrome.
+     */
+    this.getViewportSized = function () {
+        var height = $(window).height();
+
+        if (height >= 959) {
+            return 700;
+        } else if (height >= 900) {
+            return 600;
+        } else if (height >= 800) {
+            return 500;
+        } else if (height > 656) {
+            return 400;
+        }
+        return 300;
+    },
+
+    /**
+     * Returns a formatted url for a cloudinary image
+     *
+     * @param {string} url
+     * @param {Object} options
+     *
+     * @returns {Object}
+     */
+    this.getResizedImage = function (url, options) {
+        var width = options.width,
+            height = options.height,
+            multiplier = options.multiplier || 1;
+        options = {};
+
+        // Round to the nearest whole hundred pixel dimension;
+        // prevents creating a ridiculous number of images.
+        if ((width && !height) || height > width) {
+            width = Math.ceil((width * multiplier) / 100.0) * 100;
+            options.width = width;
+        } else if ((height && !width) || width > height) {
+            options.height = Math.ceil((height * multiplier) / 100.0) * 100;
+        } else {
+            options.width = App.layoutEngine.width();
+        }
+
+        options = _.extend({
+            crop: 'fit',
+            quality: 75
+            // New feature, undocumenated, trims background space, add :
+            // for tolerance, e.g. trim: 20 (defaults to 10)
+            // effect: 'trim:0'
+        }, options);
+
+        if (url.indexOf('c_fit') > -1) {
+            // Transformation has been applied to this url, Cloudinary is not smart
+            // with these, so lets be instead.
+            url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, "/");
+        }
+
+        url = url.replace(App.CLOUDINARY_DOMAIN, ""); // remove absolute uri
+        url = $.cloudinary.url(url, options);
+
+        return url;
     };
 });

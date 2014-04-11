@@ -25,8 +25,18 @@ GOOGLE_ANALYTICS_PROFILE = '67271131'
 GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17' # dev and test (production has a separate profile, -16)  
 
 ADMINS = (
+    ('Nick "The Goat" Terwoord', 'nick@willetinc.com'),
+    ('Brian "The Lai" Lai', 'brian@willetinc.com'),
+    ('Kevin "The Awesome" Simpson', 'kevin@willetinc.com'),
+    ('Alex "The Knight" Black', 'alexb@willetinc.com'),
     # ('Your Name', 'your_email@example.com'),
 )
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'fraser@getwillet.com'
+EMAIL_HOST_PASSWORD = 'w1llet!!'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
 MANAGERS = ADMINS
 
@@ -121,6 +131,18 @@ STATIC_ROOT = from_project_root('static')
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
+# Cloudinary ImageService settings
+CLOUDINARY_API_URL = "//api.cloudinary.com/v1_1/secondfunnel"
+CLOUDINARY_BASE_URL = "//res.cloudinary.com/secondfunnel"
+CLOUDINARY_NAME = "secondfunnel"
+CLOUDINARY_API_KEY = "471718281466152"
+CLOUDINARY_API_SECRET = "_CR94qpFu7EGChMbwmc4xqCsbXo"
+CLOUDINARY = {
+    'cloud_name': CLOUDINARY_NAME,
+    'api_key': CLOUDINARY_API_KEY,
+    'api_secret': CLOUDINARY_API_SECRET
+}
+
 # http://django_compressor.readthedocs.org/en/latest/remote-storages/
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
@@ -139,11 +161,7 @@ AWS_SQS_POLLING_QUEUES = {
 }
 
 # a (seemingly new) setting similar to SESSION_COOKIE_DOMAIN.
-ALLOWED_HOSTS = ['.secondfunnel.com',
-                 '.secondfunnel.com.',
-                 '.elasticbeanstalk.com',
-                 '.elasticbeanstalk.com.',
-                 ]
+ALLOWED_HOSTS = '*'
 
 # Disable signature/accesskey/expire attrs being appended to s3 links
 AWS_QUERYSTRING_AUTH = False
@@ -154,7 +172,7 @@ COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
 COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
                        'compressor.filters.jsmin.JSMinFilter']
 
-COMPRESS_REBUILD_TIMEOUT = 2592000  # Rebuilds compressed files after 30 days (in seconds)
+COMPRESS_REBUILD_TIMEOUT = 30 * 60  # Rebuilds compressed files after 30 mins (in seconds)
 
 COMPRESS_STORAGE = STATICFILES_STORAGE
 
@@ -219,7 +237,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # Uncomment the next line for CSRF protection:
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
@@ -228,7 +247,7 @@ MIDDLEWARE_CLASSES = (
 
 KEEP_COMMENTS_ON_MINIFYING = True
 
-CACHE_MIDDLEWARE_SECONDS = 604800  # Set the cache to at least a week; will only affect production/test/demo
+CACHE_MIDDLEWARE_SECONDS = 30 * 60  # Set the cache to at least 30 mins; will only affect production/test/demo
 
 ROOT_URLCONF = 'secondfunnel.urls'
 
@@ -261,6 +280,7 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
+    'rest_framework',
     'ajax_forms',
     'compressor',
     'corsheaders',
@@ -275,6 +295,8 @@ INSTALLED_APPS = (
     'apps.static_pages',
     'apps.tracking',
     'apps.utils',
+    'apps.imageservice',
+    'apps.scraper',
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = (
@@ -338,7 +360,11 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
+        'null': {
+            'level': 'DEBUG',
+            'class': 'logging.NullHandler',
+        },
     },
     'loggers': {
         'django.request': {
@@ -346,6 +372,10 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'django.security.DisallowedHost': {
+            'handlers': ['null'],
+            'propagate': False,
+       },
     }
 }
 
@@ -377,12 +407,17 @@ JENKINS_TASKS = (
 
 IMAGE_SERVICE_API = "http://imageservice.elasticbeanstalk.com"
 IMAGE_SERVICE_STORE = "http://images.secondfunnel.com"
+IMAGE_SERVICE_USER_AGENT = "Mozilla/5.0 (compatible; SecondFunnelBot/1.0; +http://secondfunnel.com/bot.hml)"
+IMAGE_SERVICE_USER_AGENT_NAME = "SecondFunnelBot"
+IMAGE_SERVICE_BUCKET = "images.secondfunnel.com"
 
 STALE_TILE_QUEUE_NAME = 'tiles-worker-test-queue'
 
 CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
 
 CELERY_IMPORTS = ('apps.utils.tasks', )
+
+API_LIMIT_PER_PAGE = 20
 
 # only celery workers use this setting.
 # run a celery worker with manage.py.
@@ -416,6 +451,8 @@ CELERYBEAT_SCHEDULE = {
 
 STALE_TILE_RETRY_THRESHOLD = 240  # seconds
 IRCONFIG_RETRY_THRESHOLD = 240  # seconds
+
+TASTYPIE_ALLOW_MISSING_SLASH = True  # allow missing trailing slashes
 
 TRACKING_COOKIE_AGE = 60 * 60 * 24 * 30 # seconds: s*m*h*d; 30 days
 TRACKING_COOKIE_DOMAIN = 'px.secondfunnel.com'

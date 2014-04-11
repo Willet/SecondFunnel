@@ -11,7 +11,7 @@ App.module('optimizer', function (optimizer, App) {
             'SESSION': 2,
             'VISITOR': 1
         },
-        CUSTOM_DIMENSIONS = {},
+        CUSTOM_DIMENSIONS = [],
         ENABLED_TESTS = [],
         UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         OPTIMIZER_COOKIE = '__sotm',
@@ -29,9 +29,13 @@ App.module('optimizer', function (optimizer, App) {
 
             if (window.ga) {
                 window.ga('set', dim, val);
-            } else {
-                CUSTOM_DIMENSIONS[dim] = val;
             }
+
+            CUSTOM_DIMENSIONS.push({
+                'index': index,
+                'type': 'dimension',
+                'value': val
+            });
         },
         getPos = function (ch) {
             return UPPERCASE_LETTERS.indexOf(ch);
@@ -46,7 +50,7 @@ App.module('optimizer', function (optimizer, App) {
      *
      * @returns object
      **/
-    this.getCustomDimensions = function () {
+    this.dimensions = function () {
         return _.clone(CUSTOM_DIMENSIONS);
     };
 
@@ -58,7 +62,7 @@ App.module('optimizer', function (optimizer, App) {
      **/
     this.setCookieValue = function (cname, value, days) {
         var expires, ms, d = new Date();
-        ms = days ? days * MILLISECONDS_PER_DAY : 30 * 6000; // Defaults to 30 minutes, convert to milliseconds
+        ms = days ? days * MILLISECONDS_PER_DAY : 30 * 60 * 1000; // Defaults to 30 minutes, convert to milliseconds
         d.setTime(d.getTime() + ms);
         expires = "expires=" + d.toGMTString();
         console.debug(cname + "=" + value + "; " + expires);
@@ -204,7 +208,11 @@ App.module('optimizer', function (optimizer, App) {
         ENABLED_TESTS = App.utils.getQuery('activate-test').split(',');
         _.each(ENABLED_TESTS, function (t) {
             t = t.split('.');
-            tests[t[0]] = t[1];
+            if (t[1]) {
+                tests[t[0]] = t[1].toUpperCase();
+            } else {
+                tests[t[0]] = t[1];
+            }
         });
         ENABLED_TESTS = tests;
 

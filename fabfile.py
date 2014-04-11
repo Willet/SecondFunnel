@@ -1,16 +1,37 @@
 """
 Automated deployment tasks
 """
+from datetime import datetime
+import os
 from fabric.api import roles, run, cd, execute, settings, env, sudo, hide
 from fabric.colors import green, yellow, red
+from fabric.contrib import django
+from fabric.decorators import hosts
+from fabric.operations import local, get
 from secondfunnel.settings import common as django_settings
 from scripts.import_ops import importer as real_importer
+from scripts.import_ops import scraper as real_scraper
 
 import boto.ec2
 import itertools
 import time
 
 env.user = 'ec2-user'
+
+def prepend(filepath, content):
+    data = ''
+    with open(filepath, 'r') as original:
+        data = original.read()
+
+    with open(filepath, 'w') as new:
+        new.write(content + r'\r\n' + data)
+
+def append(filepath, content):
+    with open(filepath, 'a') as f:
+        f.write(content)
+
+def is_windows():
+    return os.name == 'nt'
 
 def get_ec2_conn():
     return boto.ec2.connect_to_region("us-west-2",
@@ -23,6 +44,15 @@ def flatten_reservations(reservations):
     chain = itertools.chain(*instances)
 
     return [i for i in list(chain)]
+
+def get_instances(name):
+    ec2 = get_ec2_conn()
+    res = ec2.get_all_instances(filters={
+        'tag:Name': name
+    })
+
+    # we only want running instances
+    return [i for i in flatten_reservations(res) if i.state in ['running', 'pending']]
 
 
 def get_celery_workers(cluster_type):
@@ -222,3 +252,135 @@ def deploy(cluster_type='test', branch='master'):
 def importer(*args, **kwargs):
     """Alias for fabfile"""
     return real_importer(*args, **kwargs)
+
+
+def scraper(*args, **kwargs):
+    """Alias for fabfile"""
+    return real_scraper(*args, **kwargs)
+
+
+def get_postgres_arguments():
+    environment_type = os.getenv('PARAM1', '').upper() or 'DEV'
+
+    django.settings_module(
+        'secondfunnel.settings.{0}'.format(environment_type.lower())
+    )
+    from django.conf import settings
+
+    password = 'export PGPASSWORD="{}"'.format(
+        settings.DATABASES['default']['PASSWORD']
+    )
+
+    arguments = '--host=%s --port=%s --username=%s %s' % (
+            settings.DATABASES['default']['HOST'],
+            settings.DATABASES['default']['PORT'],
+            settings.DATABASES['default']['USER'],
+            settings.DATABASES['default']['NAME']
+        )
+
+    if is_windows():
+        password = ''
+        arguments = '-W ' + arguments
+
+    return {
+        'password': password,
+        'arguments': arguments
+    }
+
+def load_database_postgres(path='db.sql'):
+    args = get_postgres_arguments()
+    arguments = args['arguments']
+    password = args['password']
+
+    if password:
+        command = '{} && psql -f {} {}'.format(
+            password, path, arguments,
+        )
+    else:
+        command = 'psql -f {} {}'.format(
+            path, arguments,
+        )
+
+    local(command)
+
+def dump_database_postgres(path='/tmp/db.sql'):
+    args = get_postgres_arguments()
+    arguments = args['arguments']
+    password = args['password']
+
+    if password:
+        command = '{} && pg_dump ' \
+            '--data-only ' \
+            '{} > {}'.format(
+            password, arguments, path
+        )
+    else:
+        command = 'pg_dump ' \
+            '--data-only ' \
+            '{} > {}'.format(
+            arguments, path
+        )
+
+    local(command)
+
+    # Disabling constraints:
+    # http://www.openscope.net/2012/08/23/subverting-foreign-key-constraints-in-postgres-or-mysql/
+
+    # Appending to beginning and end of file:
+    # http://unix.stackexchange.com/a/65514
+    local('fab prepend:'
+        'filepath={},content="begin; SET CONSTRAINTS ALL DEFERRED;"'
+        .format(path)
+    )
+    local('fab append:'
+        'filepath={},content="commit;"'
+        .format(path)
+    )
+
+def flush_database_postgres():
+    args = get_postgres_arguments()
+    arguments = args['arguments']
+    password = args['password']
+
+    if password:
+        command = '{} && psql -f scripts/flush.sql {}'.format(
+            password, arguments
+        )
+    else:
+        command = 'psql -f scripts/flush.sql {}'.format(
+            arguments
+        )
+
+    local(command)
+
+def production():
+    env.hosts = [i.public_dns_name for i in get_instances('tng-master2')][-1:]
+
+def test():
+    env.hosts = [i.public_dns_name for i in get_instances('tng-test2')][-1:]
+
+# TODO: Should probably check that psql and pg_dump versions are compatible
+def to_local_database(native=True):
+    # We assume that by SSH'ing in, we are in the right environment and path
+
+    # More details on Django integration here:
+    # http://docs.fabfile.org/en/1.6/api/contrib/django.html
+
+    if not native:
+        pass # Error; not implemented
+
+    now = datetime.now()
+    str_now = now.strftime('%Y-%m-%dT%H:%M.sql')
+
+    # Dump our local database to backup, then flush it out
+    local('fab dump_database_postgres:{}'.format(str_now))
+    # ./manage.py flush does not do what you might expect...
+    local('python manage.py sqlflush > scripts/flush.sql')
+    local('fab flush_database_postgres')
+
+    # Dump the remote database
+    run('fab dump_database_postgres')
+    get('/tmp/db.sql', 'db.sql')
+
+    # Finally, load the data
+    local('fab load_database_postgres')

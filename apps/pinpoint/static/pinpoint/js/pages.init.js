@@ -11,6 +11,7 @@ function reinitialize(app) {
     if (!app.heroArea) {
         app.addRegions({
             'heroArea': '#hero-area',
+            'categoryArea': '#category-area',
             'discoveryArea': '#discovery-area',
             'previewArea': '#preview-area'
         });
@@ -32,6 +33,13 @@ function reinitialize(app) {
         app.options.initialWidth = $(window).width();
         app.optimizer.initialize();
         app.tracker.initialize();
+    });
+
+    app.addInitializer(function () {
+        var ca = new app.core.CategoryCollectionView();
+        app.categoryArea.show(ca);
+
+        app.vent.trigger('categoryAreaRendered', ca);
     });
 
     app.addInitializer(function () {
@@ -66,7 +74,8 @@ function reinitialize(app) {
     });
 
     app.vent.on('initRouter', function () {
-        var loc = window.location.href; // reference to current url
+        var loc = window.location.href, // reference to current url
+            previewLoadingScreen = $('#preview-loading');
         app.router = new Backbone.Router();
 
         //TODO: put these routes into their own file?
@@ -106,7 +115,24 @@ function reinitialize(app) {
                 'type': 'hash_change',
                 'hash': window.location.hash
             }));
-            var tile = new app.core.Tile({
+
+            var tile = app.discovery && app.discovery.collection ?
+                app.discovery.collection.tiles[tileId] :
+                undefined;
+
+            previewLoadingScreen.show();
+
+            if (tile !== undefined) {
+                var preview = new app.core.PreviewWindow({
+                    'model': tile
+                });
+                app.previewArea.show(preview);
+                return;
+            }
+
+            console.debug("tile not found, fetching from IR.");
+
+            tile = new app.core.Tile({
                 'tile-id': tileId
             });
 
@@ -120,6 +146,7 @@ function reinitialize(app) {
                 });
                 app.previewArea.show(preview);
             }).fail(function () {
+                previewLoadingScreen.hide();
                 app.router.navigate('', {
                     trigger: true,
                     replace: true

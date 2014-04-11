@@ -43,6 +43,37 @@ App.options.urlParams = window.location.search;
     }
 }(App.options));
 
+(function (window) {
+    "use strict";
+    /* https://app.asana.com/0/9719124443216/11060830366388
+     * Add ability to view feed in popular order using not
+     * http://test-gap.secondfunnel.com/livedin?algorithm=popular
+     * but
+     * http://test-gap.secondfunnel.com/livedin?popular
+     */
+    try {
+        if (window !== undefined &&
+            window.location &&
+            window.location.search &&
+            window.location.search.indexOf &&
+            typeof window.location.search.indexOf === 'function' &&
+            window.location.search.indexOf('popular') &&
+            window.location.search.indexOf('?popular') > -1 &&
+            window.location.search.indexOf('&popular') === -1) {
+            if (window.PAGES_INFO &&
+                typeof window.PAGES_INFO === 'object') {
+                window.PAGES_INFO.IRAlgo = 'popular';
+            }
+            if (window.App && window.App.options) {
+                // PAGES_INFO was read before this block; need to read again
+                App.options.IRAlgo = 'popular';
+            }
+        }
+    } catch (err) {
+        // fail silently
+    }
+}(window || {}));
+
 // A ?debug value of 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 (function (console, level, hash) {
@@ -169,6 +200,55 @@ $.fn.getClasses = $.fn.getClasses || function () {
     return _.compact(_.map($(this).attr('class').split(' '), $.trim));
 };
 
+
+(function ($) {
+    /**
+     * Special jQuery listener for rotation events.  A rotation event occurs
+     * when the orientation of the page triggers.  A rotation can also be triggered
+     * by the user.
+     */
+    var listener,
+        $window = $(window);
+    // On iOS devices, orientationchange does not exist, so we have to
+    // listen for resize.  Similarly, the use of orientationchange is not
+    // standard.  Reference: http://stackoverflow.com/questions/1649086/
+    if ("onorientationchange" in window) {
+        listener = "orientationchange";
+    } else {
+        listener = "resize";
+    }
+
+    $window.on(listener, function () {
+        $window.trigger('rotate');
+    });
+
+    /**
+     * Executes if the handler is an instance of a function, otherwise if it is an
+     * Integer or undefined, rotates the element by that many degrees or 90.
+     *
+     * @param {Object} e   Degrees to rotate or function
+     * @returns {undefined}
+     */
+    $.fn.rotate = function (e) {
+        var degrees,
+            orientation = $(this).data('rotate') || 0;
+        if (e !== undefined && _.isFunction(e)) {
+            $(this).on(listener, e);
+        } else {
+            degrees = e || 90;
+            orientation = (orientation + degrees) % 360;
+            $(this).data('rotate', orientation);
+            $(this).css({
+                'transform': 'rotate(' + orientation + 'deg)',
+                '-o-transform': 'rotate(' + orientation + 'deg)',
+                '-ms-transform': 'rotate(' + orientation + 'deg)',
+                '-moz-transform': 'rotate(' + orientation + 'deg)',
+                '-webkit-transform': 'rotate(' + orientation + 'deg)'
+            });
+        }
+    };
+})($ || {});
+
 /**
  * Retrieve the first selected element's TileView and Tile, if applicable.
  * Applicability largely depends on whether or not you had selected a tile.
@@ -226,9 +306,29 @@ $.getScripts = function (urls, callback, options) {
     });
 };
 
-// underscore's fancy pants capitalize()
 _.mixin({
+    'buffer': function (fn, wait) {
+        // a variant of _.debounce, whose called function receives an array
+        // of buffered args (i.e. fn([arg, arg, arg...])
+        //
+        // the fn will receive only one argument.
+        "use strict";
+        var args = [],
+            originalContext = this,
+            newFn = _.debounce(function () {
+                // newFn calls the function and clears the arg buffer
+                var result = fn.call(originalContext, args);
+                args = [];
+                return result;
+            }, wait);
+
+        return function (arg) {
+            args.push(arg);
+            return newFn.call(originalContext, args);
+        };
+    },
     'capitalize': function (string) {
+        // underscore's fancy pants capitalize()
         var str = string || "";
         return str.charAt(0).toUpperCase() + str.substring(1);
     },
@@ -315,3 +415,9 @@ _.mixin({
 debugOp = function () {
     console.debug('%O, %O', this, arguments);
 };
+
+/**
+ * Initialize cloudinary
+ */
+$.cloudinary.config({ cloud_name: 'secondfunnel', api_key: '471718281466152' });
+App.CLOUDINARY_DOMAIN = "http://" + $.cloudinary.SHARED_CDN + "/" + $.cloudinary.config().cloud_name + "/image/upload/";

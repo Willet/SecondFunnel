@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     # APPS
     url(r'^assets/', include('apps.assets.urls')),
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
+    url(r'^imageservice/', include('apps.imageservice.urls')),
     #url(r'p/', include('apps.pinpoint.global_urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
     url(r'^tracker/', include('apps.tracking.urls')),
@@ -21,6 +22,8 @@ urlpatterns = patterns('',
     # special top-level urls for RSS feeds
     url(r'^(?P<page_slug>[^/\.]+)/?$',
         'apps.pinpoint.views.campaign_by_slug', name='get-page-by-slug'),
+    url(r'^(?P<page_slug>[^/\.]+)/google.rss$',
+        'apps.pinpoint.views.product_feed', name='product-feed'),
     # special top-level urls for RSS feeds
     url(r'^(?P<page_id>\d+)/(?P<feed_name>[^/\.]+\.rss)$',
         'apps.intentrank.views.get_rss_feed', name='get-feed'),
@@ -30,7 +33,6 @@ urlpatterns = patterns('',
     # APIs
     url(r'^contentgraph/', include('apps.contentgraph.urls')),
     url(r'^static_pages/', include('apps.static_pages.urls')),
-    url(r'^api/assets/', include('apps.assets.api_urls')),
     url(r'^graph/', include('apps.api.urls')),
 
     # WEBSITE

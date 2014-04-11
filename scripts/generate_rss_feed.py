@@ -87,7 +87,7 @@ def tile_to_XML(url, tile, current_time):
         return None
 
     link = SubElement(item, 'link')
-    link.text = url + '#' + str(tile.old_id)
+    link.text = url + '#' + str(tile.id)
 
     m = hashlib.md5()
     m.update(str(tile.id))
@@ -102,11 +102,10 @@ def tile_to_XML(url, tile, current_time):
     figure = Element('figure')
 
     img = SubElement(figure, 'img')
-    img.set('src', image.url.replace('master', '1024x1024'))
     if image.width and image.height:
         img.set('width', str(image.width))
         img.set('height', str(image.height))
-    img.set('data-fl-original-src', image.url)
+    img.set('src', image.url)
 
     encoded = CDATA(tostring(figure, 'utf-8'))
 
@@ -187,4 +186,3 @@ if __name__ == "__main__":
     page = Page.objects.get(id=args.page_id)
 
     print main(page)
-    

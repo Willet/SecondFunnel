@@ -4,6 +4,7 @@ import json
 from django.core import serializers
 from algorithms import ir_generic
 
+
 class IntentRank(object):
     """Consider this an engine. Initializing one of those will emulate
     behaviour of a Feed object.
@@ -53,6 +54,10 @@ class IntentRank(object):
         """
         results = self._algorithm(self.feed, *args, **kwargs)
         return self.transform(results, serialize_format=serialize_format)
+
+    def render(self, algorithm, *args, **kwargs):
+        """View-like alias"""
+        return self.transform(algorithm(*args, **kwargs))
 
     def transform(self, things, serialize_format='json'):
         """Virtual-repr() the thing using whichever serialization method

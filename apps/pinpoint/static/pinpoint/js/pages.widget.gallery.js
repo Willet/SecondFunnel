@@ -13,7 +13,10 @@
  * @return this
  */
 App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
-    var images, focusWidth, arrows,
+    var images,
+        focusWidth,
+        arrows,
+        windowWidth = $(window).width(),
         focusCurrent = 0,
         speed = 250, // transition speed for mobile
         $gallery = view.$('.gallery'), // reference to gallery
@@ -96,9 +99,13 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
      * @return this
      */
     this.selectImage = function () {
-        var hash,
-            arrows,
+        var hash, arrows, len;
+
+        if (App.support.mobile()) {
             len = focus.children().length - 1;
+        } else {
+            len = $gallery.children().length - 1;
+        }
 
         // Determine the selected image
         $gallery
@@ -126,12 +133,57 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
         return this;
     };
 
+    this.onClick = function(ev) {
+        if (App.support.mobile()) return; // mobile does nothing
+        var hash,
+            $selected = $(ev.currentTarget),
+            newURL = $selected.attr('src');
+
+        focus.attr('src', newURL); // change image
+        $gallery.animate({ // animate gallery on click
+            scrollLeft: $selected.offset().left - $gallery.offset().left
+        }, 700);
+        if ($gallery.hasClass('dots')) {
+            focusCurrent = $selected.parent().index();
+        } else {
+            focusCurrent = $selected.index();
+        }
+        self.selectImage();
+    };
+
     /**
      * Initializes the regular version of the gallery.
      */
     this.initialize = function () {
         // Desktop is nice, doesn't need anything
         options = _.extend(defaults, options);
+
+        options.leftArrow = view
+            .$(options.leftArrow)
+            .click(function(ev) {
+                var $prev = $gallery.find('.selected').prev();
+                if ($prev.length) {
+                    if ($gallery.hasClass('dots')) {
+                        self.onClick({'currentTarget': $prev.children().first()});
+                    } else {
+                        self.onClick({'currentTarget': $prev});
+                    }
+                }
+            });
+
+        options.rightArrow = view
+            .$(options.rightArrow)
+            .click(function(ev) {
+                var $next = $gallery.find('.selected').next();
+                if ($next.length) {
+                    if ($gallery.hasClass('dots')) {
+                        self.onClick({'currentTarget': $next.children().first()});
+                    } else {
+                        self.onClick({'currentTarget': $next});
+                    }
+                }
+            });
+
         this.selectImage();
 
         console.debug("initialized desktop gallery.");
@@ -178,36 +230,31 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
     images = view.model.get('related-products');
     if (images && images.length) { // ensure related images exist
         images = images[0].images.slice(0);
-        if (App.support.mobile()) images.splice(0, 0, view.model.get('defaultImage'));
+
+        if (App.support.mobile()) {
+            images.splice(0, 0, view.model.get('defaultImage'));
+        }
     } else {
         images = view.model.get('images');
     }
 
     _.each(images, function(image) { // iterate over images to create gallery
-        var $img;
+        var $img, $wrapper;
         $img = App.support.mobile() ?
-            $('<div></div>').css('background-image', 'url(' + image.url + ')') :
-            $('<img />').attr('src', image.url);
+            $('<div></div>').css('background-image', 'url(' + image.width(windowWidth * 1.5) + ')') :
+            $('<img />').attr('src', image.height(App.utils.getViewportSized()));
 
         $img
             .addClass('img')
-            .click(function (ev) {
-                if (App.support.mobile()) return; // mobile does nothing
-                var hash,
-                    $selected = $(ev.currentTarget),
-                    newURL = $selected.attr('src');
-
-                focus.attr('src', newURL); // change image
-                $gallery.animate({ // animate gallery on click
-                    scrollLeft: $selected.offset().left - $gallery.offset().left
-                }, 700);
-                focusCurrent = $selected.index();
-                self.selectImage();
-            });
+            .click(this.onClick);
 
         if (App.support.mobile()) { // append to display area and create tile for gallery
             focus.append($img);
             $el.append($('<div />').addClass('img'));
+        } else if ($gallery.hasClass('dots')) {
+            $wrapper = $('<span/>').addClass('img-wrapper');
+            $wrapper.append($img);
+            $el.append($wrapper);
         } else { // otherwise append to gallery
             $el.append($img);
         }

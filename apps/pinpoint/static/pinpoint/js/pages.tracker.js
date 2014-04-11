@@ -75,7 +75,43 @@ App.module("tracker", function (tracker, App) {
             window.ga.apply(window, arguments);
         },
 
-        trackPageview = function(hash) {
+        /**
+         * Semi-private function for wrapping trackTileClick and trackTileView
+         */
+        trackTile = function (interactionType, tileIds) {
+            // if gap sends us too many visitors --> track tiles less often.
+            // 0.2 is arbitrary
+            if (App.option('store:slug', '').toLowerCase() === 'gap' &&
+                Math.random() < 0.2) {
+                return $.Deferred().promise();
+            }
+            return $.ajax({
+                'url': App.option('IRSource') + "/page/" +
+                       App.option('page:id') + "/tile/" + interactionType,
+                'type': 'POST',
+                'data': {
+                    'tile-ids': tileIds.join(',')
+                }
+            });
+        },
+
+        /**
+         * real argument: {int} tileId
+         * waits for a second, then tracks those tile ids
+         */
+        trackTileClick = _.buffer(function (tileIds) {
+            return trackTile('click', tileIds);
+        }, 1000),
+
+        /**
+         * real argument: {int} tileId
+         * waits for a second, then tracks those tile ids
+         */
+        trackTileView = _.buffer(function (tileIds) {
+            return trackTile('view', tileIds);
+        }, 1000),
+
+        trackPageView = function (hash) {
             var base = window.location.pathname + window.location.search,
                 host = window.location.protocol +'//' + window.location.hostname;
             hash = hash || window.location.hash;
@@ -100,10 +136,12 @@ App.module("tracker", function (tracker, App) {
             addItem('send', 'event', o.category, o.action, o.label,
                     o.value || undefined, {'nonInteraction': nonInteraction});
 
+            /* adb: disable scroll pageviews for now while we resolve pageview issues
+
             if (o.action === 'scroll') {
                 var hash = '#page' + o.label;
-                trackPageview(hash);
-            }
+                trackPageView(hash);
+            }*/
         },
 
         setCustomVar = function (o) {
@@ -292,19 +330,19 @@ App.module("tracker", function (tracker, App) {
     };
 
     /**
-     * Records the fact that the campaign has been changed.
+     * Records the fact that the category has been changed.
      *
-     * @param campaignId {Number}   A campaign ID served by this page.
+     * @param category {String}   The category switched to
      * @returns undefined
      */
-    this.changeCampaign = function (campaignId) {
+    this.changeCategory = function (category) {
         setCustomVar({
-            'index': 2,
+            'index': 1,
             'type': 'dimension',
-            'value': campaignId
+            'value': category
         });
 
-        App.vent.trigger('trackerChangeCampaign', campaignId, this);
+        App.vent.trigger('trackerChangeCategory', category, this);
     };
 
     // Generally, we have views handle event tracking on their own.
@@ -336,6 +374,18 @@ App.module("tracker", function (tracker, App) {
             // have different ids
             if (tileId) {
                 label += " (Tile " + tileId + ")";
+
+                // add click to our database
+                App.vent.trigger('tracking:trackTileClick', tileId);
+
+                // Be super explicit about what the hash is
+                // rather than relying on the window
+                //
+                // adb: use '/' instead of '#' because it seems like google analytics will attribute
+                // http://gap.secondfunnel.com/livedin#foo to http://gap.secondfunnel.com/livedin
+                trackPageView('/' + tileId);
+            } else {
+                console.warn('No tile id present for for tile: ' + label);
             }
 
             trackEvent({
@@ -343,10 +393,6 @@ App.module("tracker", function (tracker, App) {
                 'action': 'Preview',
                 'label': label
             });
-
-            // Be super explicit about what the hash is
-            // rather than relying on the window
-            // trackPageview('#' + tileId);
         },
 
         // Content Share
@@ -537,8 +583,17 @@ App.module("tracker", function (tracker, App) {
      */
     this.initialize = function () {
         addItem('create', App.option('gaAccountNumber'), 'auto');
+
+        // Register custom dimensions in-case they weren't already
+        // registered.
+        _.each(App.optimizer.dimensions(),
+            function (obj) {
+                setCustomVar(obj);
+            }
+        );
+
         // Track a pageview, eg like https://developers.google.com/analytics/devguides/collection/analyticsjs/
-        addItem('send', 'pageview', App.optimizer.getCustomDimensions());
+        addItem('send', 'pageview');
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?
@@ -577,7 +632,9 @@ App.module("tracker", function (tracker, App) {
     // add mediator triggers if the module exists.
     App.vent.on({
         'tracking:trackEvent': trackEvent,
-        'tracking:trackPageView': function() {}, //trackPageview,
+        'tracking:trackTileView': trackTileView,
+        'tracking:trackTileClick': trackTileClick,
+        'tracking:trackPageView': $.noop, //trackPageView,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,
         'tracking:registerFacebookListeners': this.registerFacebookListeners,
         'tracking:videoStateChange': this.videoStateChange,

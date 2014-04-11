@@ -1,3 +1,7 @@
+from itertools import ifilter
+from xml.dom import minidom
+from xml.etree.ElementTree import Element, SubElement, tostring
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -6,13 +10,13 @@ except ImportError:
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseServerError
 from django.http.response import HttpResponseNotFound
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.template import Context, loader
-from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
 
-from apps.assets.models import Page
-from apps.pinpoint.utils import render_campaign
+from apps.assets.models import Page, Tile
+from apps.pinpoint.utils import render_campaign, get_store_from_request, read_a_file
 
 
 @login_required
@@ -51,15 +55,159 @@ def campaign_by_slug(request, page_slug):
     If two pages have the same name (which was possible in CG), then django
     decides which page to render.
     """
-    #page = get_object_or_404(Page, url_slug=page_slug)  # why doesn't this work?
+    page_kwargs = {
+        'url_slug': page_slug
+    }
+
+    store = get_store_from_request(request)
+
+    if store:
+        page_kwargs['store'] = store
+
     try:
-        page = Page.objects.get(url_slug=page_slug)
+        page = Page.objects.get(**page_kwargs)
     except Page.DoesNotExist:
         return HttpResponseNotFound()
 
-    store_id = page.store.old_id
-    return campaign(request, store_id=store_id, page_id=page.old_id)
+    store_id = page.store.id
+    return campaign(request, store_id=store_id, page_id=page.id)
 
+# TODO: THis could probably just be a serializer on the Page object...
+@never_cache
+def product_feed(request, page_slug):
+    page = get_object_or_404(Page, url_slug=page_slug)
+
+    root = Element('rss')
+    root.set('xmlns:g', 'http://base.google.com/ns/1.0')
+    root.set('version', '2.0')
+
+    channel = SubElement(root, 'channel')
+
+    page_title = SubElement(channel, 'title')
+    page_title.text = page.name
+
+    page_link = SubElement(channel, 'link')
+    page_link.text = request.build_absolute_uri()
+
+    page_description = SubElement(channel, 'description')
+    page_description.text = page.description
+
+    for obj in page.feed.tiles.all():
+        tile = obj.to_json()
+        item = Element('item')
+
+        related_products = tile.get('related-products', [])
+        if len(related_products) > 0:
+            product = related_products[0]
+        else:
+            product = tile
+
+        # Begin - Always Required
+        title = SubElement(item, 'title')
+        title.text = product.get('name')
+
+        # Since we can't link to gap.com and have the feed validate, need to
+        # build the URL.
+
+        # So, this is only really a solution in the short term.
+        link = SubElement(item, 'link')
+        link.text = 'http://{}/{}#{}'.format(
+             request.get_host(),
+             page_slug,
+             tile.get('tile-id')
+        )
+
+        description = SubElement(item, 'description')
+        description.text = product.get('description')
+
+        # Needs to be unique across everything!
+        # Assumption: Product ids are unique across stores
+        id = SubElement(item, 'g:id')
+        id.text = '{0}P{1}T{2}'.format(
+            page.store.slug,
+            page.id,
+            tile.get('tile-id')
+        )
+
+        condition = SubElement(item, 'g:condition')
+        condition.text = 'new'
+
+        price = SubElement(item, 'g:price')
+        price.text = product.get('sale_price') or product.get('price')
+
+        availability = SubElement(item, 'g:availability')
+        availability.text = 'in stock'
+
+        image_id = int(product.get('default-image', 0))
+        images = product.get('images', [])
+        image = next(ifilter(lambda x: x.get('id') == image_id, images), {})
+
+        image_link = SubElement(item, 'g:image_link')
+        image_link.text = image.get('url')
+        # End - Always Required
+
+        # Begin - Required (Apparel)
+        google_category = SubElement(item, 'g:google_product_category')
+        google_category.text = 'Apparel &amp; Accessories &gt; Clothing'
+
+        brand = SubElement(item, 'g:brand')
+        brand.text = page.store.name
+
+        # Our own categories
+        product_type = SubElement(item, 'g:product_type')
+        product_type.text = 'Uncategorized'
+
+        # Hack: Force the product gender until we have it
+        gender = SubElement(item, 'g:gender')
+        gender.text = 'unisex'
+
+        # Hack: Force the product age group until we have it
+        age_group = SubElement(item, 'g:age_group')
+        age_group.text = 'adult'
+
+        # Hack: Force the product color until we have it
+        color = SubElement(item, 'g:color')
+        color.text = 'white'
+
+        # Hack: Force the product size until we have it
+        size = SubElement(item, 'g:size')
+        size.text = 'M'
+
+        # Shipping / Tax is required for US orders, see
+        # https://support.google.com/merchants/answer/160162?hl=en&ref_topic=3404778
+
+        # Don't worry about variants for now.
+
+        # End - Required (Apparel)
+
+        channel.append(item)
+
+    feed = tostring(root, 'utf-8')
+    pretty_feed = minidom.parseString(feed).toprettyxml(indent='\t')
+
+    # TODO: Remove this code after the livedin campaign is finished
+    # This code is being included so that past visitors may still be retargeted
+    if page_slug == 'livedin':
+        old_feed = read_a_file(
+            'apps/pinpoint/static/pinpoint/legacy/lived_in.xml'
+        )
+        start_item = '<item>\n'
+        end_item = '</item>\n'
+
+        items = old_feed[
+            old_feed.find(start_item):
+            old_feed.rfind(end_item)+len(end_item)
+        ]
+
+        revised_feed = ''
+        for line in pretty_feed.split('\n'):
+            if '</channel>' in line:
+                revised_feed += items
+            revised_feed += line + '\n'
+
+        pretty_feed = revised_feed
+
+    return HttpResponse(pretty_feed, content_type='application/rss+xml')
 
 def generate_static_campaign(request, store_id, page_id):
     """Too much confusion over the endpoint. Create alias for

@@ -1,4 +1,6 @@
+from store import *
 from content import *
+from category import *
 from page import *
 from product import *
 from scraper import *
