@@ -26,7 +26,10 @@ def ir_base(feed, **kwargs):
     # tagged products are in stock"
     tids = []
     for tile in qs.all():
-        if any(tile.content.values_list('tagged_products__in_stock', flat=True)):
+        if tile.content.count():
+            if any(tile.content.values_list('tagged_products__in_stock', flat=True)):
+                tids.append(tile.id)
+        else:  # if there isn't content, do not filter content
             tids.append(tile.id)
 
     qs = Tile.objects.filter(id__in=tids)
