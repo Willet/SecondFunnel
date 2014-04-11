@@ -91,6 +91,10 @@ a, a:hover, a:focus {
     max-width: 100%;
 }
 
+.visible-md.jumbotron, .visible-lg.jumbotron {
+    margin-bottom: 5px;
+}
+
 .container {
     /* @override bootstrap 3 */
     padding-right: 0;
