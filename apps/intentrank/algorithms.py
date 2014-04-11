@@ -20,14 +20,17 @@ def ir_base(feed, **kwargs):
 
     returns {QuerySet}  which is not a list
     """
-    qs = feed.tiles.filter(products__in_stock=True)
+    tids = []
+    qs = feed.tiles
 
     # "filter out all content tiles for which none of the content's
     # tagged products are in stock"
-    tids = []
     for tile in qs.all():
         if tile.content.count():
             if any(tile.content.values_list('tagged_products__in_stock', flat=True)):
+                tids.append(tile.id)
+        elif tile.products.count():
+            if any([product.in_stock for product in tile.products.all()]):
                 tids.append(tile.id)
         else:  # if there isn't content, do not filter content
             tids.append(tile.id)
