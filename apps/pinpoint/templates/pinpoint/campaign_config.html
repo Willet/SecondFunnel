@@ -56,7 +56,8 @@
             return true;
         }
         , 'conditionalSocialButtons': {{ conditional_social_buttons|safe }}
-
+        , 'categories': [] // a list of categories to allow filtering on
+        , 'categoryHome': true // a string or boolean indicating if there should be a home button/what the home button should be
         , 'showCount': true  // optional, for social buttons (default: true)
         , 'enableTracking': {{ enable_tracking|default:"true" }}  // optional; default: true
         // , 'eventMap': undefined  // optional
