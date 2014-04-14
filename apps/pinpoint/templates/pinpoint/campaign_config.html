@@ -19,6 +19,7 @@
             , 'offline': false  // optional (if true, loads .content immediately)
 
             , 'name': '{{ campaign.name|default:"" }}'  // provided by campaign manager
+            , 'slug': '{{ campaign.url_slug|default:"" }}'
 
             , 'layout': '{{ campaign.layout|default:"hero" }}'  // provided by campaign manager
 
