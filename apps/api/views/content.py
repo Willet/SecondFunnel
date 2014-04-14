@@ -66,7 +66,7 @@ class StoreContentItemCGHandler(ContentItemCGHandler):
 
     def get(self, request, *args, **kwargs):
         # this handler needs to return either
-        content = Content.objects.filter(store=self.store)
+        content = Content.objects.filter(store=self.store).select_subclasses()
         product_ids = Product.objects.filter(store=self.store).values_list('id', flat=True)
         product_images = ProductImage.objects.filter(product_id__in=product_ids)
 
@@ -79,6 +79,9 @@ class StoreContentItemCGHandler(ContentItemCGHandler):
             self.object_list = product_images
         else:
             self.object_list = content
+
+        if not self.object_list:
+            raise Http404()
 
         return ajax_jsonp(self.serialize_one())
 
@@ -133,7 +136,10 @@ class StorePageContentItemCGHandler(StoreContentItemCGHandler):
         page_id = kwargs.get('page_id')
         content_id = kwargs.get('content_id')
         page = get_object_or_404(Page, id=page_id)
-        self.content = get_object_or_404(Content, id=content_id)
+        try:
+            self.content = Content.objects.filter(id=content_id).select_subclasses()[0]
+        except ObjectDoesNotExist:
+            raise Http404()
 
         self.page = page
         self.feed = page.feed
@@ -261,7 +267,10 @@ class StoreContentStateItemCGHandler(ContentItemCGHandler):
 
         # can't tag ProductImage classes, which is fine for this set of
         # API urls
-        self.content = get_object_or_404(Content, id=kwargs.get('content_id'))
+        try:
+            self.content = Content.objects.filter(id=content_id).select_subclasses()[0]
+        except ObjectDoesNotExist:
+            raise Http404()
 
         return super(StoreContentStateItemCGHandler, self).dispatch(*args, **kwargs)
 
