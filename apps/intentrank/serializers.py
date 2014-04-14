@@ -95,9 +95,7 @@ class ContentSerializer(RawSerializer):
         else:
             data['-dbg-tagged-products'] = []
 
-        for product in (obj.tagged_products
-                            .select_related('default_image', 'product_images')
-                            .filter(in_stock=True)):
+        for product in obj.tagged_products.filter(in_stock=True):
             try:
                 if self.expand_products:
                     data['tagged-products'].append(product.to_json())
@@ -171,9 +169,7 @@ class ProductTileSerializer(TileSerializer):
         """
         data = super(ProductTileSerializer, self).get_dump_object(obj)
         try:
-            data.update(obj.products
-                           .select_related('product_images')[0]
-                           .to_json())
+            data.update(obj.products.all()[0].to_json())
         except IndexError as err:
             pass  # no products in this tile
         return data
@@ -186,9 +182,7 @@ class ContentTileSerializer(TileSerializer):
         """
         data = super(ContentTileSerializer, self).get_dump_object(obj)
         try:
-            data.update(obj.content
-                        .prefetch_related('tagged_products')[0]
-                        .to_json())
+            data.update(obj.content.all()[0].to_json())
         except IndexError as err:
             pass  # no content in this tile
         return data

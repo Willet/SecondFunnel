@@ -429,9 +429,7 @@ class Content(BaseModel):
         if self.tagged_products.count() > 0:
             dct['tagged-products'] = []
 
-        for product in (self.tagged_products
-                                .select_related('default_image', 'product_images')
-                                .all()):
+        for product in self.tagged_products.all():
             try:
                 dct['tagged-products'].append(product.to_json())
             except Product.DoesNotExist:
