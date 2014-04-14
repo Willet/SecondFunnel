@@ -55,7 +55,7 @@ def create(request, img):
     path = settings.MEDIA_URL
     data = process_image(img, path)
 
-    return ajax_jsonp({'url': data['url']})
+    return {'url': data['url']}
 
 
 @csrf_exempt
