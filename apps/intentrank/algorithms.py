@@ -3,7 +3,7 @@ as the first positional argument, with all other arguments being kwargs.
 
 All algorithms must return <list>.
 """
-from functools import partial
+from functools import partial, wraps
 import random as real_random
 
 from django.conf import settings
@@ -21,14 +21,25 @@ def ir_base(feed, **kwargs):
     returns {QuerySet}  which is not a list
     """
     tids = []
-    qs = feed.tiles
+    # qs = feed.tiles
+    qs = list(feed.tiles
+              .prefetch_related('products', 'content',
+                                'products__product_images',
+                                'content__tagged_products')
+              .select_related('products', 'content').all())
 
     # "filter out all content tiles for which none of the content's
     # tagged products are in stock"
-    for tile in qs.all():
+    for tile in qs:
         if tile.content.count():
-            if any(tile.content.values_list('tagged_products__in_stock', flat=True)):
-                tids.append(tile.id)
+            for content in tile.content.all():
+                if not content.tagged_products.count():
+                    tids.append(tile.id)
+                    break
+                for product in content.tagged_products.all():
+                    if product.in_stock:
+                        tids.append(tile.id)
+                        break
         elif tile.products.count():
             if any([product.in_stock for product in tile.products.all()]):
                 tids.append(tile.id)
@@ -39,6 +50,24 @@ def ir_base(feed, **kwargs):
 
     if kwargs:  # filter additional
         qs = qs.filter(**kwargs)
+
+    # DO NOT call *_related functions after ir_base!
+    qs = (qs.prefetch_related('products',
+                              'products__product_images',
+                              'products__default_image',
+                              'content',
+                              'content__store',
+                              'content__tagged_products',
+                              'content__tagged_products__product_images',
+                              'content__tagged_products__default_image')
+            .select_related('products',
+                            'products__product_images',
+                            'products__default_image',
+                            'content',
+                            'content__store',
+                            'content__tagged_products',
+                            'content__tagged_products__product_images',
+                            'content__tagged_products__default_image'))
     return qs
 
 
@@ -59,12 +88,8 @@ def ir_first(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if allowed_set:
         tile_filter.update({'id__in': allowed_set})
 
-    prioritized_tiles = list(
-        ir_base(feed)
-        .filter(**tile_filter)
-        .order_by('updated_at')
-        .select_related()
-        .prefetch_related('content', 'products'))
+    prioritized_tiles = list(ir_base(feed).filter(**tile_filter)
+                                          .order_by('updated_at'))
 
     tile_filter.pop('prioritized')
 
@@ -87,7 +112,8 @@ def ir_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 
 def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                   prioritized_set='', exclude_set=None, allowed_set=None):
+                   prioritized_set='', exclude_set=None, allowed_set=None,
+                   **kwargs):
     """Return prioritized tiles in the feed, ordered by priority,
     except the ones in exclude_set, which is a list of old id integers.
     """
@@ -103,9 +129,7 @@ def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
-    tiles = (tiles.select_related()
-                  .prefetch_related('content', 'products')
-                  .order_by('-priority', '?'))
+    tiles = tiles.order_by('-priority', '?')
 
     tiles = list(tiles[:results])
 
@@ -123,7 +147,8 @@ ir_priority_custom = partial(ir_prioritized, prioritized_set='custom')
 
 
 def ir_priority_sorted(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                       prioritized_state=True, exclude_set=None, allowed_set=None):
+                       prioritized_state=True, exclude_set=None,
+                       allowed_set=None, **kwargs):
     """Return prioritized tiles in the feed, ordered by their priority values,
     except the ones in exclude_set, which is a list of id integers.
     """
@@ -141,9 +166,7 @@ def ir_priority_sorted(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
-    tiles = (tiles.order_by('-priority')
-                  .select_related()
-                  .prefetch_related('content', 'products'))
+    tiles = tiles.order_by('-priority')
 
     tiles = list(tiles[:results])
 
@@ -153,7 +176,7 @@ def ir_priority_sorted(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 
 def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-              exclude_set=None, allowed_set=None):
+              exclude_set=None, allowed_set=None, **kwargs):
     """get (a numbr of) random tiles, except the ones in exclude_set,
     which is a list of old id integers."""
     if results < 1:
@@ -168,9 +191,7 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
-    tiles = (tiles.select_related()
-                  .prefetch_related('content', 'products')
-                  .order_by('?'))
+    tiles = tiles.order_by('?')
 
     tiles = list(tiles[:results])
 
@@ -197,9 +218,7 @@ def ir_created_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
-    tiles = (tiles.select_related()
-                  .prefetch_related('content', 'products')
-                  .order_by("-created_at"))
+    tiles = tiles.order_by("-created_at")
 
     tiles = list(tiles[:results])
 
@@ -236,9 +255,6 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
-
-    tiles = (tiles.select_related()
-                  .prefetch_related('content', 'products'))
 
     tiles = sorted(tiles, key=lambda tile: tile.click_score(), reverse=True)
 
@@ -278,12 +294,14 @@ def ir_generic(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # first, always show the ones that are 'request' i.e. every request
     prioritized_tiles += ir_priority_request(feed=feed, results=1000,
-                                             exclude_set=exclude_set)
+                                             exclude_set=exclude_set,
+                                             allowed_set=allowed_set)
 
     # second, show the ones for the first request
     if request and request.GET.get('reqNum', 0) in [0, '0']:
         prioritized_tiles += ir_priority_pageview(feed=feed, results=1000,
-                                                  exclude_set=exclude_set)
+                                                  exclude_set=exclude_set,
+                                                  allowed_set=allowed_set)
         prioritized_tile_ids = ids_of(prioritized_tiles)
 
     if len(prioritized_tiles) >= results:
@@ -293,7 +311,8 @@ def ir_generic(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if request and hasattr(request, 'session'):
         if len(request.session.get('shown', [])) == 0:  # first page view
             prioritized_tiles += ir_priority_session(feed=feed, results=8,
-                exclude_set=prioritized_tile_ids)
+                exclude_set=prioritized_tile_ids,
+                allowed_set=allowed_set)
             exclude_set += ids_of(prioritized_tiles)
 
     # fill the first two rows with (8) tiles that are known to be new
@@ -415,8 +434,9 @@ def ir_finite_by(attribute='created_at', reversed_=False):
     if attribute[0] == '-':
         attribute, reversed_ = attribute[1:], True
 
+    @wraps(ir_finite_by)
     def algo(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-             request=None, offset=0, *args, **kwargs):
+             request=None, offset=0, allowed_set=None, *args, **kwargs):
         """Outputs tiles, based on tiles' {attribute}, in offset slices."""
         def sort_fn(tile):
             """Turns a tile into a number"""
@@ -430,6 +450,10 @@ def ir_finite_by(attribute='created_at', reversed_=False):
             return []
 
         tiles = feed.tiles.all()
+
+        if allowed_set:
+            tiles = tiles.filter(id__in=allowed_set)
+
         tiles = sorted(tiles, key=sort_fn, reverse=reversed_)
 
         # generate a verbose id:value map that shows exactly why a tile was

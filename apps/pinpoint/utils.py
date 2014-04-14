@@ -81,12 +81,12 @@ def render_campaign(page_id, request, store_id=0):
         if not product_dict:
             return 'null'
 
-        # process related_products field, which is a list of products
-        if product_dict.get('related-products', False):
+        # process tagged_products field, which is a list of products
+        if product_dict.get('tagged-products', False):
             rel_products = []
-            for rel_product in product_dict['related-products']:
+            for rel_product in product_dict['tagged-products']:
                 rel_products.append(json.loads(json_postprocessor(rel_product)))
-            product_dict['related-products'] = rel_products
+            product_dict['tagged-products'] = rel_products
 
         escaped_product_dict = {}
         for key in product_dict:

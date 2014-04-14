@@ -100,9 +100,9 @@ def product_feed(request, page_slug):
         tile = obj.to_json()
         item = Element('item')
 
-        related_products = tile.get('related-products', [])
-        if len(related_products) > 0:
-            product = related_products[0]
+        tagged_products = tile.get('tagged-products', [])
+        if len(tagged_products) > 0:
+            product = tagged_products[0]
         else:
             product = tile
 

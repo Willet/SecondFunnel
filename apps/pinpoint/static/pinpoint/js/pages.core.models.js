@@ -47,7 +47,7 @@ App.module('core', function (core, App) {
             'tile-id': 0,
             // 'tile-class': 'tile',  // what used tile-class?
             // 'content-type': ''  // where did content-type go?
-            'related-products': [],
+            'tagged-products': [],
             'dominant-color': "transparent"
         },
 
@@ -96,7 +96,7 @@ App.module('core', function (core, App) {
             defaultImage = imgInstances[0];
 
             // Transform related-product image, if necessary
-            relatedProducts = this.get('related-products');
+            relatedProducts = this.get('tagged-products');
             if(!_.isEmpty(relatedProducts)) {
                 relatedProducts = _.map(relatedProducts, function(product) {
                     var originalImages = product.images || [];
@@ -113,7 +113,7 @@ App.module('core', function (core, App) {
             this.set({
                 'images': imgInstances,
                 'defaultImage': defaultImage,
-                'related-products': relatedProducts,
+                'tagged-products': relatedProducts,
                 'dominant-color': defaultImage.get('dominant-color')
             });
 

@@ -227,7 +227,7 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
     };
 
     /* Find the images to use in the gallery. */
-    images = view.model.get('related-products');
+    images = view.model.get('tagged-products');
     if (images && images.length) { // ensure related images exist
         images = images[0].images.slice(0);
 

@@ -91,21 +91,19 @@ class ContentSerializer(RawSerializer):
         }
 
         if obj.tagged_products.count() > 0:
-            data['related-products'] = []
+            data['tagged-products'] = []
         else:
-            data['-dbg-related-products'] = []
+            data['-dbg-tagged-products'] = []
 
-        for product in (obj.tagged_products
-                            .select_related('default_image', 'product_images')
-                            .filter(in_stock=True)):
+        for product in obj.tagged_products.filter(in_stock=True):
             try:
                 if self.expand_products:
-                    data['related-products'].append(product.to_json())
+                    data['tagged-products'].append(product.to_json())
                 else:
-                    data['related-products'].append(product.id)
+                    data['tagged-products'].append(product.id)
 
             except Product.DoesNotExist as err:
-                data['-dbg-related-products'].append(str(err.message))
+                data['-dbg-tagged-products'].append(str(err.message))
 
         return data
 
@@ -171,9 +169,7 @@ class ProductTileSerializer(TileSerializer):
         """
         data = super(ProductTileSerializer, self).get_dump_object(obj)
         try:
-            data.update(obj.products
-                           .select_related('product_images')[0]
-                           .to_json())
+            data.update(obj.products.all()[0].to_json())
         except IndexError as err:
             pass  # no products in this tile
         return data
@@ -186,9 +182,7 @@ class ContentTileSerializer(TileSerializer):
         """
         data = super(ContentTileSerializer, self).get_dump_object(obj)
         try:
-            data.update(obj.content
-                        .prefetch_related('tagged_products')[0]
-                        .to_json())
+            data.update(obj.content.all()[0].to_json())
         except IndexError as err:
             pass  # no content in this tile
         return data

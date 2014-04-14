@@ -90,7 +90,9 @@ def get_results_view(request, page_id):
 
     limit_showns(request)  # limit is controlled by TRACK_SHOWN_TILES_NUM
 
-    page = get_object_or_404(Page, id=page_id)
+    page = get_object_or_404(Page.objects.prefetch_related('feed', 'feed__tiles')
+                                         .select_related('feed', 'feed__tiles'),
+                             id=page_id)
     feed = page.feed
     ir = IntentRank(feed=feed)
 
@@ -102,10 +104,12 @@ def get_results_view(request, page_id):
         algorithm = ir.ir_finite_by(algorithm_name[10:])
     else:
         algorithm = getattr(ir, 'ir_' + algorithm_name) or ir.ir_generic
+    print 'request being handled by {0}'.format(algorithm.__name__)
 
     resp = ajax_jsonp(get_results(feed=feed, results=results,
                                   algorithm=algorithm, request=request,
-                                  exclude_set=exclude_set, category=category,
+                                  exclude_set=exclude_set,
+                                  category_name=category,
                                   offset=offset, tile_id=tile_id),
                       callback_name=callback)
     return resp
@@ -127,11 +131,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     # get single tile
     if tile_id:
         try:
-            tile = (Tile.objects
-                        .filter(id=tile_id)
-                        .select_related()
-                        .prefetch_related('content', 'products')
-                        .get())
+            tile = get_object_or_404(Tile, id=tile_id)
         except Tile.DoesNotExist:
             return HttpResponseNotFound("No tile {0}".format(tile_id))
 
@@ -155,12 +155,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
 
     # get all tiles
     try:
-        page = (Page.objects
-                    .filter(id=page_id)
-                    .select_related('feed__tiles__products',
-                                    'feed__tiles__content')
-                    .prefetch_related()
-                    .get())
+        page = get_object_or_404(Page, id=page_id)
     except Page.DoesNotExist:
         return HttpResponseNotFound("No page {0}".format(page_id))
 
@@ -210,11 +205,11 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
     request = kwargs.get('request', None)
-    category_name = kwargs.get('category', None)
+    category_name = kwargs.get('category_name', None)
     if category_name:
         category = Category.objects.get(name=category_name)
-        allowed_set = [getattr(tile, 'id', getattr(tile, 'old_id'))
-                       for tile in list(Tile.objects.filter(tile__products__in=category.products))]
+        allowed_set = [tile.id for tile in
+                       Tile.objects.filter(products__in=category.products.all())]
     else:
         allowed_set = None
     return ir.render(algorithm, feed=feed, results=results,
