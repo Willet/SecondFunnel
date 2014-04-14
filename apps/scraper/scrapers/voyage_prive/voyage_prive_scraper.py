@@ -1,3 +1,4 @@
+# coding=utf-8
 import re
 
 from apps.assets.models import Product
@@ -32,23 +33,20 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             product.store = self.store
             product.name = node.find_element_by_xpath('./titre').text
             product.url = node.find_element_by_xpath('./url-detail').text
-            product.price = '€' + node.find_element_by_xpath('./prix').text
+            product.price = u'€' + node.find_element_by_xpath('./prix').text
             products.append(product)
+            images.append(node.find_element_by_xpath('./image').text)
         self.driver.get(url)
-        for product in products:
+        for i in range(len(products)):
+            product = products[i]
+            image = images[i]
             try:
-                print(product.sku)
-                item = self.driver.find_element_by_xpath('//div[contains(div/h2/a/@href,"/{0}/")]'.format(product.sku))
+                item = self.driver.find_element_by_xpath('//div[contains(div/h2/a/@href, "/{0}/")]'.format(product.sku))
                 print('made it')
             except NoSuchElementException:
                 continue
             product.save()
-            for picture_element in item.find_elements_by_xpath('.//ul/li/a/img'):
-                picture_url = picture_element.get_attribute('src')
-                if not picture_url.endswith('lazy-load.jpg'):
-                    images.append(self._process_image(picture_url, product))
-            if len(images) > 0:
-                product.default_image = images[0]
+            product.default_image = self._process_image(image, product)
             product.save()
             print(product.store.id)
             yield(product)
