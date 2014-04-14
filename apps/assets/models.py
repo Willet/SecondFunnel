@@ -427,11 +427,11 @@ class Content(BaseModel):
         }
 
         if self.tagged_products.count() > 0:
-            dct['related-products'] = []
+            dct['tagged-products'] = []
 
         for product in self.tagged_products.all():
             try:
-                dct['related-products'].append(product.to_json())
+                dct['tagged-products'].append(product.to_json())
             except Product.DoesNotExist:
                 pass  # ?
 
@@ -455,7 +455,7 @@ class Image(Content):
     cg_serializer = cg_serializers.ImageSerializer
 
     def to_json(self, expand_products=True):
-        """Only Images (not ProductImages) can have related-products."""
+        """Only Images (not ProductImages) can have tagged-products."""
         dct = {
             "format": self.file_type,
             "type": "image",
@@ -467,9 +467,9 @@ class Image(Content):
         }
         if expand_products:
             # turn django's string list of strings into a real list of ids
-            dct["related-products"] = [x.to_json() for x in self.tagged_products.all()]
+            dct["tagged-products"] = [x.to_json() for x in self.tagged_products.all()]
         else:
-            dct["related-products"] = self.tagged_products.values_list('id', flat=True)
+            dct["tagged-products"] = self.tagged_products.values_list('id', flat=True)
 
         return dct
 

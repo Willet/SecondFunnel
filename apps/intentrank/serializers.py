@@ -91,19 +91,19 @@ class ContentSerializer(RawSerializer):
         }
 
         if obj.tagged_products.count() > 0:
-            data['related-products'] = []
+            data['tagged-products'] = []
         else:
-            data['-dbg-related-products'] = []
+            data['-dbg-tagged-products'] = []
 
         for product in obj.tagged_products.filter(in_stock=True):
             try:
                 if self.expand_products:
-                    data['related-products'].append(product.to_json())
+                    data['tagged-products'].append(product.to_json())
                 else:
-                    data['related-products'].append(product.id)
+                    data['tagged-products'].append(product.id)
 
             except Product.DoesNotExist as err:
-                data['-dbg-related-products'].append(str(err.message))
+                data['-dbg-tagged-products'].append(str(err.message))
 
         return data
 
