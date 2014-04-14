@@ -76,7 +76,7 @@ def get_results_view(request, page_id):
     results = int(request.GET.get('results', 10))
     shown = filter(bool, request.GET.get('shown', "").split(","))
     tile_id = request.GET.get('tile-id', 0)  # for related
-    session_reset = bool(request.GET.get('session-reset', False))
+    session_reset = True if request.GET.get('session-reset', "").lower() == "true" else False
 
     if session_reset:
         offset = 0 # For deterministic algorithms, we have to reset the offset
