@@ -905,7 +905,7 @@ App.module('core', function (module, App) {
             }));
 
             // Reverse price sort to push jewelerry et. al to the back
-            related = _.sortBy(model.get('related-products'), function (obj) {
+            related = _.sortBy(model.get('tagged-products'), function (obj) {
                 return -1 * parseFloat((obj.price || '$0').substr(1), 10);
             });
             _.each(related, function (img) {
@@ -915,11 +915,11 @@ App.module('core', function (module, App) {
                         .click((function (view, self, cls, model) {
                             function click () {
                                 // On click, change the focused image
-                                var related = _.filter(self.model.get('related-products').slice(0), function (product) {
+                                var related = _.filter(self.model.get('tagged-products').slice(0), function (product) {
                                     return product.name != view.name;
                                 });
                                 related.unshift(view); // first image in related is always shown
-                                model.set('related-products', related);
+                                model.set('tagged-products', related);
 
                                 self.target.show(new ContentClass({
                                     'model': model
@@ -1023,7 +1023,7 @@ App.module('core', function (module, App) {
 
             var ContentClass,
                 template = this.options.model.get('template'),
-                related = this.options.model.get('related-products') || [],
+                related = this.options.model.get('tagged-products') || [],
                 contentOpts = {
                     'model': this.options.model
                 };

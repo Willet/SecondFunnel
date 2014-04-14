@@ -102,10 +102,12 @@ def get_results_view(request, page_id):
         algorithm = ir.ir_finite_by(algorithm_name[10:])
     else:
         algorithm = getattr(ir, 'ir_' + algorithm_name) or ir.ir_generic
+    print 'request being handled by {0}'.format(algorithm.__name__)
 
     resp = ajax_jsonp(get_results(feed=feed, results=results,
                                   algorithm=algorithm, request=request,
-                                  exclude_set=exclude_set, category=category,
+                                  exclude_set=exclude_set,
+                                  category_name=category,
                                   offset=offset, tile_id=tile_id),
                       callback_name=callback)
     return resp
@@ -210,11 +212,11 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
     request = kwargs.get('request', None)
-    category_name = kwargs.get('category', None)
+    category_name = kwargs.get('category_name', None)
     if category_name:
         category = Category.objects.get(name=category_name)
-        allowed_set = [getattr(tile, 'id', getattr(tile, 'old_id'))
-                       for tile in list(Tile.objects.filter(tile__products__in=category.products))]
+        allowed_set = [tile.id for tile in
+                       Tile.objects.filter(products__in=category.products.all())]
     else:
         allowed_set = None
     return ir.render(algorithm, feed=feed, results=results,

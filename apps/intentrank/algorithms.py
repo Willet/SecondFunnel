@@ -3,7 +3,7 @@ as the first positional argument, with all other arguments being kwargs.
 
 All algorithms must return <list>.
 """
-from functools import partial
+from functools import partial, wraps
 import random as real_random
 
 from django.conf import settings
@@ -278,12 +278,14 @@ def ir_generic(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # first, always show the ones that are 'request' i.e. every request
     prioritized_tiles += ir_priority_request(feed=feed, results=1000,
-                                             exclude_set=exclude_set)
+                                             exclude_set=exclude_set,
+                                             allowed_set=allowed_set)
 
     # second, show the ones for the first request
     if request and request.GET.get('reqNum', 0) in [0, '0']:
         prioritized_tiles += ir_priority_pageview(feed=feed, results=1000,
-                                                  exclude_set=exclude_set)
+                                                  exclude_set=exclude_set,
+                                                  allowed_set=allowed_set)
         prioritized_tile_ids = ids_of(prioritized_tiles)
 
     if len(prioritized_tiles) >= results:
@@ -293,7 +295,8 @@ def ir_generic(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if request and hasattr(request, 'session'):
         if len(request.session.get('shown', [])) == 0:  # first page view
             prioritized_tiles += ir_priority_session(feed=feed, results=8,
-                exclude_set=prioritized_tile_ids)
+                exclude_set=prioritized_tile_ids,
+                allowed_set=allowed_set)
             exclude_set += ids_of(prioritized_tiles)
 
     # fill the first two rows with (8) tiles that are known to be new
@@ -415,8 +418,9 @@ def ir_finite_by(attribute='created_at', reversed_=False):
     if attribute[0] == '-':
         attribute, reversed_ = attribute[1:], True
 
+    @wraps(ir_finite_by)
     def algo(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-             request=None, offset=0, *args, **kwargs):
+             request=None, offset=0, allowed_set=None, *args, **kwargs):
         """Outputs tiles, based on tiles' {attribute}, in offset slices."""
         def sort_fn(tile):
             """Turns a tile into a number"""
@@ -430,6 +434,10 @@ def ir_finite_by(attribute='created_at', reversed_=False):
             return []
 
         tiles = feed.tiles.all()
+
+        if allowed_set:
+            tiles = tiles.filter(id__in=allowed_set)
+
         tiles = sorted(tiles, key=sort_fn, reverse=reversed_)
 
         # generate a verbose id:value map that shows exactly why a tile was

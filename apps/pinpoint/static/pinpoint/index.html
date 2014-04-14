@@ -21,7 +21,7 @@
                         <li><a class="navbar-brand brand-label" href="#"></a></li>
                         <li class="dropdown  hidden-xxs">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Other brands <b class="caret"></b></a>
-                            <ul class="related-products dropdown-menu">
+                            <ul class="tagged-products dropdown-menu">
                                 <li><a href="http://www.gap.com">Gap</a></li>
                                 <li><a href="http://www.oldnavy.com">Old Navy</a></li>
                                 <li><a href="http://www.bananarepublic.com">Banana Republic</a></li>
@@ -320,9 +320,9 @@
             <script type="text/template" id="gap_image_preview_template">
                 <!-- any (store.name)_(type)_... templates will be used in place
                      of default templates if they exist. -->
-                <% var product = obj['related-products'][0]; %>
-                <% if (obj['related-products'].length) { %>
-                    <div class="image-with-related-products">
+                <% var product = obj['tagged-products'][0]; %>
+                <% if (obj['tagged-products'].length) { %>
+                    <div class="image-with-tagged-products">
                         <div class="row">
                     <div class="col-sm-6 col-md-6">
                         <div class="image">
@@ -410,7 +410,7 @@
                         </div>
                     </div>
                 <% } else { %>
-                    <div class="image-without-related-products">
+                    <div class="image-without-tagged-products">
                         <img src="<%= obj.defaultImage.get('url') %>" alt="image" />
                         <div class="info">
                             <%= App.utils.safeString(obj.caption) %>

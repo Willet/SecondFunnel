@@ -6,7 +6,7 @@ App.utils.registerWidget(
     'div.combobox-enabled',  // selector (scoped!)
     function (view, $el, option) {
         var data = view.model,
-            related = view.model.get('related-products')[0],
+            related = view.model.get('tagged-products')[0],
             actualTile = $el.parents('.tile'),
             boundingBox = $('<div class="row" />'),
             left = $('<div class="col-xs-12 col-md-6" />'),

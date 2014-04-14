@@ -241,7 +241,7 @@
                         <div class='cell'>
                             <% /* "Shop product" is actually wanted for the tile overlay */ %>
                             <div class="title">
-                                <% var products = obj['related-products'] ? obj['related-products'] : []; %>
+                                <% var products = obj['tagged-products'] ? obj['tagged-products'] : []; %>
                                 <% if (obj.title || obj.name || obj.caption) { %>
                                     <%= (obj.title || obj.name || obj.caption) %>
                                 <% } else if (products.length > 0) { %>
@@ -523,12 +523,12 @@
         </script>
 
         <script type="text/template" id="image_mobile_preview_template">
-            <% var products = obj['related-products'] || []; %>
+            <% var products = obj['tagged-products'] || []; %>
             <% var product = products.length? products[0] : {}; %>
             <% if (products.length === 0) { %>
-            <div class="image-without-related-products">
+            <div class="image-without-tagged-products">
             <% } else { %>
-            <div class="image-with-related-products">
+            <div class="image-with-tagged-products">
             <% } %>
                 <div class="info">
                     <div class="title">
@@ -587,9 +587,9 @@
         </script>
 
         <script type="text/template" id="image_preview_template">
-            <% if (obj['related-products'].length) { %>
-            <% var product = obj['related-products'][0]; %>
-            <div class="image-with-related-products">
+            <% if (obj['tagged-products'].length) { %>
+            <% var product = obj['tagged-products'][0]; %>
+            <div class="image-with-tagged-products">
                 <div class="row">
                     <div class="image middle cell capped-width">
                         <img src="<%= obj.image.url %>" alt="image"/>
@@ -646,7 +646,7 @@
                 </div>
             </div>
             <% } else { %>
-            <div class="image-without-related-products">
+            <div class="image-without-tagged-products">
                 <div class="row">
                     <div class="image middle cell capped-width">
                         <img src="<%= obj.image.url %>" alt="image"/>
@@ -859,7 +859,7 @@
                 'click .tile.image': function () {
                     var cid = $(this).attr('id'),
                         obj = App.discovery.collection.get(cid),
-                        products = obj.get('related-products');
+                        products = obj.get('tagged-products');
                     if (products && products.length > 0) {
                         productName = products[0].name;
                         recordEvent('lifestyle_feed', 'lifestyle feed', 'pop-up open', productName);
@@ -868,21 +868,21 @@
                     }
                 },
                 // 14 - Lifestyle Product Social Links
-                'click .image-with-related-products .social-buttons .button, .image-without-related-products .social-buttons .button': function () {
+                'click .image-with-tagged-products .social-buttons .button, .image-without-tagged-products .social-buttons .button': function () {
                     if (productName) {
                         var social_network = $(this).attr('class').replace(/\s*button\s*/, '');
                         recordEvent('lifestyle_share', 'lifestyle pop-up', social_network + ' share', productName);
                     }
                 },
                 // 15 - Find Lifestyle Product in Store
-                'click .image-with-related-products a.button.find-store, .image-without-related-products a.button.find-store': function () {
+                'click .image-with-tagged-products a.button.find-store, .image-without-tagged-products a.button.find-store': function () {
                     if (productName) {
                         recordEvent('lifestyle_find in store', 'lifestyle pop-up', 'find in store', productName);
                     }
                 },
                 // 16 - Buy Lifestyle Product Online
-                'click .image-with-related-products a.button.in-store, .image-without-related-products a.button.in-store \
-                    .image-with-related-products a.buy, .image-without-related-products a.buy': function () {
+                'click .image-with-tagged-products a.button.in-store, .image-without-tagged-products a.button.in-store \
+                    .image-with-tagged-products a.buy, .image-without-tagged-products a.buy': function () {
                     if (productName) {
                         recordEvent('lifestyle_buy online', 'lifestyle pop-up', 'buy online', productName);
                     }
@@ -891,7 +891,7 @@
                 'click .tile.youtube.wide': function () {
                     var cid = $(this).attr('id'),
                         obj = App.discovery.collection.get(cid),
-                        products = obj.get('related-products');
+                        products = obj.get('tagged-products');
                     if (products && products.length > 0) {
                         recordEvent('lifestyle_video', 'lifestyle_feed', 'video play', products[0].name);
                     }
@@ -952,7 +952,7 @@
             // Subscribe to FB event for GAP Analytic tracking
             App.vent.on('tracking:registerFacebookListeners', function () {
                 FB.Event.subscribe('edge.create', function(href, widget) {
-                    var type = $('div.facebook').eq(0).parents('.image-with-related-products, .image-without-related-products');
+                    var type = $('div.facebook').eq(0).parents('.image-with-tagged-products, .image-without-tagged-products');
                     if (productName && type && type.length > 0) {
                         recordEvent('lifestyle_share', 'lifestyle pop-up', 'facebook share', productName);
                     } else if (productName) {
