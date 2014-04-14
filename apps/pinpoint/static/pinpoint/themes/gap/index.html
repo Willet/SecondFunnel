@@ -940,8 +940,8 @@
                     {% endifequal %}
 
                     try {
-                        related = _.isEmpty(obj.get('related-products')) ?
-                                obj : obj.get('related-products')[0];
+                        related = _.isEmpty(obj.get('tagged-products')) ?
+                                obj : obj.get('tagged-products')[0];
 
                         analyticsProduct = _.pick(
                             related.attributes || related,
