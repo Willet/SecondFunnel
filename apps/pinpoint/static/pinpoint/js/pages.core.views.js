@@ -1162,7 +1162,13 @@ App.module('core', function (module, App) {
         },
 
         'onRender': function () {
-            this.$el.children().eq(0).click();
+            var children = this.$el.children(),
+                n = children.length;
+
+            if (this.nofilter) {
+                children.eq(0).click();
+            }
+            children.css('width', (100 / n) + '%');
         },
 
         'onItemviewClick': function (view) {

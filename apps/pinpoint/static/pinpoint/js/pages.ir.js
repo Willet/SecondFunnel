@@ -132,6 +132,11 @@ App.module("intentRank", function (intentRank, App) {
         data.reqNum = intentRank.options.IRReqNum;
         data.offset = intentRank.options.IROffset;
 
+        if (intentRank.options.IRReset) {
+            data['session-reset'] = true;
+            intentRank.options.IRReset = false;
+        }
+
         opts = $.extend({}, {
             'results': 10,
             'add': true,
@@ -338,6 +343,7 @@ App.module("intentRank", function (intentRank, App) {
         // Change the category, category is a string passed
         // to data
         intentRank.options.category = category;
+        intentRank.options.IRReset = true;
 
         if (!category) { // clear the category
             urlTemplate = intentRank.options.urlTemplates.campaign;
