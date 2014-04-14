@@ -366,8 +366,8 @@ body {
     vertical-align: middle;
 }
 
-.tile.image .overlay .title, .image-with-related-products .caption,
-.image-without-related-products .caption {
+.tile.image .overlay .title, .image-with-tagged-prodoucts .caption,
+.image-without-tagged-prodoucts .caption {
     font-family: "Helvetica", "Verdana", sans-serif;
     font-size: 15pt;
     font-weight: bold;
@@ -384,8 +384,8 @@ body {
     display: block;
 }
 
-.tile.image .overlay .author, .image-with-related-products .author,
-.image-without-related-products .author {
+.tile.image .overlay .author, .image-with-tagged-prodoucts .author,
+.image-without-tagged-prodoucts .author {
     font-family: "HelveticaNeueThin", "HelveticaNeue-Thin", "Helvetica Neue Thin", "HelveticaNeue-UltraLight", "Helvetica Neue UltraLight", "Helvetica Neue", "TeXGyreHerosRegular", Arial, Helvetica, sans-serif;
     font-weight:200;
     font-stretch:normal;
@@ -399,12 +399,12 @@ body {
     text-decoration: none;
 }
 
-.image-with-related-products .author a,
-.image-with-related-products .author a:hover,
-.image-with-related-products .author a:visited,
-.image-without-related-products .author a,
-.image-without-related-products .author a:hover,
-.image-without-related-products .author a:visited {
+.image-with-tagged-prodoucts .author a,
+.image-with-tagged-prodoucts .author a:hover,
+.image-with-tagged-prodoucts .author a:visited,
+.image-without-tagged-prodoucts .author a,
+.image-without-tagged-prodoucts .author a:hover,
+.image-without-tagged-prodoucts .author a:visited {
     text-decoration: underline;
 }
 
@@ -785,7 +785,7 @@ body {
     text-shadow: none;
 }
 
-.previewContainer .image-with-related-products {
+.previewContainer .image-with-tagged-prodoucts {
 }
 
 .previewContainer .row,
@@ -822,7 +822,7 @@ body {
 }
 
 
-.previewContainer .image-with-related-products .row .center.middle.cell {
+.previewContainer .image-with-tagged-prodoucts .row .center.middle.cell {
     text-align: center;
 }
 
@@ -835,29 +835,29 @@ body {
         overflow: hidden;
     }
 
-    .previewContainer .image-with-related-products .row .gallery {
+    .previewContainer .image-with-tagged-prodoucts .row .gallery {
         max-width: 192px;
         height: 71px;
         overflow-x: auto;
         overflow-y: hidden;
     }
 
-    .previewContainer .image-with-related-products .row .center.middle.cell {
+    .previewContainer .image-with-tagged-prodoucts .row .center.middle.cell {
         text-align: center;
     }
 
-    .previewContainer .image-without-related-products .info {
+    .previewContainer .image-without-tagged-prodoucts .info {
         width: 80%;
         margin: 0 auto;
     }
 
-    .previewContainer .image-without-related-products .description {
+    .previewContainer .image-without-tagged-prodoucts .description {
         margin-bottom: 20px;
         margin-top: 20px;
     }
 
-    .previewContainer .shop-the-look .image-with-related-products .gap-buttons,
-    .previewCotnainer .shop-the-look .image-with-related-products .social-buttons {
+    .previewContainer .shop-the-look .image-with-tagged-prodoucts .gap-buttons,
+    .previewCotnainer .shop-the-look .image-with-tagged-prodoucts .social-buttons {
         margin-bottom: 20px;
     }
 
@@ -950,8 +950,8 @@ body {
         height: 100%;
     }
 
-    .previewContainer .image-with-related-products .image:before,
-    .previewContainer .image-with-related-products .image:after {
+    .previewContainer .image-with-tagged-prodoucts .image:before,
+    .previewContainer .image-with-tagged-prodoucts .image:after {
         display: none;
     }
 
@@ -975,7 +975,7 @@ body {
         top: 35px;
     }
 
-    .previewContainer .content .image-without-related-products .image-region {
+    .previewContainer .content .image-without-tagged-prodoucts .image-region {
         top: 30px;
     }
 
