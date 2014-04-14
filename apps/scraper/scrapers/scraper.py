@@ -38,6 +38,10 @@ class Scraper(object):
         """
         return url
 
+
+    def has_next_scraper(self, values, **kwargs):
+        return True
+
     def next_scraper(self, values, **kwargs):
         """
         Optional Method
@@ -185,8 +189,7 @@ class ContentScraper(Scraper):
 
 
 class ContentCategoryScraper(ContentScraper):
-    def has_next_scraper(self, values, **kwargs):
-        return True
+    pass
 
 
 class ContentDetailScraper(ContentScraper):

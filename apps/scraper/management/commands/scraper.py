@@ -11,6 +11,7 @@ from apps.scraper.scrapers.scraper import ProductDetailScraper, ProductCategoryS
 from apps.scraper.scrapers.gap.gap_product_scrapers import GapProductScraper, GapCategoryScraper
 from apps.scraper.scrapers.madewell.madewell_product_scrapers import MadewellProductScraper, MadewellCategoryScraper, \
     MadewellMultiProductScraper
+from apps.scraper.scrapers.voyage_prive.voyage_prive_scraper import VoyagePriveCategoryScraper
 from apps.scraper.scrapers.content.pinterest_scraper import PinterestPinScraper, PinterestAlbumScraper
 from apps.scraper.scrapers.gap.styldby_scraper import StyldByFilterScraper, StyldByPartnersScraper
 
@@ -59,6 +60,7 @@ class Command(BaseCommand):
             MadewellProductScraper(store),
             MadewellCategoryScraper(store),
             MadewellMultiProductScraper(store),
+            VoyagePriveCategoryScraper(store),
             PinterestPinScraper(store),
             PinterestAlbumScraper(store),
             StyldByFilterScraper(store),
@@ -111,6 +113,9 @@ class Command(BaseCommand):
                     break
             elif isinstance(scraper, ProductCategoryScraper):
                 for product in scraper.scrape(url=url, values=values):
+                    if not scraper.has_next_scraper(values=values):
+                        print(product.to_json())
+                        continue
                     next_scraper = scraper.next_scraper(values=values)
                     self.run_scraper(url=product.url, product=product, values=values.copy(), scraper=next_scraper)
             elif isinstance(scraper, ContentDetailScraper):
