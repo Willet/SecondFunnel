@@ -42,11 +42,9 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             image = images[i]
             try:
                 item = self.driver.find_element_by_xpath('//div[contains(div/h2/a/@href, "/{0}/")]'.format(product.sku))
-                print('made it')
             except NoSuchElementException:
                 continue
             product.save()
             product.default_image = self._process_image(image, product)
             product.save()
-            print(product.store.id)
             yield(product)
