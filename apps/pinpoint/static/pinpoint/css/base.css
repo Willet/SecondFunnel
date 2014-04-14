@@ -42,6 +42,10 @@ a, a:hover, a:focus {
     display: inline-block;
 }
 
+.bold {
+    font-weight: bold;
+}
+
 .text-centered {
     text-align: center;
 }
