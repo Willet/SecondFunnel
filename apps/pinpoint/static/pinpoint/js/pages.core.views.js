@@ -1117,15 +1117,7 @@ App.module('core', function (module, App) {
         },
 
         'onClick': function (ev) {
-            var category = this.model.get('name');
-
-            // Switch the selected category class to this element
-            this.$el.siblings().removeClass('selected');
-            this.$el.addClass('selected');
-            if (category === "home") {
-                category = "";
-            }
-            App.intentRank.changeCategory(category);
+            this.trigger('click', this);
         }
     });
 
@@ -1143,13 +1135,27 @@ App.module('core', function (module, App) {
 
         'initialize': function (options) {
             var self = this,
-                categories = App.option('categories', []);
+                home = null,
+                categories = App.option('categories', []).slice(0);
             this.collection = new App.core.CategoryCollection();
+
+            if (App.option('categoryHome', true) && categories.length) {
+                // This specifies that there should be a home button, by
+                // default, this is true.
+                if (App.option('categoryHome').length) {
+                    home = App.option('categoryHome');
+                } else {
+                    home = "home";
+                }
+                categories.unshift(home);
+                this.nofilter = true;
+            }
 
             // Initialize by adding all the categories to this view
             _.each(categories, function (category) {
                 category = new App.core.Category({
-                  'name': category
+                  'name': category,
+                  'nofilter': (category === home)
                 });
                 self.collection.add(category);
             });
@@ -1157,6 +1163,35 @@ App.module('core', function (module, App) {
 
         'onRender': function () {
             this.$el.children().eq(0).click();
+        },
+
+        'onItemviewClick': function (view) {
+            var $el = view.$el,
+                category = view.model.get('name'),
+                nofilter = view.model.get('nofilter');
+
+            // Switch the selected category class
+            $el.siblings().removeClass('selected');
+            if ($el.hasClass('selected') && !nofilter) {
+                // Reset intentRank by clearing the category, if we have a
+                // nofilter class, click it instead.
+                $el.removeClass('selected');
+                if (this.nofilter) {
+                    $el.siblings().eq(0).click();
+                } else {
+                    App.intentRank.changeCategory();
+                }
+            } else if (!$el.hasClass('selected')) {
+                // On click, pass the new category to intentRank, if the view
+                // is the nofilter view, clear.
+                $el.addClass('selected');
+                if (nofilter) {
+                    App.intentRank.changeCategory();
+                } else {
+                    App.intentRank.changeCategory(category);
+                }
+            }
+            return this;
         }
     });
 });
