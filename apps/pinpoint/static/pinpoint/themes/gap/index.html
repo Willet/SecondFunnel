@@ -241,16 +241,17 @@
                         <div class='cell'>
                             <% /* "Shop product" is actually wanted for the tile overlay */ %>
                             <div class="title">
+                                <% var products = obj['related-products'] ? obj['related-products'] : []; %>
                                 <% if (obj.title || obj.name || obj.caption) { %>
                                     <%= (obj.title || obj.name || obj.caption) %>
-                                <% } else if (obj['related-products'] && obj['related-products'].length > 0) { %>
-                                    <span>Shop product</span>
+                                <% } else if (products.length > 0) { %>
+                                    <span>Shop Product<% if (products.length > 1) { %>s<% } %></span>
                                     <br/>
-                                    <% _.each(obj['related-products'], function (related) { %>
+                                    <% _.each(products, function (related) { %>
                                         <span class='shop-products'><%= related.title || related.name || related.caption %></span>
                                     <% }); %>
                                 <% } else { %>
-                                    Shop product
+                                    Shop Product
                                 <% } %>
                             </div>
                         </div>
