@@ -76,6 +76,10 @@ def campaign_by_slug(request, page_slug):
 @never_cache
 def product_feed(request, page_slug):
     page = get_object_or_404(Page, url_slug=page_slug)
+    
+    url = 'http://{}.secondfunnel.com/{}'.format(
+        page.store.slug, page_slug
+    )
 
     root = Element('rss')
     root.set('xmlns:g', 'http://base.google.com/ns/1.0')
@@ -87,7 +91,7 @@ def product_feed(request, page_slug):
     page_title.text = page.name
 
     page_link = SubElement(channel, 'link')
-    page_link.text = request.build_absolute_uri()
+    page_link.text = url
 
     page_description = SubElement(channel, 'description')
     page_description.text = page.description
@@ -111,9 +115,8 @@ def product_feed(request, page_slug):
 
         # So, this is only really a solution in the short term.
         link = SubElement(item, 'link')
-        link.text = 'http://{}/{}#{}'.format(
-             request.get_host(),
-             page_slug,
+        link.text = '{}#{}'.format(
+             url,
              tile.get('tile-id')
         )
 
