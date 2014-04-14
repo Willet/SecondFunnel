@@ -418,6 +418,7 @@ class Content(BaseModel):
         :returns dict objects.
         """
         dct = {
+            'id': str(self.id),
             'store-id': str(self.store.id if self.store else 0),
             'source': self.source,
             'source_url': self.source_url,
@@ -457,11 +458,12 @@ class Image(Content):
     def to_json(self, expand_products=True):
         """Only Images (not ProductImages) can have tagged-products."""
         dct = {
+            "id": str(self.id),
+            "store-id": str(self.store.id if self.store else 0),
             "format": self.file_type,
             "type": "image",
             "dominant-color": self.dominant_color or "transparent",
             "url": self.url or self.source_url,
-            "id": str(self.id),
             "sizes": self.attributes.get('sizes', default_master_size),
             'status': self.status,
         }
