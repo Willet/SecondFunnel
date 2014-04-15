@@ -44,10 +44,6 @@ CACHES = {
     }
 }
 
-INSTALLED_APPS += (
-    'raven.contrib.django.raven_compat',  # logging
-)
-
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 GOOGLE_ANALYTICS_PROFILE = '67271131'

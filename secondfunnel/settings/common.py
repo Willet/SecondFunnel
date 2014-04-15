@@ -285,6 +285,7 @@ INSTALLED_APPS = (
     'ajax_forms',
     'compressor',
     'corsheaders',
+    'raven.contrib.django.raven_compat',  # logging
 
     # our apps
     'apps.api',

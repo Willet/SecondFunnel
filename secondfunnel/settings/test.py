@@ -42,10 +42,6 @@ CACHES = {
     }
 }
 
-INSTALLED_APPS += (
-    'raven.contrib.django.raven_compat',  # logging
-)
-
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 GOOGLE_API_PRIVATE_KEY = 'google-service-account-prod.p12'
