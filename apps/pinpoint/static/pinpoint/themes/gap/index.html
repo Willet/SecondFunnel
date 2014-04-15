@@ -6,19 +6,10 @@
     {% include "pinpoint/campaign_head.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
-        var algo_cookie;
-        if (Math.random() < 0.5) {
-            algo_cookie = "A";
-            PAGES_INFO['IRAlgo'] = "generic";
-        } else {
-            algo_cookie = "B";
-            PAGES_INFO['IRAlgo'] = "finite_popular";
-        }
         window.OPTIMIZER_TESTS = [];
         window.OPTIMIZER_TESTS.push({
             index: 9,
             test: 'custom',
-            disabled: true,
             custom: function (cookie) {
                 cookie = cookie || _.sample(["A", "B"]);
                 if (cookie === "B") {
@@ -35,8 +26,9 @@
         window.OPTIMIZER_TESTS.push({
             index: 10,
             test: 'custom',
+            disabled: true,
             custom: function (cookie) {
-                cookie = algo_cookie;
+                cookie = cookie || _.sample(["A", "B"]);
                 if (cookie === "B") {
                     App.intentRank.options.IRAlgo = "finite_popular";
                 }

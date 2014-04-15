@@ -1182,6 +1182,12 @@ App.module('core', function (module, App) {
             });
         },
 
+        'onRender': function () {
+            if (this.nofilter) {
+                this.$el.children().eq(0).click();
+            }
+        },
+
         'onItemviewClick': function (view) {
             var $el = view.$el,
                 category = view.model.get('name'),
