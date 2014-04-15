@@ -18,6 +18,9 @@ class Scraper(object):
     The values variable is a dictionary that is passed around by the controller
     to all functions in the scraper and to all sub-scrapers, it can be added to
     by any function and is not changed by the controller
+
+    To allow the scraper to be run without explicitly specifying when to run,
+    the regexs variable must define a list of regexs for the scraper
     """
     regexs = []
 
@@ -57,13 +60,11 @@ class Scraper(object):
     def scrape(self, url, values, **kwargs):
         """
         The method used to run the scraper
-        For category scrapers, a store is also added to the arguments
-        For detail scrapers, a product or content object is added to the arguments
 
-        Models must be returned using yield
-
-        If it is a content scraper, the content must be created inside the scraper
-        if the passed in content is None
+        yield is used to return dictionaries with the required variables
+        url must be included in the dictionary if another scraper must be run after this one
+        product or content must be included if no scraper should be run after this one
+        scraper can be included to explicitly define the next scraper
         """
         raise NotImplementedError
 
