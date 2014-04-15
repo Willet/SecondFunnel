@@ -903,16 +903,16 @@
                 'click .tile.image, .tile.product': function() {
                     var cid = $(this).attr('id'),
                         obj = App.discovery.collection.get(cid),
-                        product, product_id, page_id, store_slug, feed_id,
+                        product, pageId, storeSlug, feedId,
                         segment, analyticsTile, analyticsProduct, related,
-                        analyticsPage;
+                        analyticsPage, tileId;
 
-                    tile_id = obj.get('tile-id');
-                    page_id = App.options.page.id;
-                    store_slug = App.options.store.slug;
+                    tileId = obj.get('tile-id');
+                    pageId = App.options.page.id;
+                    storeSlug = App.options.store.slug;
 
                     // Needs to match the RSS
-                    feed_id = store_slug + 'P' + page_id + 'T' + tile_id;
+                    feedId = storeSlug + 'P' + pageId + 'T' + tileId;
 
                     if ($(this).hasClass('image')) {
                         segment = 'ImagePopUp';
@@ -923,7 +923,7 @@
                     try {
                         _pq.push(['track', segment]);
                         _pq.push(['track', 'PopUp']);
-                        _pq.push(['trackProduct', feed_id]);
+                        _pq.push(['trackProduct', feedId]);
                     } catch(err) {}
 
                     {% comment %}
@@ -935,7 +935,7 @@
                     try {
                         __adroll.record_user({"adroll_segments": segment});
                         __adroll.record_user({"adroll_segments": 'PopUp'});
-                        __adroll.record_user({"product_id": feed_id});
+                        __adroll.record_user({"product_id": feedId});
                     } catch(err) {}
                     {% endifequal %}
 
