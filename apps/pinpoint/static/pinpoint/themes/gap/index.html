@@ -22,7 +22,12 @@
             custom: function (cookie) {
                 cookie = cookie || _.sample(["A", "B"]);
                 if (cookie === "B") {
-                    App.options.categories = ["men", "women"];
+                    if (App.option('campaign') === "6") {
+                        App.options.categoryHome = false;
+                        App.options.categories = ["women", "girls", "baby (0-24 mos)"];
+                    } else {
+                        App.options.categories = ["men", "women"];
+                    }
                 }
                 return cookie;
             }
