@@ -7,7 +7,7 @@
         , 'discoveryTarget': '{{ discovery_target|default:"#discovery-area" }}'
         , 'itemSelector': '{{ item_selector|default:".tile" }}'
         , 'store': {
-            'id': '{{ store.id|default:0 }}',  // TODO: why was ID slug?
+            'id': '{{ store.id }}',
             'slug': '{{ store.slug|default:"store" }}',  // required for store-specific themes
             'name': '{{ store.name|default:"Store" }}',
             'displayName': '{{ store.display_name|default:'' }}'  // leave blank to use "Gap"

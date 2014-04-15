@@ -10,7 +10,7 @@ except ImportError:
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseServerError
 from django.http.response import HttpResponseNotFound
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.template import Context, loader
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
@@ -211,6 +211,13 @@ def product_feed(request, page_slug):
         pretty_feed = revised_feed
 
     return HttpResponse(pretty_feed, content_type='application/rss+xml')
+
+@login_required
+def page_stats(request, page_slug):
+    page = get_object_or_404(Page, url_slug=page_slug)
+    return render_to_response('pinpoint/campaign_statistics.html', {
+        'page': page
+    })
 
 def generate_static_campaign(request, store_id, page_id):
     """Too much confusion over the endpoint. Create alias for

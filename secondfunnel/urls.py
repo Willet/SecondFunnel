@@ -22,6 +22,8 @@ urlpatterns = patterns('',
     # special top-level urls for RSS feeds
     url(r'^(?P<page_slug>[^/\.]+)/?$',
         'apps.pinpoint.views.campaign_by_slug', name='get-page-by-slug'),
+    url(r'^(?P<page_slug>[^/\.]+)/stats$',
+        'apps.pinpoint.views.page_stats', name='page-stats'),
     url(r'^(?P<page_slug>[^/\.]+)/google.rss$',
         'apps.pinpoint.views.product_feed', name='product-feed'),
     # special top-level urls for RSS feeds

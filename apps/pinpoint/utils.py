@@ -136,7 +136,7 @@ def render_campaign(page_id, request, store_id=0):
         "enable_tracking": page.enable_tracking,  # jsbool
         # apparently {{ campaign.image_tile_wide|default:0.5 }} is too confusing for django
         "image_tile_wide": page.image_tile_wide,
-        "pub_date": datetime.now(),
+        "pub_date": datetime.now().isoformat(),
         "legal_copy": page.legal_copy,
         "mobile_hero_image": page.mobile_hero_image,
         "desktop_hero_image": page.desktop_hero_image,
