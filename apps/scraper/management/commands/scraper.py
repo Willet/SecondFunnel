@@ -5,6 +5,8 @@ import traceback
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
 
+from selenium.common.exceptions import WebDriverException
+
 from apps.assets.models import Product, Store
 from apps.scraper.scrapers import ProductDetailScraper
 from apps.scraper.scrapers import GapProductScraper, GapCategoryScraper
@@ -114,6 +116,10 @@ class Command(BaseCommand):
                     print('\n' + str(dictionary.get('product').to_json()))
                 else:
                     print('bad scraper return, must return either a url or a model for a product or content')
+
+        except WebDriverException:
+            print('There was a problem with the webdriver')
+            traceback.print_exc()
 
         except BaseException:
             # catches all exceptions so that if one detail scraper were to have an error
