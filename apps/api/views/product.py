@@ -9,7 +9,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
-from apps.assets.models import Product, Store, Page
+from apps.assets.models import Product, Store, Page, Tile
 from apps.intentrank.utils import ajax_jsonp
 
 
@@ -94,14 +94,9 @@ class StorePageProductCGHandler(StoreProductCGHandler):
         return super(StoreProductCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
-        """get all the products in the feed, which is
-        all the feed's tiles' products
+        """get all the products from the (first) store that owns this page
         """
-        tiles = self.feed.tiles.all()
-        products = []
-        for tile in tiles:
-            products += tile.products.all()
-        return products
+        return Product.objects.filter(store_id=self.feed.page.all()[0].store.id)
 
 
 class StorePageProductItemCGHandler(StoreProductItemCGHandler):
