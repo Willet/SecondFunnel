@@ -545,19 +545,8 @@ div.header {
     }
 }
 
-#category-area {
-    width: 100%;
-    display: table;
-    text-align: center;
-}
-
-#category-area .category-area {
-    display: table-row;
-}
-
 #category-area .category {
     color: white;
-    display: table-cell;
     border: 1px solid white;
     background-color: #555555;
 }

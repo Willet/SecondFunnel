@@ -714,7 +714,16 @@ div.loading {
 
 #category-area {
     width: 100%;
+    display: table;
     text-align: center;
+}
+
+#category-area .category-area {
+    display: table-row;
+}
+
+#category-area .category-area .category {
+    display: table-cell;
 }
 
 #category-area .category {
