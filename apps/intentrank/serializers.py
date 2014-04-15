@@ -160,6 +160,9 @@ class TileSerializer(RawSerializer):
         if hasattr(obj, 'attributes') and obj.attributes.get('colspan'):
             data['colspan'] = obj.attributes.get('colspan')
 
+        if hasattr(obj, 'attributes') and obj.attributes.get('facebook-ad'):
+            data['facebook-ad'] = obj.attributes.get('facebook-ad')
+
         return data
 
 
