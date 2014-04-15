@@ -145,6 +145,9 @@ def product_feed(request, page_slug):
         images = product.get('images', [])
         image = next(ifilter(lambda x: x.get('id') == image_id, images), {})
 
+        if tile.get('facebook-ad'):
+            image = tile.get('facebook-ad')
+
         image_link = SubElement(item, 'g:image_link')
         image_link.text = image.get('url')
         # End - Always Required
