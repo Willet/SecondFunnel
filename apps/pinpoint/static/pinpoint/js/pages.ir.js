@@ -135,6 +135,7 @@ App.module("intentRank", function (intentRank, App) {
         if (intentRank.options.IRReset) {
             data['session-reset'] = true;
             intentRank.options.IRReset = false;
+            cachedResults = [];
         }
 
         opts = $.extend({}, {

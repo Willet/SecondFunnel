@@ -452,6 +452,7 @@ App.module('core', function (module, App) {
         'lastScrollTop': 0,
         'loading': false,
         'collection': null,
+        'ended': false,
 
         // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
         /**
@@ -550,6 +551,11 @@ App.module('core', function (module, App) {
             App.vent.on("click:tile", this.updateContentStream, this);
             App.vent.on('change:category', this.categoryChanged, this);
 
+            App.vent.on("feedEnded", function () {
+                console.debug("feed ended");
+                App.discovery.ended = true;
+            });
+
             App.vent.on("finished", _.once(function () {
                 // the first batch of results need to layout themselves
                 App.layoutEngine.layout(self);
@@ -631,7 +637,7 @@ App.module('core', function (module, App) {
         },
 
         /**
-         * Called when new content has been appended to the collectView via
+         * Called when new content has been appended to the collectionView via
          * the layoutEngine.  Toggles loading to false, and calls pageScroll.
          *
          * @returns this
@@ -640,7 +646,9 @@ App.module('core', function (module, App) {
             var self = this;
 
             setTimeout(function () {
-                self.toggleLoading(false).pageScroll();
+                self
+                    .toggleLoading(false)
+                    .pageScroll();
             }, 500);
 
             return this;
@@ -667,14 +675,20 @@ App.module('core', function (module, App) {
             // the Layout Engine and collecting new tiles.
             var self = this;
             if (this.loading) {
-                setTimeout(function () {
-                    self.categoryChanged(ev, category);
-                }, 100);
+                console.debug("changing category on edge");
+                this.on('loadingFinished', _.once(function () {
+                    App.tracker.changeCategory(category);
+                    App.layoutEngine.empty(self);
+                    self.ended = false;
+                    self.getTiles();
+                }));
             } else {
                 App.tracker.changeCategory(category);
                 App.layoutEngine.empty(this);
+                this.ended = false;
                 this.getTiles();
             }
+
             return this;
         },
 
@@ -691,6 +705,7 @@ App.module('core', function (module, App) {
                 loadingIndicator.show();
             } else {
                 loadingIndicator.hide();
+                this.trigger('loadingFinished');
             }
 
             return this;
@@ -703,6 +718,10 @@ App.module('core', function (module, App) {
                 pageBottomPos = pageHeight + windowTop,
                 documentBottomPos = $document.height(),
                 viewportHeights = pageHeight * (App.option('prefetchHeight', 1.5));
+
+            if (this.ended) {
+                return this;
+            }
 
             if (!this.loading && (children.length === 0 || !App.previewArea.currentView) &&
                     pageBottomPos >= documentBottomPos - viewportHeights) {
@@ -740,6 +759,8 @@ App.module('core', function (module, App) {
                 App.vent.trigger('scrollUp', this);
             }  // if equal, trigger nothing
             this.lastScrollTop = st;
+
+            return this;
         }
     });
 
@@ -1159,16 +1180,6 @@ App.module('core', function (module, App) {
                 });
                 self.collection.add(category);
             });
-        },
-
-        'onRender': function () {
-            var children = this.$el.children(),
-                n = children.length;
-
-            if (this.nofilter) {
-                children.eq(0).click();
-            }
-            children.css('width', (100 / n) + '%');
         },
 
         'onItemviewClick': function (view) {
