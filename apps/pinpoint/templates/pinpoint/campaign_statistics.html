@@ -1,18 +1,84 @@
+{% load staticfiles %}
 <html>
     <head>
         <style type='text/css'>
-            .tile {
-                width: 200px;
-                float: left;
-                margin-right: 10px;
+            body {
+                font-family: 'Helvetica Neue', 'Arial Narrow', sans-serif;
             }
 
-            .tile > img {
+            .tile {
+                width: 250px;
+                height: 250px;
+                float: left;
+                margin-right: 10px;
+                position: relative;
+                overflow: hidden;
+                border-radius: 10px;
+            }
+
+            .tile > .count {
+                position: absolute;
+                top: 0px;
+                right: 0px;
+                width: 25px;
+                height: 25px;
+                background: rgba(255,255,255, 0.5);
+                text-align: center;
+                line-height: 25px;
+                font-size: 18px;
+                font-weight: bold;
+                border-radius: 10px;
+                margin-right: 10px;
+                margin-top: 10px;
+            }
+
+            .tile > .data {
+                position: absolute;
+                bottom: 0px;
+                background: rgba(255,255,255, 0.5);
+                border-radius: 10px;
+                margin: 10px;
+                width: 220px;
+                padding: 5px;
+            }
+
+            .tile .product {
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            .tile .id {
+                float: right;
+                font-size: 12px;
+                font-style: italic;
+            }
+
+            .tile img {
                 max-width: 99%;
             }
         </style>
+        <script type='text/javascript'
+                src='{% static 'js/jquery.min.js' %}'></script>
+        <script type='text/javascript'
+                src='{% static 'js/underscore.js' %}'></script>
     </head>
     <body>
+        <h1>Statistics</h1>
+        <h2>Tiles by preview count</h2>
+        <div id='tiles'></div>
+        <script type='text/template' id='tile-template'>
+            <div class='tile'>
+                <div class='count'>
+                    <%= count %>
+                </div>
+                <img src='<%= imageUrl %>' />
+                <div class='data'>
+                    <span class='product'><%= product %></span>
+                    <span class='id'>(<a href='<%= url %>'><%= tileId %></a>)
+                    </span>
+                </div>
+            </div>
+        </script>
         <script type="text/javascript">
             var Keen=Keen||{configure:function(e){this._cf=e},addEvent:function(e,t,n,i){this._eq=this._eq||[],this._eq.push([e,t,n,i])},setGlobalProperties:function(e){this._gp=e},onChartsReady:function(e){this._ocrq=this._ocrq||[],this._ocrq.push(e)}};(function(){var e=document.createElement("script");e.type="text/javascript",e.async=!0,e.src=("https:"==document.location.protocol?"https://":"http://")+"dc8na2hxrj29i.cloudfront.net/code/keen-2.1.0-min.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)})();
 
@@ -30,6 +96,8 @@
                 - image
                 - link to view pop-up for tile
             {% endcomment %}
+
+            var tileTemplate = _.template($('#tile-template').text())
             // https://keen.io/docs/clients/javascript/usage-guide/#analyze-and-visualize-data
             Keen.onChartsReady(function() {
                 var previewQuery = new Keen.Metric('preview', {
@@ -48,32 +116,16 @@
                 });
 
                 previewQuery.getResponse(function(response) {
-                    $.each(response.result, function(_, obj) {
-                        var $elem = $('<div/>', {
-                            'class': 'tile'
-                        });
+                    $.each(response.result, function(idx, obj) {
+                        var data = {
+                            'count': obj.result,
+                            'imageUrl': obj['tile.url'],
+                            'product': obj['product.name'],
+                            'tileId': obj['tile.id'],
+                            'url': obj['page.url'] + '#' + obj['tile.id']
+                        }
 
-                        var $img = $('<img/>', {
-                            'src': obj['tile.url']
-                        });
-
-                        var $name = $('<div/>')
-
-                        var $link = $('<a/>', {
-                            'href': obj['page.url'] + '#' + obj['tile.id'],
-                            'text': obj['product.name']
-                        })
-
-                        var $id = $('<div/>', {
-                            'text': obj['tile.id']
-                        })
-
-                        $name.append($link);
-                        $elem.append($img);
-                        $elem.append($name);
-                        $elem.append($id);
-
-                        $('body').append($elem);
+                        $('#tiles').append(tileTemplate(data))
                     })
                 });
             });
