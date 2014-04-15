@@ -545,6 +545,18 @@ div.header {
     }
 }
 
+#category-area .category {
+    color: white;
+    border: 1px solid white;
+    background-color: #555555;
+}
+
+#category-area .category.selected {
+    color: white;
+    background-color: #000d41;
+}
+
+
 /* === */
 
 
@@ -1093,20 +1105,4 @@ div.header {
     .previewContainer .image img {
         max-height: 550px;
     }
-}
-
-#category-area {
-    width: 100%;
-    text-align: center;
-}
-
-#category-area .category {
-    color: white;
-    border: 1px solid white;
-    background-color: #555555;
-}
-
-#category-area .category.selected {
-    color: white;
-    background-color: #000d41;
 }

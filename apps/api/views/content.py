@@ -1,9 +1,13 @@
 import json
+from django.contrib.auth.decorators import login_required
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.query_utils import Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
 from apps.assets.models import Content, Store, Page, ProductImage, Product, Image, Video
@@ -24,6 +28,9 @@ class StoreContentCGHandler(ContentCGHandler):
     """Adds filtering by store"""
     store = None
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
@@ -66,7 +73,7 @@ class StoreContentItemCGHandler(ContentItemCGHandler):
 
     def get(self, request, *args, **kwargs):
         # this handler needs to return either
-        content = Content.objects.filter(store=self.store)
+        content = Content.objects.filter(store=self.store).select_subclasses()
         product_ids = Product.objects.filter(store=self.store).values_list('id', flat=True)
         product_images = ProductImage.objects.filter(product_id__in=product_ids)
 
@@ -80,8 +87,14 @@ class StoreContentItemCGHandler(ContentItemCGHandler):
         else:
             self.object_list = content
 
+        if not self.object_list:
+            raise Http404()
+
         return ajax_jsonp(self.serialize_one())
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
@@ -107,6 +120,9 @@ class StorePageContentCGHandler(StoreContentCGHandler):
     """Adds filtering by page/feed"""
     feed = None
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
@@ -128,12 +144,18 @@ class StorePageContentItemCGHandler(StoreContentItemCGHandler):
     """Adds filtering by page/feed"""
     feed = None
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
         content_id = kwargs.get('content_id')
         page = get_object_or_404(Page, id=page_id)
-        self.content = get_object_or_404(Content, id=content_id)
+        try:
+            self.content = Content.objects.filter(id=content_id).select_subclasses()[0]
+        except ObjectDoesNotExist:
+            raise Http404()
 
         self.page = page
         self.feed = page.feed
@@ -200,6 +222,9 @@ class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
     """
     content = None
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         content_id = kwargs.get('content_id')
@@ -253,6 +278,9 @@ class StoreContentStateItemCGHandler(ContentItemCGHandler):
     def post(self, request, *args, **kwargs):
         raise NotImplementedError()
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
@@ -261,7 +289,10 @@ class StoreContentStateItemCGHandler(ContentItemCGHandler):
 
         # can't tag ProductImage classes, which is fine for this set of
         # API urls
-        self.content = get_object_or_404(Content, id=kwargs.get('content_id'))
+        try:
+            self.content = Content.objects.filter(id=self.content_id).select_subclasses()[0]
+        except ObjectDoesNotExist:
+            raise Http404()
 
         return super(StoreContentStateItemCGHandler, self).dispatch(*args, **kwargs)
 

@@ -282,7 +282,7 @@ class Product(BaseModel):
             self.attributes = {}
 
     def clean(self):
-        price_regex = re.compile(r'\$\ ?(?:\d{1,3}(?:,\d{3})+|\d*)(?:\.\d{1,2})?')
+        price_regex = re.compile(ur'(?:\$|\u20AC|\u20A3)\ ?(?:\d{1,3}(?:,\d{3})+|\d*)(?:\.\d{1,2})?')
         if self.price:
             match = re.match(price_regex, self.price)
             if not match:
@@ -418,6 +418,7 @@ class Content(BaseModel):
         :returns dict objects.
         """
         dct = {
+            'id': str(self.id),
             'store-id': str(self.store.id if self.store else 0),
             'source': self.source,
             'source_url': self.source_url,
@@ -457,11 +458,12 @@ class Image(Content):
     def to_json(self, expand_products=True):
         """Only Images (not ProductImages) can have tagged-products."""
         dct = {
+            "id": str(self.id),
+            "store-id": str(self.store.id if self.store else 0),
             "format": self.file_type,
             "type": "image",
             "dominant-color": self.dominant_color or "transparent",
             "url": self.url or self.source_url,
-            "id": str(self.id),
             "sizes": self.attributes.get('sizes', default_master_size),
             'status': self.status,
         }

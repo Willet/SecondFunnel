@@ -85,7 +85,7 @@ class ContentSerializer(RawSerializer):
         from apps.assets.models import Tile
 
         data = {
-            "id": str(getattr(obj, 'id', obj.id)),
+            "id": str(obj.id),
             "source": obj.source,
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
@@ -176,7 +176,7 @@ class PageSerializer(RawSerializer):
         """
 
         data = {
-            "id": str(getattr(obj, 'id', obj.id)),
+            "id": str(obj.id),
             "heroImageDesktop": obj.desktop_hero_image,
             "intentrank_id": obj.intentrank_id,
             "ir_base_url": obj.ir_base_url,

@@ -452,6 +452,7 @@ App.module('core', function (module, App) {
         'lastScrollTop': 0,
         'loading': false,
         'collection': null,
+        'ended': false,
 
         // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
         /**
@@ -550,6 +551,11 @@ App.module('core', function (module, App) {
             App.vent.on("click:tile", this.updateContentStream, this);
             App.vent.on('change:category', this.categoryChanged, this);
 
+            App.vent.on("feedEnded", function () {
+                console.debug("feed ended");
+                App.discovery.ended = true;
+            });
+
             App.vent.on("finished", _.once(function () {
                 // the first batch of results need to layout themselves
                 App.layoutEngine.layout(self);
@@ -631,7 +637,7 @@ App.module('core', function (module, App) {
         },
 
         /**
-         * Called when new content has been appended to the collectView via
+         * Called when new content has been appended to the collectionView via
          * the layoutEngine.  Toggles loading to false, and calls pageScroll.
          *
          * @returns this
@@ -640,7 +646,9 @@ App.module('core', function (module, App) {
             var self = this;
 
             setTimeout(function () {
-                self.toggleLoading(false).pageScroll();
+                self
+                    .toggleLoading(false)
+                    .pageScroll();
             }, 500);
 
             return this;
@@ -667,14 +675,20 @@ App.module('core', function (module, App) {
             // the Layout Engine and collecting new tiles.
             var self = this;
             if (this.loading) {
-                setTimeout(function () {
-                    self.categoryChanged(ev, category);
-                }, 100);
+                console.debug("changing category on edge");
+                this.on('loadingFinished', _.once(function () {
+                    App.tracker.changeCategory(category);
+                    App.layoutEngine.empty(self);
+                    self.ended = false;
+                    self.getTiles();
+                }));
             } else {
                 App.tracker.changeCategory(category);
                 App.layoutEngine.empty(this);
+                this.ended = false;
                 this.getTiles();
             }
+
             return this;
         },
 
@@ -691,6 +705,7 @@ App.module('core', function (module, App) {
                 loadingIndicator.show();
             } else {
                 loadingIndicator.hide();
+                this.trigger('loadingFinished');
             }
 
             return this;
@@ -703,6 +718,10 @@ App.module('core', function (module, App) {
                 pageBottomPos = pageHeight + windowTop,
                 documentBottomPos = $document.height(),
                 viewportHeights = pageHeight * (App.option('prefetchHeight', 1.5));
+
+            if (this.ended) {
+                return this;
+            }
 
             if (!this.loading && (children.length === 0 || !App.previewArea.currentView) &&
                     pageBottomPos >= documentBottomPos - viewportHeights) {
@@ -740,6 +759,8 @@ App.module('core', function (module, App) {
                 App.vent.trigger('scrollUp', this);
             }  // if equal, trigger nothing
             this.lastScrollTop = st;
+
+            return this;
         }
     });
 
@@ -1117,15 +1138,7 @@ App.module('core', function (module, App) {
         },
 
         'onClick': function (ev) {
-            var category = this.model.get('name');
-
-            // Switch the selected category class to this element
-            this.$el.siblings().removeClass('selected');
-            this.$el.addClass('selected');
-            if (category === "home") {
-                category = "";
-            }
-            App.intentRank.changeCategory(category);
+            this.trigger('click', this);
         }
     });
 
@@ -1143,20 +1156,65 @@ App.module('core', function (module, App) {
 
         'initialize': function (options) {
             var self = this,
-                categories = App.option('categories', []);
+                home = null,
+                categories = App.option('categories', []).slice(0);
             this.collection = new App.core.CategoryCollection();
+
+            if (App.option('categoryHome', true) && categories.length) {
+                // This specifies that there should be a home button, by
+                // default, this is true.
+                if (App.option('categoryHome').length) {
+                    home = App.option('categoryHome');
+                } else {
+                    home = "home";
+                }
+                categories.unshift(home);
+                this.nofilter = true;
+            }
 
             // Initialize by adding all the categories to this view
             _.each(categories, function (category) {
                 category = new App.core.Category({
-                  'name': category
+                  'name': category,
+                  'nofilter': (category === home)
                 });
                 self.collection.add(category);
             });
         },
 
         'onRender': function () {
-            this.$el.children().eq(0).click();
+            if (this.nofilter) {
+                this.$el.children().eq(0).click();
+            }
+        },
+
+        'onItemviewClick': function (view) {
+            var $el = view.$el,
+                category = view.model.get('name'),
+                nofilter = view.model.get('nofilter');
+
+            // Switch the selected category class
+            $el.siblings().removeClass('selected');
+            if ($el.hasClass('selected') && !nofilter) {
+                // Reset intentRank by clearing the category, if we have a
+                // nofilter class, click it instead.
+                $el.removeClass('selected');
+                if (this.nofilter) {
+                    $el.siblings().eq(0).click();
+                } else {
+                    App.intentRank.changeCategory();
+                }
+            } else if (!$el.hasClass('selected')) {
+                // On click, pass the new category to intentRank, if the view
+                // is the nofilter view, clear.
+                $el.addClass('selected');
+                if (nofilter) {
+                    App.intentRank.changeCategory();
+                } else {
+                    App.intentRank.changeCategory(category);
+                }
+            }
+            return this;
         }
     });
 });

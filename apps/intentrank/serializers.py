@@ -82,6 +82,7 @@ class ContentSerializer(RawSerializer):
         from apps.assets.models import Product
 
         data = {
+            'id': str(obj.id),
             'store-id': str(obj.store.id if obj.store else 0),
             'source': obj.source,
             'source_url': obj.source_url,

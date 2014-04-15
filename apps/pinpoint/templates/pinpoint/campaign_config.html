@@ -7,7 +7,7 @@
         , 'discoveryTarget': '{{ discovery_target|default:"#discovery-area" }}'
         , 'itemSelector': '{{ item_selector|default:".tile" }}'
         , 'store': {
-            'id': '{{ store.id|default:0 }}',  // TODO: why was ID slug?
+            'id': '{{ store.id }}',
             'slug': '{{ store.slug|default:"store" }}',  // required for store-specific themes
             'name': '{{ store.name|default:"Store" }}',
             'displayName': '{{ store.display_name|default:'' }}'  // leave blank to use "Gap"
@@ -19,6 +19,7 @@
             , 'offline': false  // optional (if true, loads .content immediately)
 
             , 'name': '{{ campaign.name|default:"" }}'  // provided by campaign manager
+            , 'slug': '{{ campaign.url_slug|default:"" }}'
 
             , 'layout': '{{ campaign.layout|default:"hero" }}'  // provided by campaign manager
 
@@ -56,7 +57,8 @@
             return true;
         }
         , 'conditionalSocialButtons': {{ conditional_social_buttons|safe }}
-
+        , 'categories': [] // a list of categories to allow filtering on
+        , 'categoryHome': true // a string or boolean indicating if there should be a home button/what the home button should be
         , 'showCount': true  // optional, for social buttons (default: true)
         , 'enableTracking': {{ enable_tracking|default:"true" }}  // optional; default: true
         // , 'eventMap': undefined  // optional
@@ -107,4 +109,7 @@
         ]
     };
 
+    {% if environment == 'production' or environment == 'test' %}
+        {% include 'pinpoint/snippets/raven.js' %}
+    {% endif %}
 </script>
