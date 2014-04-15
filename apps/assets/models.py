@@ -366,7 +366,7 @@ class Content(BaseModel):
     source_url = models.TextField(blank=True, null=True)  # gap/.jpg
     author = models.CharField(max_length=255, blank=True, null=True)
 
-    tagged_products = models.ManyToManyField(Product, null=True)
+    tagged_products = models.ManyToManyField(Product, null=True, blank=True)
 
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
