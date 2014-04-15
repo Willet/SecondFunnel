@@ -10,6 +10,7 @@
         window.OPTIMIZER_TESTS.push({
             index: 9,
             test: 'custom',
+            disabled: true,
             custom: function (cookie) {
                 cookie = cookie || _.sample(["A", "B"]);
                 if (cookie === "B") {
