@@ -1,5 +1,6 @@
 
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 
 from apps.assets.models import Category, ProductImage, Product
 from apps.imageservice.tasks import process_image
@@ -17,19 +18,22 @@ class Scraper(object):
     The values variable is a dictionary that is passed around by the controller
     to all functions in the scraper and to all sub-scrapers, it can be added to
     by any function and is not changed by the controller
+
+    To allow the scraper to be run without explicitly specifying when to run,
+    the regexs variable must define a list of regexs for the scraper
     """
+    regexs = []
 
     def __init__(self, store):
         # initialize the head-less browser PhantomJS
         # hmm... might not run on windows
-        self.driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
-        self.store = store
 
-    def get_regex(self, values, **kwargs):
-        """
-        The list of regexs that match the urls for this scraper
-        """
-        raise NotImplementedError
+        # try to initialize phantomJS twice before throwing an exception
+        try:
+            self.driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
+        except WebDriverException:
+            self.driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
+        self.store = store
 
     def parse_url(self, url, values, **kwargs):
         """
@@ -38,21 +42,10 @@ class Scraper(object):
         """
         return url
 
-
-    def has_next_scraper(self, values, **kwargs):
-        return True
-
-    def next_scraper(self, values, **kwargs):
+    @staticmethod
+    def _wrap_regex(regex, has_parameters=False, allow_parameters=True):
         """
-        Optional Method
-        Returns a scraper if there is a need to explicitly define the next scraper
-        If None is returned, the controller decides what to do next based on the scraper regexs
-        """
-        return None
-
-    def _wrap_regex(self, regex, has_parameters=False, allow_parameters=True):
-        """
-        Makes creation of regexes easier, wraps with matching for https? at the beginning
+        Makes creation of regexs easier, wraps with matching for https? at the beginning
         of the regex and parameters and #'s at the end of the regex
         """
         regex = r'^(?:https?://)?' + regex
@@ -67,13 +60,11 @@ class Scraper(object):
     def scrape(self, url, values, **kwargs):
         """
         The method used to run the scraper
-        For category scrapers, a store is also added to the arguments
-        For detail scrapers, a product or content object is added to the arguments
 
-        Models must be returned using yield
-
-        If it is a content scraper, the content must be created inside the scraper
-        if the passed in content is None
+        yield is used to return dictionaries with the required variables
+        url must be included in the dictionary if another scraper must be run after this one
+        product or content must be included if no scraper should be run after this one
+        scraper can be included to explicitly define the next scraper
         """
         raise NotImplementedError
 

@@ -3,7 +3,7 @@ import re
 
 from apps.assets.models import Product
 
-from apps.scraper.scrapers.scraper import ProductCategoryScraper
+from apps.scraper.scrapers import ProductCategoryScraper
 
 from selenium.common.exceptions import NoSuchElementException
 
@@ -11,14 +11,8 @@ from selenium.common.exceptions import NoSuchElementException
 class VoyagePriveCategoryScraper(ProductCategoryScraper):
     regexs = ['https?://www.officiel-des-vacances.com/week-end']
 
-    def get_regex(self, values, **kwargs):
-        return ['https?://www.officiel-des-vacances.com/week-end']
-
     def parse_url(self, **kwargs):
         return 'http://www.officiel-des-vacances.com/week-end'
-
-    def has_next_scraper(self, values, **kwargs):
-        return False
 
     def scrape(self, url, **kwargs):
         products = []
@@ -58,4 +52,4 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             product.save()
             product.default_image = self._process_image(image, product)
             product.save()
-            yield product
+            yield {'product': product}

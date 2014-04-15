@@ -2,17 +2,15 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 
-from apps.scraper.scrapers.scraper import ProductDetailScraper, ProductCategoryScraper
+from apps.scraper.scrapers import Scraper, ProductDetailScraper, ProductCategoryScraper
 
 
 class MadewellProductScraper(ProductDetailScraper):
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(?:(\w+)/(?:(\w+)/)?)?PRD(?:OVR)?~(\w+)/\3\.jsp')]
     sku_regex = r'^http://www\.madewell\.com/madewell_category/PRDOVR~(\w+)/\1\.jsp$'
 
-    def get_regex(self, **kwargs):
-        return [self._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(?:(\w+)/(?:(\w+)/)?)?PRD(?:OVR)?~(\w+)/\3\.jsp')]
-
     def parse_url(self, url, values, **kwargs):
-        match = re.match(self.get_regex()[0], url)
+        match = re.match(self.regexs[0], url)
         url = 'http://www.madewell.com/madewell_category/PRDOVR~{0}/{0}.jsp'.format(match.group(3))
         category = match.group(1)
         sub_category = match.group(2)
@@ -28,7 +26,7 @@ class MadewellProductScraper(ProductDetailScraper):
 
     def scrape(self, url, product, values, **kwargs):
         self.driver.get(url)
-        product.sku = re.match(self.sku_regex, product.url).group(1)
+        product.sku = re.match(self.regexs[0], product.url).group(3)
         try:
             product.price = re.sub(r'USD *', '$', self.driver.find_element_by_class_name('selected-color-price').text)
         except NoSuchElementException:
@@ -53,7 +51,7 @@ class MadewellProductScraper(ProductDetailScraper):
             product.default_image = images[0]
             product.save()
 
-        yield product
+        yield {'product': product}
 
     def _get_images(self, driver, product):
         images = []
@@ -75,13 +73,11 @@ class MadewellProductScraper(ProductDetailScraper):
         return images
 
 
-
 class MadewellCategoryScraper(ProductCategoryScraper):
-    def get_regex(self, **kwargs):
-        return [self._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(\w+)(?:/(\w+))?\.jsp')]
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(\w+)(?:/(\w+))?\.jsp')]
 
     def parse_url(self, url, values, **kwargs):
-        match = re.match(self.get_regex()[0], url)
+        match = re.match(self.regexs[0], url)
         category = match.group(1)
         sub_category = match.group(2)
         url = 'http://www.madewell.com/madewell_category/' + category
@@ -107,15 +103,14 @@ class MadewellCategoryScraper(ProductCategoryScraper):
             product.name = name
             product.sku = sku
 
-            yield product
+            yield {'product': product, 'url': product_url}
 
 
 class MadewellMultiProductScraper(ProductCategoryScraper):
-    def get_regex(self, **kwargs):
-        return [self._wrap_regex(r'(?:www\.)?madewell\.com/browse/multi_product_detail.jsp\?(?:[^/\?]+&)?externalProductCodes=([^&\?/]+)', True)]
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?madewell\.com/browse/multi_product_detail.jsp\?(?:[^/\?]+&)?externalProductCodes=([^&\?/]+)', True)]
 
     def scrape(self, url, **kwargs):
-        product_codes = re.match(self.get_regex()[0], url).group(1)
+        product_codes = re.match(self.regexs[0], url).group(1)
         codes = product_codes.split(r'%3A')
         for sku in codes:
             if sku == '00000':
@@ -125,4 +120,4 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
             product = self._get_product(product_url)
             product.sku = sku
 
-            yield product
+            yield {'product': product, 'url': product_url}
