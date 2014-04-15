@@ -81,3 +81,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge"><!-- required by bootstrap, IE -->
 <script type="text/javascript" src="//connect.facebook.net/en_US/all.js" async></script>
 <script src="//cdn.ravenjs.com/1.1.11/jquery,native/raven.min.js"></script>
+
+{% if environment == 'production' or environment == 'test' %}
+    <script type="text/javascript">
+        {% include 'pinpoint/snippets/raven.js' %}
+    </script>
+{% endif %}
