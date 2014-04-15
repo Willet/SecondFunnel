@@ -203,8 +203,8 @@ class BannerTileSerializer(TileSerializer):
                         obj.attributes.get('redirect-url'))
 
         if obj.content.count():
-            contentSerializer = ContentTileSerializer()
-            data.update(contentSerializer.get_dump_object(obj))
+            content_serializer = ContentTileSerializer()
+            data.update(content_serializer.get_dump_object(obj))
 
             if not redirect_url:
                 try:
@@ -212,8 +212,8 @@ class BannerTileSerializer(TileSerializer):
                 except IndexError as err:
                     pass  # tried to find a redirect url, don't have one
         elif obj.products.count(): # We prefer content over products
-            productSerializer = ProductTileSerializer()
-            data.update(productSerializer.get_dump_object(obj))
+            product_serializer = ProductTileSerializer()
+            data.update(product_serializer.get_dump_object(obj))
 
             if not redirect_url:
                 try:
@@ -222,6 +222,9 @@ class BannerTileSerializer(TileSerializer):
                     pass  # tried to find a redirect url, don't have one
 
         data.update({'redirect-url': redirect_url})
+
+        if not 'images' in data and obj.attributes:
+            data['images'] = [obj.attributes]
 
         return data
 
