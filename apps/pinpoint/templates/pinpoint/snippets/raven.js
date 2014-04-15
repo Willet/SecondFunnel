@@ -3,7 +3,18 @@
 try {
     if (typeof Raven !== 'undefined') {
         // "log all": http://stackoverflow.com/a/21551597/1558430
-        window.onerror = Raven.process;
+        window.onerror = Raven.process || function (message, url, lineNumber) {
+            var oldError = window.error;
+
+            if (window.console && window.console.error) {
+                console.error(message);
+            }
+
+            if (oldError) {
+                return oldError.apply(this, arguments);
+            }
+            return undefined;
+        };
 
         Raven.config('{% sentry_public_dsn %}', {
             // can be regexes or strings
