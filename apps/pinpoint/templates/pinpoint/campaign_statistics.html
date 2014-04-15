@@ -89,15 +89,8 @@
             });
         </script>
         <script type='text/javascript'>
-            {% comment %}
-            For each tile, show:
-                - product name
-                - tile id
-                - image
-                - link to view pop-up for tile
-            {% endcomment %}
-
             var tileTemplate = _.template($('#tile-template').text())
+
             // https://keen.io/docs/clients/javascript/usage-guide/#analyze-and-visualize-data
             Keen.onChartsReady(function() {
                 var previewQuery = new Keen.Metric('preview', {
@@ -111,7 +104,7 @@
                     'filters': [{
                         'property_name': 'page.id',
                         'operator': 'eq',
-                        'property_value': 95
+                        'property_value': {{ page.id }}
                     }]
                 });
 
