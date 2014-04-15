@@ -1,9 +1,13 @@
 import json
+from django.contrib.auth.decorators import login_required
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.query_utils import Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
 from apps.assets.models import Content, Store, Page, ProductImage, Product, Image, Video
@@ -24,6 +28,9 @@ class StoreContentCGHandler(ContentCGHandler):
     """Adds filtering by store"""
     store = None
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
@@ -85,6 +92,9 @@ class StoreContentItemCGHandler(ContentItemCGHandler):
 
         return ajax_jsonp(self.serialize_one())
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
@@ -110,6 +120,9 @@ class StorePageContentCGHandler(StoreContentCGHandler):
     """Adds filtering by page/feed"""
     feed = None
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
@@ -131,6 +144,9 @@ class StorePageContentItemCGHandler(StoreContentItemCGHandler):
     """Adds filtering by page/feed"""
     feed = None
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
@@ -206,6 +222,9 @@ class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
     """
     content = None
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         content_id = kwargs.get('content_id')
@@ -259,6 +278,9 @@ class StoreContentStateItemCGHandler(ContentItemCGHandler):
     def post(self, request, *args, **kwargs):
         raise NotImplementedError()
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')

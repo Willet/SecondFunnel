@@ -7,6 +7,7 @@ from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView
 from model_utils.managers import InheritanceQuerySet
@@ -93,6 +94,7 @@ class BaseCGHandler(JSONResponseMixin, ListView):
 
     @method_decorator(login_required)
     @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         """decides if this is a GET/POST/...
         Currently being exploited to set initial values.
