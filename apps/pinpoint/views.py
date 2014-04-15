@@ -15,7 +15,7 @@ from django.template import Context, loader
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
 
-from apps.assets.models import Page, Tile
+from apps.assets.models import Page, Tile, Store
 from apps.pinpoint.utils import render_campaign, get_store_from_request, read_a_file
 
 
@@ -144,6 +144,9 @@ def product_feed(request, page_slug):
         image_id = int(product.get('default-image', 0))
         images = product.get('images', [])
         image = next(ifilter(lambda x: x.get('id') == image_id, images), {})
+
+        if tile.get('facebook-ad'):
+            image = tile.get('facebook-ad')
 
         image_link = SubElement(item, 'g:image_link')
         image_link.text = image.get('url')

@@ -19,6 +19,7 @@ INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config'
 INTENTRANK_DEFAULT_NUM_RESULTS = 10
 MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 CLOUDFRONT_DOMAIN = 'cdn.secondfunnel.com'
+CLOUDFRONT_USER_AGENT = 'Amazon CloudFront'
 
 # Google analytics
 GOOGLE_ANALYTICS_PROFILE = '67271131'         
