@@ -2,22 +2,17 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 
-from apps.scraper.scrapers.scraper import ContentDetailScraper, ContentCategoryScraper
+from apps.scraper.scrapers import Scraper, ContentDetailScraper, ContentCategoryScraper
 from apps.assets.models import Image
 
 
 class StyldByPartnersScraper(ContentCategoryScraper):
+    regexs = [Scraper._wrap_regex('(?:www\.)?styld-by\.com/en-us/partners/([\w\-]*)/([\w\-]*)/?')]
     SOURCE = 'styld-by'
-
-    def get_regex(self, **kwargs):
-        return [self._wrap_regex('(?:www\.)?styld-by\.com/en-us/partners/([\w\-]*)/([\w\-]*)/?')]
 
     def parse_url(self, url, **kwargs):
         match = re.match(self.get_regex()[0], url)
         return 'http://www.styld-by.com/en-us/partners/{0}/{1}'.format(match.group(1), match.group(2))
-
-    def has_next_scraper(self, **kwargs):
-        return False
 
     def scrape(self, url, **kwargs):
         self.driver.get(url)
@@ -37,21 +32,16 @@ class StyldByPartnersScraper(ContentCategoryScraper):
             image.source = self.SOURCE
             image = self._process_image(image_url, image)
             image.save()
-            yield image
+            yield {'content': image}
 
 
 class StyldByFilterScraper(ContentCategoryScraper):
+    regexs = [Scraper._wrap_regex('(?:www\.)?styld-by\.com/en-us/filter/([\w\-]*)/?')]
     SOURCE = 'styld-by'
-
-    def get_regex(self, **kwargs):
-        return [self._wrap_regex('(?:www\.)?styld-by\.com/en-us/filter/([\w\-]*)/?')]
 
     def parse_url(self, url, **kwargs):
         match = re.match(self.get_regex()[0], url)
         return 'http://www.styld-by.com/en-us/filter/{0}'.format(match.group(1))
-
-    def has_next_scraper(self, **kwargs):
-        return False
 
     def scrape(self, url, values, **kwargs):
         page = 1
@@ -75,7 +65,7 @@ class StyldByFilterScraper(ContentCategoryScraper):
                     image.source = self.SOURCE
                     image = self._process_image(image_url, image)
                     image.save()
-                    yield image
+                    yield {'content': image}
             try:
                 self.driver.find_element_by_xpath('//div[@class="pagination"]/a[@rel="next"]')
                 page += 1

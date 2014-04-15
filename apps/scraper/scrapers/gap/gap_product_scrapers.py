@@ -2,20 +2,16 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 
-from apps.scraper.scrapers.scraper import ProductDetailScraper, ProductCategoryScraper
-
-from apps.assets.models import Tile
+from apps.scraper.scrapers import Scraper, ProductDetailScraper, ProductCategoryScraper
 
 
 class GapProductScraper(ProductDetailScraper):
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)]
     sku_regex = r'^http://www\.gap\.com/browse/product\.do\?pid=(\d{6})$'
     imageLabels = ["Z", "AV1_Z", "AV2_Z", "AV9_Z", "SC_OUT_Z"]
 
-    def get_regex(self, **kwargs):
-        return [self._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)]
-
     def parse_url(self, url, **kwargs):
-        return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.get_regex()[0], url).group(1)
+        return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.regexs[0], url).group(1)
 
     def scrape(self, url, product, values, **kwargs):
         print('loading ' + url)
@@ -24,7 +20,9 @@ class GapProductScraper(ProductDetailScraper):
         try:
             product.name = self.driver.find_element_by_class_name('productName').text
         except NoSuchElementException:
-            yield product
+            product.in_stock = False
+            product.save()
+            yield {'product': product}
             return
 
         # retrieve the price of the product
@@ -81,7 +79,7 @@ class GapProductScraper(ProductDetailScraper):
             product.default_image = images[0]
             product.save()
 
-        yield product
+        yield {'product': product}
 
     def _get_images(self, product_data_page, product):
         """
@@ -111,13 +109,11 @@ class GapProductScraper(ProductDetailScraper):
 
 
 class GapCategoryScraper(ProductCategoryScraper):
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)', True)]
     product_sku_regex = r'^(?:(?:https?://)?(?:www\.)?gap\.com)?/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
 
-    def get_regex(self, **kwargs):
-        return [self._wrap_regex(r'(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)', True)]
-
     def parse_url(self, url, **kwargs):
-        return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.get_regex()[0], url).group(1)
+        return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.regexs[0], url).group(1)
 
     def scrape(self, url, values, **kwargs):
         self.driver.get(url)
@@ -166,5 +162,5 @@ class GapCategoryScraper(ProductCategoryScraper):
                     product = self._get_product(product_url)
                     product.sku = sku
                     product.name = name
-                    yield product
+                    yield {'product': product, 'url': product_url}
             page += 1
