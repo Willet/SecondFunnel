@@ -34,7 +34,10 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 product = Product(sku=sku)
             product.store = self.store
             product.name = node.find_element_by_xpath('./titre').text
-            match = re.match('(.+),? ?(- ?\d+%)', product.name)
+            match = re.match(r"""(.+),?         # Name of product
+                                 \s?            # Followed by 0 or 1 space
+                                 (-\s?\d+%)     # Percentage of product off
+                              """, product.name, re.VERBOSE)
             if match:
                 product.name = match.group(1)
                 product.attributes['discount'] = match.group(2)
@@ -55,4 +58,4 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             product.save()
             product.default_image = self._process_image(image, product)
             product.save()
-            yield(product)
+            yield product
