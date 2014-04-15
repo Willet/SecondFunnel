@@ -15,7 +15,7 @@ from django.template import Context, loader
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
 
-from apps.assets.models import Page, Tile
+from apps.assets.models import Page, Tile, Store
 from apps.pinpoint.utils import render_campaign, get_store_from_request, read_a_file
 
 
