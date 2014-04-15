@@ -1,4 +1,6 @@
 # coding=utf-8
+import re
+
 from apps.assets.models import Product
 
 from apps.scraper.scrapers import ProductCategoryScraper
