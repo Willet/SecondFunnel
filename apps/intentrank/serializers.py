@@ -191,24 +191,36 @@ class ContentTileSerializer(TileSerializer):
 MegaTileSerializer = ContentTileSerializer
 
 
-class BannerTileSerializer(ContentTileSerializer):
+class BannerTileSerializer(TileSerializer):
     def get_dump_object(self, obj):
         """
         :param obj  <Tile>
         """
         data = super(BannerTileSerializer, self).get_dump_object(obj)
 
-        # banner mode in JS is triggered by having 'redirect-url'
         redirect_url = (obj.attributes.get('redirect_url') or
                         obj.attributes.get('redirect-url'))
-        if not redirect_url and obj.content.count():
-            try:
-                redirect_url = obj.content.select_subclasses()[0].source_url
-            except IndexError as err:
-                pass  # tried to find a redirect url, don't have one
 
-        data.update({'redirect-url': redirect_url,
-                     'images': [obj.attributes]})
+        if obj.content.count():
+            contentSerializer = ContentTileSerializer()
+            data.update(contentSerializer.get_dump_object(obj))
+
+            if not redirect_url:
+                try:
+                    redirect_url = obj.content.select_subclasses()[0].source_url
+                except IndexError as err:
+                    pass  # tried to find a redirect url, don't have one
+        elif obj.products.count(): # We prefer content over products
+            productSerializer = ProductTileSerializer()
+            data.update(productSerializer.get_dump_object(obj))
+
+            if not redirect_url:
+                try:
+                    redirect_url = obj.products.all()[0].url
+                except IndexError as err:
+                    pass  # tried to find a redirect url, don't have one
+
+        data.update({'redirect-url': redirect_url})
 
         return data
 
