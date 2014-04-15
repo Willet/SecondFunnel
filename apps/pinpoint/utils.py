@@ -61,8 +61,9 @@ def get_store_from_request(request):
     Requests forwarded from CloudFront set the HTTP_ORIGIN header
     to the original host.
     """
-    if request.META['HTTP_USER_AGENT'] == settings.CLOUDFRONT_USER_AGENT:
-        current_url = request.META['HTTP_ORIGIN']
+    if request.META.get('HTTP_USER_AGENT', '') == settings.CLOUDFRONT_USER_AGENT:
+        current_url = request.META.get('HTTP_ORIGIN',
+                                       request.META.get('HTTP_HOST', ''))
     else:
         current_url = 'http://%s/' % request.get_host()
 
