@@ -120,9 +120,10 @@ body {
     position: absolute;
     background-color: black;
     color: white;
-    top: 50px;
+    top: 30px;
     max-width: 768px;
     padding-left: 30px;
+    padding-bottom: 10px;
 }
 
 #hero-area .overlay .title {
@@ -145,13 +146,14 @@ body {
         background-color: black;
         display: inline-block;
         margin-bottom: 10px;
+        padding: 5px;
     }
 }
 
 .jumbotron {
     background-repeat: no-repeat;
     width: 1024px;
-    height: 300px;  /* adjusts image size */
+    height: 175px;  /* adjusts image size */
     border-bottom: 1px silver solid;
     margin: 10px auto 0px auto;
 }

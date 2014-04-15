@@ -6,19 +6,10 @@
     {% include "pinpoint/campaign_head.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
-        var algo_cookie;
-        if (Math.random() < 0.5) {
-            algo_cookie = "A";
-            PAGES_INFO['IRAlgo'] = "generic";
-        } else {
-            algo_cookie = "B";
-            PAGES_INFO['IRAlgo'] = "finite_popular";
-        }
         window.OPTIMIZER_TESTS = [];
         window.OPTIMIZER_TESTS.push({
             index: 9,
             test: 'custom',
-            disabled: true,
             custom: function (cookie) {
                 cookie = cookie || _.sample(["A", "B"]);
                 if (cookie === "B") {
@@ -35,8 +26,9 @@
         window.OPTIMIZER_TESTS.push({
             index: 10,
             test: 'custom',
+            disabled: true,
             custom: function (cookie) {
-                cookie = algo_cookie;
+                cookie = cookie || _.sample(["A", "B"]);
                 if (cookie === "B") {
                     App.intentRank.options.IRAlgo = "finite_popular";
                 }
@@ -909,14 +901,16 @@
                 'click .tile.image, .tile.product': function() {
                     var cid = $(this).attr('id'),
                         obj = App.discovery.collection.get(cid),
-                        product, product_id, page_id, store_slug, feed_id, segment;
+                        product, pageId, storeSlug, feedId,
+                        segment, analyticsTile, analyticsProduct, related,
+                        analyticsPage, tileId;
 
-                    tile_id = obj.get('tile-id');
-                    page_id = App.options.page.id;
-                    store_slug = App.options.store.slug;
+                    tileId = obj.get('tile-id');
+                    pageId = App.options.page.id;
+                    storeSlug = App.options.store.slug;
 
                     // Needs to match the RSS
-                    feed_id = store_slug + 'P' + page_id + 'T' + tile_id;
+                    feedId = storeSlug + 'P' + pageId + 'T' + tileId;
 
                     if ($(this).hasClass('image')) {
                         segment = 'ImagePopUp';
@@ -927,7 +921,7 @@
                     try {
                         _pq.push(['track', segment]);
                         _pq.push(['track', 'PopUp']);
-                        _pq.push(['trackProduct', feed_id]);
+                        _pq.push(['trackProduct', feedId]);
                     } catch(err) {}
 
                     {% comment %}
@@ -939,9 +933,41 @@
                     try {
                         __adroll.record_user({"adroll_segments": segment});
                         __adroll.record_user({"adroll_segments": 'PopUp'});
-                        __adroll.record_user({"product_id": feed_id});
+                        __adroll.record_user({"product_id": feedId});
                     } catch(err) {}
                     {% endifequal %}
+
+                    try {
+                        related = _.isEmpty(obj.get('tagged-products')) ?
+                                obj : obj.get('tagged-products')[0];
+
+                        analyticsProduct = _.pick(
+                            related.attributes || related,
+                            ['name', 'description', 'price', 'url']
+                        );
+
+                        analyticsTile = {
+                            'url': obj.get('image').url,
+                            'id': obj.get('tile-id'),
+                            'type': obj.get('template')
+                        };
+
+                        analyticsPage = _.pick(
+                            App.options.page,
+                            ['id', 'name', 'pubDate']
+                        );
+                        analyticsPage['url'] = window.location.protocol
+                            + '//'
+                            + window.location.hostname
+                            + window.location.pathname;
+
+                        Keen.addEvent('preview', {
+                            'store': App.options.store,
+                            'tile': analyticsTile,
+                            'product': analyticsProduct,
+                            'page': analyticsPage
+                        });
+                    } catch(err) {}
                 }
             });
 
@@ -1034,6 +1060,17 @@
        ((document.getElementsByTagName('head') || [null])[0] ||
         document.getElementsByTagName('script')[0].parentNode).appendChild(scr);
     }());
+    </script>
+
+    <!-- Keen.io -->
+    <script type="text/javascript">
+        var Keen=Keen||{configure:function(e){this._cf=e},addEvent:function(e,t,n,i){this._eq=this._eq||[],this._eq.push([e,t,n,i])},setGlobalProperties:function(e){this._gp=e},onChartsReady:function(e){this._ocrq=this._ocrq||[],this._ocrq.push(e)}};(function(){var e=document.createElement("script");e.type="text/javascript",e.async=!0,e.src=("https:"==document.location.protocol?"https://":"http://")+"dc8na2hxrj29i.cloudfront.net/code/keen-2.1.0-min.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)})();
+
+        // Configure the Keen object with your Project ID and (optional) access keys.
+        Keen.configure({
+            projectId: "532745f6ce5e4326bf000011",
+            writeKey: "0cb6ca2eff48d4ff58e2fdcd6ddd0d6fc5f09d58241dd007f68d434ed47ddde33ad76ead3d1e6aca30022e704e36dd46bf443862b7077819e42bb16856beb1ca6751f5d180a2a65e0b2265c9145aabbf722c6935e9879c9031c23692124f41c6134c1cd648d0ba0d13b8df432aa6e8c8"
+        });
     </script>
 
     <!-- Dev Only -->

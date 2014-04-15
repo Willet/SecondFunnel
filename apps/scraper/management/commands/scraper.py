@@ -104,6 +104,10 @@ class Command(BaseCommand):
                     except Product.DoesNotExist:
                         product = Product(store=self.store, url=url)
 
+            # loops through all returned dictionaries for the scraper
+            # if a url is returned, run_scraper() is called with the arguments
+            # if no url is returned, the content or product model is printed out
+            # if no content or product is returned, an error is printed
             for dictionary in scraper.scrape(url=url, product=product, content=content, values=values):
                 if dictionary.get('url', None):
                     scraper_vars = {}
