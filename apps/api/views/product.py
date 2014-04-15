@@ -1,8 +1,12 @@
 import json
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse
 
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
 from apps.assets.models import Product, Store, Page
@@ -23,6 +27,9 @@ class StoreProductCGHandler(ProductCGHandler):
     """Adds filtering by store"""
     store_id = None  # new ID
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
@@ -53,6 +60,9 @@ class StoreProductItemCGHandler(ProductItemCGHandler):
     store_id = None  # new ID
     product_id = None  # old ID
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         store_id = kwargs.get('store_id')
@@ -72,6 +82,9 @@ class StorePageProductCGHandler(StoreProductCGHandler):
     """Adds filtering by page/feed"""
     feed = None
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
@@ -92,6 +105,9 @@ class StorePageProductCGHandler(StoreProductCGHandler):
 
 
 class StorePageProductItemCGHandler(StoreProductItemCGHandler):
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')

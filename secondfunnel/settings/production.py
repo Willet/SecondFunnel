@@ -99,3 +99,7 @@ AWS_SQS_POLLING_QUEUES = {
              'handler': 'handle_page_generator_notification_message'},
     }
 }
+
+RAVEN_CONFIG = {
+    'dsn': 'https://be7092f5a43648119e03e77ec002caff:7739e5e90d1b4f1da99ef8db9ba1ca2b@app.getsentry.com/22626',
+}

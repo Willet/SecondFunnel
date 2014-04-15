@@ -1,6 +1,10 @@
 import collections
+from django.contrib.auth.decorators import login_required
 
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.paginator import BaseItemCGHandler, BaseCGHandler
 from apps.assets.models import Page, Tile
@@ -59,6 +63,9 @@ class PageTileConfigCGHandler(TileConfigCGHandler):
     """Adds filtering by page"""
     page = None
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
@@ -75,6 +82,9 @@ class PageTileConfigItemCGHandler(TileConfigItemCGHandler):
     """Adds filtering by page"""
     page = None
 
+    @method_decorator(login_required)
+    @method_decorator(csrf_exempt)
+    @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         request = args[0]
         page_id = kwargs.get('page_id')
