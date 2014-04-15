@@ -42,6 +42,10 @@ CACHES = {
     }
 }
 
+INSTALLED_APPS += (
+    'raven.contrib.django.raven_compat',  # logging
+)
+
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 GOOGLE_API_PRIVATE_KEY = 'google-service-account-prod.p12'
@@ -97,3 +101,7 @@ AWS_SQS_POLLING_QUEUES = {
 
 TRACKING_COOKIE_AGE = 30  # seconds: 30 seconds
 TRACKING_COOKIE_DOMAIN = None  # No need to set specific domain for tests
+
+RAVEN_CONFIG = {
+    'dsn': 'https://be7092f5a43648119e03e77ec002caff:7739e5e90d1b4f1da99ef8db9ba1ca2b@app.getsentry.com/22626',
+}

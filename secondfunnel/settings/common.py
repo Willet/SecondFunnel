@@ -230,6 +230,7 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
+    'raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # TODO: was last
     'django.middleware.gzip.GZipMiddleware',  # NOTE: Must be the first in this tuple
     'htmlmin.middleware.HtmlMinifyMiddleware',  # Enables compression of HTML

@@ -290,7 +290,7 @@ class StoreContentStateItemCGHandler(ContentItemCGHandler):
         # can't tag ProductImage classes, which is fine for this set of
         # API urls
         try:
-            self.content = Content.objects.filter(id=content_id).select_subclasses()[0]
+            self.content = Content.objects.filter(id=self.content_id).select_subclasses()[0]
         except ObjectDoesNotExist:
             raise Http404()
 

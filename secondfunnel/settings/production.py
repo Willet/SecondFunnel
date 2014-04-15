@@ -44,6 +44,10 @@ CACHES = {
     }
 }
 
+INSTALLED_APPS += (
+    'raven.contrib.django.raven_compat',  # logging
+)
+
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 GOOGLE_ANALYTICS_PROFILE = '67271131'
@@ -98,4 +102,8 @@ AWS_SQS_POLLING_QUEUES = {
             {'queue_name': 'page-generator',
              'handler': 'handle_page_generator_notification_message'},
     }
+}
+
+RAVEN_CONFIG = {
+    'dsn': 'https://be7092f5a43648119e03e77ec002caff:7739e5e90d1b4f1da99ef8db9ba1ca2b@app.getsentry.com/22626',
 }

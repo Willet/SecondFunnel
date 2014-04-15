@@ -122,6 +122,7 @@ def render_campaign(page_id, request, store_id=0):
         algorithm = 'popular'
 
     attributes = {
+        "session_id": request.session.session_key,
         "campaign": page,
         "store": store,
         "columns": range(4),
