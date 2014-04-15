@@ -171,6 +171,10 @@ div.loading {
     cursor: zoom-in;
 }
 
+.tile.banner, .tile.banner:hover {
+    cursor: pointer;
+}
+
 .tile.loading:before {
     content: url('//cdn.secondfunnel.com/images/ajax-spinner.gif');
     display: block;

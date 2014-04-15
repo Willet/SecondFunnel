@@ -247,12 +247,18 @@ body {
 .tile {
     border: 0;
     box-shadow: none;
-    width: 240px;
+    width: 480px;
     margin: 0;
 }
 
 .tile.wide {
-    width: 480px;
+    width: 960px;
+}
+
+@media screen and (max-width: 768px) {
+    .tile {
+        width: 100% !important;
+    }
 }
 
 .tile .caption {
@@ -333,11 +339,11 @@ body {
 }
 
 /* TODO: Make desktop specific */
-.tile.image {
+.tile.banner {
 
 }
 
-.tile.image .overlay {
+.tile.banner .overlay {
     opacity: 0;
     -webkit-transition: opacity 0.25s ease-in-out;
     -moz-transition: opactiy 0.25s ease-in-out;
@@ -353,7 +359,7 @@ body {
     left: 0px;
 }
 
-.tile.image .overlay .align-container {
+.tile.banner .overlay .align-container {
     /*position: absolute;
     top: 50%;
     height: 60px;
@@ -363,22 +369,24 @@ body {
     display: table;
 }
 
-.tile.image .overlay .align-container .cell {
+.tile.banner .overlay .align-container .cell {
     display: table-cell;
     vertical-align: middle;
 }
 
-.tile.image .overlay .title, .image-with-tagged-prodoucts .caption,
-.image-without-tagged-prodoucts .caption {
+.tile.banner .overlay .title {
     font-family: "Helvetica", "Verdana", sans-serif;
     font-size: 15pt;
     font-weight: bold;
-    color: #010e3f;
+    color: #000;
+    margin-top: 30px;
+    margin-left: 10px;
+    margin-right: 10px;
 
     display: none\9;  /* hide in IE8 */
 }
 
-.tile.image .overlay .title .shop-products {
+.tile.banner .overlay .title .shop-products {
     font-family: "Helvetica", "Verdana", sans-serif;
     font-size: 11pt;
     font-weight: normal;
@@ -386,7 +394,7 @@ body {
     display: block;
 }
 
-.tile.image .overlay .author, .image-with-tagged-prodoucts .author,
+.tile.banner .overlay .author, .image-with-tagged-prodoucts .author,
 .image-without-tagged-prodoucts .author {
     font-family: "HelveticaNeueThin", "HelveticaNeue-Thin", "Helvetica Neue Thin", "HelveticaNeue-UltraLight", "Helvetica Neue UltraLight", "Helvetica Neue", "TeXGyreHerosRegular", Arial, Helvetica, sans-serif;
     font-weight:200;
@@ -395,9 +403,9 @@ body {
     color: #333;
 }
 
-.tile.image .overlay .author a,
-.tile.image .overlay .author a:hover,
-.tile.image .overlay .author a:visited {
+.tile.banner .overlay .author a,
+.tile.banner .overlay .author a:hover,
+.tile.banner .overlay .author a:visited {
     text-decoration: none;
 }
 
@@ -410,7 +418,7 @@ body {
     text-decoration: underline;
 }
 
-.tile.image .overlay:hover {
+.tile.banner .overlay:hover {
     opacity: 1;
 }
 
@@ -470,7 +478,7 @@ body {
         white-space: nowrap;
     }
 
-    .tile.image .overlay:hover {
+    .tile.banner .overlay:hover {
         opacity: 0;
     }
 }
