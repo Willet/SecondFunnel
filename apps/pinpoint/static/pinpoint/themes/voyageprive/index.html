@@ -70,6 +70,11 @@
 
         <script type="text/template" id="banner_tile_template">
             <img class="focus" src="<%= obj.image.url %>" />
+            <% if (obj.discount) { %>
+                <div class="discount">
+                    <%- obj.discount %>
+                </div>
+            <% } %>
             <div class="overlay">
                 <div class="align-container">
                     <div class="title">
