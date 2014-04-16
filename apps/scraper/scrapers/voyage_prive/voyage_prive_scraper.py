@@ -33,8 +33,10 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                                  (-\s?\d+%)     # Percentage of product off
                               """, product.name, re.VERBOSE)
             if match:
-                product.name = match.group(1)
+                product.name = match.group(1).strip()
                 product.attributes['discount'] = match.group(2)
+            if product.name.endswith(u", jusqu'à"):
+                product.name = product.name.replace(u", jusqu'à", '')
             product.url = node.find_element_by_xpath('./url').text
             product.price = u'€' + node.find_element_by_xpath('./prix').text
             products.append(product)
