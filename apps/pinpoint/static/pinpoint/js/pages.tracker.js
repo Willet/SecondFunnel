@@ -627,7 +627,7 @@ App.module("tracker", function (tracker, App) {
      *
      */
     this.addInitializer(function() {
-        var Keen = Keen || {
+        var Keen = window.Keen = Keen || {
             configure: function (e) {
                 this._cf = e
             }, addEvent: function (e, t, n, i) {
