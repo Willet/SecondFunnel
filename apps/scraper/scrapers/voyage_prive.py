@@ -3,7 +3,7 @@ import re
 
 from apps.assets.models import Product
 
-from apps.scraper.scrapers import ProductCategoryScraper
+from apps.scraper.models import ProductCategoryScraper
 
 from selenium.common.exceptions import NoSuchElementException
 

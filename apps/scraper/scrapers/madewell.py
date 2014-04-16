@@ -2,7 +2,7 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 
-from apps.scraper.scrapers import Scraper, ProductDetailScraper, ProductCategoryScraper
+from apps.scraper.models import Scraper, ProductDetailScraper, ProductCategoryScraper
 
 
 class MadewellProductScraper(ProductDetailScraper):
@@ -24,7 +24,9 @@ class MadewellProductScraper(ProductDetailScraper):
 
         return url
 
-    def scrape(self, url, product, values, **kwargs):
+    def scrape(self, url, values, **kwargs):
+        product = kwargs.get('product')
+
         self.driver.get(url)
         product.sku = re.match(self.regexs[0], product.url).group(3)
         try:

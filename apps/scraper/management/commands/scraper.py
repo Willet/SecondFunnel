@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand, CommandError
 from selenium.common.exceptions import WebDriverException
 
 from apps.assets.models import Product, Store
-from apps.scraper.scrapers import ProductDetailScraper
+from apps.scraper.models import ProductDetailScraper
 from apps.scraper.scrapers import GapProductScraper, GapCategoryScraper
 from apps.scraper.scrapers import MadewellProductScraper, MadewellCategoryScraper, MadewellMultiProductScraper
 from apps.scraper.scrapers import VoyagePriveCategoryScraper
@@ -22,7 +22,7 @@ class Command(BaseCommand):
                                              make_option('--folder', default=None))
 
     def __init__(self, *args, **kwargs):
-        super(Command, self).__init__(*args, **kwargs)
+        super(Command, self).__init__()
         self.scrapers = [
             GapProductScraper,
             GapCategoryScraper,

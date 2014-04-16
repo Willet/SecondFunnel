@@ -2,7 +2,7 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 
-from apps.scraper.scrapers import Scraper, ContentDetailScraper, ContentCategoryScraper
+from apps.scraper.models import Scraper, ContentDetailScraper, ContentCategoryScraper
 from apps.assets.models import Image
 
 
@@ -11,6 +11,7 @@ class StyldByPartnersScraper(ContentCategoryScraper):
     SOURCE = 'styld-by'
 
     def parse_url(self, url, **kwargs):
+        # TODO: get_regex isn't a thing
         match = re.match(self.get_regex()[0], url)
         return 'http://www.styld-by.com/en-us/partners/{0}/{1}'.format(match.group(1), match.group(2))
 

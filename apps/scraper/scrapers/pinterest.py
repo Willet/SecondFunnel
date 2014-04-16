@@ -1,6 +1,6 @@
 import re
 
-from apps.scraper.scrapers import Scraper, ContentDetailScraper, ContentCategoryScraper
+from apps.scraper.models import Scraper, ContentDetailScraper, ContentCategoryScraper
 from apps.assets.models import Image
 
 
@@ -9,6 +9,7 @@ class PinterestPinScraper(ContentDetailScraper):
     SOURCE = 'pinterest'
 
     def parse_url(self, url, **kwargs):
+        # TODO: get_regex isn't a thing
         sku = re.match(self.get_regex()[0], url).group(1)
         return 'http://www.pinterest.com/pin/{0}/'.format(sku)
 
@@ -31,6 +32,7 @@ class PinterestAlbumScraper(ContentCategoryScraper):
     regexs = [Scraper._wrap_regex(r'(?:www\.)?pinterest\.com/(\w*)/(\w*)/?')]
 
     def parse_url(self, url, **kwargs):
+        # TODO: get_regex isn't a thing
         match = re.match(self.get_regex()[0], url)
         user = match.group(1)
         album = match.group(2)

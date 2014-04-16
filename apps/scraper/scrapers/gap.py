@@ -2,7 +2,7 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 
-from apps.scraper.scrapers import Scraper, ProductDetailScraper, ProductCategoryScraper
+from apps.scraper.models import Scraper, ProductDetailScraper, ProductCategoryScraper
 
 
 class GapProductScraper(ProductDetailScraper):
@@ -72,6 +72,7 @@ class GapProductScraper(ProductDetailScraper):
         if values.get('sub_category', None):
             self._add_to_category(product, values.get('sub_category', None))
 
+        # given a url, scrape some other url (the same product's data json)
         self.driver.get('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
 
         images = self._get_images(self.driver.page_source, product)

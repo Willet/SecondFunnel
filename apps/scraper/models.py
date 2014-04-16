@@ -5,10 +5,7 @@ from selenium.common.exceptions import WebDriverException
 from apps.assets.models import Category, ProductImage, Product
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
-
-
-class ScraperException(Exception):
-    pass
+from apps.scraper.errors import ScraperException
 
 
 class Scraper(object):
@@ -29,10 +26,16 @@ class Scraper(object):
         # hmm... might not run on windows
 
         # try to initialize phantomJS twice before throwing an exception
-        try:
-            self.driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
-        except WebDriverException:
-            self.driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
+        attempts = 2
+        while attempts:
+            try:
+                self.driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
+            except WebDriverException as err:
+                attempts = attempts - 1
+                if not attempts:
+                    raise err
+            else:
+                break
         self.store = store
 
     def parse_url(self, url, values, **kwargs):
@@ -42,8 +45,8 @@ class Scraper(object):
         """
         return url
 
-    @staticmethod
-    def _wrap_regex(regex, has_parameters=False, allow_parameters=True):
+    @classmethod
+    def _wrap_regex(cls, regex, has_parameters=False, allow_parameters=True):
         """
         Makes creation of regexs easier, wraps with matching for https? at the beginning
         of the regex and parameters and #'s at the end of the regex
