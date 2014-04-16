@@ -1,14 +1,12 @@
 import re
 
-from apps.scraper.scrapers.scraper import ContentDetailScraper, ContentCategoryScraper
+from apps.scraper.scrapers import Scraper, ContentDetailScraper, ContentCategoryScraper
 from apps.assets.models import Image
 
 
 class PinterestPinScraper(ContentDetailScraper):
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?pinterest\.com/pin/(\d*)/?')]
     SOURCE = 'pinterest'
-
-    def get_regex(self, **kwargs):
-        return [self._wrap_regex(r'(?:www\.)?pinterest\.com/pin/(\d*)/?')]
 
     def parse_url(self, url, **kwargs):
         sku = re.match(self.get_regex()[0], url).group(1)
@@ -25,13 +23,12 @@ class PinterestPinScraper(ContentDetailScraper):
         content.source = self.SOURCE
         source_url = self.driver.find_element_by_xpath('//div[@class="imageContainer"]/img').get_attribute('src')
         content = self._process_image(source_url, content)
-        yield content
+        content.save()
+        yield {'content': content}
 
 
 class PinterestAlbumScraper(ContentCategoryScraper):
-
-    def get_regex(self, **kwargs):
-        return [self._wrap_regex(r'(?:www\.)?pinterest\.com/(\w*)/(\w*)/?')]
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?pinterest\.com/(\w*)/(\w*)/?')]
 
     def parse_url(self, url, **kwargs):
         match = re.match(self.get_regex()[0], url)
@@ -49,4 +46,4 @@ class PinterestAlbumScraper(ContentCategoryScraper):
                 content = Image(store=self.store, original_url=url)
             content.source = 'pinterest'
 
-            yield content, url
+            yield {'content': content, 'url': url}

@@ -56,7 +56,16 @@ def read_remote_file(url, default_value=''):
         return default_value, False
 
 def get_store_from_request(request):
-    current_url = 'http://%s/' % request.get_host()
+    """
+    Returns the store pointed to by the request host if it exists.
+    Requests forwarded from CloudFront set the HTTP_ORIGIN header
+    to the original host.
+    """
+    if request.META.get('HTTP_USER_AGENT', '') == settings.CLOUDFRONT_USER_AGENT:
+        current_url = request.META.get('HTTP_ORIGIN',
+                                       request.META.get('HTTP_HOST', ''))
+    else:
+        current_url = 'http://%s/' % request.get_host()
 
     try:
         store = Store.objects.get(public_base_url=current_url)
