@@ -79,6 +79,15 @@ App.module("tracker", function (tracker, App) {
          * Semi-private function for wrapping trackTileClick and trackTileView
          */
         trackTile = function (interactionType, tileIds) {
+            for (var i=0; i < tileIds.length; i++) {
+                try {
+                    var model = App.discovery.collection.findWhere({
+                        'tile-id': tileIds[i]
+                    })
+                    Keen.addEvent('impression', getKeenInfo(model));
+                } catch(err) {}
+            }
+
             // if gap sends us too many visitors --> track tiles less often.
             // 0.2 is arbitrary
             if (App.option('store:slug', '').toLowerCase() === 'gap' &&
@@ -142,6 +151,39 @@ App.module("tracker", function (tracker, App) {
                 var hash = '#page' + o.label;
                 trackPageView(hash);
             }*/
+        },
+
+        getKeenInfo = function(model) {
+            var related = _.isEmpty(model.get('tagged-products')) ?
+                    model : model.get('tagged-products')[0];
+
+            var analyticsProduct = _.pick(
+                related || model.attributes,
+                ['name', 'description', 'price', 'url']
+            );
+
+            var analyticsTile = {
+                'url': model.get('image').url,
+                'id': model.get('tile-id'),
+                'type': model.get('template')
+            };
+
+            var analyticsPage = _.pick(
+                App.options.page,
+                ['id', 'name', 'pubDate']
+            );
+
+            analyticsPage['url'] = window.location.protocol
+                + '//'
+                + window.location.hostname
+                + window.location.pathname;
+
+            return {
+                'store': App.options.store,
+                'tile': analyticsTile,
+                'product': analyticsProduct,
+                'page': analyticsPage
+            }
         },
 
         setCustomVar = function (o) {
@@ -395,36 +437,7 @@ App.module("tracker", function (tracker, App) {
             });
 
             try {
-                var related = _.isEmpty(model.get('tagged-products')) ?
-                        model : model.get('tagged-products')[0];
-
-                var analyticsProduct = _.pick(
-                    related || model.attributes,
-                    ['name', 'description', 'price', 'url']
-                );
-
-                var analyticsTile = {
-                    'url': model.get('image').url,
-                    'id': model.get('tile-id'),
-                    'type': model.get('template')
-                };
-
-                var analyticsPage = _.pick(
-                    App.options.page,
-                    ['id', 'name', 'pubDate']
-                );
-
-                analyticsPage['url'] = window.location.protocol
-                    + '//'
-                    + window.location.hostname
-                    + window.location.pathname;
-
-                Keen.addEvent('preview', {
-                    'store': App.options.store,
-                    'tile': analyticsTile,
-                    'product': analyticsProduct,
-                    'page': analyticsPage
-                });
+                Keen.addEvent('preview', getKeenInfo(model));
             } catch(err) {}
         },
 
