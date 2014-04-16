@@ -343,6 +343,17 @@ body {
 
 }
 
+.tile.banner .discount {
+    position: absolute;
+    background-color: #fc601d;
+    color: white;
+    top: 5px;
+    right: 30px;
+    font-size: 26px;
+    font-weight: bold;
+    padding: 20px 10px;
+}
+
 .tile.banner .overlay {
     opacity: 0;
     -webkit-transition: opacity 0.25s ease-in-out;
