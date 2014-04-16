@@ -185,7 +185,6 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
             });
 
         this.selectImage();
-
         console.debug("initialized desktop gallery.");
     };
 

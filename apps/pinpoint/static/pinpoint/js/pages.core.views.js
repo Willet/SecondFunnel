@@ -674,16 +674,15 @@ App.module('core', function (module, App) {
             // Changes the category by refreshing IntentRank, clearing
             // the Layout Engine and collecting new tiles.
             var self = this;
+            App.tracker.changeCategory(category);
             if (this.loading) {
                 console.debug("changing category on edge");
                 this.on('loadingFinished', _.once(function () {
-                    App.tracker.changeCategory(category);
                     App.layoutEngine.empty(self);
                     self.ended = false;
                     self.getTiles();
                 }));
             } else {
-                App.tracker.changeCategory(category);
                 App.layoutEngine.empty(this);
                 this.ended = false;
                 this.getTiles();

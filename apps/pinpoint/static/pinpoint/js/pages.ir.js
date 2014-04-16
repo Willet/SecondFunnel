@@ -354,7 +354,7 @@ App.module("intentRank", function (intentRank, App) {
             urlTemplate = intentRank.options.urlTemplates.category;
         }
 
-        App.vent.trigger('change:category', category, intentRank);
+        App.vent.trigger('change:category', category, category);
 
         return intentRank;
     };
