@@ -393,6 +393,39 @@ App.module("tracker", function (tracker, App) {
                 'action': 'Preview',
                 'label': label
             });
+
+            try {
+                var related = _.isEmpty(model.get('tagged-products')) ?
+                        model : model.get('tagged-products')[0];
+
+                var analyticsProduct = _.pick(
+                    related || model.attributes,
+                    ['name', 'description', 'price', 'url']
+                );
+
+                var analyticsTile = {
+                    'url': model.get('image').url,
+                    'id': model.get('tile-id'),
+                    'type': model.get('template')
+                };
+
+                var analyticsPage = _.pick(
+                    App.options.page,
+                    ['id', 'name', 'pubDate']
+                );
+
+                analyticsPage['url'] = window.location.protocol
+                    + '//'
+                    + window.location.hostname
+                    + window.location.pathname;
+
+                Keen.addEvent('preview', {
+                    'store': App.options.store,
+                    'tile': analyticsTile,
+                    'product': analyticsProduct,
+                    'page': analyticsPage
+                });
+            } catch(err) {}
         },
 
         // Content Share
