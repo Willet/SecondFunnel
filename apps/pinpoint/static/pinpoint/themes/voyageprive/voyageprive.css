@@ -353,7 +353,7 @@ body {
     right: 30px;
     font-size: 26px;
     font-weight: bold;
-    padding: 20px 10px;
+    padding: 10px;
 }
 
 .tile.banner .overlay {
@@ -415,6 +415,10 @@ body {
     right: 20px;
 }
 
+.tile.banner .overlay .title .arrow {
+    display: none;
+}
+
 .arrow {
     top: 50%;
     width: 0px;
@@ -429,6 +433,40 @@ body {
 
 .arrow.right {
     border-left: 15px solid white;
+}
+
+@media screen and (max-width: 768px) {
+    .tile.banner .discount {
+        font-size: 22px;
+        padding: 5px 10px;
+        font-weight: normal;
+    }
+
+    .tile.banner .overlay {
+        opacity: 1;
+        background-color: transparent;
+    }
+
+    .tile.banner .overlay .title {
+        position: absolute;
+        background-color: black;
+        color: white;
+        bottom: 5px;
+        margin: 0 5px;
+        font-size: 14px;
+        padding-right: 42px;
+        padding-left: 4px;
+    }
+
+    .tile.banner .overlay .title .arrow {
+        display: block;
+        right: 12px;
+        margin-top: -8px;
+    }
+
+    .tile.banner .overlay .view {
+        display: none;
+    }
 }
 
 .tile.banner .overlay .title .shop-products {
@@ -521,10 +559,6 @@ body {
         margin-bottom: 7px;
         overflow-y: hidden;
         white-space: nowrap;
-    }
-
-    .tile.banner .overlay:hover {
-        opacity: 0;
     }
 }
 
