@@ -55,6 +55,7 @@ class Command(BaseCommand):
             for file_name in os.listdir(folder):
                 if not folder.endswith('/'):
                     folder += '/'
+                print('retrieving url from file ' + folder + file_name)
                 url_file = open(folder + file_name)
                 store_slug = file_name.split('.')[0]
                 try:
