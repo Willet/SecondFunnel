@@ -119,3 +119,9 @@ AWS_SQS_POLLING_QUEUES = {
 
 TRACKING_COOKIE_AGE = 30  # seconds: 30 seconds
 TRACKING_COOKIE_DOMAIN = None  # No need to set specific domain for local tests
+
+KEEN_CONFIG = {
+    'projectId': '532745f6ce5e4326bf000011',
+    'writeKey': '0cb6ca2eff48d4ff58e2fdcd6ddd0d6fc5f09d58241dd007f68d434ed47ddde33ad76ead3d1e6aca30022e704e36dd46bf443862b7077819e42bb16856beb1ca6751f5d180a2a65e0b2265c9145aabbf722c6935e9879c9031c23692124f41c6134c1cd648d0ba0d13b8df432aa6e8c8',
+    'readKey': 'c8ff6b6ec8efb33e85fbcade3d9ecbe102dbb884c586ab4cf7b14e0014effdc911e819b6ba9cb7517c3fbe26a5cf2812ff9cafe29b9d073e8a50928cf27f85b5845c7ba3c304d8b7dc346200dce3eecfe13d541c6bcddbdc3f70c6213a4f18f5c66de9f22ae62b1e107cc27252314db8'
+}

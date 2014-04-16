@@ -599,9 +599,10 @@ App.module("tracker", function (tracker, App) {
         })();
 
         // Configure the Keen object with your Project ID and (optional) access keys.
+        var options = App.option('keen');
         Keen.configure({
-            projectId: "532745f6ce5e4326bf000011",
-            writeKey: "0cb6ca2eff48d4ff58e2fdcd6ddd0d6fc5f09d58241dd007f68d434ed47ddde33ad76ead3d1e6aca30022e704e36dd46bf443862b7077819e42bb16856beb1ca6751f5d180a2a65e0b2265c9145aabbf722c6935e9879c9031c23692124f41c6134c1cd648d0ba0d13b8df432aa6e8c8"
+            projectId: options.projectId,
+            writeKey: options.writeKey
         });
     });
 
