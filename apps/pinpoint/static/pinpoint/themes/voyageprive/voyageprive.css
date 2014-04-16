@@ -132,7 +132,7 @@ body {
 
 @media (max-width: 768px) {
     #hero-area .overlay {
-        top: 10px;
+        top: 2px;
         background-color: transparent;
         text-align: center;
         padding: 0 10px;
@@ -140,13 +140,15 @@ body {
 
     #hero-area .overlay .title {
         padding: 0 10px;
+        font-size: 26px;
     }
 
     #hero-area .overlay div {
         background-color: black;
         display: inline-block;
-        margin-bottom: 10px;
-        padding: 5px;
+        margin-bottom: 2px;
+        padding: 2px 5px;
+        font-size: 13px;
     }
 }
 
