@@ -336,6 +336,12 @@ App.module("tracker", function (tracker, App) {
      * @returns undefined
      */
     this.changeCategory = function (category) {
+        trackEvent({
+            'category': 'category',
+            'action': 'select',
+            'label': category
+        });
+
         setCustomVar({
             'index': 1,
             'type': 'dimension',
