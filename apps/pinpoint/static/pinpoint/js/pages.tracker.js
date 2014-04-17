@@ -79,6 +79,17 @@ App.module("tracker", function (tracker, App) {
          * Semi-private function for wrapping trackTileClick and trackTileView
          */
         trackTile = function (interactionType, tileIds) {
+            if (interactionType === 'view') {
+                for (var i=0; i < tileIds.length; i++) {
+                    try {
+                        var model = App.discovery.collection.findWhere({
+                            'tile-id': tileIds[i]
+                        })
+                        Keen.addEvent('impression', getKeenInfo(model));
+                    } catch(err) {}
+                }
+            }
+
             // if gap sends us too many visitors --> track tiles less often.
             // 0.2 is arbitrary
             if (App.option('store:slug', '').toLowerCase() === 'gap' &&
@@ -142,6 +153,39 @@ App.module("tracker", function (tracker, App) {
                 var hash = '#page' + o.label;
                 trackPageView(hash);
             }*/
+        },
+
+        getKeenInfo = function(model) {
+            var related = _.isEmpty(model.get('tagged-products')) ?
+                    model : model.get('tagged-products')[0];
+
+            var analyticsProduct = _.pick(
+                related.attributes || related,
+                ['name', 'description', 'price', 'url']
+            );
+
+            var analyticsTile = {
+                'url': model.get('image').url,
+                'id': model.get('tile-id'),
+                'type': model.get('template')
+            };
+
+            var analyticsPage = _.pick(
+                App.options.page,
+                ['id', 'name', 'pubDate']
+            );
+
+            analyticsPage['url'] = window.location.protocol
+                + '//'
+                + window.location.hostname
+                + window.location.pathname;
+
+            return {
+                'store': App.options.store,
+                'tile': analyticsTile,
+                'product': analyticsProduct,
+                'page': analyticsPage
+            }
         },
 
         setCustomVar = function (o) {
@@ -399,6 +443,10 @@ App.module("tracker", function (tracker, App) {
                 'action': 'Preview',
                 'label': label
             });
+
+            try {
+                Keen.addEvent('preview', getKeenInfo(model));
+            } catch(err) {}
         },
 
         // Content Share
@@ -579,6 +627,42 @@ App.module("tracker", function (tracker, App) {
             m = document.getElementsByTagName(o)[0];
             m.parentNode.insertBefore(a, m);
         }('script', '//www.google-analytics.com/analytics.js', 'ga'));
+    });
+
+    /**
+     * Add an initializer to fetch Keen.io asynchronously
+     * asynchronously.
+     *
+     */
+    this.addInitializer(function() {
+        var Keen = window.Keen = Keen || {
+            configure: function (e) {
+                this._cf = e
+            }, addEvent: function (e, t, n, i) {
+                this._eq = this._eq || [], this._eq.push([e, t, n, i])
+            }, setGlobalProperties: function (e) {
+                this._gp = e
+            }, onChartsReady: function (e) {
+                this._ocrq = this._ocrq || [], this._ocrq.push(e)
+            }};
+        (function () {
+            var e = document.createElement("script");
+            e.type = "text/javascript", e.async = !0, e.src = ("https:" == document.location.protocol ? "https://" : "http://") + "dc8na2hxrj29i.cloudfront.net/code/keen-2.1.0-min.js";
+            var t = document.getElementsByTagName("script")[0];
+            t.parentNode.insertBefore(e, t)
+        })();
+
+        // Configure the Keen object with your Project ID and (optional) access keys.
+        var options = App.option('keen');
+
+        if (!options.projectId || !options.writeKey) {
+            return;
+        }
+
+        Keen.configure({
+            projectId: options.projectId,
+            writeKey: options.writeKey
+        });
     });
 
 

@@ -81,7 +81,10 @@
         , 'IRReqNum': 0  // optional
         , 'IROffset': 0
         , 'gaAccountNumber': '{{ campaign.ga_account_number|default:ga_account_number }}'  // required
-
+        , 'keen': {
+            'projectId': '{{ keen_io.projectId }}',
+            'writeKey': '{{ keen_io.writeKey }}'
+        }
         // number of viewports worth of results to keep below the page.
         // 0 is not an acceptable value, but 0.0001 is. default is 1.5,
         // i.e. there will always be one page worth of results
