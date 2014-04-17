@@ -366,7 +366,8 @@ class Content(BaseModel):
     source_url = models.TextField(blank=True, null=True)  # gap/.jpg
     author = models.CharField(max_length=255, blank=True, null=True)
 
-    tagged_products = models.ManyToManyField(Product, null=True, blank=True)
+    tagged_products = models.ManyToManyField(Product, null=True, blank=True,
+                                             related_name='content')
 
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
@@ -772,9 +773,11 @@ class Tile(BaseModel):
 
     template = models.CharField(max_length=128)
 
-    products = models.ManyToManyField(Product, blank=True, null=True)
+    products = models.ManyToManyField(Product, blank=True, null=True,
+                                      related_name='tiles')
     # use content.select_subclasses() instead of content.all()!
-    content = models.ManyToManyField(Content, blank=True, null=True)
+    content = models.ManyToManyField(Content, blank=True, null=True,
+                                     related_name='tiles')
 
     # '': not prioritized.
     # 'request': prioritized for every IR request made by the client.
