@@ -24,7 +24,7 @@ class MadewellProductSpider(ProductDetailSpider):
 
         return url
 
-    def scrape(self, url, values, **kwargs):
+    def parse(self, url, values, **kwargs):
         product = kwargs.get('product')
 
         self.driver.get(url)
@@ -92,7 +92,7 @@ class MadewellCategorySpider(ProductCategorySpider):
         url += '.jsp'
         return url
 
-    def scrape(self, url, store, **kwargs):
+    def parse(self, url, store, **kwargs):
         self.driver.get(url)
         products_data = self.driver.find_elements_by_xpath('//td[@class="arrayProdCell"]//td[@class="arrayImg"]/a')
         for product_data in products_data:
@@ -111,7 +111,7 @@ class MadewellCategorySpider(ProductCategorySpider):
 class MadewellMultiProductSpider(ProductCategorySpider):
     regexs = [Spider._wrap_regex(r'(?:www\.)?madewell\.com/browse/multi_product_detail.jsp\?(?:[^/\?]+&)?externalProductCodes=([^&\?/]+)', True)]
 
-    def scrape(self, url, **kwargs):
+    def parse(self, url, **kwargs):
         product_codes = re.match(self.regexs[0], url).group(1)
         codes = product_codes.split(r'%3A')
         for sku in codes:

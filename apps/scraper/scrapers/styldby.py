@@ -15,7 +15,7 @@ class StyldByPartnersSpider(ContentCategorySpider):
         match = re.match(self.get_regex()[0], url)
         return 'http://www.styld-by.com/en-us/partners/{0}/{1}'.format(match.group(1), match.group(2))
 
-    def scrape(self, url, **kwargs):
+    def parse(self, url, **kwargs):
         self.driver.get(url)
         name = self.driver.find_element_by_xpath('.//h2[@class="title"]').text
         description = self.driver.find_element_by_xpath('.//div[@class="content"]/p').text
@@ -44,7 +44,7 @@ class StyldByFilterSpider(ContentCategorySpider):
         match = re.match(self.get_regex()[0], url)
         return 'http://www.styld-by.com/en-us/filter/{0}'.format(match.group(1))
 
-    def scrape(self, url, values, **kwargs):
+    def parse(self, url, values, **kwargs):
         page = 1
         while True:
             self.driver.get(url + '/page/' + str(page))

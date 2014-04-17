@@ -1,6 +1,7 @@
 import re
 
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 from apps.scraper.models import Spider, ProductDetailSpider, ProductCategorySpider
 
@@ -13,7 +14,7 @@ class GapProductSpider(ProductDetailSpider):
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.regexs[0], url).group(1)
 
-    def scrape(self, url, values, **kwargs):
+    def parse(self, url, values, **kwargs):
         product = kwargs.get('product')
         url = self._wrap_url(url)
         print('loading ' + url)
@@ -84,6 +85,9 @@ class GapProductSpider(ProductDetailSpider):
 
         yield {'product': product}
 
+    def start_requests(self):
+        pass
+
     def _get_images(self, product_data_page, product):
         """
         Retrieves the images for the specified product from the gap website
@@ -118,7 +122,7 @@ class GapCategorySpider(ProductCategorySpider):
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.regexs[0], url).group(1)
 
-    def scrape(self, url, values, **kwargs):
+    def parse(self, url, values, **kwargs):
         self.driver.get(url)
 
         # get category name

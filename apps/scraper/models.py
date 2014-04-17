@@ -1,12 +1,16 @@
 import urllib
+import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver import DesiredCapabilities
 
 from apps.assets.models import Category, ProductImage, Product
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
+from apps.pinpoint.utils import read_remote_file
 from apps.scraper.errors import ScraperException
-from secondfunnel.settings.common import PHANTOMJSCLOUD_API_URL, PHANTOMJSCLOUD_API_KEY
+from secondfunnel.settings.common import PHANTOMJSCLOUD_API_URL, \
+    PHANTOMJSCLOUD_API_KEY
 
 
 class Spider(object):
@@ -89,7 +93,17 @@ class Spider(object):
             PHANTOMJSCLOUD_API_KEY,
             urllib.urlencode(params))
 
-    def scrape(self, url, values, **kwargs):
+    def scrape(self, url):
+        """Makes the request to the URL with the given.
+
+        Returns the page string and a beautifulsoup-wrapped object.
+
+        There is no scrapy equivalent for this method.
+        """
+        contents = read_remote_file(url)
+        return contents, BeautifulSoup.BeautifulSoup(contents)
+
+    def parse(self, url, values, **kwargs):
         """
         The method used to run the scraper
 

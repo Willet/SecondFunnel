@@ -14,7 +14,7 @@ class VoyagePriveCategorySpider(ProductCategorySpider):
     def parse_url(self, **kwargs):
         return 'http://www.officiel-des-vacances.com/week-end'
 
-    def scrape(self, url, **kwargs):
+    def parse(self, url, **kwargs):
         products = []
         images = []
         print('loading url http://www.officiel-des-vacances.com/partners/catalog.xml')

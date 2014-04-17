@@ -13,7 +13,7 @@ class PinterestPinSpider(ContentDetailSpider):
         sku = re.match(self.get_regex()[0], url).group(1)
         return 'http://www.pinterest.com/pin/{0}/'.format(sku)
 
-    def scrape(self, url, content, **kwargs):
+    def parse(self, url, content, **kwargs):
         self.driver.get(url)
         if content is None:
             try:
@@ -38,7 +38,7 @@ class PinterestAlbumSpider(ContentCategorySpider):
         album = match.group(2)
         return 'http://www.pinterest.com/{0}/{1}/'.format(user, album)
 
-    def scrape(self, url, **kwargs):
+    def parse(self, url, **kwargs):
         self.driver.get(url)
         for element in self.driver.find_elements_by_xpath('//div[@class="pinHolder"]/a'):
             url = element.get_attribute('href')
