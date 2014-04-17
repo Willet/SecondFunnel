@@ -132,7 +132,7 @@ body {
 
 @media (max-width: 768px) {
     #hero-area .overlay {
-        top: 10px;
+        top: 2px;
         background-color: transparent;
         text-align: center;
         padding: 0 10px;
@@ -140,13 +140,15 @@ body {
 
     #hero-area .overlay .title {
         padding: 0 10px;
+        font-size: 26px;
     }
 
     #hero-area .overlay div {
         background-color: black;
         display: inline-block;
-        margin-bottom: 10px;
-        padding: 5px;
+        margin-bottom: 2px;
+        padding: 2px 5px;
+        font-size: 13px;
     }
 }
 
@@ -351,7 +353,7 @@ body {
     right: 30px;
     font-size: 26px;
     font-weight: bold;
-    padding: 20px 10px;
+    padding: 10px;
 }
 
 .tile.banner .overlay {
@@ -393,8 +395,6 @@ body {
     margin-top: 30px;
     margin-left: 10px;
     margin-right: 10px;
-
-    display: none\9;  /* hide in IE8 */
 }
 
 .tile.banner .overlay .view {
@@ -413,6 +413,10 @@ body {
     right: 20px;
 }
 
+.tile.banner .overlay .title .arrow {
+    display: none;
+}
+
 .arrow {
     top: 50%;
     width: 0px;
@@ -427,6 +431,40 @@ body {
 
 .arrow.right {
     border-left: 15px solid white;
+}
+
+@media screen and (max-width: 768px) {
+    .tile.banner .discount {
+        font-size: 22px;
+        padding: 5px 10px;
+        font-weight: normal;
+    }
+
+    .tile.banner .overlay {
+        opacity: 1;
+        background-color: transparent;
+    }
+
+    .tile.banner .overlay .title {
+        position: absolute;
+        background-color: black;
+        color: white;
+        bottom: 5px;
+        margin: 0 5px;
+        font-size: 14px;
+        padding-right: 42px;
+        padding-left: 4px;
+    }
+
+    .tile.banner .overlay .title .arrow {
+        display: block;
+        right: 12px;
+        margin-top: -8px;
+    }
+
+    .tile.banner .overlay .view {
+        display: none;
+    }
 }
 
 .tile.banner .overlay .title .shop-products {
@@ -519,10 +557,6 @@ body {
         margin-bottom: 7px;
         overflow-y: hidden;
         white-space: nowrap;
-    }
-
-    .tile.banner .overlay:hover {
-        opacity: 0;
     }
 }
 
