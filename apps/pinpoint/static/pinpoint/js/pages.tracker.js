@@ -648,6 +648,11 @@ App.module("tracker", function (tracker, App) {
 
         // Configure the Keen object with your Project ID and (optional) access keys.
         var options = App.option('keen');
+
+        if (!options.projectId || !options.writeKey) {
+            return;
+        }
+
         Keen.configure({
             projectId: options.projectId,
             writeKey: options.writeKey
