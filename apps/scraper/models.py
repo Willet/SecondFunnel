@@ -1,5 +1,6 @@
 import urllib
 from bs4 import BeautifulSoup
+from django.db.models import Q
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver import DesiredCapabilities
@@ -13,7 +14,7 @@ from secondfunnel.settings.common import PHANTOMJSCLOUD_API_URL, \
     PHANTOMJSCLOUD_API_KEY
 
 
-class Spider(object):
+class Scraper(object):
     """
     Base class for all scrapers
 
@@ -31,6 +32,7 @@ class Spider(object):
         # hmm... might not run on windows
 
         # try to initialize phantomJS twice before throwing an exception
+        # (driver is not used for phantomjscloud ops
         attempts = 2
         while attempts:
             try:
@@ -115,7 +117,7 @@ class Spider(object):
         raise NotImplementedError
 
 
-class ProductSpider(Spider):
+class ProductScraper(Scraper):
     def _get_product(self, url):
         try:
             product = Product.objects.get(store=self.store, url=url)
@@ -137,7 +139,7 @@ class ProductSpider(Spider):
             image = ProductImage(original_url=original_url, product=product)
 
         if not (image.url and image.file_type):
-            print('\nprocessing image - ' + original_url)
+            print 'Processing image {0}'.format(original_url)
             data = process_image(original_url, create_image_path(self.store.id))
             image.url = data.get('url')
             image.file_type = data.get('format')
@@ -150,9 +152,7 @@ class ProductSpider(Spider):
                 product.default_image = image
                 product.save()
         else:
-            print('\nimage has already been processed')
-
-        print(image.to_json())
+            print 'Image {0} has already been processed'.format(image)
 
         return image
 
@@ -179,31 +179,32 @@ class ProductSpider(Spider):
         except Category.DoesNotExist:
             # if the category does not exist, create it
             if not name:
-                raise ScraperException('name must be provided if category does not exist')
+                raise ScraperException('"name" must be provided if category does not exist')
             category = Category(store=self.store, name=name)
 
         if url:
             category.url = url
         if name:
             category.name = name
+
         category.save()
 
         # add the product to the category
-        print('adding product to category ' + name)
+        print("Adding product {0} to category {1}".format(product, category))
         category.products.add(product)
 
         return category
 
 
-class ProductCategorySpider(ProductSpider):
+class ProductCategoryScraper(ProductScraper):
     pass
 
 
-class ProductDetailSpider(ProductSpider):
+class ProductDetailScraper(ProductScraper):
     pass
 
 
-class ContentSpider(Spider):
+class ContentScraper(Scraper):
     def _process_image(self, source_url, image):
         """
         This function uploads the image from the url and adds all necessary data to the image object
@@ -214,8 +215,7 @@ class ContentSpider(Spider):
         if image.url and image.file_type and image.source_url:
             return image
 
-        print('')
-        print('processing image - ' + source_url)
+        print 'Processing image {0}'.format(source_url)
         data = process_image(source_url, create_image_path(self.store.id))
         image.url = data.get('url')
         image.file_type = data.get('format')
@@ -225,9 +225,9 @@ class ContentSpider(Spider):
         return image
 
 
-class ContentCategorySpider(ContentSpider):
+class ContentCategoryScraper(ContentScraper):
     pass
 
 
-class ContentDetailSpider(ContentSpider):
+class ContentDetailScraper(ContentScraper):
     pass

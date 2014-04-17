@@ -2,11 +2,11 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 
-from apps.scraper.models import Spider, ProductDetailSpider, ProductCategorySpider
+from apps.scraper.models import Scraper, ProductDetailScraper, ProductCategoryScraper
 
 
-class MadewellProductSpider(ProductDetailSpider):
-    regexs = [Spider._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(?:(\w+)/(?:(\w+)/)?)?PRD(?:OVR)?~(\w+)/\3\.jsp')]
+class MadewellProductScraper(ProductDetailScraper):
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(?:(\w+)/(?:(\w+)/)?)?PRD(?:OVR)?~(\w+)/\3\.jsp')]
     sku_regex = r'^http://www\.madewell\.com/madewell_category/PRDOVR~(\w+)/\1\.jsp$'
 
     def parse_url(self, url, values, **kwargs):
@@ -75,8 +75,8 @@ class MadewellProductSpider(ProductDetailSpider):
         return images
 
 
-class MadewellCategorySpider(ProductCategorySpider):
-    regexs = [Spider._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(\w+)(?:/(\w+))?\.jsp')]
+class MadewellCategoryScraper(ProductCategoryScraper):
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(\w+)(?:/(\w+))?\.jsp')]
 
     def parse_url(self, url, values, **kwargs):
         match = re.match(self.regexs[0], url)
@@ -96,8 +96,8 @@ class MadewellCategorySpider(ProductCategorySpider):
         self.driver.get(url)
         products_data = self.driver.find_elements_by_xpath('//td[@class="arrayProdCell"]//td[@class="arrayImg"]/a')
         for product_data in products_data:
-            product_url = MadewellProductSpider().parse_url(product_data.get_attribute('href')).get('url')
-            sku = re.match(MadewellProductSpider().sku_regex, url).group(3)
+            product_url = MadewellProductScraper().parse_url(product_data.get_attribute('href')).get('url')
+            sku = re.match(MadewellProductScraper().sku_regex, url).group(3)
             name = product_data.find_element_by_xpath('./img').get_attribute('alt')
 
             product = self._get_product(product_url)
@@ -108,8 +108,8 @@ class MadewellCategorySpider(ProductCategorySpider):
             yield {'product': product, 'url': product_url}
 
 
-class MadewellMultiProductSpider(ProductCategorySpider):
-    regexs = [Spider._wrap_regex(r'(?:www\.)?madewell\.com/browse/multi_product_detail.jsp\?(?:[^/\?]+&)?externalProductCodes=([^&\?/]+)', True)]
+class MadewellMultiProductScraper(ProductCategoryScraper):
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?madewell\.com/browse/multi_product_detail.jsp\?(?:[^/\?]+&)?externalProductCodes=([^&\?/]+)', True)]
 
     def parse(self, url, **kwargs):
         product_codes = re.match(self.regexs[0], url).group(1)

@@ -3,11 +3,11 @@ import re
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-from apps.scraper.models import Spider, ProductDetailSpider, ProductCategorySpider
+from apps.scraper.models import Scraper, ProductDetailScraper, ProductCategoryScraper
 
 
-class GapProductSpider(ProductDetailSpider):
-    regexs = [Spider._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)]
+class GapProductScraper(ProductDetailScraper):
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)]
     sku_regex = r'^http://www\.gap\.com/browse/product\.do\?pid=(\d{6})$'
     imageLabels = ["Z", "AV1_Z", "AV2_Z", "AV9_Z", "SC_OUT_Z"]
 
@@ -18,9 +18,8 @@ class GapProductSpider(ProductDetailSpider):
         product = kwargs.get('product')
         url = self._wrap_url(url)
         print('loading ' + url)
-        # self.driver.get(url)
         page_source, page = self.scrape(url=url)
-        print('loaded')
+
         try:
             product.name = page.select('span.productName')[0].text
         except IndexError:  # only pages with ^ is in stock
@@ -119,49 +118,50 @@ class GapProductSpider(ProductDetailSpider):
         return images
 
 
-class GapCategorySpider(ProductCategorySpider):
-    regexs = [Spider._wrap_regex(r'(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)', True)]
+class GapCategoryScraper(ProductCategoryScraper):
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)', True)]
     product_sku_regex = r'^(?:(?:https?://)?(?:www\.)?gap\.com)?/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
 
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.regexs[0], url).group(1)
 
     def parse(self, url, values, **kwargs):
-        self.driver.get(url)
+        page_source, page = self.scrape(url)
 
         # get category name
         try:
-            values['category'] = self.driver.find_element_by_xpath('//span[@id="subcatname"]').text.strip()
-        except NoSuchElementException:
+            values['category'] = page.select('span#subcatname')[0].text.strip()
+        except IndexError:
             pass
 
         # get number of pages
         try:
-            page_text = self.driver.find_element_by_xpath('//label[@class="pagePaginatorLabel"]').text
+            page_text = page.select('label.pagePaginatorLabel')[0].text
             if page_text:
                 pages = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))
             else:
                 pages = 1
-        except NoSuchElementException:
+        except IndexError:
             pages = 1
-        page = 0
-        while page < pages:
-            self.driver.get(url + '#pageId=' + str(page))
+
+        page_num = 0
+        while page_num < pages:
+            page_source, page = self.scrape(url + '#pageId=' + str(page_num))
 
             # get all sub categories on the page
             try:
-                sub_categories = self.driver.find_elements_by_xpath('//div[@id="mainContent"]//div[@class="clearfix"]/h2')
+                sub_categories = page.select('div#mainContent div.clearfix h2')
             except NoSuchElementException:
                 sub_categories = []
 
-            product_groups = self.driver.find_elements_by_xpath('//div[@id="mainContent"]//div[@class="clearfix"]/ul')
+            product_groups = page.select('div#mainContent div.clearfix ul')
 
             for i in range(len(product_groups)):
                 if sub_categories:
                     values['sub_category'] = sub_categories[i].text
                 else:
                     values['sub_category'] = None
-                for product_elem in product_groups[i].find_elements_by_xpath('./li/div/a'):
+                for product_elem in product_groups[i].select('li div a'):
                     href = product_elem.get_attribute('href')
                     match = re.match(self.product_sku_regex, href)
                     if not match:
@@ -174,4 +174,4 @@ class GapCategorySpider(ProductCategorySpider):
                     product.sku = sku
                     product.name = name
                     yield {'product': product, 'url': product_url}
-            page += 1
+            page_num += 1

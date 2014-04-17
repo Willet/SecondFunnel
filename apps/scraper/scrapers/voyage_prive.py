@@ -3,12 +3,12 @@ import re
 
 from apps.assets.models import Product
 
-from apps.scraper.models import ProductCategorySpider
+from apps.scraper.models import ProductCategoryScraper
 
 from selenium.common.exceptions import NoSuchElementException
 
 
-class VoyagePriveCategorySpider(ProductCategorySpider):
+class VoyagePriveCategoryScraper(ProductCategoryScraper):
     regexs = ['https?://www.officiel-des-vacances.com/week-end']
 
     def parse_url(self, **kwargs):

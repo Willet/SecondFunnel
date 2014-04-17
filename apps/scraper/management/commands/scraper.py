@@ -8,12 +8,12 @@ from django.core.management.base import BaseCommand, CommandError
 from selenium.common.exceptions import WebDriverException
 
 from apps.assets.models import Product, Store
-from apps.scraper.models import ProductDetailSpider
-from apps.scraper.scrapers import (GapProductSpider, GapCategorySpider,
-                                   MadewellProductSpider, MadewellCategorySpider,
-                                   MadewellMultiProductSpider,VoyagePriveCategorySpider,
-                                   PinterestPinSpider, PinterestAlbumSpider,
-                                   StyldByFilterSpider, StyldByPartnersSpider)
+from apps.scraper.models import ProductDetailScraper
+from apps.scraper.scrapers import (GapProductScraper, GapCategoryScraper,
+                                   MadewellProductScraper, MadewellCategoryScraper,
+                                   MadewellMultiProductScraper,VoyagePriveCategoryScraper,
+                                   PinterestPinScraper, PinterestAlbumScraper,
+                                   StyldByFilterScraper, StyldByPartnersScraper)
 
 
 class Command(BaseCommand):
@@ -25,16 +25,16 @@ class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__()
         self.scrapers = [
-            GapProductSpider,
-            GapCategorySpider,
-            MadewellProductSpider,
-            MadewellCategorySpider,
-            MadewellMultiProductSpider,
-            VoyagePriveCategorySpider,
-            PinterestPinSpider,
-            PinterestAlbumSpider,
-            StyldByFilterSpider,
-            StyldByPartnersSpider,
+            GapProductScraper,
+            GapCategoryScraper,
+            MadewellProductScraper,
+            MadewellCategoryScraper,
+            MadewellMultiProductScraper,
+            VoyagePriveCategoryScraper,
+            PinterestPinScraper,
+            PinterestAlbumScraper,
+            StyldByFilterScraper,
+            StyldByPartnersScraper,
         ]
 
     def handle(self, *args, **kwargs):
@@ -56,7 +56,8 @@ class Command(BaseCommand):
             for file_name in os.listdir(folder):
                 if not folder.endswith('/'):
                     folder += '/'
-                print('retrieving url from file ' + folder + file_name)
+                print 'Loading URLs to scrape from file {0}{1}'.format(
+                    folder, file_name)
                 url_file = open(folder + file_name)
                 store_slug = file_name.split('.')[0]
                 try:
@@ -103,7 +104,7 @@ class Command(BaseCommand):
             # retrieve the url for the driver to load
             url = scraper.parse_url(url=url, values=values)
 
-            if isinstance(scraper, ProductDetailSpider):
+            if isinstance(scraper, ProductDetailScraper):
                 if not product:
                     try:
                         product = Product.objects.get(store=self.store, url=url)
@@ -121,9 +122,9 @@ class Command(BaseCommand):
                     scraper_vars.update({'values': values.copy()})
                     self.run_scraper(**scraper_vars)
                 elif dictionary.get('content', None):
-                    print('\n' + str(dictionary.get('content').to_json()))
+                    print 'Content attributes: {0}'.format(dictionary['content'].to_json())
                 elif dictionary.get('product', None):
-                    print('\n' + str(dictionary.get('product').to_json()))
+                    print 'Product attributes: {0}'.format(dictionary['product'].to_json())
                 else:
                     print('bad scraper return, must return either a url or a model for a product or content')
 
@@ -138,5 +139,5 @@ class Command(BaseCommand):
             traceback.print_exc()
         finally:
             # make sure to close the driver if it exists
-            if scraper and scraper.driver:
+            if scraper and hasattr(scraper, 'driver'):
                 scraper.driver.close()
