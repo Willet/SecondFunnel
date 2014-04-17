@@ -105,8 +105,8 @@
 
                 var data = response.result;
                 data = _.sortBy(data, function(item) {
-                    return item.result;
-                }).reverse();
+                    return -1 * item.result;
+                });
 
                 $.each(data, function(idx, obj) {
                     var data = {
