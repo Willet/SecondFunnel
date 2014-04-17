@@ -214,9 +214,6 @@ class TileSerializer(RawSerializer):
             "id": str(obj.id),
             "page-id": str(obj.feed.page.all()[0].id),  # if this fails, it deserves an exception outright
             "last-modified": obj.cg_updated_at,
-            "content-ids": [
-                "14035"
-            ],
             "created": obj.cg_created_at,
             "json": json.dumps(obj.to_json()),
             "prioritized": "true" if obj.prioritized else "false",
