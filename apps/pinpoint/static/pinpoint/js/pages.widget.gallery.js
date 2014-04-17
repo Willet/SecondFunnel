@@ -184,7 +184,8 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
                 }
             });
 
-        this.selectImage();
+        // Need to reboot the selected image properly
+        this.onClick({'currentTarget': $gallery.children().eq(0)});
         console.debug("initialized desktop gallery.");
     };
 
