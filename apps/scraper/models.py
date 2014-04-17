@@ -1,4 +1,4 @@
-
+import urllib
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 
@@ -6,9 +6,10 @@ from apps.assets.models import Category, ProductImage, Product
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 from apps.scraper.errors import ScraperException
+from secondfunnel.settings.common import PHANTOMJSCLOUD_API_URL, PHANTOMJSCLOUD_API_KEY
 
 
-class Scraper(object):
+class Spider(object):
     """
     Base class for all scrapers
 
@@ -60,6 +61,34 @@ class Scraper(object):
         regex += r'(?:#.*)?$'
         return regex
 
+    @classmethod
+    def _wrap_url(cls, url, **params):
+        """If the url isn't a phantomjscloud url, make it one, using params
+        that you pass (optional).
+        If the url is already a phantomjscloud url, do not make it one.
+        """
+        if PHANTOMJSCLOUD_API_URL in url:
+            return url
+
+        defaults = {
+            'timeout': '30000',
+            'abortOnJavascriptErrors': 'false',
+            'delayTime': '0',
+            'isDebug': 'false',
+            'postDomLoadedTimeout': '10000',
+            'geolocation': 'us',
+            'requestType': 'text',
+            'outputAsJson': 'false',
+        }
+        if not params:
+            params = defaults
+        params['targetUrl'] = url
+
+        return "{0}/single/browser/v1/{1}/?{2}".format(
+            PHANTOMJSCLOUD_API_URL,
+            PHANTOMJSCLOUD_API_KEY,
+            urllib.urlencode(params))
+
     def scrape(self, url, values, **kwargs):
         """
         The method used to run the scraper
@@ -72,7 +101,7 @@ class Scraper(object):
         raise NotImplementedError
 
 
-class ProductScraper(Scraper):
+class ProductSpider(Spider):
     def _get_product(self, url):
         try:
             product = Product.objects.get(store=self.store, url=url)
@@ -152,15 +181,15 @@ class ProductScraper(Scraper):
         return category
 
 
-class ProductCategoryScraper(ProductScraper):
+class ProductCategorySpider(ProductSpider):
     pass
 
 
-class ProductDetailScraper(ProductScraper):
+class ProductDetailSpider(ProductSpider):
     pass
 
 
-class ContentScraper(Scraper):
+class ContentSpider(Spider):
     def _process_image(self, source_url, image):
         """
         This function uploads the image from the url and adds all necessary data to the image object
@@ -182,9 +211,9 @@ class ContentScraper(Scraper):
         return image
 
 
-class ContentCategoryScraper(ContentScraper):
+class ContentCategorySpider(ContentSpider):
     pass
 
 
-class ContentDetailScraper(ContentScraper):
+class ContentDetailSpider(ContentSpider):
     pass

@@ -8,32 +8,34 @@ from django.core.management.base import BaseCommand, CommandError
 from selenium.common.exceptions import WebDriverException
 
 from apps.assets.models import Product, Store
-from apps.scraper.models import ProductDetailScraper
-from apps.scraper.scrapers import GapProductScraper, GapCategoryScraper
-from apps.scraper.scrapers import MadewellProductScraper, MadewellCategoryScraper, MadewellMultiProductScraper
-from apps.scraper.scrapers import VoyagePriveCategoryScraper
-from apps.scraper.scrapers import PinterestPinScraper, PinterestAlbumScraper
-from apps.scraper.scrapers import StyldByFilterScraper, StyldByPartnersScraper
+from apps.scraper.models import ProductDetailSpider
+from apps.scraper.scrapers import GapProductSpider, GapCategorySpider
+from apps.scraper.scrapers import MadewellProductSpider, MadewellCategorySpider, \
+                                  MadewellMultiProductSpider
+from apps.scraper.scrapers import VoyagePriveCategorySpider
+from apps.scraper.scrapers import PinterestPinSpider, PinterestAlbumSpider
+from apps.scraper.scrapers import StyldByFilterSpider, StyldByPartnersSpider
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (make_option('--store-id', default=None, dest='store-id'),
-                                             make_option('--url', default=None),
-                                             make_option('--folder', default=None))
+    option_list = BaseCommand.option_list + (
+        make_option('--store-id', default=None, dest='store-id'),
+        make_option('--url', default=None),
+        make_option('--folder', default=None))
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__()
         self.scrapers = [
-            GapProductScraper,
-            GapCategoryScraper,
-            MadewellProductScraper,
-            MadewellCategoryScraper,
-            MadewellMultiProductScraper,
-            VoyagePriveCategoryScraper,
-            PinterestPinScraper,
-            PinterestAlbumScraper,
-            StyldByFilterScraper,
-            StyldByPartnersScraper,
+            GapProductSpider,
+            GapCategorySpider,
+            MadewellProductSpider,
+            MadewellCategorySpider,
+            MadewellMultiProductSpider,
+            VoyagePriveCategorySpider,
+            PinterestPinSpider,
+            PinterestAlbumSpider,
+            StyldByFilterSpider,
+            StyldByPartnersSpider,
         ]
 
     def handle(self, *args, **kwargs):
@@ -98,7 +100,7 @@ class Command(BaseCommand):
             # retrieve the url for the driver to load
             url = scraper.parse_url(url=url, values=values)
 
-            if isinstance(scraper, ProductDetailScraper):
+            if isinstance(scraper, ProductDetailSpider):
                 if not product:
                     try:
                         product = Product.objects.get(store=self.store, url=url)

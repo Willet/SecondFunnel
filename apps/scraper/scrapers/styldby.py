@@ -2,12 +2,12 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 
-from apps.scraper.models import Scraper, ContentDetailScraper, ContentCategoryScraper
+from apps.scraper.models import Spider, ContentDetailSpider, ContentCategorySpider
 from apps.assets.models import Image
 
 
-class StyldByPartnersScraper(ContentCategoryScraper):
-    regexs = [Scraper._wrap_regex('(?:www\.)?styld-by\.com/en-us/partners/([\w\-]*)/([\w\-]*)/?')]
+class StyldByPartnersSpider(ContentCategorySpider):
+    regexs = [Spider._wrap_regex('(?:www\.)?styld-by\.com/en-us/partners/([\w\-]*)/([\w\-]*)/?')]
     SOURCE = 'styld-by'
 
     def parse_url(self, url, **kwargs):
@@ -36,8 +36,8 @@ class StyldByPartnersScraper(ContentCategoryScraper):
             yield {'content': image}
 
 
-class StyldByFilterScraper(ContentCategoryScraper):
-    regexs = [Scraper._wrap_regex('(?:www\.)?styld-by\.com/en-us/filter/([\w\-]*)/?')]
+class StyldByFilterSpider(ContentCategorySpider):
+    regexs = [Spider._wrap_regex('(?:www\.)?styld-by\.com/en-us/filter/([\w\-]*)/?')]
     SOURCE = 'styld-by'
 
     def parse_url(self, url, **kwargs):

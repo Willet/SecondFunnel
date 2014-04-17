@@ -1,11 +1,11 @@
 import re
 
-from apps.scraper.models import Scraper, ContentDetailScraper, ContentCategoryScraper
+from apps.scraper.models import Spider, ContentDetailSpider, ContentCategorySpider
 from apps.assets.models import Image
 
 
-class PinterestPinScraper(ContentDetailScraper):
-    regexs = [Scraper._wrap_regex(r'(?:www\.)?pinterest\.com/pin/(\d*)/?')]
+class PinterestPinSpider(ContentDetailSpider):
+    regexs = [Spider._wrap_regex(r'(?:www\.)?pinterest\.com/pin/(\d*)/?')]
     SOURCE = 'pinterest'
 
     def parse_url(self, url, **kwargs):
@@ -28,8 +28,8 @@ class PinterestPinScraper(ContentDetailScraper):
         yield {'content': content}
 
 
-class PinterestAlbumScraper(ContentCategoryScraper):
-    regexs = [Scraper._wrap_regex(r'(?:www\.)?pinterest\.com/(\w*)/(\w*)/?')]
+class PinterestAlbumSpider(ContentCategorySpider):
+    regexs = [Spider._wrap_regex(r'(?:www\.)?pinterest\.com/(\w*)/(\w*)/?')]
 
     def parse_url(self, url, **kwargs):
         # TODO: get_regex isn't a thing

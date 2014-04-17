@@ -95,7 +95,7 @@ urlpatterns += patterns('apps.api.views',
     # Intentrank Config
     url(r'^%s/store/(?P<store_id>\d+)/intentrank/(?P<ir_id>\d+)/?$' % prefix, 'generate_ir_config_view', name='generate_ir_config_view'),
 
-    # Scraper
+    # Spider
     url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
 
     # image service graph alias (needed for proxy)

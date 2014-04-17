@@ -25,7 +25,7 @@ AWS_HEADERS =  {
 # dict of queues by region to poll regularly, using celery beat.
 # corresponding handlers need to be imported in apps.api.tasks
 # TODO: test CM instances currently handle messages from production
-# Scraper / TileConfigGen / IRConfigGen workers, and MUST be swapped to
+# Spider / TileConfigGen / IRConfigGen workers, and MUST be swapped to
 # test queues if production CM worker is deployed
 AWS_SQS_POLLING_QUEUES = {
     'us-west-2': {

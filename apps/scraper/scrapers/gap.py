@@ -2,18 +2,20 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 
-from apps.scraper.models import Scraper, ProductDetailScraper, ProductCategoryScraper
+from apps.scraper.models import Spider, ProductDetailSpider, ProductCategorySpider
 
 
-class GapProductScraper(ProductDetailScraper):
-    regexs = [Scraper._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)]
+class GapProductSpider(ProductDetailSpider):
+    regexs = [Spider._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)]
     sku_regex = r'^http://www\.gap\.com/browse/product\.do\?pid=(\d{6})$'
     imageLabels = ["Z", "AV1_Z", "AV2_Z", "AV9_Z", "SC_OUT_Z"]
 
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.regexs[0], url).group(1)
 
-    def scrape(self, url, product, values, **kwargs):
+    def scrape(self, url, values, **kwargs):
+        product = kwargs.get('product')
+        url = self._wrap_url(url)
         print('loading ' + url)
         self.driver.get(url)
         print('loaded')
@@ -109,8 +111,8 @@ class GapProductScraper(ProductDetailScraper):
         return images
 
 
-class GapCategoryScraper(ProductCategoryScraper):
-    regexs = [Scraper._wrap_regex(r'(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)', True)]
+class GapCategorySpider(ProductCategorySpider):
+    regexs = [Spider._wrap_regex(r'(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)', True)]
     product_sku_regex = r'^(?:(?:https?://)?(?:www\.)?gap\.com)?/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
 
     def parse_url(self, url, **kwargs):
