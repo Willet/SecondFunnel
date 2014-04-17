@@ -1,9 +1,10 @@
-http://www.gap.com/browse/product.do?pid=767419
-http://www.gap.com/browse/product.do?pid=941322
-http://www.gap.com/browse/product.do?pid=942240
-http://www.gap.com/browse/product.do?pid=941261
-http://www.gap.com/browse/product.do?pid=603380
-http://www.gap.com/browse/product.do?pid=603455
+http://www.gap.com/browse/product.do?pid=959498
+#http://www.gap.com/browse/product.do?pid=767419
+#http://www.gap.com/browse/product.do?pid=941322
+#http://www.gap.com/browse/product.do?pid=942240
+#http://www.gap.com/browse/product.do?pid=941261
+#http://www.gap.com/browse/product.do?pid=603380
+#http://www.gap.com/browse/product.do?pid=603455
 http://www.gap.com/browse/category.do?cid=13658#
 http://www.gap.com/browse/category.do?cid=5727
 http://www.gap.com/browse/category.do?cid=6300&departmentRedirect=true#department=48

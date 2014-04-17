@@ -1,5 +1,5 @@
 import urllib
-import BeautifulSoup
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver import DesiredCapabilities
@@ -75,11 +75,11 @@ class Spider(object):
             return url
 
         defaults = {
-            'timeout': '30000',
+            'timeout': '10000',
             'abortOnJavascriptErrors': 'false',
             'delayTime': '0',
             'isDebug': 'false',
-            'postDomLoadedTimeout': '10000',
+            'postDomLoadedTimeout': '3000',
             'geolocation': 'us',
             'requestType': 'text',
             'outputAsJson': 'false',
@@ -100,8 +100,8 @@ class Spider(object):
 
         There is no scrapy equivalent for this method.
         """
-        contents = read_remote_file(url)
-        return contents, BeautifulSoup.BeautifulSoup(contents)
+        contents, _ = read_remote_file(url)
+        return contents, BeautifulSoup(contents)
 
     def parse(self, url, values, **kwargs):
         """

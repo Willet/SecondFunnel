@@ -9,12 +9,11 @@ from selenium.common.exceptions import WebDriverException
 
 from apps.assets.models import Product, Store
 from apps.scraper.models import ProductDetailSpider
-from apps.scraper.scrapers import GapProductSpider, GapCategorySpider
-from apps.scraper.scrapers import MadewellProductSpider, MadewellCategorySpider, \
-                                  MadewellMultiProductSpider
-from apps.scraper.scrapers import VoyagePriveCategorySpider
-from apps.scraper.scrapers import PinterestPinSpider, PinterestAlbumSpider
-from apps.scraper.scrapers import StyldByFilterSpider, StyldByPartnersSpider
+from apps.scraper.scrapers import (GapProductSpider, GapCategorySpider,
+                                   MadewellProductSpider, MadewellCategorySpider,
+                                   MadewellMultiProductSpider,VoyagePriveCategorySpider,
+                                   PinterestPinSpider, PinterestAlbumSpider,
+                                   StyldByFilterSpider, StyldByPartnersSpider)
 
 
 class Command(BaseCommand):
@@ -64,6 +63,10 @@ class Command(BaseCommand):
                     store = Store.objects.get(slug=store_slug)
                     self.set_store(store)
                     for line in url_file:
+                        # support comments
+                        if line.startswith('#'):
+                            print "Skipping {0}".format(line[1:])
+                            continue
                         self.run_scraper(url=line)
                 except Store.DoesNotExist:
                     print('store %s does not exist' % store_slug)

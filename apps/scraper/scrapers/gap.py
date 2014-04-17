@@ -18,11 +18,12 @@ class GapProductSpider(ProductDetailSpider):
         product = kwargs.get('product')
         url = self._wrap_url(url)
         print('loading ' + url)
-        self.driver.get(url)
+        # self.driver.get(url)
+        page_source, page = self.scrape(url=url)
         print('loaded')
         try:
-            product.name = self.driver.find_element_by_class_name('productName').text
-        except NoSuchElementException:
+            product.name = page.select('span.productName')[0].text
+        except IndexError:  # only pages with ^ is in stock
             product.in_stock = False
             product.save()
             yield {'product': product}
@@ -30,34 +31,37 @@ class GapProductSpider(ProductDetailSpider):
 
         # retrieve the price of the product
         try:
-            product.price = self.driver.find_element_by_xpath('//span[@id="priceText"]/strike').text
-        except NoSuchElementException:
-            product.price = self.driver.find_element_by_id('priceText').text
+            product.price = page.select('span#priceText')[0].text
+        except IndexError:  # original price not found; guess
+            try:
+                product.price = page.select('#priceText')[0].text
+            except:
+                pass
 
         # retrieve the sale price of the product
         try:
-            sale_price = self.driver.find_element_by_xpath('//span[@id="priceText"]/span[@class="salePrice"]').text
+            sale_price = page.select('span.salePrice')[0].text
             product.attributes.update({'sale_price': sale_price})
-        except NoSuchElementException:
+        except IndexError:
             try:
-                sale_price_text = self.driver.find_element_by_id('productPageMupMessageStyle').text
+                sale_price_text = page.select('#productPageMupMessageStyle')[0].text
                 match = re.match(r'Now (\$\d+\.\d{2})', sale_price_text)
                 if match:
                     sale_price = match.group(1)
                     product.attributes.update({'sale_price': sale_price})
                 else:
                     product.attributes.pop('sales_price', None)
-            except NoSuchElementException:
+            except IndexError:
                 product.attributes.pop('sales_price', None)
 
         product.sku = re.match(self.sku_regex, product.url).group(1)
-        product.description = self.driver.find_element_by_id('tabWindow').get_attribute("innerHTML")
+        product.description = str(page.select('#tabWindow')[0])
 
         product.save()
 
         # retrieving the major category for the product
         try:
-            category_elem = self.driver.find_element_by_xpath('//li/a[contains(@class, "_selected")]')
+            category_elem = page.select('li a._selected')[0]
             category_url = category_elem.get_attribute('href')
             if category_url.startswith('/'):
                 category_url = 'http://www.gap.com' + category_url
@@ -67,7 +71,7 @@ class GapProductSpider(ProductDetailSpider):
                 self._add_to_category(product, 'women', 'http://www.gap.com/browse/subDivision.do?cid=5646')
             else:
                 self._add_to_category(product, category_name, category_url)
-        except NoSuchElementException:
+        except IndexError:
             pass
 
         if values.get('category', None):
@@ -76,9 +80,9 @@ class GapProductSpider(ProductDetailSpider):
             self._add_to_category(product, values.get('sub_category', None))
 
         # given a url, scrape some other url (the same product's data json)
-        self.driver.get('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
+        page_source, page = self.scrape('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
 
-        images = self._get_images(self.driver.page_source, product)
+        images = self._get_images(page_source, product)
         if len(images) > 0:
             product.default_image = images[0]
             product.save()
