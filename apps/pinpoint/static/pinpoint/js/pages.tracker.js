@@ -79,13 +79,15 @@ App.module("tracker", function (tracker, App) {
          * Semi-private function for wrapping trackTileClick and trackTileView
          */
         trackTile = function (interactionType, tileIds) {
-            for (var i=0; i < tileIds.length; i++) {
-                try {
-                    var model = App.discovery.collection.findWhere({
-                        'tile-id': tileIds[i]
-                    })
-                    Keen.addEvent('impression', getKeenInfo(model));
-                } catch(err) {}
+            if (interactionType === 'view') {
+                for (var i=0; i < tileIds.length; i++) {
+                    try {
+                        var model = App.discovery.collection.findWhere({
+                            'tile-id': tileIds[i]
+                        })
+                        Keen.addEvent('impression', getKeenInfo(model));
+                    } catch(err) {}
+                }
             }
 
             // if gap sends us too many visitors --> track tiles less often.
@@ -158,7 +160,7 @@ App.module("tracker", function (tracker, App) {
                     model : model.get('tagged-products')[0];
 
             var analyticsProduct = _.pick(
-                related || model.attributes,
+                related.attributes || related,
                 ['name', 'description', 'price', 'url']
             );
 
