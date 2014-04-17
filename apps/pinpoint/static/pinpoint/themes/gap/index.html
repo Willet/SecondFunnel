@@ -962,7 +962,7 @@
 
             var urlParams = App.options.urlParams;
             urlParams += urlParams.length ? "&" : "?";
-            switch("{{ url|default:''|escapejs}}") {
+            switch("{{ campaign.url_slug|default:''|escapejs}}") {
                 case "livedin":
                     App.options.urlParams = urlParams + "tid=gpme000028";
                     break;
