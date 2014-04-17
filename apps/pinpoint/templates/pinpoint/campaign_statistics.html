@@ -6,11 +6,15 @@
                 font-family: 'Helvetica Neue', 'Arial Narrow', sans-serif;
             }
 
+            h1, h2, h3, h4, h5 {
+                clear: both;
+            }
+
             .tile {
                 width: 250px;
                 height: 250px;
                 float: left;
-                margin-right: 10px;
+                margin: 5px;
                 position: relative;
                 overflow: hidden;
                 border-radius: 10px;
@@ -66,6 +70,9 @@
         <h1>Statistics</h1>
         <h2>Tiles by preview count</h2>
         <div id='tiles'></div>
+
+        <h2>Tiles by impression count</h2>
+        <div id='impressions'></div>
         <script type='text/template' id='tile-template'>
             <div class='tile'>
                 <div class='count'>
@@ -91,6 +98,29 @@
         <script type='text/javascript'>
             var tileTemplate = _.template($('#tile-template').text())
 
+            var addTiles = function(response, selector) {
+                if (!selector) {
+                    selector = '#tiles';
+                }
+
+                var data = response.result;
+                data = _.sortBy(data, function(item) {
+                    return -1 * item.result;
+                });
+
+                $.each(data, function(idx, obj) {
+                    var data = {
+                        'count': obj.result,
+                        'imageUrl': obj['tile.url'],
+                        'product': obj['product.name'],
+                        'tileId': obj['tile.id'],
+                        'url': obj['page.url'] + '#' + obj['tile.id']
+                    }
+
+                    $(selector).append(tileTemplate(data))
+                })
+            }
+
             // https://keen.io/docs/clients/javascript/usage-guide/#analyze-and-visualize-data
             Keen.onChartsReady(function() {
                 var previewQuery = new Keen.Metric('preview', {
@@ -108,18 +138,27 @@
                     }]
                 });
 
-                previewQuery.getResponse(function(response) {
-                    $.each(response.result, function(idx, obj) {
-                        var data = {
-                            'count': obj.result,
-                            'imageUrl': obj['tile.url'],
-                            'product': obj['product.name'],
-                            'tileId': obj['tile.id'],
-                            'url': obj['page.url'] + '#' + obj['tile.id']
-                        }
+                var impressions = new Keen.Metric('impression', {
+                    'analysisType': 'count',
+                    'groupBy': [
+                        'page.url',
+                        'tile.url',
+                        'tile.id',
+                        'product.name'
+                    ],
+                    'filters': [{
+                        'property_name': 'page.id',
+                        'operator': 'eq',
+                        'property_value': {{ page.id }}
+                    }]
+                });
 
-                        $('#tiles').append(tileTemplate(data))
-                    })
+                previewQuery.getResponse(function(response) {
+                    addTiles(response, '#tiles');
+                });
+
+                impressions.getResponse(function(response) {
+                    addTiles(response, '#impressions');
                 });
             });
         </script>

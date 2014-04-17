@@ -94,9 +94,14 @@ class StorePageProductCGHandler(StoreProductCGHandler):
         return super(StoreProductCGHandler, self).dispatch(*args, **kwargs)
 
     def get_queryset(self, request=None):
-        """get all the products from the (first) store that owns this page
+        """get all the products in the feed, which is
+        all the feed's tiles' products
         """
-        return Product.objects.filter(store_id=self.feed.page.all()[0].store.id)
+        tiles = self.feed.tiles.all()
+        products = []
+        for tile in tiles:
+            products += tile.products.all()
+        return list(set(products))
 
 
 class StorePageProductItemCGHandler(StoreProductItemCGHandler):
@@ -170,14 +175,16 @@ class StorePageProductDeprioritizeItemCGHandler(StorePageProductItemCGHandler):
 
 
 class PageProductAllCGHandler(StorePageProductCGHandler):
-    """PUT adds all products specified in the request body to the page.
+    """
+    GET retrieves all products from the store that owns the page.
+    PUT adds all products specified in the request body to the page.
 
     No other HTTP verb is supported.
 
     This view is identical to PageProductAllCGHandler.
     """
-    def get(self, request, *args, **kwargs):
-        raise NotImplementedError()
+    def get_queryset(self, request=None):
+        return Product.objects.filter(store_id=self.feed.page.all()[0].store.id)
 
     def put(self, request, *args, **kwargs):
         """:returns 200"""
@@ -191,4 +198,7 @@ class PageProductAllCGHandler(StorePageProductCGHandler):
 
         return HttpResponse()
 
-    post = patch = delete = get
+    def delete(self, request, *args, **kwargs):
+        raise NotImplementedError()
+
+    post = patch = delete
