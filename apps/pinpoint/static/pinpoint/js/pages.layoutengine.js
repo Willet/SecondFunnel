@@ -78,7 +78,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
         width = view.$el.outerWidth() / (opts.minColumns || 2);
         width = Math.max(tileWidth, width);
 
-        if (!App.support.mobile()) {
+        if (!App.support.mobile() && !App.option('dynamicColumns')) {
             width = opts.columnWidth;
         }
 
