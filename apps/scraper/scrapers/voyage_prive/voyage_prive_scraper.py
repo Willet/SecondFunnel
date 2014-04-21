@@ -62,7 +62,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                     # find the review for this product
                     product.attributes.update({
                         "review_text": self.driver.find_element_by_xpath(
-                            '//div/div[contains(@class, "viewp-product-editorialist-{0}")]/blockquote'.format(product.sku)),
+                            '//div/div[contains(@class, "viewp-product-editorialist-{0}")]/blockquote'.format(product.sku)).text,
                     })
                     print "Saved product {0} with review found".format(product.sku)
                     product.save()
