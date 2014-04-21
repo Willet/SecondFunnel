@@ -52,30 +52,37 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         print('loading url ' + url)
         for page in [url, url + '?p=2']:  # hack, gets pages 1 and 2
             self.driver.get(page)
-            print('url loaded')
-            for i in range(len(products)):
-                product = products[i]
-                image = images[i]
+            print('loaded url ' + page)
+            for idx, product in enumerate(products):
+                image = images[idx]
+                product.save()
+
                 try:
                     # all 'products' have a link inside that contains the sku
                     item = self.driver.find_element_by_xpath('//div[contains(div/h2/a/@href, "/{0}/")]'.format(product.sku))
+                    product.default_image = self._process_image(image, product)
                 except NoSuchElementException:
-                    pass  # no product image
+                    print "product {0} is not on this page".format(product.sku)
 
                 try:
                     # type unicode
-                    all_image_urls = [
-                        x.get_attribute('data-original')
-                        for x in self.driver.find_elements_by_xpath(
+                    all_image_urls = [x.get_attribute('data-original') for x in
+                                      self.driver.find_elements_by_xpath(
                             '//div/figure/div[@data-id="{0}"]//li/a/img'.format(
-                                product.sku))
-                    ]
-                    product.product_images = [self._process_image(url, product)
-                                              for url in all_image_urls]
+                                product.sku))]
+                    if all_image_urls:
+                        print "Adding more image urls to product: {0}".format(
+                            all_image_urls)
+
+                        product.product_images = [
+                            self._process_image(image_url, product)
+                            for image_url in all_image_urls
+                        ]
+                    else:
+                        print "? found product on the page, but it had no images"
                 except NoSuchElementException:
+                    print "product images not found on the page"
                     continue
 
-                product.save()
-                product.default_image = self._process_image(image, product)
                 product.save()
                 yield {'product': product}
