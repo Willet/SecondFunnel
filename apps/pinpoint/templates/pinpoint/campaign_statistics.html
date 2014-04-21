@@ -68,6 +68,9 @@
     </head>
     <body>
         <h1>Statistics</h1>
+        <h2>Previews / Impressions</h2>
+        <div id='ratios'></div>
+
         <h2>Tiles by preview count</h2>
         <div id='tiles'></div>
 
@@ -96,7 +99,9 @@
             });
         </script>
         <script type='text/javascript'>
-            var tileTemplate = _.template($('#tile-template').text())
+            var tileTemplate = _.template($('#tile-template').text()),
+                impressions, previews,
+                ratios = {};
 
             var addTiles = function(response, selector) {
                 if (!selector) {
@@ -133,6 +138,8 @@
                 $.each(sortedTiles, function(idx, obj) {
                     $(selector).append(tileTemplate(obj));
                 });
+
+                return tiles;
             }
 
             // https://keen.io/docs/clients/javascript/usage-guide/#analyze-and-visualize-data
@@ -151,28 +158,66 @@
                         'tile.url',
                         'tile.id',
                         'product.name'
-                    ]
-                var previewQuery = new Keen.Metric('preview', {
-                    'analysisType': 'count',
-                    'groupBy': groupBy,
-                    'filters': filters,
-                    'targetProperty': 'tile.id'
-                });
-
-                var impressions = new Keen.Metric('impression', {
-                    'analysisType': 'count',
-                    'groupBy': groupBy,
-                    'filters': filters,
-                    'targetProperty': 'tile.id'
-                });
+                    ],
+                    previewQuery = new Keen.Metric('preview', {
+                        'analysisType': 'count',
+                        'groupBy': groupBy,
+                        'filters': filters,
+                        'targetProperty': 'tile.id'
+                    }),
+                    impressionsQuery = new Keen.Metric('impression', {
+                        'analysisType': 'count',
+                        'groupBy': groupBy,
+                        'filters': filters,
+                        'targetProperty': 'tile.id'
+                    }),
+                    timer;
 
                 previewQuery.getResponse(function(response) {
-                    addTiles(response, '#tiles');
+                    previews = addTiles(response, '#tiles');
                 });
 
-                impressions.getResponse(function(response) {
-                    addTiles(response, '#impressions');
+                impressionsQuery.getResponse(function(response) {
+                    impressions = addTiles(response, '#impressions');
                 });
+
+                var timer = setInterval(function() {
+                    console.log('Timing...');
+                    if (impressions && previews) {
+                        clearInterval(timer);
+
+                        // Merge two sets...
+                        var keys = _.intersection(
+                            _.keys(previews),
+                            _.keys(impressions)
+                        );
+
+                        var ratioTiles = [];
+
+                        $.each(keys, function(idx, key) {
+                            var impression, preview, ratioTile;
+                            key = parseInt(key, 10);
+
+                            impression = impressions[key];
+                            preview = previews[key];
+
+                            ratioTile = _.extend({}, impression);
+                            ratioTile.count = preview.count / impression.count;
+
+                            ratioTiles.push(ratioTile);
+                        });
+
+                        ratios = _.sortBy(ratioTiles,
+                                function(item) {
+                            return -1 * item.count;
+                        });
+
+                        $.each(ratios, function(idx, obj) {
+                            $('#ratios').append(tileTemplate(obj));
+                        });
+
+                    }
+                }, 1000);
             });
         </script>
     </body>
