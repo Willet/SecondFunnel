@@ -34,6 +34,7 @@
         }
         , 'campaign': '{{ campaign.intentrank_id|default:campaign.id }}' // required
         , 'columnWidth': {{ column_width|default:'undefined' }}  // optional. controls how often tiles are wide.  // optional (defaults to 255, pixels)
+        , 'dynamicColumns': {{ campaign.dynamic_columns|default:"false" }}
         , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
         // , 'events': undefined  // page event bindings (optional)
         , 'socialButtons':
