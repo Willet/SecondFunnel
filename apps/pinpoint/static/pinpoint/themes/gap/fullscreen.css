@@ -1,0 +1,241 @@
+/* Full screen popup CSS */
+.previewContainer .full-screen {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    position: fixed;
+    display: table-cell;
+    animation: noop 1s infinite;
+    -webkit-animation: noop 1s infinite;
+    -webkit-transform: translateZ(0);
+}
+
+@keyframes noop {
+    0% {
+        margin-bottom: 0;
+    }
+    100% {
+        margin-bottom: 1em;
+    }
+}
+
+.previewContainer .full-screen .close {
+    z-index: 10;
+}
+
+.previewContainer .full-screen .content {
+    width: 100%;
+    height: 100%;
+    padding: 0px;
+    max-height: 100%;
+    overflow: hidden !important;
+}
+
+.previewContainer .full-screen .scrollable,
+.previewContainer .full-screen .template.target,
+.previewContainer .full-screen .stl-target > div,
+.previewContainer .full-screen .template.target > div {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    max-height: 100%;
+}
+
+.previewContainer .full-screen .content-wrapper.row {
+    height: 100%;
+}
+
+.previewContainer .full-screen .content-wrapper.row .cell {
+    height: 99%;
+    width: inherit;
+    max-width: none;
+    display: inline-block;
+}
+
+.previewContainer .full-screen .content-wrapper.row .cell .image {
+    height: 100%;
+}
+
+.previewContainer .full-screen .content-wrapper.row .image-div .image {
+    display: inline-block;
+}
+
+.previewContainer .full-screen .content-wrapper.row .cell .description {
+    max-height: 330px;
+}
+
+.previewContainer .full-screen .content-wrapper.row .gap-buttons {
+    margin-bottom: 0px;
+}
+
+.previewContainer .full-screen .content-wrapper .gallery {
+    width: 50px;
+    height: auto;
+    max-height: 100%;
+    overflow-y: scroll;
+    display: inline-block;
+}
+
+.previewContainer .full-screen .image-with-tagged-products {
+    width: 100%;
+    height: 100%;
+    display: table;
+    overflow: hidden;
+    max-height: 100%;
+}
+
+.previewContainer .full-screen .image-without-tagged-products {
+    width: 100%;
+    height: 100%;
+    display: table;
+}
+
+.previewContainer .full-screen .image-with-tagged-products .row {
+    display: table-row;
+}
+
+.previewContainer .full-screen .cell {
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    position: relative;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.previewContainer .full-screen .row .cell.capped-width {
+    width: initial;
+}
+
+.previewContainer .full-screen .image img {
+    height: 99%;
+}
+
+.previewContainer .full-screen .image.capped-width img {
+    height: 85%;
+}
+
+.previewContainer .full-screen .main-image {
+    margin: 0px;
+    height: auto;
+    max-width: 80%;
+    max-height: 99%;
+    padding: 10px 0px;
+    display: inline-block;
+    box-sizing: border-box;
+}
+
+.previewContainer .full-screen .image-with-tagged-products .row .gallery {
+    width: 50px;
+    height: auto;
+    max-width: 20%;
+    max-height: 500px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    display: inline-block;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+.previewContainer .full-screen .gallery img {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-height: none;
+    margin: 0px 0px 5px 0px;
+}
+
+.previewContainer .full-screen .gap-buttons {
+    bottom: 0;
+    position: absolute;
+}
+
+.previewContainer .full-screen .gap-buttons .button {
+    padding: 1.5em 1.7em;
+}
+
+.previewContainer .full-screen .price,
+.previewContainer .full-screen .description,
+.previewContainer .full-screen .gap-buttons .button {
+    font-size: 1.1em;
+}
+
+.previewContainer .full-screen .title {
+    font-size: 2em;
+}
+
+.previewContainer .full-screen .row .cell .description {
+    max-height: 400px;
+}
+
+.previewContainer .full-screen .stl-target {
+    width: 80%;
+    float: right;
+    height: 100%;
+}
+
+.previewContainer .full-screen .stl-target .image.middle.cell.capped-width {
+    display: none;
+}
+
+.previewContainer .full-screen .stl-target .middle.cell {
+    vertical-align: top;
+}
+
+.previewContainer .full-screen .stl-left .stl-look img {
+    margin: 5px;
+}
+
+.previewContainer .full-screen .stl-left > img {
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.previewContainer .full-screen .stl-left {
+    width: 20%;
+    float: left;
+    padding: 10px;
+    min-height: 100%;
+    background: #DDD;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.previewContainer .full-screen .stl-left .title {
+    font-size: 1em;
+    padding-right: 0px;
+}
+
+.previewContainer .full-screen .stl-left .stl-look {
+    max-width: 100%;
+    max-height: 220px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    white-space: normal;
+}
+
+.previewContainer .full-screen .stl-left .stl-look img {
+    width: 50px;
+    border: 1px solid black;
+}
+
+.previewContainer .full-screen .stl-target .main-image {
+    width: auto;
+    height: 99%;
+    max-height: 85%;
+    max-width: none;
+}
+
+.previewContainer .full-screen .stl-target .gap-buttons {
+    margin-bottom: 0px;
+}
+
+@media screen and (max-width: 1280px) {
+    .previewContainer .full-screen .gap-buttons .button {
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
+    }
+}
+
