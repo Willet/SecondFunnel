@@ -749,10 +749,10 @@
                     recordEvent('find_store', 'main visual', 'store locator', 'find a store');
                 },
                 // Perfect Audience
-                'click .tile.image, .tile.product': function() {
+                'click .tile': function() {
                     var cid = $(this).attr('id'),
                         obj = App.discovery.collection.get(cid),
-                        product, product_id, page_id, store_slug, feed_id, segment;
+                        page_id, store_slug, feed_id, tile_id;
 
                     tile_id = obj.get('tile-id');
                     page_id = App.options.page.id;
@@ -761,30 +761,15 @@
                     // Needs to match the RSS
                     feed_id = store_slug + 'P' + page_id + 'T' + tile_id;
 
-                    if ($(this).hasClass('image')) {
-                        segment = 'ImagePopUp';
-                    } else if ($(this).hasClass('product')) {
-                        segment = 'ProductPopUp';
-                    }
-
                     try {
-                        _pq.push(['track', segment]);
                         _pq.push(['track', 'PopUp']);
                         _pq.push(['trackProduct', feed_id]);
                     } catch(err) {}
 
-                    {% comment %}
-                    Adroll's retargeting is less sophisticated with regard to
-                    including and excluding visitors. To avoid any problems,
-                    only allow retargeting for the livedin campaign.
-                    {% endcomment %}
-                    {% ifequal campaign.url_slug "livedin" %}
                     try {
-                        __adroll.record_user({"adroll_segments": segment});
                         __adroll.record_user({"adroll_segments": 'PopUp'});
                         __adroll.record_user({"product_id": feed_id});
                     } catch(err) {}
-                    {% endifequal %}
                 }
             });
 
@@ -858,15 +843,15 @@
         // _pa.revenue = "19.99"; // OPTIONAL: attach dynamic purchase values to conversions
         // _pa.productId = "myProductId"; // OPTIONAL: Include product ID for use with dynamic ads
         var pa = document.createElement('script'); pa.type = 'text/javascript'; pa.async = true;
-        pa.src = ('https:' === document.location.protocol ? 'https:' : 'http:') + "//tag.perfectaudience.com/serve/52fd209b01a11d23fd000004.js";
+        pa.src = ('https:' === document.location.protocol ? 'https:' : 'http:') + "//tag.perfectaudience.com/serve/535538ebd9a0e9beae000073.js";
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(pa, s);
       })();
     </script>
 
     <!-- AdRoll -->
     <script type="text/javascript">
-    adroll_adv_id = "JQVBFPLBNNH7TNXQAS2ZT2";
-    adroll_pix_id = "JJ7XDEWBKJBZTD2MESDLGL";
+    adroll_adv_id = "7HUSQEXE6ZBQTE6BZ2HE5B";
+    adroll_pix_id = "JKZ3HVQNCVGQ7GONAFDN5O";
     (function () {
        __adroll_loaded=true;
        var scr = document.createElement("script");

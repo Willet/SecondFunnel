@@ -189,7 +189,9 @@ def product_feed(request, page_slug):
         channel.append(item)
 
     feed = tostring(root, 'utf-8')
-    pretty_feed = minidom.parseString(feed).toprettyxml(indent='\t')
+    pretty_feed = minidom.parseString(feed).toprettyxml(
+        indent='\t', encoding='utf-8'
+    )
 
     # TODO: Remove this code after the livedin campaign is finished
     # This code is being included so that past visitors may still be retargeted
@@ -213,7 +215,9 @@ def product_feed(request, page_slug):
 
         pretty_feed = revised_feed
 
-    return HttpResponse(pretty_feed, content_type='application/rss+xml')
+    return HttpResponse(
+        pretty_feed, content_type='application/rss+xml; charset=utf-8'
+    )
 
 @login_required
 def page_stats(request, page_slug):
