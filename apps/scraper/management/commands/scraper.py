@@ -3,6 +3,7 @@ import re
 import traceback
 
 from optparse import make_option
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
 
 from selenium.common.exceptions import WebDriverException
@@ -22,7 +23,7 @@ class Command(BaseCommand):
                                              make_option('--folder', default=None))
 
     def __init__(self, *args, **kwargs):
-        super(Command, self).__init__(*args, **kwargs)
+        super(Command, self).__init__()
         self.scrapers = [
             GapProductScraper,
             GapCategoryScraper,
@@ -37,27 +38,39 @@ class Command(BaseCommand):
         ]
 
     def handle(self, *args, **kwargs):
+        """
+        If called with store-id (somehow) and url, scrapes that url for
+            that store.
+        If called with folder,
+        Otherwise, scrapes all urls listed in all text files in the urls folder.
+        """
+        store = None
         store_id = kwargs.pop('store-id', None)
         url = kwargs.pop('url', None)
         folder = kwargs.pop('folder', None)
         if url:
-            if not store_id:
+            try:
+                store = Store.objects.get(id=store_id)
+            except ObjectDoesNotExist:
+                pass
+            try:
+                if not store:
+                    store = Store.objects.get(slug=store_id)  # identifier was a slug
+            except ObjectDoesNotExist:
                 raise CommandError('store-id must be specified if url is included')
-            store = Store.objects.get(id=store_id)
+
             self.set_store(store)
             self.run_scraper(url=url)
         else:
             if not folder:
-                folder = ''
-                for item in os.path.abspath(__file__).split('/')[:-3]:
-                    folder += item + '/'
-                folder += 'urls'
+                # e.g. /home/brian/Envs/SecondFunnel/apps/scraper/urls
+                folder = os.path.join(os.path.dirname(os.path.dirname(
+                    os.path.dirname(__file__))), 'urls') + '/'
             for file_name in os.listdir(folder):
-                if not folder.endswith('/'):
-                    folder += '/'
-                print('retrieving url from file ' + folder + file_name)
-                url_file = open(folder + file_name)
-                store_slug = file_name.split('.')[0]
+                print('retrieving url from "{0}"'.format(
+                    os.path.join(folder,file_name)))
+                url_file = open(os.path.join(folder,file_name))
+                store_slug = file_name.split('.')[0]  # 'gap' from 'gap.txt'
                 try:
                     store = Store.objects.get(slug=store_slug)
                     self.set_store(store)
