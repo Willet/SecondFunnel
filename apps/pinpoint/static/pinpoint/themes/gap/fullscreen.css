@@ -59,8 +59,8 @@
 }
 
 .previewContainer .full-screen .content-wrapper.row .image-div .image {
-    vertical-align: top;
     display: inline-block;
+    vertical-align: middle;
 }
 
 .previewContainer .full-screen .content-wrapper.row .cell .description {
@@ -75,8 +75,9 @@
     width: 50px;
     height: auto;
     max-height: 100%;
-    overflow-y: scroll;
+    overflow-y: auto;
     display: inline-block;
+    vertical-align: middle;
 }
 
 .previewContainer .full-screen .image-with-tagged-products {
@@ -115,7 +116,7 @@
 }
 
 .previewContainer .full-screen .image.capped-width img {
-    height: 85%;
+    height: 99%;
 }
 
 .previewContainer .full-screen .main-image {
@@ -129,12 +130,12 @@
 }
 
 .previewContainer .full-screen .image-with-tagged-products .row .gallery {
-    width: 50px;
     height: auto;
-    max-width: 20%;
+    max-width: 10%;
+    min-width: 50px;
     max-height: 500px;
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
     display: inline-block;
     box-sizing: border-box;
     vertical-align: middle;
@@ -150,6 +151,7 @@
 
 .previewContainer .full-screen .gap-buttons {
     bottom: 0;
+    margin-bottom: 0px;
     position: absolute;
 }
 
@@ -171,6 +173,10 @@
     max-height: 400px;
 }
 
+.previewContainer .full-screen .spacer {
+    margin-bottom: 30px;
+}
+
 .previewContainer .full-screen .stl-target {
     width: 80%;
     float: right;
@@ -181,52 +187,61 @@
     display: none;
 }
 
-.previewContainer .full-screen .stl-target .middle.cell {
-    vertical-align: top;
-}
-
-.previewContainer .full-screen .stl-left .stl-look img {
-    margin: 5px;
-}
-
-.previewContainer .full-screen .stl-left > img {
-    padding: 20px;
-    box-sizing: border-box;
-}
-
 .previewContainer .full-screen .stl-left {
     width: 20%;
     float: left;
     padding: 10px;
     min-height: 100%;
-    background: #DDD;
     text-align: center;
+}
+
+.previewContainer .full-screen .stl-left > div {
+    display: inline-block;
     box-sizing: border-box;
+    border: 1px solid #DDD;
 }
 
 .previewContainer .full-screen .stl-left .title {
+    color: #FFF;
     font-size: 1em;
     padding-right: 0px;
+    background-color: #DDD;
 }
 
 .previewContainer .full-screen .stl-left .stl-look {
     max-width: 100%;
     max-height: 220px;
+    overflow-y: auto;
+    padding-left: 10px;
     overflow-x: hidden;
-    overflow-y: scroll;
     white-space: normal;
+    padding-right: 10px;
+    box-sizing: border-box;
+}
+
+.previewContainer .full-screen .stl-left > div > img {
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 .previewContainer .full-screen .stl-left .stl-look img {
-    width: 50px;
-    border: 1px solid black;
+    width: 31%;
+    margin: 1%;
+    border: 1px solid #DDD;
+}
+
+.previewContainer .full-screen .stl-left .stl-look img.selected {
+    border: 1px solid #000;
 }
 
 .previewContainer .full-screen .stl-target .main-image {
     width: auto;
     height: 99%;
-    max-height: 85%;
     max-width: none;
+}
+
+.previewContainer .full-screen .stl-target .middle.center.cell {
+    padding-left: 0px;
 }
 
 .previewContainer .full-screen .stl-target .gap-buttons {

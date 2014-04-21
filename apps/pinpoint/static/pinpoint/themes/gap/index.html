@@ -44,8 +44,8 @@
                 height: 590
             },
             'max-resolution': {
-                width: 1200,
-                height: 720
+                width: 1366,
+                height: 768
             },
             custom: function (cookie) {
                 var templates = [
@@ -351,11 +351,13 @@
         <script type="text/template" id="b_mega_tile_preview_template">
             <div class="stl-target"></div>
             <div class="stl-left">
-                <div class="title">SHOP THE WHOLE LOOK</div>
-                <br/>
-                <div class="stl-look"></div>
-                <img src="<%= obj.image.url %>" alt="image"/>
-                <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
+                <div>
+                    <div class="title">SHOP THE WHOLE LOOK</div>
+                    <br/>
+                    <div class="stl-look"></div>
+                    <img src="<%= obj.image.url %>" alt="image"/>
+                    <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
+                </div>
             </div>
         </script>
 
