@@ -104,53 +104,66 @@
                 }
 
                 var data = response.result;
-                data = _.sortBy(data, function(item) {
-                    return -1 * item.result;
-                });
+                var tiles = {};
 
                 $.each(data, function(idx, obj) {
-                    var data = {
-                        'count': obj.result,
-                        'imageUrl': obj['tile.url'],
-                        'product': obj['product.name'],
-                        'tileId': obj['tile.id'],
-                        'url': obj['page.url'] + '#' + obj['tile.id']
+                    var tile = {
+                            'count': obj.result,
+                            'imageUrl': obj['tile.url'],
+                            'product': obj['product.name'],
+                            'tileId': obj['tile.id'],
+                            'url': obj['page.url'] + '#' + obj['tile.id']
+                        },
+                        tileId = obj['tile.id'],
+                        prevTile = tiles[tileId];
+
+
+                    if (prevTile) { // Merge
+                        tile.count += prevTile.count;
                     }
 
-                    $(selector).append(tileTemplate(data))
-                })
+                    tiles[tileId] = tile;
+                });
+
+                var sortedTiles = _.sortBy(_.values(tiles),
+                        function(item) {
+                    return -1 * item.count;
+                });
+
+                $.each(sortedTiles, function(idx, obj) {
+                    $(selector).append(tileTemplate(obj));
+                });
             }
 
             // https://keen.io/docs/clients/javascript/usage-guide/#analyze-and-visualize-data
             Keen.onChartsReady(function() {
-                var previewQuery = new Keen.Metric('preview', {
-                    'analysisType': 'count',
-                    'groupBy': [
+                var filters = [{
+                        'property_name': 'page.id',
+                        'operator': 'eq',
+                        'property_value': {{ page.id }}
+                    }, {
+                        'property_name': 'page.url',
+                        'operator': 'contains',
+                        'property_value': '{{ page.url_slug }}'
+                    }],
+                    groupBy = [
                         'page.url',
                         'tile.url',
                         'tile.id',
                         'product.name'
-                    ],
-                    'filters': [{
-                        'property_name': 'page.id',
-                        'operator': 'eq',
-                        'property_value': {{ page.id }}
-                    }]
+                    ]
+                var previewQuery = new Keen.Metric('preview', {
+                    'analysisType': 'count',
+                    'groupBy': groupBy,
+                    'filters': filters,
+                    'targetProperty': 'tile.id'
                 });
 
                 var impressions = new Keen.Metric('impression', {
                     'analysisType': 'count',
-                    'groupBy': [
-                        'page.url',
-                        'tile.url',
-                        'tile.id',
-                        'product.name'
-                    ],
-                    'filters': [{
-                        'property_name': 'page.id',
-                        'operator': 'eq',
-                        'property_value': {{ page.id }}
-                    }]
+                    'groupBy': groupBy,
+                    'filters': filters,
+                    'targetProperty': 'tile.id'
                 });
 
                 previewQuery.getResponse(function(response) {
