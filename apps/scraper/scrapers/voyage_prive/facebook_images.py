@@ -11,6 +11,12 @@ for(var i = 0; i < images.length; i++) {
         console.log(images[i].outerHTML.match(/https:\/\/.+\.jpg/)[0]);
     }
 }
+
+Run this script in a django shell:
+
+>>>from apps.scraper.scrapers.voyage_prive.facebook_images import main
+>>>main()
+
 """
 from apps.assets.models import Image, Store
 from apps.imageservice.tasks import process_image
