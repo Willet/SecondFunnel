@@ -24,6 +24,19 @@ App.module('optimizer', function (optimizer, App) {
             }
             return true;
         },
+        lt = function (resolution) {
+            var width = $(window).width(),
+                height = $(window).height();
+            if (resolution.width && width > resolution.width) {
+                return false;
+            } else if (resolution.height && height > resolution.height) {
+                return false;
+            }
+            return true;
+        },
+        gt = function (resolution) {
+            return !lt(resolution);
+        },
         setDimension = function (index, val) {
             var dim = 'dimension' + index;
 
@@ -43,7 +56,6 @@ App.module('optimizer', function (optimizer, App) {
         getTestIndex = function (item, list) {
             return UPPERCASE_LETTERS.charAt(list.indexOf(item));
         };
-
 
     /**
      * Returns the custom dimensions.
@@ -99,7 +111,6 @@ App.module('optimizer', function (optimizer, App) {
         return "";
     };
 
-
     /**
      * Uses multivariate probabilities and randomness to select an option
      * from a list of passed options.
@@ -127,7 +138,6 @@ App.module('optimizer', function (optimizer, App) {
         // Otherwise uniform, so sample
         return _.sample(options);
     };
-
 
     /**
      * Adds a test to the optimizer module.
@@ -158,6 +168,9 @@ App.module('optimizer', function (optimizer, App) {
             case 'template':
                 result = this.testTemplate(selector, options, probabilities);
                 break;
+            case 'style':
+                result = this.testStyle(selector, probabilities);
+                break;
             default:
                 result = kwargs.custom(result);
         }
@@ -171,6 +184,35 @@ App.module('optimizer', function (optimizer, App) {
         }
     };
 
+    /**
+     * Runs a styling test that renders either a style tag or adds a style
+     * to the page.
+     *
+     * @returns string
+     **/
+    this.testStyle = function (styles, probabilities) {
+        var style,
+            $style,
+            pathname;
+        if (styles.length < probabilities.length) {
+            styles.unshift("");
+        }
+
+        style = this.multivariate(styles, probabilities);
+        pathname = style.match(/(https?|www)/);
+        if (pathname && style.indexOf(pathname[0]) == 0) {
+            $style = $('<link></link>');
+            $style.attr('rel', "stylesheet")
+                  .attr('href', style);
+            $('head').append($style);
+        } else if (style.length > 0) {
+            $style = $('<style></style>');
+            $style.attr('type', "text/css")
+                  .text(style);
+            $('head').append($style);
+        }
+        return getTestIndex(styles, style);
+    };
 
     /**
      * Runs a template test.
@@ -191,7 +233,6 @@ App.module('optimizer', function (optimizer, App) {
             }, 100);
         return getTestIndex(template, templates);
     };
-
 
     /**
      * Initializes the optimizer testing module.
@@ -220,6 +261,10 @@ App.module('optimizer', function (optimizer, App) {
             index = t.index || t.slot;
             // Don't run all A/B Tests in quiet mode
             if (t.device && !is(t.device)) {
+                return;
+            } else if (t['min-resolution'] && !gt(t['min-resolution'])) {
+                return;
+            } else if (t['max-resolution'] && !lt(t['max-resolution'])) {
                 return;
             }
             test = t.test;
