@@ -122,7 +122,8 @@ class Command(BaseCommand):
             # if a url is returned, run_scraper() is called with the arguments in the returned dictionary
             # if no url is returned, the content or product model is printed out
             # if no content or product is returned, an error is printed
-            for dictionary in scraper.scrape(url=url, product=product, content=content, values=values):
+            for dictionary in scraper.scrape(url=url, product=product,
+                                             content=content, values=values):
                 if dictionary.get('url', None):
                     scraper_vars = {}
                     scraper_vars.update(dictionary)

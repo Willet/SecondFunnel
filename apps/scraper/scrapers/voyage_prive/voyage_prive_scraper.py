@@ -22,6 +22,8 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         print('url loaded')
         for node in self.driver.find_elements_by_xpath('//nodes/node'):
             sku = node.find_element_by_xpath('./id').text
+            direct_site_name = node.find_element_by_xpath('./nom-fournisseur').text
+            direct_site_image = node.find_element_by_xpath('./image-fournisseur').text
             try:
                 product = Product.objects.get(sku=sku)
             except Product.DoesNotExist:
@@ -39,6 +41,10 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 product.name = product.name.replace(u", jusqu'à", '')
             product.url = node.find_element_by_xpath('./url').text
             product.price = u'€' + node.find_element_by_xpath('./prix').text
+            product.attributes.update({
+                'direct_site_name': direct_site_name,
+                'direct_site_image': direct_site_image,
+            })
             products.append(product)
             images.append(node.find_element_by_xpath('./image').text)
         print('loading url ' + url)
