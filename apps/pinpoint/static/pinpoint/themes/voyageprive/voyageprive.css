@@ -249,12 +249,12 @@ body {
 .tile {
     border: 0;
     box-shadow: none;
-    width: 480px;
+    width: 50%;
     margin: 0;
 }
 
 .tile.wide {
-    width: 960px;
+    width: 100%;
 }
 
 @media screen and (max-width: 768px) {
@@ -505,12 +505,16 @@ body {
 
 .tile img.focus {
     min-width: inherit;
+    width: 100%;
 }
 
 /* TODO: END Make desktop specific */
 
 
 
+#discovery-area {
+    width: 960px;
+}
 
 @media (max-width: 992px) and (min-width: 769px) {
     #discovery-area {
