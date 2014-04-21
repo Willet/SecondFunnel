@@ -37,8 +37,9 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             if match:
                 product.name = match.group(1).strip()
                 product.attributes['discount'] = match.group(2)
-            if product.name.endswith(u", jusqu'à"):
-                product.name = product.name.replace(u", jusqu'à", '')
+
+            # in no position of the product name is 'jusqu'à' a useful term to keep
+            product.name = product.name.replace(u", jusqu'à", '')
             product.url = node.find_element_by_xpath('./url').text
             product.price = u'€' + node.find_element_by_xpath('./prix').text
             product.attributes.update({
@@ -56,6 +57,17 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             for idx, product in enumerate(products):
                 image = images[idx]
                 product.save()
+
+                try:
+                    # find the review for this product
+                    product.attributes.update({
+                        "review_text": self.driver.find_element_by_xpath(
+                            '//div/div[contains(@class, "viewp-product-editorialist-{0}")]/blockquote'.format(product.sku)),
+                    })
+                    print "Saved product {0} with review found".format(product.sku)
+                    product.save()
+                except NoSuchElementException:
+                    print "No review was found for product {0}".format(product.sku)
 
                 try:
                     # all 'products' have a link inside that contains the sku
