@@ -596,6 +596,8 @@
                         <% if (product.images.length > 1) { %>
                             <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
                             <div class='gallery'></div>
+                        <% } else if (product.images.length == 1) { %>
+                            <img class="main-image" src="<%= product.images[0].url %>" alt="related product" />
                         <% } %>
                     </div>
                     <div class="middle cell">
