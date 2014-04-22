@@ -84,6 +84,9 @@
                     <% if (obj.review_text) { %>
                         <div class="review">
                             "<%- obj.review_text %>"
+                            <% if (obj.reviewer_name) { %>
+                                - <%- obj.reviewer_name %>
+                            <% } %>
                         </div>
                     <% } %>
                     <div class="view">
