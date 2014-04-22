@@ -128,7 +128,7 @@ class StorePageProductItemCGHandler(StoreProductItemCGHandler):
         """special handler for deleting a product from the page
         (which means adding a product to a tile to the feed of the page)
         """
-        self.page.delete_product(self.product)
+        self.page.remove_product(self.product)
         return ajax_jsonp(self.product)
 
 

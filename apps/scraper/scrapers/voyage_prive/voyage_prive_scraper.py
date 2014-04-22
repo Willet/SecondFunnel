@@ -1,7 +1,7 @@
 # coding=utf-8
 import re
 
-from apps.assets.models import Product
+from apps.assets.models import Page, Product
 
 from apps.scraper.scrapers import ProductCategoryScraper
 from selenium.common.exceptions import NoSuchElementException
@@ -14,7 +14,15 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         return 'http://www.officiel-des-vacances.com/week-end'
 
     def scrape(self, url, **kwargs):
+        """Scrapes Voyage Prive.
+
+        In addition to scraping products from the store, this scraper adds
+        and removes products from the 'week-end' page.
+        """
         store = self.store
+        page = store.pages.filter(url_slug='week-end')[0]
+        feed = page.feed
+
         products = []
         images = []
         skus = []  # list of product skus that are in the feed (which may or may not be in status (statut) 1
@@ -48,7 +56,8 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             product.price = u'€' + node.find_element_by_xpath('./prix').text
 
             # this is the default
-            product.in_stock = (node.find_element_by_xpath('./statut').text is '1')
+            product.in_stock = (node.find_element_by_xpath('./statut').text
+                                in [1, '1', u'1'])
 
             product.attributes.update({
                 'direct_site_name': direct_site_name,
@@ -64,6 +73,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 print "Product {0} no longer in stock!".format(product.sku)
                 product.in_stock = False
                 product.save()
+                feed.remove_product(product)
 
             if u"jusqu'à" in product.name:
                 product.name = product.name.replace(u"jusqu'à", '')
@@ -157,4 +167,13 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                         continue
 
                 product.save()
+
+                # add a tile to the weekend feed
+                try:
+                    tile, p, _ = feed.add_product(product)
+                    tile.template = 'banner'
+                    tile.save()
+                except Exception as err:
+                    pass  # let other products be processed
+
                 yield {'product': product}
