@@ -33,8 +33,8 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             product.store = self.store
             product.name = node.find_element_by_xpath('./titre').text
             match = re.match(r"""(.+),?         # Name of product
-                                 \s+            # Followed by 0 or 1 space
-                                 (-\s+\d+%)     # Percentage of product off
+                                 \s*            # Followed by 0 or more spaces
+                                 (-\s*\d+%)     # Percentage of product off
                               """, product.name, re.VERBOSE)
             if match:
                 product.name = match.group(1).strip()
