@@ -82,11 +82,12 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 image = images[idx]
                 if not image:
                     # XML didn't have an image for this product
-                    print "this product does not have an image!"
+                    print "Product {0} does not have an image!".format(
+                        getattr(product, 'sku', 0))
                     try:
                         product.delete()
-                    except ReferenceError:
-                        pass  # not in DB yet
+                    except AssertionError:
+                        pass  # not in DB yet; this product will be skipped
                     continue
 
                 # save paired default image
