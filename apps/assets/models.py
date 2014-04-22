@@ -651,6 +651,8 @@ class Feed(BaseModel):
         for tile in self.tiles.all():
             if product in tile.products.all():
                 tile.delete()
+            else:
+                tile_buffer.append(tile)
         for tile in tile_buffer:
             self.tiles.add(tile)
 
@@ -670,6 +672,8 @@ class Feed(BaseModel):
         for tile in self.tiles.all():
             if content in tile.content.all():
                 tile.delete()
+            else:
+                tile_buffer.append(tile)
         for tile in tile_buffer:
             self.tiles.add(tile)
 
