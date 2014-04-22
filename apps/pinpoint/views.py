@@ -1,6 +1,7 @@
 from itertools import ifilter
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, tostring
+from django.conf import settings
 
 try:
     from collections import OrderedDict
@@ -223,7 +224,8 @@ def product_feed(request, page_slug):
 def page_stats(request, page_slug):
     page = get_object_or_404(Page, url_slug=page_slug)
     return render_to_response('pinpoint/campaign_statistics.html', {
-        'page': page
+        'page': page,
+        'keen': settings.KEEN_CONFIG
     })
 
 def generate_static_campaign(request, store_id, page_id):
