@@ -48,7 +48,7 @@ class GapProductScraper(ProductDetailScraper):
                 product.attributes.pop('sales_price', None)
 
         product.sku = re.match(self.sku_regex, product.url).group(1)
-        product.description = self.driver.find_element_by_id('tabWindow').get_attribute("innerHTML")
+        product.description = self._sanitize_html(self.driver.find_element_by_id('tabWindow').get_attribute("innerHTML"))
 
         product.save()
 
