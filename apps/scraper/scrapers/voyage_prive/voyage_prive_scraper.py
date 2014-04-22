@@ -80,12 +80,21 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
 
             for idx, product in enumerate(products):
                 image = images[idx]
-                if image:  # save paired default image
-                    product.save()
+                if not image:
+                    # XML didn't have an image for this product
+                    print "this product does not have an image!"
                     try:
-                        product.default_image = self._process_image(image, product)
-                    except Exception as err:
-                        print "PV image CDN died"
+                        product.delete()
+                    except ReferenceError:
+                        pass  # not in DB yet
+                    continue
+
+                # save paired default image
+                product.save()
+                try:
+                    product.default_image = self._process_image(image, product)
+                except Exception as err:
+                    print "PV image CDN died"
 
                 # if product is on the page, provide product with extra information
                 # like images and reviews
