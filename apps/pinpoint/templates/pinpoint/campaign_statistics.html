@@ -94,8 +94,8 @@
 
             // Configure the Keen object with your Project ID and (optional) access keys.
             Keen.configure({
-                projectId: "532745f6ce5e4326bf000011",
-                readKey: "c8ff6b6ec8efb33e85fbcade3d9ecbe102dbb884c586ab4cf7b14e0014effdc911e819b6ba9cb7517c3fbe26a5cf2812ff9cafe29b9d073e8a50928cf27f85b5845c7ba3c304d8b7dc346200dce3eecfe13d541c6bcddbdc3f70c6213a4f18f5c66de9f22ae62b1e107cc27252314db8"
+                projectId: "{{ keen.projectId }}",
+                readKey: "{{ keen.readKey }}"
             });
         </script>
         <script type='text/javascript'>
