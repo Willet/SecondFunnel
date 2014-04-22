@@ -60,16 +60,18 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             for idx, product in enumerate(products):
                 image = images[idx]
 
-                if not product.sku in page_str:
+                if not str(product.sku) in page_str:
                     print "product {0} is not on the page; skipping".format(product.sku)
                     continue
 
                 try:
                     # find the review for this product
-                    product.attributes.update({
-                        "review_text": self.driver.find_element_by_xpath(
-                            '//div/div[contains(@class, "viewp-product-editorialist-{0}")]/blockquote'.format(product.sku)).text,
-                    })
+                    review_el = self.driver.find_element_by_xpath(
+                            '//div'
+                            '/div[contains(@class, "viewp-product-editorialist-{0}")]'
+                            '/blockquote'.format(product.sku))
+                    review_text = review_el.text or review_el.get_attribute('innerHTML')
+                    product.attributes.update({"review_text": review_text})
                     print "Saved product {0} with review found".format(product.sku)
                     product.save()
                 except NoSuchElementException:
