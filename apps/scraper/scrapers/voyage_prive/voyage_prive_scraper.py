@@ -56,7 +56,8 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             product.price = u'€' + node.find_element_by_xpath('./prix').text
 
             # this is the default
-            product.in_stock = (node.find_element_by_xpath('./statut').text is '1')
+            product.in_stock = (node.find_element_by_xpath('./statut').text
+                                in [1, '1', u'1'])
 
             product.attributes.update({
                 'direct_site_name': direct_site_name,

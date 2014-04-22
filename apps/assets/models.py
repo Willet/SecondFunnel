@@ -647,13 +647,13 @@ class Feed(BaseModel):
 
         :raises AttributeError
         """
-        product_tiles = self.tiles.filter(products__id=product.id)
-        for tile in product_tiles:
-            # if you're going to do this, you'll notice that
-            # remove() isn't a thing like add() is
-            # self.tiles.remove(tile)
-            self.tiles = [t for t in self.tiles.all() if not t in product_tiles]
-            tile.delete()
+        tile_buffer = []
+        for tile in self.tiles.all():
+            if product in tile.products.all():
+                tile.delete()
+        for tile in tile_buffer:
+            self.tiles.add(tile)
+
 
     def remove_content(self, content):
         """Removes (if present) tiles with this content from the feed that
@@ -666,14 +666,12 @@ class Feed(BaseModel):
 
         :raises AttributeError
         """
-        content_tiles = self.tiles.filter(content__id=content.id)
-        for tile in content_tiles:
-            # if you're going to do this, you'll notice that
-            # remove() isn't a thing like add() is
-            # self.tiles.remove(tile)
-            self.tiles = [t for t in self.tiles.all() if not t in content_tiles]
-            tile.delete()
-
+        tile_buffer = []
+        for tile in self.tiles.all():
+            if content in tile.content.all():
+                tile.delete()
+        for tile in tile_buffer:
+            self.tiles.add(tile)
 
 class Page(BaseModel):
     store = models.ForeignKey(Store, related_name='pages')
