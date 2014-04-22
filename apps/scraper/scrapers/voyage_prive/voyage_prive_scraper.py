@@ -33,8 +33,8 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             product.store = self.store
             product.name = node.find_element_by_xpath('./titre').text
             match = re.match(r"""(.+),?         # Name of product
-                                 \s?            # Followed by 0 or 1 space
-                                 (-\s?\d+%)     # Percentage of product off
+                                 \s+            # Followed by 0 or 1 space
+                                 (-\s+\d+%)     # Percentage of product off
                               """, product.name, re.VERBOSE)
             if match:
                 product.name = match.group(1).strip()
@@ -107,7 +107,24 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                                 '/div[contains(@class, "viewp-product-editorialist-{0}")]'
                                 '/blockquote'.format(product.sku))
                         review_text = review_el.text or review_el.get_attribute('innerHTML')
-                        product.attributes.update({"review_text": review_text})
+
+                        reviewer_el = self.driver.find_element_by_xpath(
+                                '//div'
+                                '/div[contains(@class, "viewp-product-owner-{0}")]'
+                                '/a'.format(product.sku))
+                        reviewer_name = reviewer_el.text or reviewer_el.get_attribute('innerHTML')
+
+                        reviewer_img_el = self.driver.find_element_by_xpath(
+                                '//div'
+                                '/div[contains(@class, "viewp-product-editorialist-{0}")]'
+                                '/img'.format(product.sku))
+                        reviewer_img = reviewer_img_el.get_attribute('src')
+
+                        product.attributes.update({
+                            "review_text": review_text,
+                            "reviewer_name": reviewer_name,
+                            "reviewer_image": reviewer_img,
+                        })
                         print "Saved product {0} with review found".format(product.sku)
                         product.save()
                     except NoSuchElementException:
