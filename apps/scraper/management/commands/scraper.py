@@ -147,5 +147,5 @@ class Command(BaseCommand):
             traceback.print_exc()
         finally:
             # make sure to close the driver if it exists
-            if scraper and scraper.driver:
+            if scraper and hasattr(scraper, 'driver'):
                 scraper.driver.close()

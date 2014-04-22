@@ -57,7 +57,7 @@ class ProductSerializer(RawSerializer):
             "id": str(obj.id),
             "created": obj.cg_created_at,
             "last-modified": obj.cg_updated_at,
-            "default-image-id": obj.default_image.id,
+            "default-image-id": obj.default_image.id if obj.default_image else 0,
             "product-set": obj.attributes.get('product_set', 'live'),
             "image-ids": [str(o.id) for o in obj.product_images.all()],
             "available": obj.attributes.get('available', True),
