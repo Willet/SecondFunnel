@@ -81,12 +81,26 @@
                         <%- obj.name %>
                         <div class="arrow right"></div>
                     </div>
+                    <% if (obj.review_text) { %>
+                        <div class="review">
+                            "<%- obj.review_text %>"
+                        </div>
+                    <% } %>
                     <div class="view">
                         Voir le bon plan
                         <div class="arrow right"></div>
                     </div>
-                    <% if (obj.direct_site_image || obj.direct_site_name) { %>
+                    <% if (obj.direct_site_image || obj.direct_site_name || obj.price) { %>
                         <div class="direct-site-info">
+                            <% if (obj.price) { %>
+                                <div class="price-container">
+                                    À partir de
+                                    <div class="price">
+                                        <%- obj.price %>
+                                    </div>
+                                    par personne
+                                </div>
+                            <% } %>
                             <% if (obj.direct_site_image) { %>
                                 <img src="<%- obj.direct_site_image %>" />
                             <% } else { %>
