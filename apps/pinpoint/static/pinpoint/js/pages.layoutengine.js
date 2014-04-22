@@ -107,6 +107,10 @@ App.module("layoutEngine", function (layoutEngine, App) {
      * @returns this
      */
     this.width = function () {
+        if (currentWidth === 0) {
+            return (opts && opts.columnWidth) ||
+                defaults.columnWidth;
+        }
         return currentWidth;
     };
 
