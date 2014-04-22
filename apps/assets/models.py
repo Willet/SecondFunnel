@@ -304,7 +304,8 @@ class ProductImage(BaseModel):
     """An Image-like model class that is explicitly an image depicting
     a product, rather than any other kind.
     """
-    product = models.ForeignKey(Product, related_name="product_images")
+    product = models.ForeignKey(Product, related_name="product_images",
+                                blank=True, null=True, default=None)
 
     url = models.TextField()  # store/.../.jpg
     original_url = models.TextField()  # gap.com/.jpg

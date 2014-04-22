@@ -112,7 +112,10 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                             print "Adding more image urls to product: {0}".format(
                                 all_image_urls)
 
-                            product.product_images.clear()
+                            # rebuild product images list
+                            for img in product.product_images.all():
+                                img.product = None
+                                img.save()
                             for image_url in all_image_urls:
                                 try:
                                     product.product_images.add(
