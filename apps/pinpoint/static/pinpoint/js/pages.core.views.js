@@ -188,7 +188,7 @@ App.module('core', function (module, App) {
 
             // Tile is a banner tile
             if (tile.get('redirect-url') &&
-                !(App.option('overrideBannerOnMobile') &&
+                !(App.option('disableBannerRedirectOnMobile') &&
                     App.support.mobile())) {
                 window.open(tile.get('redirect-url'), '_blank');
                 return;

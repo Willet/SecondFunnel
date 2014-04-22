@@ -37,7 +37,7 @@
         , 'dynamicColumns': {{ campaign.dynamic_columns|default:"false" }}
         , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
         // , 'events': undefined  // page event bindings (optional)
-        , 'overrideBannerOnMobile': {{ campaign.override_banner_on_mobile|default:"false" }}
+        , 'disableBannerRedirectOnMobile': {{ campaign.disable_banner_redirect_on_mobile|default:"false" }}
         , 'socialButtons':
             {% if social_buttons %}
                 {{ social_buttons|safe }}{# social-buttons must be a json array of strings -- see below #}
