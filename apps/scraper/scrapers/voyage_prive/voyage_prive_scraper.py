@@ -4,7 +4,6 @@ import re
 from apps.assets.models import Product
 
 from apps.scraper.scrapers import ProductCategoryScraper
-
 from selenium.common.exceptions import NoSuchElementException
 
 
@@ -54,9 +53,16 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         for page in [url, url + '?p=2']:  # hack, gets pages 1 and 2
             self.driver.get(page)
             print('loaded url ' + page)
+
+            # for faster traversal ops
+            page_str = self.driver.find_element_by_xpath('//*').get_attribute('outerHTML')
+
             for idx, product in enumerate(products):
                 image = images[idx]
-                product.save()
+
+                if not product.sku in page_str:
+                    print "product {0} is not on the page; skipping".format(product.sku)
+                    continue
 
                 try:
                     # find the review for this product
@@ -73,6 +79,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                     # all 'products' have a link inside that contains the sku
                     item = self.driver.find_element_by_xpath('//div[contains(div/h2/a/@href, "/{0}/")]'.format(product.sku))
                     product.default_image = self._process_image(image, product)
+                    product.save()
                 except NoSuchElementException:
                     print "product {0} is not on this page".format(product.sku)
 
