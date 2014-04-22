@@ -115,6 +115,44 @@
             </div>
         </script>
 
+        <script type="text/template" id="banner_mobile_preview_template">
+            <div class="title">
+                <img src="{% static 'pinpoint/themes/voyageprive/images/logo.jpg' %}">
+            </div>
+            <div class='image-region'>
+                <img src="<%= obj.image.url %>"/>
+            </div>
+            <div class="info-wrapper">
+                <div class="name">
+                    <%= obj.name %>
+                </div>
+                <% if (obj.direct_site_image || obj.direct_site_name || obj.price) { %>
+                    <div class="direct-site-info">
+                        <% if (obj.price) { %>
+                            <div class="price-container">
+                                À partir de
+                                <div class="price">
+                                    <%- obj.price %>
+                                </div>
+                                par personne
+                            </div>
+                        <% } %>
+                        <% if (obj.direct_site_image) { %>
+                            <img src="<%- obj.direct_site_image %>" />
+                        <% } else { %>
+                            <%- obj.direct_site_name %>
+                        <% } %>
+                    </div>
+                <% } %>
+            </div>
+            <a class="view-container" href="<%- obj['redirect-url'] %>" target="_blank">
+                <div class="view">
+                    Voir le bon plan
+                    <div class="arrow right"></div>
+                </div>
+            </a>
+        </script>
+
         <script type="text/template" id="product_tile_template">
             <div class="tap-indicator-target"></div>
             <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />

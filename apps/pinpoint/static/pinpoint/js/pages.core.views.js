@@ -187,7 +187,9 @@ App.module('core', function (module, App) {
             var tile = this.model;
 
             // Tile is a banner tile
-            if (tile.get('redirect-url')) {
+            if (tile.get('redirect-url') &&
+                !(App.option('overrideBannerOnMobile') &&
+                    App.support.mobile())) {
                 window.open(tile.get('redirect-url'), '_blank');
                 return;
             }
