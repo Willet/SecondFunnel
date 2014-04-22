@@ -1,7 +1,7 @@
 # coding=utf-8
 import re
 
-from apps.assets.models import Product, Store
+from apps.assets.models import Product
 
 from apps.scraper.scrapers import ProductCategoryScraper
 from selenium.common.exceptions import NoSuchElementException
@@ -14,7 +14,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         return 'http://www.officiel-des-vacances.com/week-end'
 
     def scrape(self, url, **kwargs):
-        store = Store.objects.get(slug='voyage-prive')
+        store = self.store
         products = []
         images = []
         skus = []  # list of product skus that are in the feed (which may or may not be in status (statut) 1
@@ -41,7 +41,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 product.attributes['discount'] = match.group(2)
 
             # in no position of the product name is 'jusqu'à' a useful term to keep
-            product.name = product.name.replace(u", jusqu'à", '')
+            product.name = product.name.replace(u"jusqu'à", '')
             product.name = product.name.strip(' ,')  # remove spaces, commas, ...
 
             product.url = node.find_element_by_xpath('./url-detail').text
@@ -57,11 +57,16 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             products.append(product)
             images.append(node.find_element_by_xpath('./image').text)
 
-        # mark all products not in feed as 'not in stock'
+        # after-the-fact processing
         for product in Product.objects.filter(store=store):
-            if not product.sku in skus:
+            # mark all products not in feed as 'not in stock'
+            if product.in_stock and not product.sku in skus:
                 print "Product {0} no longer in stock!".format(product.sku)
                 product.in_stock = False
+                product.save()
+
+            if u"jusqu'à" in product.name:
+                product.name = product.name.replace(u"jusqu'à", '')
                 product.save()
 
         # stage 2 of VP scraping? load actual page
@@ -107,7 +112,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                             print "Adding more image urls to product: {0}".format(
                                 all_image_urls)
 
-                            product.product_images = []
+                            product.product_images.clear()
                             for image_url in all_image_urls:
                                 try:
                                     product.product_images.add(
