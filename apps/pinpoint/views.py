@@ -2,6 +2,8 @@ from itertools import ifilter
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, tostring
 from django.conf import settings
+from apps.intentrank.algorithms import ir_base
+from apps.intentrank.filters import in_stock
 
 try:
     from collections import OrderedDict
@@ -97,7 +99,9 @@ def product_feed(request, page_slug):
     page_description = SubElement(channel, 'description')
     page_description.text = page.description
 
-    for obj in page.feed.tiles.all():
+    tiles = filter(in_stock, ir_base(page.feed).all())
+
+    for obj in tiles:
         tile = obj.to_json()
         item = Element('item')
 
