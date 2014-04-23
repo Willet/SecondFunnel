@@ -57,6 +57,7 @@ requests-oauthlib==0.3.2
 
 ## Scraping
 selenium==2.40.0
+bleach==1.4
 
 # Image Processing
 Pillow==2.3.0
