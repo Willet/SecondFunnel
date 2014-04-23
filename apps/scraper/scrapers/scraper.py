@@ -8,12 +8,6 @@ from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 
 
-allowed_tags = ['div', 'ul', 'li', 'p', ]
-allowed_attrs = {
-    '*': ['style'],
-}
-
-
 class ScraperException(Exception):
     pass
 
@@ -66,6 +60,10 @@ class Scraper(object):
 
     @classmethod
     def _sanitize_html(cls, html):
+        allowed_tags = ['div', 'ul', 'li', 'p', ]
+        allowed_attrs = {
+            '*': [],
+        }
         return bleach.clean(html, tags=allowed_tags, attributes=allowed_attrs, strip=True)
 
     def scrape(self, url, values, **kwargs):
