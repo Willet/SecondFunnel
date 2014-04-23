@@ -268,8 +268,8 @@ App.module("utils", function (utils, App) {
      * @returns {Object}
      */
     this.getResizedImage = function (url, options) {
-        var width = Math.max(options.width, App.option('minImageWidth', 0)),
-            height = Math.max(options.height, App.option('minImageHeight', 0));
+        var width = Math.max(options.width, App.option('minImageWidth', 255)),
+            height = Math.max(options.height, App.option('minImageHeight', 100));
         options = {};
 
         // Round to the nearest whole hundred pixel dimension;
