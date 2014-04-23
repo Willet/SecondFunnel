@@ -9,6 +9,7 @@ import random as real_random
 from django.conf import settings
 from apps.assets.models import Tile
 from apps.utils.functional import result
+from apps.intentrank import filters
 
 
 def ids_of(tiles):  # shorthand (got too annoying)
@@ -20,7 +21,6 @@ def ir_base(feed, **kwargs):
 
     returns {QuerySet}  which is not a list
     """
-    tids = []
     # qs = feed.tiles
     qs = list(feed.tiles
               .prefetch_related('products', 'content',
@@ -30,21 +30,7 @@ def ir_base(feed, **kwargs):
 
     # "filter out all content tiles for which none of the content's
     # tagged products are in stock"
-    for tile in qs:
-        if tile.content.count():
-            for content in tile.content.all():
-                if not content.tagged_products.count():
-                    tids.append(tile.id)
-                    break
-                for product in content.tagged_products.all():
-                    if product.in_stock:
-                        tids.append(tile.id)
-                        break
-        elif tile.products.count():
-            if any([product.in_stock for product in tile.products.all()]):
-                tids.append(tile.id)
-        else:  # if there isn't content, do not filter content
-            tids.append(tile.id)
+    tids = [tile.id for tile in filter(filters.in_stock, qs)]
 
     qs = Tile.objects.filter(id__in=tids)
 

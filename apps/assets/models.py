@@ -581,6 +581,101 @@ class Feed(BaseModel):
             return tiles
         return tiles.filter(products__id=product.id)
 
+    def add_product(self, product, prioritized=False, priority=0):
+        """Adds (if not present) a tile with this product to the feed.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        TODO: can be faster
+
+        :returns tuple (the tile, the product, whether it was newly added)
+        :raises AttributeError
+        """
+        product_tiles = [tile for tile in self.tiles.all()
+                         if tile.products.count() > 0]
+        for tile in product_tiles:
+            if product in tile.products.all():
+                print "product {0} is already in the feed.".format(product.id)
+
+                return tile, product, False
+        else:  # there weren't any tiles with this product in them
+            new_product_tile = Tile(feed=self,
+                                    template='product',
+                                    prioritized=prioritized,
+                                    priority=priority)
+            new_product_tile.save()
+            new_product_tile.products.add(product)
+            print "product {0} added to the feed.".format(product.id)
+            self.tiles.add(new_product_tile)
+
+            return new_product_tile, product, True
+
+    def add_content(self, content, prioritized=False, priority=0):
+        """Adds (if not present) a tile with this content to the feed.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        TODO: can be faster
+
+        :raises AttributeError
+        """
+        content_tiles = [tile for tile in self.tiles.all()
+                         if tile.content.count() > 0]
+        for tile in content_tiles:
+            if content in tile.content.all():
+                break
+        else:  # there weren't any tiles with this content in them
+            new_content_tile = Tile(feed=self,
+                                    template='content',
+                                    prioritized=prioritized,
+                                    priority=priority)
+            new_content_tile.save()
+            new_content_tile.content.add(content)
+            print "content {0} added to the feed.".format(content.id)
+            self.tiles.add(new_content_tile)
+
+    def remove_product(self, product):
+        """Removes (if present) tiles with this product from the feed that
+        belongs to this page.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        TODO: can be faster
+
+        :raises AttributeError
+        """
+        tile_buffer = []
+        for tile in self.tiles.all():
+            if product in tile.products.all():
+                tile.delete()
+            else:
+                tile_buffer.append(tile)
+        for tile in tile_buffer:
+            self.tiles.add(tile)
+
+
+    def remove_content(self, content):
+        """Removes (if present) tiles with this content from the feed that
+        belongs to this page.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        TODO: can be faster
+
+        :raises AttributeError
+        """
+        tile_buffer = []
+        for tile in self.tiles.all():
+            if content in tile.content.all():
+                tile.delete()
+            else:
+                tile_buffer.append(tile)
+        for tile in tile_buffer:
+            self.tiles.add(tile)
 
 class Page(BaseModel):
     store = models.ForeignKey(Store, related_name='pages')
@@ -666,97 +761,22 @@ class Page(BaseModel):
         return instance
 
     def add_product(self, product, prioritized=False, priority=0):
-        """Adds (if not present) a tile with this product to the feed that
-        belongs to this page.
-
-        This operation is so common and indirect that it is going
-        to stay in models.py.
-
-        TODO: can be faster
-
-        :raises AttributeError
-        """
-        product_tiles = [tile for tile in self.feed.tiles.all()
-                         if tile.products.count() > 0]
-        for tile in product_tiles:
-            if product in tile.products.all():
-                print "product {0} is already in the feed.".format(product.id)
-                break
-        else:  # there weren't any tiles with this product in them
-            new_product_tile = Tile(feed=self.feed,
-                                    template='product',
-                                    prioritized=prioritized,
-                                    priority=priority)
-            new_product_tile.save()
-            new_product_tile.products.add(product)
-            print "product {0} added to the feed.".format(product.id)
-            self.feed.tiles.add(new_product_tile)
+        """Feed method alias"""
+        return self.feed.add_product(product=product, prioritized=prioritized,
+                                     priority=priority)
 
     def add_content(self, content, prioritized=False, priority=0):
-        """Adds (if not present) a tile with this content to the feed that
-        belongs to this page.
+        """Feed method alias"""
+        return self.feed.add_content(content=content, prioritized=prioritized,
+                                     priority=priority)
 
-        This operation is so common and indirect that it is going
-        to stay in models.py.
+    def remove_product(self, product):
+        """Feed method alias"""
+        return self.feed.remove_product(product=product)
 
-        TODO: can be faster
-
-        :raises AttributeError
-        """
-        content_tiles = [tile for tile in self.feed.tiles.all()
-                         if tile.content.count() > 0]
-        for tile in content_tiles:
-            if content in tile.content.all():
-                break
-        else:  # there weren't any tiles with this content in them
-            new_content_tile = Tile(feed=self.feed,
-                                    template='content',
-                                    prioritized=prioritized,
-                                    priority=priority)
-            new_content_tile.save()
-            new_content_tile.content.add(content)
-            print "content {0} added to the feed.".format(content.id)
-            self.feed.tiles.add(new_content_tile)
-
-    def delete_product(self, product):
-        """Deletes (if present) tiles with this product from the feed that
-        belongs to this page.
-
-        This operation is so common and indirect that it is going
-        to stay in models.py.
-
-        TODO: can be faster
-
-        :raises AttributeError
-        """
-        product_tiles = self.feed.tiles.filter(products__id=product.id)
-        for tile in product_tiles:
-            # if you're going to do this, you'll notice that
-            # remove() isn't a thing like add() is
-            # self.feed.tiles.remove(tile)
-            self.feed.tiles = [t for t in self.feed.tiles.all()
-                               if not t in product_tiles]
-            tile.delete()
-
-    def delete_content(self, content):
-        """Deletes (if present) tiles with this content from the feed that
-        belongs to this page.
-
-        This operation is so common and indirect that it is going
-        to stay in models.py.
-
-        TODO: can be faster
-
-        :raises AttributeError
-        """
-        content_tiles = self.feed.tiles.filter(content__id=content.id)
-        for tile in content_tiles:
-            # if you're going to do this, you'll notice that
-            # remove() isn't a thing like add() is
-            # self.feed.tiles.remove(tile)
-            self.feed.tiles = [t for t in self.feed.tiles.all()
-                               if not t in content_tiles]
-            tile.delete()
+    def remove_content(self, content):
+        """Feed method alias"""
+        return self.feed.remove_content(content=content)
 
 
 class Tile(BaseModel):

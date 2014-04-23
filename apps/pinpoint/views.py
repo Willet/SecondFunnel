@@ -1,6 +1,7 @@
 from itertools import ifilter
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, tostring
+from django.conf import settings
 
 try:
     from collections import OrderedDict
@@ -115,10 +116,14 @@ def product_feed(request, page_slug):
 
         # So, this is only really a solution in the short term.
         link = SubElement(item, 'link')
-        link.text = '{}#{}'.format(
-             url,
-             tile.get('tile-id')
-        )
+
+        if tile.get('template') == 'banner' and tile.get('redirect-url'):
+            link.text = tile.get('redirect-url')
+        else:
+            link.text = '{}#{}'.format(
+                 url,
+                 tile.get('tile-id')
+            )
 
         description = SubElement(item, 'description')
         description.text = product.get('description')
@@ -223,7 +228,8 @@ def product_feed(request, page_slug):
 def page_stats(request, page_slug):
     page = get_object_or_404(Page, url_slug=page_slug)
     return render_to_response('pinpoint/campaign_statistics.html', {
-        'page': page
+        'page': page,
+        'keen': settings.KEEN_CONFIG
     })
 
 def generate_static_campaign(request, store_id, page_id):
