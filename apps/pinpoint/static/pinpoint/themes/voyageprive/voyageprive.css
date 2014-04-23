@@ -35,7 +35,7 @@ body {
 }
 
 .navbar .tag-line {
-    line-height: initial;
+    line-height: normal;
     vertical-align: middle;
     border-left: 1px solid white;
     padding-left: 45px;
