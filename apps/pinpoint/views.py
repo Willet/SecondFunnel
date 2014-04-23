@@ -116,10 +116,14 @@ def product_feed(request, page_slug):
 
         # So, this is only really a solution in the short term.
         link = SubElement(item, 'link')
-        link.text = '{}#{}'.format(
-             url,
-             tile.get('tile-id')
-        )
+
+        if tile.get('template') == 'banner' and tile.get('redirect-url'):
+            link.text = tile.get('redirect-url')
+        else:
+            link.text = '{}#{}'.format(
+                 url,
+                 tile.get('tile-id')
+            )
 
         description = SubElement(item, 'description')
         description.text = product.get('description')
