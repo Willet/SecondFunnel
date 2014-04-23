@@ -99,11 +99,7 @@ def product_feed(request, page_slug):
     page_description = SubElement(channel, 'description')
     page_description.text = page.description
 
-    tiles = ir_base(page.feed)
-
-    # HACK: Voyage Prive MUST ONLY show in stock tiles.
-    if page_slug == 'week-end':
-        tiles = [x for x in tiles.all() if in_stock(x)]
+    tiles = filter(in_stock, ir_base(page.feed).all())
 
     for obj in tiles:
         tile = obj.to_json()
