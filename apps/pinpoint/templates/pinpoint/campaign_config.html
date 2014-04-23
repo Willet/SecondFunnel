@@ -73,7 +73,8 @@
         , 'previewAnimationDuration': 100  // in ms
         , 'previewMobileAnimationDuration': 0
         , 'masonry': {  // passed to masonry
-            'transitionDuration': 0.4  // in seconds
+            'transitionDuration': 0.4,  // in seconds
+            'minColumns': {{ campaign.masonry.minColumns|default:2 }} // minimum number of columns for masonry
         }
         , 'featured': {{ product }}
         // stuff that loads when page loads, even if IR is available
