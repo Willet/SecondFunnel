@@ -352,6 +352,7 @@ body {
 
 .tile.banner .overlay {
     opacity: 0;
+    filter: alpha(opacity=0);
     -webkit-transition: opacity 0.25s ease-in-out;
     -moz-transition: opactiy 0.25s ease-in-out;
     -ms-transition: opacity 0.25s ease-in-out;
@@ -364,6 +365,28 @@ body {
     height: 100%;
     top: 0px;
     left: 0px;
+}
+
+.tile.banner:hover .overlay {
+    opacity: 1;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99FFFFFF,endColorstr=#99FFFFFF);
+}
+/* Don't use filter for IE9 + */
+.tile.banner:hover .overlay:nth-child(n) {
+    filter: none;
+}
+
+/* In IE8 absolutly positioned elements each need their own filter */
+.tile.banner .overlay .view,
+.tile.banner .overlay .view .arrow,
+.tile.banner .overlay .direct-site-info {
+    filter: alpha(opacity=0);
+}
+
+.tile.banner:hover .overlay .view,
+.tile.banner:hover .overlay .view .arrow,
+.tile.banner:hover .overlay .direct-site-info {
+    filter: alpha(opacity=100);
 }
 
 .tile.banner .overlay .align-container {
@@ -527,10 +550,6 @@ body {
 .image-without-tagged-prodoucts .author a:hover,
 .image-without-tagged-prodoucts .author a:visited {
     text-decoration: underline;
-}
-
-.tile.banner .overlay:hover {
-    opacity: 1;
 }
 
 .tile img.focus {
