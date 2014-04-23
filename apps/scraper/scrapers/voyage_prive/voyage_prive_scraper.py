@@ -50,6 +50,8 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
 
             # in no position of the product name is 'jusqu'à' a useful term to keep
             product.name = product.name.replace(u"jusqu'à", '')
+            product.name = product.name.replace(u"jusqu’à", '')
+
             product.name = product.name.strip(' ,')  # remove spaces, commas, ...
 
             product.url = node.find_element_by_xpath('./url-detail').text
@@ -75,8 +77,10 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 product.save()
                 feed.remove_product(product)
 
-            if u"jusqu'à" in product.name:
+            if u"jusqu'à" in product.name or u"jusqu’à" in product.name:
                 product.name = product.name.replace(u"jusqu'à", '')
+                product.name = product.name.replace(u"jusqu’à", '')
+                product.name = product.name.strip(' ,')  # remove spaces, commas, ...
                 product.save()
 
         # stage 2 of VP scraping? load actual page
