@@ -27,7 +27,7 @@ GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17' # dev and test (production has a se
 
 ADMINS = (
     ('Nick "The Goat" Terwoord', 'nick@willetinc.com'),
-    ('Brian "The Lai" Lai', 'brian@willetinc.com'),
+    ('Brian "The Elite" Lai', 'brian@willetinc.com'),
     ('Kevin "The Awesome" Simpson', 'kevin@willetinc.com'),
     ('Alex "The Knight" Black', 'alexb@willetinc.com'),
     # ('Your Name', 'your_email@example.com'),
@@ -41,7 +41,7 @@ EMAIL_USE_TLS = True
 
 MANAGERS = ADMINS
 
-BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30))\
+BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(minutes=30))\
     .strftime("%a, %d %b %Y %H:%M:%S GMT")
 
 PROJECT_ROOT = os.path.dirname(
@@ -173,7 +173,8 @@ COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
 COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
                        'compressor.filters.jsmin.JSMinFilter']
 
-COMPRESS_REBUILD_TIMEOUT = 30 * 60  # Rebuilds compressed files after 30 mins (in seconds)
+# Rebuilds compressed files after 30 mins (in seconds)
+COMPRESS_REBUILD_TIMEOUT = REBUILD_TIMEOUT = 30 * 60
 
 COMPRESS_STORAGE = STATICFILES_STORAGE
 
