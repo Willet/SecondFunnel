@@ -53,6 +53,28 @@ def id_not_in(ids):
 
 
 def prioritized(state=''):
-    """returns a filter that returns True if a tile is prioritized as {state}."""
+    """returns a filter that returns True if a tile is prioritized as {state}.
+
+    special filter: with state of 'any', any prioritized tiles will be True.
+    """
     def filtr(tile):
-        return (tile.prioritized == state)
+        if state == 'any':
+            if tile.prioritized != '':
+                return True
+        if tile.prioritized == state:
+            return True
+
+
+def order_by(tiles, *what):
+    """e.g. 'date' by date, or '-date' by inverse date.
+
+    Currently supports only one ordering.
+    """
+    criterion, order = what[0], 1
+    if criterion[0] == '-':
+        criterion, order = criterion[1:], -1
+
+    thing = sorted(tiles, key=lambda tile: getattr(tile, criterion, None))
+    if order < 0:
+        return list(reversed(thing))
+    return thing
