@@ -24,7 +24,7 @@ App.module('optimizer', function (optimizer, App) {
             }
             return true;
         },
-        lt = function (resolution) {
+        resolutionLessThan = function (resolution) {
             var width = $(window).width(),
                 height = $(window).height();
             if (resolution.width && width > resolution.width) {
@@ -34,8 +34,8 @@ App.module('optimizer', function (optimizer, App) {
             }
             return true;
         },
-        gt = function (resolution) {
-            return !lt(resolution);
+        resolutionGreaterThan = function (resolution) {
+            return !resolutionLessThan(resolution);
         },
         setDimension = function (index, val) {
             var dim = 'dimension' + index;
@@ -262,9 +262,9 @@ App.module('optimizer', function (optimizer, App) {
             // Don't run all A/B Tests in quiet mode
             if (t.device && !is(t.device)) {
                 return;
-            } else if (t['min-resolution'] && !gt(t['min-resolution'])) {
+            } else if (t['min-resolution'] && !resolutionGreaterThan(t['min-resolution'])) {
                 return;
-            } else if (t['max-resolution'] && !lt(t['max-resolution'])) {
+            } else if (t['max-resolution'] && !resolutionLessThan(t['max-resolution'])) {
                 return;
             }
             test = t.test;
