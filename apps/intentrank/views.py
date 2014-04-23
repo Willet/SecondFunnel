@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile, TileRelation, Category
 from apps.intentrank.controllers import IntentRank
-from apps.intentrank.algorithms import ir_generic, ir_all
+from apps.intentrank.algorithms import ir_generic, ir_all, ir_base
 from apps.intentrank.utils import ajax_jsonp
 from apps.utils import thread_id
 from apps.utils.models import MemcacheSetting
@@ -224,6 +224,8 @@ def get_results(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         allowed_set = list(set(allowed_set))
     else:
         allowed_set = None
+
+    tiles = ir_base(tiles)
     return ir.render(algorithm, tiles=tiles, results=results,
                      exclude_set=exclude_set, allowed_set=allowed_set,
                      request=request, offset=offset, tile_id=tile_id)

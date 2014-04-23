@@ -16,6 +16,23 @@ def ids_of(tiles):  # shorthand (got too annoying)
     return [getattr(tile, 'old_id', getattr(tile, 'id')) for tile in tiles]
 
 
+def qs_for(tiles):
+    """Convert a list of tiles to a queryset containing those tiles.
+
+    Executes at least one query.
+
+    :returns {QuerySet}
+    """
+    try:
+        ids = [x.id for x in tiles]
+    except AttributeError:
+        ids = tiles
+
+    return (Tile.objects.filter(id__in=ids)
+                .prefetch_related(*Tile.ASSOCS)
+                .select_related(*Tile.ASSOCS))
+
+
 def ir_base(tiles=None, feed=None, **kwargs):
     """Common algo for removes tiles that no IR algorithm will ever serve.
 
@@ -33,15 +50,8 @@ def ir_base(tiles=None, feed=None, **kwargs):
     # tagged products are in stock"
     tids = [tile.id for tile in filter(filters.in_stock, tiles)]
 
-    qs = Tile.objects.filter(id__in=tids)
-
-    if kwargs:  # filter additional
-        qs = qs.filter(**kwargs)
-
     # DO NOT call *_related functions after ir_base!
-    qs = (qs.prefetch_related(*Tile.ASSOCS)
-            .select_related(*Tile.ASSOCS))
-    return qs
+    return qs_for(tids)
 
 
 def ir_all(tiles, *args, **kwargs):
@@ -60,7 +70,7 @@ def ir_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if allowed_set:
         tile_filter.update({'id__in': allowed_set})
 
-    prioritized_tiles = list(ir_base(tiles=tiles).filter(**tile_filter)
+    prioritized_tiles = list(tiles.filter(**tile_filter)
                                           .order_by('updated_at'))
 
     tile_filter.pop('prioritized')
@@ -79,7 +89,7 @@ def ir_last(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if allowed_set:
         tile_filter.update({'id__in': allowed_set})
 
-    tiles = ir_base(tiles).filter(**tile_filter).order_by('id')
+    tiles = tiles.filter(**tile_filter).order_by('id')
     return list(tiles.reverse()[:results])
 
 
@@ -92,18 +102,11 @@ def ir_prioritized(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tile_filter = {'prioritized': prioritized_set}
+    tiles = filter(filters.id_in(allowed_set), tiles)
+    tiles = filter(filters.id_not_in(exclude_set), tiles)
+    tiles = filter(filters.prioritized(prioritized_set), tiles)
 
-    if allowed_set:
-        tile_filter.update({'id__in': allowed_set})
-
-    tiles = ir_base(tiles).filter(**tile_filter)
-    if exclude_set:
-        tiles = tiles.exclude(id__in=exclude_set)
-
-    tiles = tiles.order_by('-priority', '?')
-
-    tiles = list(tiles[:results])
+    tiles = qs_for(tiles).order_by('-priority', '?')[:results]
 
     print "{0} tile(s) were manually prioritized by {1}".format(
         len(tiles), prioritized_set or 'nothing')
@@ -133,7 +136,7 @@ def ir_priority_sorted(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if allowed_set:
         tile_filter.update({'id__in': allowed_set})
 
-    tiles = ir_base(tiles).filter(**tile_filter)
+    tiles = tiles.filter(**tile_filter)
 
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
@@ -154,16 +157,10 @@ def ir_random(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tile_filter = {}
+    tiles = filter(filters.id_in(allowed_set), tiles)
+    tiles = filter(filters.id_not_in(exclude_set), tiles)
 
-    if allowed_set:
-        tile_filter.update({'id__in': allowed_set})
-
-    tiles = ir_base(tiles).filter(**tile_filter)
-    if exclude_set:
-        tiles = tiles.exclude(id__in=exclude_set)
-
-    tiles = tiles.order_by('?')
+    tiles = qs_for(tiles).order_by('?')
 
     tiles = list(tiles[:results])
 
@@ -180,19 +177,10 @@ def ir_created_last(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tile_filter = {}
+    tiles = filter(filters.id_in(allowed_set), tiles)
+    tiles = filter(filters.id_not_in(exclude_set), tiles)
 
-    if allowed_set:
-        tile_filter.update({'id__in': allowed_set})
-
-    tiles = ir_base(tiles).filter(**tile_filter)
-
-    if exclude_set:
-        tiles = tiles.exclude(id__in=exclude_set)
-
-    tiles = tiles.order_by("-created_at")
-
-    tiles = list(tiles[:results])
+    tiles = qs_for(tiles).order_by("-created_at")[:results]
 
     print "{0} tile(s) were automatically prioritized by -created".format(len(tiles))
     return tiles
@@ -218,19 +206,12 @@ def ir_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tile_filter = {}
-
-    if allowed_set:
-        tile_filter.update({'id__in': allowed_set})
-
-    tiles = ir_base(tiles).filter(**tile_filter)
-
-    if exclude_set:
-        tiles = tiles.exclude(id__in=exclude_set)
+    tiles = filter(filters.id_in(allowed_set), tiles)
+    tiles = filter(filters.id_not_in(exclude_set), tiles)
 
     tiles = sorted(tiles, key=lambda tile: tile.click_score(), reverse=True)
 
-    return tiles[:results]
+    return qs_for(tiles[:results])
 
 
 def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
@@ -265,13 +246,13 @@ def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     num_new_tiles_to_autoprioritize = 8  # "show new tiles first"
 
     # first, always show the ones that are 'request' i.e. every request
-    prioritized_tiles += ir_priority_request(tiles=tiles, results=1000,
+    prioritized_tiles += ir_priority_request(tiles=tiles, results=10,
                                              exclude_set=exclude_set,
                                              allowed_set=allowed_set)
 
     # second, show the ones for the first request
     if request and request.GET.get('reqNum', 0) in [0, '0']:
-        prioritized_tiles += ir_priority_pageview(tiles=tiles, results=1000,
+        prioritized_tiles += ir_priority_pageview(tiles=tiles, results=10,
                                                   exclude_set=exclude_set,
                                                   allowed_set=allowed_set)
         prioritized_tile_ids = ids_of(prioritized_tiles)
@@ -337,7 +318,7 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         raise ValueError("Sessions must be enabled for ir_ordered")
 
     # first, always show the ones that are 'request' i.e. every request
-    prioritized_tiles += ir_priority_request(tiles=tiles, results=1000,
+    prioritized_tiles += ir_priority_request(tiles=tiles, results=10,
                                              allowed_set=allowed_set)
     if len(prioritized_tiles) >= results:
         return prioritized_tiles[:results]
@@ -345,10 +326,10 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # second, show the ones for the first request
     exclude_set += ids_of(prioritized_tiles)
     if request and request.GET.get('reqNum', 0) in [0, '0']:
-        prioritized_tiles += ir_priority_pageview(tiles=tiles, results=1000,
+        prioritized_tiles += ir_priority_pageview(tiles=tiles, results=10,
                                                   allowed_set=allowed_set)
     else:  # else... NEVER show these per-request tiles again
-        x_prioritized_tiles = ir_priority_pageview(tiles=tiles, results=1000,
+        x_prioritized_tiles = ir_priority_pageview(tiles=tiles, results=10,
                                                    allowed_set=allowed_set)
         exclude_set += ids_of(x_prioritized_tiles)
     if len(prioritized_tiles) >= results:
@@ -389,7 +370,6 @@ def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tiles = ir_base(tiles)
     tiles = sorted(tiles, key=lambda tile: tile.click_score(), reverse=True)
 
     print "Returning popular tiles {0} through {1}".format(

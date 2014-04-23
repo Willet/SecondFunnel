@@ -67,13 +67,13 @@ class MemcacheSetting(object):
         return result
 
     @classmethod
-    def set(cls, setting_name, setting_value=None):
+    def set(cls, setting_name, setting_value=None, timeout=1800):
         """None is Django's signal for a cache miss. DO NOT STORE NONES."""
         if setting_value == None:
             cache.delete(setting_name)
         else:
             cls._add_key(setting_name)
-            cache.set(setting_name, setting_value, timeout=1800)
+            cache.set(setting_name, setting_value, timeout=timeout)
 
         return cls
 

@@ -50,3 +50,9 @@ def id_not_in(ids):
     """returns a filter that returns False if a tile has one of the given ids."""
     def filtr(tile):
         return not tile.id in ids
+
+
+def prioritized(state=''):
+    """returns a filter that returns True if a tile is prioritized as {state}."""
+    def filtr(tile):
+        return (tile.prioritized == state)
