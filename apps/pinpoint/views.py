@@ -2,6 +2,8 @@ from itertools import ifilter
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, tostring
 from django.conf import settings
+from apps.intentrank.algorithms import ir_base
+from apps.intentrank.filters import in_stock
 
 try:
     from collections import OrderedDict
@@ -97,7 +99,13 @@ def product_feed(request, page_slug):
     page_description = SubElement(channel, 'description')
     page_description.text = page.description
 
-    for obj in page.feed.tiles.all():
+    tiles = ir_base(page.feed)
+
+    # HACK: Voyage Prive MUST ONLY show in stock tiles.
+    if page_slug == 'week-end':
+        tiles = [x for x in tiles.all() if in_stock(x)]
+
+    for obj in tiles:
         tile = obj.to_json()
         item = Element('item')
 

@@ -19,7 +19,7 @@ def ids_of(tiles):  # shorthand (got too annoying)
 def ir_base(feed, **kwargs):
     """Common algo for removes tiles that no IR algorithm will ever serve.
 
-    returns {QuerySet}  which is not a list
+    returns {QuerySet} of {Tile} instances (which is *not* a list)
     """
     # qs = feed.tiles
     qs = list(feed.tiles
