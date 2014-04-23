@@ -567,19 +567,27 @@ class Feed(BaseModel):
 
     # and other representation specific of the Feed itself
     def to_json(self):
-        serializer = ir_serializers.FeedSerializer(self.tiles.all())
+        serializer = ir_serializers.FeedSerializer(self.get_tiles())
         return serializer.serialize()
 
     def find_tiles(self, content=None, product=None):
         """:returns list of tiles with this product/content (if given)"""
         if content:
-            tiles = self.tiles.filter(content__id=content.id)
+            tiles = self.get_tiles().filter(content__id=content.id)
         else:
-            tiles = self.tiles.all()
+            tiles = self.get_tiles().all()
 
         if not product:
             return tiles
         return tiles.filter(products__id=product.id)
+
+    def get_tiles(self):
+        """Get {QuerySet} of tiles from feed, using required prefetches.
+
+        Method can be used in place of self.tiles.
+        """
+        return (self.tiles.prefetch_related(*Tile.ASSOCS)
+                          .select_related(*Tile.ASSOCS))
 
     def add_product(self, product, prioritized=False, priority=0):
         """Adds (if not present) a tile with this product to the feed.
@@ -780,6 +788,16 @@ class Page(BaseModel):
 
 
 class Tile(BaseModel):
+    ASSOCS = (  # things that a tile should come with when retrieved from the db
+        'products',
+        'products__product_images',
+        'products__default_image',
+        'content',
+        'content__store',
+        'content__tagged_products',
+        'content__tagged_products__product_images',
+        'content__tagged_products__default_image')
+
     def _validate_prioritized(status):
         allowed = ["", "request", "pageview", "session", "cookie", "custom"]
         if type(status) == bool:
