@@ -116,10 +116,6 @@
     vertical-align: middle;
 }
 
-.previewContainer .full-screen .row .cell.capped-width {
-    width: initial;
-}
-
 .previewContainer .full-screen .image img {
     height: 99%;
 }
@@ -142,7 +138,7 @@
     height: auto;
     max-width: 10%;
     min-width: 50px;
-    max-height: 500px;
+    max-height: none;
     display: inline-block;
     box-sizing: border-box;
     vertical-align: middle;
@@ -177,11 +173,11 @@
 }
 
 .previewContainer .full-screen .row .cell .description {
-    max-height: 400px;
+    max-height: none;
 }
 
 .previewContainer .full-screen .spacer {
-    margin-bottom: 30px;
+    margin-bottom: 120px;
 }
 
 .previewContainer .full-screen .stl-target {
