@@ -268,18 +268,17 @@ App.module("utils", function (utils, App) {
      * @returns {Object}
      */
     this.getResizedImage = function (url, options) {
-        var width = options.width,
-            height = options.height,
-            multiplier = options.multiplier || 1;
+        var width = Math.max(options.width, App.option('minImageWidth', 0)),
+            height = Math.max(options.height, App.option('minImageHeight', 0));
         options = {};
 
         // Round to the nearest whole hundred pixel dimension;
         // prevents creating a ridiculous number of images.
         if ((width && !height) || height > width) {
-            width = Math.ceil((width * multiplier) / 100.0) * 100;
+            width = Math.ceil(width / 100.0) * 100;
             options.width = width;
         } else if ((height && !width) || width > height) {
-            options.height = Math.ceil((height * multiplier) / 100.0) * 100;
+            options.height = Math.ceil(height / 100.0) * 100;
         } else {
             options.width = App.layoutEngine.width();
         }
