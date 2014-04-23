@@ -35,12 +35,33 @@
                 return cookie;
             }
         });
+        window.OPTIMIZER_TESTS.push({
+            index: 6,
+            test: 'custom',
+            disabled: true,
+            custom: function (cookie) {
+                var templates = [
+                    "mega_tile_preview_template",
+                    "preview_container_template"
+                ];
+                cookie = cookie || _.sample(["A", "B"]);
+                if (cookie === "B") {
+                    for (var i = 0; i < templates.length; ++i) {
+                        $('#' + templates[i])
+                            .html($('#b_' + templates[i]).html());
+                    }
+                }
+                return cookie;
+            }
+        });
     </script>
     <!-- End Optimizer Tests -->
     <link rel="shortcut icon"
          href="http://www.gap.com/favicon.ico" />
     <link rel="stylesheet"
           href="{% static 'pinpoint/themes/gap/gap.css' %}"/>
+    <link rel="stylesheet"
+          href="{% static 'pinpoint/themes/gap/fullscreen.css' %}"/>
     <title>{{ page.name|default:"Gap" }}</title>
     <style type="text/css">
         /* out of necessity */
@@ -306,6 +327,31 @@
             <hr>
             <div class="text-centered desc-title">Shop the Look</div>
             <div class="stl-look"></div>
+        </script>
+
+        <script type="text/template" id="b_preview_container_template">
+            <div class="full-screen">
+                <div class="content">
+                    <span class="close">&#x00D7;</span>
+                    <div class="scrollable">
+                        <div class="template target"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mask"></div>
+        </script>
+
+        <script type="text/template" id="b_mega_tile_preview_template">
+            <div class="stl-target"></div>
+            <div class="stl-left">
+                <div>
+                    <div class="title">SHOP THE WHOLE LOOK</div>
+                    <br/>
+                    <div class="stl-look"></div>
+                    <img src="<%= obj.image.url %>" alt="image"/>
+                    <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
+                </div>
+            </div>
         </script>
 
         <script type="text/template" id="mobile_mega_tile_preview_template">

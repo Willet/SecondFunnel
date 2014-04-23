@@ -242,16 +242,18 @@ App.module("utils", function (utils, App) {
      * Returns a ViewportSized Height based on the Viewport size of the browser, taking into
      * account the chrome.
      */
-    this.getViewportSized = function () {
-        var height = $(window).height();
+    this.getViewportSized = function (byWidth) {
+        var height = $(window).height(),
+            width = $(window).width();
 
-        if (height >= 959) {
+        if (height >= 959 || (byWidth && width >= 1600)) {
             return 700;
-        } else if (height >= 900) {
+        } else if (height >= 900 || (byWidth && width >= 1160)) {
+            // 1160 is the Samantha Zheng number
             return 600;
-        } else if (height >= 800) {
+        } else if (height >= 800 || (byWidth && width >= 1024)) {
             return 500;
-        } else if (height > 656) {
+        } else if (height > 656 || (byWidth && width >= 768)) {
             return 400;
         }
         return 300;
