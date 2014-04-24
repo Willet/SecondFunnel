@@ -164,6 +164,7 @@ class GapCategoryScraper(ProductCategoryScraper):
                         product.name = name
                         yield {'product': product, 'url': product_url}
                     else:
+                        # if item is not a product, check if it is a STL
                         match = re.match(STLScraper.regexs[0], href)
                         if match:
                             yield {'url': href}
