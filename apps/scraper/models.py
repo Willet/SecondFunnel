@@ -12,8 +12,7 @@ from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 from apps.pinpoint.utils import read_remote_file
 from apps.scraper.errors import ScraperException
-from secondfunnel.settings.common import PHANTOMJSCLOUD_API_URL, \
-    PHANTOMJSCLOUD_API_KEY
+from django.conf import settings
 
 
 class Scraper(object):
@@ -75,7 +74,7 @@ class Scraper(object):
         that you pass (optional).
         If the url is already a phantomjscloud url, do not make it one.
         """
-        if PHANTOMJSCLOUD_API_URL in url:
+        if settings.PHANTOMJSCLOUD_API_URL in url:
             return url
 
         defaults = {
@@ -93,8 +92,8 @@ class Scraper(object):
         params['targetUrl'] = url
 
         return "{0}/single/browser/v1/{1}/?{2}".format(
-            PHANTOMJSCLOUD_API_URL,
-            PHANTOMJSCLOUD_API_KEY,
+            settings.PHANTOMJSCLOUD_API_URL,
+            settings.PHANTOMJSCLOUD_API_KEY,
             urllib.urlencode(params))
 
     def scrape(self, url):

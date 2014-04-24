@@ -11,8 +11,7 @@ class StyldByPartnersScraper(ContentCategoryScraper):
     SOURCE = 'styld-by'
 
     def parse_url(self, url, **kwargs):
-        # TODO: get_regex isn't a thing
-        match = re.match(self.get_regex()[0], url)
+        match = re.match(self.regexs[0], url)
         return 'http://www.styld-by.com/en-us/partners/{0}/{1}'.format(match.group(1), match.group(2))
 
     def parse(self, url, **kwargs):
@@ -41,7 +40,7 @@ class StyldByFilterScraper(ContentCategoryScraper):
     SOURCE = 'styld-by'
 
     def parse_url(self, url, **kwargs):
-        match = re.match(self.get_regex()[0], url)
+        match = re.match(self.regexs[0], url)
         return 'http://www.styld-by.com/en-us/filter/{0}'.format(match.group(1))
 
     def parse(self, url, values, **kwargs):

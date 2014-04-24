@@ -30,7 +30,8 @@ class GapProductScraper(ProductDetailScraper):
 
         # retrieve the price of the product
         try:
-            product.price = page.select('span#priceText')[0].text
+            # TODO: For scraping gap, span#priceText can contain both the original price and the sale price
+            product.price = page.select('span#priceText strike')[0].text
         except IndexError:  # original price not found; guess
             try:
                 product.price = page.select('#priceText')[0].text
