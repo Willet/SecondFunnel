@@ -72,21 +72,18 @@ App.module("layoutEngine", function (layoutEngine, App) {
      * @returns Double
      */
     this.recalculateWidth = function (view) {
-        var discovery = view.$el,
+        var selector = opts.itemSelector + ':not(.wide, .full)',
+            discovery = view.$el,
             columnWidth = opts.columnWidth,
             minColumns = opts.minColumns || defaults.minColumns,
             width = discovery.outerWidth();
 
-        if (width >= 2 * columnWidth) {
+        if (width >= (minColumns + 1) * columnWidth) {
             // columnWidth or dynamicWidth apply as we've passed the threshold
             // where the layoutEngine is responsible for sizing
-            width = columnWidth;
-            if (App.option('dynamicColumns')) {
-                width = Math.max($(opts.itemSelector).outerWidth(), width);
-            }
+            width = Math.max($(selector).outerWidth() - 0.5, columnWidth);
         } else {
-            // discovery width is less than 2 * the columnWidth, size
-            // based on minColumns
+            // size based on the minimum number of columns to show
             width = width / minColumns;
         }
 
@@ -125,7 +122,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
      */
     this.reload = function (view) {
         view.$el.masonry('reloadItems');
-        view.$el.masonry();
+        this.layout(view);
         return this;
     };
 
