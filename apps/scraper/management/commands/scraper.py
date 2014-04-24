@@ -64,15 +64,31 @@ class Command(BaseCommand):
 
             self.set_store(store)
             self.run_scraper(url=url)
+        elif store_id:
+            try:
+                store = Store.objects.get(id=store_id)
+            except ObjectDoesNotExist:
+                pass
+            try:
+                if not store:
+                    store = Store.objects.get(slug=store_id)  # identifier was a slug
+            except ObjectDoesNotExist:
+                raise CommandError('store-id must be specified if url is included')
+            self.set_store(store)
+            store_slug = store.slug
+            urls_folder = os.path.join(os.path.dirname(os.path.dirname( os.path.dirname(__file__))), 'urls')
+            file_name = store_slug + '.txt'
+            print('retrieving url from "{0}"'.format(os.path.join(urls_folder,file_name)))
+            url_file = open(os.path.join(urls_folder, file_name))
+            for line in url_file:
+                self.run_scraper(url=line)
         else:
             if not folder:
                 # e.g. /home/brian/Envs/SecondFunnel/apps/scraper/urls
-                folder = os.path.join(os.path.dirname(os.path.dirname(
-                    os.path.dirname(__file__))), 'urls') + '/'
-            for file_name in os.listdir(folder):
-                print('retrieving url from "{0}"'.format(
-                    os.path.join(folder,file_name)))
-                url_file = open(os.path.join(folder,file_name))
+                urls_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'urls')
+            for file_name in os.listdir(urls_folder):
+                print('retrieving url from "{0}"'.format(os.path.join(urls_folder,file_name)))
+                url_file = open(os.path.join(urls_folder,file_name))
                 store_slug = file_name.split('.')[0]  # 'gap' from 'gap.txt'
                 try:
                     store = Store.objects.get(slug=store_slug)
