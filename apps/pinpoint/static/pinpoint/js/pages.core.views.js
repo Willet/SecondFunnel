@@ -304,9 +304,6 @@ App.module('core', function (module, App) {
             if ($tileImg && $tileImg.length >= 1) {
                 $tileImg[0].onerror = function () {
                     console.warn("Image error, closing views: " + arguments);
-                    if (App.option("debug", App.QUIET) > App.QUIET) {
-                        debugger;
-                    }
                     self.close();
                 };
             }

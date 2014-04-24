@@ -8,6 +8,7 @@ TEMPLATE_DEBUG = DEBUG
 COMPRESS = True
 COMPRESS_VERSION = True
 COMPRESS_ENABLED = True
+COMPRESS_CSS_HASHING_METHOD = 'hash'
 
 AWS_IS_GZIPPED = True # GZip Middleware isn't recognized without this line because http://stackoverflow.com/a/19180415/1558430
 AWS_S3_CUSTOM_DOMAIN = CLOUDFRONT_DOMAIN
