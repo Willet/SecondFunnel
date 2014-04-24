@@ -5,8 +5,8 @@ from apps.assets.models import Image, Product
 
 
 class STLScraper(ContentDetailScraper):
-    regexs = [Scraper._wrap_regex('(?:www\.)?gap.com/browse/outfit\.do\?([^/\?]*&)*cid=(\d*)(&[^/\?]*)*&oid=(OUT-\d+)', True),
-              Scraper._wrap_regex('(?:www\.)?gap.com/browse/outfit\.do\?([^/\?]*&)*oid=(OUT-\d+)(&[^/\?]*)*&cid=(\d*)', True)]
+    regexs = [Scraper._wrap_regex('(?:www\.)?gap.com/browse/outfit\.do\?(?:[^/\?]*&)*cid=(\d+)(?:&[^/\?]*)*&oid=(OUT-\d+)', True),
+              Scraper._wrap_regex('(?:www\.)?gap.com/browse/outfit\.do\?(?:[^/\?]*&)*oid=(OUT-\d+)(?:&[^/\?]*)*&cid=(\d+)', True)]
 
     def parse_url(self, url, **kwargs):
         match = re.match(self.regexs[0], url)
@@ -17,9 +17,11 @@ class STLScraper(ContentDetailScraper):
             return 'http://www.gap.com/browse/outfit.do?cid={1}&oid={0}'.format(match.group(1), match.group(2))
 
     def scrape(self, url, **kwargs):
+        print('loading url ' + url)
         self.driver.get(url)
-        outfit_content = self.driver.find_element_by_xpath('//div[@id="outfitContent"')
-        image_url = outfit_content.find_element_by_xpath('./div[@id="outfitContentLeft"]/div[@id="outfitImage"]//img').get_attribute('src')
+        print('url loaded')
+        outfit_content = self.driver.find_element_by_xpath('//div[@id="outfitContent"]')
+        image_url = outfit_content.find_element_by_xpath('./div[@id="outfitContentLeft"]/div[@id="outfitImages"]//img').get_attribute('src')
         if image_url.startswith('/'):
             image_url = 'http://www.gap.com' + image_url
         try:
@@ -30,11 +32,14 @@ class STLScraper(ContentDetailScraper):
         image.original_url = url
         image.source = 'gap-stl'
         image.save()
-        for product_elem in outfit_content.find_elements_by_xpath('./div[@id="outfitContentRight"]//div[contains(@id, "product")]'):
-            product_name = product_elem.fin_element_by_xpath('.//p[class="productName"]/span').text
+        for product_match in re.finditer('objGIDPageViewAdapter.objGIDOutfit.arrayProducts.push\(\{strProductId:\s"(\d+)', self.driver.page_source):
+            sku = product_match.group(1)
             try:
-                product = Product.objects.get(store=self.store, name=product_name)
+                product = Product.objects.get(store=self.store, sku=sku)
                 image.tagged_products.add(product)
             except Product.DoesNotExist:
+                yield {'url': 'http://www.gap.com/browse/product.do?pid=' + sku}
+                product = Product.objects.get(store=self.store, sku=sku)
+                image.tagged_products.add(product)
                 pass
         yield {'content': image}
