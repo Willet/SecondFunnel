@@ -88,7 +88,8 @@ App.options.urlParams = window.location.search;
     _(['debug', 'log', 'warn', 'error']).each(function (method) {
         console[method] = console[method] || function (wat) {
             // actually... if console.log exists, use it anyway
-            if (typeof console.log === 'function' ||
+            if (method !== 'log' &&
+                typeof console.log === 'function' ||
                 typeof console.log === 'object') {
                 console.log(wat);
             }
