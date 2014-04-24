@@ -95,7 +95,7 @@ class Command(BaseCommand):
             if any(re.match(regex, url) for regex in regexs):
                 return scraper
 
-        return None
+        raise ScraperException('No scraper defined for given url')
 
     def run_scraper(self, url, product=None, content=None, scraper=None, values=None):
         if values is None:
@@ -104,11 +104,7 @@ class Command(BaseCommand):
         url = url.strip()
         try:
             if scraper is None:
-                temp_scraper = self.get_scraper(url)
-                if temp_scraper:
-                    scraper = temp_scraper(self.store)
-                else:
-                    raise ScraperException('no scraper defined for given url')
+                scraper = self.get_scraper(url)(self.store)
 
             # if no scraper has been found, exit
             if scraper is None:
