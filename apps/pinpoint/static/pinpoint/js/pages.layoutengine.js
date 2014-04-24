@@ -32,7 +32,8 @@ App.module("layoutEngine", function (layoutEngine, App) {
                 '-webkit-transform': 'scale(1)',
                 '-moz-transform': 'none'
             },
-            'minColumns': 2 // minimum number of columns (default: 2)
+            'minDesktopColumns': 2, // minimum number of columns (default: 2)
+            'minMobileColumns': 2
         },
         frags = [],  // common fragment storage
         opts;  // last-used options (used by clear())
@@ -75,7 +76,9 @@ App.module("layoutEngine", function (layoutEngine, App) {
         var selector = opts.itemSelector + ':not(.wide, .full)',
             discovery = view.$el,
             columnWidth = opts.columnWidth,
-            minColumns = opts.minColumns || defaults.minColumns,
+            minColumns = App.support.mobile() ?
+                opts.minMobileColumns || defaults.minMobileColumns :
+                opts.minDesktopColumns || defaults.minDesktopColumns,
             width = discovery.outerWidth();
 
         if (width >= (minColumns + 1) * columnWidth) {

@@ -73,7 +73,8 @@
         , 'previewMobileAnimationDuration': 0
         , 'masonry': {  // passed to masonry
             'transitionDuration': 0.4,  // in seconds
-            'minColumns': {{ campaign.masonry.minColumns|default:2 }} // minimum number of columns for masonry
+            'minDesktopColumns': {{ campaign.minDesktopColumns|default:2 }}, // minimum number of columns on desktop for masonry
+            'minMobileColumns': {{ campaign.minMobileColumns|default:2 }} // minimum number of columns to show on mobile for masonry
         }
         , 'featured': {{ product }}
         // stuff that loads when page loads, even if IR is available
