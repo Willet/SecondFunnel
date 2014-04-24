@@ -71,9 +71,9 @@ class Command(BaseCommand):
         elif store_id:
             if not store:
                 raise CommandError('store-id must be specified if url is included')
-            urls_folder = join(dirname(dirname(dirname(__file__))), 'urls')
+            folder = join(dirname(dirname(dirname(__file__))), 'urls')
             file_name = store.slug + '.txt'
-            file_link = join(urls_folder,file_name)
+            file_link = join(folder,file_name)
             print('retrieving url from "{0}"'.format(file_link))
             url_file = open(file_link)
             for line in url_file:
@@ -81,9 +81,9 @@ class Command(BaseCommand):
         else:
             if not folder:
                 # e.g. /home/brian/Envs/SecondFunnel/apps/scraper/urls
-                urls_folder = join(dirname(dirname(dirname(__file__))), 'urls')
-            for file_name in listdir(urls_folder):
-                file_link = join(urls_folder,file_name)
+                folder = join(dirname(dirname(dirname(__file__))), 'urls')
+            for file_name in listdir(folder):
+                file_link = join(folder,file_name)
                 print('retrieving url from "{0}"'.format(file_link))
                 url_file = open(file_link)
                 store_slug = file_name.split('.')[0]  # 'gap' from 'gap.txt'
