@@ -15,6 +15,8 @@ from apps.scraper.scrapers import MadewellProductScraper, MadewellCategoryScrape
 from apps.scraper.scrapers import VoyagePriveCategoryScraper
 from apps.scraper.scrapers import PinterestPinScraper, PinterestAlbumScraper
 from apps.scraper.scrapers import StyldByFilterScraper, StyldByPartnersScraper
+from apps.scraper.scrapers import STLScraper
+from apps.scraper.scrapers.scraper import ScraperException
 
 
 class Command(BaseCommand):
@@ -35,6 +37,7 @@ class Command(BaseCommand):
             PinterestAlbumScraper,
             StyldByFilterScraper,
             StyldByPartnersScraper,
+            STLScraper,
         ]
 
     def handle(self, *args, **kwargs):
@@ -92,7 +95,7 @@ class Command(BaseCommand):
             if any(re.match(regex, url) for regex in regexs):
                 return scraper
 
-        return None
+        raise ScraperException('No scraper defined for given url')
 
     def run_scraper(self, url, product=None, content=None, scraper=None, values=None):
         if values is None:

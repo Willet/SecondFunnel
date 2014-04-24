@@ -3,6 +3,7 @@ import re
 from selenium.common.exceptions import NoSuchElementException
 
 from apps.scraper.scrapers import Scraper, ProductDetailScraper, ProductCategoryScraper
+from apps.scraper.scrapers import STLScraper
 
 
 class GapProductScraper(ProductDetailScraper):
@@ -153,14 +154,20 @@ class GapCategoryScraper(ProductCategoryScraper):
                 for product_elem in product_groups[i].find_elements_by_xpath('./li/div/a'):
                     href = product_elem.get_attribute('href')
                     match = re.match(self.product_sku_regex, href)
-                    if not match:
-                        continue
-                    sku = match.group(1)
-                    product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
-                    name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
+                    if match:
+                        sku = match.group(1)
+                        product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
+                        name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
 
-                    product = self._get_product(product_url)
-                    product.sku = sku
-                    product.name = name
-                    yield {'product': product, 'url': product_url}
+                        product = self._get_product(product_url)
+                        product.sku = sku
+                        product.name = name
+                        yield {'product': product, 'url': product_url}
+                    else:
+                        # if item is not a product, check if it is a STL
+                        match = re.match(STLScraper.regexs[0], href)
+                        if match:
+                            yield {'url': href}
+                        else:
+                            pass
             page += 1
