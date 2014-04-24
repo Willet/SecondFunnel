@@ -76,10 +76,11 @@ App.module("layoutEngine", function (layoutEngine, App) {
             tileWidth = view.$(opts.itemSelector + ':not(.wide, .full)').width();
 
         width = view.$el.outerWidth() / (opts.minColumns || 2);
-        width = Math.max(tileWidth, width);
 
-        if (!App.support.mobile() && !App.option('dynamicColumns')) {
+        if (!tileWidth) {
             width = opts.columnWidth;
+        } else {
+            width = Math.max(tileWidth, width);
         }
 
         return width;
@@ -107,10 +108,6 @@ App.module("layoutEngine", function (layoutEngine, App) {
      * @returns this
      */
     this.width = function () {
-        if (currentWidth === 0) {
-            return (opts && opts.columnWidth) ||
-                defaults.columnWidth;
-        }
         return currentWidth;
     };
 
