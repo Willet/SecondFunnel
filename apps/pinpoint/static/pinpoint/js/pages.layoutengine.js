@@ -72,15 +72,22 @@ App.module("layoutEngine", function (layoutEngine, App) {
      * @returns Double
      */
     this.recalculateWidth = function (view) {
-        var width,
-            tileWidth = view.$(opts.itemSelector + ':not(.wide, .full)').width();
+        var discovery = view.$el,
+            columnWidth = opts.columnWidth,
+            minColumns = opts.minColumns || defaults.minColumns,
+            width = discovery.outerWidth();
 
-        width = view.$el.outerWidth() / (opts.minColumns || 2);
-
-        if (!tileWidth) {
-            width = opts.columnWidth;
+        if (width >= 2 * columnWidth) {
+            // columnWidth or dynamicWidth apply as we've passed the threshold
+            // where the layoutEngine is responsible for sizing
+            width = columnWidth;
+            if (App.option('dynamicColumns')) {
+                width = Math.max($(opts.itemSelector).outerWidth(), width);
+            }
         } else {
-            width = Math.max(tileWidth, width);
+            // discovery width is less than 2 * the columnWidth, size
+            // based on minColumns
+            width = width / minColumns;
         }
 
         return width;
