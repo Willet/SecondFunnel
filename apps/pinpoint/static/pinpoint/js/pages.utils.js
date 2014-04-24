@@ -275,19 +275,16 @@ App.module("utils", function (utils, App) {
         // Round to the nearest whole hundred pixel dimension;
         // prevents creating a ridiculous number of images.
         if ((width && !height) || width > height) {
-            options.width = Math.ceil(width / 100.0) * 100;
+            options.width = Math.ceil(width / 100.0) * (100 * window.devicePixelRatio);
         } else if ((height && !width) || height > width) {
             options.height = Math.ceil(height / 100.0) * 100;
         } else {
-            options.width = App.layoutEngine.width();
+            options.width = App.layoutEngine.width() * window.devicePixelRatio;
         }
 
         options = _.extend({
             crop: 'fit',
             quality: 75
-            // New feature, undocumenated, trims background space, add :
-            // for tolerance, e.g. trim: 20 (defaults to 10)
-            // effect: 'trim:0'
         }, options);
 
         if (url.indexOf('c_fit') > -1) {
