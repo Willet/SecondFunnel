@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile, TileRelation, Category
 from apps.intentrank.controllers import IntentRank
-from apps.intentrank.algorithms import ir_generic, ir_all
+from apps.intentrank.algorithms import ir_generic, ir_all, ir_base
 from apps.intentrank.utils import ajax_jsonp
 from apps.utils import thread_id
 from apps.utils.models import MemcacheSetting
@@ -95,11 +95,10 @@ def get_results_view(request, page_id):
 
     limit_showns(request)  # limit is controlled by TRACK_SHOWN_TILES_NUM
 
-    page = get_object_or_404(Page.objects.prefetch_related('feed', 'feed__tiles')
-                                         .select_related('feed', 'feed__tiles'),
-                             id=page_id)
+    page = get_object_or_404(Page, id=page_id)
     feed = page.feed
     ir = IntentRank(feed=feed)
+    tiles = feed.get_tiles()
 
     # find the appropriate algorithm.
     if algorithm_name == 'finite_popular':
@@ -111,7 +110,7 @@ def get_results_view(request, page_id):
         algorithm = getattr(ir, 'ir_' + algorithm_name) or ir.ir_generic
     print 'request being handled by {0}'.format(algorithm.__name__)
 
-    resp = ajax_jsonp(get_results(feed=feed, results=results,
+    resp = ajax_jsonp(get_results(tiles=tiles, results=results,
                                   algorithm=algorithm, request=request,
                                   exclude_set=exclude_set,
                                   category_name=category,
@@ -192,7 +191,7 @@ def get_related_tiles_view(request, page_id, tile_id=None, **kwargs):
     return ajax_jsonp(tile.get_related(), callback_name=callback)
 
 
-def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+def get_results(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                 algorithm=ir_generic, tile_id=0, offset=0, **kwargs):
     """Converts a feed into a list of <any> using given parameters.
 
@@ -205,7 +204,7 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     :returns           a list of <any>
     """
-    ir = IntentRank(feed=feed)
+    ir = IntentRank(feed=tiles[0].feed)
 
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
@@ -223,7 +222,10 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         allowed_set = list(set(allowed_set))
     else:
         allowed_set = None
-    return ir.render(algorithm, feed=feed, results=results,
+
+    tiles = ir_base(feed=tiles[0].feed, exclude_set=exclude_set,
+                    allowed_set=allowed_set)
+    return ir.render(algorithm, tiles=tiles, results=results,
                      exclude_set=exclude_set, allowed_set=allowed_set,
                      request=request, offset=offset, tile_id=tile_id)
 
