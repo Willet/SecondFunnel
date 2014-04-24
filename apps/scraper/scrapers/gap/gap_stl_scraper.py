@@ -32,7 +32,8 @@ class STLScraper(ContentDetailScraper):
         image.original_url = url
         image.source = 'gap-stl'
         image.save()
-        for product_match in re.finditer('objGIDPageViewAdapter.objGIDOutfit.arrayProducts.push\(\{strProductId:\s"(\d+)', self.driver.page_source):
+        for product_match in re.finditer('objGIDPageViewAdapter\.objGIDOutfit\.arrayProducts\.push\(\{strProductId:\s"(\d+)',
+                                         self.driver.page_source):
             sku = product_match.group(1)
             try:
                 product = Product.objects.get(store=self.store, sku=sku)
