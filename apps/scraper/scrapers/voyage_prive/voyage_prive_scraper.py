@@ -5,7 +5,6 @@ from apps.assets.models import Page, Product
 
 from apps.scraper.scrapers import ProductCategoryScraper
 from selenium.common.exceptions import NoSuchElementException
-from apps.utils.functional import htmlentitydecode
 
 
 class VoyagePriveCategoryScraper(ProductCategoryScraper):
@@ -41,7 +40,6 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 product = Product(sku=sku)
             product.store = self.store
             product.name = node.find_element_by_xpath('./titre').text
-            product.name = htmlentitydecode(product.name)
             match = re.match(r"""(.+),?         # Name of product
                                  \s*            # Followed by 0 or more spaces
                                  (-\s*\d+%)     # Percentage of product off

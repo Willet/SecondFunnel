@@ -1,8 +1,6 @@
 import cPickle
 
 from functools import partial
-from htmlentitydefs import name2codepoint
-import re
 
 
 def noop(*args, **kwargs):
@@ -126,7 +124,3 @@ def result(obj, arg=None):
             return obj(arg)
         return obj()
     return obj
-
-def htmlentitydecode(s):
-    return re.sub('&(%s);' % '|'.join(name2codepoint),
-            lambda m: unichr(name2codepoint[m.group(1)]), s)
