@@ -95,9 +95,7 @@ def get_results_view(request, page_id):
 
     limit_showns(request)  # limit is controlled by TRACK_SHOWN_TILES_NUM
 
-    page = get_object_or_404(Page.objects.prefetch_related('feed', 'feed__tiles')
-                                         .select_related('feed', 'feed__tiles'),
-                             id=page_id)
+    page = get_object_or_404(Page, id=page_id)
     feed = page.feed
     ir = IntentRank(feed=feed)
     tiles = feed.get_tiles()
@@ -225,7 +223,8 @@ def get_results(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     else:
         allowed_set = None
 
-    tiles = ir_base(tiles)
+    tiles = ir_base(feed=tiles[0].feed, exclude_set=exclude_set,
+                    allowed_set=allowed_set)
     return ir.render(algorithm, tiles=tiles, results=results,
                      exclude_set=exclude_set, allowed_set=allowed_set,
                      request=request, offset=offset, tile_id=tile_id)

@@ -44,13 +44,13 @@ def id_in(ids):
     """returns a filter that returns True if a tile has one of the given ids."""
     def filtr(tile):
         return tile.id in ids
-
+    return filtr
 
 def id_not_in(ids):
     """returns a filter that returns False if a tile has one of the given ids."""
     def filtr(tile):
         return not tile.id in ids
-
+    return filtr
 
 def prioritized(state=''):
     """returns a filter that returns True if a tile is prioritized as {state}.
@@ -63,6 +63,7 @@ def prioritized(state=''):
                 return True
         if tile.prioritized == state:
             return True
+    return filtr
 
 
 def order_by(tiles, *what):

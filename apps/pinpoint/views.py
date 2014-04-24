@@ -99,7 +99,7 @@ def product_feed(request, page_slug):
     page_description = SubElement(channel, 'description')
     page_description.text = page.description
 
-    tiles = filter(in_stock, ir_base(page.feed).all())
+    tiles = filter(in_stock, ir_base(feed=page.feed).all())
 
     for obj in tiles:
         tile = obj.to_json()

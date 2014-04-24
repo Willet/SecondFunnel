@@ -7,6 +7,7 @@ from functools import partial, wraps
 import random as real_random
 
 from django.conf import settings
+from django.db.models.query import QuerySet
 from apps.assets.models import Tile
 from apps.intentrank.filters import order_by
 from apps.utils.functional import result
@@ -24,9 +25,12 @@ def qs_for(tiles):
 
     :returns {QuerySet}
     """
+    if isinstance(tiles, QuerySet):
+        return tiles
+
     try:
         ids = [x.id for x in tiles]
-    except AttributeError:
+    except AttributeError as err:
         ids = tiles
 
     return (Tile.objects.filter(id__in=ids)
@@ -34,25 +38,41 @@ def qs_for(tiles):
                 .select_related(*Tile.ASSOCS))
 
 
-def ir_base(tiles=None, feed=None, **kwargs):
+def ir_base(tiles=None, feed=None, exclude_set=None, allowed_set=None,
+            **kwargs):
     """Common algo for removes tiles that no IR algorithm will ever serve.
 
     Required parameters: either tiles (list / QuerSet) or feed (<Feed>)
+    If allowed_set and exclude_set are given, then the resultant queryset will
+    include and exclude these tiles, respectively, if a feed is given as well.
 
     returns {QuerySet} of {Tile} instances (which is *not* a list)
     """
-    if feed:
-        tiles = feed.get_tiles()
-
-    if tiles is None:  # permit []
+    if not feed and tiles is None:  # permit [] for tiles
         raise ValueError("Either tiles or feed must be supplied to ir_base")
+
+    if feed:
+        # truth combos to minimize query breadth
+        if allowed_set and exclude_set:
+            tiles = feed.get_tiles(id__in=allowed_set).exclude(id__in=exclude_set)
+        elif allowed_set:
+            tiles = feed.get_tiles(id__in=allowed_set)
+        elif exclude_set:
+            tiles = feed.get_tiles().exclude(id__in=exclude_set)
+        else:
+            tiles = feed.get_tiles()
+    elif tiles:
+        if allowed_set:
+            tiles = filter(filters.id_in(allowed_set), tiles)
+        if exclude_set:
+            tiles = filter(filters.id_not_in(exclude_set), tiles)
 
     # "filter out all content tiles for which none of the content's
     # tagged products are in stock"
-    tids = [tile.id for tile in filter(filters.in_stock, tiles)]
+    tiles = filter(filters.in_stock, tiles)
 
     # DO NOT call *_related functions after ir_base!
-    return qs_for(tids)
+    return qs_for(tiles=tiles)
 
 
 def ir_all(tiles, *args, **kwargs):
@@ -78,13 +98,7 @@ def ir_last(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tile_filter = {}
-
-    if allowed_set:
-        tile_filter.update({'id__in': allowed_set})
-
-    tiles = tiles.filter(**tile_filter).order_by('id')
-    return list(tiles.reverse()[:results])
+    return tiles.order_by('-id')[:results]
 
 
 def ir_prioritized(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
@@ -96,16 +110,10 @@ def ir_prioritized(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    if allowed_set:
-        tiles = filter(filters.id_in(allowed_set), tiles)
-    if exclude_set:
-        tiles = filter(filters.id_not_in(exclude_set), tiles)
-
     tiles = filter(filters.prioritized(prioritized_set), tiles)
 
-    tiles = order_by(tiles, '-priority')
+    tiles = order_by(tiles, '-priority')[:results]
     real_random.shuffle(tiles)
-    tiles = tiles[:results]
 
     print "{0} tile(s) were manually prioritized by {1}".format(
         len(tiles), prioritized_set or 'nothing')
@@ -130,8 +138,6 @@ def ir_priority_sorted(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tiles = filter(filters.id_in(allowed_set), tiles)
-    tiles = filter(filters.id_not_in(exclude_set), tiles)
     tiles = filter(filters.prioritized(prioritized_state), tiles)
 
     tiles = order_by(tiles, '-priority')[:results]
@@ -147,9 +153,7 @@ def ir_random(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tiles = filter(filters.id_in(allowed_set), tiles)
-    tiles = filter(filters.id_not_in(exclude_set), tiles)
-
+    tiles = list(tiles)
     real_random.shuffle(tiles)
     tiles = tiles[:results]
 
@@ -165,9 +169,6 @@ def ir_created_last(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     """
     if results < 1:
         return []
-
-    tiles = filter(filters.id_in(allowed_set), tiles)
-    tiles = filter(filters.id_not_in(exclude_set), tiles)
 
     tiles = order_by(tiles, "-created_at")[:results]
 
@@ -194,9 +195,6 @@ def ir_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     """
     if results < 1:
         return []
-
-    tiles = filter(filters.id_in(allowed_set), tiles)
-    tiles = filter(filters.id_not_in(exclude_set), tiles)
 
     tiles = sorted(tiles, key=lambda tile: tile.click_score(), reverse=True)
 

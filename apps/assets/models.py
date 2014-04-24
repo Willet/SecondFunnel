@@ -287,7 +287,7 @@ class Product(BaseModel):
             match = re.match(price_regex, self.price)
             if not match:
                 raise ValidationError('Product price does not validate')
-        sale_price = self.attributes.get('sale_price', None)
+        sale_price = self.attributes.get('sale_price', u'')
         if sale_price:
             match = re.match(price_regex, sale_price)
             if not match:
@@ -581,13 +581,20 @@ class Feed(BaseModel):
             return tiles
         return tiles.filter(products__id=product.id)
 
-    def get_tiles(self):
+    def get_tiles(self, **filters):
         """Get {QuerySet} of tiles from feed, using required prefetches.
+
+        filters are optional.
 
         Method can be used in place of self.tiles.
         """
-        return (self.tiles.prefetch_related(*Tile.ASSOCS)
-                          .select_related(*Tile.ASSOCS))
+        tiles = self.tiles
+        if filters:
+            tiles = tiles.filter(**filters)
+
+        return (tiles.filter(**filters)
+                     .prefetch_related(*Tile.ASSOCS)
+                     .select_related(*Tile.ASSOCS))
 
     def add_product(self, product, prioritized=False, priority=0):
         """Adds (if not present) a tile with this product to the feed.
