@@ -201,6 +201,7 @@ def product_feed(request, page_slug):
     pretty_feed = minidom.parseString(feed).toprettyxml(
         indent='\t', encoding='utf-8'
     )
+    pretty_feed = pretty_feed.replace('&quot;', '\"')
 
     # TODO: Remove this code after the livedin campaign is finished
     # This code is being included so that past visitors may still be retargeted
