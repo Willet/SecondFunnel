@@ -72,14 +72,19 @@ App.module("layoutEngine", function (layoutEngine, App) {
      * @returns Double
      */
     this.recalculateWidth = function (view) {
-        var width,
-            tileWidth = view.$(opts.itemSelector + ':not(.wide, .full)').width();
+        var selector = opts.itemSelector + ':not(.wide, .full)',
+            discovery = view.$el,
+            columnWidth = opts.columnWidth,
+            minColumns = opts.minColumns || defaults.minColumns,
+            width = discovery.outerWidth();
 
-        width = view.$el.outerWidth() / (opts.minColumns || 2);
-        width = Math.max(tileWidth, width);
-
-        if (!App.support.mobile() && !App.option('dynamicColumns')) {
-            width = opts.columnWidth;
+        if (width >= (minColumns + 1) * columnWidth) {
+            // columnWidth or dynamicWidth apply as we've passed the threshold
+            // where the layoutEngine is responsible for sizing
+            width = Math.max($(selector).outerWidth() - 0.5, columnWidth);
+        } else {
+            // size based on the minimum number of columns to show
+            width = width / minColumns;
         }
 
         return width;
@@ -107,10 +112,6 @@ App.module("layoutEngine", function (layoutEngine, App) {
      * @returns this
      */
     this.width = function () {
-        if (currentWidth === 0) {
-            return (opts && opts.columnWidth) ||
-                defaults.columnWidth;
-        }
         return currentWidth;
     };
 
@@ -121,7 +122,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
      */
     this.reload = function (view) {
         view.$el.masonry('reloadItems');
-        view.$el.masonry();
+        this.layout(view);
         return this;
     };
 
