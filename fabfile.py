@@ -256,6 +256,8 @@ def importer(*args, **kwargs):
 
 def scraper(*args, **kwargs):
     """Alias for fabfile"""
+    print(args)
+    print(kwargs)
     return real_scraper(*args, **kwargs)
 
 
