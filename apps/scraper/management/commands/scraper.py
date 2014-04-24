@@ -53,30 +53,24 @@ class Command(BaseCommand):
         store_id = kwargs.pop('store-id', None)
         url = kwargs.pop('url', None)
         folder = kwargs.pop('folder', None)
-        if url:
+
+        if store_id:
             try:
                 store = Store.objects.get(id=store_id)
             except ObjectDoesNotExist:
-                pass
-            try:
-                if not store:
+                try:
                     store = Store.objects.get(slug=store_id)  # identifier was a slug
-            except ObjectDoesNotExist:
-                raise CommandError('store-id must be specified if url is included')
-
+                except ObjectDoesNotExist:
+                    raise CommandError('store {0} does not exist'.format(store_id))
             self.set_store(store)
+
+        if url:
+            if not store:
+                raise CommandError('store-id must be specified if url is included')
             self.run_scraper(url=url)
         elif store_id:
-            try:
-                store = Store.objects.get(id=store_id)
-            except ObjectDoesNotExist:
-                pass
-            try:
-                if not store:
-                    store = Store.objects.get(slug=store_id)  # identifier was a slug
-            except ObjectDoesNotExist:
+            if not store:
                 raise CommandError('store-id must be specified if url is included')
-            self.set_store(store)
             urls_folder = join(dirname(dirname(dirname(__file__))), 'urls')
             file_name = store.slug + '.txt'
             print('retrieving url from "{0}"'.format(join(urls_folder,file_name)))
