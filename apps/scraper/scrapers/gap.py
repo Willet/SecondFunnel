@@ -54,7 +54,7 @@ class GapProductScraper(ProductDetailScraper):
                 product.attributes.pop('sales_price', None)
 
         product.sku = re.match(self.sku_regex, product.url).group(1)
-        product.description = str(page.select('#tabWindow')[0])
+        product.description = self._sanitize_html(str(page.select('#tabWindow')[0]))
 
         product.save()
 

@@ -181,7 +181,7 @@ class StorePageContentItemCGHandler(StoreContentItemCGHandler):
         """special handler for deleting a content from the page
         (which means adding a content to a tile to the feed of the page)
         """
-        self.page.delete_content(self.content)
+        self.page.remove_content(self.content)
         return ajax_jsonp(self.content)
 
 

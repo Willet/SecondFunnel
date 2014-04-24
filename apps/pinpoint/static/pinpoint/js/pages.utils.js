@@ -242,16 +242,18 @@ App.module("utils", function (utils, App) {
      * Returns a ViewportSized Height based on the Viewport size of the browser, taking into
      * account the chrome.
      */
-    this.getViewportSized = function () {
-        var height = $(window).height();
+    this.getViewportSized = function (byWidth) {
+        var height = $(window).height(),
+            width = $(window).width();
 
-        if (height >= 959) {
+        if (height >= 959 || (byWidth && width >= 1600)) {
             return 700;
-        } else if (height >= 900) {
+        } else if (height >= 900 || (byWidth && width >= 1160)) {
+            // 1160 is the Samantha Zheng number
             return 600;
-        } else if (height >= 800) {
+        } else if (height >= 800 || (byWidth && width >= 1024)) {
             return 500;
-        } else if (height > 656) {
+        } else if (height > 656 || (byWidth && width >= 768)) {
             return 400;
         }
         return 300;
@@ -266,28 +268,23 @@ App.module("utils", function (utils, App) {
      * @returns {Object}
      */
     this.getResizedImage = function (url, options) {
-        var width = options.width,
-            height = options.height,
-            multiplier = options.multiplier || 1;
+        var width = Math.max(options.width || 0, App.option('minImageWidth')),
+            height = Math.max(options.height || 0, App.option('minImageHeight'));
         options = {};
 
         // Round to the nearest whole hundred pixel dimension;
         // prevents creating a ridiculous number of images.
-        if ((width && !height) || height > width) {
-            width = Math.ceil((width * multiplier) / 100.0) * 100;
-            options.width = width;
-        } else if ((height && !width) || width > height) {
-            options.height = Math.ceil((height * multiplier) / 100.0) * 100;
+        if ((width && !height) || width > height) {
+            options.width = Math.ceil(width / 100.0) * (100 * window.devicePixelRatio);
+        } else if ((height && !width) || height > width) {
+            options.height = Math.ceil(height / 100.0) * 100;
         } else {
-            options.width = App.layoutEngine.width();
+            options.width = App.layoutEngine.width() * window.devicePixelRatio;
         }
 
         options = _.extend({
             crop: 'fit',
             quality: 75
-            // New feature, undocumenated, trims background space, add :
-            // for tolerance, e.g. trim: 20 (defaults to 10)
-            // effect: 'trim:0'
         }, options);
 
         if (url.indexOf('c_fit') > -1) {

@@ -68,6 +68,9 @@
     </head>
     <body>
         <h1>Statistics</h1>
+        <h2>Previews / Impressions</h2>
+        <div id='ratios'></div>
+
         <h2>Tiles by preview count</h2>
         <div id='tiles'></div>
 
@@ -91,12 +94,14 @@
 
             // Configure the Keen object with your Project ID and (optional) access keys.
             Keen.configure({
-                projectId: "532745f6ce5e4326bf000011",
-                readKey: "c8ff6b6ec8efb33e85fbcade3d9ecbe102dbb884c586ab4cf7b14e0014effdc911e819b6ba9cb7517c3fbe26a5cf2812ff9cafe29b9d073e8a50928cf27f85b5845c7ba3c304d8b7dc346200dce3eecfe13d541c6bcddbdc3f70c6213a4f18f5c66de9f22ae62b1e107cc27252314db8"
+                projectId: "{{ keen.projectId }}",
+                readKey: "{{ keen.readKey }}"
             });
         </script>
         <script type='text/javascript'>
-            var tileTemplate = _.template($('#tile-template').text())
+            var tileTemplate = _.template($('#tile-template').text()),
+                impressions, previews,
+                ratios = {};
 
             var addTiles = function(response, selector) {
                 if (!selector) {
@@ -104,62 +109,115 @@
                 }
 
                 var data = response.result;
-                data = _.sortBy(data, function(item) {
-                    return -1 * item.result;
-                });
+                var tiles = {};
 
                 $.each(data, function(idx, obj) {
-                    var data = {
-                        'count': obj.result,
-                        'imageUrl': obj['tile.url'],
-                        'product': obj['product.name'],
-                        'tileId': obj['tile.id'],
-                        'url': obj['page.url'] + '#' + obj['tile.id']
+                    var tile = {
+                            'count': obj.result,
+                            'imageUrl': obj['tile.url'],
+                            'product': obj['product.name'],
+                            'tileId': obj['tile.id'],
+                            'url': obj['page.url'] + '#' + obj['tile.id']
+                        },
+                        tileId = obj['tile.id'],
+                        prevTile = tiles[tileId];
+
+
+                    if (prevTile) { // Merge
+                        tile.count += prevTile.count;
                     }
 
-                    $(selector).append(tileTemplate(data))
-                })
+                    tiles[tileId] = tile;
+                });
+
+                var sortedTiles = _.sortBy(_.values(tiles),
+                        function(item) {
+                    return -1 * item.count;
+                });
+
+                $.each(sortedTiles, function(idx, obj) {
+                    $(selector).append(tileTemplate(obj));
+                });
+
+                return tiles;
             }
 
             // https://keen.io/docs/clients/javascript/usage-guide/#analyze-and-visualize-data
             Keen.onChartsReady(function() {
-                var previewQuery = new Keen.Metric('preview', {
-                    'analysisType': 'count',
-                    'groupBy': [
+                var filters = [{
+                        'property_name': 'page.id',
+                        'operator': 'eq',
+                        'property_value': {{ page.id }}
+                    }, {
+                        'property_name': 'page.url',
+                        'operator': 'contains',
+                        'property_value': '{{ page.url_slug }}'
+                    }],
+                    groupBy = [
                         'page.url',
                         'tile.url',
                         'tile.id',
                         'product.name'
                     ],
-                    'filters': [{
-                        'property_name': 'page.id',
-                        'operator': 'eq',
-                        'property_value': {{ page.id }}
-                    }]
-                });
-
-                var impressions = new Keen.Metric('impression', {
-                    'analysisType': 'count',
-                    'groupBy': [
-                        'page.url',
-                        'tile.url',
-                        'tile.id',
-                        'product.name'
-                    ],
-                    'filters': [{
-                        'property_name': 'page.id',
-                        'operator': 'eq',
-                        'property_value': {{ page.id }}
-                    }]
-                });
+                    previewQuery = new Keen.Metric('preview', {
+                        'analysisType': 'count',
+                        'groupBy': groupBy,
+                        'filters': filters,
+                        'targetProperty': 'tile.id'
+                    }),
+                    impressionsQuery = new Keen.Metric('impression', {
+                        'analysisType': 'count',
+                        'groupBy': groupBy,
+                        'filters': filters,
+                        'targetProperty': 'tile.id'
+                    }),
+                    timer;
 
                 previewQuery.getResponse(function(response) {
-                    addTiles(response, '#tiles');
+                    previews = addTiles(response, '#tiles');
                 });
 
-                impressions.getResponse(function(response) {
-                    addTiles(response, '#impressions');
+                impressionsQuery.getResponse(function(response) {
+                    impressions = addTiles(response, '#impressions');
                 });
+
+                var timer = setInterval(function() {
+                    console.log('Timing...');
+                    if (impressions && previews) {
+                        clearInterval(timer);
+
+                        // Merge two sets...
+                        var keys = _.intersection(
+                            _.keys(previews),
+                            _.keys(impressions)
+                        );
+
+                        var ratioTiles = [];
+
+                        $.each(keys, function(idx, key) {
+                            var impression, preview, ratioTile;
+                            key = parseInt(key, 10);
+
+                            impression = impressions[key];
+                            preview = previews[key];
+
+                            ratioTile = _.extend({}, impression);
+                            ratioTile.count = preview.count / impression.count;
+
+                            ratioTiles.push(ratioTile);
+                        });
+
+                        ratios = _.sortBy(ratioTiles,
+                                function(item) {
+                            return -1 * item.count;
+                        });
+
+                        $.each(ratios, function(idx, obj) {
+                            $('#ratios').append(tileTemplate(obj));
+                        });
+
+                    }
+                }, 1000);
             });
         </script>
     </body>

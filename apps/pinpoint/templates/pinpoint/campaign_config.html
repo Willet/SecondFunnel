@@ -36,6 +36,7 @@
         , 'columnWidth': {{ column_width|default:'undefined' }}  // optional. controls how often tiles are wide.  // optional (defaults to 255, pixels)
         , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
         // , 'events': undefined  // page event bindings (optional)
+        , 'disableBannerRedirectOnMobile': {{ campaign.disable_banner_redirect_on_mobile|default:"false" }}
         , 'socialButtons':
             {% if social_buttons %}
                 {{ social_buttons|safe }}{# social-buttons must be a json array of strings -- see below #}
@@ -65,11 +66,15 @@
         // , 'tileElement': undefined  // optional. alters the type of tag used by tiles.
         , 'imageTileWide': {{ image_tile_wide }}  // optional. controls how often tiles are wide.
         // , 'imageSizes': undefined  // optional, overrides built-in size map
+        , 'minImageWidth': {{ campaign.minImageWidth|default:255 }} // minimum width a Cloudinary image can have
+        , 'minImageHeight': {{ campaign.minImageHeight|default:100 }} // minimum height a Cloudinary image can have
         // , 'tapIndicatorText': undefined,  // optional
         , 'previewAnimationDuration': 100  // in ms
         , 'previewMobileAnimationDuration': 0
         , 'masonry': {  // passed to masonry
-            'transitionDuration': 0.4  // in seconds
+            'transitionDuration': 0.4,  // in seconds
+            'minDesktopColumns': {{ campaign.minDesktopColumns|default:2 }}, // minimum number of columns on desktop for masonry
+            'minMobileColumns': {{ campaign.minMobileColumns|default:2 }} // minimum number of columns to show on mobile for masonry
         }
         , 'featured': {{ product }}
         // stuff that loads when page loads, even if IR is available

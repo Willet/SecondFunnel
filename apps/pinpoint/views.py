@@ -1,6 +1,9 @@
 from itertools import ifilter
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, tostring
+from django.conf import settings
+from apps.intentrank.algorithms import ir_base
+from apps.intentrank.filters import in_stock
 
 try:
     from collections import OrderedDict
@@ -96,7 +99,9 @@ def product_feed(request, page_slug):
     page_description = SubElement(channel, 'description')
     page_description.text = page.description
 
-    for obj in page.feed.tiles.all():
+    tiles = filter(in_stock, ir_base(feed=page.feed).all())
+
+    for obj in tiles:
         tile = obj.to_json()
         item = Element('item')
 
@@ -115,10 +120,14 @@ def product_feed(request, page_slug):
 
         # So, this is only really a solution in the short term.
         link = SubElement(item, 'link')
-        link.text = '{}#{}'.format(
-             url,
-             tile.get('tile-id')
-        )
+
+        if tile.get('template') == 'banner' and tile.get('redirect-url'):
+            link.text = tile.get('redirect-url')
+        else:
+            link.text = '{}#{}'.format(
+                 url,
+                 tile.get('tile-id')
+            )
 
         description = SubElement(item, 'description')
         description.text = product.get('description')
@@ -189,7 +198,9 @@ def product_feed(request, page_slug):
         channel.append(item)
 
     feed = tostring(root, 'utf-8')
-    pretty_feed = minidom.parseString(feed).toprettyxml(indent='\t')
+    pretty_feed = minidom.parseString(feed).toprettyxml(
+        indent='\t', encoding='utf-8'
+    )
 
     # TODO: Remove this code after the livedin campaign is finished
     # This code is being included so that past visitors may still be retargeted
@@ -213,13 +224,16 @@ def product_feed(request, page_slug):
 
         pretty_feed = revised_feed
 
-    return HttpResponse(pretty_feed, content_type='application/rss+xml')
+    return HttpResponse(
+        pretty_feed, content_type='application/rss+xml; charset=utf-8'
+    )
 
 @login_required
 def page_stats(request, page_slug):
     page = get_object_or_404(Page, url_slug=page_slug)
     return render_to_response('pinpoint/campaign_statistics.html', {
-        'page': page
+        'page': page,
+        'keen': settings.KEEN_CONFIG
     })
 
 def generate_static_campaign(request, store_id, page_id):

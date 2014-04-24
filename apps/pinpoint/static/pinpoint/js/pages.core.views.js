@@ -187,7 +187,9 @@ App.module('core', function (module, App) {
             var tile = this.model;
 
             // Tile is a banner tile
-            if (tile.get('redirect-url')) {
+            if (tile.get('redirect-url') &&
+                !(App.option('disableBannerRedirectOnMobile') &&
+                    App.support.mobile())) {
                 window.open(tile.get('redirect-url'), '_blank');
                 return;
             }
@@ -806,7 +808,7 @@ App.module('core', function (module, App) {
             if (App.support.mobile()) {
                 image.url = image.height($window.height());
             } else {
-                image = image.height(App.utils.getViewportSized(), true);
+                image = image.height(App.utils.getViewportSized(true), true);
             }
 
             // templates use this as obj.image.url
@@ -904,6 +906,22 @@ App.module('core', function (module, App) {
         'regions': {
             'target': '.stl-target',
             'related': '.stl-look'
+        },
+
+        'onBeforeRender': function () {
+            // Need to get an appropriate sized image
+            var image = $.extend(true, {},
+                this.model.get('defaultImage').attributes);
+            image = new App.core.Image(image);
+
+            if (App.support.mobile()) {
+                image.url = image.height($window.height());
+            } else {
+                image = image.height(App.utils.getViewportSized(true), true);
+            }
+
+            // templates use this as obj.image.url
+            this.model.set('image', image);
         },
 
         'onRender': function() {

@@ -1,6 +1,8 @@
 import urllib
 from bs4 import BeautifulSoup
 from django.db.models import Q
+import bleach
+
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver import DesiredCapabilities
@@ -104,6 +106,13 @@ class Scraper(object):
         """
         contents, _ = read_remote_file(url)
         return contents, BeautifulSoup(contents)
+
+    def _sanitize_html(cls, html):
+        allowed_tags = ['div', 'ul', 'li', 'p', ]
+        allowed_attrs = {
+            '*': [],
+        }
+        return bleach.clean(html, tags=allowed_tags, attributes=allowed_attrs, strip=True)
 
     def parse(self, url, values, **kwargs):
         """

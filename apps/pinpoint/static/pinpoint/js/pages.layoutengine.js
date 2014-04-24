@@ -32,7 +32,8 @@ App.module("layoutEngine", function (layoutEngine, App) {
                 '-webkit-transform': 'scale(1)',
                 '-moz-transform': 'none'
             },
-            'minColumns': 2 // minimum number of columns (default: 2)
+            'minDesktopColumns': 2, // minimum number of columns (default: 2)
+            'minMobileColumns': 2
         },
         frags = [],  // common fragment storage
         opts;  // last-used options (used by clear())
@@ -72,14 +73,21 @@ App.module("layoutEngine", function (layoutEngine, App) {
      * @returns Double
      */
     this.recalculateWidth = function (view) {
-        var width,
-            tileWidth = view.$(opts.itemSelector + ':not(.wide, .full)').width();
+        var selector = opts.itemSelector + ':not(.wide, .full)',
+            discovery = view.$el,
+            columnWidth = opts.columnWidth,
+            minColumns = App.support.mobile() ?
+                opts.minMobileColumns || defaults.minMobileColumns :
+                opts.minDesktopColumns || defaults.minDesktopColumns,
+            width = discovery.outerWidth();
 
-        width = view.$el.outerWidth() / (opts.minColumns || 2);
-        width = Math.max(tileWidth, width);
-
-        if (!App.support.mobile()) {
-            width = opts.columnWidth;
+        if (width >= (minColumns + 1) * columnWidth) {
+            // columnWidth or dynamicWidth apply as we've passed the threshold
+            // where the layoutEngine is responsible for sizing
+            width = Math.max($(selector).outerWidth() - 0.5, columnWidth);
+        } else {
+            // size based on the minimum number of columns to show
+            width = width / minColumns;
         }
 
         return width;
@@ -117,7 +125,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
      */
     this.reload = function (view) {
         view.$el.masonry('reloadItems');
-        view.$el.masonry();
+        this.layout(view);
         return this;
     };
 

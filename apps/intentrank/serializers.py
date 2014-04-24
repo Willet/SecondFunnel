@@ -1,6 +1,10 @@
 from apps.api.serializers import RawSerializer
 
 
+class IRSerializer(RawSerializer):
+    MEMCACHE_PREFIX = 'ir'
+
+
 class FeedSerializer(RawSerializer):
     """Turns tiles in a feed (usually, feed.tiles.all()) into a JSON object.
 
@@ -27,7 +31,7 @@ class FeedSerializer(RawSerializer):
         return data
 
 
-class ProductSerializer(RawSerializer):
+class ProductSerializer(IRSerializer):
     """This will dump absolutely everything in a product as JSON."""
     def get_dump_object(self, obj):
         """This will be the data used to generate the object.
@@ -56,7 +60,7 @@ class ProductSerializer(RawSerializer):
         return data
 
 
-class ProductImageSerializer(RawSerializer):
+class ProductImageSerializer(IRSerializer):
     """This dumps some fields from the image as JSON."""
     def get_dump_object(self, obj):
         """This will be the data used to generate the object."""
@@ -71,7 +75,7 @@ class ProductImageSerializer(RawSerializer):
         return data
 
 
-class ContentSerializer(RawSerializer):
+class ContentSerializer(IRSerializer):
 
     expand_products = True
 
@@ -130,7 +134,7 @@ class VideoSerializer(ContentSerializer):
         return data
 
 
-class TileSerializer(RawSerializer):
+class TileSerializer(IRSerializer):
     """This will dump absolutely everything in a tile as JSON."""
 
     def __call__(self, tile_class):
