@@ -96,6 +96,9 @@ App.options.urlParams = window.location.search;
         };
     });
 
+    // IE8 has this as undefined
+    window.devicePixelRatio = window.devicePixelRatio || 1;
+
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
         debugLevel = App.options.debug = hash[hashIdx + 6];
