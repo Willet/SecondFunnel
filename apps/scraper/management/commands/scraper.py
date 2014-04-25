@@ -5,8 +5,9 @@ from os import listdir
 from os.path import join, dirname
 
 from optparse import make_option
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Q
 
 from selenium.common.exceptions import WebDriverException
 
@@ -22,9 +23,10 @@ from apps.scraper.scrapers.scraper import ScraperException
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (make_option('--store-id', default=None, dest='store-id'),
-                                             make_option('--url', default=None),
-                                             make_option('--folder', default=None))
+    option_list = BaseCommand.option_list + (
+        make_option('--store-id', default=None, dest='store-id'),
+        make_option('--url', default=None),
+        make_option('--folder', default=None))  # --folder is deprecated
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__()
@@ -46,54 +48,48 @@ class Command(BaseCommand):
         """
         If called with store-id (somehow) and url, scrapes that url for
             that store.
-        If called with folder,
         Otherwise, scrapes all urls listed in all text files in the urls folder.
         """
-        store = None
         store_id = kwargs.pop('store-id', None)
         url = kwargs.pop('url', None)
-        folder = kwargs.pop('folder', None)
+        urls_folder = kwargs.pop('folder', None)
 
-        if store_id:
-            try:
-                store = Store.objects.get(id=store_id)
-            except ObjectDoesNotExist:
-                try:
-                    store = Store.objects.get(slug=store_id)  # identifier was a slug
-                except ObjectDoesNotExist:
-                    raise CommandError('store {0} does not exist'.format(store_id))
-            self.set_store(store)
+        # allow either fields as identifiers
+        try:
+            store = Store.objects.get(Q(id=store_id) | Q(slug=store_id))
+        except (Store.DoesNotExist, MultipleObjectsReturned) as err:
+            store = None
+            if store_id:  # told to scrape a store, but no such store
+                raise
 
-        if url:
-            if not store:
-                raise CommandError('store-id must be specified if url is included')
-            self.run_scraper(url=url)
-        elif store_id:
-            if not store:
-                raise CommandError('store-id must be specified if url is included')
-            folder = join(dirname(dirname(dirname(__file__))), 'urls')
-            file_name = store.slug + '.txt'
-            file_link = join(folder,file_name)
-            print('retrieving url from "{0}"'.format(file_link))
-            url_file = open(file_link)
-            for line in url_file:
-                self.run_scraper(url=line)
+        # "scrape all urls for whichever store, or all stores if store is missing"
+        if urls_folder:
+            print "--folder option is deprecated (not useful in any way)"
         else:
-            if not folder:
-                # e.g. /home/brian/Envs/SecondFunnel/apps/scraper/urls
-                folder = join(dirname(dirname(dirname(__file__))), 'urls')
-            for file_name in listdir(folder):
-                file_link = join(folder,file_name)
+            urls_folder = join(dirname(dirname(dirname(__file__))), 'urls')
+
+        if store:  # you said scrape this store; I will scrape this store
+            stores = [store]
+        else:  # scrape all stores
+            stores = Store.objects.all()
+
+        if store and url:
+            # "scrape this url for this store"
+            self.set_store(store)
+            return self.run_scraper(url=url)
+
+        for store in stores:
+            try:
+                self.set_store(store)
+                file_name = store.slug + '.txt'
+                file_link = join(urls_folder, file_name)
                 print('retrieving url from "{0}"'.format(file_link))
                 url_file = open(file_link)
-                store_slug = file_name.split('.')[0]  # 'gap' from 'gap.txt'
-                try:
-                    store = Store.objects.get(slug=store_slug)
-                    self.set_store(store)
-                    for line in url_file:
-                        self.run_scraper(url=line)
-                except Store.DoesNotExist:
-                    print('store %s does not exist' % store_slug)
+                for line in url_file:
+                    self.run_scraper(url=line)
+            except BaseException as err:
+                print "Oh no! Something bad happened: {0}".format(err)
+                continue  # this line is merely symbolic
 
     def set_store(self, store):
         self.store = store
