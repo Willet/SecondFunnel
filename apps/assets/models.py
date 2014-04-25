@@ -643,7 +643,7 @@ class Feed(BaseModel):
                 break
         else:  # there weren't any tiles with this content in them
             new_content_tile = Tile(feed=self,
-                                    template='content',
+                                    template='image',
                                     prioritized=prioritized,
                                     priority=priority)
             new_content_tile.save()
