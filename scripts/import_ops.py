@@ -87,7 +87,7 @@ def execute_scraper(instance_type, store_id):
     with cd(project_path):
         print green("Starting importer...")
         if store_id:
-            run("python manage.py scraper --store-id=" + store_id)
+            run("python manage.py scraper --store-id " + store_id)
         else:
             run("python manage.py scraper")
 
