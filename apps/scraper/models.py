@@ -1,5 +1,6 @@
 import hashlib
 import json
+from time import sleep
 import urllib
 from bs4 import BeautifulSoup
 from django.db.models import Q
@@ -130,10 +131,11 @@ class Scraper(object):
 
 class CloudScraper(object):
     """PhantomJSCloud adapter"""
-    API_ROOT = "http://api.phantomjscloud.com"
+    API_ROOT = "http://api.phantomjscloud.com"  # move this when value used elsewhere
     API_KEY = "7707cc4bae3ee4d768d0d6f6b5e6856a58b530bd"
-    API_URL = "{API_ROOT}/batch/browser/v1/{API_KEY}/".format(API_ROOT=API_ROOT,
-                                                              API_KEY=API_KEY)
+    API_URL = "batch/browser/v1/{API_KEY}/".format(API_ROOT=API_ROOT,
+                                                   API_KEY=API_KEY)
+    API = Hammock(API_ROOT)
 
     def get_page_request(self, url, other=None):
         """generates a 'page-request' object mentioned in the docs:
@@ -174,16 +176,93 @@ class CloudScraper(object):
 
         return obj
 
+    def get_batch_callback_response(self, url):
+        """Given a callback url, GET it indefinitely.
+
+        Returns a list of "page-response"s (url, status, html, text).
+
+        (See "batch-callback-response" in the docs)
+        """
+        trips = 0
+        page_responses = []
+
+        while True:
+            trips = trips + 1
+            print "Retrieving pages: [{0}/100]".format(trips)
+            sleep(3)  # wait time in seconds; arbitrary number
+
+            # call the callback url (note: calling the callback url will remove results)
+            resp = Hammock(url).POST()
+            resp_dct = resp.json()
+
+            still_processing = resp_dct.get('stillProcessing')
+            just_completed = resp_dct.get('justCompleted')  # list<str>
+
+            if just_completed:
+                just_completed = [self.get_page_response(j) for j in just_completed]
+                print "adding {0}".format(just_completed)
+            page_responses.extend(just_completed)
+
+            # no more pages to get from the cloud
+            if not still_processing or still_processing in [0, '0', u'0']:
+                break
+
+            if trips > 100:  # that's 5 minutes and the cloud
+                             # still hasn't processed everything
+                raise IOError("PhantomJSCloud timeout")
+
+        print "processing complete: {0}".format(page_responses)
+        return page_responses
+
+    def get_page_response(self, response_text):
+        """Returns a tuple of (url, status, content, text).
+
+        A response dict from the callback should look like this:
+        {
+            "request": { ... },
+            "serviceMetadata": [ ... ],
+            "execScriptsOutput": {},
+            "resultUrl": "http://www.ohai.ca/",
+            "pageResponseMetadata": {
+                "contentType": "text/html; charset=utf-8",
+                "headers": [
+                    {
+                        "name": "Server",
+                        "value": "cloudflare-nginx"
+                    }, ... ],
+                "status": 200,
+                "url": "http://www.ohai.ca/"
+            },
+            "frameData": {
+                ...
+                "content": "(data in frames)",
+                "url": "http://www.ohai.ca/"
+            },
+            "pageContent": "<!DOCTYPE html><html ...>(your scraped page)</html>",
+            "pageContentPlainText": "(just the text)",
+            "totalTime": 692,
+            "responseCategory": "OK"
+        }
+        """
+        response_dct = json.loads(response_text)
+        try:
+            return (response_dct['resultUrl'],
+                    response_dct['pageResponseMetadata']['status'],
+                    response_dct['pageContent'],
+                    response_dct['pageContentPlainText'])
+        except KeyError as err:
+            raise IOError("Malformed page-response object from phantomjscloud")
+
+
     def scrape(self, url=None, urls=None):
         """Either one url, or a list of urls. Returns pages"""
         if url and not urls:
             urls = [url]
 
         post_body = json.dumps(self.get_batch_request(urls=urls))
-        api = Hammock(self.API_URL)
 
-        resp = api.POST(data=post_body,
-                        headers={'content-type': 'application/json'})
+        resp = self.API(self.API_URL).POST(data=post_body,
+            headers={'content-type': 'application/json'})
 
         # resp looks like {u'status': u'success',
         #               u'callbackUrl': u'http://api.phantomjscloud.com/...'}
@@ -192,7 +271,10 @@ class CloudScraper(object):
             raise IOError("phantomjscloud returned '{0}' instead of 'success'".format(
                 resp_dct.get('status')))
 
-        return resp_dct.get('callbackUrl')
+        callback_url = resp_dct.get('callbackUrl')
+        print "got callback url: {0}".format(callback_url)
+
+        return self.get_batch_callback_response(callback_url)
 
 
 class ProductScraper(Scraper):
