@@ -23,6 +23,12 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         page = store.pages.filter(url_slug='week-end')[0]
         feed = page.feed
 
+        # we want
+        # http://www.officiel-des-vacances.com/sejour/product/43980
+        # ->
+        # http://www.officiel-des-vacances.com/route-to/43980/section
+        alt_url_gex = re.compile(r'(https?://(?:www\.)?officiel-des-vacances\.com/sejour/product/(\d+).*)')
+
         products = []
         images = []
         skus = []  # list of product skus that are in the feed (which may or may not be in status (statut) 1
@@ -54,7 +60,15 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
 
             product.name = product.name.strip(' ,')  # remove spaces, commas, ...
 
-            product.url = node.find_element_by_xpath('./url-detail').text
+            # we want a special url format;
+            # see https://app.asana.com/0/11547608372544/11897070041551
+            product_url = node.find_element_by_xpath('./url-detail').text
+            match = alt_url_gex.match(product_url)
+            if match:
+                product_url = 'http://www.officiel-des-vacances.com/' \
+                              'route-to/{0}/section'.format(match.groups()[1])
+
+            product.url = product_url
             product.price = u'€' + node.find_element_by_xpath('./prix').text
 
             # this is the default
