@@ -3,6 +3,12 @@
 <html lang="en">
 <head>
     {% include "pinpoint/campaign_opengraph_tags.html" %}
+    <link rel="shortcut icon"
+         href="http://www.gap.com/favicon.ico" />
+    <link rel="stylesheet"
+          href="{% static 'pinpoint/themes/gap/gap.css' %}"/>
+    <link rel="stylesheet"
+          href="{% static 'pinpoint/themes/gap/fullscreen.css' %}"/>
     {% include "pinpoint/campaign_head.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
@@ -56,12 +62,6 @@
         });
     </script>
     <!-- End Optimizer Tests -->
-    <link rel="shortcut icon"
-         href="http://www.gap.com/favicon.ico" />
-    <link rel="stylesheet"
-          href="{% static 'pinpoint/themes/gap/gap.css' %}"/>
-    <link rel="stylesheet"
-          href="{% static 'pinpoint/themes/gap/fullscreen.css' %}"/>
     <title>{{ page.name|default:"Gap" }}</title>
     <style type="text/css">
         /* out of necessity */
