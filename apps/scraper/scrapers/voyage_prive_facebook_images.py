@@ -14,7 +14,7 @@ for(var i = 0; i < images.length; i++) {
 
 Run this script in a django shell:
 
->>>from apps.scraper.scrapers.voyage_prive.facebook_images import main
+>>>from apps.scraper.scrapers.voyage_prive_facebook_images import main
 >>>main()
 
 """

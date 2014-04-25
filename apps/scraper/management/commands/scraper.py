@@ -13,7 +13,7 @@ from selenium.common.exceptions import WebDriverException
 
 from apps.assets.models import Product, Store
 from apps.scraper.errors import ScraperException
-from apps.scraper.models import ProductDetailScraper
+from apps.scraper.models import ProductDetailScraper, CloudScraper
 
 from apps.scraper.scrapers.gap import GapProductScraper, GapCategoryScraper, STLScraper
 from apps.scraper.scrapers.madewell import MadewellProductScraper, MadewellCategoryScraper, MadewellMultiProductScraper
@@ -112,16 +112,15 @@ class Command(BaseCommand):
         self.store = store
 
     def get_scraper(self, url):
+        """Finds the scraper that handles the url, specified by each scraper's
+        'regexes' constant.
         """
-        If a scraper exists with a regex that matches the given url, then
-        that scraper is returned, else None is returned
-        """
+
         for scraper in self.scrapers:
-            regexs = scraper.regexs
-            if any(re.match(regex, url) for regex in regexs):
+            if any(re.match(regex, url) for regex in scraper.regexs):
                 return scraper
 
-        raise ScraperException('No scraper defined for given url')
+        raise ScraperException('No scraper defined for url: {0}'.format(url))
 
     def run_scraper(self, url, product=None, content=None, scraper=None, values=None):
         if values is None:
@@ -152,7 +151,7 @@ class Command(BaseCommand):
             # if no url is returned, the content or product model is printed out
             # if no content or product is returned, an error is printed
             for dictionary in scraper.parse(url=url, product=product,
-                                             content=content, values=values):
+                                            content=content, values=values):
                 if dictionary.get('url', None):
                     scraper_vars = {}
                     scraper_vars.update(dictionary)

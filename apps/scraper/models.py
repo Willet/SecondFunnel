@@ -137,7 +137,20 @@ class CloudScraper(object):
                                                    API_KEY=API_KEY)
     API = Hammock(API_ROOT)
 
-    def get_page_request(self, url, other=None):
+    regexs = []
+
+    def __init__(self, store):
+        """API compatible __init__ with Scraper"""
+        self.store = store
+
+    def parse_url(self, url, values, **kwargs):
+        """
+        Optional method
+        Returns a condensed url from the passed in url
+        """
+        return url
+
+    def _get_page_request(self, url, other=None):
         """generates a 'page-request' object mentioned in the docs:
         https://phantomjscloud.com/site/docs.html#/advanced_batchRequest#advanced_batchRequest
 
@@ -165,7 +178,7 @@ class CloudScraper(object):
 
         return obj
 
-    def get_batch_request(self, urls, other=None):
+    def _get_batch_request(self, urls, other=None):
         """generates a 'batch-request' object menioned in the docs:
         https://phantomjscloud.com/site/docs.html#/advanced_batchRequest#advanced_batchRequest
 
@@ -174,14 +187,14 @@ class CloudScraper(object):
         """
         obj = {
             "hostMaxOpen": 10,
-            "batchRequests": [self.get_page_request(url) for url in urls],
+            "batchRequests": [self._get_page_request(url) for url in urls],
         }
         if other:
             obj.update(other)
 
         return obj
 
-    def get_batch_callback_response(self, url):
+    def _get_batch_callback_response(self, url):
         """Given a callback url, GET it indefinitely.
 
         Returns a list of "page-response"s (url, status, html, text).
@@ -204,7 +217,7 @@ class CloudScraper(object):
             just_completed = resp_dct.get('justCompleted')  # list<str>
 
             if just_completed:
-                just_completed = [self.get_page_response(j) for j in just_completed]
+                just_completed = [self._get_page_response(j) for j in just_completed]
                 print "adding {0}".format(just_completed)
             page_responses.extend(just_completed)
 
@@ -219,7 +232,7 @@ class CloudScraper(object):
         print "processing complete: {0}".format(page_responses)
         return page_responses
 
-    def get_page_response(self, response_text):
+    def _get_page_response(self, response_text):
         """Returns a tuple of (url, status, content, text).
 
         A response dict from the callback should look like this:
@@ -264,7 +277,7 @@ class CloudScraper(object):
         if url and not urls:
             urls = [url]
 
-        post_body = json.dumps(self.get_batch_request(urls=urls))
+        post_body = json.dumps(self._get_batch_request(urls=urls))
 
         resp = self.API(self.API_URL).POST(data=post_body,
             headers={'content-type': 'application/json'})
@@ -279,7 +292,7 @@ class CloudScraper(object):
         callback_url = resp_dct.get('callbackUrl')
         print "got callback url: {0}".format(callback_url)
 
-        pages = self.get_batch_callback_response(callback_url)
+        pages = self._get_batch_callback_response(callback_url)
         if len(pages) != len(urls):
             raise ValueError("phantomjscloud didn't give us the same number of pages?!")
 
