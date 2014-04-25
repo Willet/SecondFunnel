@@ -86,8 +86,18 @@ App.options.urlParams = window.location.search;
 
     // patch all console methods individually.
     _(['debug', 'log', 'warn', 'error']).each(function (method) {
-        console[method] = console[method] || $.noop;
+        console[method] = console[method] || function (wat) {
+            // actually... if console.log exists, use it anyway
+            if (method !== 'log' &&
+                typeof console.log === 'function' ||
+                typeof console.log === 'object') {
+                console.log(wat);
+            }
+        };
     });
+
+    // IE8 has this as undefined
+    window.devicePixelRatio = window.devicePixelRatio || 1;
 
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {

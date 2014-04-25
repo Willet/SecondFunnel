@@ -2,8 +2,9 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from apps.assets.models import Image, Product
 
-from apps.scraper.models import Scraper, ProductDetailScraper, ProductCategoryScraper
+from apps.scraper.models import Scraper, ProductDetailScraper, ProductCategoryScraper, ContentDetailScraper
 
 
 class GapProductScraper(ProductDetailScraper):
@@ -165,14 +166,62 @@ class GapCategoryScraper(ProductCategoryScraper):
                 for product_elem in product_groups[i].select('li div a'):
                     href = product_elem.get_attribute('href')
                     match = re.match(self.product_sku_regex, href)
-                    if not match:
-                        continue
-                    sku = match.group(1)
-                    product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
-                    name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
+                    if match:
+                        sku = match.group(1)
+                        product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
+                        name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
 
-                    product = self._get_product(product_url)
-                    product.sku = sku
-                    product.name = name
-                    yield {'product': product, 'url': product_url}
+                        product = self._get_product(product_url)
+                        product.sku = sku
+                        product.name = name
+                        yield {'product': product, 'url': product_url}
+                    else:
+                        # if item is not a product, check if it is a STL
+                        match = re.match(STLScraper.regexs[0], href)
+                        if match:
+                            yield {'url': href}
+                        else:
+                            pass
             page_num += 1
+
+
+class STLScraper(ContentDetailScraper):
+    regexs = [Scraper._wrap_regex('(?:www\.)?gap.com/browse/outfit\.do\?(?:[^/\?]*&)*cid=(\d+)(?:&[^/\?]*)*&oid=(OUT-\d+)', True),
+              Scraper._wrap_regex('(?:www\.)?gap.com/browse/outfit\.do\?(?:[^/\?]*&)*oid=(OUT-\d+)(?:&[^/\?]*)*&cid=(\d+)', True)]
+
+    def parse_url(self, url, **kwargs):
+        match = re.match(self.regexs[0], url)
+        if match:
+            return 'http://www.gap.com/browse/outfit.do?cid={0}&oid={1}'.format(match.group(1), match.group(2))
+        match = re.match(self.regexs[1], url)
+        if match:
+            return 'http://www.gap.com/browse/outfit.do?cid={1}&oid={0}'.format(match.group(1), match.group(2))
+
+    def scrape(self, url, **kwargs):
+        print('loading url ' + url)
+        self.driver.get(url)
+        print('url loaded')
+        outfit_content = self.driver.find_element_by_xpath('//div[@id="outfitContent"]')
+        image_url = outfit_content.find_element_by_xpath('./div[@id="outfitContentLeft"]/div[@id="outfitImages"]//img').get_attribute('src')
+        if image_url.startswith('/'):
+            image_url = 'http://www.gap.com' + image_url
+        try:
+            image = Image.objects.get(store=self.store, original_url=url)
+        except Image.DoesNotExist:
+            image = Image(store=self.store, source_url=image_url)
+        image = self._process_image(image_url, image)
+        image.original_url = url
+        image.source = 'gap-stl'
+        image.save()
+        for product_match in re.finditer('objGIDPageViewAdapter\.objGIDOutfit\.arrayProducts\.push\(\{strProductId:\s"(\d+)',
+                                         self.driver.page_source):
+            sku = product_match.group(1)
+            try:
+                product = Product.objects.get(store=self.store, sku=sku)
+                image.tagged_products.add(product)
+            except Product.DoesNotExist:
+                yield {'url': 'http://www.gap.com/browse/product.do?pid=' + sku}
+                product = Product.objects.get(store=self.store, sku=sku)
+                image.tagged_products.add(product)
+                pass
+        yield {'content': image}

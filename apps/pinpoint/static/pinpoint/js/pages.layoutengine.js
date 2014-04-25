@@ -74,12 +74,11 @@ App.module("layoutEngine", function (layoutEngine, App) {
      */
     this.recalculateWidth = function (view) {
         var selector = opts.itemSelector + ':not(.wide, .full)',
-            discovery = view.$el,
-            columnWidth = opts.columnWidth,
+            columnWidth = opts.columnWidth || defaults.columnWidth || 1,
             minColumns = App.support.mobile() ?
                 opts.minMobileColumns || defaults.minMobileColumns :
                 opts.minDesktopColumns || defaults.minDesktopColumns,
-            width = discovery.outerWidth();
+            width = view.$el.outerWidth() || 1024;
 
         if (width >= (minColumns + 1) * columnWidth) {
             // columnWidth or dynamicWidth apply as we've passed the threshold

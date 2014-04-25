@@ -1,27 +1,32 @@
-import os
 import re
 import traceback
 
+from os import listdir
+from os.path import join, dirname
+
 from optparse import make_option
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Q
 
 from selenium.common.exceptions import WebDriverException
 
 from apps.assets.models import Product, Store
+from apps.scraper.errors import ScraperException
 from apps.scraper.models import ProductDetailScraper
-from apps.scraper.scrapers import (GapProductScraper, GapCategoryScraper,
-                                   MadewellProductScraper, MadewellCategoryScraper,
-                                   MadewellMultiProductScraper,VoyagePriveCategoryScraper,
-                                   PinterestPinScraper, PinterestAlbumScraper,
-                                   StyldByFilterScraper, StyldByPartnersScraper)
+
+from apps.scraper.scrapers.gap import GapProductScraper, GapCategoryScraper, STLScraper
+from apps.scraper.scrapers.madewell import MadewellProductScraper, MadewellCategoryScraper, MadewellMultiProductScraper
+from apps.scraper.scrapers.voyage_prive import VoyagePriveCategoryScraper
+from apps.scraper.scrapers.pinterest import PinterestPinScraper, PinterestAlbumScraper
+from apps.scraper.scrapers.styldby import StyldByFilterScraper, StyldByPartnersScraper
 
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('--store-id', default=None, dest='store-id'),
         make_option('--url', default=None),
-        make_option('--folder', default=None))
+        make_option('--folder', default=None))  # --folder is deprecated
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__()
@@ -36,53 +41,72 @@ class Command(BaseCommand):
             PinterestAlbumScraper,
             StyldByFilterScraper,
             StyldByPartnersScraper,
+            STLScraper,
         ]
 
     def handle(self, *args, **kwargs):
         """
         If called with store-id (somehow) and url, scrapes that url for
             that store.
-        If called with folder,
         Otherwise, scrapes all urls listed in all text files in the urls folder.
         """
-        store = None
         store_id = kwargs.pop('store-id', None)
         url = kwargs.pop('url', None)
-        folder = kwargs.pop('folder', None)
-        if url:
-            try:
-                store = Store.objects.get(id=store_id)
-            except ObjectDoesNotExist:
-                pass
-            try:
-                if not store:
-                    store = Store.objects.get(slug=store_id)  # identifier was a slug
-            except ObjectDoesNotExist:
-                raise CommandError('store-id must be specified if url is included')
+        urls_folder = kwargs.pop('folder', None)
 
-            self.set_store(store)
-            self.run_scraper(url=url)
+        # allow either fields as identifiers
+        try:
+            store = Store.objects.get(Q(id=store_id) | Q(slug=store_id))
+        except (Store.DoesNotExist, MultipleObjectsReturned) as err:
+            store = None
+            if store_id:  # told to scrape a store, but no such store
+                raise
+
+        # "scrape all urls for whichever store, or all stores if store is missing"
+        if urls_folder:
+            print "--folder option is deprecated (not useful in any way)"
         else:
-            if not folder:
-                # e.g. /home/brian/Envs/SecondFunnel/apps/scraper/urls
-                folder = os.path.join(os.path.dirname(os.path.dirname(
-                    os.path.dirname(__file__))), 'urls') + '/'
-            for file_name in os.listdir(folder):
-                print('retrieving url from "{0}"'.format(
-                    os.path.join(folder,file_name)))
-                url_file = open(os.path.join(folder,file_name))
-                store_slug = file_name.split('.')[0]  # 'gap' from 'gap.txt'
-                try:
-                    store = Store.objects.get(slug=store_slug)
-                    self.set_store(store)
+            urls_folder = join(dirname(dirname(dirname(__file__))), 'urls')
+
+        if store:  # you said scrape this store; I will scrape this store
+            stores = [store]
+        else:  # scrape all stores
+            stores = Store.objects.all()
+
+        if store and url:
+            # "scrape this url for this store"
+            self.set_store(store)
+            return self.run_scraper(url=url)
+
+        # scraper itinerary
+        print "This multiple-scraper trip contains the URLs:"
+        for store in stores:
+            print store.slug
+            file_name = store.slug.lower() + '.txt'
+            file_link = join(urls_folder, file_name)
+            try:
+                with open(file_link) as url_file:
+                    for line in url_file:
+                        print "- {0}".format(line.replace('\n', ''))
+            except IOError:
+                pass
+
+        for store in stores:
+            try:
+                self.set_store(store)
+                file_name = store.slug.lower() + '.txt'
+                file_link = join(urls_folder, file_name)
+                print('retrieving url from "{0}"'.format(file_link))
+                with open(file_link) as url_file:
                     for line in url_file:
                         # support comments
                         if line.startswith('#'):
                             print "Skipping {0}".format(line[1:])
                             continue
                         self.run_scraper(url=line)
-                except Store.DoesNotExist:
-                    print('store %s does not exist' % store_slug)
+            except BaseException as err:
+                print "Oh no! Something bad happened: {0}".format(err)
+                continue  # this line is merely symbolic
 
     def set_store(self, store):
         self.store = store
@@ -97,7 +121,7 @@ class Command(BaseCommand):
             if any(re.match(regex, url) for regex in regexs):
                 return scraper
 
-        return None
+        raise ScraperException('No scraper defined for given url')
 
     def run_scraper(self, url, product=None, content=None, scraper=None, values=None):
         if values is None:

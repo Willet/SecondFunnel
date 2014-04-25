@@ -26,6 +26,7 @@ body {
     background-color: #fc601d;
     border-radius: 0;
     color: white;
+    margin-bottom: 0;
     white-space: nowrap;
 }
 
@@ -415,10 +416,23 @@ body {
     margin-right: 10px;
 }
 
+.tile.banner.wide .overlay .title {
+    margin-top: 50px;
+    font-size: 30px;
+    padding: 0 50px;
+    margin-left: 0;
+    margin-right: 0;
+}
+
 .tile.banner .overlay .review {
+    display: none;
+}
+.tile.banner.wide .overlay .review {
+    display: block;
     color: black;
-    margin-top: 5px;
-    padding: 0 10px;
+    margin-top: 50px;
+    padding: 0 50px;
+    font-size: 20px;
 }
 
 .tile.banner .overlay .view {
@@ -431,6 +445,11 @@ body {
     padding: 10px;
     padding-right: 50px;
     padding-left: 25px;
+}
+
+.tile.banner.wide .overlay .view {
+    bottom: 50px;
+    right: 50px;
 }
 
 .tile.banner .overlay .view .arrow {
@@ -451,6 +470,12 @@ body {
     padding: 10px;
     max-width: 100px;
     font-size: 16px;
+}
+
+.tile.banner.wide .overlay .direct-site-info {
+    bottom: 50px;
+    left: 50px;
+    max-width: none;
 }
 
 .tile.banner .overlay .direct-site-info .price-container {
@@ -490,7 +515,8 @@ body {
         background-color: transparent;
     }
 
-    .tile.banner .overlay .title {
+    .tile.banner .overlay .title,
+    .tile.banner.wide .overlay .title {
         position: absolute;
         background-color: black;
         color: white;

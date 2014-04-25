@@ -303,6 +303,7 @@ App.module('core', function (module, App) {
             // this is the 'image 404' event
             if ($tileImg && $tileImg.length >= 1) {
                 $tileImg[0].onerror = function () {
+                    console.warn("Image error, closing views: " + arguments);
                     self.close();
                 };
             }
