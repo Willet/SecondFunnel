@@ -151,8 +151,13 @@ class CloudScraper(object):
             "requestType": "text",
             "outputAsJson": True,
             "loadImages": False,
-            "timeout": 15000,
+            "timeout": 30000,
             "postDomLoadedTimeout": 5000,
+            "execScripts": [{
+                "targetPageLoaded": "setInterval(function () { "
+                                        "window.scrollTo(0,document.body.scrollHeight); "
+                                    "}, 500);"
+            }],
             "requestId": hashlib.md5(url).hexdigest()[:6],  # just a random str
         }
         if other:
@@ -255,7 +260,7 @@ class CloudScraper(object):
 
 
     def scrape(self, url=None, urls=None):
-        """Either one url, or a list of urls. Returns pages"""
+        """Either one url, or a list of urls. Returns page-response tuples"""
         if url and not urls:
             urls = [url]
 
@@ -274,7 +279,11 @@ class CloudScraper(object):
         callback_url = resp_dct.get('callbackUrl')
         print "got callback url: {0}".format(callback_url)
 
-        return self.get_batch_callback_response(callback_url)
+        pages = self.get_batch_callback_response(callback_url)
+        if len(pages) != len(urls):
+            raise ValueError("phantomjscloud didn't give us the same number of pages?!")
+
+        return pages
 
 
 class ProductScraper(Scraper):
