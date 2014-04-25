@@ -54,7 +54,10 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
 
             product.name = product.name.strip(' ,')  # remove spaces, commas, ...
 
-            product.url = node.find_element_by_xpath('./url-detail').text
+            # we want a special url format;
+            # see https://github.com/Willet/SecondFunnel/pull/720#issuecomment-41426543
+            product.url = 'http://www.officiel-des-vacances.com/' \
+                          'route-to/{0}/section'.format(sku)
             product.price = u'€' + node.find_element_by_xpath('./prix').text
 
             # this is the default
