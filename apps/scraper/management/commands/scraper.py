@@ -78,15 +78,28 @@ class Command(BaseCommand):
             self.set_store(store)
             return self.run_scraper(url=url)
 
+        # scraper itinerary
+        print "This multiple-scraper trip contains the URLs:"
+        for store in stores:
+            print store.slug
+            file_name = store.slug.lower() + '.txt'
+            file_link = join(urls_folder, file_name)
+            try:
+                with open(file_link) as url_file:
+                    for line in url_file:
+                        print "- {0}".format(line.replace('\n', ''))
+            except IOError:
+                pass
+
         for store in stores:
             try:
                 self.set_store(store)
-                file_name = store.slug + '.txt'
+                file_name = store.slug.lower() + '.txt'
                 file_link = join(urls_folder, file_name)
                 print('retrieving url from "{0}"'.format(file_link))
-                url_file = open(file_link)
-                for line in url_file:
-                    self.run_scraper(url=line)
+                with open(file_link) as url_file:
+                    for line in url_file:
+                        self.run_scraper(url=line)
             except BaseException as err:
                 print "Oh no! Something bad happened: {0}".format(err)
                 continue  # this line is merely symbolic
