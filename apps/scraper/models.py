@@ -1,7 +1,10 @@
+import hashlib
+import json
 import urllib
 from bs4 import BeautifulSoup
 from django.db.models import Q
 import bleach
+from hammock import Hammock
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
@@ -123,6 +126,73 @@ class Scraper(object):
         scraper can be included to explicitly define the next scraper
         """
         raise NotImplementedError
+
+
+class CloudScraper(object):
+    """PhantomJSCloud adapter"""
+    API_ROOT = "http://api.phantomjscloud.com"
+    API_KEY = "7707cc4bae3ee4d768d0d6f6b5e6856a58b530bd"
+    API_URL = "{API_ROOT}/batch/browser/v1/{API_KEY}/".format(API_ROOT=API_ROOT,
+                                                              API_KEY=API_KEY)
+
+    def get_page_request(self, url, other=None):
+        """generates a 'page-request' object mentioned in the docs:
+        https://phantomjscloud.com/site/docs.html#/advanced_batchRequest#advanced_batchRequest
+
+        (adding a page request to the POST body adds the urls to the
+        batch request list to scrape, must of the time.)
+
+        (I also don't know what the point of requestId is.)
+        """
+        obj = {
+            "targetUrl": url,
+            "requestType": "text",
+            "outputAsJson": True,
+            "loadImages": False,
+            "timeout": 15000,
+            "postDomLoadedTimeout": 5000,
+            "requestId": hashlib.md5(url).hexdigest()[:6],  # just a random str
+        }
+        if other:
+            obj.update(other)
+
+        return obj
+
+    def get_batch_request(self, urls, other=None):
+        """generates a 'batch-request' object menioned in the docs:
+        https://phantomjscloud.com/site/docs.html#/advanced_batchRequest#advanced_batchRequest
+
+        (using this as the POST body supposedly makes phantomjscloud scrape
+        those urls.)
+        """
+        obj = {
+            "hostMaxOpen": 10,
+            "batchRequests": [self.get_page_request(url) for url in urls],
+        }
+        if other:
+            obj.update(other)
+
+        return obj
+
+    def scrape(self, url=None, urls=None):
+        """Either one url, or a list of urls. Returns pages"""
+        if url and not urls:
+            urls = [url]
+
+        post_body = json.dumps(self.get_batch_request(urls=urls))
+        api = Hammock(self.API_URL)
+
+        resp = api.POST(data=post_body,
+                        headers={'content-type': 'application/json'})
+
+        # resp looks like {u'status': u'success',
+        #               u'callbackUrl': u'http://api.phantomjscloud.com/...'}
+        resp_dct = resp.json()
+        if resp_dct.get('status') != 'success':
+            raise IOError("phantomjscloud returned '{0}' instead of 'success'".format(
+                resp_dct.get('status')))
+
+        return resp_dct.get('callbackUrl')
 
 
 class ProductScraper(Scraper):
