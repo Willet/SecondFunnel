@@ -940,5 +940,18 @@
         }());
     </script>
     <img src='{% url 'apps.tracking.views.pixel' %}'/>
+
+    {% if environment == 'production' %}
+    <!-- start : Eulerian Analytics - officiel-vacances / must be placed before the /body tag -->
+    <script type="text/javascript" src="//eulerian.officiel-des-vacances.com/ea.js"></script>
+    <script type="text/javascript">
+    /*<![CDATA[*/
+    EA_collector([
+    ,"path", "/Landing/Facebook/SF"
+    ]);
+    /*]]>*/
+    </script>
+    <!-- stop : Eulerian Analytics - officiel-vacances -->
+    {% endif %}
 </body>
 </html>
