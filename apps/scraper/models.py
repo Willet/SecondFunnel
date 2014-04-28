@@ -292,7 +292,8 @@ class CloudScraper(Scraper):
                 resp_dct.get('status')))
 
         callback_url = resp_dct.get('callbackUrl')
-        print "Querying callback url: {0}".format(callback_url)
+        print "Scraping urls: %s" % urls
+        # print "Querying callback url: {0}".format(callback_url)
 
         pages = self._get_batch_callback_response(callback_url,
                                                   page_count=len(urls))

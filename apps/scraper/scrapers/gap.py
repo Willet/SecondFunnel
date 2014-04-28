@@ -146,7 +146,7 @@ class GapCategoryScraper(ProductCategoryScraper):
             pages = 1
 
         page_num = 0
-        while page_num < pages:
+        while page_num <= pages:
             _, _, page, _ = self.scrape(urls=[url + '#pageId=' + str(page_num)])[0]
 
             # get all sub categories on the page
@@ -180,6 +180,7 @@ class GapCategoryScraper(ProductCategoryScraper):
                         product = self.get_product(url=product_url)
                         product.sku = sku
                         product.name = name
+                        print "Saving product {0}".format(product)
                         product.save()
                         # return {'product': product, 'url': product_url}
                     else:
@@ -208,6 +209,9 @@ class STLScraper(ContentDetailScraper):
 
     def scrape(self, url, **kwargs):
         """:returns list of page-response tuples"""
+
+
+    def process(self, url, page, text='', status=200, **kwargs):
         print('loading url ' + url)
         self.driver.get(url)
         print('url loaded')
