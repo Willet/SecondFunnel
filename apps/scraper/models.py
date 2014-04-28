@@ -57,8 +57,8 @@ class Scraper(object):
         regex += r'(?:#.*)?$'
         return regex
 
-    @classmethod
-    def _wrap_url(cls, url, **params):
+    @staticmethod
+    def _wrap_url(url, **params):
         """If the url isn't a phantomjscloud url, make it one, using params
         that you pass (optional).
         If the url is already a phantomjscloud url, do not make it one.
@@ -274,6 +274,8 @@ class CloudScraper(Scraper):
 
     def scrape(self, urls):
         """Accepts a list of urls. Returns page-response tuples"""
+        if not isinstance(urls, list):
+            urls = [urls]
 
         post_body = json.dumps(self._get_batch_request(urls=urls))
 
