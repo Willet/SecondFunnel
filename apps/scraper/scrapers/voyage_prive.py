@@ -29,20 +29,20 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         skus = []  # list of product skus that are in the feed (which may or may not be in status (statut) 1
 
         print('loading url http://www.officiel-des-vacances.com/partners/catalog.xml')
-        url, status, driver, _ = self.scrape(urls=['http://www.officiel-des-vacances.com/partners/catalog.xml'])[0]
+        _, status, driver, _ = self.scrape(urls=['http://www.officiel-des-vacances.com/partners/catalog.xml'])[0]
         print('url loaded')
 
         for node in driver.select('nodes node'):
-            sku = node.select('id')[0].get_text()
+            sku = node.find('id').get_text()
             skus.append(sku)
-            direct_site_name = node.select('nom-fournisseur')[0].get_text()  # node.find_element_by_xpath('./nom-fournisseur').text
-            direct_site_image = node.select('image-fournisseur')[0].get_text()  # node.find_element_by_xpath('./image-fournisseur').text
+            direct_site_name = node.find('nom-fournisseur').get_text()  # node.find_element_by_xpath('./nom-fournisseur').text
+            direct_site_image = node.find('image-fournisseur').get_text()  # node.find_element_by_xpath('./image-fournisseur').text
             try:
                 product = Product.objects.filter(sku=sku)[0]
             except (Product.DoesNotExist, IndexError):
                 product = Product(sku=sku)
             product.store = self.store
-            product.name = node.select('titre')[0].get_text()  # node.find_element_by_xpath('./titre').text
+            product.name = node.find('titre').get_text()  # node.find_element_by_xpath('./titre').text
             match = re.match(r"""(.+),?         # Name of product
                                  \s*            # Followed by 0 or more spaces
                                  (-\s*\d+%)     # Percentage of product off
@@ -57,11 +57,11 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
 
             product.name = product.name.strip(' ,')  # remove spaces, commas, ...
 
-            product.url = node.select('url-detail')[0].get_text()  # node.find_element_by_xpath('./url-detail').text
-            product.price = u'€' + node.select('prix')[0].get_text()  # node.find_element_by_xpath('./prix').text
+            product.url = node.find('url-detail').get_text()  # node.find_element_by_xpath('./url-detail').text
+            product.price = u'€' + node.find('prix').get_text()  # node.find_element_by_xpath('./prix').text
 
             # this is the default
-            product.in_stock = (node.select('statut')[0].get_text()  # node.find_element_by_xpath('./statut').text
+            product.in_stock = (node.find('statut').get_text()  # node.find_element_by_xpath('./statut').text
                                 in [1, '1', u'1'])
 
             product.attributes.update({
@@ -69,7 +69,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 'direct_site_image': direct_site_image,
             })
             products.append(product)
-            images.append(node.select('image')[0].get_text())  # node.find_element_by_xpath('./image').text)
+            images.append(node.find('image').get_text())  # node.find_element_by_xpath('./image').text)
 
         # after-the-fact processing
         for product in Product.objects.filter(store=store):
@@ -127,7 +127,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                         reviewer_name = reviewer_el.get_text()
 
                         reviewer_img_el = driver.select('div div.viewp-product-editorialist-{0} img'.format(product.sku))[0]
-                        reviewer_img = reviewer_img_el.get_attribute('src')
+                        reviewer_img = reviewer_img_el.attrs.get('src')
 
                         product.attributes.update({
                             "review_text": review_text,
@@ -140,7 +140,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                         print "No review was found for product {0}".format(product.sku)
 
                     try:  # type unicode
-                        all_image_urls = [x.get_attribute('data-original') for x in driver.select('div figure div[data-id="{0}"] li a img'.format(product.sku))[0]]
+                        all_image_urls = [x.attrs.get('data-original') for x in driver.select('div figure div[data-id="{0}"] li a img'.format(product.sku))[0]]
                         if all_image_urls:
                             print "Adding more image urls to product: {0}".format(
                                 all_image_urls)
@@ -172,4 +172,4 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 except Exception as err:
                     pass  # let other products be processed
 
-                return {'product': product}
+                # yield {'product': product}

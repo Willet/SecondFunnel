@@ -104,6 +104,7 @@ class Command(BaseCommand):
                 page_scraper = scraper.get_scraper(url=url)()
                 page_scraper.process(url=url, page=page, text=text, status=status)
             except BaseException as err:
+                raise
                 print "Oh no! Something bad happened: {0}".format(err)
                 continue  # this line is merely symbolic
 

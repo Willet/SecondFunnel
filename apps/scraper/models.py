@@ -206,8 +206,9 @@ class CloudScraper(Scraper):
 
         while True:
             trips = trips + 1
-            print "Retrieving pages: [Tick {0}/100, {1}/{2} pages complete]".format(
-                trips, len(page_responses), page_count)
+            if trips % 10:
+                print "Retrieving pages: [Tick {0}/100, {1}/{2} pages complete]".format(
+                    trips, len(page_responses), page_count)
             sleep(6)  # wait time in seconds; arbitrary number
 
             # call the callback url (note: calling the callback url will remove results)
