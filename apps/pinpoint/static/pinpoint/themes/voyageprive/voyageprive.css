@@ -16,6 +16,10 @@ body {
     }
 }
 
+html.tablet .container {
+    max-width: 990px;
+}
+
 .propercase {
     text-transform: capitalize;
 }
@@ -57,6 +61,18 @@ body {
     }
 }
 
+html.tablet .container {
+    margin-top: -10px;
+}
+
+html.tablet .navbar {
+    margin-bottom: 0;
+}
+
+html.tablet .navbar .tag-line {
+    display: none;
+}
+
 .dropdown-menu .facebook,
 .dropdown-menu .twitter,
 .dropdown-menu .pinterest,
@@ -81,6 +97,10 @@ body {
     .dropdown-xs {
         display: block;
     }
+}
+
+html.tablet .dropdown-xs {
+    display: block;
 }
 
 .dropdown-menu .facebook {
@@ -153,6 +173,26 @@ body {
     }
 }
 
+html.tablet #hero-area .overlay {
+    top: 2px;
+    background-color: transparent;
+    text-align: center;
+    padding: 0 10px;
+}
+
+html.tablet #hero-area .overlay .title {
+    padding: 0 10px;
+    font-size: 26px;
+}
+
+html.tablet #hero-area .overlay div {
+    background-color: black;
+    display: inline-block;
+    margin-bottom: 2px;
+    padding: 2px 5px;
+    font-size: 13px;
+}
+
 .jumbotron {
     background-repeat: no-repeat;
     width: 1024px;
@@ -189,6 +229,10 @@ body {
     }
 }
 
+html.tablet .jumbotron {
+    border-bottom: none;
+}
+
 #hero-area .buttons {
     margin-bottom: 3px;
 }
@@ -220,6 +264,12 @@ body {
     #hero-area .find.white a:visited {
         color: #f14945;
     }
+}
+
+html.tablet #hero-area .find.white a,
+html.tablet #hero-area .find.white a:hover,
+html.tablet #hero-area .find.white a:visited {
+    color: #f14945;
 }
 
 #hero-area .find.red a,
@@ -262,6 +312,10 @@ body {
     .tile {
         width: 100% !important;
     }
+}
+
+html.tablet .tile {
+    width: 100% !important;
 }
 
 .tile .caption {
@@ -548,6 +602,49 @@ body {
     }
 }
 
+html.tablet .tile.banner .discount {
+    font-size: 22px;
+    padding: 5px 10px;
+    font-weight: normal;
+}
+
+html.tablet .tile.banner .overlay {
+    opacity: 1;
+    background-color: transparent;
+}
+
+html.tablet .tile.banner .overlay .title,
+html.tablet .tile.banner.wide .overlay .title {
+    position: absolute;
+    background-color: black;
+    color: white;
+    bottom: 5px;
+    left: 5px;
+    right: 5px;
+    margin: 0;
+    font-size: 14px;
+    padding-right: 42px;
+    padding-left: 4px;
+}
+
+html.tablet .tile.banner .overlay .direct-site-info {
+    display: none;
+}
+
+html.tablet .tile.banner .overlay .review {
+    display: none;
+}
+
+html.tablet .tile.banner .overlay .title .arrow {
+    display: block;
+    right: 12px;
+    margin-top: -8px;
+}
+
+html.tablet .tile.banner .overlay .view {
+    display: none;
+}
+
 .tile.banner .overlay .title .shop-products {
     font-family: "Helvetica", "Verdana", sans-serif;
     font-size: 11pt;
@@ -639,6 +736,13 @@ body {
         overflow-y: hidden;
         white-space: nowrap;
     }
+}
+
+html.tablet .previewContainer .gallery {
+    height: 50px;
+    margin-bottom: 7px;
+    overflow-y: hidden;
+    white-space: nowrap;
 }
 
 /* === */
@@ -806,6 +910,80 @@ body {
     }
 }
 
+html.tablet .previewContainer .image,
+html.tablet .previewContainer .main-image {
+    width: 100%;
+    height: 100%;
+}
+
+html.tablet .previewContainer div.img,
+html.tablet .previewContainer .image div.img,
+html.tablet .previewContainer .main-image div.img {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    display: inline-block;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+}
+
+html.tablet .previewContainer .gallery {
+    margin: 0 auto;
+    padding: 3px;
+    height: auto;
+}
+
+html.tablet .previewContainer .gallery .img {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-left: 2px;
+    margin-right: 2px;
+    display: inline-block;
+    background: transparent;
+    border: 2px solid #FFFFFF;
+}
+
+html.tablet .previewContainer .gallery .img.selected {
+    background: rgba(255, 255, 255, 1);
+}
+
+/* indicate that the image can be swiped */
+html.tablet .previewContainer .gallery-swipe-left, .previewContainer .gallery-swipe-right {
+    top: 50%;
+    z-index: 2;
+    color: #eee;
+    width: 45px;
+    height: 45px;
+    margin-top: -45px;
+    position: absolute;
+    background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
+}
+
+html.tablet .previewContainer .gallery-related {
+    top: 70%;
+}
+
+html.tablet .previewContainer .gallery-swipe-left {
+    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-left.png');
+    left: 8px;
+}
+
+html.tablet .previewContainer .gallery-swipe-left.grey {
+    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-left.png');
+}
+
+html.tablet .previewContainer .gallery-swipe-right {
+    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-right.png');
+    right: 8px;
+}
+
+html.tablet .previewContainer .gallery-swipe-right.grey {
+    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-right.png');
+}
+
 .previewContainer .description {
     color: #000d41;
     font-family: "Verdana", proxima-nova-soft, sans-serif;
@@ -918,6 +1096,72 @@ body {
         font-size: 20px;
         color: #fc601d;
     }
+}
+
+html.tablet .previewContainer .title {
+    background-color: #fc601d;
+    height: 56px;
+    line-height: 56px;
+}
+
+html.tablet .previewContainer .title img {
+    vertical-align: top;
+}
+
+html.tablet .previewContainer .image-region img {
+    width: 100%;
+}
+
+html.tablet .previewContainer .view-container {
+    text-align: center;
+    display: block;
+    cursor: pointer;
+}
+
+html.tablet .previewContainer .view-container .view {
+    position: relative;
+    background-color: #fc601d;
+    color: white;
+    font-size: 26px;
+    padding: 10px;
+    padding-right: 50px;
+    padding-left: 25px;
+    display: inline-block;
+}
+
+html.tablet .previewContainer .view .arrow {
+    right: 20px;
+}
+
+html.tablet .previewContainer .info-wrapper {
+    width: 100%;
+    padding: 10px;
+    display: table;
+}
+
+html.tablet .previewContainer .name {
+    font-size: 23px;
+    display: table-cell;
+}
+
+html.tablet .previewContainer .direct-site-info {
+    background-color: white;
+    color: black;
+    text-align: center;
+    padding: 10px;
+    max-width: 185px;
+    font-size: 16px;
+    display: table-cell;
+    min-width: 125px;
+}
+
+html.tablet .previewContainer .direct-site-info .price-container {
+    font-size: 12px;
+}
+
+html.tablet .previewContainer .direct-site-info .price-container .price {
+    font-size: 20px;
+    color: #fc601d;
 }
 
 .previewContainer .close {
@@ -1133,6 +1377,106 @@ body {
         width: auto;
         font-weight: inherit;
     }
+}
+
+html.tablet .navbar > .container .navbar-brand {
+    margin-left: 0px;
+}
+
+html.tablet #preview-area {
+    top: 0;
+    width: 100%;
+    z-index: 9999;
+    position: absolute;
+}
+
+html.tablet .previewContainer .close {
+    display: none;
+}
+
+html.tablet .previewContainer .content {
+    padding: 0px;
+    margin-bottom: 0;
+    max-height: inherit;
+    width: 100%;
+}
+
+html.tablet .previewContainer .content .info  {
+    padding: 5px;
+    max-width: 100%;
+    text-align: center;
+    background: #000d41;
+    border-bottom: 3px solid #FFFFFF;
+}
+
+html.tablet .previewContainer .content .center {
+    margin: 0 auto;
+    text-align: center;
+}
+
+html.tablet .previewContainer .content, .previewContainer .scrollable,
+html.tablet .previewContainer .template.target {
+    height: inherit;
+}
+
+html.tablet .previewContainer .content .image-div {
+    width: 100%;
+
+}
+
+html.tablet .previewContainer .content .single.gallery .image:before,
+html.tablet .previewContainer .content .single.gallery .image:after {
+    display: none;
+}
+
+html.tablet .previewContainer .content .row>div {
+    display: block;
+}
+
+html.tablet .previewContainer .row .cell.capped-width {
+    width: auto;
+}
+
+html.tablet .previewContainer .row .cell.capped-width {
+    display: block;
+    margin: auto;
+    margin-top: 35px;
+    margin-bottom: 7px;
+}
+
+html.tablet .previewContainer .image img {
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+}
+
+html.tablet .previewContainer .image-with-tagged-prodoucts .image:before,
+html.tablet .previewContainer .image-with-tagged-prodoucts .image:after {
+    display: none;
+}
+
+html.tablet .previewContainer .content .image-region {
+    max-width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+html.tablet .previewContainer .content .image-region.no-images {
+    top: 35px;
+}
+
+html.tablet .previewContainer .content .image-without-tagged-prodoucts .image-region {
+    top: 30px;
+}
+
+html.tablet .previewContainer .button.close {
+    float: none;
+    line-height: inherit;
+    height: auto;
+    padding: 5px;
+    text-transform: none;
+    width: auto;
+    font-weight: inherit;
 }
 
 /* Galaxy S1-3, iPhone 3GS, iPhone 4, et al */

@@ -193,6 +193,10 @@ function reinitialize(app) {
         if ($.browser.mobile && !app.support.isAniPad()) {
             $('html').addClass('mobile-phone');
         }
+
+        if (app.support.isAniPad() || app.support.isAnAndroid()) {
+            $('html').addClass('tablet');
+        }
     });
 
     app.vent.on('finished',  function () {
