@@ -14,7 +14,7 @@ class StyldByPartnersScraper(ContentCategoryScraper):
         match = re.match(self.regexs[0], url)
         return 'http://www.styld-by.com/en-us/partners/{0}/{1}'.format(match.group(1), match.group(2))
 
-    def parse(self, url, **kwargs):
+    def process(self, url, page, text='', status=200, **kwargs):
         self.driver.get(url)
         name = self.driver.find_element_by_xpath('.//h2[@class="title"]').text
         description = self.driver.find_element_by_xpath('.//div[@class="content"]/p').text
@@ -43,7 +43,7 @@ class StyldByFilterScraper(ContentCategoryScraper):
         match = re.match(self.regexs[0], url)
         return 'http://www.styld-by.com/en-us/filter/{0}'.format(match.group(1))
 
-    def parse(self, url, values, **kwargs):
+    def process(self, url, page, text='', status=200, **kwargs):
         page = 1
         while True:
             self.driver.get(url + '/page/' + str(page))

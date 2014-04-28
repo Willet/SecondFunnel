@@ -14,7 +14,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
     def parse_url(self, **kwargs):
         return 'http://www.officiel-des-vacances.com/week-end'
 
-    def parse(self, url, **kwargs):
+    def process(self, url, page, text='', status=200, **kwargs):
         """Scrapes Voyage Prive.
 
         In addition to scraping products from the store, this scraper adds
@@ -28,7 +28,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         images = []
         skus = []  # list of product skus that are in the feed (which may or may not be in status (statut) 1
         print('loading url http://www.officiel-des-vacances.com/partners/catalog.xml')
-        self.driver.get('http://www.officiel-des-vacances.com/partners/catalog.xml')
+        self.scrape(urls=['http://www.officiel-des-vacances.com/partners/catalog.xml'])
         print('url loaded')
         for node in self.driver.find_elements_by_xpath('//nodes/node'):
             sku = node.find_element_by_xpath('./id').text

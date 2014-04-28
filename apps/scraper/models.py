@@ -1,23 +1,19 @@
 import hashlib
 import json
+import re
 from time import sleep
 import urllib
+
 from bs4 import BeautifulSoup
-from django.db.models import Q
 import bleach
 from hammock import Hammock
-import re
-
-from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
-from selenium.webdriver import DesiredCapabilities
+from django.conf import settings
 
 from apps.assets.models import Category, ProductImage, Product
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 from apps.pinpoint.utils import read_remote_file
 from apps.scraper.errors import ScraperException
-from django.conf import settings
 from apps.scraper.scrapers import ALL_SCRAPERS
 
 
@@ -32,25 +28,12 @@ class Scraper(object):
     To allow the scraper to be run without explicitly specifying when to run,
     the regexs variable must define a list of regexs for the scraper
     """
+    store = None  # override for automatic store-product association.
     regexs = []
 
-    def __init__(self, store):
-        # initialize the head-less browser PhantomJS
-        # hmm... might not run on windows
-
-        # try to initialize phantomJS twice before throwing an exception
-        # (driver is not used for phantomjscloud ops
-        attempts = 2
-        while attempts:
-            try:
-                self.driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
-            except WebDriverException as err:
-                attempts = attempts - 1
-                if not attempts:
-                    raise err
-            else:
-                break
-        self.store = store
+    def __init__(self, store=None):
+        if store:
+            self.store = store
 
     def parse_url(self, url, values, **kwargs):
         """
@@ -102,55 +85,14 @@ class Scraper(object):
             settings.PHANTOMJSCLOUD_API_KEY,
             urllib.urlencode(params))
 
-    def scrape(self, url):
-        """Makes the request to the URL with the given.
-
-        Returns the page string and a beautifulsoup-wrapped object.
-
-        There is no scrapy equivalent for this method.
-        """
-        contents, _ = read_remote_file(url)
-        return contents, BeautifulSoup(contents)
-
-    def _sanitize_html(cls, html):
+    @staticmethod
+    def _sanitize_html(html):
         allowed_tags = ['div', 'ul', 'li', 'p', ]
         allowed_attrs = {
             '*': [],
         }
-        return bleach.clean(html, tags=allowed_tags, attributes=allowed_attrs, strip=True)
-
-    def parse(self, url, values, **kwargs):
-        """
-        The method used to run the scraper
-
-        yield is used to return dictionaries with the required variables
-        url must be included in the dictionary if another scraper must be run after this one
-        product or content must be included if no scraper should be run after this one
-        scraper can be included to explicitly define the next scraper
-        """
-        raise NotImplementedError
-
-
-class CloudScraper(object):
-    """PhantomJSCloud adapter"""
-    API_ROOT = "http://api.phantomjscloud.com"  # move this when value used elsewhere
-    API_KEY = "7707cc4bae3ee4d768d0d6f6b5e6856a58b530bd"
-    API_URL = "batch/browser/v1/{API_KEY}/".format(API_ROOT=API_ROOT,
-                                                   API_KEY=API_KEY)
-    API = Hammock(API_ROOT)
-
-    regexs = []
-
-    def __init__(self, *args, **kwargs):
-        """API compatible __init__ with Scraper"""
-        pass
-
-    def parse_url(self, url, values, **kwargs):
-        """
-        Optional method
-        Returns a condensed url from the passed in url
-        """
-        return url
+        return bleach.clean(html, tags=allowed_tags,
+                            attributes=allowed_attrs, strip=True)
 
     @staticmethod
     def get_scraper(url):
@@ -158,7 +100,7 @@ class CloudScraper(object):
         'regexes' constant.
         """
 
-        for scraper in ALL_SCRAPERS:
+        for scraper in ALL_SCRAPERS():
             if any(re.match(regex, url) for regex in scraper.regexs):
                 return scraper
 
@@ -168,6 +110,38 @@ class CloudScraper(object):
     def get_store(scraper):
         """Assuming the scraper has a store, returns one."""
         return getattr(scraper, 'store', None)
+
+    def scrape(self, url):
+        """Makes the request to the URL with the given.
+
+        Returns the page string and a beautifulsoup-wrapped object.
+
+        Because of an oversight, all responses have the same status.
+        """
+        contents, _ = read_remote_file(url)
+        return (url, 200, BeautifulSoup(contents), contents)
+
+    def process(self, url, page, text='', status=200, **kwargs):
+        """
+        The method used to run the scraper
+
+        page is a BeautifulSoup object.
+
+        yield is used to return dictionaries with the required variables
+        url must be included in the dictionary if another scraper must be run after this one
+        product or content must be included if no scraper should be run after this one
+        scraper can be included to explicitly define the next scraper
+        """
+        raise NotImplementedError
+
+
+class CloudScraper(Scraper):
+    """PhantomJSCloud adapter"""
+    API_ROOT = "http://api.phantomjscloud.com"  # move this when value used elsewhere
+    API_KEY = "7707cc4bae3ee4d768d0d6f6b5e6856a58b530bd"
+    API_URL = "batch/browser/v1/{API_KEY}/".format(API_ROOT=API_ROOT,
+                                                   API_KEY=API_KEY)
+    API = Hammock(API_ROOT)
 
     def _get_page_request(self, url, other=None):
         """generates a 'page-request' object mentioned in the docs:
@@ -292,13 +266,11 @@ class CloudScraper(object):
         response_dct = json.loads(response_text)
         try:
             return (response_dct['resultUrl'],
-
                     response_dct['pageResponseMetadata']['status'],
                     BeautifulSoup(response_dct['pageContent']),
                     response_dct['pageContentPlainText'])
         except KeyError as err:
             raise IOError("Malformed page-response object from phantomjscloud")
-
 
     def scrape(self, urls):
         """Accepts a list of urls. Returns page-response tuples"""
@@ -323,10 +295,11 @@ class CloudScraper(object):
         if len(pages) != len(urls):
             raise ValueError("phantomjscloud didn't give us the same number of pages?!")
 
+        # pages be [(url, status, BeautifulSoup(contents), text), ...]
         return pages
 
 
-class ProductScraper(Scraper):
+class ProductScraper(CloudScraper):
     def _get_product(self, url):
         try:
             product = Product.objects.get(store=self.store, url=url)
@@ -413,7 +386,7 @@ class ProductDetailScraper(ProductScraper):
     pass
 
 
-class ContentScraper(Scraper):
+class ContentScraper(CloudScraper):
     def _process_image(self, source_url, image):
         """
         This function uploads the image from the url and adds all necessary data to the image object

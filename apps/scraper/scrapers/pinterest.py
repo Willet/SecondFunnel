@@ -13,7 +13,7 @@ class PinterestPinScraper(ContentDetailScraper):
         sku = re.match(self.get_regex()[0], url).group(1)
         return 'http://www.pinterest.com/pin/{0}/'.format(sku)
 
-    def parse(self, url, content, **kwargs):
+    def process(self, url, page, text='', status=200, **kwargs):
         self.driver.get(url)
         if content is None:
             try:
@@ -38,7 +38,7 @@ class PinterestAlbumScraper(ContentCategoryScraper):
         album = match.group(2)
         return 'http://www.pinterest.com/{0}/{1}/'.format(user, album)
 
-    def parse(self, url, **kwargs):
+    def process(self, url, page, text='', status=200, **kwargs):
         self.driver.get(url)
         for element in self.driver.find_elements_by_xpath('//div[@class="pinHolder"]/a'):
             url = element.get_attribute('href')

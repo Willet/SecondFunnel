@@ -4,23 +4,23 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from apps.assets.models import Image, Product, Store
 
-from apps.scraper.models import Scraper, ProductDetailScraper, ProductCategoryScraper, ContentDetailScraper
+from apps.scraper.models import ProductDetailScraper, ProductCategoryScraper, ContentDetailScraper
 
 
 class GapProductScraper(ProductDetailScraper):
     store = Store.objects.get(slug='gap')
-    regexs = [Scraper._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)]
+    regexs = [ProductDetailScraper._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)]
     sku_regex = r'^http://www\.gap\.com/browse/product\.do\?pid=(\d{6})$'
     imageLabels = ["Z", "AV1_Z", "AV2_Z", "AV9_Z", "SC_OUT_Z"]
 
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.regexs[0], url).group(1)
 
-    def parse(self, url, values, **kwargs):
+    def process(self, url, page, text='', status=200, **kwargs):
         product = kwargs.get('product')
         url = self._wrap_url(url)
         print('loading ' + url)
-        page_source, page = self.scrape(url=url)
+        page_source, page = self.scrape(urls=[url])
 
         try:
             product.name = page.select('span.productName')[0].text
@@ -82,7 +82,7 @@ class GapProductScraper(ProductDetailScraper):
             self._add_to_category(product, values.get('sub_category', None))
 
         # given a url, scrape some other url (the same product's data json)
-        page_source, page = self.scrape('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
+        page_source, page = self.scrape(urls=['http://www.gap.com/browse/productData.do?pid=%s' % product.sku])
 
         images = self._get_images(page_source, product)
         if len(images) > 0:
@@ -123,14 +123,14 @@ class GapProductScraper(ProductDetailScraper):
 
 class GapCategoryScraper(ProductCategoryScraper):
     store = Store.objects.get(slug='gap')
-    regexs = [Scraper._wrap_regex(r'(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)', True)]
+    regexs = [ProductCategoryScraper._wrap_regex(r'(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)', True)]
     product_sku_regex = r'^(?:(?:https?://)?(?:www\.)?gap\.com)?/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
 
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.regexs[0], url).group(1)
 
-    def parse(self, url, values, **kwargs):
-        page_source, page = self.scrape(url)
+    def process(self, url, page, text='', status=200, **kwargs):
+        page_source, page = self.scrape(urls=[url])
 
         # get category name
         try:
@@ -150,7 +150,7 @@ class GapCategoryScraper(ProductCategoryScraper):
 
         page_num = 0
         while page_num < pages:
-            page_source, page = self.scrape(url + '#pageId=' + str(page_num))
+            page_source, page = self.scrape(urls=[url + '#pageId=' + str(page_num)])
 
             # get all sub categories on the page
             try:
@@ -189,8 +189,8 @@ class GapCategoryScraper(ProductCategoryScraper):
 
 class STLScraper(ContentDetailScraper):
     store = Store.objects.get(slug='gap')
-    regexs = [Scraper._wrap_regex('(?:www\.)?gap.com/browse/outfit\.do\?(?:[^/\?]*&)*cid=(\d+)(?:&[^/\?]*)*&oid=(OUT-\d+)', True),
-              Scraper._wrap_regex('(?:www\.)?gap.com/browse/outfit\.do\?(?:[^/\?]*&)*oid=(OUT-\d+)(?:&[^/\?]*)*&cid=(\d+)', True)]
+    regexs = [ContentDetailScraper._wrap_regex('(?:www\.)?gap.com/browse/outfit\.do\?(?:[^/\?]*&)*cid=(\d+)(?:&[^/\?]*)*&oid=(OUT-\d+)', True),
+              ContentDetailScraper._wrap_regex('(?:www\.)?gap.com/browse/outfit\.do\?(?:[^/\?]*&)*oid=(OUT-\d+)(?:&[^/\?]*)*&cid=(\d+)', True)]
 
     def parse_url(self, url, **kwargs):
         match = re.match(self.regexs[0], url)

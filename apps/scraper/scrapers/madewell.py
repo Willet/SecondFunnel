@@ -26,7 +26,7 @@ class MadewellProductScraper(ProductDetailScraper):
 
         return url
 
-    def parse(self, url, values, **kwargs):
+    def process(self, url, page, text='', status=200, **kwargs):
         product = kwargs.get('product')
 
         self.driver.get(url)
@@ -115,7 +115,7 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
     store = Store.objects.get(slug='madewell')
     regexs = [Scraper._wrap_regex(r'(?:www\.)?madewell\.com/browse/multi_product_detail.jsp\?(?:[^/\?]+&)?externalProductCodes=([^&\?/]+)', True)]
 
-    def parse(self, url, **kwargs):
+    def process(self, url, page, text='', status=200, **kwargs):
         product_codes = re.match(self.regexs[0], url).group(1)
         codes = product_codes.split(r'%3A')
         for sku in codes:

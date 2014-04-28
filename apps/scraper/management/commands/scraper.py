@@ -101,7 +101,8 @@ class Command(BaseCommand):
 
         for url, status, page, text in pages:
             try:
-                page_scraper = scraper.get_scraper(url=url).parse(url=url)
+                page_scraper = scraper.get_scraper(url=url)
+                page_scraper.process(url=url, status=status, page=page, text=text)
             except BaseException as err:
                 print "Oh no! Something bad happened: {0}".format(err)
                 continue  # this line is merely symbolic
@@ -119,57 +120,3 @@ class Command(BaseCommand):
                 return scraper
 
         raise ScraperException('No scraper defined for url: {0}'.format(url))
-
-    def run_scraper(self, url, product=None, content=None, scraper=None, values=None):
-        if values is None:
-            values = {}
-        # strip outer spaces from the url
-        url = url.strip()
-        try:
-            try:
-                scraper = scraper or self.get_scraper(url)(self.store)
-            except ScraperException:
-                print('no scraper found for url - ' + url)
-                return
-
-            # retrieve the url for the driver to load
-            url = scraper.parse_url(url=url, values=values)
-
-            if isinstance(scraper, ProductDetailScraper):
-                if not product:
-                    try:
-                        product = Product.objects.get(store=self.store, url=url)
-                    except Product.DoesNotExist:
-                        product = Product(store=self.store, url=url)
-
-            # loops through all returned dictionaries for the scraper
-            # if a url is returned, run_scraper() is called with the arguments in the returned dictionary
-            # if no url is returned, the content or product model is printed out
-            # if no content or product is returned, an error is printed
-            for dictionary in scraper.parse(url=url, product=product,
-                                            content=content, values=values):
-                if dictionary.get('url', None):
-                    scraper_vars = {}
-                    scraper_vars.update(dictionary)
-                    scraper_vars.update({'values': values.copy()})
-                    self.run_scraper(**scraper_vars)
-                elif dictionary.get('content', None):
-                    print 'Content attributes: {0}'.format(dictionary['content'].to_json())
-                elif dictionary.get('product', None):
-                    print 'Product attributes: {0}'.format(dictionary['product'].to_json())
-                else:
-                    print('bad scraper return, must return either a url or a model for a product or content')
-
-        except WebDriverException:
-            print('There was a problem with the webdriver')
-            traceback.print_exc()
-
-        except BaseException:
-            # catches all exceptions so that if one detail scraper were to have an error
-            # any content scraper that may have called it would keep working
-            print('There was a problem while scraping ' + url)
-            traceback.print_exc()
-        finally:
-            # make sure to close the driver if it exists
-            if scraper and hasattr(scraper, 'driver'):
-                scraper.driver.close()
