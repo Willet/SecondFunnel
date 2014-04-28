@@ -129,11 +129,9 @@ class GapCategoryScraper(ProductCategoryScraper):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.regexs[0], url).group(1)
 
     def process(self, url, page, text='', status=200, **kwargs):
-        page_source, page = self.scrape(urls=[url])
-
         # get category name
         try:
-            values['category'] = page.select('span#subcatname')[0].text.strip()
+            kwargs['category'] = page.select('span#subcatname')[0].text.strip()
         except IndexError:
             pass
 
@@ -149,38 +147,43 @@ class GapCategoryScraper(ProductCategoryScraper):
 
         page_num = 0
         while page_num < pages:
-            page_source, page = self.scrape(urls=[url + '#pageId=' + str(page_num)])
+            _, _, page, _ = self.scrape(urls=[url + '#pageId=' + str(page_num)])[0]
 
             # get all sub categories on the page
             try:
+                # [<h2 class="header4">Dresses &amp; Skirts</h2>,
+                #  <h2 class="header4 subcategoryHeader">Sale: Dresses</h2>]
+                #  v-- this looks like
                 sub_categories = page.select('div#mainContent div.clearfix h2')
             except NoSuchElementException:
                 sub_categories = []
 
             product_groups = page.select('div#mainContent div.clearfix ul')
 
-            for i in range(len(product_groups)):
+            for idx, sub_category in enumerate(product_groups):
                 if sub_categories:
-                    values['sub_category'] = sub_categories[i].text
+                    kwargs['sub_category'] = sub_categories[idx].text
                 else:
-                    values['sub_category'] = None
-                for product_elem in product_groups[i].select('li div a'):
+                    kwargs['sub_category'] = None
+
+                for product_elem in product_groups[idx].select('li div a'):
                     href = product_elem.get_attribute('href')
                     match = re.match(self.product_sku_regex, href)
                     if match:
                         sku = match.group(1)
                         product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
-                        name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
+                        name = product_elem.find('img').attrs.get('alt')
 
                         product = self.get_product(product_url)
                         product.sku = sku
                         product.name = name
-                        return {'product': product, 'url': product_url}
+                        # return {'product': product, 'url': product_url}
                     else:
                         # if item is not a product, check if it is a STL
                         match = re.match(STLScraper.regexs[0], href)
                         if match:
-                            return {'url': href}
+                            # return {'url': href}
+                            pass  # TODO: ???
                         else:
                             pass
             page_num += 1
@@ -200,6 +203,7 @@ class STLScraper(ContentDetailScraper):
             return 'http://www.gap.com/browse/outfit.do?cid={1}&oid={0}'.format(match.group(1), match.group(2))
 
     def scrape(self, url, **kwargs):
+        """:returns list of page-response tuples"""
         print('loading url ' + url)
         self.driver.get(url)
         print('url loaded')
@@ -222,7 +226,7 @@ class STLScraper(ContentDetailScraper):
                 product = Product.objects.get(store=self.store, sku=sku)
                 image.tagged_products.add(product)
             except Product.DoesNotExist:
-                return {'url': 'http://www.gap.com/browse/product.do?pid=' + sku}
+                # return {'url': 'http://www.gap.com/browse/product.do?pid=' + sku}
                 product = Product.objects.get(store=self.store, sku=sku)
                 image.tagged_products.add(product)
                 pass
