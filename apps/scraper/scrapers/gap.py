@@ -11,24 +11,22 @@ class GapProductScraper(ProductDetailScraper):
     store = Store.objects.get(slug='gap')
     regexs = [ProductDetailScraper._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)]
     sku_regex = r'^http://www\.gap\.com/browse/product\.do\?pid=(\d{6})$'
-    imageLabels = ["Z", "AV1_Z", "AV2_Z", "AV9_Z", "SC_OUT_Z"]
+    image_labels = ["Z", "AV1_Z", "AV2_Z", "AV9_Z", "SC_OUT_Z"]
 
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.regexs[0], url).group(1)
 
     def process(self, url, page, text='', status=200, **kwargs):
-        product = kwargs.get('product')
-        url = self._wrap_url(url)
-        print('loading ' + url)
-        page_source, page = self.scrape(urls=[url])
+        """
+        page is the loaded product page
+        """
+        product, _ = Product.objects.get_or_create(url=url)
 
         try:
-            product.name = page.select('span.productName')[0].text
+            product.name = page.select('span.productName')[0].get_text()
         except IndexError:  # only pages with ^ is in stock
             product.in_stock = False
             product.save()
-            yield {'product': product}
-            return
 
         # retrieve the price of the product
         try:
@@ -38,15 +36,16 @@ class GapProductScraper(ProductDetailScraper):
             try:
                 product.price = page.select('#priceText')[0].text
             except:
-                pass
+                print "Could not retrieve pricing information"
 
         # retrieve the sale price of the product
         try:
-            sale_price = page.select('span.salePrice')[0].text
+            sale_price = page.select('span.salePrice')[0].get_text()
             product.attributes.update({'sale_price': sale_price})
         except IndexError:
             try:
-                sale_price_text = page.select('#productPageMupMessageStyle')[0].text
+                # attempt to find the sale price here instead (div may exist, but may be empty)
+                sale_price_text = page.select('#productPageMupMessageStyle')[0].get_text()
                 match = re.match(r'Now (\$\d+\.\d{2})', sale_price_text)
                 if match:
                     sale_price = match.group(1)
@@ -64,11 +63,11 @@ class GapProductScraper(ProductDetailScraper):
         # retrieving the major category for the product
         try:
             category_elem = page.select('li a._selected')[0]
-            category_url = category_elem.get_attribute('href')
+            category_url = category_elem.attrs.get('href')
             if category_url.startswith('/'):
                 category_url = 'http://www.gap.com' + category_url
             # using innerHTML because category_elem.text does not seem to work here
-            category_name = category_elem.get_attribute('innerHTML').replace('<p>', '').replace('</p>', '')
+            category_name = str(category_elem).replace('<p>', '').replace('</p>', '')
             if category_name == 'body' or category_name == 'gapfit' or category_name == 'maternity':
                 self._add_to_category(product, 'women', 'http://www.gap.com/browse/subDivision.do?cid=5646')
             else:
@@ -76,20 +75,20 @@ class GapProductScraper(ProductDetailScraper):
         except IndexError:
             pass
 
-        if values.get('category', None):
-            self._add_to_category(product, values.get('category', None))
-        if values.get('sub_category', None):
-            self._add_to_category(product, values.get('sub_category', None))
+        if kwargs.get('category', None):
+            self._add_to_category(product, kwargs.get('category', None))
+        if kwargs.get('sub_category', None):
+            self._add_to_category(product, kwargs.get('sub_category', None))
 
         # given a url, scrape some other url (the same product's data json)
-        page_source, page = self.scrape(urls=['http://www.gap.com/browse/productData.do?pid=%s' % product.sku])
+        _, _, page, _ = self.scrape(urls=['http://www.gap.com/browse/productData.do?pid=%s' % product.sku])[0]
 
-        images = self._get_images(page_source, product)
+        images = self._get_images(str(page), product)
         if len(images) > 0:
             product.default_image = images[0]
             product.save()
 
-        yield {'product': product}
+        return {'product': product}
 
     def start_requests(self):
         pass
@@ -107,7 +106,7 @@ class GapProductScraper(ProductDetailScraper):
             for pictures_match in pictures:
                 name = pictures_match.group(1)
                 url = pictures_match.group(2)
-                if name in self.imageLabels:
+                if name in self.image_labels:
                     if url.startswith('/'):
                         url = 'http://www.gap.com' + url
                     images.append(self._process_image(url, product))
@@ -173,15 +172,15 @@ class GapCategoryScraper(ProductCategoryScraper):
                         product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
                         name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
 
-                        product = self._get_product(product_url)
+                        product = self.get_product(product_url)
                         product.sku = sku
                         product.name = name
-                        yield {'product': product, 'url': product_url}
+                        return {'product': product, 'url': product_url}
                     else:
                         # if item is not a product, check if it is a STL
                         match = re.match(STLScraper.regexs[0], href)
                         if match:
-                            yield {'url': href}
+                            return {'url': href}
                         else:
                             pass
             page_num += 1
@@ -223,8 +222,8 @@ class STLScraper(ContentDetailScraper):
                 product = Product.objects.get(store=self.store, sku=sku)
                 image.tagged_products.add(product)
             except Product.DoesNotExist:
-                yield {'url': 'http://www.gap.com/browse/product.do?pid=' + sku}
+                return {'url': 'http://www.gap.com/browse/product.do?pid=' + sku}
                 product = Product.objects.get(store=self.store, sku=sku)
                 image.tagged_products.add(product)
                 pass
-        yield {'content': image}
+        return {'content': image}

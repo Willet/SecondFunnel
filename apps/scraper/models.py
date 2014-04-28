@@ -94,6 +94,9 @@ class Scraper(object):
         return bleach.clean(html, tags=allowed_tags,
                             attributes=allowed_attrs, strip=True)
 
+    def _process_image(self):
+        raise NotImplementedError
+
     @staticmethod
     def get_scraper(url):
         """Finds the scraper that handles the url, specified by each scraper's
@@ -127,10 +130,8 @@ class Scraper(object):
 
         page is a BeautifulSoup object.
 
-        yield is used to return dictionaries with the required variables
-        url must be included in the dictionary if another scraper must be run after this one
-        product or content must be included if no scraper should be run after this one
-        scraper can be included to explicitly define the next scraper
+        CollectionScraper.process must invoke their own DetailScraper.scrape
+        for whichever details they find appropriate.
         """
         raise NotImplementedError
 
@@ -303,7 +304,7 @@ class CloudScraper(Scraper):
 
 
 class ProductScraper(CloudScraper):
-    def _get_product(self, url):
+    def get_product(self, url):
         try:
             product = Product.objects.get(store=self.store, url=url)
         except Product.DoesNotExist:
@@ -319,7 +320,8 @@ class ProductScraper(CloudScraper):
         """
 
         try:
-            image = ProductImage.objects.get(original_url=original_url, product=product)
+            image = ProductImage.objects.get(original_url=original_url,
+                                             product=product)
         except ProductImage.DoesNotExist:
             image = ProductImage(original_url=original_url, product=product)
 

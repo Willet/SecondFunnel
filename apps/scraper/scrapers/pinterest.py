@@ -25,7 +25,7 @@ class PinterestPinScraper(ContentDetailScraper):
         source_url = self.driver.find_element_by_xpath('//div[@class="imageContainer"]/img').get_attribute('src')
         content = self._process_image(source_url, content)
         content.save()
-        yield {'content': content}
+        return {'content': content}
 
 
 class PinterestAlbumScraper(ContentCategoryScraper):
@@ -48,4 +48,4 @@ class PinterestAlbumScraper(ContentCategoryScraper):
                 content = Image(store=self.store, original_url=url)
             content.source = 'pinterest'
 
-            yield {'content': content, 'url': url}
+            return {'content': content, 'url': url}

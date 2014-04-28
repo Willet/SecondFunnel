@@ -55,7 +55,7 @@ class MadewellProductScraper(ProductDetailScraper):
             product.default_image = images[0]
             product.save()
 
-        yield {'product': product}
+        return {'product': product}
 
     def _get_images(self, driver, product):
         images = []
@@ -103,12 +103,12 @@ class MadewellCategoryScraper(ProductCategoryScraper):
             sku = re.match(MadewellProductScraper().sku_regex, url).group(3)
             name = product_data.find_element_by_xpath('./img').get_attribute('alt')
 
-            product = self._get_product(product_url)
+            product = self.get_product(product_url)
 
             product.name = name
             product.sku = sku
 
-            yield {'product': product, 'url': product_url}
+            return {'product': product, 'url': product_url}
 
 
 class MadewellMultiProductScraper(ProductCategoryScraper):
@@ -123,7 +123,7 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
                 continue
             product_url = 'http://www.madewell.com/madewell_category/PRDOVR~{0}/{0}.jsp'.format(sku)
 
-            product = self._get_product(product_url)
+            product = self.get_product(product_url)
             product.sku = sku
 
-            yield {'product': product, 'url': product_url}
+            return {'product': product, 'url': product_url}

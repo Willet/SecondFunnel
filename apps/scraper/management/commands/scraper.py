@@ -1,25 +1,13 @@
-import re
-import traceback
-
-from os import listdir
 from os.path import join, dirname
 
 from optparse import make_option
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
+from django.core.exceptions import MultipleObjectsReturned
+from django.core.management.base import BaseCommand
 from django.db.models import Q
 
-from selenium.common.exceptions import WebDriverException
-
-from apps.assets.models import Product, Store
-from apps.scraper.errors import ScraperException
-from apps.scraper.models import ProductDetailScraper, CloudScraper
-
-from apps.scraper.scrapers.gap import GapProductScraper, GapCategoryScraper, STLScraper
-from apps.scraper.scrapers.madewell import MadewellProductScraper, MadewellCategoryScraper, MadewellMultiProductScraper
-from apps.scraper.scrapers.voyage_prive import VoyagePriveCategoryScraper
-from apps.scraper.scrapers.pinterest import PinterestPinScraper, PinterestAlbumScraper
-from apps.scraper.scrapers.styldby import StyldByFilterScraper, StyldByPartnersScraper
+from apps.assets.models import Store
+from apps.scraper.models import CloudScraper
 
 
 class Command(BaseCommand):
@@ -27,22 +15,6 @@ class Command(BaseCommand):
         make_option('--store-id', default=None, dest='store-id'),
         make_option('--url', default=None),
         make_option('--folder', default=None))  # --folder is deprecated
-
-    def __init__(self, *args, **kwargs):
-        super(Command, self).__init__()
-        self.scrapers = [
-            GapProductScraper,
-            GapCategoryScraper,
-            MadewellProductScraper,
-            MadewellCategoryScraper,
-            MadewellMultiProductScraper,
-            VoyagePriveCategoryScraper,
-            PinterestPinScraper,
-            PinterestAlbumScraper,
-            StyldByFilterScraper,
-            StyldByPartnersScraper,
-            STLScraper,
-        ]
 
     def handle(self, *args, **kwargs):
         """
@@ -87,10 +59,10 @@ class Command(BaseCommand):
                     with open(file_link) as url_file:
                         for line in url_file:
                             # support comments
+                            line = line.replace('\n', '')
                             if line.startswith('#'):
                                 print "Skipping {0}".format(line[1:])
                                 continue
-                            line = line.replace('\n', '')
                             print "- {0}".format(line)
                             urls.append(line)
                 except IOError:
@@ -104,19 +76,7 @@ class Command(BaseCommand):
                 page_scraper = scraper.get_scraper(url=url)()
                 page_scraper.process(url=url, page=page, text=text, status=status)
             except BaseException as err:
-                print "Oh no! Something bad happened: {0}".format(err)
+                if settings.DEBUG:
+                    raise
+                print "Failed to execute scraper for {0}: {1}".format(url, err)
                 continue  # this line is merely symbolic
-
-    def set_store(self, store):
-        self.store = store
-
-    def get_scraper(self, url):
-        """Finds the scraper that handles the url, specified by each scraper's
-        'regexes' constant.
-        """
-
-        for scraper in self.scrapers:
-            if any(re.match(regex, url) for regex in scraper.regexs):
-                return scraper
-
-        raise ScraperException('No scraper defined for url: {0}'.format(url))
