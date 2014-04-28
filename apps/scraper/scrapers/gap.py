@@ -161,22 +161,26 @@ class GapCategoryScraper(ProductCategoryScraper):
             product_groups = page.select('div#mainContent div.clearfix ul')
 
             for idx, sub_category in enumerate(product_groups):
-                if sub_categories:
-                    kwargs['sub_category'] = sub_categories[idx].text
-                else:
-                    kwargs['sub_category'] = None
+                try:
+                    if sub_categories:
+                        kwargs['sub_category'] = sub_categories[idx].text
+                    else:
+                        kwargs['sub_category'] = None
+                except IndexError:
+                    pass
 
                 for product_elem in product_groups[idx].select('li div a'):
-                    href = product_elem.get_attribute('href')
+                    href = product_elem.attrs.get('href')
                     match = re.match(self.product_sku_regex, href)
                     if match:
                         sku = match.group(1)
                         product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
                         name = product_elem.find('img').attrs.get('alt')
 
-                        product = self.get_product(product_url)
+                        product = self.get_product(url=product_url)
                         product.sku = sku
                         product.name = name
+                        product.save()
                         # return {'product': product, 'url': product_url}
                     else:
                         # if item is not a product, check if it is a STL

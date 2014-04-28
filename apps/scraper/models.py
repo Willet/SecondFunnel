@@ -207,7 +207,7 @@ class CloudScraper(Scraper):
 
         while True:
             trips = trips + 1
-            if trips % 10:
+            if trips % 10 == 1:
                 print "Retrieving pages: [Tick {0}/100, {1}/{2} pages complete]".format(
                     trips, len(page_responses), page_count)
             sleep(2)  # wait time in seconds; arbitrary number
@@ -304,12 +304,9 @@ class CloudScraper(Scraper):
 
 
 class ProductScraper(CloudScraper):
-    def get_product(self, url):
-        try:
-            product = Product.objects.get(store=self.store, url=url)
-        except Product.DoesNotExist:
-            product = Product(store=self.store, url=url)
-
+    @staticmethod
+    def get_product(url):
+        product, _ = Product.objects.get_or_create(url=url)
         return product
 
     def _process_image(self, original_url, product):

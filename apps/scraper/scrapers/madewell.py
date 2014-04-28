@@ -103,7 +103,7 @@ class MadewellCategoryScraper(ProductCategoryScraper):
             sku = re.match(MadewellProductScraper().sku_regex, url).group(3)
             name = product_data.find_element_by_xpath('./img').get_attribute('alt')
 
-            product = self.get_product(product_url)
+            product = self.get_product(url=product_url)
 
             product.name = name
             product.sku = sku
@@ -123,7 +123,7 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
                 continue
             product_url = 'http://www.madewell.com/madewell_category/PRDOVR~{0}/{0}.jsp'.format(sku)
 
-            product = self.get_product(product_url)
+            product = self.get_product(url=product_url)
             product.sku = sku
 
             return {'product': product, 'url': product_url}
