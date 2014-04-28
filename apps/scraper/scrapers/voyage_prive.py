@@ -158,7 +158,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
 
                         else:
                             print "? found product on the page, but it had no images"
-                    except NoSuchElementException:
+                    except (IndexError, TypeError) as err:
                         print "product images not found on the page"
                         continue
 

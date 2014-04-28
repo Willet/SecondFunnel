@@ -209,7 +209,7 @@ class CloudScraper(Scraper):
             if trips % 10:
                 print "Retrieving pages: [Tick {0}/100, {1}/{2} pages complete]".format(
                     trips, len(page_responses), page_count)
-            sleep(6)  # wait time in seconds; arbitrary number
+            sleep(2)  # wait time in seconds; arbitrary number
 
             # call the callback url (note: calling the callback url will remove results)
             resp = Hammock(url).POST()
@@ -227,8 +227,8 @@ class CloudScraper(Scraper):
             if not still_processing or still_processing in [0, '0', u'0']:
                 break
 
-            if trips > 50:  # that's 5 minutes and the cloud
-                            # still hasn't processed everything
+            if trips > 150:  # that's 5 minutes and the cloud
+                             # still hasn't processed everything
                 raise IOError("PhantomJSCloud timeout")
 
         print "Processing complete: {0}".format(len(page_responses))
