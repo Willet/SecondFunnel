@@ -31,7 +31,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         skus = []  # list of product skus that are in the feed (which may or may not be in status (statut) 1
 
         print('loading url http://www.officiel-des-vacances.com/partners/catalog.xml')
-        _, status, driver, _ = self.scrape(urls=['http://www.officiel-des-vacances.com/partners/catalog.xml'])[0]
+        _, status, driver, _ = self.scrape(urls='http://www.officiel-des-vacances.com/partners/catalog.xml')[0]
         print('url loaded')
 
         for node in driver.select('nodes node'):

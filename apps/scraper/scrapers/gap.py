@@ -81,7 +81,7 @@ class GapProductScraper(ProductDetailScraper):
             self._add_to_category(product, kwargs.get('sub_category', None))
 
         # given a url, scrape some other url (the same product's data json)
-        _, _, page, _ = self.scrape(urls=['http://www.gap.com/browse/productData.do?pid=%s' % product.sku])[0]
+        _, _, page, _ = self.scrape(urls='http://www.gap.com/browse/productData.do?pid=%s' % product.sku)[0]
 
         images = self._get_images(str(page), product)
         if len(images) > 0:
@@ -147,7 +147,7 @@ class GapCategoryScraper(ProductCategoryScraper):
 
         page_num = 0
         while page_num <= pages:
-            _, _, page, _ = self.scrape(urls=[url + '#pageId=' + str(page_num)])[0]
+            _, _, page, _ = self.scrape(urls="%s#pageId=%s" % (url, page_num))[0]
 
             # get all sub categories on the page
             try:

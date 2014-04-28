@@ -12,66 +12,73 @@ class MadewellProductScraper(ProductDetailScraper):
     sku_regex = r'^http://www\.madewell\.com/madewell_category/PRDOVR~(\w+)/\1\.jsp$'
 
     def parse_url(self, url, values, **kwargs):
+        """Transform a url to one that we will actually scrape."""
         match = re.match(self.regexs[0], url)
-        url = 'http://www.madewell.com/madewell_category/PRDOVR~{0}/{0}.jsp'.format(match.group(3))
+        url_base = 'http://www.madewell.com/madewell_category'
+        url = '{0}/PRDOVR~{1}/{1}.jsp'.format(url_base, match.group(3))
         category = match.group(1)
         sub_category = match.group(2)
 
         if category:
             values['category'] = category
-            values['category_url'] = 'http://www.madewell.com/madewell_category/{0}.jsp'.format(category)
+            values['category_url'] = '{0}/{1}.jsp'.format(url_base, category)
         if sub_category:
             values['sub_category'] = sub_category
-            values['sub_category_url'] = 'http://www.madewell.com/madewell_category/{0}/{1}'.format(category, sub_category)
+            values['sub_category_url'] = '{0}/{1}/{2}'.format(
+                url_base, category, sub_category)
 
         return url
 
     def process(self, url, page, text='', status=200, **kwargs):
-        product = kwargs.get('product')
-
-        self.driver.get(url)
+        product = self.get_product(url=url)
         product.sku = re.match(self.regexs[0], product.url).group(3)
-        try:
-            product.price = re.sub(r'USD *', '$', self.driver.find_element_by_class_name('selected-color-price').text)
-        except NoSuchElementException:
-            product.price = re.sub(r'USD *', '$', self.driver.find_element_by_xpath('//div[@class="full-price"]/span').text)
 
         try:
-            product.name = self.driver.find_element_by_xpath('//section[@class="description"]/header/h1').text
+            product.price = re.sub(r'USD *', '$', page.select('.selected-color-price')[0].text)
         except NoSuchElementException:
-            product.name = self.driver.find_element_by_xpath('//section[@id="description"]/header/h1').text
+            product.price = re.sub(r'USD *', '$', page.select('div.full-price span')[0].text)
 
-        product.description = self.driver.find_element_by_id('prodDtlBody').get_attribute("innerHTML")
+        try:
+            product.name = page.select('section.description header h1')[0].text
+        except NoSuchElementException:
+            product.name = page.select('section#description header h1')[0].text
+
+        product.description = page.select('#prodDtlBody')[0].attrs.get("innerHTML")
 
         product.save()
 
-        if values.get('category', None):
-            self._add_to_category(product, values.get('category', None), values.get('category_url'))
-        if values.get('sub_category', None):
-            self._add_to_category(product, values.get('sub_category', None), values.get('sub_category_url'))
+        if kwargs.get('category', None):
+            self._add_to_category(product, kwargs.get('category', None), kwargs.get('category_url'))
+        if kwargs.get('sub_category', None):
+            self._add_to_category(product, kwargs.get('sub_category', None), kwargs.get('sub_category_url'))
 
-        images = self._get_images(self.driver, product)
+        images = self._get_images(page, product)
         if len(images) > 0:
             product.default_image = images[0]
             product.save()
 
         return {'product': product}
 
-    def _get_images(self, driver, product):
+    def _get_images(self, page, product):
+        """
+        :param page  <BeautifulSoup>
+        """
         images = []
-        images_data = driver.find_elements_by_xpath('//div[@class="float-left"]/img')
+        images_data = page.select('div.float-left img')
         if images_data:
             for img in images_data:
                 image = img.get_attribute('data-imgurl')
                 images.append(self._process_image(image, product))
         else:
-            image = driver.find_element_by_class_name('prod-main-img').get_attribute('src')
+            image = page.select('.prod-main-img')[0].attrs.get('src')
             images.append(self._process_image(image, product))
 
         if len(images) == 0:
             return images
 
-        for image in product.product_images.exclude(id__in=[image.id for image in images]):
+        for image in product.product_images.exclude(id__in=[
+            image.id for image in images]):
+            print "Deleting expired image {0}".format(image)
             image.delete()
 
         return images
@@ -82,6 +89,7 @@ class MadewellCategoryScraper(ProductCategoryScraper):
     regexs = [Scraper._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(\w+)(?:/(\w+))?\.jsp')]
 
     def parse_url(self, url, values, **kwargs):
+        """Transform a url to one that we will actually scrape."""
         match = re.match(self.regexs[0], url)
         category = match.group(1)
         sub_category = match.group(2)
@@ -95,20 +103,21 @@ class MadewellCategoryScraper(ProductCategoryScraper):
         url += '.jsp'
         return url
 
-    def parse(self, url, store, **kwargs):
-        self.driver.get(url)
-        products_data = self.driver.find_elements_by_xpath('//td[@class="arrayProdCell"]//td[@class="arrayImg"]/a')
+    def process(self, url, page, text='', status=200, **kwargs):
+        products_data = page.select('td.arrayProdCell td.arrayImg a')
         for product_data in products_data:
-            product_url = MadewellProductScraper().parse_url(product_data.get_attribute('href')).get('url')
+            product_url = (MadewellProductScraper()
+                           .parse_url(product_data.attrs.get('href'), {})
+                           .get('url'))
             sku = re.match(MadewellProductScraper().sku_regex, url).group(3)
-            name = product_data.find_element_by_xpath('./img').get_attribute('alt')
+            name = product_data.select('img')[0].attrs.get('alt')
 
             product = self.get_product(url=product_url)
 
             product.name = name
             product.sku = sku
-
-            return {'product': product, 'url': product_url}
+            product.save()
+            # return {'product': product, 'url': product_url}
 
 
 class MadewellMultiProductScraper(ProductCategoryScraper):
@@ -121,9 +130,10 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
         for sku in codes:
             if sku == '00000':
                 continue
-            product_url = 'http://www.madewell.com/madewell_category/PRDOVR~{0}/{0}.jsp'.format(sku)
+            url_base = 'http://www.madewell.com/madewell_category'
+            product_url = '{0}/PRDOVR~{1}/{1}.jsp'.format(url_base, sku)
 
             product = self.get_product(url=product_url)
             product.sku = sku
-
-            return {'product': product, 'url': product_url}
+            product.save()
+            # return {'product': product, 'url': product_url}

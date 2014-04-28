@@ -36,10 +36,7 @@ class Scraper(object):
             self.store = store
 
     def parse_url(self, url, values, **kwargs):
-        """
-        Optional method
-        Returns a condensed url from the passed in url
-        """
+        """Transform a url to one that we will actually scrape."""
         return url
 
     @classmethod
@@ -275,7 +272,10 @@ class CloudScraper(Scraper):
             raise IOError("Malformed page-response object from phantomjscloud")
 
     def scrape(self, urls):
-        """Accepts a list of urls. Returns page-response tuples"""
+        """Accepts a list of urls. Returns page-response tuples.
+
+        :param urls  either a list of strings, or a string (url)
+        """
         if not isinstance(urls, list):
             urls = [urls]
 
