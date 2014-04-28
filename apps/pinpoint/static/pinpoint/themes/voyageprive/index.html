@@ -13,6 +13,7 @@
          href="http://www.voyage-prive.com/s/favicon.ico" />
     <link rel="stylesheet"
           href="{% static 'pinpoint/themes/voyageprive/voyageprive.css' %}"/>
+    {% include "pinpoint/campaign_respond.html" %}
     <title>{{ page.name|default:"Voyage Privé" }}</title>
     <style type="text/css">
         /* out of necessity */
@@ -115,7 +116,7 @@
             </div>
         </script>
 
-        <script type="text/template" id="banner_mobile_preview_template">
+        <script type="text/template" id="banner_preview_template">
             <div class="title">
                 <img src="{% static 'pinpoint/themes/voyageprive/images/logo.jpg' %}">
             </div>
@@ -939,5 +940,18 @@
         }());
     </script>
     <img src='{% url 'apps.tracking.views.pixel' %}'/>
+
+    {% if environment == 'production' %}
+    <!-- start : Eulerian Analytics - officiel-vacances / must be placed before the /body tag -->
+    <script type="text/javascript" src="//eulerian.officiel-des-vacances.com/ea.js"></script>
+    <script type="text/javascript">
+    /*<![CDATA[*/
+    EA_collector([
+    ,"path", "/Landing/Facebook/SF"
+    ]);
+    /*]]>*/
+    </script>
+    <!-- stop : Eulerian Analytics - officiel-vacances -->
+    {% endif %}
 </body>
 </html>

@@ -23,6 +23,8 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         store = self.store
         page = store.pages.filter(url_slug='week-end')[0]
         feed = page.feed
+        # pre-sized cdn image
+        image_url_gex = re.compile(r'(^https?://)?(www\.)?cdn\.officiel-des-vacances\.com/files/styles/product_\d+x\d+/public/product/(\w+\.jpg.*)')
 
         products = []
         images = []
@@ -57,7 +59,10 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
 
             product.name = product.name.strip(' ,')  # remove spaces, commas, ...
 
-            product.url = node.find('url-detail').get_text()  # node.find_element_by_xpath('./url-detail').text
+            # we want a special url format;
+            # see https://github.com/Willet/SecondFunnel/pull/720#issuecomment-41426543
+            product.url = 'http://www.officiel-des-vacances.com/' \
+                          'route-to/{0}/section'.format(sku)
             product.price = u'€' + node.find('prix').get_text()  # node.find_element_by_xpath('./prix').text
 
             # this is the default
@@ -69,7 +74,12 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 'direct_site_image': direct_site_image,
             })
             products.append(product)
-            images.append(node.find('image').get_text())  # node.find_element_by_xpath('./image').text)
+
+            image_url = node.find('image').get_text()
+            match = image_url_gex.match(image_url)
+            if match:  # convert to full-size image if...
+                image_url = 'http://cdn.officiel-des-vacances.com/files/product/{0}'.format(match.groups()[2])
+            images.append(image_url)
 
         # after-the-fact processing
         for product in Product.objects.filter(store=store):

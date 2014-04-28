@@ -20,7 +20,8 @@ App.module("support", function (module, App) {
      * @returns {Boolean}
      */
     this.mobile = function () {
-        return ($window.width() <= 768);  // 768 is set in stone now
+        return ($window.width() <= 768) || // 768 is set in stone now
+            (App.option('mobileTabletView') && $('html').hasClass('tablet'));
     };
 
     /**

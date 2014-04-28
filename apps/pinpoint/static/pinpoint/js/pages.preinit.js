@@ -76,7 +76,7 @@ App.options.urlParams = window.location.search;
 
 // A ?debug value of 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
-(function (console, level, hash) {
+(function (level, hash) {
     var hashIdx,
         debugLevel = level,
         urlParams = App.options.urlParams;
@@ -84,14 +84,16 @@ App.options.urlParams = window.location.search;
     App.QUIET = 0;
     App.ALL = 5;
 
+    window.console = window.console || {};
+
     // patch all console methods individually.
-    _(['debug', 'log', 'warn', 'error']).each(function (method) {
-        console[method] = console[method] || function (wat) {
+    _(['log', 'debug', 'warn', 'error']).each(function (method) {
+        window.console[method] = window.console[method] || function (wat) {
             // actually... if console.log exists, use it anyway
             if (method !== 'log' &&
-                typeof console.log === 'function' ||
-                typeof console.log === 'object') {
-                console.log(wat);
+                typeof window.console.log === 'function' ||
+                typeof window.console.log === 'object') {
+                window.console.log(wat);
             }
         };
     });
@@ -118,9 +120,7 @@ App.options.urlParams = window.location.search;
         console.log = $.noop;
         console.debug = $.noop;
     }
-}(window.console = window.console || {},
-  App.options.debug,
-  window.location.hash + window.location.search));
+}(App.options.debug, window.location.hash + window.location.search));
 
 // As implemented, will break in IE9
 // Need a smarter way to determine if we can use console.debug
