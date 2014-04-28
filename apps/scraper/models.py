@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from django.db.models import Q
 import bleach
 from hammock import Hammock
+import re
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
@@ -17,6 +18,7 @@ from apps.imageservice.utils import create_image_path
 from apps.pinpoint.utils import read_remote_file
 from apps.scraper.errors import ScraperException
 from django.conf import settings
+from apps.scraper.scrapers import ALL_SCRAPERS
 
 
 class Scraper(object):
@@ -139,9 +141,9 @@ class CloudScraper(object):
 
     regexs = []
 
-    def __init__(self, store):
+    def __init__(self, *args, **kwargs):
         """API compatible __init__ with Scraper"""
-        self.store = store
+        pass
 
     def parse_url(self, url, values, **kwargs):
         """
@@ -149,6 +151,23 @@ class CloudScraper(object):
         Returns a condensed url from the passed in url
         """
         return url
+
+    @staticmethod
+    def get_scraper(url):
+        """Finds the scraper that handles the url, specified by each scraper's
+        'regexes' constant.
+        """
+
+        for scraper in ALL_SCRAPERS:
+            if any(re.match(regex, url) for regex in scraper.regexs):
+                return scraper
+
+        raise ScraperException('No scraper defined for url: {0}'.format(url))
+
+    @staticmethod
+    def get_store(scraper):
+        """Assuming the scraper has a store, returns one."""
+        return getattr(scraper, 'store', None)
 
     def _get_page_request(self, url, other=None):
         """generates a 'page-request' object mentioned in the docs:
@@ -161,18 +180,25 @@ class CloudScraper(object):
         """
         obj = {
             "targetUrl": url,
+            "isDebug": True,
+            "geolocation": "us",
             "requestType": "text",
             "outputAsJson": True,
             "loadImages": False,
             "timeout": 30000,
+            "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/33.0.1750.152 Chrome/33.0.1750.152 Safari/537.36",
             "postDomLoadedTimeout": 5000,
+            "scrollTo": 1000000,  # further down enough for inf scroll
+            "requestId": hashlib.md5(url).hexdigest()[:6],  # just a random str
+        }
+        # inf scroll
+        obj.update({
             "execScripts": [{
                 "targetPageLoaded": "setInterval(function () { "
                                         "window.scrollTo(0,document.body.scrollHeight); "
                                     "}, 500);"
             }],
-            "requestId": hashlib.md5(url).hexdigest()[:6],  # just a random str
-        }
+        })
         if other:
             obj.update(other)
 
@@ -194,7 +220,7 @@ class CloudScraper(object):
 
         return obj
 
-    def _get_batch_callback_response(self, url):
+    def _get_batch_callback_response(self, url, page_count=1):
         """Given a callback url, GET it indefinitely.
 
         Returns a list of "page-response"s (url, status, html, text).
@@ -206,8 +232,9 @@ class CloudScraper(object):
 
         while True:
             trips = trips + 1
-            print "Retrieving pages: [{0}/100]".format(trips)
-            sleep(3)  # wait time in seconds; arbitrary number
+            print "Retrieving pages: [Tick {0}/100, {1}/{2} pages complete]".format(
+                trips, len(page_responses), page_count)
+            sleep(6)  # wait time in seconds; arbitrary number
 
             # call the callback url (note: calling the callback url will remove results)
             resp = Hammock(url).POST()
@@ -218,18 +245,18 @@ class CloudScraper(object):
 
             if just_completed:
                 just_completed = [self._get_page_response(j) for j in just_completed]
-                print "adding {0}".format(just_completed)
+                # print "adding {0}".format(just_completed)
             page_responses.extend(just_completed)
 
             # no more pages to get from the cloud
             if not still_processing or still_processing in [0, '0', u'0']:
                 break
 
-            if trips > 100:  # that's 5 minutes and the cloud
-                             # still hasn't processed everything
+            if trips > 50:  # that's 5 minutes and the cloud
+                            # still hasn't processed everything
                 raise IOError("PhantomJSCloud timeout")
 
-        print "processing complete: {0}".format(page_responses)
+        print "Processing complete: {0}".format(len(page_responses))
         return page_responses
 
     def _get_page_response(self, response_text):
@@ -265,17 +292,16 @@ class CloudScraper(object):
         response_dct = json.loads(response_text)
         try:
             return (response_dct['resultUrl'],
+
                     response_dct['pageResponseMetadata']['status'],
-                    response_dct['pageContent'],
+                    BeautifulSoup(response_dct['pageContent']),
                     response_dct['pageContentPlainText'])
         except KeyError as err:
             raise IOError("Malformed page-response object from phantomjscloud")
 
 
-    def scrape(self, url=None, urls=None):
-        """Either one url, or a list of urls. Returns page-response tuples"""
-        if url and not urls:
-            urls = [url]
+    def scrape(self, urls):
+        """Accepts a list of urls. Returns page-response tuples"""
 
         post_body = json.dumps(self._get_batch_request(urls=urls))
 
@@ -290,9 +316,10 @@ class CloudScraper(object):
                 resp_dct.get('status')))
 
         callback_url = resp_dct.get('callbackUrl')
-        print "got callback url: {0}".format(callback_url)
+        print "Querying callback url: {0}".format(callback_url)
 
-        pages = self._get_batch_callback_response(callback_url)
+        pages = self._get_batch_callback_response(callback_url,
+                                                  page_count=len(urls))
         if len(pages) != len(urls):
             raise ValueError("phantomjscloud didn't give us the same number of pages?!")
 

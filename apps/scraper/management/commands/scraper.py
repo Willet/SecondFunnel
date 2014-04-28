@@ -73,37 +73,35 @@ class Command(BaseCommand):
         else:  # scrape all stores
             stores = Store.objects.all()
 
-        if store and url:
-            # "scrape this url for this store"
-            self.set_store(store)
-            return self.run_scraper(url=url)
-
-        # scraper itinerary
-        print "This multiple-scraper trip contains the URLs:"
-        for store in stores:
-            print store.slug
-            file_name = store.slug.lower() + '.txt'
-            file_link = join(urls_folder, file_name)
-            try:
-                with open(file_link) as url_file:
-                    for line in url_file:
-                        print "- {0}".format(line.replace('\n', ''))
-            except IOError:
-                pass
-
-        for store in stores:
-            try:
-                self.set_store(store)
+        urls = []
+        if url:
+            urls = [url]
+        else:
+            # scraper itinerary
+            print "This multiple-scraper trip contains the URLs:"
+            for store in stores:
+                print store.slug
                 file_name = store.slug.lower() + '.txt'
                 file_link = join(urls_folder, file_name)
-                print('retrieving url from "{0}"'.format(file_link))
-                with open(file_link) as url_file:
-                    for line in url_file:
-                        # support comments
-                        if line.startswith('#'):
-                            print "Skipping {0}".format(line[1:])
-                            continue
-                        self.run_scraper(url=line)
+                try:
+                    with open(file_link) as url_file:
+                        for line in url_file:
+                            # support comments
+                            if line.startswith('#'):
+                                print "Skipping {0}".format(line[1:])
+                                continue
+                            line = line.replace('\n', '')
+                            print "- {0}".format(line)
+                            urls.append(line)
+                except IOError:
+                    pass
+
+        scraper = CloudScraper()
+        pages = scraper.scrape(urls=urls)
+
+        for url, status, page, text in pages:
+            try:
+                page_scraper = scraper.get_scraper(url=url).parse(url=url)
             except BaseException as err:
                 print "Oh no! Something bad happened: {0}".format(err)
                 continue  # this line is merely symbolic
@@ -128,11 +126,9 @@ class Command(BaseCommand):
         # strip outer spaces from the url
         url = url.strip()
         try:
-            if scraper is None:
-                scraper = self.get_scraper(url)(self.store)
-
-            # if no scraper has been found, exit
-            if scraper is None:
+            try:
+                scraper = scraper or self.get_scraper(url)(self.store)
+            except ScraperException:
                 print('no scraper found for url - ' + url)
                 return
 

@@ -1,11 +1,13 @@
 import re
 
 from selenium.common.exceptions import NoSuchElementException
+from apps.assets.models import Store
 
 from apps.scraper.models import Scraper, ProductDetailScraper, ProductCategoryScraper
 
 
 class MadewellProductScraper(ProductDetailScraper):
+    store = Store.objects.get(slug='madewell')
     regexs = [Scraper._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(?:(\w+)/(?:(\w+)/)?)?PRD(?:OVR)?~(\w+)/\3\.jsp')]
     sku_regex = r'^http://www\.madewell\.com/madewell_category/PRDOVR~(\w+)/\1\.jsp$'
 
@@ -76,6 +78,7 @@ class MadewellProductScraper(ProductDetailScraper):
 
 
 class MadewellCategoryScraper(ProductCategoryScraper):
+    store = Store.objects.get(slug='madewell')
     regexs = [Scraper._wrap_regex(r'(?:www\.)?madewell\.com/madewell_category/(\w+)(?:/(\w+))?\.jsp')]
 
     def parse_url(self, url, values, **kwargs):
@@ -109,6 +112,7 @@ class MadewellCategoryScraper(ProductCategoryScraper):
 
 
 class MadewellMultiProductScraper(ProductCategoryScraper):
+    store = Store.objects.get(slug='madewell')
     regexs = [Scraper._wrap_regex(r'(?:www\.)?madewell\.com/browse/multi_product_detail.jsp\?(?:[^/\?]+&)?externalProductCodes=([^&\?/]+)', True)]
 
     def parse(self, url, **kwargs):

@@ -2,12 +2,13 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from apps.assets.models import Image, Product
+from apps.assets.models import Image, Product, Store
 
 from apps.scraper.models import Scraper, ProductDetailScraper, ProductCategoryScraper, ContentDetailScraper
 
 
 class GapProductScraper(ProductDetailScraper):
+    store = Store.objects.get(slug='gap')
     regexs = [Scraper._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)]
     sku_regex = r'^http://www\.gap\.com/browse/product\.do\?pid=(\d{6})$'
     imageLabels = ["Z", "AV1_Z", "AV2_Z", "AV9_Z", "SC_OUT_Z"]
@@ -121,6 +122,7 @@ class GapProductScraper(ProductDetailScraper):
 
 
 class GapCategoryScraper(ProductCategoryScraper):
+    store = Store.objects.get(slug='gap')
     regexs = [Scraper._wrap_regex(r'(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)', True)]
     product_sku_regex = r'^(?:(?:https?://)?(?:www\.)?gap\.com)?/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
 
@@ -186,6 +188,7 @@ class GapCategoryScraper(ProductCategoryScraper):
 
 
 class STLScraper(ContentDetailScraper):
+    store = Store.objects.get(slug='gap')
     regexs = [Scraper._wrap_regex('(?:www\.)?gap.com/browse/outfit\.do\?(?:[^/\?]*&)*cid=(\d+)(?:&[^/\?]*)*&oid=(OUT-\d+)', True),
               Scraper._wrap_regex('(?:www\.)?gap.com/browse/outfit\.do\?(?:[^/\?]*&)*oid=(OUT-\d+)(?:&[^/\?]*)*&cid=(\d+)', True)]
 
