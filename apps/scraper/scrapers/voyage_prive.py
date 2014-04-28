@@ -140,7 +140,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                         print "No review was found for product {0}".format(product.sku)
 
                     try:  # type unicode
-                        all_image_urls = [x.attrs.get('data-original') for x in driver.select('div figure div[data-id="{0}"] li a img'.format(product.sku))[0]]
+                        all_image_urls = [x.attrs.get('data-original') for x in driver.select("div figure div[data-id='{0}'] li a img".format(product.sku))[0]]
                         if all_image_urls:
                             print "Adding more image urls to product: {0}".format(
                                 all_image_urls)
