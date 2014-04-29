@@ -20,7 +20,7 @@ class GapProductScraper(ProductDetailScraper):
         """
         page is the loaded product page
         """
-        product, _ = Product.objects.get_or_create(url=url)
+        product = self.get_product(url=url)
 
         try:
             product.name = page.select('span.productName')[0].get_text()
@@ -30,7 +30,8 @@ class GapProductScraper(ProductDetailScraper):
 
         # retrieve the price of the product
         try:
-            # TODO: For scraping gap, span#priceText can contain both the original price and the sale price
+            # if #priceText strike exists, then the striked out price is the
+            # regular price, and the .salePrice inside it is the sale price
             product.price = page.select('span#priceText strike')[0].text
         except IndexError:  # original price not found; guess
             try:
@@ -131,23 +132,26 @@ class GapCategoryScraper(ProductCategoryScraper):
     def process(self, url, page, text='', status=200, **kwargs):
         # get category name
         try:
+            # e.g. "Skirts"
             kwargs['category'] = page.select('span#subcatname')[0].text.strip()
+            print "Category '{0}' found on {1}".format(kwargs['category'], url)
         except IndexError:
-            pass
+            print "No category found on {0}".format(url)
 
         # get number of pages
         try:
+            # something like 'Page 1 of 1'
             page_text = page.select('label.pagePaginatorLabel')[0].text
             if page_text:
-                pages = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))
+                page_count = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))
             else:
-                pages = 1
+                page_count = 1
         except IndexError:
-            pages = 1
+            page_count = 1
 
         page_num = 0
-        while page_num <= pages:
-            _, _, page, _ = self.scrape(urls="%s#pageId=%s" % (url, page_num))[0]
+        while page_num <= page_count:
+            _, status, page, _ = self.scrape(urls="%s#pageId=%s" % (url, page_num))[0]
 
             # get all sub categories on the page
             try:
@@ -158,7 +162,8 @@ class GapCategoryScraper(ProductCategoryScraper):
             except NoSuchElementException:
                 sub_categories = []
 
-            product_groups = page.select('div#mainContent div.clearfix ul')
+            product_groups = [x for x in page.select('div#mainContent div.clearfix ul')
+                              if not x.attrs.get('id')]
 
             for idx, sub_category in enumerate(product_groups):
                 try:
@@ -169,6 +174,7 @@ class GapCategoryScraper(ProductCategoryScraper):
                 except IndexError:
                     pass
 
+                # kwargs looks like {'category': u'Skirts', 'sub_category': u'Knee Length'}
                 for product_elem in product_groups[idx].select('li div a'):
                     href = product_elem.attrs.get('href')
                     match = re.match(self.product_sku_regex, href)
@@ -180,9 +186,20 @@ class GapCategoryScraper(ProductCategoryScraper):
                         product = self.get_product(url=product_url)
                         product.sku = sku
                         product.name = name
-                        print "Saving product {0}".format(product)
+
+                        print "[{0}] Saving product {1}".format(
+                            self.__class__.__name__, product)
                         product.save()
                         # return {'product': product, 'url': product_url}
+
+                        if kwargs.get('category'):
+                            self._add_to_category(product=product,
+                                                  name=kwargs['category'],
+                                                  url=url)
+                        if kwargs.get('sub_category'):
+                            self._add_to_category(product=product,
+                                                  name=kwargs['sub_category'],
+                                                  url=url)
                     else:
                         # if item is not a product, check if it is a STL
                         match = re.match(STLScraper.regexs[0], href)

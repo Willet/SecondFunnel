@@ -116,6 +116,9 @@ class MadewellCategoryScraper(ProductCategoryScraper):
 
             product.name = name
             product.sku = sku
+
+            print "[{0}] Saving product {1}".format(
+                self.__class__.__name__, product)
             product.save()
             # return {'product': product, 'url': product_url}
 
@@ -135,6 +138,8 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
 
             product = self.get_product(url=product_url)
             product.sku = sku
-            print "Saving product {0}".format(product)
+
+            print "[{0}] Saving product {1}".format(
+                self.__class__.__name__, product)
             product.save()
             # return {'product': product, 'url': product_url}

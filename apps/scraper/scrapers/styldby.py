@@ -1,8 +1,6 @@
 import re
 
-from selenium.common.exceptions import NoSuchElementException
-
-from apps.scraper.models import Scraper, ContentDetailScraper, ContentCategoryScraper
+from apps.scraper.models import Scraper, ContentCategoryScraper
 from apps.assets.models import Image
 
 

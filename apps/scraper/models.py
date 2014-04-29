@@ -15,6 +15,7 @@ from apps.imageservice.utils import create_image_path
 from apps.pinpoint.utils import read_remote_file
 from apps.scraper.errors import ScraperException
 from apps.scraper.scrapers import ALL_SCRAPERS
+from secondfunnel.errors import deprecated
 
 
 class Scraper(object):
@@ -204,10 +205,10 @@ class CloudScraper(Scraper):
 
         while True:
             trips = trips + 1
-            if trips % 10 == 1:
-                print "Retrieving pages: [Tick {0}/100, {1}/{2} pages complete]".format(
+            if trips % 10 == 0:
+                print "Retrieving pages: [Tick {0}/200, {1}/{2} pages complete]".format(
                     trips, len(page_responses), page_count)
-            sleep(2)  # wait time in seconds; arbitrary number
+            sleep(1)  # wait time in seconds; arbitrary number
 
             # call the callback url (note: calling the callback url will remove results)
             resp = Hammock(url).POST()
@@ -225,7 +226,7 @@ class CloudScraper(Scraper):
             if not still_processing or still_processing in [0, '0', u'0']:
                 break
 
-            if trips > 150:  # that's 5 minutes and the cloud
+            if trips > 200:  # that's 200 seconds and the cloud
                              # still hasn't processed everything
                 raise IOError("PhantomJSCloud timeout")
 
@@ -349,7 +350,7 @@ class ProductScraper(CloudScraper):
         be passed in so that the category can be created.
         """
         if url is None and name is None:
-            raise ScraperException('at least one of url or name must be provided to add to a category')
+            raise ScraperException('At least one of url or name must be provided to add to a category')
 
         if not name:
             name = ''
@@ -357,14 +358,15 @@ class ProductScraper(CloudScraper):
         name = name.lower()
 
         try:
-            if not name:
-                category = Category.objects.get(store=self.store, url=url)
-            else:
+            if name:
                 category = Category.objects.get(store=self.store, name__iexact=name)
+            else:
+                category = Category.objects.get(store=self.store, url=url)
         except Category.DoesNotExist:
             # if the category does not exist, create it
             if not name:
                 raise ScraperException('"name" must be provided if category does not exist')
+            print "Creating category '{0}' for store {1}".format(name, self.store)
             category = Category(store=self.store, name=name)
 
         if url:
