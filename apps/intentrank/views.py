@@ -204,6 +204,9 @@ def get_results(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     :returns           a list of <any>
     """
+    if not tiles:  # short circuit: return empty resultset
+        return IntentRank(True).transform([])
+
     ir = IntentRank(feed=tiles[0].feed)
 
     # "everything except these tile ids"
