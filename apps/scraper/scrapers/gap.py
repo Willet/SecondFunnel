@@ -1,4 +1,5 @@
 import re
+from django.core.exceptions import ValidationError
 
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -27,8 +28,13 @@ class GapProductScraper(ProductDetailScraper):
         try:
             product.name = page.select('span.productName')[0].get_text()
         except IndexError:  # only pages with ^ is in stock
-            product.in_stock = False
-            product.save()
+            try:
+                product.in_stock = False
+                product.save()
+            except ValidationError:
+                if "OutOfStock" in url:
+                    return  # OutOfStock
+                raise  # legit error!
 
         # retrieve the price of the product
         try:

@@ -203,10 +203,10 @@ class CloudScraper(Scraper):
         trips = 0
         page_responses = []
 
-        while True:
-            trips = trips + 1
+        while trips < 200:
+            trips += 1
             if trips % 10 == 0:
-                print "Retrieving pages: [Tick {0}/200, {1}/{2} pages complete]".format(
+                print "Retrieving pages: [{0}/200 seconds elapsed, {1}/{2} pages done]".format(
                     trips, len(page_responses), page_count)
             sleep(1)  # wait time in seconds; arbitrary number
 
@@ -225,10 +225,10 @@ class CloudScraper(Scraper):
             # no more pages to get from the cloud
             if not still_processing or still_processing in [0, '0', u'0']:
                 break
-
-            if trips > 200:  # that's 200 seconds and the cloud
-                             # still hasn't processed everything
-                raise IOError("PhantomJSCloud timeout")
+        else:
+            # that's 200 seconds and the cloud
+            # still hasn't processed everything
+            raise IOError("PhantomJSCloud timeout")
 
         # print "Processing complete: {0}".format(len(page_responses))
         return page_responses
@@ -265,7 +265,7 @@ class CloudScraper(Scraper):
         """
         response_dct = json.loads(response_text)
         try:
-            return (response_dct['resultUrl'],
+            return (response_dct['request']['targetUrl'],
                     response_dct['pageResponseMetadata']['status'],
                     BeautifulSoup(response_dct['pageContent']),
                     response_dct['pageContentPlainText'])
@@ -333,7 +333,7 @@ class ProductScraper(CloudScraper):
         required fields)
         """
         try:
-            product, _ = Product.objects.get(url=url)
+            product = Product.objects.filter(url=url)[0]
         except Product.DoesNotExist:
             product = Product(url=url)
 
