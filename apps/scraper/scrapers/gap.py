@@ -80,14 +80,18 @@ class GapProductScraper(ProductDetailScraper):
 
         # retrieving the major category for the product
         try:
-            category_elem = page.select('li a._selected')[0]
+            category_elem = (page.select('li a.categorySelected') or
+                             page.select('li a._selected'))[0]
             category_url = category_elem.attrs.get('href')
             if category_url.startswith('/'):
                 category_url = 'http://www.gap.com' + category_url
             # using innerHTML because category_elem.text does not seem to work here
             category_name = str(category_elem).replace('<p>', '').replace('</p>', '')
-            if category_name == 'body' or category_name == 'gapfit' or category_name == 'maternity':
-                self._add_to_category(product, 'women', 'http://www.gap.com/browse/subDivision.do?cid=5646')
+            if (category_name == 'body' or
+                category_name == 'gapfit' or
+                category_name == 'maternity'):
+                self._add_to_category(product, 'women',
+                    'http://www.gap.com/browse/subDivision.do?cid=5646')
             else:
                 self._add_to_category(product, category_name, category_url)
         except IndexError as err:
@@ -136,7 +140,7 @@ class GapProductScraper(ProductDetailScraper):
             return images
 
         for image in product.product_images.exclude(id__in=[image.id for image in images]):
-            print "Deleting stale product image {0} ({1})".format(image. image.original_url)
+            print "Deleting stale product image {0} ({1})".format(image, image.original_url)
             image.delete()
 
         return images

@@ -338,7 +338,7 @@ class ProductScraper(CloudScraper):
         """
         try:
             product = Product.objects.filter(url=url)[0]
-        except Product.DoesNotExist:
+        except (Product.DoesNotExist, IndexError):
             product = Product(url=url)
 
         return product
