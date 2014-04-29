@@ -314,10 +314,6 @@ html.tablet #hero-area .find.white a:visited {
     }
 }
 
-html.tablet .tile {
-    width: 100% !important;
-}
-
 .tile .caption {
     position: relative;
     background-color: transparent;
