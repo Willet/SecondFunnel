@@ -2,7 +2,6 @@ import re
 from django.core.exceptions import ValidationError
 
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from apps.assets.models import Image, Product, Store
 
 from apps.scraper.models import ProductDetailScraper, ProductCategoryScraper, ContentDetailScraper

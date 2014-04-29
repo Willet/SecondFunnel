@@ -1,8 +1,6 @@
 import re
 
-from selenium.common.exceptions import NoSuchElementException
 from apps.assets.models import Store
-
 from apps.scraper.models import Scraper, ProductDetailScraper, ProductCategoryScraper
 
 
@@ -31,26 +29,37 @@ class MadewellProductScraper(ProductDetailScraper):
 
     def process(self, url, page, text='', status=200, **kwargs):
         product = self.get_product(url=url)
+        print "[{0}] Processing product {1}".format(
+            self.__class__.__name__, product)
+
         product.sku = re.match(self.regexs[0], product.url).group(3)
 
         try:
             product.price = re.sub(r'USD *', '$', page.select('.selected-color-price')[0].text)
-        except NoSuchElementException:
-            product.price = re.sub(r'USD *', '$', page.select('div.full-price span')[0].text)
+        except IndexError:
+            try:
+                product.price = re.sub(r'USD *', '$', page.select('div.full-price span')[0].text)
+            except IndexError:
+                print "Could not retrieve pricing information"
 
         try:
             product.name = page.select('section.description header h1')[0].text
-        except NoSuchElementException:
-            product.name = page.select('section#description header h1')[0].text
+        except IndexError:
+            try:
+                product.name = page.select('section#description header h1')[0].text
+            except IndexError:
+                print "Could not retrieve product name"
 
         product.description = page.select('#prodDtlBody')[0].attrs.get("innerHTML")
 
         product.save()
 
         if kwargs.get('category', None):
-            self._add_to_category(product, kwargs.get('category', None), kwargs.get('category_url'))
+            self._add_to_category(product, kwargs.get('category', None),
+                                  kwargs.get('category_url'))
         if kwargs.get('sub_category', None):
-            self._add_to_category(product, kwargs.get('sub_category', None), kwargs.get('sub_category_url'))
+            self._add_to_category(product, kwargs.get('sub_category', None),
+                                  kwargs.get('sub_category_url'))
 
         images = self._get_images(page, product)
         if len(images) > 0:
@@ -67,7 +76,7 @@ class MadewellProductScraper(ProductDetailScraper):
         images_data = page.select('div.float-left img')
         if images_data:
             for img in images_data:
-                image = img.get_attribute('data-imgurl')
+                image = img.attrs.get('data-imgurl') or img.attrs.get('src')
                 images.append(self._process_image(image, product))
         else:
             image = page.select('.prod-main-img')[0].attrs.get('src')
@@ -104,11 +113,14 @@ class MadewellCategoryScraper(ProductCategoryScraper):
         return url
 
     def process(self, url, page, text='', status=200, **kwargs):
+        product_urls = []
         products_data = page.select('td.arrayProdCell td.arrayImg a')
         for product_data in products_data:
             product_url = (MadewellProductScraper()
                            .parse_url(product_data.attrs.get('href'), {})
                            .get('url'))
+            product_urls.append(product_url)
+
             sku = re.match(MadewellProductScraper().sku_regex, url).group(3)
             name = product_data.select('img')[0].attrs.get('alt')
 
@@ -122,19 +134,24 @@ class MadewellCategoryScraper(ProductCategoryScraper):
             product.save()
             # return {'product': product, 'url': product_url}
 
+        return self.subscrape(urls=product_urls, page_scraper=MadewellProductScraper)
+
 
 class MadewellMultiProductScraper(ProductCategoryScraper):
     store = Store.objects.get(slug='madewell')
     regexs = [Scraper._wrap_regex(r'(?:www\.)?madewell\.com/browse/multi_product_detail.jsp\?(?:[^/\?]+&)?externalProductCodes=([^&\?/]+)', True)]
 
     def process(self, url, page, text='', status=200, **kwargs):
+        product_urls = []
         product_codes = re.match(self.regexs[0], url).group(1)
         codes = re.split('%3A|:', product_codes)
         for sku in codes:
             if sku == '00000':
                 continue
             url_base = 'http://www.madewell.com/madewell_category'
+
             product_url = '{0}/PRDOVR~{1}/{1}.jsp'.format(url_base, sku)
+            product_urls.append(product_url)
 
             product = self.get_product(url=product_url)
             product.sku = sku
@@ -142,4 +159,7 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
             print "[{0}] Saving product {1}".format(
                 self.__class__.__name__, product)
             product.save()
+
             # return {'product': product, 'url': product_url}
+
+        return self.subscrape(urls=product_urls, page_scraper=MadewellProductScraper)
