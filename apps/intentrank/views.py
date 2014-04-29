@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile, TileRelation, Category
-from apps.intentrank.controllers import IntentRank
+from apps.intentrank.controllers import IntentRank, PredictionIOInstance
 from apps.intentrank.algorithms import ir_generic, ir_all, ir_base
 from apps.intentrank.utils import ajax_jsonp
 from apps.utils import thread_id
@@ -30,6 +30,12 @@ def track_tile_view(request, tile_id):
         return
 
     tile_id = int(tile_id)
+
+    try:
+        with PredictionIOInstance() as predictor:
+            predictor.track_tile_view(request, tile_id)
+    except BaseException as err:
+        print "PredictionIO failed to record tile view"
 
     if not request.session.get('shown', []):
         request.session['shown'] = [tile_id]
