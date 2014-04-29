@@ -148,7 +148,7 @@ html.tablet .dropdown-xs {
 }
 
 #hero-area .overlay .title {
-    font-size: 44px;
+    font-size: 26px;
 }
 
 @media (max-width: 768px) {
@@ -161,7 +161,7 @@ html.tablet .dropdown-xs {
 
     #hero-area .overlay .title {
         padding: 0 10px;
-        font-size: 26px;
+        font-size: 20px;
     }
 
     #hero-area .overlay div {
