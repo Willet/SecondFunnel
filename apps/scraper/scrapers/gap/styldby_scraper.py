@@ -44,7 +44,7 @@ class StyldByFilterScraper(ContentCategoryScraper):
     def process(self, url, page, text='', status=200, **kwargs):
         page_num = 1
         while True:
-            _, status, page, _ = self.scrape(urls='%s/page/%s' % (url, page_num))[0]
+            page = self.scrape(urls='%s/page/%s' % (url, page_num))[0][2]
             for element in page.select("div[role='main'] ul li article"):
                 title_element = element.select('h2.title a')[0]
                 name = title_element.text

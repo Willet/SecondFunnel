@@ -66,8 +66,6 @@ class MadewellProductScraper(ProductDetailScraper):
             product.default_image = images[0]
             product.save()
 
-        return {'product': product}
-
     def _get_images(self, page, product):
         """
         :param page  <BeautifulSoup>
@@ -132,7 +130,6 @@ class MadewellCategoryScraper(ProductCategoryScraper):
             print "[{0}] Saving product {1}".format(
                 self.__class__.__name__, product)
             product.save()
-            # return {'product': product, 'url': product_url}
 
         return self.subscrape(urls=product_urls, page_scraper=MadewellProductScraper)
 
@@ -159,7 +156,5 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
             print "[{0}] Saving product {1}".format(
                 self.__class__.__name__, product)
             product.save()
-
-            # return {'product': product, 'url': product_url}
 
         return self.subscrape(urls=product_urls, page_scraper=MadewellProductScraper)

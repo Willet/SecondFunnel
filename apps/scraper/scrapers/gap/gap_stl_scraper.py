@@ -36,8 +36,6 @@ class STLScraper(ContentDetailScraper):
                 product = Product.objects.get(store=self.store, sku=sku)
                 image.tagged_products.add(product)
             except Product.DoesNotExist:
-                # return {'url': 'http://www.gap.com/browse/product.do?pid=' + sku}
                 product = Product.objects.get(store=self.store, sku=sku)
                 image.tagged_products.add(product)
                 pass
-        return {'content': image}

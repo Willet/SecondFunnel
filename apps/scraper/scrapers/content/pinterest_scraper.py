@@ -28,7 +28,6 @@ class PinterestPinScraper(ContentDetailScraper):
 
         print "Saving pinterest content {0}".format(content)
         content.save()
-        # return {'content': content}
 
 
 class PinterestAlbumScraper(ContentCategoryScraper):
@@ -53,4 +52,3 @@ class PinterestAlbumScraper(ContentCategoryScraper):
 
             print "Saving pinterest content {0}".format(content)
             content.save()
-            # return {'content': content, 'url': url}
