@@ -28,8 +28,9 @@ class StyldByPartnersScraper(ContentCategoryScraper):
             image.author = author
             image.source = self.SOURCE
             image = self._process_image(image_url, image)
+
+            print "Saving styld.by content {0}".format(image)
             image.save()
-            return {'content': image}
 
 
 class StyldByFilterScraper(ContentCategoryScraper):
@@ -61,8 +62,9 @@ class StyldByFilterScraper(ContentCategoryScraper):
                     image.author = author
                     image.source = self.SOURCE
                     image = self._process_image(image_url, image)
+
+                    print "Saving styld.by content {0}".format(image)
                     image.save()
-                    return {'content': image}
             try:
                 page.select("div.pagination a[rel='next']")
                 page_num += 1

@@ -137,11 +137,10 @@ class Scraper(object):
 
 class CloudScraper(Scraper):
     """PhantomJSCloud adapter"""
-    API_ROOT = "http://api.phantomjscloud.com"  # move this when value used elsewhere
-    API_KEY = "7707cc4bae3ee4d768d0d6f6b5e6856a58b530bd"
-    API_URL = "batch/browser/v1/{API_KEY}/".format(API_ROOT=API_ROOT,
-                                                   API_KEY=API_KEY)
-    API = Hammock(API_ROOT)
+    API_URL = "batch/browser/v1/{API_KEY}/".format(
+        API_ROOT=settings.PHANTOMJSCLOUD_API_URL,
+        API_KEY=settings.PHANTOMJSCLOUD_API_KEY)
+    API = Hammock(settings.PHANTOMJSCLOUD_API_URL)
 
     def _get_page_request(self, url, other=None):
         """generates a 'page-request' object mentioned in the docs:

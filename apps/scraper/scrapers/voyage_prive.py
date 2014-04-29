@@ -34,17 +34,17 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         _, status, driver, _ = self.scrape(urls='http://www.officiel-des-vacances.com/partners/catalog.xml')[0]
         print('url loaded')
 
-        for node in driver.select('nodes node'):
+        for idx, node in enumerate(driver.select('nodes node')):
             sku = node.find('id').get_text()
             skus.append(sku)
-            direct_site_name = node.find('nom-fournisseur').get_text()  # node.find_element_by_xpath('./nom-fournisseur').text
-            direct_site_image = node.find('image-fournisseur').get_text()  # node.find_element_by_xpath('./image-fournisseur').text
+            direct_site_name = node.find('nom-fournisseur').get_text()
+            direct_site_image = node.find('image-fournisseur').get_text()
             try:
                 product = Product.objects.filter(sku=sku)[0]
             except (Product.DoesNotExist, IndexError):
                 product = Product(sku=sku)
             product.store = self.store
-            product.name = node.find('titre').get_text()  # node.find_element_by_xpath('./titre').text
+            product.name = node.find('titre').get_text()
             match = re.match(r"""(.+),?         # Name of product
                                  \s*            # Followed by 0 or more spaces
                                  (-\s*\d+%)     # Percentage of product off
@@ -63,11 +63,19 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             # see https://github.com/Willet/SecondFunnel/pull/720#issuecomment-41426543
             product.url = 'http://www.officiel-des-vacances.com/' \
                           'route-to/{0}/section'.format(sku)
-            product.price = u'€' + node.find('prix').get_text()  # node.find_element_by_xpath('./prix').text
+            try:
+                product.price = u'€' + node.find('prix').get_text()
+            except AttributeError as err:
+                print "Price missing from PV product node {0}: {1}".format(
+                    sku, err)
 
             # this is the default
-            product.in_stock = (node.find('statut').get_text()  # node.find_element_by_xpath('./statut').text
-                                in [1, '1', u'1'])
+            try:
+                product.in_stock = (node.find('statut').get_text()
+                                    in [1, '1', u'1'])
+            except AttributeError as err:
+                print "Status missing from PV product node {0}: {1}".format(
+                    sku, err)
 
             product.attributes.update({
                 'direct_site_name': direct_site_name,
@@ -110,7 +118,8 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 image = images[idx]
                 if not image:
                     # XML didn't have an image for this product
-                    print "Product {0} does not have an image!".format(
+                    print "Product {0} does not have an image! " \
+                          "Product and associated images will be deleted.".format(
                         getattr(product, 'sku', 0))
                     try:
                         product.delete()
@@ -172,6 +181,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                         print "product images not found on the page"
                         continue
 
+                print "Saving product {0}".format(product)
                 product.save()
 
                 # add a tile to the weekend feed
@@ -180,6 +190,6 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                     tile.template = 'banner'
                     tile.save()
                 except Exception as err:
-                    pass  # let other products be processed
-
-                # yield {'product': product}
+                    # let other products be processed
+                    print "Could not add product {0} to feed {1}".format(
+                        product, feed)
