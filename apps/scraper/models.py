@@ -230,7 +230,7 @@ class CloudScraper(Scraper):
                              # still hasn't processed everything
                 raise IOError("PhantomJSCloud timeout")
 
-        print "Processing complete: {0}".format(len(page_responses))
+        # print "Processing complete: {0}".format(len(page_responses))
         return page_responses
 
     def _get_page_response(self, response_text):
@@ -313,9 +313,12 @@ class CloudScraper(Scraper):
         pages = scraper.scrape(urls=urls)
         for url, status, page, text in pages:
             try:
-                if not page_scraper:
-                    page_scraper = scraper.get_scraper(url=url)()
-                page_scraper.process(url=url, page=page, text=text, status=status)
+                if page_scraper:
+                    pcrapper = page_scraper()
+                else:
+                    pcrapper = scraper.get_scraper(url=url)()
+                pcrapper.process(url=url, page=page, text=text, status=status)
+                pcrapper = None
             except BaseException as err:
                 if settings.DEBUG:
                     raise
@@ -326,7 +329,14 @@ class CloudScraper(Scraper):
 class ProductScraper(CloudScraper):
     @staticmethod
     def get_product(url):
-        product, _ = Product.objects.get_or_create(url=url)
+        """This is NOT Product.objects.get_or_create (allows blank,
+        required fields)
+        """
+        try:
+            product, _ = Product.objects.get(url=url)
+        except Product.DoesNotExist:
+            product = Product(url=url)
+
         return product
 
     def _process_image(self, original_url, product):

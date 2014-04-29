@@ -21,6 +21,8 @@ class GapProductScraper(ProductDetailScraper):
         page is the loaded product page
         """
         product = self.get_product(url=url)
+        print "[{0}] Processing product {1}".format(
+            self.__class__.__name__, product)
 
         try:
             product.name = page.select('span.productName')[0].get_text()
