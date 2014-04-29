@@ -29,11 +29,13 @@ class GapProductScraper(ProductDetailScraper):
             product.name = page.select('span.productName')[0].get_text()
         except IndexError:  # only pages with ^ is in stock
             try:
+                print "Product {0} is out of stock; saving".format(product)
                 product.in_stock = False
                 product.save()
+                return
             except ValidationError:
                 if "OutOfStock" in url:
-                    return  # OutOfStock
+                    return
                 raise  # legit error!
 
         # retrieve the price of the product
@@ -64,8 +66,15 @@ class GapProductScraper(ProductDetailScraper):
             except IndexError:
                 product.attributes.pop('sales_price', None)
 
-        product.sku = re.match(self.sku_regex, product.url).group(1)
-        product.description = self._sanitize_html(str(page.select('#tabWindow')[0]))
+        try:
+            product.sku = re.match(self.sku_regex, product.url).group(1)
+        except AttributeError:
+            print "Product {0} does not have a sku!".format(product.url)
+
+        try:
+            product.description = self._sanitize_html(str(page.select('#tabWindow')[0]))
+        except IndexError:
+            print "Could not find description from {0}".format(url)
 
         product.save()
 
@@ -81,8 +90,8 @@ class GapProductScraper(ProductDetailScraper):
                 self._add_to_category(product, 'women', 'http://www.gap.com/browse/subDivision.do?cid=5646')
             else:
                 self._add_to_category(product, category_name, category_url)
-        except IndexError:
-            pass
+        except IndexError as err:
+            print "Could not find the category on {0}: {1}".format(url, err)
 
         if kwargs.get('category', None):
             self._add_to_category(product, kwargs.get('category', None))
@@ -97,10 +106,7 @@ class GapProductScraper(ProductDetailScraper):
             product.default_image = images[0]
             product.save()
 
-        return {'product': product}
-
-    def start_requests(self):
-        pass
+        # return {'product': product}
 
     def _get_images(self, product_data_page, product):
         """
@@ -108,10 +114,16 @@ class GapProductScraper(ProductDetailScraper):
         Removes all old product images from the product by deleting them
         """
         images = []
-        picture_groups = re.finditer(re.compile(r"styleColorImagesMap\s*=\s*\{\s*([^\}]*)\}\s*;", flags=re.MULTILINE|re.DOTALL), product_data_page)
+        picture_groups = re.finditer(
+            re.compile(r"styleColorImagesMap\s*=\s*\{\s*([^\}]*)\}\s*;",
+                       flags=re.MULTILINE|re.DOTALL),
+            product_data_page)
         for group_match in picture_groups:
             images_text = group_match.group(1)
-            pictures = re.finditer(re.compile(r"\s*'([^\']+)'\s*:\s*'([^\']+)'", flags=re.MULTILINE|re.DOTALL), images_text)
+            pictures = re.finditer(
+                re.compile(r"\s*'([^\']+)'\s*:\s*'([^\']+)'",
+                           flags=re.MULTILINE|re.DOTALL),
+                images_text)
             for pictures_match in pictures:
                 name = pictures_match.group(1)
                 url = pictures_match.group(2)
@@ -120,10 +132,11 @@ class GapProductScraper(ProductDetailScraper):
                         url = 'http://www.gap.com' + url
                     images.append(self._process_image(url, product))
 
-        if len(images) == 0:
+        if not images:
             return images
 
         for image in product.product_images.exclude(id__in=[image.id for image in images]):
+            print "Deleting stale product image {0} ({1})".format(image. image.original_url)
             image.delete()
 
         return images
@@ -138,7 +151,8 @@ class GapCategoryScraper(ProductCategoryScraper):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.regexs[0], url).group(1)
 
     def process(self, url, page, text='', status=200, **kwargs):
-        product_urls = []
+        product_urls = []  # urls to scrape in detail
+
         # get category name
         try:
             # e.g. "Skirts"
@@ -181,7 +195,8 @@ class GapCategoryScraper(ProductCategoryScraper):
                     else:
                         kwargs['sub_category'] = None
                 except IndexError:
-                    pass
+                    print "Sub-categories are not present on {0}".format(
+                        "%s#pageId=%s" % (url, page_num))
 
                 # kwargs looks like {'category': u'Skirts', 'sub_category': u'Knee Length'}
                 for product_elem in product_groups[idx].select('li div a'):

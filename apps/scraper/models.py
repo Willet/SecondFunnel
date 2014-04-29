@@ -15,6 +15,7 @@ from apps.imageservice.utils import create_image_path
 from apps.pinpoint.utils import read_remote_file
 from apps.scraper.errors import ScraperException
 from apps.scraper.scrapers import ALL_SCRAPERS
+from apps.utils import chunks
 from secondfunnel.errors import deprecated
 
 
@@ -203,7 +204,7 @@ class CloudScraper(Scraper):
         trips = 0
         page_responses = []
 
-        while trips < 200:
+        while trips < (page_count * 20):  # say a page takes 20 seconds on average
             trips += 1
             if trips % 10 == 0:
                 print "Retrieving pages: [{0}/200 seconds elapsed, {1}/{2} pages done]".format(
@@ -226,7 +227,7 @@ class CloudScraper(Scraper):
             if not still_processing or still_processing in [0, '0', u'0']:
                 break
         else:
-            # that's 200 seconds and the cloud
+            # that's (pages * 20) seconds and the cloud
             # still hasn't processed everything
             raise IOError("PhantomJSCloud timeout")
 
@@ -310,20 +311,23 @@ class CloudScraper(Scraper):
         the default scraper for a given url.
         """
         scraper = self.__class__()  # spawn self
-        pages = scraper.scrape(urls=urls)
-        for url, status, page, text in pages:
-            try:
-                if page_scraper:
-                    pcrapper = page_scraper()
-                else:
-                    pcrapper = scraper.get_scraper(url=url)()
-                pcrapper.process(url=url, page=page, text=text, status=status)
-                pcrapper = None
-            except BaseException as err:
-                if settings.DEBUG:
-                    raise
-                print "Failed to execute scraper for {0}: {1}".format(url, err)
-                continue  # this line is merely symbolic
+
+        # break into batches of 10 max (lower this value if out of memory)
+        for urls_chunk in chunks(urls, 10):
+            pages = scraper.scrape(urls=urls_chunk)
+            for url, status, page, text in pages:
+                try:
+                    if page_scraper:
+                        pcrapper = page_scraper()
+                    else:
+                        pcrapper = scraper.get_scraper(url=url)()
+                    pcrapper.process(url=url, page=page, text=text, status=status)
+                    pcrapper = None
+                except BaseException as err:
+                    if settings.DEBUG:
+                        raise
+                    print "Failed to execute scraper for {0}: {1}".format(url, err)
+                    continue  # this line is merely symbolic
 
 
 class ProductScraper(CloudScraper):

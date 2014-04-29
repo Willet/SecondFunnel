@@ -45,3 +45,12 @@ def flatten(list_of_lists):
     """
     # todo: test me
     return itertools.chain(*list_of_lists)
+
+
+def chunks(lst, n):
+    """ Yield successive n-sized chunks from lst.
+
+    http://stackoverflow.com/a/312464/1558430
+    """
+    for i in xrange(0, len(lst), n):
+        yield lst[i:i + n]
