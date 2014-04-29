@@ -126,7 +126,7 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
 
     def process(self, url, page, text='', status=200, **kwargs):
         product_codes = re.match(self.regexs[0], url).group(1)
-        codes = product_codes.split(r'%3A')
+        codes = re.split('%3A|:', product_codes)
         for sku in codes:
             if sku == '00000':
                 continue
@@ -135,5 +135,6 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
 
             product = self.get_product(url=product_url)
             product.sku = sku
+            print "Saving product {0}".format(product)
             product.save()
             # return {'product': product, 'url': product_url}

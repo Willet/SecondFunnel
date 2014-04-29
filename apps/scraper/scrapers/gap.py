@@ -212,11 +212,8 @@ class STLScraper(ContentDetailScraper):
 
 
     def process(self, url, page, text='', status=200, **kwargs):
-        print('loading url ' + url)
-        self.driver.get(url)
-        print('url loaded')
-        outfit_content = self.driver.find_element_by_xpath('//div[@id="outfitContent"]')
-        image_url = outfit_content.find_element_by_xpath('./div[@id="outfitContentLeft"]/div[@id="outfitImages"]//img').get_attribute('src')
+        outfit_content = page.select('div#outfitContent')[0]
+        image_url = outfit_content.select('div#outfitContentLeft div#outfitImages img').attrs.get('src')
         if image_url.startswith('/'):
             image_url = 'http://www.gap.com' + image_url
         try:
@@ -228,7 +225,7 @@ class STLScraper(ContentDetailScraper):
         image.source = 'gap-stl'
         image.save()
         for product_match in re.finditer('objGIDPageViewAdapter\.objGIDOutfit\.arrayProducts\.push\(\{strProductId:\s"(\d+)',
-                                         self.driver.page_source):
+                                         str(page)):
             sku = product_match.group(1)
             try:
                 product = Product.objects.get(store=self.store, sku=sku)
