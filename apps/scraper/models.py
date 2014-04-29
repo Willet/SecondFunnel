@@ -304,6 +304,24 @@ class CloudScraper(Scraper):
         # pages be [(url, status, BeautifulSoup(contents), text), ...]
         return pages
 
+    def subscrape(self, urls, page_scraper=None):
+        """Scrape another set of pages based on current scraper's findings,
+        then process the sub-pages using either a specific scraper, or
+        the default scraper for a given url.
+        """
+        scraper = self.__class__()  # spawn self
+        pages = scraper.scrape(urls=urls)
+        for url, status, page, text in pages:
+            try:
+                if not page_scraper:
+                    page_scraper = scraper.get_scraper(url=url)()
+                page_scraper.process(url=url, page=page, text=text, status=status)
+            except BaseException as err:
+                if settings.DEBUG:
+                    raise
+                print "Failed to execute scraper for {0}: {1}".format(url, err)
+                continue  # this line is merely symbolic
+
 
 class ProductScraper(CloudScraper):
     @staticmethod

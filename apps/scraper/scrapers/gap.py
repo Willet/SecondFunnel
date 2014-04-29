@@ -130,6 +130,7 @@ class GapCategoryScraper(ProductCategoryScraper):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.regexs[0], url).group(1)
 
     def process(self, url, page, text='', status=200, **kwargs):
+        product_urls = []
         # get category name
         try:
             # e.g. "Skirts"
@@ -180,12 +181,16 @@ class GapCategoryScraper(ProductCategoryScraper):
                     match = re.match(self.product_sku_regex, href)
                     if match:
                         sku = match.group(1)
-                        product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
+                        product_url = 'http://www.gap.com' \
+                                      '/browse/product.do?pid={0}'.format(sku)
                         name = product_elem.find('img').attrs.get('alt')
 
                         product = self.get_product(url=product_url)
                         product.sku = sku
                         product.name = name
+
+                        # add product to detail batch
+                        product_urls.append(product_url)
 
                         print "[{0}] Saving product {1}".format(
                             self.__class__.__name__, product)
@@ -204,11 +209,11 @@ class GapCategoryScraper(ProductCategoryScraper):
                         # if item is not a product, check if it is a STL
                         match = re.match(STLScraper.regexs[0], href)
                         if match:
-                            # return {'url': href}
-                            pass  # TODO: ???
-                        else:
-                            pass
+                            self.subscrape(urls=href, page_scraper=STLScraper)
             page_num += 1
+
+        # fire off detail scrapers for all of the products in this category
+        return self.subscrape(urls=product_urls, page_scraper=GapProductScraper)
 
 
 class STLScraper(ContentDetailScraper):
@@ -223,10 +228,6 @@ class STLScraper(ContentDetailScraper):
         match = re.match(self.regexs[1], url)
         if match:
             return 'http://www.gap.com/browse/outfit.do?cid={1}&oid={0}'.format(match.group(1), match.group(2))
-
-    def scrape(self, url, **kwargs):
-        """:returns list of page-response tuples"""
-
 
     def process(self, url, page, text='', status=200, **kwargs):
         outfit_content = page.select('div#outfitContent')[0]

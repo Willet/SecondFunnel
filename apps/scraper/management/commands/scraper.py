@@ -69,14 +69,4 @@ class Command(BaseCommand):
                     pass
 
         scraper = CloudScraper()
-        pages = scraper.scrape(urls=urls)
-
-        for url, status, page, text in pages:
-            try:
-                page_scraper = scraper.get_scraper(url=url)()
-                page_scraper.process(url=url, page=page, text=text, status=status)
-            except BaseException as err:
-                if settings.DEBUG:
-                    raise
-                print "Failed to execute scraper for {0}: {1}".format(url, err)
-                continue  # this line is merely symbolic
+        return scraper.subscrape(urls=urls)
