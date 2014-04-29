@@ -1,7 +1,7 @@
 import re
 
 from apps.assets.models import Store
-from apps.scraper.models import Scraper, ProductDetailScraper, ProductCategoryScraper
+from apps.scraper.scrapers.scraper import Scraper, ProductDetailScraper, ProductCategoryScraper
 
 
 class MadewellProductScraper(ProductDetailScraper):

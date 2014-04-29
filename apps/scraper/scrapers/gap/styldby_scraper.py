@@ -1,6 +1,6 @@
 import re
 
-from apps.scraper.models import Scraper, ContentCategoryScraper
+from apps.scraper.scrapers.scraper import Scraper, ContentCategoryScraper
 from apps.assets.models import Image
 
 

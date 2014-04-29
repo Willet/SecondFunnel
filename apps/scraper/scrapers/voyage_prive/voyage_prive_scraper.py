@@ -1,10 +1,10 @@
 # coding=utf-8
 import re
 
-from apps.assets.models import Page, Product, Store
-
-from apps.scraper.models import ProductCategoryScraper
 from selenium.common.exceptions import NoSuchElementException
+
+from apps.assets.models import Product, Store
+from apps.scraper.scrapers.scraper import ProductCategoryScraper
 
 
 class VoyagePriveCategoryScraper(ProductCategoryScraper):

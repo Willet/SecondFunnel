@@ -1,13 +1,12 @@
 from os.path import join, dirname
 
 from optparse import make_option
-from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 
 from apps.assets.models import Store
-from apps.scraper.models import CloudScraper
+from apps.scraper.scrapers.scraper import CloudScraper
 
 
 class Command(BaseCommand):
