@@ -462,7 +462,7 @@ TASTYPIE_ALLOW_MISSING_SLASH = True  # allow missing trailing slashes
 TRACKING_COOKIE_AGE = 60 * 60 * 24 * 30 # seconds: s*m*h*d; 30 days
 TRACKING_COOKIE_DOMAIN = 'px.secondfunnel.com'
 
-PHANTOMJSCLOUD_API_URL = "http://api.phantomjscloud.com"
-PHANTOMJSCLOUD_API_KEY = "7707cc4bae3ee4d768d0d6f6b5e6856a58b530bd"
+PREDICTION_IO_API_KEY = "See environment pys"
+PREDICTION_IO_API_URL = "http://predict.secondfunnel.com:8000"
 
 djcelery.setup_loader()
