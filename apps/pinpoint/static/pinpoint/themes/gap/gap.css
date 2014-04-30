@@ -409,6 +409,7 @@ div.header {
 
 .tile.image .overlay {
     opacity: 0;
+    filter: alpha(opacity=0);
     -webkit-transition: opacity 0.25s ease-in-out;
     -moz-transition: opactiy 0.25s ease-in-out;
     -ms-transition: opacity 0.25s ease-in-out;
@@ -444,8 +445,6 @@ div.header {
     font-size: 15pt;
     font-weight: bold;
     color: #010e3f;
-
-    display: none\9;  /* hide in IE8 */
 }
 
 .tile.image .overlay .title .shop-products {
@@ -480,8 +479,17 @@ div.header {
     text-decoration: underline;
 }
 
-.tile.image .overlay:hover {
+.tile.image:hover .overlay {
+    cursor: pointer;
     opacity: 1;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99FFFFFF,endColorstr=#99FFFFFF);
+}
+/* Don't use filter for IE9 + */
+.tile.image:hover .overlay:nth-child(n) {
+    cursor: -webkit-zoom-in;
+    cursor: -moz-zoom-in;
+    cursor: zoom-in;
+    filter: none;
 }
 
 .tile img.focus {
