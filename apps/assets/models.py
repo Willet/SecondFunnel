@@ -20,6 +20,7 @@ from apps.utils import returns_unicode
 import apps.api.serializers as cg_serializers
 import apps.intentrank.serializers as ir_serializers
 from apps.imageservice.utils import delete_cloudinary_resource
+from apps.utils.models import MemcacheSetting
 
 
 default_master_size = {
@@ -199,6 +200,12 @@ class BaseModel(models.Model, DirtyFieldsMixin):
                 tz=pytz.timezone(settings.TIME_ZONE))
 
         self.full_clean()
+
+        if hasattr(self, 'pk') and self.pk:
+            print "Invalidating memcache for {0}".format(self)
+            obj_key = "cg-{0}-{1}".format(self.__class__.__name__, self.id)
+            MemcacheSetting.set(obj_key, None)  # save
+
         super(BaseModel, self).save(*args, **kwargs)
 
     def to_json(self):
