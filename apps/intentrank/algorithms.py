@@ -406,7 +406,8 @@ def ir_finite_by(attribute='created_at', reversed_=False):
 
     @wraps(ir_finite_by)
     def algo(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-             request=None, offset=0, allowed_set=None, *args, **kwargs):
+             request=None, offset=0, allowed_set=None, exclude_set=None,
+             *args, **kwargs):
         """Outputs tiles, based on tiles' {attribute}, in offset slices."""
         def sort_fn(tile):
             """Turns a tile into a number"""
@@ -420,7 +421,10 @@ def ir_finite_by(attribute='created_at', reversed_=False):
             return []
 
         if allowed_set:
-            tiles = tiles.filter(id__in=allowed_set)
+            tiles = filter(filters.id_in, tiles)
+
+        if exclude_set:
+            tiles = filter(filters.id_not_in, tiles)
 
         tiles = sorted(tiles, key=sort_fn, reverse=reversed_)
 
