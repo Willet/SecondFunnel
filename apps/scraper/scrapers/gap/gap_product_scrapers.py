@@ -76,6 +76,7 @@ class GapProductScraper(ProductDetailScraper):
         except IndexError:
             print "Could not find description from {0}".format(url)
 
+        product.store = self.store
         product.save()
 
         # retrieving the major category for the product
@@ -95,7 +96,8 @@ class GapProductScraper(ProductDetailScraper):
             else:
                 self._add_to_category(product, category_name, category_url)
         except IndexError as err:
-            print "Could not find the category on {0}: {1}".format(url, err)
+            print "Could not find the category on {0}: {1} " \
+                  "(this is normal)".format(url, err)
 
         if kwargs.get('category', None):
             self._add_to_category(product, kwargs.get('category', None))
@@ -213,6 +215,12 @@ class GapCategoryScraper(ProductCategoryScraper):
                         product = self.get_product(url=product_url)
                         product.sku = sku
                         product.name = name
+                        product.store = self.store
+
+                        try:
+                            product.price = product_elem.parent.parent.select('span.priceDisplay')[0].text
+                        except IndexError:
+                            print "Warning! {0} price not found on category page".format(product)
 
                         # add product to detail batch
                         product_urls.append(product_url)

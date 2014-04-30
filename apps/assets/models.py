@@ -202,7 +202,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         self.full_clean()
 
         if hasattr(self, 'pk') and self.pk:
-            print "Invalidating memcache for {0}".format(self)
             obj_key = "cg-{0}-{1}".format(self.__class__.__name__, self.id)
             MemcacheSetting.set(obj_key, None)  # save
 
@@ -236,7 +235,7 @@ class Store(BaseModel):
 
     default_theme = models.ForeignKey('Theme', related_name='store', blank=True, null=True, on_delete=models.SET_NULL)
 
-    public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com",
+    public_base_url = models.URLField(help_text="e.g. http://explore.nativeshoes.com",
                                       blank=True, null=True)
 
     cg_serializer = cg_serializers.StoreSerializer

@@ -304,7 +304,7 @@ class CloudScraper(Scraper):
         # pages be [(url, status, BeautifulSoup(contents), text), ...]
         return pages
 
-    def subscrape(self, urls, page_scraper=None):
+    def subscrape(self, urls, page_scraper=None, store=None):
         """Scrape another set of pages based on current scraper's findings,
         then process the sub-pages using either a specific scraper, or
         the default scraper for a given url.
@@ -317,9 +317,9 @@ class CloudScraper(Scraper):
             for url, status, page, text in pages:
                 try:
                     if page_scraper:
-                        pcrapper = page_scraper()
+                        pcrapper = page_scraper(store=store)
                     else:
-                        pcrapper = scraper.get_scraper(url=url)()
+                        pcrapper = scraper.get_scraper(url=url)(store=store)
                     pcrapper.process(url=url, page=page, text=text, status=status)
                     pcrapper = None
                 except BaseException as err:
