@@ -380,6 +380,9 @@ class ProductScraper(CloudScraper):
         exists. If the category does not exist, both name and url must
         be passed in so that the category can be created.
         """
+        # strip html from name
+        name = BeautifulSoup(name).get_text()
+
         if url is None and name is None:
             raise ScraperException('At least one of url or name must be provided to add to a category')
 

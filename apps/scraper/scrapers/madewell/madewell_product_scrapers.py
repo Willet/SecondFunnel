@@ -40,7 +40,10 @@ class MadewellProductScraper(ProductDetailScraper):
             try:
                 product.price = re.sub(r'USD *', '$', page.select('div.full-price span')[0].text)
             except IndexError:
-                print "Could not retrieve pricing information"
+                if "This item is sold out" in str(page):
+                    product.in_stock = False
+                else:
+                    print "Could not retrieve pricing information"
 
         try:
             product.name = page.select('section.description header h1')[0].text
@@ -50,7 +53,8 @@ class MadewellProductScraper(ProductDetailScraper):
             except IndexError:
                 print "Could not retrieve product name"
 
-        product.description = page.select('#prodDtlBody')[0].attrs.get("innerHTML")
+        product.description = self._sanitize_html(
+            str(page.select('#prodDtlBody')[0]))
 
         product.save()
 
@@ -152,6 +156,9 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
 
             product = self.get_product(url=product_url)
             product.sku = sku
+
+            product.price, product.name = '$1', '-'  # replaced by detail scraper
+            product.store = self.store
 
             print "[{0}] Saving product {1}".format(
                 self.__class__.__name__, product)
