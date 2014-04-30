@@ -127,6 +127,7 @@ class ContentAdmin(BaseAdmin):
     list_display = ['image_tag'] + BaseAdmin.list_display
     search_fields = ('id', 'url',)
     filter_horizontal = ('tagged_products',)
+    readonly_fields = ('image_tag',)
 
 
 class ThemeAdmin(BaseAdmin):
