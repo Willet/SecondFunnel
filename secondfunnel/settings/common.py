@@ -462,4 +462,8 @@ TASTYPIE_ALLOW_MISSING_SLASH = True  # allow missing trailing slashes
 TRACKING_COOKIE_AGE = 60 * 60 * 24 * 30 # seconds: s*m*h*d; 30 days
 TRACKING_COOKIE_DOMAIN = 'px.secondfunnel.com'
 
+# API endpoints and keys will eventually be different for each environment
+PREDICTION_IO_API_KEY = "See environment pys"
+PREDICTION_IO_API_URL = "http://predict.secondfunnel.com:8000"
+
 djcelery.setup_loader()

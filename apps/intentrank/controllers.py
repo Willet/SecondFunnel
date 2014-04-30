@@ -1,8 +1,10 @@
 import importlib
 import json
+from django.conf import settings
 
 from django.core import serializers
 from algorithms import ir_generic
+from apps.assets.models import Tile
 
 
 class IntentRank(object):
@@ -88,3 +90,33 @@ class IntentRank(object):
         else:
             raise ValueError("Could not understand requested "
                              "serialize_format {0}".format(serialize_format))
+
+
+class PredictionIOInstance(object):
+    def __init__(self, apiurl=settings.PREDICTION_IO_API_URL):
+        import predictionio
+        # move those if/when used elsewhere
+        self.client = predictionio.Client(
+            appkey=settings.PREDICTION_IO_API_KEY,
+            apiurl=apiurl)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if hasattr(self, 'client'):
+            self.client.close()
+
+    def set_user(self, request):
+        self.client.create_user(request.session.session_key)
+        self.client.identify(request.session.session_key)
+
+    def track_tile_view(self, request, tile):
+        self.set_user(request=request)
+
+        if isinstance(tile, Tile):
+            tile = tile.id
+
+        tile_key = 'tile-{0}'.format(tile)
+        self.client.create_item(tile_key, ('tile',))
+        self.client.arecord_action_on_item("view", tile_key)
