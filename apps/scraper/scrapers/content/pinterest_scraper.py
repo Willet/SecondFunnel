@@ -9,7 +9,7 @@ class PinterestPinScraper(ContentDetailScraper):
     SOURCE = 'pinterest'
 
     def parse_url(self, url, **kwargs):
-        sku = re.match(self.get_regex()[0], url).group(1)
+        sku = re.match(self.regexs[0], url).group(1)
         return 'http://www.pinterest.com/pin/{0}/'.format(sku)
 
     def scrape(self, url, content, **kwargs):
@@ -31,7 +31,7 @@ class PinterestAlbumScraper(ContentCategoryScraper):
     regexs = [Scraper._wrap_regex(r'(?:www\.)?pinterest\.com/(\w*)/(\w*)/?')]
 
     def parse_url(self, url, **kwargs):
-        match = re.match(self.get_regex()[0], url)
+        match = re.match(self.regexs[0], url)
         user = match.group(1)
         album = match.group(2)
         return 'http://www.pinterest.com/{0}/{1}/'.format(user, album)
