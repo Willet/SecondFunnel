@@ -157,7 +157,12 @@ class MadewellMultiProductScraper(ProductCategoryScraper):
             product = self.get_product(url=product_url)
             product.sku = sku
 
-            product.price, product.name = '$1', '-'  # replaced by detail scraper
+            product.price = '$1000'
+            try:
+                product.name = (page.select('#productOnFigureImage' + sku)[0]
+                                    .attrs.get('alt'))
+            except (IndexError, AttributeError) as err:
+                product.name = '-'  # replaced by detail scraper
             product.store = self.store
 
             print "[{0}] Saving product {1}".format(
