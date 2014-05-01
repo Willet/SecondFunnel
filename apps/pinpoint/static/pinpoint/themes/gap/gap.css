@@ -789,6 +789,7 @@ div.header {
 
 @media screen and (min-width: 768px) {
     .previewContainer .gap-buttons, .previewContainer .social-buttons {
+        margin-top: 8px;
         margin-bottom: 30px;
     }
 }
