@@ -617,7 +617,8 @@ class Feed(BaseModel):
                          if tile.products.count() > 0]
         for tile in product_tiles:
             if product in tile.products.all():
-                print "product {0} is already in the feed.".format(product.id)
+                print "Product {0} is already in the feed {1}.".format(
+                    product, self)
 
                 return tile, product, False
         else:  # there weren't any tiles with this product in them
@@ -627,7 +628,7 @@ class Feed(BaseModel):
                                     priority=priority)
             new_product_tile.save()
             new_product_tile.products.add(product)
-            print "product {0} added to the feed.".format(product.id)
+            print "Product {0} added to feed {1}.".format(product, self)
             self.tiles.add(new_product_tile)
 
             return new_product_tile, product, True
@@ -654,7 +655,7 @@ class Feed(BaseModel):
                                     priority=priority)
             new_content_tile.save()
             new_content_tile.content.add(content)
-            print "content {0} added to the feed.".format(content.id)
+            print "Content {0} added to feed {1}.".format(content, self)
             self.tiles.add(new_content_tile)
 
     def remove_product(self, product):
@@ -676,6 +677,7 @@ class Feed(BaseModel):
                 tile_buffer.append(tile)
         for tile in tile_buffer:
             self.tiles.add(tile)
+        print "Product {0} Removed from feed {1}.".format(product, self)
 
 
     def remove_content(self, content):
@@ -697,6 +699,8 @@ class Feed(BaseModel):
                 tile_buffer.append(tile)
         for tile in tile_buffer:
             self.tiles.add(tile)
+            print "Content {0} Removed from feed {1}.".format(content, self)
+
 
 class Page(BaseModel):
     store = models.ForeignKey(Store, related_name='pages')

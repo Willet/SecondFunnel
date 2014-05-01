@@ -20,9 +20,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         In addition to scraping products from the store, this scraper adds
         and removes products from the 'week-end' page.
         """
-        store = self.store
-        page = store.pages.filter(url_slug='week-end')[0]
-        feed = page.feed
+
         # pre-sized cdn image
         image_url_gex = re.compile(r'(^https?://)?(www\.)?cdn\.officiel-des-vacances\.com/files/styles/product_\d+x\d+/public/product/(\w+\.jpg.*)')
 
@@ -30,10 +28,8 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         images = []
         skus = []  # list of product skus that are in the feed (which may or may not be in status (statut) 1
 
-        print('loading url http://www.officiel-des-vacances.com/partners/catalog.xml')
+        # load data feed
         _, status, driver, _ = self.scrape(urls='http://www.officiel-des-vacances.com/partners/catalog.xml')[0]
-        print('url loaded')
-
         for idx, node in enumerate(driver.select('nodes node')):
             sku = node.find('id').get_text()
             skus.append(sku)
@@ -90,13 +86,14 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             images.append(image_url)
 
         # after-the-fact processing
-        for product in Product.objects.filter(store=store):
+        for product in Product.objects.filter(store=self.store):
             # mark all products not in feed as 'not in stock'
             if product.in_stock and not product.sku in skus:
                 print "Product {0} no longer in stock!".format(product.sku)
                 product.in_stock = False
                 product.save()
-                feed.remove_product(product)
+                if self.feed:
+                    self.feed.remove_product(product)
 
             if u"jusqu'à" in product.name or u"jusqu’à" in product.name:
                 product.name = product.name.replace(u"jusqu'à", '')
@@ -186,10 +183,11 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
 
                 # add a tile to the weekend feed
                 try:
-                    tile, p, _ = feed.add_product(product)
-                    tile.template = 'banner'
-                    tile.save()
+                    if self.feed:
+                        tile, p, _ = self.feed.add_product(product)
+                        tile.template = 'banner'
+                        tile.save()
                 except Exception as err:
                     # let other products be processed
                     print "Could not add product {0} to feed {1}".format(
-                        product, feed)
+                        product, self.feed)

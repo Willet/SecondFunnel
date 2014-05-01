@@ -15,7 +15,7 @@ from apps.imageservice.utils import create_image_path
 from apps.pinpoint.utils import read_remote_file
 from apps.scraper.errors import ScraperException
 from apps.scraper.scrapers import ALL_SCRAPERS
-from apps.utils import chunks
+from apps.utils import chunks, async
 from secondfunnel.errors import deprecated
 
 
@@ -31,11 +31,17 @@ class Scraper(object):
     the regexs variable must define a list of regexs for the scraper
     """
     store = None  # override for automatic store-product association.
+    feed = None  # if specified, any product/content scraped will be added to this feed.
+
     regexs = []
 
-    def __init__(self, store=None):
+    def __init__(self, store=None, page=None, feed=None):
         if store:
             self.store = store
+        if page:
+            self.page = page
+        if feed:
+            self.feed = feed
 
     def parse_url(self, url, values, **kwargs):
         """Transform a url to one that we will actually scrape."""
@@ -203,17 +209,23 @@ class CloudScraper(Scraper):
         trips = 0
         page_responses = []
 
-        while trips < (page_count * 20):  # say a page takes 20 seconds on average
+        while trips < max(page_count * 20, 100):  # say a page takes 20 seconds on average
             trips += 1
             if trips % 10 == 0:
-                print "Retrieving pages: [{0}/200 seconds elapsed, {1}/{2} pages done]".format(
+                print "Retrieving pages: [{0}/100 seconds elapsed, {1}/{2} pages done]".format(
                     trips, len(page_responses), page_count)
             sleep(1)  # wait time in seconds; arbitrary number
 
             # call the callback url (note: calling the callback url will remove results)
-            resp = Hammock(url).POST()
-            resp_dct = resp.json()
+            resp = None
+            while True:
+                resp = Hammock(url).POST()
+                if '500' in repr(resp):  # too many concurrent
+                    sleep(10)
+                else:
+                    break
 
+            resp_dct = resp.json()
             still_processing = resp_dct.get('stillProcessing')
             just_completed = resp_dct.get('justCompleted')  # list<str>
 
@@ -282,8 +294,15 @@ class CloudScraper(Scraper):
 
         post_body = json.dumps(self._get_batch_request(urls=urls))
 
-        resp = self.API(self.API_URL).POST(data=post_body,
-            headers={'content-type': 'application/json'})
+        resp = None
+        while True:
+            resp = self.API(self.API_URL).POST(data=post_body,
+                headers={'content-type': 'application/json'})
+
+            if '500' in repr(resp):  # too many concurrent
+                sleep(10)
+            else:
+                break
 
         # resp looks like {u'status': u'success',
         #               u'callbackUrl': u'http://api.phantomjscloud.com/...'}
@@ -293,7 +312,7 @@ class CloudScraper(Scraper):
                 resp_dct.get('status')))
 
         callback_url = resp_dct.get('callbackUrl')
-        print "Scraping urls: %s" % urls
+        print "Loading urls: %s" % urls
         # print "Querying callback url: {0}".format(callback_url)
 
         pages = self._get_batch_callback_response(callback_url,
@@ -304,7 +323,8 @@ class CloudScraper(Scraper):
         # pages be [(url, status, BeautifulSoup(contents), text), ...]
         return pages
 
-    def subscrape(self, urls, page_scraper=None, store=None):
+    def subscrape(self, urls, page_scraper=None, store=None, page=None,
+                  feed=None):
         """Scrape another set of pages based on current scraper's findings,
         then process the sub-pages using either a specific scraper, or
         the default scraper for a given url.
@@ -314,14 +334,16 @@ class CloudScraper(Scraper):
         # break into batches of 10 max (lower this value if out of memory)
         for urls_chunk in chunks(urls, 10):
             pages = scraper.scrape(urls=urls_chunk)
-            for url, status, page, text in pages:
+            for url, status, bs4_page, text in pages:
                 try:
                     if page_scraper:
-                        pcrapper = page_scraper(store=store)
+                        pcrapper = page_scraper
                     else:
-                        pcrapper = scraper.get_scraper(url=url)(store=store)
-                    pcrapper.process(url=url, page=page, text=text, status=status)
-                    pcrapper = None
+                        pcrapper = scraper.get_scraper(url=url)
+
+                    # at this point, the scraper is technically a parser
+                    pcrapper(store=store, page=page, feed=feed).process(
+                        url=url, page=bs4_page, text=text, status=status)
                 except BaseException as err:
                     if settings.DEBUG:
                         raise

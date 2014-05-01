@@ -6,6 +6,7 @@ from apps.assets.models import Store
 from apps.scraper.scrapers.gap.gap_stl_scraper import STLScraper
 
 from apps.scraper.scrapers.scraper import ProductDetailScraper, ProductCategoryScraper
+from apps.utils import async
 
 
 class GapProductScraper(ProductDetailScraper):
@@ -17,6 +18,7 @@ class GapProductScraper(ProductDetailScraper):
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.regexs[0], url).group(1)
 
+    @async
     def process(self, url, page, text='', status=200, **kwargs):
         """
         page is the loaded product page
@@ -32,6 +34,8 @@ class GapProductScraper(ProductDetailScraper):
                 print "Product {0} is out of stock; saving".format(product)
                 product.in_stock = False
                 product.save()
+                if self.feed:
+                    self.feed.remove_product(product)
                 return
             except ValidationError:
                 if "OutOfStock" in url:
@@ -78,6 +82,13 @@ class GapProductScraper(ProductDetailScraper):
 
         product.store = self.store
         product.save()
+
+        # auto-add to feed (if present)
+        if self.feed:
+            if product.in_stock:
+                self.feed.add_product(product)
+            else:
+                self.feed.remove_product(product)
 
         # retrieving the major category for the product
         try:
@@ -154,6 +165,7 @@ class GapCategoryScraper(ProductCategoryScraper):
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.regexs[0], url).group(1)
 
+    @async
     def process(self, url, page, text='', status=200, **kwargs):
         product_urls = []  # urls to scrape in detail
 
@@ -245,5 +257,6 @@ class GapCategoryScraper(ProductCategoryScraper):
             page_num += 1
 
         # fire off detail scrapers for all of the products in this category
-        return self.subscrape(urls=product_urls, page_scraper=GapProductScraper)
+        return self.subscrape(urls=product_urls, page=self.page, feed=self.feed,
+                              page_scraper=GapProductScraper)
 
