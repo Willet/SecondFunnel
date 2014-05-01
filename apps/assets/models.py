@@ -202,7 +202,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         self.full_clean()
 
         if hasattr(self, 'pk') and self.pk:
-            print "Invalidating memcache for {0}".format(self)
             obj_key = "cg-{0}-{1}".format(self.__class__.__name__, self.id)
             MemcacheSetting.set(obj_key, None)  # save
 
@@ -236,7 +235,7 @@ class Store(BaseModel):
 
     default_theme = models.ForeignKey('Theme', related_name='store', blank=True, null=True, on_delete=models.SET_NULL)
 
-    public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com",
+    public_base_url = models.URLField(help_text="e.g. http://explore.nativeshoes.com",
                                       blank=True, null=True)
 
     cg_serializer = cg_serializers.StoreSerializer
@@ -618,7 +617,8 @@ class Feed(BaseModel):
                          if tile.products.count() > 0]
         for tile in product_tiles:
             if product in tile.products.all():
-                print "product {0} is already in the feed.".format(product.id)
+                print "Product {0} is already in the feed {1}.".format(
+                    product, self)
 
                 return tile, product, False
         else:  # there weren't any tiles with this product in them
@@ -628,7 +628,7 @@ class Feed(BaseModel):
                                     priority=priority)
             new_product_tile.save()
             new_product_tile.products.add(product)
-            print "product {0} added to the feed.".format(product.id)
+            print "Product {0} added to feed {1}.".format(product, self)
             self.tiles.add(new_product_tile)
 
             return new_product_tile, product, True
@@ -655,7 +655,7 @@ class Feed(BaseModel):
                                     priority=priority)
             new_content_tile.save()
             new_content_tile.content.add(content)
-            print "content {0} added to the feed.".format(content.id)
+            print "Content {0} added to feed {1}.".format(content, self)
             self.tiles.add(new_content_tile)
 
     def remove_product(self, product):
@@ -677,6 +677,7 @@ class Feed(BaseModel):
                 tile_buffer.append(tile)
         for tile in tile_buffer:
             self.tiles.add(tile)
+        print "Product {0} Removed from feed {1}.".format(product, self)
 
 
     def remove_content(self, content):
@@ -698,6 +699,8 @@ class Feed(BaseModel):
                 tile_buffer.append(tile)
         for tile in tile_buffer:
             self.tiles.add(tile)
+            print "Content {0} Removed from feed {1}.".format(content, self)
+
 
 class Page(BaseModel):
     store = models.ForeignKey(Store, related_name='pages')

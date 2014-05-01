@@ -1,86 +1,126 @@
 import re
+from django.core.exceptions import ValidationError
 
 from selenium.common.exceptions import NoSuchElementException
+from apps.assets.models import Store
+from apps.scraper.scrapers.gap.gap_stl_scraper import STLScraper
 
-from apps.scraper.scrapers import Scraper, ProductDetailScraper, ProductCategoryScraper
-from apps.scraper.scrapers import STLScraper
+from apps.scraper.scrapers.scraper import ProductDetailScraper, ProductCategoryScraper
+from apps.utils import async
 
 
 class GapProductScraper(ProductDetailScraper):
-    regexs = [Scraper._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)]
+    store = Store.objects.get(slug='gap')
+    regexs = [ProductDetailScraper._wrap_regex(r'(?:www\.)?gap\.com/browse/product\.do\?[^/\?]*pid=(\d{6})\d*', True)]
     sku_regex = r'^http://www\.gap\.com/browse/product\.do\?pid=(\d{6})$'
-    imageLabels = ["Z", "AV1_Z", "AV2_Z", "AV9_Z", "SC_OUT_Z"]
+    image_labels = ["Z", "AV1_Z", "AV2_Z", "AV9_Z", "SC_OUT_Z"]
 
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.regexs[0], url).group(1)
 
-    def scrape(self, url, product, values, **kwargs):
-        print('loading ' + url)
-        self.driver.get(url)
-        print('loaded')
+    def process(self, url, page, text='', status=200, **kwargs):
+        """
+        page is the loaded product page
+        """
+        product = self.get_product(url=url)
+        print "[{0}] Processing product {1}".format(
+            self.__class__.__name__, product)
+
         try:
-            product.name = self.driver.find_element_by_class_name('productName').text
-        except NoSuchElementException:
-            product.in_stock = False
-            product.save()
-            yield {'product': product}
-            return
+            product.name = page.select('span.productName')[0].get_text()
+        except IndexError:  # only pages with ^ is in stock
+            try:
+                print "Product {0} is out of stock; saving".format(product)
+                product.in_stock = False
+                product.save()
+                if self.feed:
+                    self.feed.remove_product(product)
+                return
+            except ValidationError:
+                if "OutOfStock" in url:
+                    return
+                raise  # legit error!
 
         # retrieve the price of the product
         try:
-            product.price = self.driver.find_element_by_xpath('//span[@id="priceText"]/strike').text
-        except NoSuchElementException:
-            product.price = self.driver.find_element_by_id('priceText').text
+            # if #priceText strike exists, then the striked out price is the
+            # regular price, and the .salePrice inside it is the sale price
+            product.price = page.select('span#priceText strike')[0].text
+        except IndexError:  # original price not found; guess
+            try:
+                product.price = page.select('#priceText')[0].text
+            except:
+                print "Could not retrieve pricing information"
 
         # retrieve the sale price of the product
         try:
-            sale_price = self.driver.find_element_by_xpath('//span[@id="priceText"]/span[@class="salePrice"]').text
+            sale_price = page.select('span.salePrice')[0].get_text()
             product.attributes.update({'sale_price': sale_price})
-        except NoSuchElementException:
+        except IndexError:
             try:
-                sale_price_text = self.driver.find_element_by_id('productPageMupMessageStyle').text
+                # attempt to find the sale price here instead (div may exist, but may be empty)
+                sale_price_text = page.select('#productPageMupMessageStyle')[0].get_text()
                 match = re.match(r'Now (\$\d+\.\d{2})', sale_price_text)
                 if match:
                     sale_price = match.group(1)
                     product.attributes.update({'sale_price': sale_price})
                 else:
                     product.attributes.pop('sales_price', None)
-            except NoSuchElementException:
+            except IndexError:
                 product.attributes.pop('sales_price', None)
 
-        product.sku = re.match(self.sku_regex, product.url).group(1)
-        product.description = self._sanitize_html(self.driver.find_element_by_id('tabWindow').get_attribute("innerHTML"))
+        try:
+            product.sku = re.match(self.sku_regex, product.url).group(1)
+        except AttributeError:
+            print "Product {0} does not have a sku!".format(product.url)
 
+        try:
+            product.description = self._sanitize_html(str(page.select('#tabWindow')[0]))
+        except IndexError:
+            print "Could not find description from {0}".format(url)
+
+        product.store = self.store
         product.save()
+
+        # auto-add to feed (if present)
+        if self.feed:
+            if product.in_stock:
+                self.feed.add_product(product)
+            else:
+                self.feed.remove_product(product)
 
         # retrieving the major category for the product
         try:
-            category_elem = self.driver.find_element_by_xpath('//li/a[contains(@class, "_selected")]')
-            category_url = category_elem.get_attribute('href')
+            category_elem = (page.select('li a.categorySelected') or
+                             page.select('li a._selected'))[0]
+            category_url = category_elem.attrs.get('href')
             if category_url.startswith('/'):
                 category_url = 'http://www.gap.com' + category_url
             # using innerHTML because category_elem.text does not seem to work here
-            category_name = category_elem.get_attribute('innerHTML').replace('<p>', '').replace('</p>', '')
-            if category_name == 'body' or category_name == 'gapfit' or category_name == 'maternity':
-                self._add_to_category(product, 'women', 'http://www.gap.com/browse/subDivision.do?cid=5646')
+            category_name = str(category_elem).replace('<p>', '').replace('</p>', '')
+            if (category_name == 'body' or
+                category_name == 'gapfit' or
+                category_name == 'maternity'):
+                self._add_to_category(product, 'women',
+                    'http://www.gap.com/browse/subDivision.do?cid=5646')
             else:
                 self._add_to_category(product, category_name, category_url)
-        except NoSuchElementException:
-            pass
+        except IndexError as err:
+            print "Could not find the category on {0}: {1} " \
+                  "(this is normal)".format(url, err)
 
-        if values.get('category', None):
-            self._add_to_category(product, values.get('category', None))
-        if values.get('sub_category', None):
-            self._add_to_category(product, values.get('sub_category', None))
+        if kwargs.get('category', None):
+            self._add_to_category(product, kwargs.get('category', None))
+        if kwargs.get('sub_category', None):
+            self._add_to_category(product, kwargs.get('sub_category', None))
 
-        self.driver.get('http://www.gap.com/browse/productData.do?pid=%s' % product.sku)
+        # given a url, scrape some other url (the same product's data json)
+        page = self.scrape(urls='http://www.gap.com/browse/productData.do?pid=%s' % product.sku)[0][2]
 
-        images = self._get_images(self.driver.page_source, product)
+        images = self._get_images(str(page), product)
         if len(images) > 0:
             product.default_image = images[0]
             product.save()
-
-        yield {'product': product}
 
     def _get_images(self, product_data_page, product):
         """
@@ -88,86 +128,133 @@ class GapProductScraper(ProductDetailScraper):
         Removes all old product images from the product by deleting them
         """
         images = []
-        picture_groups = re.finditer(re.compile(r"styleColorImagesMap\s*=\s*\{\s*([^\}]*)\}\s*;", flags=re.MULTILINE|re.DOTALL), product_data_page)
+        picture_groups = re.finditer(
+            re.compile(r"styleColorImagesMap\s*=\s*\{\s*([^\}]*)\}\s*;",
+                       flags=re.MULTILINE|re.DOTALL),
+            product_data_page)
         for group_match in picture_groups:
             images_text = group_match.group(1)
-            pictures = re.finditer(re.compile(r"\s*'([^\']+)'\s*:\s*'([^\']+)'", flags=re.MULTILINE|re.DOTALL), images_text)
+            pictures = re.finditer(
+                re.compile(r"\s*'([^\']+)'\s*:\s*'([^\']+)'",
+                           flags=re.MULTILINE|re.DOTALL),
+                images_text)
             for pictures_match in pictures:
                 name = pictures_match.group(1)
                 url = pictures_match.group(2)
-                if name in self.imageLabels:
+                if name in self.image_labels:
                     if url.startswith('/'):
                         url = 'http://www.gap.com' + url
                     images.append(self._process_image(url, product))
 
-        if len(images) == 0:
+        if not images:
             return images
 
         for image in product.product_images.exclude(id__in=[image.id for image in images]):
+            print "Deleting stale product image {0} ({1})".format(image, image.original_url)
             image.delete()
 
         return images
 
 
 class GapCategoryScraper(ProductCategoryScraper):
-    regexs = [Scraper._wrap_regex(r'(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)', True)]
+    store = Store.objects.get(slug='gap')
+    regexs = [ProductCategoryScraper._wrap_regex(r'(?:www\.)?gap\.com/browse/category\.do\?[^/\?]*cid=(\d*)', True)]
     product_sku_regex = r'^(?:(?:https?://)?(?:www\.)?gap\.com)?/browse/product\.do\?[^/\?]*pid=(\d{6})\d*(?:&[^/\?]*)?$'
 
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.regexs[0], url).group(1)
 
-    def scrape(self, url, values, **kwargs):
-        self.driver.get(url)
+    def process(self, url, page, text='', status=200, **kwargs):
+        product_urls = []  # urls to scrape in detail
 
         # get category name
         try:
-            values['category'] = self.driver.find_element_by_xpath('//span[@id="subcatname"]').text.strip()
-        except NoSuchElementException:
-            pass
+            # e.g. "Skirts"
+            kwargs['category'] = page.select('span#subcatname')[0].text.strip()
+            print "Category '{0}' found on {1}".format(kwargs['category'], url)
+        except IndexError:
+            print "No category found on {0}".format(url)
 
         # get number of pages
         try:
-            page_text = self.driver.find_element_by_xpath('//label[@class="pagePaginatorLabel"]').text
+            # something like 'Page 1 of 1'
+            page_text = page.select('label.pagePaginatorLabel')[0].text
             if page_text:
-                pages = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))
+                page_count = int(re.match(r'Page *\d+ *of *(\d+)', page_text).group(1))
             else:
-                pages = 1
-        except NoSuchElementException:
-            pages = 1
-        page = 0
-        while page < pages:
-            self.driver.get(url + '#pageId=' + str(page))
+                page_count = 1
+        except IndexError:
+            page_count = 1
+
+        page_num = 0
+        while page_num <= page_count:
+            page = self.scrape(urls="%s#pageId=%s" % (url, page_num))[0][2]
 
             # get all sub categories on the page
             try:
-                sub_categories = self.driver.find_elements_by_xpath('//div[@id="mainContent"]//div[@class="clearfix"]/h2')
+                # [<h2 class="header4">Dresses &amp; Skirts</h2>,
+                #  <h2 class="header4 subcategoryHeader">Sale: Dresses</h2>]
+                #  v-- this looks like
+                sub_categories = page.select('div#mainContent div.clearfix h2')
             except NoSuchElementException:
                 sub_categories = []
 
-            product_groups = self.driver.find_elements_by_xpath('//div[@id="mainContent"]//div[@class="clearfix"]/ul')
+            product_groups = [x for x in page.select('div#mainContent div.clearfix ul')
+                              if not x.attrs.get('id')]
 
-            for i in range(len(product_groups)):
-                if sub_categories:
-                    values['sub_category'] = sub_categories[i].text
-                else:
-                    values['sub_category'] = None
-                for product_elem in product_groups[i].find_elements_by_xpath('./li/div/a'):
-                    href = product_elem.get_attribute('href')
+            for idx, sub_category in enumerate(product_groups):
+                try:
+                    if sub_categories:
+                        kwargs['sub_category'] = sub_categories[idx].text
+                    else:
+                        kwargs['sub_category'] = None
+                except IndexError:
+                    print "Sub-categories are not present on {0}".format(
+                        "%s#pageId=%s" % (url, page_num))
+
+                # kwargs looks like {'category': u'Skirts', 'sub_category': u'Knee Length'}
+                for product_elem in product_groups[idx].select('li div a'):
+                    href = product_elem.attrs.get('href')
                     match = re.match(self.product_sku_regex, href)
                     if match:
                         sku = match.group(1)
-                        product_url = 'http://www.gap.com/browse/product.do?pid=' + sku
-                        name = product_elem.find_element_by_xpath('.//img').get_attribute('alt')
+                        product_url = 'http://www.gap.com' \
+                                      '/browse/product.do?pid={0}'.format(sku)
+                        name = product_elem.find('img').attrs.get('alt')
 
-                        product = self._get_product(product_url)
+                        product = self.get_product(url=product_url)
                         product.sku = sku
                         product.name = name
-                        yield {'product': product, 'url': product_url}
+                        product.store = self.store
+
+                        try:
+                            product.price = product_elem.parent.parent.select('span.priceDisplay')[0].text
+                        except IndexError:
+                            print "Warning! {0} price not found on category page".format(product)
+
+                        # add product to detail batch
+                        product_urls.append(product_url)
+
+                        print "[{0}] Saving product {1}".format(
+                            self.__class__.__name__, product)
+                        product.save()
+
+                        if kwargs.get('category'):
+                            self._add_to_category(product=product,
+                                                  name=kwargs['category'],
+                                                  url=url)
+                        if kwargs.get('sub_category'):
+                            self._add_to_category(product=product,
+                                                  name=kwargs['sub_category'],
+                                                  url=url)
                     else:
                         # if item is not a product, check if it is a STL
                         match = re.match(STLScraper.regexs[0], href)
                         if match:
-                            yield {'url': href}
-                        else:
-                            pass
-            page += 1
+                            self.subscrape(urls=href, page_scraper=STLScraper)
+            page_num += 1
+
+        # fire off detail scrapers for all of the products in this category
+        return self.subscrape(urls=product_urls, page=self.page, feed=self.feed,
+                              page_scraper=GapProductScraper)
+
