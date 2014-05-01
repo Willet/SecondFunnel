@@ -34,6 +34,13 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         for node in self.driver.find_elements_by_xpath('//nodes/node'):
             sku = node.find_element_by_xpath('./id').text
             skus.append(sku)
+
+            try:
+                if not u'10033' in [x.strip() for x in node.find_element_by_xpath('./sections').text.split(',')]:
+                    continue  # this product is not a week-end trip
+            except (AttributeError, NoSuchElementException):
+                continue  # no 'sections'
+
             direct_site_name = node.find_element_by_xpath('./nom-fournisseur').text
             direct_site_image = node.find_element_by_xpath('./image-fournisseur').text
             try:

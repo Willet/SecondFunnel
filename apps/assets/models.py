@@ -202,7 +202,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         self.full_clean()
 
         if hasattr(self, 'pk') and self.pk:
-            print "Invalidating memcache for {0}".format(self)
             obj_key = "cg-{0}-{1}".format(self.__class__.__name__, self.id)
             MemcacheSetting.set(obj_key, None)  # save
 
