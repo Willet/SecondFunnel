@@ -27,12 +27,19 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
 
         products = []
         images = []
-        skus = []  # list of product skus that are in the feed (which may or may not be in status (statut) 1
+        skus = []  # list of week-end product skus that are in the feed (which may or may not be in status (statut) 1
         print('loading url http://www.officiel-des-vacances.com/partners/catalog.xml')
         self.driver.get('http://www.officiel-des-vacances.com/partners/catalog.xml')
         print('url loaded')
         for node in self.driver.find_elements_by_xpath('//nodes/node'):
             sku = node.find_element_by_xpath('./id').text
+
+            try:
+                if not u'10033' in node.find_element_by_xpath('./sections').text:
+                    continue  # this product is not a week-end trip
+            except (AttributeError, NoSuchElementException):
+                continue  # no 'sections'
+
             skus.append(sku)
             direct_site_name = node.find_element_by_xpath('./nom-fournisseur').text
             direct_site_image = node.find_element_by_xpath('./image-fournisseur').text
