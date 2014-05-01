@@ -215,6 +215,50 @@ div.header {
     text-align: center;
 }
 
+#hero-area .overlay .find a,
+#hero-area .overlay .find a:hover,
+#hero-area .overlay .find a:visited {
+    text-transform: uppercase;
+    color: #010e3f;
+    text-decoration: underline;
+}
+
+#hero-area .overlay.white .find a,
+#hero-area .overlay.white .find a:hover,
+#hero-area .overlay.white .find a:visited {
+    color: white;
+}
+
+#hero-area .overlay .buttons a {
+    background-repeat: no-repeat;
+    background-size: contain;
+    width: 33px;
+    height: 33px;
+    display: inline-block;
+}
+
+#hero-area .overlay .buttons .facebook-button {
+    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon.png');
+}
+#hero-area .overlay .buttons .twitter-button {
+    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon.png');
+}
+#hero-area .overlay .buttons .email-button {
+    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon.png');
+}
+
+#hero-area .overlay.white .buttons .facebook-button {
+    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_white.png');
+}
+
+#hero-area .overlay.white .buttons .twitter-button {
+    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_white.png');
+}
+
+#hero-area .overlay.white .buttons .email-button {
+    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_white.png');
+}
+
 @media screen and (max-width: 768px) {
     .jumbotron {
         border-bottom: none;
@@ -226,33 +270,51 @@ div.header {
         width: 100%;
     }
 
+    #hero-area .overlay .find {
+        line-height: 33px;
+    }
+
+    #hero-area .overlay .find a {
+        vertical-align: top;
+    }
+
+    #hero-area .overlay.mobile-orange .find a,
+    #hero-area .overlay.mobile-orange .find a:hover,
+    #hero-area .overlay.mobile-orange .find a:visited {
+        color: #f14945;
+    }
+
+    #hero-area .overlay.mobile-blue .find a,
+    #hero-area .overlay.mobile-blue .find a:hover,
+    #hero-area .overlay.mobile-blue .find a:visited {
+        color: #010e3f;
+    }
+
     #hero-area .overlay .buttons {
         display: inline-block;
         margin-left: 6px;
     }
 
-    #hero-area .overlay .buttons .white {
-        background-repeat: no-repeat;
-        background-size: contain;
-        width: 33px;
-        height: 33px;
-        display: inline-block;
-    }
-
-    #hero-area .overlay .buttons .white.facebook-button {
+    #hero-area .overlay.mobile-orange .buttons .facebook-button {
         background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_orange.png');
     }
 
-    #hero-area .overlay .buttons .white.twitter-button {
+    #hero-area .overlay.mobile-orange .buttons .twitter-button {
         background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_orange.png');
     }
 
-    #hero-area .overlay .buttons .white.email-button {
+    #hero-area .overlay.mobile-orange .buttons .email-button {
         background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_orange.png');
     }
 
-    #hero-area .overlay .buttons .white img {
-        visibility: hidden;
+    #hero-area .overlay.mobile-blue .buttons .facebook-button {
+        background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon.png');
+    }
+    #hero-area .overlay.mobile-blue .buttons .twitter-button {
+        background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon.png');
+    }
+    #hero-area .overlay.mobile-blue .buttons .email-button {
+        background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon.png');
     }
 }
 
@@ -265,39 +327,6 @@ div.header {
     color: #010e3f;
     text-align: left;
     margin-left: -15px;
-}
-
-#hero-area .find a,
-#hero-area .find a:hover,
-#hero-area .find a:visited {
-    text-transform: uppercase;
-    color: #010e3f;
-    text-decoration: underline;
-}
-
-#hero-area .find.white a,
-#hero-area .find.white a:hover,
-#hero-area .find.white a:visited {
-    color: white;
-}
-
-@media screen and (max-width: 768px) {
-    #hero-area .find.white a,
-    #hero-area .find.white a:hover,
-    #hero-area .find.white a:visited {
-        color: #f14945;
-    }
-}
-
-#hero-area .find.red a,
-#hero-area .find.red a:hover,
-#hero-area .find.red a:visited {
-    color: red;
-}
-
-#hero-area .buttons img {
-    width: 33px;
-    height: 33px;
 }
 
 #hero-area .buttons a,
