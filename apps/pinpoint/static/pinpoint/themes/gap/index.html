@@ -724,8 +724,8 @@
                     <img src="{{ desktop_hero_image }}" alt="Hero" />
                 </div>
                 <div class="visible-md visible-lg jumbotron"></div>
-                <div class="overlay">
-                    <span class='find{% ifequal campaign.url_slug "dressedup" %} white {% endifequal %}'>
+                <div class="overlay <%- App.option('overlayButtonColor') %> <% if ( App.option('overlayMobileButtonColor')) { %>mobile-<%- App.option('overlayMobileButtonColor') %><% } %>">
+                    <span class='find'>
                         <% if (!App.support.mobile()) { %>
                             <a href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
                         <% } else { %>
@@ -750,27 +750,9 @@
                             var mailLink = 'mailto:?'
                                 + 'body=' + encodeURIComponent(share);
                         %>
-                        <a href='<%= fbLink %>' target='_blank' class="facebook-button{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}">
-                            {% ifequal campaign.url_slug "dressedup" %}
-                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon_white.png' />
-                            {% else %}
-                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/facebookicon.png' />
-                            {% endifequal %}
-                        </a>
-                        <a href='<%= twtLink %>' target='_blank' class="twitter-button{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}">
-                            {% ifequal campaign.url_slug "dressedup" %}
-                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon_white.png' />
-                            {% else %}
-                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/twittericon.png' />
-                            {% endifequal %}
-                        </a>
-                        <a href='<%= mailLink %>' target='_blank' class="email-button{% ifequal campaign.url_slug "dressedup" %} white{% endifequal %}">
-                            {% ifequal campaign.url_slug "dressedup" %}
-                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon_white.png' />
-                            {% else %}
-                                <img src='//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon.png' />
-                            {% endifequal %}
-                        </a>
+                        <a href='<%= fbLink %>' target='_blank' class="facebook-button"></a>
+                        <a href='<%= twtLink %>' target='_blank' class="twitter-button"></a>
+                        <a href='<%= mailLink %>' target='_blank' class="email-button"></a>
                     </div>
                 </div>
             </div>

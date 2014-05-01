@@ -3,7 +3,6 @@
 <script type="text/javascript">
     window.PAGES_INFO = {
           'debug': ('{{ debug|default:0 }}' === 'True')  // django built-in
-        // , 'base_url': '{{ base_url }}'  // DEPRECATED
         , 'discoveryTarget': '{{ discovery_target|default:"#discovery-area" }}'
         , 'itemSelector': '{{ item_selector|default:".tile" }}'
         , 'store': {
@@ -26,16 +25,13 @@
             // you will still need to make elements with data-category="96" on the page.
             , 'categories': {{ campaign.categories|default:"[]"|safe }}  // string representation of [{id: 123, name: 'gap'}, ...]
 
-            // 'main-block-template': '{{ campaign.template }}',  // DEPRECATED
-            // 'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},  // DEPRECATED
-            // 'stl-image': '{{ campaign.stl_image }}',  // DEPRECATED
-            // 'featured-image': '{{ campaign.featured_image }}',  // DEPRECATED
             , 'description': "{{ campaign.description|escapejs }}"
         }
         , 'campaign': '{{ campaign.intentrank_id|default:campaign.id }}' // required
         , 'columnWidth': {{ column_width|default:'undefined' }}  // optional. controls how often tiles are wide.  // optional (defaults to 255, pixels)
         , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
-        // , 'events': undefined  // page event bindings (optional)
+        , 'overlayButtonColor': '{{ campaign.overlay_button_color|default:"" }}'
+        , 'overlayMobileButtonColor': '{{ campaign.overlay_mobile_button_color|default:"" }}'
         , 'disableBannerRedirectOnMobile': {{ campaign.disable_banner_redirect_on_mobile|default:"false" }}
         , 'mobileTabletView': {{ campaign.mobile_table_view|default:"false" }}
         , 'socialButtons':
@@ -50,8 +46,6 @@
                     "share"  // who requested this feature?
                 ]
             {% endif %}
-        // , 'shareSocialButtons': []  // optional; default: all
-        // , 'shareSources': {}  // optional: default: see sharing module
         , 'socialButtonsEnableCondition': function (button) {
             // required.
             // this function must return true for a social button to show
