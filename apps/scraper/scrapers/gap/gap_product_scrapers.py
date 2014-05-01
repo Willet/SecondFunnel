@@ -18,7 +18,6 @@ class GapProductScraper(ProductDetailScraper):
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.regexs[0], url).group(1)
 
-    @async
     def process(self, url, page, text='', status=200, **kwargs):
         """
         page is the loaded product page
@@ -165,7 +164,6 @@ class GapCategoryScraper(ProductCategoryScraper):
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/category.do?cid=' + re.match(self.regexs[0], url).group(1)
 
-    @async
     def process(self, url, page, text='', status=200, **kwargs):
         product_urls = []  # urls to scrape in detail
 

@@ -28,7 +28,6 @@ class MadewellProductScraper(ProductDetailScraper):
 
         return url
 
-    @async
     def process(self, url, page, text='', status=200, **kwargs):
         product = self.get_product(url=url)
         print "[{0}] Processing product {1}".format(
@@ -116,7 +115,6 @@ class MadewellCategoryScraper(ProductCategoryScraper):
         url += '.jsp'
         return url
 
-    @async
     def process(self, url, page, text='', status=200, **kwargs):
         product_urls = []
         products_data = page.select('td.arrayProdCell td.arrayImg a')

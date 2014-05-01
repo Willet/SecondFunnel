@@ -17,7 +17,6 @@ class STLScraper(ContentDetailScraper):
         if match:
             return 'http://www.gap.com/browse/outfit.do?cid={1}&oid={0}'.format(match.group(1), match.group(2))
 
-    @async
     def process(self, url, page, text='', status=200, **kwargs):
         outfit_content = page.select('div#outfitContent')[0]
         image_url = outfit_content.select('div#outfitContentLeft div#outfitImages img').attrs.get('src')

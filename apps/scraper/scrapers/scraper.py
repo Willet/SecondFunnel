@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 import bleach
 from hammock import Hammock
 from django.conf import settings
+from requests import ConnectionError
 
 from apps.assets.models import Category, ProductImage, Product
 from apps.imageservice.tasks import process_image
@@ -209,23 +210,23 @@ class CloudScraper(Scraper):
         trips = 0
         page_responses = []
 
-        while trips < max(page_count * 20, 100):  # say a page takes 20 seconds on average
+        while trips < max(page_count * 2, 10):  # say a page takes 20 seconds on average
             trips += 1
-            if trips % 10 == 0:
-                print "Retrieving pages: [{0}/100 seconds elapsed, {1}/{2} pages done]".format(
-                    trips, len(page_responses), page_count)
-            sleep(1)  # wait time in seconds; arbitrary number
+            print "Retrieving pages: [{0}0/100 seconds elapsed, {1}/{2} pages done]".format(
+                trips, len(page_responses), page_count)
+            sleep(10)  # wait time in seconds; arbitrary number
 
             # call the callback url (note: calling the callback url will remove results)
             resp = None
             while True:
-                resp = Hammock(url).POST()
-                if '500' in repr(resp):  # too many concurrent
-                    sleep(10)
-                else:
+                try:
+                    resp = Hammock(url).POST()
+                    resp_dct = resp.json()
                     break
+                except (ConnectionError, ValueError):
+                    print "Retrying {0}:".format(url)
+                    sleep(10)
 
-            resp_dct = resp.json()
             still_processing = resp_dct.get('stillProcessing')
             just_completed = resp_dct.get('justCompleted')  # list<str>
 
@@ -294,19 +295,19 @@ class CloudScraper(Scraper):
 
         post_body = json.dumps(self._get_batch_request(urls=urls))
 
-        resp = None
+        resp = resp_dct = None
         while True:
-            resp = self.API(self.API_URL).POST(data=post_body,
-                headers={'content-type': 'application/json'})
-
-            if '500' in repr(resp):  # too many concurrent
-                sleep(10)
-            else:
+            try:
+                resp = self.API(self.API_URL).POST(data=post_body,
+                    headers={'content-type': 'application/json'})
+                resp_dct = resp.json()
                 break
+            except (ConnectionError, ValueError):
+                print "Retrying {0}:".format(self.API_URL)
+                sleep(10)
 
         # resp looks like {u'status': u'success',
         #               u'callbackUrl': u'http://api.phantomjscloud.com/...'}
-        resp_dct = resp.json()
         if resp_dct.get('status') != 'success':
             raise IOError("phantomjscloud returned '{0}' instead of 'success'".format(
                 resp_dct.get('status')))
@@ -318,7 +319,7 @@ class CloudScraper(Scraper):
         pages = self._get_batch_callback_response(callback_url,
                                                   page_count=len(urls))
         if len(pages) != len(urls):
-            raise ValueError("phantomjscloud didn't give us the same number of pages?!")
+            print ("Error: not all phantomjscloud pages could be loaded")
 
         # pages be [(url, status, BeautifulSoup(contents), text), ...]
         return pages

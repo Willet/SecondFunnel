@@ -13,7 +13,6 @@ class StyldByPartnersScraper(ContentCategoryScraper):
         match = re.match(self.regexs[0], url)
         return 'http://www.styld-by.com/en-us/partners/{0}/{1}'.format(match.group(1), match.group(2))
 
-    @async
     def process(self, url, page, text='', status=200, **kwargs):
         name = page.select('h2.title')[0].text
         description = page.select('div.content p')[0].text
@@ -43,7 +42,6 @@ class StyldByFilterScraper(ContentCategoryScraper):
         match = re.match(self.regexs[0], url)
         return 'http://www.styld-by.com/en-us/filter/{0}'.format(match.group(1))
 
-    @async
     def process(self, url, page, text='', status=200, **kwargs):
         page_num = 1
         while True:
