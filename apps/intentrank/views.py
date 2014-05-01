@@ -11,7 +11,7 @@ from apps.assets.models import Page, Tile, TileRelation, Category
 from apps.intentrank.controllers import IntentRank, PredictionIOInstance
 from apps.intentrank.algorithms import ir_generic, ir_all, ir_base
 from apps.intentrank.utils import ajax_jsonp
-from apps.utils import thread_id
+from apps.utils import thread_id, async
 from apps.utils.models import MemcacheSetting
 
 import scripts.generate_rss_feed as rss_feed
@@ -232,8 +232,7 @@ def get_results(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     else:
         allowed_set = None
 
-    tiles = ir_base(feed=tiles[0].feed, exclude_set=exclude_set,
-                    allowed_set=allowed_set)
+    tiles = ir_base(feed=tiles[0].feed, allowed_set=allowed_set)
     return ir.render(algorithm, tiles=tiles, results=results,
                      exclude_set=exclude_set, allowed_set=allowed_set,
                      request=request, offset=offset, tile_id=tile_id)
@@ -283,6 +282,7 @@ def click_tile(request, **kwargs):
     track_tiles = MemcacheSetting.get('track_tiles', True)
     MemcacheSetting.set('track_tiles', track_tiles)  # extend memcache
 
+    @async
     def click_func(tile):
         clicks = request.session.get('clicks', [])
         if tile.id not in clicks:
@@ -312,6 +312,7 @@ def view_tile(request, **kwargs):
     track_tiles = MemcacheSetting.get('track_tiles', True)
     MemcacheSetting.set('track_tiles', track_tiles)  # extend memcache
 
+    @async
     def view_func(tile):
         tile.add_view()
         track_tile_view(request=request, tile_id=tile.id)
