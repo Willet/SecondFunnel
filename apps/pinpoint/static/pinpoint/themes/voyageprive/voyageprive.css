@@ -173,26 +173,6 @@ html.tablet .dropdown-xs {
     }
 }
 
-html.tablet #hero-area .overlay {
-    top: 2px;
-    background-color: transparent;
-    text-align: center;
-    padding: 0 10px;
-}
-
-html.tablet #hero-area .overlay .title {
-    padding: 0 10px;
-    font-size: 26px;
-}
-
-html.tablet #hero-area .overlay div {
-    background-color: black;
-    display: inline-block;
-    margin-bottom: 2px;
-    padding: 2px 5px;
-    font-size: 13px;
-}
-
 .jumbotron {
     background-repeat: no-repeat;
     width: 1024px;
