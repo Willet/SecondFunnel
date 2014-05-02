@@ -48,6 +48,8 @@ def track_tiles_view(request, tile_ids):
     """Shorthand"""
     for tile_id in tile_ids:
         track_tile_view(request=request, tile_id=tile_id)
+    limit_showns(request)  # limit is controlled by TRACK_SHOWN_TILES_NUM
+    return request.session.get('shown', [])
 
 
 def limit_showns(request, n=TRACK_SHOWN_TILES_NUM):
@@ -55,8 +57,19 @@ def limit_showns(request, n=TRACK_SHOWN_TILES_NUM):
     :param n: how many to keep
     """
     # ordered algos keep track of full list for zero repeats
-    if not request.GET.get('algorithm', None) in [
-        'ordered', 'sorted', 'finite', 'custom']:
+    # for some algo families, reloading the page should reset the list of shown tiles
+    req_num = request.GET.get('reqNum', 0)
+    algorithm_name = request.GET.get('algorithm', 'generic').lower()
+
+    if request.GET.get('algorithm', None) in ['ordered', 'sorted', 'finite', 'custom']:
+        # prevent these from ever resetting
+        pass
+    elif 'generic' in algorithm_name or 'finite_' in algorithm_name:
+        # reset these every pageload
+        if int(req_num) == 0:
+            request.session['shown'] = []
+    else:
+        # default: remember last 20
         request.session['shown'] = request.session.get('shown', [])[-n:]
 
 
@@ -93,18 +106,14 @@ def get_results_view(request, page_id):
         algorithm_name = 'related'
         tile_id = related
 
-    # keep track of the last (unique) tiles have been shown.
-    track_tiles_view(request, tile_ids=shown)
-
-    # "show everything except these tile ids"
-    exclude_set = map(int, request.session.get('shown', []))
-
-    limit_showns(request)  # limit is controlled by TRACK_SHOWN_TILES_NUM
+    # keep track of the last (unique) tiles have been shown, then
+    # show everything except these tile ids
+    shown = track_tiles_view(request, tile_ids=shown)
+    exclude_set = map(int, shown)
 
     page = get_object_or_404(Page, id=page_id)
     feed = page.feed
     ir = IntentRank(feed=feed)
-    tiles = feed.get_tiles()
 
     # find the appropriate algorithm.
     if algorithm_name == 'finite_popular':
@@ -116,7 +125,7 @@ def get_results_view(request, page_id):
         algorithm = getattr(ir, 'ir_' + algorithm_name) or ir.ir_generic
     print 'request being handled by {0}'.format(algorithm.__name__)
 
-    resp = ajax_jsonp(get_results(tiles=tiles, results=results,
+    resp = ajax_jsonp(get_results(feed=feed, results=results,
                                   algorithm=algorithm, request=request,
                                   exclude_set=exclude_set,
                                   category_name=category,
@@ -197,7 +206,7 @@ def get_related_tiles_view(request, page_id, tile_id=None, **kwargs):
     return ajax_jsonp(tile.get_related(), callback_name=callback)
 
 
-def get_results(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                 algorithm=ir_generic, tile_id=0, offset=0, **kwargs):
     """Converts a feed into a list of <any> using given parameters.
 
@@ -210,10 +219,10 @@ def get_results(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     :returns           a list of <any>
     """
-    if not tiles:  # short circuit: return empty resultset
+    if not feed.tiles.count():  # short circuit: return empty resultset
         return IntentRank(True).transform([])
 
-    ir = IntentRank(feed=tiles[0].feed)
+    ir = IntentRank(feed=feed)
 
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
@@ -232,7 +241,7 @@ def get_results(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     else:
         allowed_set = None
 
-    tiles = ir_base(feed=tiles[0].feed, allowed_set=allowed_set)
+    tiles = ir_base(feed=feed, allowed_set=allowed_set)
     return ir.render(algorithm, tiles=tiles, results=results,
                      exclude_set=exclude_set, allowed_set=allowed_set,
                      request=request, offset=offset, tile_id=tile_id)

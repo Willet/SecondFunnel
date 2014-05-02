@@ -3,7 +3,6 @@ from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, tostring
 from django.conf import settings
 from apps.intentrank.algorithms import ir_base
-from apps.intentrank.filters import in_stock
 
 try:
     from collections import OrderedDict
@@ -18,7 +17,7 @@ from django.template import Context, loader
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
 
-from apps.assets.models import Page, Tile, Store
+from apps.assets.models import Page
 from apps.pinpoint.utils import render_campaign, get_store_from_request, read_a_file
 
 
@@ -99,7 +98,7 @@ def product_feed(request, page_slug):
     page_description = SubElement(channel, 'description')
     page_description.text = page.description
 
-    tiles = filter(in_stock, ir_base(feed=page.feed).all())
+    tiles = ir_base(feed=page.feed)
 
     for obj in tiles:
         tile = obj.to_json()
