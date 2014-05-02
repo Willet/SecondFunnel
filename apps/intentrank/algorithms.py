@@ -366,9 +366,8 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         results=(results - len(prioritized_tiles)),
         exclude_set=exclude_set,
         allowed_set=allowed_set)
-    random_tiles = random_tiles.order_by('?')
 
-    tiles = prioritized_tiles + random_tiles
+    tiles = list(prioritized_tiles) + list(random_tiles)
     return tiles[:results]
 
 
