@@ -31,7 +31,12 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         print('loading url http://www.officiel-des-vacances.com/partners/catalog.xml')
         self.driver.get('http://www.officiel-des-vacances.com/partners/catalog.xml')
         print('url loaded')
-        for node in self.driver.find_elements_by_xpath('//nodes/node'):
+        product_nodes = self.driver.find_elements_by_xpath('//nodes/node')
+        if not product_nodes:  # VP servers exploding
+            print "Could not retrieve latest VP product info; killing scraper"
+            return
+
+        for node in product_nodes:
             sku = node.find_element_by_xpath('./id').text
 
             try:
