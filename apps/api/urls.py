@@ -18,7 +18,7 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageProductDeprioritizeItemCGHandler,
     StorePageContentPrioritizeItemCGHandler,
     StorePageContentDeprioritizeItemCGHandler, StoreContentApproveItemCGHandler,
-    StoreContentRejectItemCGHandler, StoreContentUndecideItemCGHandler)
+    StoreContentRejectItemCGHandler, StoreContentUndecideItemCGHandler, ProductItemCGHandler)
 from apps.api.views.content import PageContentAllCGHandler
 from apps.imageservice.views import create as imageservice_create
 
@@ -59,6 +59,7 @@ urlpatterns += patterns('apps.api.views',
 
     # product
     url(r'^%s/product/?$' % prefix, ProductCGHandler.as_view()),
+    url(r'^%s/product/(?P<product_id>\d+)/?$' % prefix, ProductItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/product/?$' % prefix, StoreProductCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_id>\d+)/?$' % prefix, StoreProductItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_set>\w+)/?$' % prefix, StoreProductCGHandler.as_view()),

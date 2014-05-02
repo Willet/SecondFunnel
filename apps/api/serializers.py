@@ -8,6 +8,7 @@ from apps.utils.models import MemcacheSetting
 class RawSerializer(JSONSerializer):
     """This removes the square brackets introduced by the JSONSerializer."""
     MEMCACHE_PREFIX = 'cg'
+    MEMCACHE_TIMEOUT = 60
 
     @classmethod
     def dump(cls, obj):
@@ -32,15 +33,17 @@ class RawSerializer(JSONSerializer):
         # for when an object was done more than once per request
         if len(queryset) == 1:
             obj = queryset[0]
-            obj_key = "{0}-{1}-{2}".format(self.MEMCACHE_PREFIX, obj.__class__.__name__, obj.id)
+            obj_key = "{0}-{1}-{2}".format(self.MEMCACHE_PREFIX,
+                                           obj.__class__.__name__, obj.id)
 
             # if you have a memcache, that is
             obj_str_cache = MemcacheSetting.get(obj_key, False)
             if obj_str_cache:  # in cache, return it
-                 return json.loads(obj_str_cache)
+                return json.loads(obj_str_cache)
             else:  # not in cache, save it
                 obj_str = self.serialize(queryset=queryset, **options)
-                MemcacheSetting.set(obj_key, obj_str, timeout=60)  # save
+                MemcacheSetting.set(obj_key, obj_str,
+                                    timeout=self.MEMCACHE_TIMEOUT)  # save
                 return json.loads(obj_str)
 
         return json.loads(self.serialize(queryset=queryset, **options))

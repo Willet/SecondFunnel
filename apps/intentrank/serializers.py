@@ -3,6 +3,7 @@ from apps.api.serializers import RawSerializer
 
 class IRSerializer(RawSerializer):
     MEMCACHE_PREFIX = 'ir'
+    MEMCACHE_TIMEOUT = 300  # 5 minutes of caching each tile (arbitrary)
 
 
 class FeedSerializer(RawSerializer):

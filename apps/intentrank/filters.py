@@ -29,6 +29,8 @@ def in_stock(tile):
                 if product.in_stock:
                     return True
 
+    return False
+
 
 def pick(tile, probability=0.1):
     """
