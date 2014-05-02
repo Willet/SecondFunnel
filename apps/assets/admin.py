@@ -1,13 +1,12 @@
 from admin_extend.extend import extend_registered, add_bidirectional_m2m, registered_form
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from django.contrib.sites.models import Site
 from django.db import models
 from django.forms import SelectMultiple, ModelMultipleChoiceField
 
 from apps.assets.forms import CategoryForm
 from apps.assets.models import (Store, Page, Tile, Feed, Product, ProductImage,
-                                Image, Content, Theme, Review, Video, TileRelation, Category)
+                                Image, Content, Theme, Review, Video, Category)
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -70,27 +69,10 @@ class PageAdmin(BaseAdmin):
 
 
 class TileAdmin(BaseAdmin):
-    list_display = ['feed', 'template', 'prioritized',
-                    'click_starting_score', 'click_score',
-                    'view_starting_score', 'view_score'] + BaseAdmin.list_display
+    list_display = ['feed', 'template', 'prioritized'] + BaseAdmin.list_display
     search_fields = ('id', 'template')
     list_filter = ('feed',)
     filter_horizontal = ('products', 'content',)
-
-
-class TileRelationAdmin(BaseAdmin):
-    list_display = BaseAdmin.list_display + ['tile_a_id', 'tile_b_id', 'starting_score', 'score']
-    search_fields = ('id', 'tile_a_id', 'tile_b_id',)
-
-    def tile_a_id(self, obj):
-        return str(obj.tile_a.id)
-
-    tile_a_id.short_description = 'tile_a_id'
-
-    def tile_b_id(self, obj):
-        return str(obj.tile_b.id)
-
-    tile_b_id.short_description = 'tile_b_id'
 
 
 class FeedAdmin(BaseAdmin):
@@ -148,7 +130,6 @@ admin.site.register(Store, StoreAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Page, PageAdmin)
 admin.site.register(Tile, TileAdmin)
-admin.site.register(TileRelation, TileRelationAdmin)
 admin.site.register(Feed, FeedAdmin)
 admin.site.register(Image, ImageAdmin)
 admin.site.register(ProductImage, ProductImageAdmin)
@@ -171,4 +152,3 @@ class ExtendedProductAdminForm(add_bidirectional_m2m(registered_form(Product))):
     def _get_bidirectional_m2m_fields(self):
         return super(ExtendedProductAdminForm, self).\
             _get_bidirectional_m2m_fields() + [('categories', 'categories')]
-

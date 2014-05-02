@@ -23,7 +23,7 @@ from tastypie.utils import trailing_slash
 from apps.api.paginator import ContentGraphPaginator
 from apps.api.utils import UserObjectsReadOnlyAuthorization
 from apps.assets.models import (Product, Store, Page, Feed, Tile, ProductImage, 
-                                Image, Video, Review, Theme, TileRelation, Content)
+                                Image, Video, Review, Theme, Content)
 
 
 ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL, headers={'ApiKey': 'secretword'})
@@ -373,17 +373,6 @@ class TileConfigResource(BaseCGResource):
             'product-ids': [c.id for c in bundle.obj.products.all()],
         }
         return bundle
-
-
-class TileRelationResource(BaseCGResource):
-    """Returns "a page"."""
-    class Meta(BaseCGResource.Meta):
-        queryset = TileRelation.objects.all()
-        resource_name = 'tile_relation'
-
-        filtering = {
-            'store': ALL,
-        }
 
 
 # http://stackoverflow.com/questions/11770501/how-can-i-login-to-django-using-tastypie

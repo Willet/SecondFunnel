@@ -149,7 +149,6 @@ class TileSerializer(IRSerializer):
         data = {
             # prefixed keys are for inspection only; the hyphen is designed to
             # prevent you from using it like a js object
-            '-dbg-attributes': obj.attributes,
             'tile-id': obj.id,
         }
 

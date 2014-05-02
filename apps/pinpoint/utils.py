@@ -1,21 +1,17 @@
 import gzip
 import json
-import re
 import StringIO
 import urllib2
 
-from collections import defaultdict
 from datetime import datetime
 from os import path
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from django.template import RequestContext, loader, Template
-from django.template.defaultfilters import slugify
+from django.template import RequestContext, Template
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Theme, Page, Store
-from secondfunnel.errors import deprecated
+from apps.assets.models import Page, Store
 
 
 def read_a_file(file_name, default_value=''):
@@ -153,60 +149,14 @@ def render_campaign(page_id, request, store_id=0):
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
         "keen_io": settings.KEEN_CONFIG,
         "url": page.get('url', ''),
-        "related_to_tile": request.GET.get('related', ''),
         "algorithm": algorithm,
         "environment": settings.ENVIRONMENT,
     }
 
     context = RequestContext(request, attributes)
 
-    # Replace tags only if present
-    if page_template.find(r'{{ body_content }}') > -1:
-        page_template = replace_legacy_tags(page_template, context)
-
     # Page content
     page = Template(page_template)
 
     # Render response
     return page.render(context)
-
-
-@deprecated
-def replace_legacy_tags(page_template, context):
-    """For themes that still use Theme.CUSTOM_FIELDS, replace run this extra
-    replacement algorithm.
-    """
-    def repl(match):
-        """Returns a replaced tag content for a tag, or
-        the original tag if we have no data for that tag.
-        """
-        match_str = match.group(1)  # just the field: e.g. 'desktop_content'
-
-        if match_str in sub_values:
-            return ''.join(sub_values[match_str])
-        else:
-            return match.group(0)  # leave unchanged
-
-    sub_values = defaultdict(list)
-    regex = re.compile("\{\{\s*(\w+)\s*\}\}")
-
-    # replace our own "django-style" tags before django templating touches them
-    for tag, template in Theme.CUSTOM_FIELDS.iteritems():
-        result = loader.get_template(template)
-
-        if isinstance(result, Template):
-            result = result.render(context)
-        else:
-            result = result.encode('unicode-escape')
-
-        try:
-            sub_values[tag].append(result.decode("unicode_escape"))
-        except UnicodeDecodeError:  # who knows
-            sub_values[tag].append(result)
-
-    try:
-        page_template = regex.sub(repl, page_template)
-    except UnicodeDecodeError:
-        page_template = regex.sub(repl, page_template.decode('utf-8'))
-
-    return page_template

@@ -1,11 +1,9 @@
-from django.http import HttpResponse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import check_login, request_methods
 from apps.api.resources import ContentGraphClient
 from apps.api.utils import mimic_response
-from secondfunnel.errors import deprecated
 
 
 @request_methods('GET')
