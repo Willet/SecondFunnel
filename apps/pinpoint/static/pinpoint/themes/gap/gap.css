@@ -937,6 +937,7 @@ div.header {
 }
 .previewContainer .row .cell.capped-width {
     width: 33%;
+    max-width: 343px;
 }
 .previewContainer .row .cell .description {
     max-height: 200px;
