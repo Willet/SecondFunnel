@@ -1,15 +1,13 @@
 import calendar
-import math
 import datetime
-import pytz
 import re
 
+import pytz
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.serializers.json import Serializer
 from django.db import models
-from django.db.models import Q
 from django_extensions.db.fields import CreationDateTimeField
 from django.utils import timezone
 from jsonfield import JSONField
@@ -677,7 +675,6 @@ class Feed(BaseModel):
         for tile in tile_buffer:
             self.tiles.add(tile)
 
-
     def remove_content(self, content):
         """Removes (if present) tiles with this content from the feed that
         belongs to this page.
@@ -697,6 +694,7 @@ class Feed(BaseModel):
                 tile_buffer.append(tile)
         for tile in tile_buffer:
             self.tiles.add(tile)
+
 
 class Page(BaseModel):
     store = models.ForeignKey(Store, related_name='pages')
@@ -846,17 +844,11 @@ class Tile(BaseModel):
     # if the feed's algorithm is 'ordered', then prioritized tiles will be
     # sorted using this attribute instead of the tile's created date.
     #   negative values are allowed.
-    #   identical values are undeterministic.
+    #   identical values are shuffled.
     priority = models.IntegerField(null=True, default=0)
 
     # miscellaneous attributes, e.g. "is_banner_tile"
     attributes = JSONField(blank=True, null=True, default={})
-
-    # used to calculate the score for a tile
-    # a bigger starting_score value does not necessarily mean a bigger score
-    click_starting_score = models.FloatField(default=0.0)
-
-    view_starting_score = models.FloatField(default=0.0)
 
     clicks = models.PositiveIntegerField(default=0)
 
@@ -881,51 +873,6 @@ class Tile(BaseModel):
             self.prioritized = ''
         return super(Tile, self).full_clean(exclude=exclude,
                                             validate_unique=validate_unique)
-
-    def add_click(self):
-        """TODO: this is a controller operation"""
-        self.clicks += 1
-        # the value used to increase click_starting_score per click
-        update_score = Tile.popularity_devalue_rate * self.days_since_creation()
-        starting_score = self.click_starting_score
-        self.click_starting_score = max(starting_score, update_score) + math.log(
-            1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
-        self.save(skip_updated_at=True)
-
-    def add_view(self):
-        """TODO: this is a controller operation"""
-        self.views += 1
-        # the value used to view_increase starting_score per click
-        update_score = Tile.popularity_devalue_rate * self.days_since_creation()
-        starting_score = self.view_starting_score
-        self.view_starting_score = max(starting_score, update_score) + math.log(
-            1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
-        self.save(skip_updated_at=True)
-
-    def click_score(self):
-        # returns the score of the tile based on the starting_score and how long ago the tile was created
-        return math.exp(self.click_starting_score - Tile.popularity_devalue_rate *
-                        self.days_since_creation())
-    click_score.short_description = 'Click Score'
-
-    def view_score(self):
-        # returns the score of the tile based on the starting_score and how long ago the tile was created
-        return math.exp(self.view_starting_score - Tile.popularity_devalue_rate *
-                        self.days_since_creation())
-    view_score.short_description = 'View Score'
-
-    def log_score(self, score):
-        # returns the log of a score with the smallest value being 1
-        # makes sure that small scores do not get large log values
-        return math.log(score + (0 if score > 2 * Tile.ratio else (Tile.ratio - score / 2)), Tile.ratio)
-
-    def click_log_score(self):
-        score = self.click_score()
-        return self.log_score(score)
-
-    def view_log_score(self):
-        score = self.view_score()
-        return self.log_score(score)
 
     def clicks_per_view(self):
         if self.views > 0:
@@ -961,78 +908,8 @@ class Tile(BaseModel):
 
         return serializer.to_json([self])
 
-    def get_related(self):
-        return TileRelation.get_related_tiles([self])
-
     @property
     def tile_config(self):
         """(read-only) representation of the tile as its content graph
         tileconfig."""
         return cg_serializers.TileConfigSerializer().to_json([self])
-
-
-class TileRelation(BaseModel):
-    tile_a = models.ForeignKey(Tile, related_name='+')
-    tile_b = models.ForeignKey(Tile, related_name='+')
-
-    # used to calculate the score for a relation
-    # a bigger starting_score value does not necessarily mean a bigger score
-    starting_score = models.FloatField(default=0.0)
-
-    # variable used for popularity, the bigger the value, the faster popularity de-values
-    popularity_devalue_rate = 0.15
-
-    def clean(self):
-        if self.tile_a_id > self.tile_b_id:
-            self.tile_a_id, self.tile_b_id = self.tile_b_id, self.tile_a_id
-
-    @classmethod
-    def relate(cls, tile_a, tile_b):
-        """updates the starting_score of relation"""
-
-        id_a = tile_a.id
-        id_b = tile_b.id
-
-        try:  # get or create if possible, or select most recent one if multiple
-            related_tile, _ = cls.objects.get_or_create(tile_a_id=id_a, tile_b_id=id_b)
-        except MultipleObjectsReturned as err:
-            related_tile = (cls.objects
-                               .filter(tile_a_id=id_a, tile_b_id=id_b)
-                               .order_by('-updated_at')[0])
-
-        update_score = TileRelation.popularity_devalue_rate * related_tile.days_since_creation()
-        starting_score = related_tile.starting_score
-        related_tile.starting_score = max(starting_score, update_score) + math.log(
-            1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
-        related_tile.save()
-        return related_tile
-
-    @classmethod
-    def get_related_tiles(cls, tile_list):
-        """returns a list of tiles related to the given tile list in order of popularity"""
-
-        id_list = [tile.id for tile in tile_list]
-
-        related_tiles = list(cls.objects.filter(Q(tile_a_id__in=id_list) | Q(tile_b_id__in=id_list)).exclude(tile_a_id__in=id_list, tile_b_id__in=id_list).select_related())
-        related_tiles = sorted(related_tiles, key=lambda related_tile: related_tile.score(), reverse=True)
-        tiles = []
-        for related_tile in related_tiles:
-            if related_tile.tile_a.id in id_list:
-                tiles.append(related_tile.tile_b)
-            else:
-                tiles.append(related_tile.tile_a)
-        return tiles
-
-
-    def score(self):
-        # returns the score of the tile based on the starting_score and how long ago the tile was created
-        return math.exp(self.starting_score - TileRelation.popularity_devalue_rate * self.days_since_creation())
-    score.short_description = 'Score'
-
-    def log_score(self):
-        # the lower the ratio, the bigger the range between low and high scores
-        ratio = 1.5
-        score = self.score()
-        # returns the log of a score with the smallest value returned being 1
-        # makes sure that small scores do not get large log values
-        return math.log(score + (0 if score > 2 * ratio else(ratio - score / 2)), ratio)

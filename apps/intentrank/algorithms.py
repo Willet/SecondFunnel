@@ -216,7 +216,7 @@ def ir_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tiles = sorted(tiles, key=lambda tile: tile.click_score(), reverse=True)
+    tiles = sorted(tiles, key=lambda tile: tile.clicks, reverse=True)
 
     if allowed_set:
         tiles = tiles.filter(id__in=allowed_set)
@@ -381,7 +381,8 @@ def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tiles = sorted(tiles, key=lambda tile: tile.click_score(), reverse=True)
+    tiles = sorted(tiles, key=lambda tile: tile.weighted_clicks_per_view(),
+                   reverse=True)
 
     print "Returning popular tiles {0} through {1}".format(
         offset, offset + results)
@@ -457,9 +458,3 @@ def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tiles += random_tiles
 
     return tiles[:results]
-
-
-def ir_related(tiles, tile_id, *args, **kwargs):
-    """refactored from views. first parameter is unused."""
-    from apps.assets.models import Tile
-    return Tile.objects.get(id=tile_id).get_related()[:100]

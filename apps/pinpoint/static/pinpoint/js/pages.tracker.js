@@ -84,7 +84,7 @@ App.module("tracker", function (tracker, App) {
                     try {
                         var model = App.discovery.collection.findWhere({
                             'tile-id': tileIds[i]
-                        })
+                        });
                         Keen.addEvent('impression', getKeenInfo(model));
                     } catch(err) {}
                 }
