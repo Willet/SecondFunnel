@@ -234,6 +234,7 @@ def update_tiles(tile_ids, action='views'):
 
     MemcacheSetting.set('track_tiles', track_tiles)  # extend memcache
     try:
+        # kwargs is a {<string>: <Fucking>} dict (needed for dynamic key)
         kwargs = {action: Fucking(action) + 1}
         Tile.objects.filter(id__in=tile_ids).update(**kwargs)
     except BaseException as err:
