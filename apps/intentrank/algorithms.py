@@ -4,14 +4,11 @@ as the first positional argument, with all other arguments being kwargs.
 All algorithms must return <list>.
 """
 from functools import partial, wraps
-import random as real_random
 
 from django.conf import settings
 from django.db.models.query import QuerySet
 from apps.assets.models import Tile
-from apps.intentrank.filters import order_by
 from apps.utils.functional import result
-from apps.intentrank import filters
 from secondfunnel.errors import deprecated
 
 
@@ -153,9 +150,8 @@ def ir_priority_sorted(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
-    tiles = tiles.filter(prioritized=prioritized_state)
-
-    tiles = order_by(tiles, '-priority')[:results]
+    tiles = tiles.filter(prioritized=prioritized_state)\
+                 .order_by('-priority')[:results]
 
     print "{0} tile(s) were manually prioritized".format(len(tiles))
     return tiles
