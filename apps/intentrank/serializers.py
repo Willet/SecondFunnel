@@ -98,8 +98,6 @@ class ContentSerializer(IRSerializer):
 
         if obj.tagged_products.count() > 0:
             data['tagged-products'] = []
-        else:
-            data['-dbg-tagged-products'] = []
 
         for product in obj.tagged_products.filter(in_stock=True):
             try:
