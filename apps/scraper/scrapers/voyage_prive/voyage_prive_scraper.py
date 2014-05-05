@@ -33,7 +33,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         print('url loaded')
         product_nodes = self.driver.find_elements_by_xpath('//nodes/node')
         if not product_nodes:  # VP servers exploding
-            print "Could not retrieve latest VP product info; killing scraper"
+            print "Could not retrieve latest VP product info; aborting scraper"
             return
 
         for node in product_nodes:
@@ -52,6 +52,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 product = Product.objects.filter(sku=sku)[0]
             except (Product.DoesNotExist, IndexError):
                 product = Product(sku=sku)
+
             product.store = self.store
             product.name = node.find_element_by_xpath('./titre').text
             match = re.match(r"""(.+),?         # Name of product
