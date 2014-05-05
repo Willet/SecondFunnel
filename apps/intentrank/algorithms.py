@@ -1,3 +1,5 @@
+# coding=utf-8
+
 """Put all IR algorithms here. All algorithms must accept a <tiles>
 as the first positional argument, with all other arguments being kwargs.
 
@@ -471,21 +473,16 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                 return 0
             return int(''.join([x for x in string if x.isdigit()]))
 
-        products = tile.products.all()
-        max_sale = max([parse_int(p.attributes.get('discount')) for p in products])
+        products = list(tile.products.all())
+        for content in tile.content.all():
+            products.extend(list(content.tagged_products.all()))
 
-        # or, if a content's products has higher sale, increase its max
-        try:
-            tagged_products = tile.content.all()[0].tagged_products.all()
-            max_sale = max([max_sale,
-                max([parse_int(p.attributes.get('discount'))
-                     for p in tagged_products])])
-        except:
-            pass
-
+        max_sale = max([parse_int(product.attributes.get('discount',
+                                   product.attributes.get('sale_price', 0)))
+                        for product in products])
         return max_sale
 
-    if (not results) or results < 1:
+    if results < 1:
         return []
 
     if allowed_set:
