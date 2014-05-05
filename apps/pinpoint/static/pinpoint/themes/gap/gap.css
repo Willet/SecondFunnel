@@ -1010,7 +1010,6 @@ div.header {
 
     .previewContainer .close {
         position: absolute;
-        float: left;
         
         left: 10px;
         top: 72px;
