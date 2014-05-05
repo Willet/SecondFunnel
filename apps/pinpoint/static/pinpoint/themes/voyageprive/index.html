@@ -25,7 +25,7 @@
             custom: function (cookie) {
                 var tileTemplateId = "banner_tile_template";
 
-                cookie = cookie || _.sample(["A", "B", "C", "D"]);
+                cookie = cookie || _.sample(["A", "B", "C", "D", "E"]);
                 if (cookie !== "A") {  // A is base case
                     $('#' + tileTemplateId).html($('#' +
                         cookie.toLowerCase() + '_' + tileTemplateId).html());
@@ -264,6 +264,16 @@
                     <% } %>
                 </div>
             </div>
+        </script>
+
+        <script type="text/template" id="e_banner_tile_template">
+            <!-- absolutely no hover -->
+            <img class="focus" src="<%= obj.image.url %>" />
+            <% if (obj.discount) { %>
+                <div class="discount">
+                    <%- obj.discount %>
+                </div>
+            <% } %>
         </script>
 
         <script type="text/template" id="banner_preview_template">
