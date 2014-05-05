@@ -367,7 +367,6 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     return tiles[:results]
 
 
-@deprecated  # going with weighted views per click
 def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     request=None, offset=0, *args, **kwargs):
     """Implements *exactly* the following goals:
@@ -381,8 +380,9 @@ def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tiles = sorted(tiles, key=lambda tile: tile.weighted_clicks_per_view(),
-                   reverse=True)
+    tiles = tiles.extra(select={
+        'clicks_per_view': 'cast(clicks + 1 as float) / cast(views + 1 as float)'
+    }).order_by('-clicks_per_view')
 
     print "Returning popular tiles {0} through {1}".format(
         offset, offset + results)
