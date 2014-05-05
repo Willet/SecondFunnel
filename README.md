@@ -9,10 +9,9 @@ Installation
 Detailed instructions can be found in [the SecondFunnel wiki](https://github.com/Willet/SecondFunnel/wiki/Environment-Setup), but a quick installation can
  be done by doing the following:
 
-1. Set up a virtual environment using `virtualenv` or `virtualenvwrapper`
-2. Install (and set up) the PostgresQL database
-3. Install python dependencies: `pip install -r requirements/dev.txt`
-4. Run the server using [the command line](https://github.com/Willet/SecondFunnel/pull/441)
+1. Download and install [Vagrant](http://www.vagrantup.com/)
+2. Download and install [VirtualBox](https://www.virtualbox.org/) or another VM
+2. Run the server using [the command line](https://github.com/Willet/SecondFunnel/pull/441)
 
     vagrant up
     vagrant ssh
