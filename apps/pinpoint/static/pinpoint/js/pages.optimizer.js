@@ -2,19 +2,19 @@
 /**
  * @module optimizer
  * @description A/B, split, and multivariate testing tool
-*/
+ *
+ * Query param override: ?activate-test=8.A,9.B forces
+ * custom dimension 8 to be A, and custom dimension 9 to be B.
+ *
+ */
 App.module('optimizer', function (optimizer, App) {
     "use strict";
-    var GA_CUSTOMVAR_SCOPE = {
-            'PAGE': 3,
-            'EVENT': 3,
-            'SESSION': 2,
-            'VISITOR': 1
-        },
+    var // custom dimensions must be pre-configured in GA, under
+        // Admin > Property > Custom Definitions > Custom Dimensions
         CUSTOM_DIMENSIONS = [],
         ENABLED_TESTS = [],
         UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-        OPTIMIZER_COOKIE = '__sotm',
+        OPTIMIZER_COOKIE = '__sotm',  // TODO: where's this from?
         MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24,
         is = function (device) {
             if (device === 'mobile') {
@@ -140,17 +140,20 @@ App.module('optimizer', function (optimizer, App) {
     };
 
     /**
-     * Adds a test to the optimizer module.
+     * Given a test, find out how the optimizer module should run it.
+     *
+     * @param index  custom dimension index
+     * @param test   should contain a 'test' key that is either 'template',
+     *               'style', or 'custom'.
+     * @param kwargs options passed into the test function
      *
      * @returns none
      **/
     this.addTest = function (index, test, kwargs) {
-        var result,
-            pos,
-            selector = kwargs.selector,
-            options = kwargs.options,
-            probabilities = kwargs.probabilities,
-            cookie = OPTIMIZER_COOKIE + index;
+        var result, pos, cookie;
+
+        cookie = OPTIMIZER_COOKIE + index;  // e.g. __sotm6
+        kwargs = kwargs || {};
 
         if ((kwargs.disabled || App.option('debug', App.QUIET) > App.QUIET) &&
             !ENABLED_TESTS.hasOwnProperty(index)) {
@@ -158,20 +161,22 @@ App.module('optimizer', function (optimizer, App) {
         }
 
         result = ENABLED_TESTS[index] || this.getCookieValue(cookie);
-        if (result && result.length && options) {
+        if (result && result.length && kwargs.options) {
             pos = getPos(result);
-            probabilities = Array.apply(null, new Array(options.length)).map(Number.prototype.valueOf, 0);
-            probabilities[pos] = 1;
+            kwargs.probabilities = Array.apply(null, new Array(kwargs.options.length)).map(Number.prototype.valueOf, 0);
+            kwargs.probabilities[pos] = 1;
         }
 
         switch(test) {
             case 'template':
-                result = this.testTemplate(selector, options, probabilities);
+                result = this.testTemplate(kwargs.selector, kwargs.options,
+                                           kwargs.probabilities);
                 break;
             case 'style':
-                result = this.testStyle(selector, probabilities);
+                result = this.testStyle(kwargs.selector, kwargs.probabilities);
                 break;
             default:
+                // result is sometimes the cookie value (e.g. "A", "B", "C", ...)
                 result = kwargs.custom(result);
         }
 
@@ -200,13 +205,13 @@ App.module('optimizer', function (optimizer, App) {
 
         style = this.multivariate(styles, probabilities);
         pathname = style.match(/(https?|www)/);
-        if (pathname && style.indexOf(pathname[0]) == 0) {
-            $style = $('<link></link>');
+        if (pathname && style.indexOf(pathname[0]) === 0) {
+            $style = $('<link />');
             $style.attr('rel', "stylesheet")
                   .attr('href', style);
             $('head').append($style);
         } else if (style.length > 0) {
-            $style = $('<style></style>');
+            $style = $('<style />');
             $style.attr('type', "text/css")
                   .text(style);
             $('head').append($style);

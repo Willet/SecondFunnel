@@ -1,7 +1,8 @@
 # coding=utf-8
 import re
+from django.core.exceptions import ObjectDoesNotExist
 
-from apps.assets.models import Page, Product
+from apps.assets.models import Page, Product, Category
 
 from apps.scraper.scrapers import ProductCategoryScraper
 from selenium.common.exceptions import NoSuchElementException
@@ -91,8 +92,14 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 image_url = 'http://cdn.officiel-des-vacances.com/files/product/{0}'.format(match.groups()[2])
             images.append(image_url)
 
+        # if a 'week-end' category exists in the db, exploit it and limit scope
+        try:
+            page_products = Category.objects.get(name='week-end').products.all()
+        except ObjectDoesNotExist as err:
+            page_products = Product.objects.filter(store=store)
+
         # after-the-fact processing
-        for product in Product.objects.filter(store=store):
+        for product in page_products:
             # mark all products not in feed as 'not in stock'
             if product.in_stock and not product.sku in skus:
                 print "Product {0} no longer in stock!".format(product.sku)
@@ -194,6 +201,9 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                         continue
 
                 product.save()
+
+                # currently assume all products are for this page
+                self._add_to_category(product, name='week-end')
 
                 # add a tile to the weekend feed
                 try:

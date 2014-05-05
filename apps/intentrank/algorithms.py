@@ -458,3 +458,45 @@ def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tiles += random_tiles
 
     return tiles[:results]
+
+
+def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+         request=None, offset=0, allowed_set=None, exclude_set=None,
+         *args, **kwargs):
+    """Outputs tiles, based on tiles' products' discount, in offset slices."""
+    def sort_fn(tile):
+        """Turns a tile into a number"""
+        def parse_int(string):
+            if not string:
+                return 0
+            return int(''.join([x for x in string if x.isdigit()]))
+
+        products = tile.products.all()
+        max_sale = max([parse_int(p.attributes.get('discount')) for p in products])
+
+        # or, if a content's products has higher sale, increase its max
+        try:
+            tagged_products = tile.content.all()[0].tagged_products.all()
+            max_sale = max([max_sale,
+                max([parse_int(p.attributes.get('discount'))
+                     for p in tagged_products])])
+        except:
+            pass
+
+        return max_sale
+
+    if (not results) or results < 1:
+        return []
+
+    if allowed_set:
+        tiles = tiles.filter(id__in=allowed_set)
+
+    if exclude_set:
+        tiles = tiles.exclude(id__in=exclude_set)
+
+    tiles = sorted(tiles, key=sort_fn, reverse=True)
+
+    print "Returning discounted product tiles, " \
+          "emulating offset {0} ~ {1}".format(offset, offset + results)
+
+    return tiles[:results]  # all edge cases return []
