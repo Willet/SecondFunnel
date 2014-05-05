@@ -216,7 +216,7 @@ def ir_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    tiles = sorted(tiles, key=lambda tile: tile.clicks, reverse=True)
+    tiles = tiles.order_by('-clicks')
 
     if allowed_set:
         tiles = tiles.filter(id__in=allowed_set)
