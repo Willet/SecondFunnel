@@ -14,6 +14,26 @@
     <link rel="stylesheet"
           href="{% static 'pinpoint/themes/voyageprive/voyageprive.css' %}"/>
     {% include "pinpoint/campaign_respond.html" %}
+    <!-- Add Optimizer Tests here -->
+    <script type="text/javascript">
+        window.OPTIMIZER_TESTS = [];
+        window.OPTIMIZER_TESTS.push({
+            // the {template} will be replaced by its {a, b, c, d}_{template}
+            // variant fairly...
+            index: 6,
+            test: 'custom', // allowed values: 'style'. 'template'. 'custom' (see addTest)
+            custom: function (cookie) {
+                var tileTemplateId = "banner_tile_template";
+
+                cookie = cookie || _.sample(["A", "B", "C", "D", "E"]);
+                if (cookie !== "A") {  // A is base case
+                    $('#' + tileTemplateId).html($('#' +
+                        cookie.toLowerCase() + '_' + tileTemplateId).html());
+                }
+                return cookie;
+            }
+        });
+    </script>
     <title>{{ page.name|default:"Voyage Privé" }}</title>
     <style type="text/css">
         /* out of necessity */
@@ -114,6 +134,146 @@
                     <% } %>
                 </div>
             </div>
+        </script>
+
+        <script type="text/template" id="b_banner_tile_template">
+            <!-- price instead of discount -->
+            <img class="focus" src="<%= obj.image.url %>" />
+            <% if (obj.price) { %>
+                <div class="discount">
+                    <%- obj.price %>
+                </div>
+            <% } %>
+            <div class="overlay">
+                <div class="align-container">
+                    <div class="title">
+                        <%- obj.name %>
+                        <div class="arrow right"></div>
+                    </div>
+                    <% if (obj.review_text) { %>
+                        <div class="review">
+                            "<%- obj.review_text %>"
+                            <% if (obj.reviewer_name) { %>
+                                - <%- obj.reviewer_name %>
+                            <% } %>
+                        </div>
+                    <% } %>
+                    <div class="view">
+                        Voir le bon plan
+                        <div class="arrow right"></div>
+                    </div>
+                    <% if (obj.direct_site_image || obj.direct_site_name || obj.price) { %>
+                        <div class="direct-site-info">
+                            <% if (obj.direct_site_image) { %>
+                                <img src="<%- obj.direct_site_image %>" />
+                            <% } else { %>
+                                <%- obj.direct_site_name %>
+                            <% } %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="c_banner_tile_template">
+            <!-- price and discount -->
+            <img class="focus" src="<%= obj.image.url %>" />
+            <% if (obj.discount && obj.discount) { %>
+                <div class="discount">
+                    <%- obj.price %> (<%- obj.discount %>)
+                </div>
+            <% } %>
+            <div class="overlay">
+                <div class="align-container">
+                    <div class="title">
+                        <%- obj.name %>
+                        <div class="arrow right"></div>
+                    </div>
+                    <% if (obj.review_text) { %>
+                        <div class="review">
+                            "<%- obj.review_text %>"
+                            <% if (obj.reviewer_name) { %>
+                                - <%- obj.reviewer_name %>
+                            <% } %>
+                        </div>
+                    <% } %>
+                    <div class="view">
+                        Voir le bon plan
+                        <div class="arrow right"></div>
+                    </div>
+                    <% if (obj.direct_site_image || obj.direct_site_name || obj.price) { %>
+                        <div class="direct-site-info">
+                            <% if (obj.price) { %>
+                                <div class="price-container">
+                                    À partir de
+                                    <div class="price">
+                                        <%- obj.price %>
+                                    </div>
+                                    par personne
+                                </div>
+                            <% } %>
+                            <% if (obj.direct_site_image) { %>
+                                <img src="<%- obj.direct_site_image %>" />
+                            <% } else { %>
+                                <%- obj.direct_site_name %>
+                            <% } %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="d_banner_tile_template">
+            <!-- location and price -->
+            <img class="focus" src="<%= obj.image.url %>" />
+            <div class="static overlay">
+                <div class="align-container">
+                    <div class="title">
+                        <%- obj.name %>
+                        <div class="arrow right"></div>
+                    </div>
+                    <% if (obj.review_text) { %>
+                        <div class="review">
+                            "<%- obj.review_text %>"
+                            <% if (obj.reviewer_name) { %>
+                                - <%- obj.reviewer_name %>
+                            <% } %>
+                        </div>
+                    <% } %>
+                    <div class="view">
+                        Voir le bon plan
+                        <div class="arrow right"></div>
+                    </div>
+                    <% if (obj.direct_site_image || obj.direct_site_name || obj.price) { %>
+                        <div class="direct-site-info">
+                            <% if (obj.price) { %>
+                                <div class="price-container">
+                                    À partir de
+                                    <div class="price">
+                                        <%- obj.price %>
+                                    </div>
+                                    par personne
+                                </div>
+                            <% } %>
+                            <% if (obj.direct_site_image) { %>
+                                <img src="<%- obj.direct_site_image %>" />
+                            <% } else { %>
+                                <%- obj.direct_site_name %>
+                            <% } %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="e_banner_tile_template">
+            <!-- absolutely no hover -->
+            <img class="focus" src="<%= obj.image.url %>" />
+            <% if (obj.discount) { %>
+                <div class="discount">
+                    <%- obj.discount %>
+                </div>
+            <% } %>
         </script>
 
         <script type="text/template" id="banner_preview_template">

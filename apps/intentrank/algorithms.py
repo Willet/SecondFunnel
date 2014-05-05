@@ -1,3 +1,5 @@
+# coding=utf-8
+
 """Put all IR algorithms here. All algorithms must accept a <tiles>
 as the first positional argument, with all other arguments being kwargs.
 
@@ -458,3 +460,40 @@ def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tiles += random_tiles
 
     return tiles[:results]
+
+
+def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+         request=None, offset=0, allowed_set=None, exclude_set=None,
+         *args, **kwargs):
+    """Outputs tiles, based on tiles' products' discount, in offset slices."""
+    def sort_fn(tile):
+        """Turns a tile into a number"""
+        def parse_int(string):
+            if not string:
+                return 0
+            return int(''.join([x for x in string if x.isdigit()]))
+
+        products = list(tile.products.all())
+        for content in tile.content.all():
+            products.extend(list(content.tagged_products.all()))
+
+        max_sale = max([parse_int(product.attributes.get('discount',
+                                   product.attributes.get('sale_price', 0)))
+                        for product in products])
+        return max_sale
+
+    if results < 1:
+        return []
+
+    if allowed_set:
+        tiles = tiles.filter(id__in=allowed_set)
+
+    if exclude_set:
+        tiles = tiles.exclude(id__in=exclude_set)
+
+    tiles = sorted(tiles, key=sort_fn, reverse=True)
+
+    print "Returning discounted product tiles, " \
+          "emulating offset {0} ~ {1}".format(offset, offset + results)
+
+    return tiles[:results]  # all edge cases return []
