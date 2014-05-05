@@ -1009,13 +1009,22 @@ div.header {
     }
 
     .previewContainer .close {
-        font-size: 11pt;
-        padding: 0px;
+        position: absolute;
         float: left;
+        
+        left: 10px;
+        top: 72px;
+        z-index: 1;
+        
+        font-size: 11pt;
+        
+        padding: 0px;
         width: 70px;
         line-height: 30px;
         height: 30px;
-        position: relative;
+        
+        border: 1px solid white;
+        background-color: #000d41;
     }
 
     .previewContainer .content {
@@ -1115,7 +1124,7 @@ div.header {
     .previewContainer .price {
         position: absolute;
         top: 72px;
-        left: 10px;
+        right: 10px;
         background-color: #555;
         color: white;
         z-index: 1;
