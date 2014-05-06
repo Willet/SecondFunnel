@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <h1>Overview</h1>
+    {% for store in stores %}
+        <h1>
+            <a name="{{ store.slug }}" href="#{{ store.slug }}">
+                {{ store.name }}
+            </a>
+        </h1>
+        <ul>
+        {% for page in store.pages.all %}
+            <li>
+                <h2>
+                    <a name="{{ page.url_slug }}" href="#{{ page.url_slug }}">
+                        {{ page.url_slug }}
+                    </a>
+                </h2>
+                <ul>
+                {% for tile in page.feed.tiles.all %}
+                    <li>
+                        <h3>
+                            <a name="tile{{ tile.id }}" href="#tile{{ tile.id }}">
+                                {{ tile.template|capfirst }} Tile {{ tile.id }}
+                            </a>
+                        </h3>
+                        <ul>
+                        {% for product in tile.products.all %}
+                            <li><h4>{{ product.name }}</h4>
+                                <ul>
+                                {% for image in product.product_images.all %}
+                                    <li>
+                                        <a href="{{ image.url }}">{{ image.url|truncatechars:50 }}</a>
+                                    </li>
+                                {% endfor %}
+                                </ul>
+                            </li>
+                        {% endfor %}
+                        {% for content in tile.content.all %}
+                            <li><h4><a href="{{ content.url }}">Content {{ content.id }}</a></h4>
+                                <ul>
+                                {% for product in content.tagged_products.all %}
+                                    <li><h5>{{ product.name }}</h5>
+                                        <ul>
+                                        {% for image in product.product_images.all %}
+                                            <li>
+                                                <a href="{{ image.url }}">{{ image.url|truncatechars:50 }}</a>
+                                            </li>
+                                        {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% endfor %}
+                                </ul>
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+        </ul>
+    {% endfor %}
+</body>
+</html>
