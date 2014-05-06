@@ -569,6 +569,9 @@ div.loading {
     .tile.wide {
         min-height: inherit;
     }
+    .tile.video {
+        width: 480px !important;
+    }
 }
 
 /* desktop-grade preview container styles */
