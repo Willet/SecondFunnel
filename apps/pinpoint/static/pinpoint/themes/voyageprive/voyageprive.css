@@ -3,7 +3,7 @@
 /* overrides for this theme */
 
 body {
-    background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/gap/gradient.png') top center repeat-y;
+    background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/gap/gradient.png') top center repeat-y;
 }
 
 .relative {
@@ -79,7 +79,7 @@ html.tablet .navbar .tag-line {
 .dropdown-menu .instagram,
 .dropdown-menu .youtube,
 .dropdown-menu .tumblr {
-    background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/Social+Subscribe+-+Mobile.png') no-repeat top left;
+    background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/Social+Subscribe+-+Mobile.png') no-repeat top left;
     background-size: 24px auto;
     padding-left: 30px;
 }
@@ -359,7 +359,7 @@ html.tablet #hero-area .find.white a:visited {
 }
 
 .tile.wide.youtube div.thumbnail:before {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/Video-playbutton.png');
+    background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/Video-playbutton.png');
     width: 66px;  /* dimensions of the thumbnail image (which should be cropped to size) */
     height: 66px;
     margin: -33px 0 0 -33px;
@@ -757,7 +757,7 @@ html.tablet .previewContainer .gallery {
 }
 
 .sharing .icon {
-    background:  url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/Website-stay-connected-icons.png') top left no-repeat;
+    background:  url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/Website-stay-connected-icons.png') top left no-repeat;
     padding-right: 1px;
 }
 
@@ -871,7 +871,7 @@ html.tablet .previewContainer .gallery {
         height: 45px;
         margin-top: -45px;
         position: absolute;
-        background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
+        background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
     }
 
     .previewContainer .gallery-related {
@@ -879,21 +879,21 @@ html.tablet .previewContainer .gallery {
     }
 
     .previewContainer .gallery-swipe-left {
-        background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-left.png');
+        background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-left.png');
         left: 8px;
     }
 
     .previewContainer .gallery-swipe-left.grey {
-        background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-left.png');
+        background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-grey-left.png');
     }
 
     .previewContainer .gallery-swipe-right {
-        background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-right.png');
+        background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-right.png');
         right: 8px;
     }
 
     .previewContainer .gallery-swipe-right.grey {
-        background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-right.png');
+        background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-grey-right.png');
     }
 }
 
@@ -946,7 +946,7 @@ html.tablet .previewContainer .gallery-swipe-left, .previewContainer .gallery-sw
     height: 45px;
     margin-top: -45px;
     position: absolute;
-    background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
+    background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
 }
 
 html.tablet .previewContainer .gallery-related {
@@ -954,21 +954,21 @@ html.tablet .previewContainer .gallery-related {
 }
 
 html.tablet .previewContainer .gallery-swipe-left {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-left.png');
+    background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-left.png');
     left: 8px;
 }
 
 html.tablet .previewContainer .gallery-swipe-left.grey {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-left.png');
+    background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-grey-left.png');
 }
 
 html.tablet .previewContainer .gallery-swipe-right {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-right.png');
+    background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-right.png');
     right: 8px;
 }
 
 html.tablet .previewContainer .gallery-swipe-right.grey {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrow-grey-right.png');
+    background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-grey-right.png');
 }
 
 .previewContainer .description {

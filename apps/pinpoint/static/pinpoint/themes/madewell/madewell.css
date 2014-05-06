@@ -39,7 +39,7 @@ div.header {
 }
 
 .navbar {
-    background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/gap-rebar.png') repeat-x;
+    background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/gap-rebar.png') repeat-x;
     border-radius: 0;
     /* box-shadow: 0px 0px 21px #999; */
     height: 56px;
@@ -48,7 +48,7 @@ div.header {
 }
 
 .navbar .navbar-brand {
-    background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/universal_bar_sprites.png') top left no-repeat;
+    background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/universal_bar_sprites.png') top left no-repeat;
     width: 64px;
     height: 56px;
     margin: 0;
@@ -92,7 +92,7 @@ div.header {
 }
 
 .navbar li .dropdown-toggle {
-    background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/logo_sprite.png') no-repeat top left;
+    background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/logo_sprite.png') no-repeat top left;
     background-size: auto 350px; /* control ratio */
     width: 77px;
 }
@@ -118,7 +118,7 @@ div.header {
 }
 
 .navbar .stay-connected .dropdown-toggle {
-    background: no-repeat top left url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/stay_connected.png');
+    background: no-repeat top left url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/stay_connected.png');
     background-size: auto 55px;
     background-position: 0 0;
 }
@@ -129,7 +129,7 @@ div.header {
 .dropdown-menu .instagram,
 .dropdown-menu .youtube,
 .dropdown-menu .tumblr {
-    background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/Social+Subscribe+-+Mobile.png') no-repeat top left;
+    background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/Social+Subscribe+-+Mobile.png') no-repeat top left;
     background-size: 24px auto;
     padding-left: 30px;
 }
@@ -379,7 +379,7 @@ div.header {
 }
 
 .tile.wide.youtube div.thumbnail:before {
-    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/Video-playbutton.png');
+    background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/Video-playbutton.png');
     width: 66px;  /* dimensions of the thumbnail image (which should be cropped to size) */
     height: 66px;
     margin: -33px 0 0 -33px;
@@ -555,7 +555,7 @@ div.header {
 }
 
 .sharing .icon {
-    background:  url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/Website-stay-connected-icons.png') top left no-repeat;
+    background:  url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/Website-stay-connected-icons.png') top left no-repeat;
     padding-right: 1px;
 }
 
