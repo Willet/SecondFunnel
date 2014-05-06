@@ -139,10 +139,9 @@ App.module("tracker", function (tracker, App) {
             // value          - Optional numeric data
             // nonInteraction - if true, don't count in bounce rate
             //                  by default, events are interactive
-            var nonInteraction = 0;
-            if (o.nonInteraction) {
-                nonInteraction = 1;
-            }
+
+            // https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference
+            var nonInteraction = o.nonInteraction || false;
 
             addItem('send', 'event', o.category, o.action, o.label,
                     o.value || undefined, {'nonInteraction': nonInteraction});
