@@ -737,8 +737,7 @@ App.module('core', function (module, App) {
                 everScrolled = true;
                 App.vent.trigger('tracking:trackEvent', {
                     'category': 'visit',
-                    'action': 'first_scroll',
-                    'nonInteraction': true
+                    'action': 'first_scroll'
                 });
             }
 
