@@ -732,12 +732,11 @@ App.module('core', function (module, App) {
             }
 
             // Did the user scroll ever?
-            if ($window.scrollTop() > 0 && !everScrolled) {
+            if ($window.scrollTop() > 0) {
                 // only log this event once per user
-                everScrolled = true;
                 App.vent.trigger('tracking:trackEvent', {
                     'category': 'visit',
-                    'action': 'first_scroll'
+                    'action': 'scroll'
                 });
             }
 

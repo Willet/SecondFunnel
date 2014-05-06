@@ -989,15 +989,6 @@
                 }
             });
 
-            // Scroll event has to be seperately tracked.
-            // 12 - Scroll for more
-            var pagesScrolled = 1;
-            App.vent.on('tracking:trackEvent', function (o) {
-                if (o.action === 'scroll') {
-                    recordEvent('page_scroll', 'scroll', 'page_scroll', 'scroll - ' + o.label);
-                }
-            });
-
             // Subscribe to FB event for GAP Analytic tracking
             App.vent.on('tracking:registerFacebookListeners', function () {
                 FB.Event.subscribe('edge.create', function(href, widget) {
