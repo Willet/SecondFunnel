@@ -90,7 +90,7 @@ class MadewellCategoryScraper(ProductCategoryScraper):
         url += '.jsp'
         return url
 
-    def scrape(self, url, store, **kwargs):
+    def scrape(self, url, **kwargs):
         self.driver.get(url)
         products_data = self.driver.find_elements_by_xpath('//td[@class="arrayProdCell"]//td[@class="arrayImg"]/a')
         for product_data in products_data:
