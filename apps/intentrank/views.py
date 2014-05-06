@@ -65,7 +65,8 @@ def limit_showns(request, n=TRACK_SHOWN_TILES_NUM):
     if algorithm_name in ['sorted', 'custom']:
         # prevent these from ever resetting
         pass
-    elif algorithm_name in ['generic', 'ordered'] or 'finite' in algorithm_name:
+    elif algorithm_name in ['generic', 'ordered'] or \
+        'finite' in algorithm_name:
         # reset these every pageload
         if int(req_num) == 0:
             request.session['shown'] = []
