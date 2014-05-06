@@ -1,13 +1,14 @@
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.db.models import F as Fucking
 from django.http import HttpResponse
 from django.http.response import Http404, HttpResponseNotFound
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render_to_response
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import request_methods
-from apps.assets.models import Page, Tile, Category
+from apps.assets.models import Page, Tile, Category, Store
 from apps.intentrank.controllers import IntentRank, PredictionIOInstance
 from apps.intentrank.algorithms import ir_generic, ir_all, ir_base
 from apps.intentrank.utils import ajax_jsonp
@@ -127,6 +128,22 @@ def get_results_view(request, page_id):
                                   offset=offset, tile_id=tile_id),
                       callback_name=callback)
     return resp
+
+
+@login_required
+def get_overview(request):
+    stores = Store.objects.prefetch_related(
+        'pages',
+        'pages__feed',
+        'pages__feed__tiles',
+        'pages__feed__tiles__products',
+        'pages__feed__tiles__products__default_image',
+        'pages__feed__tiles__products__product_images',
+        'pages__feed__tiles__content__tagged_products',
+        'pages__feed__tiles__content__tagged_products__default_image',
+        'pages__feed__tiles__content__tagged_products__product_images',
+    )
+    return render_to_response('intentrank/overview.html', {'stores': stores})
 
 
 @never_cache
