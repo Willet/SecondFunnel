@@ -4,10 +4,6 @@
 <head>
     {% include "pinpoint/campaign_opengraph_tags.html" %}
     {% include "pinpoint/campaign_head.html" %}
-    <!-- Add Optimizer Tests here -->
-    <script type="text/javascript">
-
-    </script>
     <!-- End Optimizer Tests -->
     <link rel="shortcut icon"
          href="http://www.voyage-prive.com/s/favicon.ico" />
@@ -29,6 +25,26 @@
                 if (cookie !== "A") {  // A is base case
                     $('#' + tileTemplateId).html($('#' +
                         cookie.toLowerCase() + '_' + tileTemplateId).html());
+                }
+                return cookie;
+            }
+        });
+        window.OPTIMIZER_TESTS.push({
+            index: 7,
+            test: 'custom', // allowed values: 'style'. 'template'. 'custom' (see addTest)
+            custom: function (cookie) {
+                cookie = cookie || _.sample([
+                    "finite",
+                    "finite_popular",
+                    "finite_by_clicks",
+                    "finite_by_-clicks",
+                    "finite_by_views",
+                    "finite_by_-views"
+                    ]);
+                try {
+                    App.options.IRAlgo = cookie;
+                } catch (e) {
+                    // no App
                 }
                 return cookie;
             }
