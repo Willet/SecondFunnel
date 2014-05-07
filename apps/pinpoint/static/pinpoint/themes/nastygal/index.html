@@ -76,27 +76,6 @@
             <div class="tap-indicator-target"></div>
             <div class='relative'>
                 <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
-                <!-- Varies depending on source (e.g. facebook, styldby, etc) -->
-                <div class="overlay">
-                    <div class='align-container'>
-                        <div class='cell'>
-                            <% /* "Shop product" is actually wanted for the tile overlay */ %>
-                            <div class="title">
-                                <% if (obj.title || obj.name || obj.caption) { %>
-                                    <%= (obj.title || obj.name || obj.caption) %>
-                                <% } else if (obj['tagged-prodoucts'] && obj['tagged-prodoucts'].length > 0) { %>
-                                    <span>Shop product</span>
-                                    <br/>
-                                    <% _.each(obj['tagged-prodoucts'], function (related) { %>
-                                        <span class='shop-products'><%= related.title || related.name || related.caption %></span>
-                                    <% }); %>
-                                <% } else { %>
-                                    Shop product
-                                <% } %>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
             <% if (App.option("debug", 0) > 1) { %>
                 <span class="type"><%= obj["content-type"] %></span>
