@@ -359,6 +359,7 @@ App.module('core', function (core, App) {
                 i = 0,
                 tileJson,
                 tileId,
+                tileIds = App.intentRank.getTileIds(),
                 respBuilder = [];  // new resp after filter(s)
 
             for (i = 0; i < resp.length; i++) {
@@ -383,11 +384,16 @@ App.module('core', function (core, App) {
                     continue;
                 }
 
+                // if algorithm is finite but a dupe is about to occur,
+                // issue a warning but display anyway
+                if (App.option('IRAlgo', 'generic').indexOf('finite') > -1) {
+                    if (tileIds.indexOf(tileId) > -1) {
+                        console.warn("Tile "  + tileId + " will be shown more than once on the page!");
+                    }
+                }
+
                 respBuilder.push(tileJson);  // this tile passes
             }
-
-            // SHUFFLE_RESULTS is always true
-            //respBuilder = _.shuffle(respBuilder); Why do we shuffle the results?
 
             return _.map(respBuilder, function (jsonEntry) {
                 var TileClass = App.utils.findClass('Tile',

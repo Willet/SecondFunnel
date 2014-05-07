@@ -291,9 +291,16 @@ App.module("intentRank", function (intentRank, App) {
 
     /**
      * @param {Tile} tiles
+     *               if not given, all tiles on the page
      * @return {Array} unique list of tile ids
      */
     this.getTileIds = function (tiles) {
+        if (tiles === undefined) {
+            tiles = _.map(App.discoveryArea.$el.find('.tile'), function (el) {
+                return $(el).tile().model;
+            });
+        }
+
         return _.uniq(_.map(tiles, function (model) {
             try {  // Tile
                 return model.get('tile-id');
