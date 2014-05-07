@@ -13,6 +13,7 @@ from selenium.common.exceptions import WebDriverException
 
 from apps.assets.models import Product, Store
 from apps.scraper.scrapers import ProductDetailScraper
+from apps.scraper.scrapers import NastygalCategoryScraper, NastygalProductScraper
 from apps.scraper.scrapers import GapProductScraper, GapCategoryScraper
 from apps.scraper.scrapers import MadewellProductScraper, MadewellCategoryScraper, MadewellMultiProductScraper
 from apps.scraper.scrapers import VoyagePriveCategoryScraper
@@ -42,6 +43,8 @@ class Command(BaseCommand):
             StyldByFilterScraper,
             StyldByPartnersScraper,
             STLScraper,
+            NastygalCategoryScraper,
+            NastygalProductScraper,
         ]
 
     def handle(self, *args, **kwargs):
