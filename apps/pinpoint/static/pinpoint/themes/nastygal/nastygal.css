@@ -18,12 +18,25 @@
     vertical-align: top;
 }
 
+#discovery-area {
+	width: 960px;
+}
+
 .tile {
 	margin: 0;
 	box-shadow: none;
 	color: #000;
+	text-align: center;
+	text-rendering: optimizelegibility;
+	-webkit-font-smoothing: antialiased;
+	font-family: "ff-super-grotesk-web", helvetica,arial;
+	font-weight: 200;
 }
 
 .tile.wide {
 	width: 480px;
+}
+
+.tile img.focus {
+	min-width: 50%;
 }
