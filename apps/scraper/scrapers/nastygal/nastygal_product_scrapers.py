@@ -6,7 +6,7 @@ from apps.scraper.scrapers import Scraper, ProductDetailScraper, ProductCategory
 
 
 class NastygalProductScraper(ProductDetailScraper):
-    regexs = [r'(?:https?://)?(?:www\.)?nastygal\.com/([^/]+)/([^/]+)/?$']
+    regexs = [r'(?:https?://)?(?:www\.)?nastygal\.com/([^/]+)/([^/]+)/?(?:#.*)?$']
 
     def scrape(self, url, product, values, **kwargs):
         self.driver.get(url)  # TODO: ?currency_code=USD&country_code=US
@@ -60,7 +60,7 @@ class NastygalProductScraper(ProductDetailScraper):
 
 
 class NastygalCategoryScraper(ProductCategoryScraper):
-    regexs = [r'(?:https?://)?(?:www\.)?nastygal\.com/([^/]+)/?$']
+    regexs = [r'(?:https?://)?(?:www\.)?nastygal\.com/([^/]+)/?(?:#.*)?$']
 
     def scrape(self, url, **kwargs):
         self.driver.get(url)
