@@ -74,3 +74,19 @@
 .tile img.focus {
 	min-width: 100%;
 }
+
+.previewContainer .gallery {
+    text-align: center;
+    overflow-x: auto;
+}
+
+.previewContainer .gallery img {
+    margin: 0px 5px;
+    max-height: 50px;
+    height: auto;
+    width: auto;
+    border: 1px solid #CECECE;
+}
+.previewContainer .gallery img.selected {
+    border: 1px solid black;
+}
