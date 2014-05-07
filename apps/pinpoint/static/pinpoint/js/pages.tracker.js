@@ -122,16 +122,6 @@ App.module("tracker", function (tracker, App) {
             return trackTile('view', tileIds);
         }, 1000),
 
-        trackPageView = function (hash) {
-            var base = window.location.pathname + window.location.search,
-                host = window.location.protocol +'//' + window.location.hostname;
-            hash = hash || window.location.hash;
-            addItem('send', 'pageview', {
-                'page': base + hash,
-                'location': host + base + hash
-            });
-        },
-
         trackEvent = function (o) {
             // category       - type of object that was acted on
             // action         - type of action that took place (e.g. share, preview)
@@ -145,13 +135,6 @@ App.module("tracker", function (tracker, App) {
 
             addItem('send', 'event', o.category, o.action, o.label,
                     o.value || undefined, {'nonInteraction': nonInteraction});
-
-            /* adb: disable scroll pageviews for now while we resolve pageview issues
-
-            if (o.action === 'scroll') {
-                var hash = '#page' + o.label;
-                trackPageView(hash);
-            }*/
         },
 
         getKeenInfo = function(model) {
@@ -426,13 +409,6 @@ App.module("tracker", function (tracker, App) {
 
                 // add click to our database
                 App.vent.trigger('tracking:trackTileClick', tileId);
-
-                // Be super explicit about what the hash is
-                // rather than relying on the window
-                //
-                // adb: use '/' instead of '#' because it seems like google analytics will attribute
-                // http://gap.secondfunnel.com/livedin#foo to http://gap.secondfunnel.com/livedin
-                trackPageView('/' + tileId);
             } else {
                 console.warn('No tile id present for for tile: ' + label);
             }
@@ -731,7 +707,6 @@ App.module("tracker", function (tracker, App) {
         'tracking:trackEvent': trackEvent,
         'tracking:trackTileView': trackTileView,
         'tracking:trackTileClick': trackTileClick,
-        'tracking:trackPageView': $.noop, //trackPageView,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,
         'tracking:registerFacebookListeners': this.registerFacebookListeners,
         'tracking:videoStateChange': this.videoStateChange,
