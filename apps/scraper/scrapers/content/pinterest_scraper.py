@@ -5,6 +5,7 @@ from apps.assets.models import Image
 
 
 class PinterestPinScraper(ContentDetailScraper):
+    """pinterest.com/pin/(some very large number)"""
     regexs = [Scraper._wrap_regex(r'(?:www\.)?pinterest\.com/pin/(\d*)/?')]
     SOURCE = 'pinterest'
 
@@ -28,7 +29,8 @@ class PinterestPinScraper(ContentDetailScraper):
 
 
 class PinterestAlbumScraper(ContentCategoryScraper):
-    regexs = [Scraper._wrap_regex(r'(?:www\.)?pinterest\.com/(\w*)/(\w*)/?')]
+    """pinterest.com/user_name/album_name"""
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?pinterest\.com/(\w+)/(\w+)/?')]
 
     def parse_url(self, url, **kwargs):
         match = re.match(self.regexs[0], url)
@@ -38,8 +40,10 @@ class PinterestAlbumScraper(ContentCategoryScraper):
 
     def scrape(self, url, **kwargs):
         self.driver.get(url)
-        for element in self.driver.find_elements_by_xpath('//div[@class="pinHolder"]/a'):
-            url = element.get_attribute('href')
+        pins = self.driver.find_elements_by_xpath(
+            '//div[contains(@class, "GridItems")]/div[contains(@class, "item")]')
+        for element in pins:
+            url = element.find_element_by_xpath('//div[@class="pinHolder"]/a').get_attribute('href')
             try:
                 content = Image.objects.get(store=self.store, original_url=url)
             except Image.DoesNotExist:
