@@ -18,6 +18,12 @@
     vertical-align: top;
 }
 
+.tile {
+	margin: 0;
+	box-shadow: none;
+	color: #000;
+}
+
 .tile.wide {
 	width: 480px;
 }

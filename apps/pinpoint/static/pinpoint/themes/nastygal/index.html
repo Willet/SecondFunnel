@@ -80,7 +80,6 @@
                 <div class="overlay">
                     <div class='align-container'>
                         <div class='cell'>
-                            <% /* "Shop product" is actually wanted for the tile overlay */ %>
                             <div class="title">
                                 <% if (obj.title || obj.name || obj.caption) { %>
                                     <%= (obj.title || obj.name || obj.caption) %>
@@ -90,8 +89,6 @@
                                     <% _.each(obj['tagged-prodoucts'], function (related) { %>
                                         <span class='shop-products'><%= related.title || related.name || related.caption %></span>
                                     <% }); %>
-                                <% } else { %>
-                                    Shop product
                                 <% } %>
                             </div>
                         </div>
