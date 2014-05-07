@@ -24,6 +24,7 @@ html, body {
 
 body {
     position: relative;
+    background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/gap/gradient.png') top center repeat-y;
 }
 
 header .container {
