@@ -719,7 +719,7 @@ App.module('core', function (module, App) {
                 windowTop = $window.scrollTop(),
                 pageBottomPos = pageHeight + windowTop,
                 documentBottomPos = $document.height(),
-                viewportHeights = pageHeight * (App.option('prefetchHeight', 1.5));
+                viewportHeights = pageHeight * (App.option('prefetchHeight', 2.5));
 
             if (this.ended) {
                 return this;
