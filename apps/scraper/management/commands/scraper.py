@@ -22,12 +22,15 @@ from apps.scraper.scrapers import StyldByFilterScraper, StyldByPartnersScraper
 from apps.scraper.scrapers import STLScraper
 from apps.scraper.scrapers.scraper import ScraperException
 
+from . import __doc__
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('--store-id', default=None, dest='store-id'),
         make_option('--url', default=None),
         make_option('--folder', default=None))  # --folder is deprecated
+
+    __doc__ = __doc__
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__()
