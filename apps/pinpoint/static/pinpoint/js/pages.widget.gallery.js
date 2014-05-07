@@ -125,11 +125,6 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
             arrows.addClass(options.disabledClass);
         }
 
-        if (!!window.location.hash) { // set hash if nonexistant
-            hash = window.location.hash + '&photo=' + focusCurrent;
-            App.vent.trigger('tracking:trackPageView', hash);
-        }
-
         return this;
     };
 
