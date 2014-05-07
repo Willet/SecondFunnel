@@ -17,3 +17,7 @@
     height: 100%;
     vertical-align: top;
 }
+
+.tile.wide {
+	width: 480px;
+}
