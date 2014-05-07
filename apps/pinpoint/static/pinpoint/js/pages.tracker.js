@@ -602,14 +602,6 @@ App.module("tracker", function (tracker, App) {
             m = document.getElementsByTagName(o)[0];
             m.parentNode.insertBefore(a, m);
         }('script', '//www.google-analytics.com/analytics.js', 'ga'));
-
-        setInterval(function() {
-            trackEvent({
-                'category': 'Control',
-                'action': 'Bounce Rate',
-                'label': ''
-            });
-        }, 1000);
     });
 
     /**
