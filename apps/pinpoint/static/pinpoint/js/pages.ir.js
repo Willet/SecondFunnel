@@ -81,28 +81,6 @@ App.module("intentRank", function (intentRank, App) {
     };
 
     /**
-     * This function is a smart alias to fetch, which essentially checks for
-     * and stores a promise object that others can latch onto when they call for
-     * results.
-     *
-     * @returns this
-     */
-    this.prefetch = _.debounce(function () {
-        var diff = cachedResults.length - intentRank.options.IRCacheResultCount;
-        // Only prefetch if cached count is low and we're not already
-        // fetching.
-        if (!fetching && diff < 0) {
-            console.debug("Prefetching from IR.");
-            fetching = intentRank.fetch({ // Fetch only the difference
-                'IRCacheResultCount': Math.abs(diff)
-            }).done(function () { // Clear fetching when done
-                fetching = null;
-            });
-        }
-        return this;
-    }, 6000);
-
-    /**
      * This function is a bridge between our IntentRank module and our
      * Discovery area.  This function can be called by intentRank itself,
      * or a Collection as context.  Benefits of calling this with intentRank
@@ -170,19 +148,6 @@ App.module("intentRank", function (intentRank, App) {
                     collection.trigger('sync', collection, results, opts);
                 });
             }
-
-            if (len >= opts.results) {
-                // Use a dummy deferred object
-                console.debug("Using existing results.");
-                return $.when(prepopulatedResults).done(function(results) {
-                    collection[method](results, opts);
-                    collection.trigger('sync', collection, results, opts);
-                    intentRank.prefetch();
-                });
-            }
-            // for now, it seems that intentRank has an upperbound of 20, so
-            // just set that as the limit
-            intentRank.updateCache(opts.results - len);
         }
 
         // attach respective success and error functions to the options object
@@ -204,12 +169,6 @@ App.module("intentRank", function (intentRank, App) {
                 // (it was specified before?)
                 if (resultsAlreadyRequested.length > intentRank.options.IRResultsCount) {
                     resultsAlreadyRequested = resultsAlreadyRequested.slice(-10);
-                }
-
-                // Only prefetch if this isn't intentRank; prevents infinite
-                // calls.
-                if (collection !== intentRank) {
-                    intentRank.prefetch();
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
@@ -291,9 +250,16 @@ App.module("intentRank", function (intentRank, App) {
 
     /**
      * @param {Tile} tiles
+     *               if not given, all tiles on the page
      * @return {Array} unique list of tile ids
      */
     this.getTileIds = function (tiles) {
+        if (tiles === undefined) {
+            tiles = _.map(App.discoveryArea.$el.find('.tile'), function (el) {
+                return $(el).tile().model;
+            });
+        }
+
         return _.uniq(_.map(tiles, function (model) {
             try {  // Tile
                 return model.get('tile-id');

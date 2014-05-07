@@ -600,6 +600,10 @@ class Feed(BaseModel):
                      .prefetch_related(*Tile.ASSOCS)
                      .select_related(*Tile.ASSOCS))
 
+    def get_in_stock_tiles(self):
+        return self.get_tiles().exclude(products__in_stock=False)\
+            .exclude(content__tagged_products__in_stock=False)
+
     def add_product(self, product, prioritized=False, priority=0):
         """Adds (if not present) a tile with this product to the feed.
 
