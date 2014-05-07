@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load compress %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,8 +8,10 @@
     <!-- End Optimizer Tests -->
     <link rel="shortcut icon"
          href="http://www.voyage-prive.com/s/favicon.ico" />
+    {% compress css %}
     <link rel="stylesheet"
           href="{% static 'pinpoint/themes/voyageprive/voyageprive.css' %}"/>
+    {% endcompress css %}
     {% include "pinpoint/campaign_respond.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
@@ -72,6 +75,9 @@
     <meta name="google" value="notranslate" />
 </head>
 <body>
+    <div style="display: none !important;">
+        <div class="t01" style="color: blue;">&nbsp;</div>
+    </div>
     <div class='navbar'>
         <img src="{% static 'pinpoint/themes/voyageprive/images/logo.jpg' %}">
         <div class="tag-line inline">
@@ -1117,6 +1123,16 @@
             }
         }());
     </script>
+
+    <!-- CSS WTF detection -->
+    <script>
+        setTimeout(function () {
+            if($('.t01').css('color') !== "rgb(255, 0, 0)") {
+                throw "CSS is stale!";
+            }
+        }, 2000);
+    </script>
+
     <img src='{% url 'apps.tracking.views.pixel' %}'/>
 
     {% if environment == 'production' %}
