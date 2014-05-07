@@ -643,7 +643,7 @@ class Feed(BaseModel):
         content_tiles = [tile for tile in self.tiles.all()
                          if tile.content.count() > 0]
         for tile in content_tiles:
-            if Tile.objects.filter(content = content).exists():
+            if Tile.objects.filter(content=content).exists():
                 print "content {0} already exists in feed".format(content.id)
                 break
         else:  # there weren't any tiles with this content in them
