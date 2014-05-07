@@ -1502,3 +1502,8 @@ html.tablet .previewContainer .button.close {
     color: white;
     background-color: #000d41;
 }
+
+.t01 {
+    /* css detection */
+    color: rgb(255, 0, 0) !important;
+}
