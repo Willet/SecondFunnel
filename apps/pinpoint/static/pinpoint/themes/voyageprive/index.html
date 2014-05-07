@@ -1131,5 +1131,16 @@
     </script>
     <!-- stop : Eulerian Analytics - officiel-vacances -->
     {% endif %}
+
+    {% if environment == 'production' %}
+    <!--ClickMeter.com page views tracking: PageviewTracker -->
+    <script type='text/javascript'>
+    var ClickMeter_pixel_url = 'http://cm.gy/0ba2';
+    </script>
+    <script type='text/javascript' id='cmpixelscript' src='https://www.clickmeter.com/js/pixel.js'></script>
+    <noscript>
+    <img height='0' width='0' alt='' src='http://cm.gy/0ba2' />
+    </noscript>
+    {% endif %}
 </body>
 </html>
