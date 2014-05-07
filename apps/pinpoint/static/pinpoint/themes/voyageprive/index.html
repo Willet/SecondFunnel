@@ -988,6 +988,15 @@
                         obj = App.discovery.collection.get(cid),
                         page_id, store_slug, feed_id, tile_id;
 
+                    $(document.body).append(
+                        $('<img/>', {
+                            'width': 0,
+                            'height': 0,
+                            'alt': '',
+                            'src': 'http://cm.gy/2zi0'
+                        })
+                    );
+
                     tile_id = obj.get('tile-id');
                     page_id = App.options.page.id;
                     store_slug = App.options.store.slug;
