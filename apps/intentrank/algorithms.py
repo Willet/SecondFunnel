@@ -199,7 +199,6 @@ def ir_created_last(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 
 def ir_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-               product_tiles_only=False, content_tiles_only=False,
                request=None, exclude_set=None, allowed_set=None,
                *args, **kwargs):
     """Sample without replacement
@@ -207,8 +206,6 @@ def ir_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     :param tiles: [Tile]
     :param results: int (number of results you want)
-    :param product_tiles_only: only select from the Feed's product pool.
-    :param content_tiles_only: only select from the Feed's content pool.
     :param exclude_set: <list<int>> do not return tiles with these ids.
     :param request: if supplied, do not return results used in
                     the previous session call, or tile ids specified by the
@@ -229,7 +226,6 @@ def ir_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 
 def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-               product_tiles_only=False, content_tiles_only=False,
                exclude_set=None, allowed_set=None, request=None,
                *args, **kwargs):
     """Return tiles in the following order:
@@ -247,8 +243,6 @@ def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     :param tiles: [<Tile>]
     :param results: int (number of results you want)
-    :param product_tiles_only: only select from the Feed's product pool.
-    :param content_tiles_only: only select from the Feed's content pool.
     :param exclude_set: <list<int>> do not return tiles with these ids.
     :param request: if supplied, do not return results used in
                     the previous session call, or tile ids specified by the
@@ -306,7 +300,6 @@ def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 
 def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-              product_tiles_only=False, content_tiles_only=False,
               exclude_set=None, allowed_set=None, request=None,
               *args, **kwargs):
     """Return tiles in the following order:
@@ -318,8 +311,6 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     :param tiles: [<Tile>]
     :param results: int (number of results you want)
-    :param product_tiles_only: only select from the Feed's product pool.
-    :param content_tiles_only: only select from the Feed's content pool.
     :param exclude_set: <list<int>> do not return tiles with these ids.
     :param request: if supplied, do not return results used in
                     the previous session call, or tile ids specified by the
@@ -437,16 +428,54 @@ def ir_finite_by(attribute='created_at', reversed_=False):
     return algo
 
 
+def ir_auto(tiles, *args, **kwargs):
+    """
+    Using a laughable number of queries, return the "best" algorithm for
+    displaying a feed.
+    """
+    finite = False
+    request = kwargs.get('request', None)
+    if request:
+        finite = (len(request.session.get('shown', [])) > 0)
+
+    product_count = len([t for t in tiles if t.template == 'product'])
+    content_count = len([t for t in tiles if t.template != 'product'])
+
+    # because we want to see more content than more products, this is an
+    # undesirable situation to be in -- use infinite algorithms instead
+    if product_count > content_count:
+        if content_count < 5:
+            return ir_ordered(tiles, *args, **kwargs)
+
+        # how large is the sample space?
+        if len(tiles) < 100:
+            return ir_generic(tiles, *args, **kwargs)
+        return ir_random(tiles, *args, **kwargs)
+
+    # how much engagement can we detect?
+    views_count = sum([t.views for t in tiles])
+    clicks_count = sum([t.clicks for t in tiles])
+    if clicks_count > 100:
+        if finite:
+            return ir_finite_popular(tiles, *args, **kwargs)
+        else:
+            return ir_popular(tiles, *args, **kwargs)
+    elif views_count > 1000:
+        return ir_finite_by('-views')(tiles, *args, **kwargs)
+
+    # wild guess mode?
+    if not finite:
+        kwargs['exclude_set'] = []
+    return ir_random(tiles, *args, **kwargs)
+
+
 def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-               product_tiles_only=False, content_tiles_only=False,
                exclude_set=None, allowed_set=None, request=None,
                *args, **kwargs):
     """Retrieve whichever finite tiles there are that have not been shown.
     If all have been shown, continue to show random ones.
     """
     tiles = ir_finite(tiles=tiles, results=results,
-                      product_tiles_only=product_tiles_only,
-                      content_tiles_only=content_tiles_only,
                       exclude_set=exclude_set, allowed_set=allowed_set,
                       request=request, **kwargs)
     if len(tiles) >= results:
