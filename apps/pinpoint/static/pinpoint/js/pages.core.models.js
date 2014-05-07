@@ -388,7 +388,10 @@ App.module('core', function (core, App) {
                 // issue a warning but display anyway
                 if (App.option('IRAlgo', 'generic').indexOf('finite') > -1) {
                     if (tileIds.indexOf(tileId) > -1) {
-                        console.warn("Tile "  + tileId + " will be shown more than once on the page!");
+                        console.warn("Tile "  + tileId + " is already on the page!");
+                        if (!App.option('allowTileRepeats', false)) {
+                            continue;
+                        }
                     }
                 }
 

@@ -361,7 +361,7 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 
 def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-    request=None, offset=0, *args, **kwargs):
+    request=None, offset=0, allowed_set=None, exclude_set=None, *args, **kwargs):
     """Implements *exactly* the following goals:
 
     ... simpler code/algo, deterministic order and set of tiles (same on every pageview) ...
@@ -373,13 +373,26 @@ def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
+    if allowed_set:
+        tiles = tiles.filter(id__in=allowed_set)
+
+    if exclude_set:
+        tiles = tiles.exclude(id__in=exclude_set)
+
     tiles = tiles.extra(select={
         'clicks_per_view': 'cast(clicks + 1 as float) / cast(views + 1 as float)'
     }).order_by('-clicks_per_view')
 
     print "Returning popular tiles {0} through {1}".format(
         offset, offset + results)
-    return tiles[offset:offset+results]  # all edge cases return []
+
+    # all edge cases return []
+    if exclude_set or allowed_set:
+        # if exclude set is supplied, then the top 10 results should
+        # already be the results you should show next
+        return tiles[:results]
+    else:
+        return tiles[offset:offset+results]
 
 
 def ir_finite_by(attribute='created_at', reversed_=False):
@@ -424,7 +437,14 @@ def ir_finite_by(attribute='created_at', reversed_=False):
         print "Returning popular tiles, by '{0}', " \
               "emulating offset {1} ~ {2}\n{3}".format(
             attribute, offset, offset + results, tile_dump)
-        return tiles[:results]  # all edge cases return []
+
+        # all edge cases return []
+        if exclude_set or allowed_set:
+            # if exclude set is supplied, then the top 10 results should
+            # already be the results you should show next
+            return tiles[:results]
+        else:
+            return tiles[offset:offset+results]
     return algo
 
 
@@ -525,4 +545,10 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     print "Returning discounted product tiles, " \
           "emulating offset {0} ~ {1}".format(offset, offset + results)
 
-    return tiles[:results]  # all edge cases return []
+    # all edge cases return []
+    if exclude_set or allowed_set:
+        # if exclude set is supplied, then the top 10 results should
+        # already be the results you should show next
+        return tiles[:results]
+    else:
+        return tiles[offset:offset+results]

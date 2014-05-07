@@ -2,6 +2,11 @@
 <html>
 <head>
     <title></title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+    </style>
 </head>
 <body>
     <h1>Overview</h1>
@@ -19,6 +24,10 @@
                         {{ page.url_slug }}
                     </a>
                 </h2>
+                <p>
+                    Tiles: {{ page.feed.get_in_stock_tiles.count }} /
+                           {{ page.feed.tiles.count }} in stock
+                </p>
                 <ul>
                 {% for tile in page.feed.tiles.all %}
                     <li>
