@@ -82,28 +82,13 @@
                         cookie.toLowerCase() + '_' + tileTemplateId).html());
                 }
 
-                // Setup tracking
-                var createTrackingPixel = function(url) {
-                        return $('<img/>', {
-                            'width': 0,
-                            'height': 0,
-                            'alt': '',
-                            'src': url
-                        });
-                    },
-                    addPixelToPage = function(url) {
-                        $('body').append(
-                            createTrackingPixel(url)
-                        );
-                    };
-
                 // Append click pixel
                 $('body').on('click', '.tile', function() {
-                    addPixelToPage(window.TRACKING_PIXELS[cookie].click);
+                    (new Image).url = window.TRACKING_PIXELS[cookie].click;
                 });
 
                 // Append page view pixel
-                addPixelToPage(window.TRACKING_PIXELS[cookie].view);
+                (new Image).url = window.TRACKING_PIXELS[cookie].view;
 
                 return cookie;
             }
