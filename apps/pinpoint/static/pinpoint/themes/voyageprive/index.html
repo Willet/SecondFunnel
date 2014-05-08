@@ -120,11 +120,11 @@
 
             // Append click pixel
             $('body').on('click', '.tile', function() {
-                (new Image).url = window.TRACKING_PIXELS[test].click;
+                (new Image).src = window.TRACKING_PIXELS[test].click;
             });
 
             // Append page view pixel
-            (new Image).url = window.TRACKING_PIXELS[test].view;
+            (new Image).src = window.TRACKING_PIXELS[test].view;
         }, 1000);
     </script>
     {% endif %}
