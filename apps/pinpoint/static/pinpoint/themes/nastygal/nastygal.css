@@ -7,6 +7,7 @@
     color: white;
     margin-bottom: 0;
     white-space: nowrap;
+    z-index: 10;
 }
 
 .navbar .container {
@@ -73,4 +74,83 @@
 
 .tile img.focus {
 	min-width: 100%;
+}
+
+.previewContainer {
+    box-shadow: none;
+    color: #000;
+    text-rendering: optimizelegibility;
+    -webkit-font-smoothing: antialiased;
+    font-family: "ff-super-grotesk-web", helvetica,arial;
+    font-weight: 200;
+}
+
+.previewContainer .content {
+    padding-top: 43px;
+}
+
+.previewContainer .close {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1;
+    opacity: 1;
+    filter: alpha(opacity=100);
+    color: #FFF;
+    background-color: #000;
+    padding: 10px 20px;
+    font-family: serif;
+    font-weight: 200;
+}
+
+.previewContainer .gallery {
+    text-align: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.previewContainer .gallery img {
+    margin: 5px 0;
+    height: auto;
+    width: 82px;
+    display: block;
+    opacity: 0.4;
+    filter: alpha(opacity=40);
+    cursor: pointer;
+}
+.previewContainer .gallery img.selected {
+    opacity: 1;
+    filter: alpha(opacity=100);
+    cursor: default;
+}
+
+.previewContainer .info {
+    text-align: center;
+    padding-left: 20px;
+}
+
+.previewContainer .info .title {
+    font-size: 34px;
+    margin-top: 50px;
+}
+
+.previewContainer .info .price {
+    font-size: 28px;
+    font-style: italic;
+    font-family: serif;
+    margin-bottom: 20px;
+}
+
+.previewContainer .info a.button {
+    font-size: 20px;
+    color: #FFF;
+    background-color: black;
+    text-decoration: none;
+    padding: 10px 30px;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.previewContainer .info a.button:hover {
+    text-decoration: none;
 }

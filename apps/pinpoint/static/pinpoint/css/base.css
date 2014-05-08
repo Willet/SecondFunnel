@@ -399,6 +399,48 @@ div.loading {
     left: 0;
 }
 
+@keyframes noop {
+    0% {
+        margin-bottom: 0;
+    }
+    100% {
+        margin-bottom: 1em;
+    }
+}
+
+.previewContainer .fullscreen {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 101;
+
+    /* Force repaint */
+    -webkit-animation: noop 1s infinite;
+    animation: noop 1s infinite;
+
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
+.previewContainer .fullscreen .content {
+    max-height: none;
+    height: 100%;
+    width: 100%;
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 0px;
+    -ms-border-radius: 0px;
+    -o-border-radius: 0px;
+    border-radius: 0px;
+    overflow-y: auto !important;
+}
+
+.previewContainer .cell {
+    display: table-cell;
+    vertical-align: top;
+}
+
 .previewContainer img {
     max-width: 100%;
     max-height: 100%;
