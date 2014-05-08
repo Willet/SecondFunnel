@@ -82,14 +82,6 @@
                         cookie.toLowerCase() + '_' + tileTemplateId).html());
                 }
 
-                // Append click pixel
-                $('body').on('click', '.tile', function() {
-                    (new Image).url = window.TRACKING_PIXELS[cookie].click;
-                });
-
-                // Append page view pixel
-                (new Image).url = window.TRACKING_PIXELS[cookie].view;
-
                 return cookie;
             }
         });
@@ -114,6 +106,28 @@
             }
         });
     </script>
+    {% if environment == 'production' %}
+    <script type='text/javascript'>
+        var interval = setInterval(function() {
+            var test;
+
+            if (!window.ACTIVE_TEST) {
+                return;
+            }
+
+            clearInterval(interval);
+            test = window.ACTIVE_TEST;
+
+            // Append click pixel
+            $('body').on('click', '.tile', function() {
+                (new Image).url = window.TRACKING_PIXELS[test].click;
+            });
+
+            // Append page view pixel
+            (new Image).url = window.TRACKING_PIXELS[test].view;
+        }, 1000);
+    </script>
+    {% endif %}
     <title>{{ page.name|default:"Voyage Privé" }}</title>
     <style type="text/css">
         /* out of necessity */
