@@ -93,9 +93,9 @@
         </script>
 
         <script type="text/template" id="preview_container_template">
-            <div class="tablecell">
+            <div class="fullscreen">
                 <div class="content">
-                    <span class="close">&#x00D7;</span>
+                    <span class="close">BACK TO BROWSING</span>
                     <div class="scrollable">
                         <div class="template target"></div>
                     </div>
@@ -216,15 +216,17 @@
             <!-- any (store.name)_(type)_... templates will be used in place
              of default templates if they exist. -->
             <div class='content-wrapper row'>
-                <div class='cell middle image-div col-sm-6 col-md-6'>
+                <div class='cell middle image-div'>
                     <div class='image'>
                         <img src='<%= obj.image.url %>'/>
                     </div>
-                    <% if (obj.images.length > 1) { %>
-                    <div class='gallery'></div>
-                    <% } %>
                 </div>
-                <div class='cell middle info col-sm-6 col-md-6'>
+                <% if (obj.images.length > 1) { %>
+                    <div class='cell'>
+                        <div class='gallery'></div>
+                    </div>
+                <% } %>
+                <div class='cell middle info'>
                     <div class='title'><%= obj.title || obj.name %></div>
                     <div class='price<% if (obj.sale_price) { %> sale<% } %>'>
                         <% if (obj.sale_price) { %>
@@ -236,35 +238,12 @@
                             <%- obj.price %>
                         <% } %>
                     </div>
-                    <div class='description'>
-                        <div class='desc-title'>Overview</div>
-                        <% var sentences = _.compact(obj.description.split('.')); %>
-                        <% if (!obj.description.match(/<li(?:.|\n)*?>/)) { %>
-                            <ul>
-                                <% _.each(sentences, function(sentence) { %>
-                                    <li><%= SecondFunnel.utils.safeString(sentence) %></li>
-                                <% }); %>
-                            </ul>
-                        <% } else { %>
-                            <%= SecondFunnel.utils.safeString(obj.description) %>
-                        <% } %>
-                    </div>
+                    <a class='button' href='<%= obj.url %>' target='_blank'>
+                        SHOP NOW
+                    </a>
                     <div>
                         <div class="social-buttons"></div>
                         <div class='spacer'></div>
-                    </div>
-                    <div class='gap-buttons'>
-                        <a class='button find-store'
-                           href='http://www.gap.com/customerService/storeLocator.do'
-                           target='_blank'>
-                            <!-- find-store is magic -->
-                            Find in Store
-                        </a>
-                        <a class='button in-store' href='<%= obj.url %>'
-                           target='_blank'>
-                            <!-- in-store is magic -->
-                            Shop on Gap.com
-                        </a>
                     </div>
                 </div>
             </div>
