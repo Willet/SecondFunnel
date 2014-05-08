@@ -15,6 +15,28 @@
     {% include "pinpoint/campaign_respond.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
+        window.TRACKING_PIXELS = {
+            'A': {
+                'view': 'http://cm.gy/0ba2',
+                'click': 'http://cm.gy/2zi0'
+            },
+            'B': {
+                'view': 'http://cm.gy/u0ny',
+                'click': 'http://cm.gy/f8lg'
+            },
+            'C': {
+                'view': 'http://cm.gy/fcrc',
+                'click': 'http://cm.gy/fyt5'
+            },
+            'D': {
+                'view': 'http://cm.gy/jyaz',
+                'click': 'http://cm.gy/mpty'
+            },
+            'E': {
+                'view': '',
+                'click': ''
+            }
+        };
         window.OPTIMIZER_TESTS = [];
         window.OPTIMIZER_TESTS.push({
             // the {template} will be replaced by its {a, b, c, d}_{template}
@@ -54,10 +76,35 @@
                 };
 
                 cookie = cookie || weightedSample(tests);
+                window.ACTIVE_TEST = cookie;
                 if (cookie !== "A") {  // A is base case
                     $('#' + tileTemplateId).html($('#' +
                         cookie.toLowerCase() + '_' + tileTemplateId).html());
                 }
+
+                // Setup tracking
+                var createTrackingPixel = function(url) {
+                        return $('<img/>', {
+                            'width': 0,
+                            'height': 0,
+                            'alt': '',
+                            'src': url
+                        });
+                    },
+                    addPixelToPage = function(url) {
+                        $('body').append(
+                            createTrackingPixel(url)
+                        );
+                    };
+
+                // Append click pixel
+                $('body').on('click', '.tile', function() {
+                    addPixelToPage(window.TRACKING_PIXELS[cookie].click);
+                });
+
+                // Append page view pixel
+                addPixelToPage(window.TRACKING_PIXELS[cookie].view);
+
                 return cookie;
             }
         });
@@ -1023,15 +1070,6 @@
                         obj = App.discovery.collection.get(cid),
                         page_id, store_slug, feed_id, tile_id;
 
-                    $(document.body).append(
-                        $('<img/>', {
-                            'width': 0,
-                            'height': 0,
-                            'alt': '',
-                            'src': 'http://cm.gy/2zi0'
-                        })
-                    );
-
                     tile_id = obj.get('tile-id');
                     page_id = App.options.page.id;
                     store_slug = App.options.store.slug;
@@ -1175,17 +1213,6 @@
     /*]]>*/
     </script>
     <!-- stop : Eulerian Analytics - officiel-vacances -->
-    {% endif %}
-
-    {% if environment == 'production' %}
-    <!--ClickMeter.com page views tracking: PageviewTracker -->
-    <script type='text/javascript'>
-    var ClickMeter_pixel_url = 'http://cm.gy/0ba2';
-    </script>
-    <script type='text/javascript' id='cmpixelscript' src='https://www.clickmeter.com/js/pixel.js'></script>
-    <noscript>
-    <img height='0' width='0' alt='' src='http://cm.gy/0ba2' />
-    </noscript>
     {% endif %}
 </body>
 </html>
