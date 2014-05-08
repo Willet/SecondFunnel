@@ -126,6 +126,10 @@ def render_campaign(page_id, request, store_id=0):
     if request.GET.get('popular', None) == '':
         algorithm = 'popular'
 
+    tests = []
+    if page.get('tests'):
+        tests = json.dumps(page.get('tests'))
+
     attributes = {
         "session_id": request.session.session_key,
         "campaign": page,
@@ -151,7 +155,7 @@ def render_campaign(page_id, request, store_id=0):
         "url": page.get('url', ''),
         "algorithm": algorithm,
         "environment": settings.ENVIRONMENT,
-        "tests": []
+        "tests": tests
     }
 
     context = RequestContext(request, attributes)
