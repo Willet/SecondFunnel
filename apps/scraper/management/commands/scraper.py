@@ -105,6 +105,10 @@ class Command(BaseCommand):
                 print('retrieving url from "{0}"'.format(file_link))
                 with open(file_link) as url_file:
                     for line in url_file:
+                        if not line:
+                            continue
+                        if line[0] == '#':
+                            continue
                         self.run_scraper(url=line)
             except BaseException as err:
                 print "Oh no! Something bad happened: {0}".format(err)
