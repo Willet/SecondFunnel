@@ -596,7 +596,8 @@ App.module("tracker", function (tracker, App) {
             };
             window.ga.l = Number(new Date());
             a = document.createElement(o);
-            a.async = 1;
+            // async=1 sometimes makes window.ga the script tag instead of the function
+            a.async = 0;
             a.src = g;
 
             m = document.getElementsByTagName(o)[0];
