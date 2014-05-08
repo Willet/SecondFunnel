@@ -151,6 +151,7 @@ def render_campaign(page_id, request, store_id=0):
         "url": page.get('url', ''),
         "algorithm": algorithm,
         "environment": settings.ENVIRONMENT,
+        "tests": []
     }
 
     context = RequestContext(request, attributes)

@@ -23,8 +23,13 @@
             test: 'custom', // allowed values: 'style'. 'template'. 'custom' (see addTest)
             custom: function (cookie) {
                 var tileTemplateId = "banner_tile_template";
+                var tests = {{ tests|safe }};
 
-                cookie = cookie || _.sample(["A", "B", "C", "D", "E"]);
+                if (!tests.length) {
+                    tests = ["A", "B", "C", "D", "E"];
+                }
+
+                cookie = cookie || _.sample(tests);
                 if (cookie !== "A") {  // A is base case
                     $('#' + tileTemplateId).html($('#' +
                         cookie.toLowerCase() + '_' + tileTemplateId).html());
