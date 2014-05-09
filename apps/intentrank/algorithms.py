@@ -5,6 +5,7 @@ as the first positional argument, with all other arguments being kwargs.
 
 All algorithms must return <list>.
 """
+import random  # used in ir_mixed
 from functools import partial, wraps
 
 from django.conf import settings
@@ -34,8 +35,8 @@ def qs_for(tiles):
         ids = tiles
 
     return (Tile.objects.filter(id__in=ids)
-                .prefetch_related(*Tile.ASSOCS)
-                .select_related(*Tile.ASSOCS))
+            .prefetch_related(*Tile.ASSOCS)
+            .select_related(*Tile.ASSOCS))
 
 
 def ir_base(tiles=None, feed=None, exclude_set=None, allowed_set=None,
@@ -66,7 +67,7 @@ def ir_base(tiles=None, feed=None, exclude_set=None, allowed_set=None,
     # "filter out all content tiles for which none of the content's
     # tagged products are in stock"
     tiles = (tiles.exclude(products__in_stock=False)
-                  .exclude(content__tagged_products__in_stock=False))
+             .exclude(content__tagged_products__in_stock=False))
 
     # DO NOT call *_related functions after ir_base!
     return tiles
@@ -152,7 +153,7 @@ def ir_priority_sorted(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
-    tiles = tiles.filter(prioritized=prioritized_state)\
+    tiles = tiles.filter(prioritized=prioritized_state) \
                  .order_by('-priority')[:results]
 
     print "{0} tile(s) were manually prioritized".format(len(tiles))
@@ -273,8 +274,8 @@ def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if request and hasattr(request, 'session'):
         if len(request.session.get('shown', [])) == 0:  # first page view
             prioritized_tiles += ir_priority_session(tiles=tiles, results=8,
-                exclude_set=exclude_set,
-                allowed_set=allowed_set)
+                                                     exclude_set=exclude_set,
+                                                     allowed_set=allowed_set)
             exclude_set += ids_of(prioritized_tiles)
 
     # fill the first two rows with (8) tiles that are known to be new
@@ -352,16 +353,16 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # get (10 - number of prioritized) tiles that are not already prioritized
     exclude_set += ids_of(prioritized_tiles)
     random_tiles = ir_prioritized(tiles=tiles, prioritized_set='',
-        results=(results - len(prioritized_tiles)),
-        exclude_set=exclude_set,
-        allowed_set=allowed_set)
+                                  results=(results - len(prioritized_tiles)),
+                                  exclude_set=exclude_set,
+                                  allowed_set=allowed_set)
 
     tiles = list(prioritized_tiles) + list(random_tiles)
     return tiles[:results]
 
 
 def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-    request=None, offset=0, allowed_set=None, exclude_set=None, *args, **kwargs):
+                      request=None, offset=0, allowed_set=None, exclude_set=None, *args, **kwargs):
     """Implements *exactly* the following goals:
 
     ... simpler code/algo, deterministic order and set of tiles (same on every pageview) ...
@@ -392,48 +393,66 @@ def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         # already be the results you should show next
         return tiles[:results]
     else:
-        return tiles[offset:offset+results]
+        return tiles[offset:offset + results]
 
 
 def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
              exclude_set=None, allowed_set=None, request=None,
              *args, **kwargs):
+    """Return tiles, a mix of content and products set by the
 
-    PERCENTAGE_CONTENT = 0.6
-    PERCENTAGE_PRODUCT = 1 - PERCENTAGE_CONTENT
+
+    Calls same functions as ir_finite with content only,
+    then calls ir_mixed when all content has been used
+
+    :param tiles: [<Tile>]
+    :param results: int (number of results you want)
+    :param exclude_set: <list<int>> do not return tiles with these ids.
+    :param request: if supplied, do not return results used in
+                    the previous session call, or tile ids specified by the
+                    "?shown=" parameter.
+    :returns list
+    """
+
+    # check for sessions
+    if not (request and hasattr(request, 'session')):
+        raise ValueError("Sessions must be enabled for ir_ordered")
 
     if results < 1:
         return []
 
     print "ir_mixed called"
 
+    percentage_content = 0.40
+    percentage_product = 1 - percentage_content
+    num_content = int((results * percentage_content) + 0.5)
+    num_product = int((results * percentage_product) + 0.5)
+
     contents_temp = tiles.exclude(template='product')
     products_temp = tiles.filter(template='product')
 
-    if len(exclude_set) >= len(tiles):
-        print "exclude_set reset"
-        exclude_set = None
-
-    if len(tiles.filter(id__in=exclude_set).exclude(template='product')) >= len(contents_temp):
+    # if all tiles have been used, reset and start again
+    # reset content
+    if set(ids_of(contents_temp)).issubset(set(exclude_set)):
         print "exclude_set - contents"
         for x in ids_of(contents_temp):
             exclude_set.remove(x)
+        request.session['shown'] = exclude_set
 
-    if len(tiles.filter(id__in=exclude_set).filter(template='product')) >= len(products_temp):
+    # reset products
+    if set(ids_of(products_temp)).issubset(set(exclude_set)):
         print "exclude_set - contents"
         for x in ids_of(products_temp):
             exclude_set.remove(x)
+        request.session['shown'] = exclude_set
 
     if allowed_set:
         tiles = tiles.filter(id__in=allowed_set)
     if exclude_set:
         tiles = tiles.exclude(id__in=exclude_set)
 
-    products = tiles.filter(template='product')
-    contents = tiles.exclude(template='product')
-
-    num_content = int(results * PERCENTAGE_CONTENT)
-    num_product = int(results * PERCENTAGE_PRODUCT)
+    products = products_temp.exclude(id__in=exclude_set)
+    contents = contents_temp.exclude(id__in=exclude_set)
 
     contents = contents.order_by('-clicks')[:num_content]
 
@@ -443,21 +462,25 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     print "products: {0} and content: {1}".format(len(products[:num_product]),
                                                   len(contents[:num_content]))
-    return qs_for(tiles).order_by('?')
+
+    # make so not block of content then products
+    random.shuffle(tiles)  # shuffles in place, returns None
+
+    return tiles
 
 
 def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                       exclude_set=None, allowed_set=None, request=None,
-                       *args, **kwargs):
+                     exclude_set=None, allowed_set=None, request=None,
+                     *args, **kwargs):
     """Return tiles in the following order:
 
-    - prioritized content (ordered by priority)
-    - products mixed mixed with content
+    - prioritized content
+    - products mixed with content (ir_mixed)
 
     Calls same functions as ir_finite with content only,
     then calls ir_mixed when all content has been used
 
-    :param new_tiles: [<Tile>]
+    :param tiles: [<Tile>]
     :param results: int (number of results you want)
     :param exclude_set: <list<int>> do not return tiles with these ids.
     :param request: if supplied, do not return results used in
@@ -466,75 +489,46 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     :returns list
     """
 
-    if results < 1:
-        return []
-
-    if request and request.GET.get('IRReqNum', 2):
-        print "product mix starting"
-        mixed_tiles = ir_mixed(tiles=tiles, results=results,
-                               exclude_set=exclude_set, allowed_set=allowed_set)
-        return mixed_tiles[:results]
-
-    contents = tiles.exclude(template='product')
-
-    print "content_first run"
-
     # check for sessions
     if not (request and hasattr(request, 'session')):
         raise ValueError("Sessions must be enabled for ir_ordered")
 
+    if results < 1:
+        return []
+
+    # since contents first is all about contents, we don't need to worry
+    # about products. ir_mixed will handle that if necessary
+    contents = tiles.exclude(template='product')
+
     prioritized_content = []
 
     # first, always show the ones that are 'request' i.e. every request
-    prioritized_content += ir_priority_request(tiles=tiles, results=10,
-                                               allowed_set=allowed_set)
+    prioritized_content += ir_priority_request(tiles=contents, results=10,
+                                               exclude_set=exclude_set, allowed_set=allowed_set)
     if len(prioritized_content) >= results:
         return prioritized_content[:results]
 
-    # serve prioritized ones first
     # second, show the ones for the first request
     exclude_set += ids_of(prioritized_content)
-    if request and request.GET.get('reqNum', 0) in [0, '0']:
+    if request and request.GET.get('reqNum', 0) in [0, 1, '0', '1']:  # only at start
         prioritized_content += ir_priority_pageview(tiles=contents, results=10,
-                                                    allowed_set=allowed_set)
+                                                    exclude_set=exclude_set, allowed_set=allowed_set)
 
-    if len(prioritized_content) >= results:
-        print "step two returned"
-        return prioritized_content[:results]
+    length = len(prioritized_content)
 
-    # fill the first two rows with (8) tiles that are known to be new
-
-    exclude_set += ids_of(prioritized_content)
-    if len(request.session.get('shown', [])) == 0:  # first page view
-        prioritized_content += ir_created_last(tiles=contents, results=8,
-                                               exclude_set=exclude_set,
-                                               allowed_set=allowed_set)
-
-    if len(prioritized_content) >= results:
-        print "step three returned"
-        return prioritized_content[:results]
-
-    random_content = []
-    exclude_set += ids_of(prioritized_content)
-    # get (10 - number of prioritized) tiles that are not already prioritized
-    if not len(contents) <= len(exclude_set):
-        random_content = ir_prioritized(tiles=contents, prioritized_set='',  # the rest of the contents
-                                        results=(results - len(prioritized_content)),
-                                        exclude_set=exclude_set,
-                                        allowed_set=allowed_set)
-
-    new_tiles = list(prioritized_content) + list(random_content)
-
-    length = len(random_content) + len(prioritized_content)
     if length >= results:
-        print "step four random content returned"
-        return new_tiles[:results]
+        print "priority content returned"
+        return prioritized_content[:results]
 
+    exclude_set += ids_of(prioritized_content)
     mixed_tiles = ir_mixed(tiles=tiles, results=(results - length),
-                           exclude_set=exclude_set, allowed_set=allowed_set)
-    new_tiles += list(mixed_tiles)
+                           exclude_set=exclude_set, allowed_set=allowed_set,
+                           request=request)
+    prioritized_content += mixed_tiles
+
     print "step four returned"
-    return new_tiles[:results]
+    return prioritized_content[:results]
+
 
 def ir_finite_by(attribute='created_at', reversed_=False):
     """Returns a finite algorithm that orders its tiles based on a field,
@@ -550,6 +544,7 @@ def ir_finite_by(attribute='created_at', reversed_=False):
              request=None, offset=0, allowed_set=None, exclude_set=None,
              *args, **kwargs):
         """Outputs tiles, based on tiles' {attribute}, in offset slices."""
+
         def sort_fn(tile):
             """Turns a tile into a number"""
             try:
@@ -585,7 +580,8 @@ def ir_finite_by(attribute='created_at', reversed_=False):
             # already be the results you should show next
             return tiles[:results]
         else:
-            return tiles[offset:offset+results]
+            return tiles[offset:offset + results]
+
     return algo
 
 
@@ -644,7 +640,7 @@ def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # get random tiles, with *no* exclusion restriction applied
     random_tiles = ir_prioritized(tiles=tiles, prioritized_set='',
-        results=results, allowed_set=allowed_set)
+                                  results=results, allowed_set=allowed_set)
 
     random_tiles = random_tiles.order_by('?')
     tiles += random_tiles
@@ -653,11 +649,13 @@ def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 
 def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-         request=None, offset=0, allowed_set=None, exclude_set=None,
-         *args, **kwargs):
+                   request=None, offset=0, allowed_set=None, exclude_set=None,
+                   *args, **kwargs):
     """Outputs tiles, based on tiles' products' discount, in offset slices."""
+
     def sort_fn(tile):
         """Turns a tile into a number"""
+
         def parse_int(string):
             if not string:
                 return 0
@@ -668,7 +666,7 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             products.extend(list(content.tagged_products.all()))
 
         max_sale = max([parse_int(product.attributes.get('discount',
-                                   product.attributes.get('sale_price', 0)))
+                                                         product.attributes.get('sale_price', 0)))
                         for product in products])
         return max_sale
 
@@ -692,4 +690,4 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         # already be the results you should show next
         return tiles[:results]
     else:
-        return tiles[offset:offset+results]
+        return tiles[offset:offset + results]

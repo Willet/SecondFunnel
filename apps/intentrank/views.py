@@ -65,8 +65,8 @@ def limit_showns(request, n=TRACK_SHOWN_TILES_NUM):
     if algorithm_name in ['sorted', 'custom']:
         # prevent these from ever resetting
         pass
-    elif algorithm_name in ['generic', 'ordered'] or \
-        'finite' in algorithm_name:
+    elif algorithm_name in ['generic', 'ordered', 'content_first', 'mixed'] or \
+            'finite' in algorithm_name:
         # reset these every pageload
         if int(req_num) == 0:
             request.session['shown'] = []
@@ -99,7 +99,7 @@ def get_results_view(request, page_id):
     session_reset = True if request.GET.get('session-reset', "").lower() == "true" else False
 
     if session_reset:
-        offset = 0 # For deterministic algorithms, we have to reset the offset
+        offset = 0  # For deterministic algorithms, we have to reset the offset
         print "intentrank session was cleared"
 
     # keep track of the last (unique) tiles have been shown, then
