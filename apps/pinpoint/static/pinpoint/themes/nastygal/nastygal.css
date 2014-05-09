@@ -109,6 +109,10 @@
     overflow-x: hidden;
 }
 
+.previewContainer .gallery.hidden {
+    display: none;
+}
+
 .previewContainer .gallery img {
     margin: 5px 0;
     height: auto;
@@ -124,14 +128,29 @@
     cursor: default;
 }
 
+.previewContainer .image-with-tagged-products .cell {
+    padding-top: 10px;
+}
+
+.previewContainer .image-with-tagged-products .cell.info {
+    padding-top: 0;
+}
+
 .previewContainer .info {
     text-align: center;
     padding-left: 20px;
+}
+.previewContainer .info.image {
+    padding-left: 0;
 }
 
 .previewContainer .info .title {
     font-size: 34px;
     margin-top: 50px;
+}
+.previewContainer .info.image .title {
+    margin-top: 0;
+    font-size: 28px;
 }
 
 .previewContainer .info .price {
@@ -139,6 +158,9 @@
     font-style: italic;
     font-family: serif;
     margin-bottom: 20px;
+}
+.previewContainer .info.image .price {
+    font-size: 25px;
 }
 
 .previewContainer .info a.button {
@@ -150,7 +172,82 @@
     display: inline-block;
     margin-bottom: 20px;
 }
+.previewContainer .info.image a.button {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
 
 .previewContainer .info a.button:hover {
     text-decoration: none;
+}
+
+.previewContainer .stl-title {
+    text-align: center;
+    font-size: 18px;
+}
+
+.previewContainer .stl-look {
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: none;
+    white-space: normal;
+    padding-bottom: 0;
+    width: 200px;
+}
+
+.previewContainer .stl-look img {
+    display: block;
+    width: 82px;
+    max-width: none;
+    max-height: none;
+    height: auto;
+    margin: 5px auto;
+    opacity: 0.4;
+    filter: alpha(opacity=40);
+    cursor: pointer;
+}
+
+.previewContainer .stl-look img.selected {
+    opacity: 1;
+    filter: alpha(opacity=100);
+    cursor: default;
+}
+
+.previewContainer .stl-look .name {
+    width: 100px;
+    margin: auto;
+    text-align: center;
+    font-size: 12px;
+}
+
+.previewContainer .main-image-container {
+    position: relative;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left {
+    width: 35px;
+    height: 116px;
+    background-color: grey;
+    cursor: pointer;
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    margin-top: -58px;
+}
+.previewContainer .main-image-container .gallery-swipe-left.grey {
+    display: none;
+}
+
+.previewContainer .main-image-container .gallery-swipe-right {
+    width: 35px;
+    height: 116px;
+    background-color: grey;
+    cursor: pointer;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    margin-top: -58px;
+}
+.previewContainer .main-image-container .gallery-swipe-right.grey {
+    display: none;
 }

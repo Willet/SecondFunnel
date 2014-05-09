@@ -756,11 +756,7 @@ div.header {
     border: 1px solid black;
 }
 
-.previewContainer .gallery.dots img {
-    display: none;
-}
-
-.previewContainer .gallery.dots .img-wrapper {
+.previewContainer .gallery.dots div {
     border-radius: 50%;
     width: 5px;
     height: 5px;
@@ -769,7 +765,7 @@ div.header {
     margin-right: 10px;
 }
 
-.previewContainer .gallery.dots .img-wrapper.selected {
+.previewContainer .gallery.dots div.selected {
     background: #000;
 }
 
