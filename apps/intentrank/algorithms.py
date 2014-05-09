@@ -421,8 +421,6 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    print "ir_mixed called"
-
     percentage_content = 0.40
     percentage_product = 1 - percentage_content
     num_content = int((results * percentage_content) + 0.5)
@@ -434,14 +432,14 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # if all tiles have been used, reset and start again
     # reset content
     if set(ids_of(contents_temp)).issubset(set(exclude_set)):
-        print "exclude_set - contents"
+        print "Ran out of contents: resetting"
         for x in ids_of(contents_temp):
             exclude_set.remove(x)
         request.session['shown'] = exclude_set
 
     # reset products
     if set(ids_of(products_temp)).issubset(set(exclude_set)):
-        print "exclude_set - contents"
+        print "Ran out of products: resetting"
         for x in ids_of(products_temp):
             exclude_set.remove(x)
         request.session['shown'] = exclude_set
@@ -460,9 +458,8 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     tiles = list(contents) + list(products)
 
-    print "products: {0} and content: {1}".format(len(products[:num_product]),
-                                                  len(contents[:num_content]))
-
+    print "Mixed {0} product tiles with {1} content tiles".format(len(products[:num_product]),
+                                                                  len(contents[:num_content]))
     # make so not block of content then products
     random.shuffle(tiles)  # shuffles in place, returns None
 
@@ -517,7 +514,6 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     length = len(prioritized_content)
 
     if length >= results:
-        print "priority content returned"
         return prioritized_content[:results]
 
     exclude_set += ids_of(prioritized_content)
@@ -526,7 +522,6 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                            request=request)
     prioritized_content += mixed_tiles
 
-    print "step four returned"
     return prioritized_content[:results]
 
 
