@@ -395,6 +395,147 @@ def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         return tiles[offset:offset+results]
 
 
+def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+             exclude_set=None, allowed_set=None, request=None,
+             *args, **kwargs):
+
+    PERCENTAGE_CONTENT = 0.6
+    PERCENTAGE_PRODUCT = 1 - PERCENTAGE_CONTENT
+
+    if results < 1:
+        return []
+
+    print "ir_mixed called"
+
+    contents_temp = tiles.exclude(template='product')
+    products_temp = tiles.filter(template='product')
+
+    if len(exclude_set) >= len(tiles):
+        print "exclude_set reset"
+        exclude_set = None
+
+    if len(tiles.filter(id__in=exclude_set).exclude(template='product')) >= len(contents_temp):
+        print "exclude_set - contents"
+        for x in ids_of(contents_temp):
+            exclude_set.remove(x)
+
+    if len(tiles.filter(id__in=exclude_set).filter(template='product')) >= len(products_temp):
+        print "exclude_set - contents"
+        for x in ids_of(products_temp):
+            exclude_set.remove(x)
+
+    if allowed_set:
+        tiles = tiles.filter(id__in=allowed_set)
+    if exclude_set:
+        tiles = tiles.exclude(id__in=exclude_set)
+
+    products = tiles.filter(template='product')
+    contents = tiles.exclude(template='product')
+
+    num_content = int(results * PERCENTAGE_CONTENT)
+    num_product = int(results * PERCENTAGE_PRODUCT)
+
+    contents = contents.order_by('-clicks')[:num_content]
+
+    products = products.order_by('-priority')[:num_product]
+
+    tiles = list(contents) + list(products)
+
+    print "products: {0} and content: {1}".format(len(products[:num_product]),
+                                                  len(contents[:num_content]))
+    return qs_for(tiles).order_by('?')
+
+
+def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+                       exclude_set=None, allowed_set=None, request=None,
+                       *args, **kwargs):
+    """Return tiles in the following order:
+
+    - prioritized content (ordered by priority)
+    - products mixed mixed with content
+
+    Calls same functions as ir_finite with content only,
+    then calls ir_mixed when all content has been used
+
+    :param new_tiles: [<Tile>]
+    :param results: int (number of results you want)
+    :param exclude_set: <list<int>> do not return tiles with these ids.
+    :param request: if supplied, do not return results used in
+                    the previous session call, or tile ids specified by the
+                    "?shown=" parameter.
+    :returns list
+    """
+
+    if results < 1:
+        return []
+
+    if request and request.GET.get('IRReqNum', 2):
+        print "product mix starting"
+        mixed_tiles = ir_mixed(tiles=tiles, results=results,
+                               exclude_set=exclude_set, allowed_set=allowed_set)
+        return mixed_tiles[:results]
+
+    contents = tiles.exclude(template='product')
+
+    print "content_first run"
+
+    # check for sessions
+    if not (request and hasattr(request, 'session')):
+        raise ValueError("Sessions must be enabled for ir_ordered")
+
+    prioritized_content = []
+
+    # first, always show the ones that are 'request' i.e. every request
+    prioritized_content += ir_priority_request(tiles=tiles, results=10,
+                                               allowed_set=allowed_set)
+    if len(prioritized_content) >= results:
+        return prioritized_content[:results]
+
+    # serve prioritized ones first
+    # second, show the ones for the first request
+    exclude_set += ids_of(prioritized_content)
+    if request and request.GET.get('reqNum', 0) in [0, '0']:
+        prioritized_content += ir_priority_pageview(tiles=contents, results=10,
+                                                    allowed_set=allowed_set)
+
+    if len(prioritized_content) >= results:
+        print "step two returned"
+        return prioritized_content[:results]
+
+    # fill the first two rows with (8) tiles that are known to be new
+
+    exclude_set += ids_of(prioritized_content)
+    if len(request.session.get('shown', [])) == 0:  # first page view
+        prioritized_content += ir_created_last(tiles=contents, results=8,
+                                               exclude_set=exclude_set,
+                                               allowed_set=allowed_set)
+
+    if len(prioritized_content) >= results:
+        print "step three returned"
+        return prioritized_content[:results]
+
+    random_content = []
+    exclude_set += ids_of(prioritized_content)
+    # get (10 - number of prioritized) tiles that are not already prioritized
+    if not len(contents) <= len(exclude_set):
+        random_content = ir_prioritized(tiles=contents, prioritized_set='',  # the rest of the contents
+                                        results=(results - len(prioritized_content)),
+                                        exclude_set=exclude_set,
+                                        allowed_set=allowed_set)
+
+    new_tiles = list(prioritized_content) + list(random_content)
+
+    length = len(random_content) + len(prioritized_content)
+    if length >= results:
+        print "step four random content returned"
+        return new_tiles[:results]
+
+    mixed_tiles = ir_mixed(tiles=tiles, results=(results - length),
+                           exclude_set=exclude_set, allowed_set=allowed_set)
+    new_tiles += list(mixed_tiles)
+    print "step four returned"
+    return new_tiles[:results]
+
 def ir_finite_by(attribute='created_at', reversed_=False):
     """Returns a finite algorithm that orders its tiles based on a field,
     such as 'created_at'.
