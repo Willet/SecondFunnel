@@ -8,3 +8,4 @@ from apps.scraper.scrapers.voyage_prive.voyage_prive_scraper import VoyagePriveC
 from apps.scraper.scrapers.content.pinterest_scraper import PinterestPinScraper, PinterestAlbumScraper
 from apps.scraper.scrapers.gap.styldby_scraper import StyldByFilterScraper, StyldByPartnersScraper
 from apps.scraper.scrapers.nastygal.nastygal_product_scrapers import NastygalCategoryScraper, NastygalProductScraper
+from apps.scraper.scrapers.burberry.burberry_scraper import BurberryCategoryScraper, BurberryProductScraper
