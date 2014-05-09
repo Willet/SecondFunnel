@@ -221,7 +221,7 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tiles = ir_base(feed=feed, allowed_set=allowed_set)
     return ir.render(algorithm, tiles=tiles, results=results,
                      exclude_set=exclude_set, allowed_set=allowed_set,
-                     request=request, offset=offset, tile_id=tile_id)
+                     request=request, offset=offset, tile_id=tile_id, feed=feed)
 
 
 @never_cache

@@ -5,7 +5,7 @@ as the first positional argument, with all other arguments being kwargs.
 
 All algorithms must return <list>.
 """
-import random  # used in ir_mixed
+import random
 from functools import partial, wraps
 
 from django.conf import settings
@@ -261,7 +261,7 @@ def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     exclude_set += ids_of(prioritized_tiles)
 
     # second, show the ones for the first request
-    if request and request.GET.get('reqNum', 0) in [0, '0']:
+    if request and int(request.GET.get('reqNum', 0)) == 0:
         prioritized_tiles += ir_priority_pageview(tiles=tiles, results=10,
                                                   exclude_set=exclude_set,
                                                   allowed_set=allowed_set)
@@ -279,7 +279,7 @@ def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             exclude_set += ids_of(prioritized_tiles)
 
     # fill the first two rows with (8) tiles that are known to be new
-    if request and request.GET.get('reqNum', 0) in [0, '0']:
+    if request and int(request.GET.get('reqNum', 0)) == 0:
         new_tiles = ir_created_last(tiles=tiles, exclude_set=exclude_set,
                                     allowed_set=allowed_set,
                                     results=num_new_tiles_to_autoprioritize)
@@ -331,7 +331,7 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # second, show the ones for the first request
     exclude_set += ids_of(prioritized_tiles)
-    if request and request.GET.get('reqNum', 0) in [0, '0']:
+    if request and int(request.GET.get('reqNum', 0)) == 0:
         prioritized_tiles += ir_priority_pageview(tiles=tiles, results=10,
                                                   allowed_set=allowed_set)
     else:  # else... NEVER show these per-request tiles again
@@ -398,7 +398,7 @@ def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
              exclude_set=None, allowed_set=None, request=None,
-             *args, **kwargs):
+             feed=None, *args, **kwargs):
     """Return tiles, a mix of content and products set by the
 
 
@@ -416,13 +416,14 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # check for sessions
     if not (request and hasattr(request, 'session')):
-        raise ValueError("Sessions must be enabled for ir_ordered")
+        raise ValueError("Sessions must be enabled for ir_mixed")
 
     if results < 1:
         return []
 
-    percentage_content = 0.40
+    percentage_content = getattr(feed, 'feed_ratio', 0.20)
     percentage_product = 1 - percentage_content
+    # round up and down by adding 0.5. thus correct number of products and content
     num_content = int((results * percentage_content) + 0.5)
     num_product = int((results * percentage_product) + 0.5)
 
@@ -488,7 +489,7 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # check for sessions
     if not (request and hasattr(request, 'session')):
-        raise ValueError("Sessions must be enabled for ir_ordered")
+        raise ValueError("Sessions must be enabled for ir_content_first")
 
     if results < 1:
         return []
@@ -507,7 +508,7 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # second, show the ones for the first request
     exclude_set += ids_of(prioritized_content)
-    if request and request.GET.get('reqNum', 0) in [0, 1, '0', '1']:  # only at start
+    if request and int(request.GET.get('reqNum', 0)) < 2:  # only at start
         prioritized_content += ir_priority_pageview(tiles=contents, results=10,
                                                     exclude_set=exclude_set, allowed_set=allowed_set)
 
