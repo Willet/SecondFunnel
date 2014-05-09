@@ -403,6 +403,9 @@ class Content(BaseModel):
         if not self.attributes:
             self.attributes = {}
 
+    class Meta:
+        verbose_name_plural = 'Content'
+
     def update(self, other=None, **kwargs):
         """Additional operations for converting tagged-products: [123] into
         actual tagged_products: [<Product>]s
