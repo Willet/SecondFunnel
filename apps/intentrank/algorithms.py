@@ -458,7 +458,7 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     print "Mixed {0} product tiles with {1} content tiles".format(len(products[:num_product]),
                                                                   len(contents[:num_content]))
-    # make so not block of content then products
+    # makes it so that blocks of content then products doesn't occur
     random.shuffle(tiles)  # shuffles in place, returns None
 
     return tiles
