@@ -810,17 +810,47 @@ App.module('core', function (module, App) {
                 image = image.height(App.utils.getViewportSized(true), true);
             }
 
+            if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1 && App.option('disableMegaTiles')) {
+                this.model.set('tagged-products', _.sortBy(this.model.get('tagged-products'), function (obj) {
+                    return -1 * parseFloat((obj.price || '$0').substr(1), 10);
+                }));
+            }
+
             // templates use this as obj.image.url
             this.model.set('image', image);
         },
 
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
-            var buttons;
+            var self = this,
+                buttons, related;
             if (this.$('.social-buttons').length >= 1) {
                 buttons = new App.sharing.SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
             }
+
+            /* TODO clean this up */
+            if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1 && App.option('disableMegaTiles')) {
+               this.$('.stl-look img').on('click', function () {
+                    var $this = $(this),
+                        index = $this.data('index'),
+                        product = self.model.get('tagged-products')[index];
+
+                    $this.addClass('selected').siblings().removeClass('selected');
+                    App.options['galleryIndex'] = index;
+                    $('.gallery', self.$el).empty();
+                    App.utils.runWidgets(self);
+
+                    //TODO: template
+                    $('.info .title', self.$el).empty().html(product.title || product.name);
+                    $('.info .price', self.$el).empty().html(product.price);
+                    $('.info a.button', self.$el).attr('href', product.url);
+               });
+
+                // First image is always selected
+                this.$('.stl-look').find('img').first().click();
+            }
+            /* END TODO */
 
             // hide discovery, then show this window as a page.
             if (App.support.mobile()) {
@@ -868,6 +898,8 @@ App.module('core', function (module, App) {
             if (!App.support.isAnAndroid()) {
                 $(document.body).removeClass('no-scroll');
             }
+
+            App.options['galleryIndex'] = 0;
         }
     });
 
@@ -1065,7 +1097,7 @@ App.module('core', function (module, App) {
                     'model': this.options.model
                 };
 
-            if (template == 'image' && related.length > 1) {
+            if (template == 'image' && related.length > 1 && !App.option('disableMegaTiles')) {
                 template = 'mega';
             }
 

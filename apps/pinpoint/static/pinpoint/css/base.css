@@ -478,6 +478,21 @@ div.loading {
     clear: both;
 }
 
+.previewContainer .gallery.dots div {
+    display: inline-block;
+    border-radius: 50%;
+    width: 8px;
+    height: 8px;
+    background-color: #000;
+    margin: 0 5px;
+    cursor: pointer;
+}
+
+.previewContainer .gallery.dots div.selected {
+    background-color: #969696;
+    cursor: default;
+}
+
 .shareContainer .share .button {
     display: inline-block;
     padding: 5px;

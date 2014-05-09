@@ -114,13 +114,6 @@
             </ul>
         </script>
 
-        <script type="text/template" id="mega_tile_preview_template">
-            <div class="stl-target"></div>
-            <hr>
-            <div class="text-centered desc-title">Shop the Look</div>
-            <div class="stl-look"></div>
-        </script>
-
         <script type="text/template" id="tap_indicator_template">
             +
             <div>
@@ -251,80 +244,72 @@
 
         <script type="text/template" id="image_preview_template">
             <% if (obj['tagged-products'].length) { %>
-            <% var product = obj['tagged-products'][0]; %>
-            <div class="image-with-tagged-products">
-                <div class="row">
-                    <div class="image middle cell capped-width">
-                        <img src="<%= obj.image.url %>" alt="image"/>
-                        <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
-                    </div>
-                    <div class="middle cell center">
-                        <% if (product.images.length > 1) { %>
-                            <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                            <div class='gallery'></div>
-                        <% } %>
-                    </div>
-                    <div class="middle cell">
-                        <div class='title'><%= product.title || product.name%></div>
-                        <div class='price<% if (product.sale_price) { %> sale<% } %>'>
-                            <% if (product.sale_price) { %>
-                                <div class="strike inline">
-                                    <%- product.price %>
+                <% var product = obj['tagged-products'][0]; %>
+                <div class="image-with-tagged-products">
+                    <div class="row">
+                        <% if (obj['tagged-products'].length > 1) { %>
+                            <div class="cell">
+                                <div class="stl-title">THE LOOK</div>
+                                <div class="stl-look">
+                                    <% var  related = obj['tagged-products'] %>
+                                    <% for (var i = 0; i < related.length; i++) { %>
+                                        <img src="<%- related[i].images[0].url %>" data-index="<%- i %>" />
+                                        <div class="name">
+                                            <%- related[i].title || related[i].name %>
+                                        </div>
+                                    <% } %>
                                 </div>
-                                <%- product.sale_price %>
-                            <% } else { %>
-                                <%- product.price %>
-                            <% } %>
-                        </div>
-                        <div class='description'>
-                            <div class='desc-title'>Overview</div>
-                            <% var description = (product.description || ""); %>
-                            <% if (!description.match(/<li(?:.|\n)*?>/)) { %>
-                                <% var sentences = _.compact(description.split('.')); %>
-                                <ul>
-                                    <% _.each(sentences, function(sentence) { %>
-                                        <li><%= SecondFunnel.utils.safeString(sentence) %></li>
-                                    <% }); %>
-                                </ul>
-                            <% } else { %>
-                                <%= SecondFunnel.utils.safeString(description) %>
-                            <% } %>
-                        </div>
-                        <div>
-                            <div class="social-buttons"></div>
-                            <div class='spacer'></div>
-                        </div>
-                        <div class='gap-buttons'>
-                            <a class='button find-store'
-                               href='http://www.gap.com/customerService/storeLocator.do'
-                               target='_blank'>
-                                Find in Store
-                            </a>
-                            <a class='button in-store'
-                               href='<%= product.url %>' target='_blank'>
-                                Shop on Gap.com
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <% } else { %>
-            <div class="image-without-tagged-products">
-                <div class="row">
-                    <div class="image middle cell capped-width">
-                        <img src="<%= obj.image.url %>" alt="image"/>
-                    </div>
-                    <div class="middle cell">
-                        <div class="info">
-                            <div class='description'>
-                                <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
                             </div>
-                            <div class="social-buttons"></div>
-                            <div class='spacer'></div>
+                        <% } %>
+                        <div class="image middle cell capped-width">
+                            <img src="<%= obj.image.url %>" alt="image"/>
+                            <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
+                        </div>
+                        <div class="middle cell info image">
+                            <div class='title'><%= product.title || product.name %></div>
+                            <div class='price<% if (product.sale_price) { %> sale<% } %>'>
+                                <% if (product.sale_price) { %>
+                                    <div class="strike inline">
+                                        <%- product.price %>
+                                    </div>
+                                    <%- product.sale_price %>
+                                <% } else { %>
+                                    <%- product.price %>
+                                <% } %>
+                            </div>
+                            <div class='main-image-container'>
+                                <div class="gallery-swipe-left"></div>
+                                <div class="gallery-swipe-right"></div>
+                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
+                            </div>
+                            <div class='gallery dots'></div>
+                            <a class='button' href='<%= product.url %>' target='_blank'>
+                                SHOP NOW
+                            </a>
+                            <div>
+                                <div class="social-buttons"></div>
+                                <div class='spacer'></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            <% } else { %>
+                <div class="image-without-tagged-products">
+                    <div class="row">
+                        <div class="image middle cell capped-width">
+                            <img src="<%= obj.image.url %>" alt="image"/>
+                        </div>
+                        <div class="middle cell">
+                            <div class="info">
+                                <div class='description'>
+                                    <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
+                                </div>
+                                <div class="social-buttons"></div>
+                                <div class='spacer'></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             <% } %>
         </script>
 
