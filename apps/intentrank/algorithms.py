@@ -506,7 +506,7 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # second, show the ones for the first request
     exclude_set += ids_of(prioritized_content)
     if request and int(request.GET.get('reqNum', 0)) < 2:  # only at start
-        prioritized_content += ir_priority_pageview(tiles=contents, results=10,
+        prioritized_content += ir_priority_pageview(tiles=contents, results=results,
                                                     exclude_set=exclude_set, allowed_set=allowed_set)
 
     length = len(prioritized_content)
