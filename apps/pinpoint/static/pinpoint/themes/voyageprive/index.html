@@ -109,19 +109,45 @@
     {% if environment == 'production' %}
     <script type='text/javascript'>
         var interval = setInterval(function() {
-            var test;
+            var test, bindFn;
 
             if (!window.ACTIVE_TEST) {
                 return;
+            }
+
+            // Because we need to bind some events before anything else, use this fn
+            // http://stackoverflow.com/a/2641047
+            $.fn.bindFirst = function(name, fn) {
+                // bind as you normally would
+                // don't want to miss out on any jQuery magic
+                this.on(name, fn);
+
+                // Thanks to a comment by @Martin, adding support for
+                // namespaced events too.
+                this.each(function() {
+                    var handlers = $._data(this, 'events')[name.split('.')[0]];
+                    // take out the handler we just inserted from the end
+                    var handler = handlers.pop();
+                    // move it at the beginning
+                    handlers.splice(0, 0, handler);
+                });
+            };
+
+            bindFn = function() {
+                (new Image).src = window.TRACKING_PIXELS[test].click;
             }
 
             clearInterval(interval);
             test = window.ACTIVE_TEST;
 
             // Append click pixel
-            $('body').on('click', '.tile', function() {
-                (new Image).src = window.TRACKING_PIXELS[test].click;
-            });
+            if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                $('.tile').bindFirst('click', bindFn);
+            } else {
+                // Why doesn't bindFirst work on desktop?
+                $('body').on('click', '.tile', bindFn);
+            }
+
 
             // Append page view pixel
             (new Image).src = window.TRACKING_PIXELS[test].view;
