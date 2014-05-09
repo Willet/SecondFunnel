@@ -429,34 +429,29 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     num_content = int((results * percentage_content) + 0.5)
     num_product = int((results * percentage_product) + 0.5)
 
-    contents_temp = tiles.exclude(template='product')
-    products_temp = tiles.filter(template='product')
+    contents = tiles.exclude(template='product')
+    products = tiles.filter(template='product')
 
+    exclude_set = set(exclude_set)
     # if all tiles have been used, reset and start again
     # reset content
-    if set(ids_of(contents_temp)).issubset(set(exclude_set)):
+    if set(ids_of(contents)).issubset(exclude_set):
         print "Ran out of contents: resetting"
-        for x in ids_of(contents_temp):
-            exclude_set.remove(x)
+        for x in ids_of(contents):
+            exclude_set.discard(x)
         request.session['shown'] = exclude_set
 
     # reset products
-    if set(ids_of(products_temp)).issubset(set(exclude_set)):
+    if set(ids_of(products)).issubset(exclude_set):
         print "Ran out of products: resetting"
-        for x in ids_of(products_temp):
-            exclude_set.remove(x)
+        for x in ids_of(products):
+            exclude_set.discard(x)
         request.session['shown'] = exclude_set
 
-    if allowed_set:
-        tiles = tiles.filter(id__in=allowed_set)
-    if exclude_set:
-        tiles = tiles.exclude(id__in=exclude_set)
-
-    products = products_temp.exclude(id__in=exclude_set)
-    contents = contents_temp.exclude(id__in=exclude_set)
+    products = products.exclude(id__in=exclude_set)
+    contents = contents.exclude(id__in=exclude_set)
 
     contents = contents.order_by('-clicks')[:num_content]
-
     products = products.order_by('-priority')[:num_product]
 
     tiles = list(contents) + list(products)
