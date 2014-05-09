@@ -1,7 +1,7 @@
 import bleach
 
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import WebDriverException, NoSuchElementException
 
 from apps.assets.models import Category, ProductImage, Product
 from apps.imageservice.tasks import process_image
@@ -76,6 +76,16 @@ class Scraper(object):
         scraper can be included to explicitly define the next scraper
         """
         raise NotImplementedError
+
+    def select(self, selector):
+        """Why would you want to type this more than once?
+
+        Base case return: []
+        """
+        try:
+            return self.driver.find_elements_by_xpath(selector)
+        except NoSuchElementException as err:
+            return self.driver.find_elements_by_css_selector(selector)
 
 
 class ProductScraper(Scraper):

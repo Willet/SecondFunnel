@@ -20,6 +20,7 @@ from apps.scraper.scrapers import VoyagePriveCategoryScraper
 from apps.scraper.scrapers import PinterestPinScraper, PinterestAlbumScraper
 from apps.scraper.scrapers import StyldByFilterScraper, StyldByPartnersScraper
 from apps.scraper.scrapers import STLScraper
+from apps.scraper.scrapers import BurberryCategoryScraper, BurberryProductScraper
 from apps.scraper.scrapers.scraper import ScraperException
 
 from . import __doc__
@@ -48,6 +49,8 @@ class Command(BaseCommand):
             STLScraper,
             NastygalCategoryScraper,
             NastygalProductScraper,
+            BurberryCategoryScraper,
+            BurberryProductScraper,
         ]
 
     def handle(self, *args, **kwargs):
@@ -163,6 +166,8 @@ class Command(BaseCommand):
                     scraper_vars = {}
                     scraper_vars.update(dictionary)
                     scraper_vars.update({'values': values.copy()})
+                    if 'values' in dictionary:  # wut
+                        scraper_vars['values'].update(dictionary['values'])
                     self.run_scraper(**scraper_vars)
                 elif dictionary.get('content', None):
                     print('\n' + str(dictionary.get('content').to_json()))
