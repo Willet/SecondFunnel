@@ -421,7 +421,9 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if results < 1:
         return []
 
-    percentage_content = getattr(feed, 'feed_ratio', 0.20)
+    percentage_content = 0.2
+    if feed:
+        percentage_content = feed.feed_ratio
     percentage_product = 1 - percentage_content
     # round up and down by adding 0.5. thus correct number of products and content
     num_content = int((results * percentage_content) + 0.5)
