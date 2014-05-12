@@ -70,8 +70,9 @@ class ProductImageSerializer(IRSerializer):
             "type": "image",
             "dominant-color": obj.dominant_color or "transparent",
             "url": obj.url,
-            "id": obj.id
-         }
+            "id": obj.id,
+            "orientation": 'landscape' if obj.width > obj.height else 'portrait',
+        }
 
         return data
 
