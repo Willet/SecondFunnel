@@ -424,7 +424,7 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     percentage_content = 0.2
     if feed:
-        percentage_content = feed.feed_ratio
+        percentage_content = float(feed.feed_ratio)
     percentage_product = 1 - percentage_content
     # round up and down by adding 0.5. thus correct number of products and content
     num_content = int((results * percentage_content) + 0.5)
@@ -518,7 +518,7 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     exclude_set += ids_of(prioritized_content)
     mixed_tiles = ir_mixed(tiles=tiles, results=(results - length),
                            exclude_set=exclude_set, allowed_set=allowed_set,
-                           request=request)
+                           request=request, feed=kwargs.get('feed', None))
     prioritized_content += mixed_tiles
 
     return prioritized_content[:results]
