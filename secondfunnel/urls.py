@@ -10,6 +10,8 @@ urlpatterns = patterns('',
 
     # INTERNAL ADMIN
     url(r'^admin/?', include(admin.site.urls)),
+    url(r'^accounts/login/$', 'django.contrib.auth.views.login',
+        {"template_name": 'admin/login.html'}),
 
     # APPS
     url(r'^assets/', include('apps.assets.urls')),
