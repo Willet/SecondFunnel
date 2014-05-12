@@ -6,6 +6,7 @@ from apps.assets.models import Page, Product, Category
 
 from apps.scraper.scrapers import ProductCategoryScraper
 from selenium.common.exceptions import NoSuchElementException
+from apps.scraper.scrapers.scraper import ScraperException
 
 
 class VoyagePriveCategoryScraper(ProductCategoryScraper):
@@ -34,8 +35,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         print('url loaded')
         product_nodes = self.driver.find_elements_by_xpath('//nodes/node')
         if not product_nodes:  # VP servers exploding
-            print "Could not retrieve latest VP product info; aborting scraper"
-            return
+            raise ScraperException("Could not retrieve latest VP product info; aborting scraper")
 
         for node in product_nodes:
             sku = node.find_element_by_xpath('./id').text
