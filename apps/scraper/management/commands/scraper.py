@@ -113,6 +113,8 @@ class Command(BaseCommand):
                         if line[0] == '#':
                             continue
                         self.run_scraper(url=line)
+            except ScraperException as serr:
+                raise serr
             except BaseException as err:
                 print "Oh no! Something bad happened: {0}".format(err)
                 continue  # this line is merely symbolic
