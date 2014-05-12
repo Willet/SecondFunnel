@@ -42,8 +42,9 @@ class PinterestAlbumScraper(ContentCategoryScraper):
 
     def scrape(self, url, **kwargs):
         self.driver.get(url)
-        pins, pin_count = [], 0
-        while True:
+        pins, pin_count, loop_count = [], 0, 0
+        while loop_count < 100:
+            loop_count += 1
             # scroll until we don't have more pins
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             sleep(2)
