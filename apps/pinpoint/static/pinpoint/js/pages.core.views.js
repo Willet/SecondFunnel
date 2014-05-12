@@ -833,7 +833,7 @@ App.module('core', function (module, App) {
 
             /* TODO clean this up */
             if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1 && App.option('disableMegaTiles')) {
-               this.$('.stl-look img').on('click', function () {
+               this.$('.stl-look .stl-item').on('click', function () {
                     var $this = $(this),
                         index = $this.data('index'),
                         product = self.model.get('tagged-products')[index];
@@ -856,7 +856,7 @@ App.module('core', function (module, App) {
                });
 
                 // First image is always selected
-                this.$('.stl-look').find('img').first().click();
+                this.$('.stl-look').find('.stl-item').first().click();
             }
             /* END TODO */
 
