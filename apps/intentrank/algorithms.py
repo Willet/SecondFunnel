@@ -440,14 +440,14 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         print "Ran out of contents: resetting"
         for x in ids_of(contents):
             exclude_set.discard(x)
-        request.session['shown'] = exclude_set
+        request.session['shown'] = list(exclude_set)
 
     # reset products
     if set(ids_of(products)).issubset(exclude_set):
         print "Ran out of products: resetting"
         for x in ids_of(products):
             exclude_set.discard(x)
-        request.session['shown'] = exclude_set
+        request.session['shown'] = list(exclude_set)
 
     products = products.exclude(id__in=exclude_set)
     contents = contents.exclude(id__in=exclude_set)
