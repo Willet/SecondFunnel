@@ -171,7 +171,7 @@ App.module("sharing", function (sharing, App) {
                 data = this.model.attributes,
                 page = App.option('page', {}),
                 product = data || page.product || {},
-                related = data['tagged-products'] && data['tagged-products'].length ? data['tagged-products'][0] : {},
+                related = data['tagged-products'] && data['tagged-products'].length ? data['tagged-products'][App.option('galleryIndex', 0)] : {},
                 image;
 
             data.image = data.image ? data.image : {};

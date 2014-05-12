@@ -120,10 +120,10 @@
                 <%= App.option('tapIndicatorText', 'tap to see more') %>
             </div>
         </script>
+
         <script type="text/template" id="facebook_social_button_template">
             <div class='button facebook'>
-                <img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/fb-like-0.png" alt="Like" class="placeholder" />
-                <fb:like href="<%= url %>" width="48" layout="button_count"
+                <fb:like href="<%= url %>" width="25" layout="button"
                          show_faces="false"></fb:like>
             </div>
         </script>
@@ -131,41 +131,20 @@
         <script type="text/template" id="twitter_social_button_template">
             <% var desc = caption || description || name; %>
             <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
-            <% if (showCount) { %>
-                <div class='button twitter' style='height: 13px; width: 77px;'>
-                    <a href="//twitter.com/share"
-                       class="twitter-share-button"
-                       data-text="<%= cleanDesc %> <%= url %>"
-                       data-lang="en" data-height= "15">
-                      Tweet
-                    </a>
-                </div>
-            <% } else { %>
-                <div class='button twitter'>
-                    <a href="//twitter.com/share?url=<%= url %>&text=<%= cleanDesc %>"
-                       target="_blank">
-                        <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
-                    </a>
-                </div>
-            <% } %>
+            <div class='button twitter'>
+                <a href="//twitter.com/share?url=<%= url %>&text=<%= cleanDesc %>"
+                   target="_blank">
+                    <img src="{% static 'pinpoint/themes/nastygal/images/twitter.png' %}"/>
+                </a>
+            </div>
         </script>
 
         <script type="text/template" id="pinterest_social_button_template">
             <% var desc = caption || description || name; %>
             <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
             <div class='button pinterest'>
-                <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= cleanDesc %>"
-                   target="_blank"><img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/></a>
-            </div>
-        </script>
-
-        <script type="text/template" id="reddit_social_button_template">
-            <div class="button reddit">
-                <a href="http://www.reddit.com/submit"
-                   onclick="window.location = 'http://www.reddit.com/submit?url=<%= url %>'; return false"
-                  ><img src="http://www.reddit.com/static/spreddit7.gif"
-                       alt="submit to reddit"
-                       border="0" /></a>
+                <a data-pin-do="none" href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= cleanDesc %>"
+                   target="_blank"><img src="{% static 'pinpoint/themes/nastygal/images/pinterest.png' %}"/></a>
             </div>
         </script>
 
@@ -174,35 +153,8 @@
             <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
             <div class="button tumblr">
                 <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= cleanDesc %>&click_thru=<%= url %>"
-                     target='_blank'><img src="http://platform.tumblr.com/v1/share_1.png"/></a>
+                     target='_blank'><img src="{% static 'pinpoint/themes/nastygal/images/tumblr.png' %}"/></a>
             </div>
-        </script>
-
-        <script type="text/template" id="share_social_button_template">
-            <div class="button share-this">
-                <a href=""><img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Sharethis-draft1.png"
-                                alt="Share this" border="0" /></a>
-            </div>
-        </script>
-
-        <script type="text/template" id="share_popup_template">
-            <div class="mask"></div>
-            <div class="tablecell">
-                <div class="content">
-                    <span class="close">&#x00D7;</span>
-                    <h2> Share This </h2>
-                    <div class="share"></div>
-                </div>
-            </div>
-        </script>
-
-        <script type="text/template" id="share_popup_option_template">
-            <a href="<%= url %>" target="_blank">
-                <div style="position: relative;">
-                    <div class="share_img"></div>
-                    <span class="share_text"><%= text %></span>
-                </div>
-            </a>
         </script>
 
         <script type="text/template" id="product_preview_template">
@@ -232,7 +184,10 @@
                         <% } %>
                     </div>
                     <a class='button' href='<%= obj.url %>' target='_blank'>
-                        SHOP NOW
+                        <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
+                        <div class="inline">
+                            SHOP NOW
+                        </div>
                     </a>
                     <div>
                         <div class="social-buttons"></div>
@@ -284,7 +239,10 @@
                             </div>
                             <div class='gallery dots'></div>
                             <a class='button' href='<%= product.url %>' target='_blank'>
-                                SHOP NOW
+                                <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
+                                <div class="inline">
+                                    SHOP NOW
+                                </div>
                             </a>
                             <div>
                                 <div class="social-buttons"></div>

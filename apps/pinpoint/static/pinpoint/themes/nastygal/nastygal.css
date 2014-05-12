@@ -181,6 +181,11 @@
     text-decoration: none;
 }
 
+.previewContainer .info a.button div {
+    vertical-align: middle;
+    padding-left: 20px;
+}
+
 .previewContainer .stl-title {
     text-align: center;
     font-size: 18px;
@@ -224,30 +229,65 @@
     position: relative;
 }
 
-.previewContainer .main-image-container .gallery-swipe-left {
-    width: 35px;
-    height: 116px;
-    background-color: grey;
-    cursor: pointer;
-    position: absolute;
-    left: 5px;
-    top: 50%;
-    margin-top: -58px;
-}
-.previewContainer .main-image-container .gallery-swipe-left.grey {
-    display: none;
-}
-
+.previewContainer .main-image-container .gallery-swipe-left,
 .previewContainer .main-image-container .gallery-swipe-right {
     width: 35px;
     height: 116px;
-    background-color: grey;
+    background-repeat: no-repeat;
+    background-position: center;
     cursor: pointer;
     position: absolute;
-    right: 5px;
     top: 50%;
     margin-top: -58px;
 }
+
+.previewContainer .main-image-container .gallery-swipe-left.grey,
 .previewContainer .main-image-container .gallery-swipe-right.grey {
     display: none;
 }
+
+.previewContainer .main-image-container .gallery-swipe-left {
+    background-image: url('/static/pinpoint/themes/nastygal/images/left_arrow_black.png');
+    left: 5px;
+}
+.previewContainer .main-image-container .gallery-swipe-left:hover {
+    background-image: url('/static/pinpoint/themes/nastygal/images/left_arrow_grey.png');
+}
+
+.previewContainer .main-image-container .gallery-swipe-right {
+    background-image: url('/static/pinpoint/themes/nastygal/images/right_arrow_black.png');
+    right: 5px;
+}
+.previewContainer .main-image-container .gallery-swipe-right:hover {
+    background-image: url('/static/pinpoint/themes/nastygal/images/right_arrow_grey.png');
+    right: 5px;
+}
+
+.previewContainer .social-buttons .button {
+    margin: 0 5px;
+}
+
+.previewContainer .social-buttons .pinterest {
+    height: 20px;
+}
+
+/* Override facebook button */
+.previewContainer .social-buttons .button.facebook {
+    background-image: url('/static/pinpoint/themes/nastygal/images/facebook.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 25px;
+    cursor: pointer;
+}
+.previewContainer .social-buttons .button.facebook .fb_iframe_widget {
+    width: 25px;
+}
+.previewContainer .social-buttons .button.facebook .fb_iframe_widget span {
+    width: 25px !important;
+}
+.previewContainer .social-buttons .button.facebook iframe {
+    opacity: 0;
+    filter: alpha(opacity=0);
+    width: 25px !important;
+}
+/* End facebook override */
