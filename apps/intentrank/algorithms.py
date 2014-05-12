@@ -18,7 +18,7 @@ def ids_of(tiles):  # shorthand (got too annoying)
     return [getattr(tile, 'old_id', getattr(tile, 'id')) for tile in tiles]
 
 
-def include_exclude(fn):
+def filter_tiles(fn):
     """Algorithm with this decorator receives a list of tiles that already
     have allowed_set and exclude_sets filtered.
 
@@ -83,7 +83,7 @@ def qs_for(tiles):
             .select_related(*Tile.ASSOCS))
 
 
-@include_exclude
+@filter_tiles
 def ir_base(tiles=None, feed=None, exclude_set=None, allowed_set=None,
             **kwargs):
     """Common algo for removes tiles that no IR algorithm will ever serve.
@@ -108,7 +108,7 @@ def ir_all(tiles, *args, **kwargs):
     return tiles
 
 
-@include_exclude
+@filter_tiles
 def ir_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
              allowed_set=None, exclude_set=None, *args, **kwargs):
     """sample whichever ones come first"""
@@ -131,7 +131,7 @@ def ir_last(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     return tiles.order_by('-id')[:results]
 
 
-@include_exclude
+@filter_tiles
 def ir_prioritized(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                    prioritized_set='', exclude_set=None, allowed_set=None,
                    **kwargs):
@@ -154,7 +154,7 @@ ir_priority_cookie = partial(ir_prioritized, prioritized_set='cookie')
 ir_priority_custom = partial(ir_prioritized, prioritized_set='custom')
 
 
-@include_exclude
+@filter_tiles
 def ir_priority_sorted(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                        prioritized_state='any', exclude_set=None,
                        allowed_set=None, **kwargs):
@@ -168,7 +168,7 @@ def ir_priority_sorted(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     return tiles
 
 
-@include_exclude
+@filter_tiles
 def ir_random(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
     """get (a numbr of) random tiles, except the ones in exclude_set,
     which is a list of old id integers."""
@@ -179,7 +179,7 @@ def ir_random(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
     return tiles
 
 
-@include_exclude
+@filter_tiles
 def ir_created_last(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                     exclude_set=None, allowed_set=None, *args, **kwargs):
     """Return most recently-created tiles in the feed, except the ones in
@@ -191,7 +191,7 @@ def ir_created_last(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     return tiles
 
 
-@include_exclude
+@filter_tiles
 def ir_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                request=None, exclude_set=None, allowed_set=None,
                *args, **kwargs):
@@ -345,7 +345,7 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     return tiles[:results]
 
 
-@include_exclude
+@filter_tiles
 def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                       request=None, offset=0, allowed_set=None, exclude_set=None, *args, **kwargs):
     """Implements *exactly* the following goals:
@@ -617,7 +617,7 @@ def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     return tiles[:results]
 
 
-@include_exclude
+@filter_tiles
 def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                    offset=0, allowed_set=None, exclude_set=None,
                    *args, **kwargs):
