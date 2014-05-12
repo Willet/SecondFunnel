@@ -1,4 +1,5 @@
 import re
+from time import sleep
 
 from apps.scraper.scrapers import Scraper, ContentDetailScraper, ContentCategoryScraper
 from apps.assets.models import Image
@@ -14,6 +15,7 @@ class PinterestPinScraper(ContentDetailScraper):
         return 'http://www.pinterest.com/pin/{0}/'.format(sku)
 
     def scrape(self, url, content, **kwargs):
+        print "Loading pinterest item {}".format(url)
         self.driver.get(url)
         if content is None:
             try:
@@ -40,10 +42,23 @@ class PinterestAlbumScraper(ContentCategoryScraper):
 
     def scrape(self, url, **kwargs):
         self.driver.get(url)
-        pins = self.driver.find_elements_by_xpath(
-            '//div[contains(@class, "GridItems")]/div[contains(@class, "item")]')
+        pins, pin_count, loop_count = [], 0, 0
+        while loop_count < 100:
+            loop_count += 1
+            # scroll until we don't have more pins
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            sleep(2)
+
+            pins = self.driver.find_elements_by_xpath(
+                '//div[contains(@class, "GridItems")]/div[contains(@class, "item")]')
+            if len(pins) <= pin_count:
+                break
+
+            pin_count = len(pins)
+            print "Retrieving {} pins...".format(pin_count)
+
         for element in pins:
-            url = element.find_element_by_xpath('//div[@class="pinHolder"]/a').get_attribute('href')
+            url = element.find_element_by_css_selector('.pinHolder a').get_attribute('href')
             try:
                 content = Image.objects.get(store=self.store, original_url=url)
             except Image.DoesNotExist:
