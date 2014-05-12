@@ -823,10 +823,12 @@ App.module('core', function (module, App) {
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
             var self = this,
+                socialButtons = this.$('.social-buttons'),
                 buttons, related;
-            if (this.$('.social-buttons').length >= 1) {
+
+            if (socialButtons.length >= 1) {
                 buttons = new App.sharing.SocialButtons({model: this.model}).render().load().$el;
-                this.$('.social-buttons').append(buttons);
+                socialButtons.append(buttons);
             }
 
             /* TODO clean this up */
@@ -840,6 +842,12 @@ App.module('core', function (module, App) {
                     App.options['galleryIndex'] = index;
                     $('.gallery', self.$el).empty();
                     App.utils.runWidgets(self);
+
+                    if (socialButtons.length >= 1) {
+                        socialButtons.empty();
+                        buttons = new App.sharing.SocialButtons({model: self.model}).render().load().$el;
+                        socialButtons.append(buttons);
+                    }
 
                     //TODO: template
                     $('.info .title', self.$el).empty().html(product.title || product.name);
