@@ -202,15 +202,17 @@
                 <% var product = obj['tagged-products'][0]; %>
                 <div class="image-with-tagged-products">
                     <div class="row">
-                        <% if (obj['tagged-products'].length > 1) { %>
+                        <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
                             <div class="cell">
                                 <div class="stl-title">THE LOOK</div>
                                 <div class="stl-look">
                                     <% var  related = obj['tagged-products'] %>
                                     <% for (var i = 0; i < related.length; i++) { %>
-                                        <img src="<%- related[i].images[0].url %>" data-index="<%- i %>" />
-                                        <div class="name">
-                                            <%- related[i].title || related[i].name %>
+                                        <div class="stl-item" data-index="<%- i %>">
+                                            <img src="<%- related[i].images[0].url %>" />
+                                            <div class="name">
+                                                <%- related[i].title || related[i].name %>
+                                            </div>
                                         </div>
                                     <% } %>
                                 </div>
@@ -219,6 +221,22 @@
                         <div class="image middle cell capped-width">
                             <img src="<%= obj.image.url %>" alt="image"/>
                             <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
+                            <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                                <div class="landscape">
+                                    <div class="stl-title">THE LOOK</div>
+                                    <div class="stl-look">
+                                        <% var  related = obj['tagged-products'] %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <div class="name">
+                                                    <%- related[i].title || related[i].name %>
+                                                </div>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
                         </div>
                         <div class="middle cell info image">
                             <div class='title'><%= product.title || product.name %></div>
