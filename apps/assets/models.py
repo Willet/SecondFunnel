@@ -475,6 +475,7 @@ class Image(Content):
             "url": self.url or self.source_url,
             "sizes": self.attributes.get('sizes', default_master_size),
             'status': self.status,
+            "orientation": 'landscape' if self.width > self.height else 'portrait',
         }
         if expand_products:
             # turn django's string list of strings into a real list of ids
