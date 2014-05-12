@@ -279,7 +279,7 @@ def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             exclude_set += ids_of(prioritized_tiles)
 
     # fill the first two rows with (8) tiles that are known to be new
-    if request and int(request.GET.get('reqNum', 0)) == 0:
+    if request and request.GET.get('reqNum', '0') == '0':
         new_tiles = ir_created_last(tiles=tiles, exclude_set=exclude_set,
                                     allowed_set=allowed_set,
                                     results=num_new_tiles_to_autoprioritize)
@@ -331,7 +331,7 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # second, show the ones for the first request
     exclude_set += ids_of(prioritized_tiles)
-    if request and int(request.GET.get('reqNum', 0)) == 0:
+    if request and request.GET.get('reqNum', '0') == '0':
         prioritized_tiles += ir_priority_pageview(tiles=tiles, results=10,
                                                   allowed_set=allowed_set)
     else:  # else... NEVER show these per-request tiles again
@@ -401,9 +401,8 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
              feed=None, *args, **kwargs):
     """Return tiles, a mix of content and products set by the
 
-
     Calls same functions as ir_finite with content only,
-    then calls ir_mixed when all content has been used
+    then calls ir_mixed when all prioritized content has been used
 
     :param tiles: [<Tile>]
     :param results: int (number of results you want)
@@ -411,6 +410,8 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     :param request: if supplied, do not return results used in
                     the previous session call, or tile ids specified by the
                     "?shown=" parameter.
+    :param feed: used to determine the content_ratio for this product/content
+                 feed. content_ratio defaults to 0.2 if not supplied.
     :returns list
     """
 
@@ -505,7 +506,7 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # second, show the ones for the first request
     exclude_set += ids_of(prioritized_content)
-    if request and int(request.GET.get('reqNum', 0)) < 2:  # only at start
+    if request and request.GET.get('reqNum', '0') in ['0', '1']:  # only at start, this allows for 20 tiles
         prioritized_content += ir_priority_pageview(tiles=contents, results=results,
                                                     exclude_set=exclude_set, allowed_set=allowed_set)
 
