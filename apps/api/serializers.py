@@ -138,7 +138,7 @@ class ImageSerializer(ContentSerializer):
             "original-url": obj.original_url or obj.url,
             "format": obj.file_type,
             "hash": getattr(obj, 'file_checksum', ''),
-            "orientation": 'portrait' if obj.width > obj.height else 'landscape',
+            "orientation": 'landscape' if obj.width > obj.height else 'portrait',
         })
 
         return data
@@ -157,7 +157,7 @@ class ProductImageSerializer(RawSerializer):
             "hash": getattr(obj, 'file_checksum', ''),
             "width": obj.width,
             "height": obj.height,
-            "orientation": 'portrait' if obj.width > obj.height else 'landscape',
+            "orientation": 'landscape' if obj.width > obj.height else 'portrait',
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
             "type": "image",
