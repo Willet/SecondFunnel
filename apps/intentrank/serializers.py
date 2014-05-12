@@ -189,7 +189,7 @@ class ContentTileSerializer(TileSerializer):
         """
         data = super(ContentTileSerializer, self).get_dump_object(obj)
         try:
-            data.update(obj.content.all()[0].to_json())
+            data.update(obj.content.select_subclasses()[0].to_json())
         except IndexError as err:
             pass  # no content in this tile
         return data
