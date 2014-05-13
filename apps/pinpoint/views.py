@@ -40,27 +40,11 @@ def social_auth_redirect(request):
 
 @cache_page(60 * 1, key_prefix="pinpoint-")  # a minute
 @vary_on_headers('Accept-Encoding')
-def campaign(request, store_id, page_id, product_identifier='id',
-             identifier_value=''):
+def campaign(request, store_id, page_id, product=None):
     """Returns a rendered campaign response of the given id.
 
-    :param product_identifier: selects the featured product.
-           allowed values: 'id' or 'sku' (whitelisted to prevent abuse)
-    :param identifier_value: the product's id or sku, respectively
+    :param product: if given, the product is the featured product.
     """
-    # livedin/sku/123
-    lookup_map = {product_identifier: identifier_value}
-    if request.GET.get('product_id'):  # livedin?product_id=123
-        lookup_map = {'id': request.GET.get('product_id')}
-
-    if product_identifier in ['id', 'sku']:
-        try:
-            product = Product.objects.get(**lookup_map)
-        except (Product.DoesNotExist, ValueError) as err:
-            product = None
-    else:
-        product = None
-
     rendered_content = render_campaign(page_id=page_id, request=request,
                                        store_id=store_id, product=product)
 
@@ -73,6 +57,10 @@ def campaign_by_slug(request, page_slug, product_identifier='id',
 
     If two pages have the same name (which was possible in CG), then django
     decides which page to render.
+
+    :param product_identifier: selects the featured product.
+           allowed values: 'id' or 'sku' (whitelisted to prevent abuse)
+    :param identifier_value: the product's id or sku, respectively
     """
     page_kwargs = {
         'url_slug': page_slug
@@ -88,10 +76,26 @@ def campaign_by_slug(request, page_slug, product_identifier='id',
     except Page.DoesNotExist:
         return HttpResponseNotFound()
 
-    store_id = page.store.id
+    store = page.store
+    store_id = store.id
+
+    # if necessary, get product
+    # livedin/sku/123
+    lookup_map = {product_identifier: identifier_value}
+    if request.GET.get('product_id'):  # livedin?product_id=123
+        lookup_map = {'id': request.GET.get('product_id')}
+    lookup_map['store'] = store
+
+    if product_identifier in ['id', 'sku']:
+        try:
+            product = Product.objects.get(**lookup_map)
+        except (Product.DoesNotExist, ValueError) as err:
+            product = None
+    else:
+        product = None
+
     return campaign(request, store_id=store_id, page_id=page.id,
-                    product_identifier=product_identifier,
-                    identifier_value=identifier_value)
+                    product=product)
 
 
 # TODO: THis could probably just be a serializer on the Page object...
