@@ -161,9 +161,11 @@
             <!-- any (store.name)_(type)_... templates will be used in place
              of default templates if they exist. -->
             <div class='content-wrapper row'>
-                <div class='cell middle image-div'>
-                    <div class='image'>
-                        <img src='<%= obj.image.url %>'/>
+                <div class='cell middle'>
+                    <div class="main-image-container">
+                        <div class="gallery-swipe-left"></div>
+                        <div class="gallery-swipe-right"></div>
+                        <img class="main-image" src='<%= obj.image.url %>'/>
                     </div>
                 </div>
                 <% if (obj.images.length > 1) { %>

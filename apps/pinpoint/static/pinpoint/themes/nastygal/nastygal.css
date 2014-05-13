@@ -85,8 +85,17 @@
     font-weight: 200;
 }
 
+.previewContainer img {
+    max-height: none;
+}
+
 .previewContainer .content {
     padding-top: 43px;
+    box-shadow: 0px 10px 30px 0px #000;
+}
+
+.previewContainer .mask {
+    background: rgba(0, 0, 0, 0.8);
 }
 
 .previewContainer .close {
@@ -139,6 +148,7 @@
 .previewContainer .info {
     text-align: center;
     padding-left: 20px;
+    overflow: hidden;
 }
 .previewContainer .info.image {
     padding-left: 0;
@@ -191,6 +201,10 @@
     font-size: 18px;
 }
 
+.previewContainer .landscape .stl-title {
+    margin-top: 30px;
+}
+
 .previewContainer .stl-look {
     overflow-x: hidden;
     overflow-y: auto;
@@ -198,6 +212,7 @@
     white-space: normal;
     padding-bottom: 0;
     width: 200px;
+    display: block;
 }
 .previewContainer .landscape .stl-look {
     margin: auto;
@@ -211,7 +226,8 @@
 
 .previewContainer .landscape .stl-look .stl-item {
     display: inline-block;
-    width: 200px;
+    width: 150px;
+    vertical-align: top;
 }
 
 .previewContainer .stl-look .stl-item img {
@@ -237,14 +253,12 @@
     margin: auto;
     text-align: center;
     font-size: 12px;
-}
-
-.previewContainer .landscape .stl-look .stl-item .name {
-    margin: 0;
+    white-space: normal;
 }
 
 .previewContainer .main-image-container {
     position: relative;
+    text-align: center;
 }
 
 .previewContainer .main-image-container .gallery-swipe-left,
@@ -257,6 +271,7 @@
     position: absolute;
     top: 50%;
     margin-top: -58px;
+    z-index: 1;
 }
 
 .previewContainer .main-image-container .gallery-swipe-left.grey,
@@ -309,3 +324,39 @@
     width: 25px !important;
 }
 /* End facebook override */
+
+@media screen and (max-width: 768px) {
+    .previewContainer .row {
+        max-width: 100%;
+        margin-left: -22px;
+        margin-right: 0;
+    }
+
+    .previewContainer .cell {
+        display: block;
+        max-width: 100%;
+    }
+
+    .previewContainer .gallery img {
+        display: inline-block;
+    }
+
+    .previewContainer .info .title {
+        margin-top: 5px;
+    }
+
+    .previewContainer .stl-look,
+    .previewContainer .landscape .stl-look {
+        white-space: normal;
+        width: 100%;
+        margin: auto;
+        text-align: center;
+    }
+
+    .previewContainer .stl-look .stl-item,
+    .previewContainer .landscape .stl-look .stl-item {
+        display: inline-block;
+        width: 150px;
+        vertical-align: top;
+    }
+}
