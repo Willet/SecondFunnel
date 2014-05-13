@@ -142,13 +142,18 @@ html.tablet .dropdown-xs {
     background-color: black;
     color: white;
     top: 30px;
-    max-width: 768px;
+    max-width: 830px;
     padding-left: 30px;
+    padding-right: 30px;
     padding-bottom: 10px;
 }
 
 #hero-area .overlay .title {
     font-size: 26px;
+}
+
+#hero-area .overlay .review {
+    max-width: 700px;
 }
 
 @media (max-width: 768px) {
@@ -476,7 +481,7 @@ html.tablet #hero-area .find.white a:visited {
     font-size: 20px;
 }
 
-.tile.banner .overlay .view {
+.tile.banner .overlay .view, #hero-area .view {
     position: absolute;
     background-color: #fc601d;
     color: white;
@@ -493,8 +498,12 @@ html.tablet #hero-area .find.white a:visited {
     right: 50px;
 }
 
-.tile.banner .overlay .view .arrow {
+.tile.banner .overlay .view .arrow, #hero-area .view .arrow {
     right: 20px;
+}
+
+#hero-area .view .arrow {
+    top: 25px;
 }
 
 .tile.banner .overlay .title .arrow {
