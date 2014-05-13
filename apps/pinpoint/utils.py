@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.template import RequestContext, Template
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Page, Store
+from apps.assets.models import Page, Store, Product
 
 
 def read_a_file(file_name, default_value=''):
@@ -71,13 +71,15 @@ def get_store_from_request(request):
     return store
 
 
-def render_campaign(page_id, request, store_id=0):
+def render_campaign(page_id, request, store_id=0, product=None):
     """Generates the HTML page for a standard pinpoint product page.
 
     Backup products are populated statically only if a request object
     is provided.
 
     :param store_id: optional, legacy, unused
+    :param product: if provided, the theme may attempt to display this
+                    product in the hero area
     """
     def json_postprocessor(product_dict):
         """given a product dict, output a product string that can be printed
@@ -109,13 +111,13 @@ def render_campaign(page_id, request, store_id=0):
     page = get_object_or_404(Page, id=page_id)
     page_template = page.theme.load_theme()
     store = page.store
-    product = None  # no featured product / STL functionality in place
+
+    try:
+        product_repr = json.dumps(product.to_json())
+    except (Product.DoesNotExist, AttributeError, ValueError) as err:
+        product_repr = "undefined"
 
     ir_base_url = '/intentrank'
-
-    # get backup results
-    # backup_results = get_results(feed=feed, results=20)
-    backup_results = []  # results are now fetched by client
 
     if settings.ENVIRONMENT == 'dev' and page.get('ir_base_url'):
         # override the ir_base_url attribute on CG page objects
@@ -136,9 +138,9 @@ def render_campaign(page_id, request, store_id=0):
         "store": store,
         "columns": range(4),
         "preview": False,  # TODO: was this need to fix: not page.live,
-        "product": json_postprocessor(product),
+        "product": product_repr,
         "initial_results": [],  # JS now fetches its own initial results
-        "backup_results": map(json_postprocessor, backup_results),
+        "backup_results": [],
         "social_buttons": page.social_buttons or store.get('social-buttons', ''),
         "conditional_social_buttons": json.dumps(page.get('conditional_social_buttons', {})),
         "column_width": page.column_width or store.get('column-width', ''),

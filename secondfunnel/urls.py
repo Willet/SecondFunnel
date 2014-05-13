@@ -33,6 +33,11 @@ urlpatterns = patterns('',
         'apps.intentrank.views.get_rss_feed', name='get-feed'),
     url(r'^(?P<page_slug>[^/\.]+)/(?P<feed_name>[^/\.]+\.rss)$',
         'apps.intentrank.views.get_rss_feed', name='get-feed'),
+    # shop-the-look slugs e.g. livedin/id/123
+    url(r'^(?P<page_slug>[^/\.]+)'
+        r'/(?P<product_identifier>(id|sku))'
+        r'/(?P<identifier_value>\w+)/?$',
+        'apps.pinpoint.views.campaign_by_slug'),
 
     # APIs
     url(r'^contentgraph/', include('apps.contentgraph.urls')),
