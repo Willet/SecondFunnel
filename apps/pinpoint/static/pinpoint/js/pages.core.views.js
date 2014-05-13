@@ -856,7 +856,9 @@ App.module('core', function (module, App) {
                });
 
                 // First image is always selected
-                this.$('.stl-look').find('.stl-item').first().click();
+                this.$('.stl-look').each(function () {
+                    $(this).find('.stl-item').first().click();
+                });
             }
             /* END TODO */
 

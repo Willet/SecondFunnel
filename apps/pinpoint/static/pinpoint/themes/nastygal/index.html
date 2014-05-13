@@ -170,7 +170,7 @@
                 </div>
                 <% if (obj.images.length > 1) { %>
                     <div class='cell'>
-                        <div class='gallery'></div>
+                        <div class='gallery<% if (App.support.mobile()) { %> dots<% } %>'></div>
                     </div>
                 <% } %>
                 <div class='cell middle info'>
@@ -191,10 +191,12 @@
                             SHOP NOW
                         </div>
                     </a>
-                    <div>
-                        <div class="social-buttons"></div>
-                        <div class='spacer'></div>
-                    </div>
+                    <% if (!App.support.mobile()) { %>
+                        <div>
+                            <div class="social-buttons"></div>
+                            <div class='spacer'></div>
+                        </div>
+                    <% } %>
                 </div>
             </div>
         </script>
@@ -205,7 +207,7 @@
                 <div class="image-with-tagged-products">
                     <div class="row">
                         <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
-                            <div class="cell">
+                            <div class="cell desktop-only">
                                 <div class="stl-title">THE LOOK</div>
                                 <div class="stl-look">
                                     <% var  related = obj['tagged-products'] %>
@@ -220,7 +222,7 @@
                                 </div>
                             </div>
                         <% } %>
-                        <div class="image middle cell capped-width">
+                        <div class="image middle cell capped-width desktop-only">
                             <img src="<%= obj.image.url %>" alt="image"/>
                             <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                             <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
@@ -264,10 +266,36 @@
                                     SHOP NOW
                                 </div>
                             </a>
-                            <div>
-                                <div class="social-buttons"></div>
-                                <div class='spacer'></div>
-                            </div>
+                            <% if (!App.support.mobile()) { %>
+                                <div>
+                                    <div class="social-buttons"></div>
+                                    <div class='spacer'></div>
+                                </div>
+                            <% } else if (obj['tagged-products'].length > 1) { %>
+                                <div class="more-info">
+                                    MORE FROM THAT LOOK
+                                </div>
+                            <% } %>
+                        </div>
+                        <div class="image middle cell capped-width mobile-only">
+                            <img src="<%= obj.image.url %>" alt="image"/>
+                            <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
+                            <% if (obj['tagged-products'].length > 1) { %>
+                                <div class="landscape">
+                                    <div class="stl-title">THE LOOK</div>
+                                    <div class="stl-look">
+                                        <% var  related = obj['tagged-products'] %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <div class="name">
+                                                    <%- related[i].title || related[i].name %>
+                                                </div>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
                         </div>
                     </div>
                 </div>
