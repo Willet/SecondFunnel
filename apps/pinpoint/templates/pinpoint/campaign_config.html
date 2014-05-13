@@ -13,7 +13,6 @@
         }
         , 'page': {  // required
             'id': '{{ campaign.intentrank_id|default:campaign.id }}'  // required
-            , 'product': {{ product }}
             , 'pubDate': '{{ pub_date }}'  // for verifying the original upload date of a static campaign. for human use only
             , 'offline': false  // optional (if true, loads .content immediately)
 
@@ -72,7 +71,7 @@
             'minDesktopColumns': {{ campaign.minDesktopColumns|default:2 }}, // minimum number of columns on desktop for masonry
             'minMobileColumns': {{ campaign.minMobileColumns|default:2 }} // minimum number of columns to show on mobile for masonry
         }
-        , 'featured': {{ product }}
+        , 'featured': {{ product|safe }}  // default: undefined
         // stuff that loads when page loads, even if IR is available
         , 'IRResultsCount': 10
         , 'IRTimeout': 5000
@@ -97,20 +96,8 @@
 
         , 'resultsThreshold': {{ campaign.results_threshold|default:"undefined"|safe }}  // {[tileId: num,]}
 
-        , 'initialResults': [
-            {% for result in initial_results %}
-                {{ result }}
-                {% if not forloop.last %},{% endif %}
-            {% endfor %}
-        ]
-        // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
-        // it really should contain at least 10 products.
-        , 'backupResults': [
-            {% for result in backup_results %}
-                {{ result }}
-                {% if not forloop.last %},{% endif %}
-            {% endfor %}
-        ]
+        , 'initialResults': []  // DEPRECATED (IR done on client)
+        , 'backupResults': []  // DEPRECATED (IR done on client)
     };
 
 </script>

@@ -199,10 +199,9 @@
             <span><%= obj.name %></span>
         </script>
 
-        <script type="text/template" id="disabled_featured_template">
+        <script type="text/template" id="shopthelook_template">
             <div class='featured product'>
-                <!-- Main Display Area -->
-                <img class='img-responsive pull-left' src='<%= obj.image.url %>' />
+                <img class='img-responsive pull-left' src='<%= obj.defaultImage.url %>' />
                 <div class='pull-right'><%= obj.title || obj.name %></div>
                     <div class='price'><%= obj.price %></div>
                     <div>
