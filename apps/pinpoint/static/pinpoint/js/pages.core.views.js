@@ -23,28 +23,21 @@ App.module('core', function (module, App) {
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
         'model': module.Tile,
-        'template': "#shopthelook_template, #featured_template, #hero_template",
-        'templates': function () {
-            return [
-                "#<%= options.store.slug %>_<%= options.page.layout %>_template",
-                "#<%= options.store.slug %>_shopthelook_template",
-                "#<%= options.store.slug %>_featured_template",
-                "#<%= options.store.slug %>_hero_template",
-                "#shopthelook_template",
-                "#featured_template",
-                "#hero_template"
-            ];
+        'getTemplate': function () {
+            // if page config contains a product, render hero area with a
+            // template that supports it
+            if (App.option('featured') !== undefined &&
+                $('#shopthelook_template').length) {
+                return "#shopthelook_template";
+            }
+            return "#hero_template";
         },
         /**
          * @param data   normal product data, or, if omitted,
          *               the featured product.
          */
         'initialize': function (data) {
-            if (!data) {
-                this.model = new module.Tile(data);
-            } else {
-                this.model = new module.Tile(App.option('page:product', {}));
-            }
+            this.model = new module.Tile(data || App.option('featured'));
         },
         'onRender': function () {
             var buttons;

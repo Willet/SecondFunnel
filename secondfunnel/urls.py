@@ -10,12 +10,13 @@ urlpatterns = patterns('',
 
     # INTERNAL ADMIN
     url(r'^admin/?', include(admin.site.urls)),
+    url(r'^accounts/login/$', 'django.contrib.auth.views.login',
+        {"template_name": 'admin/login.html'}),
 
     # APPS
     url(r'^assets/', include('apps.assets.urls')),
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
     url(r'^imageservice/', include('apps.imageservice.urls')),
-    #url(r'p/', include('apps.pinpoint.global_urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
     url(r'^tracker/', include('apps.tracking.urls')),
 
@@ -31,6 +32,11 @@ urlpatterns = patterns('',
         'apps.intentrank.views.get_rss_feed', name='get-feed'),
     url(r'^(?P<page_slug>[^/\.]+)/(?P<feed_name>[^/\.]+\.rss)$',
         'apps.intentrank.views.get_rss_feed', name='get-feed'),
+    # shop-the-look slugs e.g. livedin/id/123
+    url(r'^(?P<page_slug>[^/\.]+)'
+        r'/(?P<product_identifier>(id|sku))'
+        r'/(?P<identifier_value>\w+)/?$',
+        'apps.pinpoint.views.campaign_by_slug'),
 
     # APIs
     url(r'^contentgraph/', include('apps.contentgraph.urls')),

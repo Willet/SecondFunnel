@@ -17,7 +17,7 @@ from django.template import Context, loader
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
 
-from apps.assets.models import Page
+from apps.assets.models import Page, Product
 from apps.pinpoint.utils import render_campaign, get_store_from_request, read_a_file
 
 
@@ -40,22 +40,27 @@ def social_auth_redirect(request):
 
 @cache_page(60 * 1, key_prefix="pinpoint-")  # a minute
 @vary_on_headers('Accept-Encoding')
-def campaign(request, store_id, page_id, mode=None):
+def campaign(request, store_id, page_id, product=None):
     """Returns a rendered campaign response of the given id.
 
-    :param mode   e.g. 'mobile' for the mobile page. Currently not functional.
+    :param product: if given, the product is the featured product.
     """
     rendered_content = render_campaign(page_id=page_id, request=request,
-                                       store_id=store_id)
+                                       store_id=store_id, product=product)
 
     return HttpResponse(rendered_content)
 
 
-def campaign_by_slug(request, page_slug):
+def campaign_by_slug(request, page_slug, product_identifier='id',
+                     identifier_value=''):
     """Used to render a page using only its name.
 
     If two pages have the same name (which was possible in CG), then django
     decides which page to render.
+
+    :param product_identifier: selects the featured product.
+           allowed values: 'id' or 'sku' (whitelisted to prevent abuse)
+    :param identifier_value: the product's id or sku, respectively
     """
     page_kwargs = {
         'url_slug': page_slug
@@ -71,8 +76,27 @@ def campaign_by_slug(request, page_slug):
     except Page.DoesNotExist:
         return HttpResponseNotFound()
 
-    store_id = page.store.id
-    return campaign(request, store_id=store_id, page_id=page.id)
+    store = page.store
+    store_id = store.id
+
+    # if necessary, get product
+    # livedin/sku/123
+    lookup_map = {product_identifier: identifier_value}
+    if request.GET.get('product_id'):  # livedin?product_id=123
+        lookup_map = {'id': request.GET.get('product_id')}
+    lookup_map['store'] = store
+
+    if product_identifier in ['id', 'sku']:
+        try:
+            product = Product.objects.get(**lookup_map)
+        except (Product.DoesNotExist, ValueError) as err:
+            product = None
+    else:
+        product = None
+
+    return campaign(request, store_id=store_id, page_id=page.id,
+                    product=product)
+
 
 # TODO: THis could probably just be a serializer on the Page object...
 @never_cache
