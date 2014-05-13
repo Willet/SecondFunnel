@@ -202,14 +202,17 @@
         <script type="text/template" id="shopthelook_template">
             <div class="jumbotron"
                  style='background-image: url("<%= obj.defaultImage.width(1024) %>");
-                        background-position: center; height: 341px;'>
+                        background-position: center; height: 400px;'>
             </div>
             <div class="overlay">
                 <div class="title">
-                    <%= obj.title || obj.name %>
+                    <%- obj.title || obj.name %>
                 </div>
                 <div class="review">
-                    <%= obj.review_text %>
+                    <%- obj.review_text %>
+                </div>
+                <div class="details">
+                    <%= obj.details %>
                 </div>
             </div>
             {% if legal_copy %}
