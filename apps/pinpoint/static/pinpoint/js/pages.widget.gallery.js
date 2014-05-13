@@ -101,7 +101,7 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
     this.selectImage = function () {
         var hash, arrows, len;
 
-        if (App.support.mobile()) {
+        if (App.support.mobile() && !App.option('disableMegaTiles')) {
             len = focus.children().length - 1;
         } else {
             len = $gallery.children().length - 1;
@@ -129,7 +129,7 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
     };
 
     this.onClick = function(ev) {
-        if (App.support.mobile()) return; // mobile does nothing
+        if (App.support.mobile() && !App.option('disableMegaTiles')) return; // mobile does nothing
         var hash,
             $selected = $(ev.currentTarget),
             newURL = $selected.attr('src');
@@ -220,7 +220,7 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
     if (images && images.length) { // ensure related images exist
         images = images[options('galleryIndex', 0)].images.slice(0);
 
-        if (App.support.mobile()) {
+        if (App.support.mobile() && !App.option('disableMegaTiles')) {
             images.splice(0, 0, view.model.get('defaultImage'));
         }
     } else {
@@ -230,7 +230,7 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
     _.each(images, function(image) { // iterate over images to create gallery
         var $img, $wrapper;
 
-        if (App.support.mobile()) {
+        if (App.support.mobile() && !App.option('disableMegaTiles')) {
             $img = $('<div></div>').css('background-image', 'url(' + image.width(windowWidth * 1.5) + ')');
         } else {
             if ($gallery.hasClass('dots')) {
@@ -244,7 +244,7 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
 
         $img.addClass('img').click(this.onClick);
 
-        if (App.support.mobile()) { // append to display area and create tile for gallery
+        if (App.support.mobile() && !App.option('disableMegaTiles')/* TODO: do this less lazy */) { // append to display area and create tile for gallery
             focus.append($img);
             $el.append($('<div />').addClass('img'));
         } else { // otherwise append to gallery
@@ -255,6 +255,6 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
     /* Initialize the gallery and bind event handlers to the widget
        gallery instance. */
     _.bindAll(this, 'swipeStatus', 'scrollImages');
-    if (App.support.mobile()) this.initializeMobile();
+    if (App.support.mobile() && !App.option('disableMegaTiles')) this.initializeMobile();
     else this.initialize();
 });
