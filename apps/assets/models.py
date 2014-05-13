@@ -256,6 +256,7 @@ class Product(BaseModel):
 
     name = models.CharField(max_length=1024, default="")
     description = models.TextField(blank=True, null=True, default="")
+    # point form stuff like <li>hand wash</li> that isn't in the description already
     details = models.TextField(blank=True, null=True, default="")
     url = models.TextField()
     sku = models.CharField(max_length=255)

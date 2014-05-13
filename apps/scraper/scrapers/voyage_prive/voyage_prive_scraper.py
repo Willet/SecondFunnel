@@ -169,12 +169,25 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                             "reviewer_name": reviewer_name,
                             "reviewer_image": reviewer_img,
                         })
-                        print "Saved product {0} with review found".format(product.sku)
-                        product.save()
+                        print "Found review for product {0}".format(product.sku)
+                    except NoSuchElementException:
+                        print "No review was found for product {0}".format(product.sku)
+
+                    try:
+                        # find the bullet point details for this product
+                        details = self.driver.find_element_by_xpath(
+                            '//div'
+                            '/div[contains(@viewp-connect, "{0}")]'
+                            '//ul[@class="viewp-product-bullet-items"]'.format(
+                                product.sku)).get_attribute('outerHTML')
+
+                        product.details = self._sanitize_html(details)
+                        print "Found details for product {0}".format(product.sku)
                     except NoSuchElementException:
                         print "No review was found for product {0}".format(product.sku)
 
                     try:  # type unicode
+                        product.save()
                         all_image_urls = [x.get_attribute('data-original') for x in
                                           self.driver.find_elements_by_xpath(
                                 '//div/figure/div[@data-id="{0}"]//li/a/img'.format(

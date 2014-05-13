@@ -60,11 +60,12 @@ class Scraper(object):
 
     @classmethod
     def _sanitize_html(cls, html):
-        allowed_tags = ['div', 'ul', 'li', 'p', ]
+        allowed_tags = ['div', 'ul', 'ol', 'li', 'p', ]
         allowed_attrs = {
             '*': [],
         }
-        return bleach.clean(html, tags=allowed_tags, attributes=allowed_attrs, strip=True)
+        return bleach.clean(html, tags=allowed_tags, attributes=allowed_attrs,
+                            strip=True)
 
     def scrape(self, url, values, **kwargs):
         """
