@@ -111,15 +111,7 @@ def get_results_view(request, page_id):
     feed = page.feed
     ir = IntentRank(feed=feed)
 
-    if 'finite_by_' in algorithm_name:
-        algorithm = ir.ir_finite_by(algorithm_name[10:])
-    else:
-        algorithm = getattr(ir, 'ir_' + algorithm_name)
-        if not algorithm:
-            # verbose fallback
-            print "Algorithm 'ir_{0}' not found; using ir_generic instead.".format(
-                algorithm_name)
-            algorithm = ir.ir_generic
+    algorithm = ir.get_algorithm(algorithm_name)
     print 'request being handled by {0}'.format(algorithm.__name__)
 
     resp = ajax_jsonp(get_results(feed=feed, results=results,

@@ -42,6 +42,20 @@ class IntentRank(object):
             return None
         return alg
 
+    def get_algorithm(self, algorithm_name):
+        """Look up an algorithm by name, or ir_generic if not found."""
+        if 'finite_by_' in algorithm_name:
+            return self.ir_finite_by(algorithm_name[10:])
+
+        algorithm = getattr(self, 'ir_' + algorithm_name)
+        if algorithm:
+            return algorithm
+
+        # verbose fallback
+        print "Algorithm 'ir_{0}' not found; using ir_generic instead.".format(
+            algorithm_name)
+        return self.ir_generic
+
     def set_algorithm(self, algorithm):
         self._algorithm = algorithm
 
