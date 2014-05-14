@@ -15,7 +15,8 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from apps.pinpoint.utils import read_remote_file
 from apps.imageservice.models import SizeConf, ExtendedImage
-from apps.imageservice.utils import create_image, IMAGE_SIZES
+from apps.imageservice.utils import create_image, IMAGE_SIZES, within_color_range
+
 from apps.static_pages.aws_utils import upload_to_bucket, s3_key_exists
 
 
@@ -73,7 +74,7 @@ def upload_to_local(path, folder, img, size):
 
     filename = os.path.join(settings.STATIC_URL[1:],
                             path, folder, filename)
-    
+
     with open(filename, 'wb') as output:
         img.save(output)
 
@@ -152,8 +153,15 @@ def process_image_now(source, path='', sizes=None):
         upload_to_s3
 
     if getattr(settings, 'CLOUDINARY', None) is not None:
-        image_object = cloudinary.uploader.upload(source,
-            folder=path, colors=True, format = 'jpg')
+        if within_color_range(source, '#FFFFFF', 3):  # if white background
+            image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
+                                                      format='jpg', effect='trim')  # trim background
+        else:
+            image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
+                                                      format='jpg')
+
+        print image_object['public_id']
+
         # Grab the dominant colour from cloudinary
         colors = image_object['colors']
         colors = sorted(colors, key=lambda c: c[1], reverse=True)
