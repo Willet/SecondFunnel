@@ -21,6 +21,7 @@ from apps.scraper.scrapers import PinterestPinScraper, PinterestAlbumScraper
 from apps.scraper.scrapers import StyldByFilterScraper, StyldByPartnersScraper
 from apps.scraper.scrapers import STLScraper
 from apps.scraper.scrapers import BurberryCategoryScraper, BurberryProductScraper
+from apps.scraper.scrapers import ColumbiaCategoryScraper, ColumbiaProductScraper
 from apps.scraper.scrapers.scraper import ScraperException
 
 from . import __doc__
@@ -54,6 +55,8 @@ class Command(BaseCommand):
             NastygalProductScraper,
             BurberryCategoryScraper,
             BurberryProductScraper,
+            ColumbiaCategoryScraper,
+            ColumbiaProductScraper,
         ]
 
     def handle(self, *args, **kwargs):
