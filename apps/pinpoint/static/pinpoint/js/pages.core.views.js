@@ -883,8 +883,10 @@ App.module('core', function (module, App) {
                             reduction = '0'; // String because jQuery checks for falsey values
                         }
 
-                        container.css('top', reduction)
-                                 .css('bottom', reduction);
+                        container.css({
+                            'top': reduction,
+                            'bottom': reduction
+                        });
                     };
                 };
             /*
