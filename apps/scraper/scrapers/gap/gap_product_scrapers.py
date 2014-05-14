@@ -98,7 +98,7 @@ class GapProductScraper(ProductDetailScraper):
                 if name in self.imageLabels:
                     if url.startswith('/'):
                         url = 'http://www.gap.com' + url
-                    images.append(self._process_image(url, product))
+                    images.append(self._process_image(url, product, remove_background=True, color='#FFFFFF'))
 
         if len(images) == 0:
             return images

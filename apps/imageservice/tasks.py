@@ -108,7 +108,7 @@ def upload_to_s3(path, folder, img, size):
     return os.path.join(bucket, filename)
 
 
-def process_image(source, path='', sizes=None):
+def process_image(source, path='', sizes=None, remove_background=False, color=None):
     """
     Acquires a lock in order to process the image.
 
@@ -122,7 +122,7 @@ def process_image(source, path='', sizes=None):
 
     PROCESSING_SEM.acquire()
     try:
-        data = process_image_now(source, path)
+        data = process_image_now(source, path, remove_background=remove_background, color=color)
     except Exception as e:
         # Need to ensure semaphore is released
         PROCESSING_SEM.release()
@@ -133,7 +133,7 @@ def process_image(source, path='', sizes=None):
     return data
 
 
-def process_image_now(source, path='', sizes=None):
+def process_image_now(source, path='', sizes=None, remove_background=False, color=None):
     """
     Delegates to resize to create the necessary sizes.
 
@@ -153,9 +153,13 @@ def process_image_now(source, path='', sizes=None):
         upload_to_s3
 
     if getattr(settings, 'CLOUDINARY', None) is not None:
-        if within_color_range(source, '#FFFFFF', 3):  # if white background
-            image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
-                                                      format='jpg', effect='trim')  # trim background
+        print "Cloudinary! {0}".format(remove_background)
+
+        if remove_background:
+            if not color or within_color_range(source, color, 4):  # if monotonic background
+                print "background removed"
+                image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
+                                                          format='jpg', effect='trim')  # trim background
         else:
             image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
                                                       format='jpg')

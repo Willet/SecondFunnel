@@ -97,11 +97,14 @@ class ProductScraper(Scraper):
 
         return product
 
-    def _process_image(self, original_url, product):
+    def _process_image(self, original_url, product, remove_background=False, color=None):
         """
         This function uploads the image from the url and adds all necessary data to the image object
 
         If no image object is passed in, it creates a ProductImage as the default image object type
+
+        @param remove_background: whether or not to trim the image
+        @param color: if provided, the color the background should be to remove it
         """
 
         try:
@@ -111,7 +114,8 @@ class ProductScraper(Scraper):
 
         if not (image.url and image.file_type):
             print('\nprocessing image - ' + original_url)
-            data = process_image(original_url, create_image_path(self.store.id))
+            data = process_image(original_url, create_image_path(self.store.id),
+                                 remove_background=remove_background, color=color)
             image.url = data.get('url')
             image.file_type = data.get('format')
             image.dominant_color = data.get('dominant_colour')
@@ -177,7 +181,7 @@ class ProductDetailScraper(ProductScraper):
 
 
 class ContentScraper(Scraper):
-    def _process_image(self, source_url, image):
+    def _process_image(self, source_url, image, remove_background=False):
         """
         This function uploads the image from the url and adds all necessary data to the image object
 
@@ -189,7 +193,7 @@ class ContentScraper(Scraper):
 
         print('')
         print('processing image - ' + source_url)
-        data = process_image(source_url, create_image_path(self.store.id))
+        data = process_image(source_url, create_image_path(self.store.id), remove_background=remove_background)
         image.url = data.get('url')
         image.file_type = data.get('format')
         image.dominant_color = data.get('dominant_colour')
