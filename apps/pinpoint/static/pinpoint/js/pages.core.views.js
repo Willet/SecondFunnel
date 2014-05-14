@@ -876,15 +876,15 @@ App.module('core', function (module, App) {
 
                         reduction -= element.outerHeight();
                         reduction -= $('.close', container).outerHeight();
-                        reduction -= 24; //Fudge factor
-                        reduction /= 2;
+                        reduction -= 24; // Fudge factor TODO: Calculate this someshow
+                        reduction /= 2; // Split over top and bottom
 
                         if (reduction <= 0 || App.support.mobile()) {
-                            reduction = '0';
+                            reduction = '0'; // String because jQuery checks for falsey values
                         }
 
-                        container.css('top', reduction);
-                        container.css('bottom', reduction);
+                        container.css('top', reduction)
+                                 .css('bottom', reduction);
                     };
                 };
             /*
