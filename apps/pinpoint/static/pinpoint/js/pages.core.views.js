@@ -532,9 +532,7 @@ App.module('core', function (module, App) {
                     .resize(globals.resizeHandler);
 
                 // serve orientation change event via vent
-                if (App.support.mobile()) {
-                    $(window).on('rotate', globals.orientationChangeHandler);
-                }
+                $(window).on('rotate', globals.orientationChangeHandler);
             }(App._globals));
 
             $window
@@ -871,6 +869,26 @@ App.module('core', function (module, App) {
 
         // Disable scrolling body when preview is shown
         'onShow': function () {
+            var shrinkContainer = function (element) {
+                    return function () {
+                        var container = element.closest('.fullscreen'),
+                            reduction = $(window).height();
+
+                        reduction -= element.outerHeight();
+                        reduction -= $('.close', container).outerHeight();
+                        reduction -= 24; // Fudge factor TODO: Calculate this someshow
+                        reduction /= 2; // Split over top and bottom
+
+                        if (reduction <= 0 || App.support.mobile()) {
+                            reduction = '0'; // String because jQuery checks for falsey values
+                        }
+
+                        container.css({
+                            'top': reduction,
+                            'bottom': reduction
+                        });
+                    };
+                };
             /*
             NOTE: Previously, it was thought that adding `no-scroll`
             to android devices was OK, because no problems were observed
@@ -893,6 +911,12 @@ App.module('core', function (module, App) {
                     this.$el.width($window.width()); // assign width
                 }
                 $(document.body).addClass('no-scroll');
+            }
+
+            // Hidious use of this option. Hopefully can refactor at the end of this week
+            if (App.option('disableMegaTiles')) {
+                $('img', this.$el).on('load', shrinkContainer(this.$el));
+                setTimeout(shrinkContainer(this.$el), 1);
             }
         },
 
