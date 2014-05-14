@@ -5,7 +5,7 @@ import re
 import pytz
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.core.serializers.json import Serializer
 from django.db import models
 from django_extensions.db.fields import CreationDateTimeField
@@ -252,10 +252,11 @@ class Store(BaseModel):
 
 
 class Product(BaseModel):
-    store = models.ForeignKey(Store)
+    store = models.ForeignKey(Store, related_name='products')
 
     name = models.CharField(max_length=1024, default="")
     description = models.TextField(blank=True, null=True, default="")
+    # point form stuff like <li>hand wash</li> that isn't in the description already
     details = models.TextField(blank=True, null=True, default="")
     url = models.TextField()
     sku = models.CharField(max_length=255)
@@ -570,8 +571,9 @@ class Feed(BaseModel):
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
     def __unicode__(self):
         try:
-            return 'Feed (#%s), page: %s' % (self.id, self.page.get().name)
-        except ObjectDoesNotExist:
+            page_names = ', '.join(page.name for page in self.page.all())
+            return 'Feed (#%s), pages: %s' % (self.id, page_names)
+        except (ObjectDoesNotExist, MultipleObjectsReturned):
             return 'Feed (#%s)' % self.id
 
     # and other representation specific of the Feed itself

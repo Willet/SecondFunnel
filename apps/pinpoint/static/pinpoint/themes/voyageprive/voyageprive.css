@@ -140,6 +140,7 @@ html.tablet .dropdown-xs {
 #hero-area .overlay {
     position: absolute;
     background-color: black;
+    background-color: rgba(0, 0, 0, 0.7);
     color: white;
     top: 30px;
     max-width: 830px;
@@ -150,10 +151,15 @@ html.tablet .dropdown-xs {
 
 #hero-area .overlay .title {
     font-size: 26px;
+    margin-top: 10px;
 }
 
 #hero-area .overlay .review {
     max-width: 700px;
+}
+
+#hero-area .overlay .details ul {
+    margin: 10px 0 10px -24px;
 }
 
 @media (max-width: 768px) {

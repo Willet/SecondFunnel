@@ -16,7 +16,7 @@ from apps.scraper.scrapers import ProductDetailScraper
 from apps.scraper.scrapers import NastygalCategoryScraper, NastygalProductScraper
 from apps.scraper.scrapers import GapProductScraper, GapCategoryScraper
 from apps.scraper.scrapers import MadewellProductScraper, MadewellCategoryScraper, MadewellMultiProductScraper
-from apps.scraper.scrapers import VoyagePriveCategoryScraper
+from apps.scraper.scrapers import VoyagePriveCategoryScraper, VoyagePriveWeekEndScraper, VoyagePriveSejourScraper
 from apps.scraper.scrapers import PinterestPinScraper, PinterestAlbumScraper
 from apps.scraper.scrapers import StyldByFilterScraper, StyldByPartnersScraper
 from apps.scraper.scrapers import STLScraper
@@ -24,6 +24,7 @@ from apps.scraper.scrapers import BurberryCategoryScraper, BurberryProductScrape
 from apps.scraper.scrapers.scraper import ScraperException
 
 from . import __doc__
+
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
@@ -42,6 +43,8 @@ class Command(BaseCommand):
             MadewellCategoryScraper,
             MadewellMultiProductScraper,
             VoyagePriveCategoryScraper,
+            VoyagePriveWeekEndScraper,
+            VoyagePriveSejourScraper,
             PinterestPinScraper,
             PinterestAlbumScraper,
             StyldByFilterScraper,
