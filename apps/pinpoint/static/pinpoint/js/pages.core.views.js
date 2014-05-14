@@ -869,7 +869,7 @@ App.module('core', function (module, App) {
 
         // Disable scrolling body when preview is shown
         'onShow': function () {
-            var shrink_conatiner_function = function (element) {
+            var shrinkContainer = function (element) {
                     return function () {
                         var container = element.closest('.fullscreen'),
                             reduction = $(window).height();
@@ -913,8 +913,8 @@ App.module('core', function (module, App) {
 
             // Hidious use of this option. Hopefully can refactor at the end of this week
             if (App.option('disableMegaTiles')) {
-                $('img', this.$el).on('load', shrink_conatiner_function(this.$el));
-                setTimeout(shrink_conatiner_function(this.$el), 1);
+                $('img', this.$el).on('load', shrinkContainer(this.$el));
+                setTimeout(shrinkContainer(this.$el), 1);
             }
         },
 
