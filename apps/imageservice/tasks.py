@@ -153,8 +153,6 @@ def process_image_now(source, path='', sizes=None, remove_background=False, colo
         upload_to_s3
 
     if getattr(settings, 'CLOUDINARY', None) is not None:
-        print "Cloudinary! {0}".format(remove_background)
-
         if remove_background:
             if not color or within_color_range(source, color, 4):  # if monotonic background
                 print "background removed"
@@ -163,8 +161,6 @@ def process_image_now(source, path='', sizes=None, remove_background=False, colo
         else:
             image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
                                                       format='jpg')
-
-        print image_object['public_id']
 
         # Grab the dominant colour from cloudinary
         colors = image_object['colors']

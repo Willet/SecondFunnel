@@ -172,7 +172,6 @@ def within_color_range(url, color, threshold):
                                            tags=['to_delete'], colors=True)["colors"]
 
     cloudinary.api.delete_resources_by_tag("to_delete")  # delete corners just uploaded
-    print nw_corner, ne_corner, se_corner, sw_corner
 
     points = [Point(hex_to_rgb(nw_corner[0][0]), 3, 0), Point(hex_to_rgb(ne_corner[0][0]), 3, 0),
               Point(hex_to_rgb(se_corner[0][0]), 3, 0), Point(hex_to_rgb(sw_corner[0][0]), 3, 0)]
