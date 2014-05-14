@@ -802,7 +802,7 @@ App.module('core', function (module, App) {
                 image = image.height(App.utils.getViewportSized(true), true);
             }
 
-            if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1 && App.option('disableMegaTiles')) {
+            if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1) {
                 this.model.set('tagged-products', _.sortBy(this.model.get('tagged-products'), function (obj) {
                     return -1 * parseFloat((obj.price || '$0').substr(1), 10);
                 }));
@@ -824,7 +824,7 @@ App.module('core', function (module, App) {
             }
 
             /* TODO clean this up */
-            if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1 && App.option('disableMegaTiles')) {
+            if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1) {
                this.$('.stl-look .stl-item').on('click', function () {
                     var $this = $(this),
                         index = $this.data('index'),
@@ -835,6 +835,16 @@ App.module('core', function (module, App) {
                     $('.gallery', self.$el).empty();
                     App.utils.runWidgets(self);
 
+                    if (product.images.length === 1) {
+                        $('.gallery-swipe-left', self.$el).hide();
+                        $('.gallery-swipe-right', self.$el).hide();
+                        $('.gallery', self.$el).hide();
+                    } else {
+                        $('.gallery-swipe-left', self.$el).show();
+                        $('.gallery-swipe-right', self.$el).show();
+                        $('.gallery', self.$el).show();
+                    }
+
                     if (socialButtons.length >= 1) {
                         socialButtons.empty();
                         buttons = new App.sharing.SocialButtons({model: self.model}).render().load().$el;
@@ -842,9 +852,46 @@ App.module('core', function (module, App) {
                     }
 
                     //TODO: template
-                    $('.info .title', self.$el).empty().html(product.title || product.name);
-                    $('.info .price', self.$el).empty().html(product.price);
-                    $('.info a.button', self.$el).attr('href', product.url);
+                    if (App.option('page').slug === 'swim-city') {
+                        $('.info .title', self.$el).empty().html(product.title || product.name);
+                        $('.info .price', self.$el).empty().html(product.price);
+                        $('.info a.button', self.$el).attr('href', product.url);
+                    } else if (App.option('page').slug === 'teetime') {
+                        $('.title', self.$el).empty().html(product.title || product.name);
+                        $('.price', self.$el).empty().html('USD: ' + product.price);
+                        $('.madewell-buttons .button', self.$el).attr('href', product.url);
+                        $('.description', self.$el).empty()
+                            .append('<div class="desc-title">Product Details</div>')
+                            .append('<p>' + product.description + '</p>');
+                    } else if (App.option('store').slug === 'gap') {
+                        $('.title', self.$el).empty().html(product.title || product.name);
+                        $('.gap-buttons .in-store.button', self.$el).attr('href', product.url);
+
+                        $('.price', self.$el).empty();
+                        if (product.sale_price) {
+                            $('.price', self.$el).addClass('sale')
+                                .append('<div class="strike inline">' + product.price + '</div>')
+                                .append(product.sale_price);
+                        } else {
+                            $('.price', self.$el).removeClass('sale')
+                                .append(product.price);
+                        }
+
+                        var description = (product.description || "");
+                        if (!description.match(/<li(?:.|\n)*?>/)) {
+                            var sentences = _.compact(description.split('.'));
+                            description = '<ul>'
+
+                            _.each(sentences, function(sentence) {
+                                description += '<li>' + sentence + '</li>';
+                            });
+
+                            description += '</ul>'
+                        }
+                        $('.description', self.$el).empty()
+                            .append('<div class="desc-title">Product Details</div>')
+                            .append(description);
+                    }
                });
 
                 // First image is always selected
@@ -914,11 +961,8 @@ App.module('core', function (module, App) {
                 $(document.body).addClass('no-scroll');
             }
 
-            // Hidious use of this option. Hopefully can refactor at the end of this week
-            if (App.option('disableMegaTiles')) {
-                $('img', this.$el).on('load', shrinkContainer(this.$el));
-                setTimeout(shrinkContainer(this.$el), 1);
-            }
+            $('img', this.$el).on('load', shrinkContainer(this.$el));
+            setTimeout(shrinkContainer(this.$el), 1);
         },
 
         'close': function () {
@@ -931,109 +975,6 @@ App.module('core', function (module, App) {
         }
     });
 
-    /**
-     * A Preview that is a Layout that includes PreviewContent within
-     * it's target region as well as the additional products that compromise
-     * the look in the related region.
-     *
-     * @constructor
-     * @type {Layout}
-     */
-    this.MegaPreviewContent = Marionette.Layout.extend({
-        'className': "shop-the-look",
-        'template': "#mega_tile_preview_template",
-        'templates': function () {
-            var templateRules = [
-                '#<%= options.store.slug %>_<%= data.template %>_mobile_mega_preview_template',
-                '#<%= data.template %>_mobile_mega_preview_template',
-                '#<%= options.store.slug %>_<%= data.template %>_mega_preview_template',
-                '#<%= data.template %>_mega_preview_template',
-                '#mobile_mega_tile_preview_template', // fallback
-                '#mega_tile_preview_template' // fallback
-            ];
-
-            if (!App.support.mobile()) {
-                // remove mobile templates if it isn't mobile, since they take
-                // higher precedence by default
-                templateRules = _.reject(templateRules,
-                    function (t) {
-                        return t.indexOf('mobile') >= 0;
-                    });
-            }
-            return templateRules;
-        },
-        'regions': {
-            'target': '.stl-target',
-            'related': '.stl-look'
-        },
-
-        'onBeforeRender': function () {
-            // Need to get an appropriate sized image
-            var image = $.extend(true, {},
-                this.model.get('defaultImage').attributes);
-            image = new App.core.Image(image);
-
-            if (App.support.mobile()) {
-                image.url = image.height($window.height());
-            } else {
-                image = image.height(App.utils.getViewportSized(true), true);
-            }
-
-            // templates use this as obj.image.url
-            this.model.set('image', image);
-        },
-
-        'onRender': function() {
-            var self = this,
-                model = new App.core.Tile(_.extend({},
-                    this.options.model.attributes)),
-                template = model.get('template'),
-                related,
-                ContentClass;
-
-            model = new App.core.Tile(model.attributes);
-
-            ContentClass = App.utils.findClass('PreviewContent',
-                model.get('template'), module.PreviewContent);
-
-           // Layout the focused image and related products
-            this.target.show(new ContentClass({
-                'model': model
-            }));
-
-            // Reverse price sort to push jewelerry et. al to the back
-            related = _.sortBy(model.get('tagged-products'), function (obj) {
-                return -1 * parseFloat((obj.price || '$0').substr(1), 10);
-            });
-            _.each(related, function (img) {
-                self.$('.stl-look').append(
-                    $('<img/>')
-                        .attr('src', img.images[0].get('url'))
-                        .click((function (view, self, cls, model) {
-                            function click () {
-                                // On click, change the focused image
-                                var related = _.filter(self.model.get('tagged-products').slice(0), function (product) {
-                                    return product.name != view.name;
-                                });
-                                related.unshift(view); // first image in related is always shown
-                                model.set('tagged-products', related);
-
-                                self.target.show(new ContentClass({
-                                    'model': model
-                                }));
-
-                                $(this).addClass('selected')
-                                       .siblings()
-                                       .removeClass('selected');
-                            }
-                            return click;
-                        })(img, self, ContentClass, model))
-                );
-            });
-            // First image is always selected
-            this.$('.stl-look').find('img').first().click();
-        }
-    });
 
     /**
      * Container view for a PreviewContent object.
@@ -1124,10 +1065,6 @@ App.module('core', function (module, App) {
                 contentOpts = {
                     'model': this.options.model
                 };
-
-            if (template == 'image' && related.length > 1 && !App.option('disableMegaTiles')) {
-                template = 'mega';
-            }
 
             ContentClass = App.utils.findClass('PreviewContent',
                 template, module.PreviewContent);
