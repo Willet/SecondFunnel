@@ -154,7 +154,7 @@
         }, 1000);
     </script>
     {% endif %}
-    <title>{{ page.name|default:"Voyage Privé" }}</title>
+    <title>Voyage Privé</title>
     <style type="text/css">
         /* out of necessity */
         .visible-xs.jumbotron { /* mobile hero */
@@ -202,14 +202,17 @@
         <script type="text/template" id="shopthelook_template">
             <div class="jumbotron"
                  style='background-image: url("<%= obj.defaultImage.width(1024) %>");
-                        background-position: center; height: 341px;'>
+                        background-position: center; height: 400px;'>
             </div>
             <div class="overlay">
                 <div class="title">
-                    <%= obj.title || obj.name %>
+                    <%- obj.title || obj.name %>
                 </div>
                 <div class="review">
-                    <%= obj.review_text %>
+                    <%- obj.review_text %>
+                </div>
+                <div class="details">
+                    <%= obj.details %>
                 </div>
             </div>
             {% if legal_copy %}
@@ -921,10 +924,22 @@
                 <div class="visible-md visible-lg jumbotron"></div>
                 <div class="overlay">
                     <div class="title">
-                        1001 bons plans week-ends en France et Europe
+                        {% if campaign.heading %}
+                            {{ campaign.heading }}
+                        {% else %}
+                            1001 bons plans week-ends en France et Europe
+                        {% endif %}
                     </div>
                     <div>
-                        La plus grande sélection de week-ends à prix canon pour partir aux ponts de mai ou après. Hôtels 2 à 4 en promotions sur toute la France et l’Europe, petits déjeuners inclus, avec ou sans vols. A partir de 10€/pers
+                        {% if campaign.subheading %}
+                            {{ campaign.subheading }}
+                        {% else %}
+                            La plus grande sélection de week-ends à prix canon
+                            pour partir aux ponts de mai ou après. Hôtels 2 à 4
+                            en promotions sur toute la France et l’Europe,
+                            petits déjeuners inclus, avec ou sans vols. A
+                            partir de 10€/pers
+                        {% endif %}
                     </div>
                 </div>
             </div>

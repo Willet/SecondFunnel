@@ -9,7 +9,7 @@ urlpatterns = patterns('',
     url(r'^healthcheck/$', lambda x: HttpResponse('OK', status=200)),
 
     # INTERNAL ADMIN
-    url(r'^admin/?', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/login/$', 'django.contrib.auth.views.login',
         {"template_name": 'admin/login.html'}),
 

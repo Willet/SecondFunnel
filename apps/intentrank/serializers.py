@@ -44,6 +44,7 @@ class ProductSerializer(IRSerializer):
             "url": obj.url,
             "price": obj.price,
             "description": obj.description,
+            "details": obj.details,
             "name": obj.name,
             "images": [image.to_json() for image in product_images],
         }
