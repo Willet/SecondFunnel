@@ -1,19 +1,17 @@
 # coding=utf-8
 import re
-from django.core.exceptions import ObjectDoesNotExist
 
-from apps.assets.models import Page, Product, Category
-
-from apps.scraper.scrapers import ProductCategoryScraper
 from selenium.common.exceptions import NoSuchElementException
+
+from apps.assets.models import Product
+from apps.scraper.scrapers import ProductCategoryScraper
 from apps.scraper.scrapers.scraper import ScraperException
 
 
 class VoyagePriveCategoryScraper(ProductCategoryScraper):
-    regexs = ['https?://www.officiel-des-vacances.com/week-end']
-
-    def parse_url(self, **kwargs):
-        return 'http://www.officiel-des-vacances.com/week-end'
+    feed = None  # subclasses will assign this variable
+    section_id = ''  # optional
+    category_name = ''  # if present, adds products to a category by this name
 
     def scrape(self, url, **kwargs):
         """Scrapes Voyage Prive.
@@ -21,9 +19,6 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
         In addition to scraping products from the store, this scraper adds
         and removes products from the 'week-end' page.
         """
-        store = self.store
-        page = store.pages.filter(url_slug='week-end')[0]
-        feed = page.feed
         # pre-sized cdn image
         image_url_gex = re.compile(r'(^https?://)?(www\.)?cdn\.officiel-des-vacances\.com/files/styles/product_\d+x\d+/public/product/(\w+\.jpg.*)')
 
@@ -41,8 +36,9 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
             sku = node.find_element_by_xpath('./id').text
 
             try:
-                if not u'10033' in node.find_element_by_xpath('./sections').text:
-                    continue  # this product is not a week-end trip
+                section_ids = node.find_element_by_xpath('./sections').text
+                if self.section_id and not self.section_id in section_ids:
+                    continue  # we don't scrape this section (category)
             except (AttributeError, NoSuchElementException):
                 continue  # no 'sections'
 
@@ -56,6 +52,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
 
             product.store = self.store
             product.name = node.find_element_by_xpath('./titre').text
+
             match = re.match(r"""(.+),?         # Name of product
                                  \s*            # Followed by 0 or more spaces
                                  (-\s*\d+%)     # Percentage of product off
@@ -92,11 +89,7 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 image_url = 'http://cdn.officiel-des-vacances.com/files/product/{0}'.format(match.groups()[2])
             images.append(image_url)
 
-        # if a 'week-end' category exists in the db, exploit it and limit scope
-        try:
-            page_products = Category.objects.get(name='week-end').products.all()
-        except ObjectDoesNotExist as err:
-            page_products = Product.objects.filter(store=store)
+        page_products = self.store.products.all()
 
         # after-the-fact processing
         for product in page_products:
@@ -105,7 +98,6 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 print "Product {0} no longer in stock!".format(product.sku)
                 product.in_stock = False
                 product.save()
-                feed.remove_product(product)
 
             if u"jusqu'à" in product.name or u"jusqu’à" in product.name:
                 product.name = product.name.replace(u"jusqu'à", '')
@@ -216,14 +208,43 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 product.save()
 
                 # currently assume all products are for this page
-                self._add_to_category(product, name='week-end')
+                if self.category_name:
+                    self._add_to_category(product, name=self.category_name)
 
-                # add a tile to the weekend feed
-                try:
-                    tile, p, _ = feed.add_product(product)
-                    tile.template = 'banner'
-                    tile.save()
-                except Exception as err:
-                    pass  # let other products be processed
+                if self.feed:
+                    # add a tile to the feed
+                    if product.in_stock:
+                        tile, p, _ = self.feed.add_product(product)
+                        tile.template = 'banner'
+                        tile.save()
+                    else:
+                        # if it's out, remove it; if it's not out,
+                        self.feed.remove_product(product)
 
                 yield {'product': product}
+
+
+class VoyagePriveWeekEndScraper(VoyagePriveCategoryScraper):
+    """Allocates a specific feed to the parent scraper, so it knows
+    where to auto-add products.
+    """
+    regexs = ['https?://www.officiel-des-vacances.com/week-end/?']
+    section_id = u'10033'
+    category_name = 'week-end'  # coincidentally same as the page name
+
+    def __init__(self, store):
+        super(VoyagePriveWeekEndScraper, self).__init__(store)
+        self.feed = self.store.pages.filter(url_slug='week-end')[0].feed
+
+
+class VoyagePriveSejourScraper(VoyagePriveCategoryScraper):
+    """Allocates a specific feed to the parent scraper, so it knows
+    where to auto-add products.
+    """
+    regexs = ['https?://www.officiel-des-vacances.com/sejour/?']
+    section_id = u'10029'
+    category_name = 'sejour'  # coincidentally same as the page name
+
+    def __init__(self, store):
+        super(VoyagePriveSejourScraper, self).__init__(store)
+        self.feed = self.store.pages.filter(url_slug='sejour')[0].feed
