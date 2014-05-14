@@ -483,12 +483,13 @@ App.module('core', function (module, App) {
                 console.debug('laying out initial results');
                 // If already have array just lay out, otherwise
                 // assume we have an a xmlhttprequest object
+                // (saved by a prefetch in campaign_config.html)
                 if ($.isArray(options.initialResults)) {
                     deferred = $.when(options.initialResults);
                 } else {
                     options.initialResults.onreadystatechange = function () {
                         // XMLHttpRequest.DONE on IE 9+ and other browsers; support for IE8
-                        if (this.readyState == 4 && this.status == 200) {
+                        if (this.readyState === 4 && this.status === 200) {
                             deferred.resolve(JSON.parse(this.response || this.responseText));
                         }
                     };

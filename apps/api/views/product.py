@@ -97,11 +97,8 @@ class StorePageProductCGHandler(StoreProductCGHandler):
         """get all the products in the feed, which is
         all the feed's tiles' products
         """
-        tiles = self.feed.tiles.all()
-        products = []
-        for tile in tiles:
-            products += tile.products.all()
-        return list(set(products))
+        return Product.objects.filter(tiles__in=self.feed.tiles.filter(
+            template='product'))
 
 
 class StorePageProductItemCGHandler(StoreProductItemCGHandler):
