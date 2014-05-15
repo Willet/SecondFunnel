@@ -21,6 +21,7 @@ from apps.scraper.scrapers import PinterestPinScraper, PinterestAlbumScraper
 from apps.scraper.scrapers import StyldByFilterScraper, StyldByPartnersScraper
 from apps.scraper.scrapers import STLScraper
 from apps.scraper.scrapers import BurberryCategoryScraper, BurberryProductScraper
+from apps.scraper.scrapers import ColumbiaCategoryScraper, ColumbiaProductScraper
 from apps.scraper.scrapers.scraper import ScraperException
 
 from . import __doc__
@@ -54,6 +55,8 @@ class Command(BaseCommand):
             NastygalProductScraper,
             BurberryCategoryScraper,
             BurberryProductScraper,
+            ColumbiaCategoryScraper,
+            ColumbiaProductScraper,
         ]
 
     def handle(self, *args, **kwargs):
@@ -147,7 +150,7 @@ class Command(BaseCommand):
                 scraper = self.get_scraper(url)(self.store)
 
             # if no scraper has been found, exit
-            if scraper is None:
+            if not scraper:
                 print('no scraper found for url - ' + url)
                 return
 
@@ -175,17 +178,17 @@ class Command(BaseCommand):
                         scraper_vars['values'].update(dictionary['values'])
                     self.run_scraper(**scraper_vars)
                 elif dictionary.get('content', None):
-                    print('\n' + str(dictionary.get('content').to_json()))
+                    print(u'\n' + unicode(dictionary.get('content').to_json()))
                 elif dictionary.get('product', None):
-                    print('\n' + str(dictionary.get('product').to_json()))
+                    print(u'\n' + unicode(dictionary.get('product').to_json()))
                 else:
                     print('bad scraper return, must return either a url or a model for a product or content')
 
-        except WebDriverException:
+        except WebDriverException as err:
             print('There was a problem with the webdriver')
             traceback.print_exc()
 
-        except BaseException:
+        except BaseException as err:
             # catches all exceptions so that if one detail scraper were to have an error
             # any content scraper that may have called it would keep working
             print('There was a problem while scraping ' + url)

@@ -88,6 +88,15 @@ class Scraper(object):
         except NoSuchElementException as err:
             return self.driver.find_elements_by_css_selector(selector)
 
+    def find(self, selector):
+        """Singular of this.select.
+        :raises NoSuchElementException
+        """
+        elements = self.select(selector)
+        if not elements:
+            raise NoSuchElementException(selector)
+        return elements[0]
+
 
 class ProductScraper(Scraper):
     def _get_product(self, url):

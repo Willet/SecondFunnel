@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, include, url
 from django.conf import settings
 from django.contrib import admin
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 
 admin.autodiscover()
 
@@ -9,7 +9,9 @@ urlpatterns = patterns('',
     url(r'^healthcheck/$', lambda x: HttpResponse('OK', status=200)),
 
     # INTERNAL ADMIN
+    url(r'^admin$', lambda x: HttpResponseRedirect("/admin/")),
     url(r'^admin/', include(admin.site.urls)),
+
     url(r'^accounts/login/$', 'django.contrib.auth.views.login',
         {"template_name": 'admin/login.html'}),
 
