@@ -836,13 +836,13 @@ App.module('core', function (module, App) {
                     App.utils.runWidgets(self);
 
                     if (product.images.length === 1) {
-                        $('.gallery-swipe-left', self.$el).hide();
-                        $('.gallery-swipe-right', self.$el).hide();
-                        $('.gallery', self.$el).hide();
+                        $('.gallery-swipe-left', self.$el).addClass('hide');
+                        $('.gallery-swipe-right', self.$el).addClass('hide');
+                        $('.gallery', self.$el).addClass('hide');
                     } else {
-                        $('.gallery-swipe-left', self.$el).show();
-                        $('.gallery-swipe-right', self.$el).show();
-                        $('.gallery', self.$el).show();
+                        $('.gallery-swipe-left', self.$el).removeClass('hide');
+                        $('.gallery-swipe-right', self.$el).removeClass('hide');
+                        $('.gallery', self.$el).removeClass('hide');
                     }
 
                     if (socialButtons.length >= 1) {
