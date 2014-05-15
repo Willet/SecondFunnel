@@ -50,6 +50,9 @@ def filter_tiles(fn):
         if exclude_set:
             tiles = tiles.exclude(id__in=exclude_set)
 
+        # tiles that have neither products nor content are blank tiles.
+        tiles = tiles.exclude(products__isnull=True, content__isnull=True)
+
         kwargs.update({
             'tiles': tiles,
         })

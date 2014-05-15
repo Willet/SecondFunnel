@@ -139,20 +139,6 @@
             </ul>
         </script>
 
-        <script type="text/template" id="mega_tile_preview_template">
-            <div class="stl-target"></div>
-            <hr>
-            <div class="text-centered desc-title">Shop The Look</div>
-            <br/>
-            <div class="stl-look"></div>
-            <hr>
-        </script>
-
-        <script type="text/template" id="mobile_mega_tile_preview_template">
-            <div class="stl-target"></div>
-            <div class="stl-look"></div>
-        </script>
-
         <script type="text/template" id="tap_indicator_template">
             +
             <div>
@@ -375,57 +361,69 @@
 
         <script type="text/template" id="image_preview_template">
             <% if (obj['tagged-products'].length) { %>
-            <% var product = obj['tagged-products'][0]; %>
-            <div class="image-with-tagged-products">
-                <div class="row">
-                    <div class="image middle cell capped-width">
-                        <img src="<%= obj.defaultImage.url %>" alt="image"/>
-                        <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
-                    </div>
-                    <div class="middle cell">
-                        <div class='title'><%= product.title || product.name %></div>
-                        <div class='red marker price'>USD: <%= product.price %></div>
-                        <hr>
-                        <div class="cell middle col-sm-6 col-md-6"> <!-- image-div -->
-                            <% if (product.images.length > 1 && App.support.mobile()) { %>
-                                <div class="main-image">
-                                    <span class="gallery-swipe-left gallery-related"></span>
-                                    <img class="main-image" src="<%= product.defaultImage.url %>" alt="related product"/>
-                                    <span class="gallery-swipe-right gallery-related"></span>
-                                </div>
-                            <% } else { %>
-                                <% if (product.images.length > 1) { %>
-                                <span class="gallery-swipe-left"></span>
-                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                                <span class="gallery-swipe-right"></span>
-                                <% } else { %>
-                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                                <% } %>
-                            <% } %>
-                            <% if (product.images.length > 1) { %>
-                                <div class='gallery dots'></div>
-                            <% } %>
+                <% var product = obj['tagged-products'][0]; %>
+                <div class="image-with-tagged-products">
+                    <div class="row">
+                        <div class="image middle cell capped-width">
+                            <img src="<%= obj.defaultImage.url %>" alt="image"/>
+                            <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                         </div>
-                        <div class="cell col-sm-6 col-md-6"> <!-- info -->
-                            <div class='description'>
-                                <div class='desc-title'>Product Details</div>
-                                <p><%= product.description %></p>
+                        <div class="middle cell">
+                            <div class='title'><%= product.title || product.name %></div>
+                            <div class='red marker price'>USD: <%= product.price %></div>
+                            <hr>
+                            <div class="cell middle col-sm-6 col-md-6"> <!-- image-div -->
+                                <% if (product.images.length > 1 && App.support.mobile()) { %>
+                                    <div class="main-image">
+                                        <span class="gallery-swipe-left gallery-related"></span>
+                                        <img class="main-image" src="<%= product.defaultImage.url %>" alt="related product"/>
+                                        <span class="gallery-swipe-right gallery-related"></span>
+                                    </div>
+                                <% } else { %>
+                                    <% if (product.images.length > 1) { %>
+                                    <span class="gallery-swipe-left"></span>
+                                    <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
+                                    <span class="gallery-swipe-right"></span>
+                                    <% } else { %>
+                                    <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
+                                    <% } %>
+                                <% } %>
+                                <% if (product.images.length > 1) { %>
+                                    <div class='gallery dots'></div>
+                                <% } %>
                             </div>
-                            <div>
-                                <div class="social-buttons"></div>
-                                <div class='spacer'></div>
-                            </div>
-                            <div class='madewell-buttons'>
-                                <a class='button show-now'
-                                   href='<%= product.url %>'
-                                   target='_blank'>
-                                    Shop Now
-                                </a>
+                            <div class="cell col-sm-6 col-md-6"> <!-- info -->
+                                <div class='description'>
+                                    <div class='desc-title'>Product Details</div>
+                                    <p><%= product.description %></p>
+                                </div>
+                                <div>
+                                    <div class="social-buttons"></div>
+                                    <div class='spacer'></div>
+                                </div>
+                                <div class='madewell-buttons'>
+                                    <a class='button show-now'
+                                       href='<%= product.url %>'
+                                       target='_blank'>
+                                        Shop Now
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+                <% if (obj['tagged-products'].length > 1) { %>
+                    <hr>
+                    <div class="text-centered desc-title">Shop The Look</div>
+                    <br/>
+                    <div class="stl-look">
+                        <% var related = obj['tagged-products'] %>
+                        <% for (var i = 0; i < related.length; i++) { %>
+                            <img class="stl-item" data-index="<%- i %>" src="<%- related[i].images[0].url %>" />
+                        <% } %>
+                    </div>
+                    <hr>
+                <% } %>
             <% } else { %>
             <div class="image-without-tagged-products">
                 <div class="row">

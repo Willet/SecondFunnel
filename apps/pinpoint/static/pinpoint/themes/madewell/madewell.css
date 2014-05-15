@@ -1096,7 +1096,7 @@ div.header {
         margin-bottom: 0px;
     }
 
-    .shop-the-look .stl-target img {
+    .stl-target img {
         width: auto;
     }
 
@@ -1104,11 +1104,11 @@ div.header {
         font-weight: normal;
     }
 
-    .shop-the-look .stl-target .image-with-tagged-products .cell.col-sm-6.col-md-6 .description {
+    .image-with-tagged-products .cell.col-sm-6.col-md-6 .description {
         min-height: 195px;
     }
 
-    .shop-the-look .stl-look {
+    .stl-look {
         overflow-x: auto;
         max-height: 110px;
         text-align: center;
@@ -1117,7 +1117,7 @@ div.header {
         padding-bottom: 10px;
     }
 
-    .shop-the-look .stl-look img {
+    .stl-look img {
         height: 99%;
         opacity: 0.7;
         width: inherit;
@@ -1125,15 +1125,15 @@ div.header {
         max-height: 100px;
     }
 
-    .shop-the-look .stl-look img.selected {
+    .stl-look img.selected {
         opacity: 1;
     }
 
-    .shop-the-look .stl-look img:hover {
+    .stl-look img:hover {
         opacity: 1;
     }
 
-    .shop-the-look .stl-look img:hover {
+    .stl-look img:hover {
         cursor: pointer;
     }
 }
