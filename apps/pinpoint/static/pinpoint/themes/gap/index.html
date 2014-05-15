@@ -645,7 +645,7 @@
                     <hr>
                     <div class="text-centered desc-title">Shop the Look</div>
                     <div class="stl-look">
-                        <% var related = obj['tagged-products'] %>
+                        <% var related = obj['tagged-products']; %>
                         <% for (var i = 0; i < related.length; i++) { %>
                             <img class="stl-item" data-index="<%- i %>" src="<%- related[i].images[0].url %>" />
                         <% } %>
