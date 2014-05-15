@@ -130,9 +130,8 @@ def hex_to_rgb(hex_color):
     :return tuple(red, green, blue)
     """
     hex_color = hex_color.lstrip('#')
-    hlen = len(hex_color)
 
-    hex_color = ''.join([x * 2 for x in hex_color]) if hlen == 3 else hex_color
+    hex_color = ''.join([x * 2 for x in hex_color]) if len(hex_color) == 3 else hex_color
     hlen = len(hex_color)
     color_length = hlen/3
     return tuple(int(hex_color[i:i+color_length], 16) for i in range(0, hlen, color_length))
