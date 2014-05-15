@@ -1,4 +1,5 @@
 import re
+import urlparse
 from selenium.common.exceptions import NoSuchElementException
 
 from apps.assets.models import Category
@@ -70,7 +71,13 @@ class ColumbiaCategoryScraper(ProductCategoryScraper):
         self.driver.get(url)
         print('loaded url ' + url)
 
-        while True:  # TODO: ">>"
+        num_pages = 1
+        for x in self.select('.pagination .pages a'):
+            if x.text.isdigit() and int(x.text) > num_pages:
+                num_pages = int(x.text)
+
+        # http://www.columbia.com/mens/men,default,sc.html?prefn1=collection&amp;prefv1=PFG&amp;start=24&amp;sz=24
+        while page_number <= num_pages:  # TODO: Check for ">>"
             category_name = self.select('#breadcrumb a')[1].text
             product_elems = self.select(".result-item")
             for product_elem in product_elems:
@@ -86,3 +93,13 @@ class ColumbiaCategoryScraper(ProductCategoryScraper):
 
             # next page, unless... no more pages
             page_number += 1
+            comps = urlparse.urlparse(url)
+
+            # paginate (up by 24)
+            url = urlparse.urlunparse((comps.scheme, comps.netloc, comps.path,
+                '',
+                'prefn1=collection&amp;prefv1={0}&amp;start={1}&amp;sz=24'.format(
+                    category_name.upper(), page_number * 24),
+                ''))
+            self.driver.get(url)
+            print('loaded url ' + url)
