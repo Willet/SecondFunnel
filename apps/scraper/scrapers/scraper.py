@@ -115,7 +115,7 @@ class ProductScraper(Scraper):
         if not (image.url and image.file_type):
             print('\nprocessing image - ' + original_url)
             data = process_image(original_url, create_image_path(self.store.id),
-                                 remove_background=remove_background, color=color)
+                                 remove_background=remove_background)
             image.url = data.get('url')
             image.file_type = data.get('format')
             image.dominant_color = data.get('dominant_colour')

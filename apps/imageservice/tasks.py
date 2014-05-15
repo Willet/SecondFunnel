@@ -108,7 +108,7 @@ def upload_to_s3(path, folder, img, size):
     return os.path.join(bucket, filename)
 
 
-def process_image(source, path='', sizes=None, remove_background=False, color=None):
+def process_image(source, path='', sizes=None, remove_background=False):
     """
     Acquires a lock in order to process the image.
 
@@ -122,7 +122,7 @@ def process_image(source, path='', sizes=None, remove_background=False, color=No
 
     PROCESSING_SEM.acquire()
     try:
-        data = process_image_now(source, path, remove_background=remove_background, color=color)
+        data = process_image_now(source, path, remove_background=remove_background)
     except Exception as e:
         # Need to ensure semaphore is released
         PROCESSING_SEM.release()
@@ -133,18 +133,18 @@ def process_image(source, path='', sizes=None, remove_background=False, color=No
     return data
 
 
-def process_image_now(source, path='', sizes=None, remove_background=False, color=None):
+def process_image_now(source, path='', sizes=None, remove_background=False):
     """
     Delegates to resize to create the necessary sizes.
 
     @param source: The source file
     @param path: The path to save the object to
     @param sizes: List of sizes to create
-    @param remove_background: Boolean whether to trim background
-    @param color: False, None, or a hexidecimal number representing a color
-        if False, will always remove background
-        if None, will remove background if background is uniform
-        if hex color, will remove background if within threshold of the color.
+    @param remove_background: options to remove background
+        - 'auto' - trim image regardless of colours
+        - 'uniform' - trim image if background is uniform
+        - '#colour' - trim image if background is colour (hex)
+        - False - don't trim background
     @return: object
     """
     if not sizes:
@@ -158,11 +158,11 @@ def process_image_now(source, path='', sizes=None, remove_background=False, colo
         upload_to_s3
 
     if getattr(settings, 'CLOUDINARY', None) is not None:
-        if remove_background:
-            if (color is False) or within_color_range(source, color, 4):  # if monotonic background
-                print "background removed"
-                image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
-                                                          format='jpg', effect='trim')  # trim background
+        color = None if remove_background == 'uniform' else remove_background
+        if (remove_background is not False) and ((remove_background == 'auto') or within_color_range(source, color, 4)):
+            print "background removed"
+            image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
+                                                      format='jpg', effect='trim')  # trim background
         else:
             image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
                                                       format='jpg')

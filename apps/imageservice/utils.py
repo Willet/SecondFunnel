@@ -120,19 +120,22 @@ def create_image_path(store_id, *args):
     return urlparse.urljoin("store", name, *args)
 
 
-def hex_to_rgb(hex):
+def hex_to_rgb(hex_color):
     """
     Turns the given hex code to rgb
 
     See http://codingsimplicity.com/2012/08/08/python-hex-code-to-rgb-value/ for details
 
-    :param hex: the given hex to convert
+    :param hex_color: the given hex to convert
     :return tuple(red, green, blue)
     """
-    hex = hex.lstrip('#')
-    hlen = len(hex)  # should be 6
+    hex_color = hex_color.lstrip('#')
+    hlen = len(hex_color)
+
+    hex_color = ''.join([x * 2 for x in hex_color]) if hlen == 3 else hex_color
+    hlen = len(hex_color)
     color_length = hlen/3
-    return tuple(int(hex[i:i+color_length], 16) for i in range(0, hlen, color_length))
+    return tuple(int(hex_color[i:i+color_length], 16) for i in range(0, hlen, color_length))
 
 
 def euclidean_distance(p1, p2):
@@ -184,9 +187,9 @@ def within_color_range(url, color, threshold):
             distance += euclidean_distance(color, point)
         distance /= 4
     else:
-        for a in range(5):
-            for b in range(a+1, 4):
-                distance += euclidean_distance(points[a], points[b])
+        for corner1 in range(5):
+            for corner2 in range(corner1+1, 4):
+                distance += euclidean_distance(points[corner1], points[corner2])
         distance /= 6
 
     return True if distance <= threshold else False
