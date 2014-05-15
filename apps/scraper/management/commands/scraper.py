@@ -149,11 +149,6 @@ class Command(BaseCommand):
             if scraper is None:
                 scraper = self.get_scraper(url)(self.store)
 
-            # if no scraper has been found, exit
-            if scraper is None:
-                print('no scraper found for url - ' + url)
-                return
-
             # retrieve the url for the driver to load
             url = scraper.parse_url(url=url, values=values)
 
@@ -178,17 +173,17 @@ class Command(BaseCommand):
                         scraper_vars['values'].update(dictionary['values'])
                     self.run_scraper(**scraper_vars)
                 elif dictionary.get('content', None):
-                    print('\n' + str(dictionary.get('content').to_json()))
+                    print(u'\n' + unicode(dictionary.get('content').to_json()))
                 elif dictionary.get('product', None):
-                    print('\n' + str(dictionary.get('product').to_json()))
+                    print(u'\n' + unicode(dictionary.get('product').to_json()))
                 else:
                     print('bad scraper return, must return either a url or a model for a product or content')
 
-        except WebDriverException:
+        except WebDriverException as err:
             print('There was a problem with the webdriver')
             traceback.print_exc()
 
-        except BaseException:
+        except BaseException as err:
             # catches all exceptions so that if one detail scraper were to have an error
             # any content scraper that may have called it would keep working
             print('There was a problem while scraping ' + url)
