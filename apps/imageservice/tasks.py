@@ -140,6 +140,11 @@ def process_image_now(source, path='', sizes=None, remove_background=False, colo
     @param source: The source file
     @param path: The path to save the object to
     @param sizes: List of sizes to create
+    @param remove_background: Boolean whether to trim background
+    @param color: False, None, or a hexidecimal number representing a color
+        if False, will always remove background
+        if None, will remove background if background is uniform
+        if hex color, will remove background if within threshold of the color.
     @return: object
     """
     if not sizes:
@@ -154,7 +159,7 @@ def process_image_now(source, path='', sizes=None, remove_background=False, colo
 
     if getattr(settings, 'CLOUDINARY', None) is not None:
         if remove_background:
-            if not color or within_color_range(source, color, 4):  # if monotonic background
+            if (color is False) or within_color_range(source, color, 4):  # if monotonic background
                 print "background removed"
                 image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
                                                           format='jpg', effect='trim')  # trim background
