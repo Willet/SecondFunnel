@@ -1,11 +1,10 @@
-from apps.scraper.scrapers.scraper import Scraper, ProductScraper, ProductDetailScraper, ProductCategoryScraper, \
-    ContentScraper, ContentDetailScraper, ContentCategoryScraper
+from apps.scraper.scrapers.scraper import Scraper, ProductScraper, ProductDetailScraper, ProductCategoryScraper, ContentScraper, ContentDetailScraper, ContentCategoryScraper
+from apps.scraper.scrapers.burberry.burberry_scraper import BurberryCategoryScraper, BurberryProductScraper
+from apps.scraper.scrapers.columbia.columbia_scraper import ColumbiaCategoryScraper, ColumbiaProductScraper
+from apps.scraper.scrapers.content.pinterest_scraper import PinterestPinScraper, PinterestAlbumScraper
 from apps.scraper.scrapers.gap.gap_stl_scraper import STLScraper
 from apps.scraper.scrapers.gap.gap_product_scrapers import GapProductScraper, GapCategoryScraper
-from apps.scraper.scrapers.madewell.madewell_product_scrapers import MadewellProductScraper, MadewellCategoryScraper, \
-    MadewellMultiProductScraper
-from apps.scraper.scrapers.voyage_prive.voyage_prive_scraper import VoyagePriveCategoryScraper, VoyagePriveWeekEndScraper, VoyagePriveSejourScraper
-from apps.scraper.scrapers.content.pinterest_scraper import PinterestPinScraper, PinterestAlbumScraper
 from apps.scraper.scrapers.gap.styldby_scraper import StyldByFilterScraper, StyldByPartnersScraper
+from apps.scraper.scrapers.madewell.madewell_product_scrapers import MadewellProductScraper, MadewellCategoryScraper, MadewellMultiProductScraper
 from apps.scraper.scrapers.nastygal.nastygal_product_scrapers import NastygalCategoryScraper, NastygalProductScraper
-from apps.scraper.scrapers.burberry.burberry_scraper import BurberryCategoryScraper, BurberryProductScraper
+from apps.scraper.scrapers.voyage_prive.voyage_prive_scraper import VoyagePriveCategoryScraper, VoyagePriveWeekEndScraper, VoyagePriveSejourScraper
