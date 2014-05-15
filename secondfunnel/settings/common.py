@@ -134,10 +134,10 @@ STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # Cloudinary ImageService settings
 CLOUDINARY_API_URL = "//api.cloudinary.com/v1_1/secondfunnel"
-CLOUDINARY_BASE_URL = "//res.cloudinary.com/tristan-test"
-CLOUDINARY_NAME = "tristan-test"
-CLOUDINARY_API_KEY = "644927293333599"
-CLOUDINARY_API_SECRET = "srI_oxhA1y3ODdreNAhlqxtkOd0"
+CLOUDINARY_BASE_URL = "//res.cloudinary.com/secondfunnel"
+CLOUDINARY_NAME = "secondfunnel"
+CLOUDINARY_API_KEY = "471718281466152"
+CLOUDINARY_API_SECRET = "_CR94qpFu7EGChMbwmc4xqCsbXo"
 CLOUDINARY = {
     'cloud_name': CLOUDINARY_NAME,
     'api_key': CLOUDINARY_API_KEY,
