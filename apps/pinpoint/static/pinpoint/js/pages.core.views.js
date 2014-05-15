@@ -852,18 +852,18 @@ App.module('core', function (module, App) {
                     }
 
                     //TODO: template
-                    if (App.option('page').slug === 'swim-city') {
+                    if (App.option('page:slug') === 'swim-city') {
                         $('.info .title', self.$el).empty().html(product.title || product.name);
                         $('.info .price', self.$el).empty().html(product.price);
                         $('.info a.button', self.$el).attr('href', product.url);
-                    } else if (App.option('page').slug === 'teetime') {
+                    } else if (App.option('page:slug') === 'teetime') {
                         $('.title', self.$el).empty().html(product.title || product.name);
                         $('.price', self.$el).empty().html('USD: ' + product.price);
                         $('.madewell-buttons .button', self.$el).attr('href', product.url);
                         $('.description', self.$el).empty()
                             .append('<div class="desc-title">Product Details</div>')
                             .append('<p>' + product.description + '</p>');
-                    } else if (App.option('store').slug === 'gap') {
+                    } else if (App.option('store:slug') === 'gap') {
                         $('.title', self.$el).empty().html(product.title || product.name);
                         $('.gap-buttons .in-store.button', self.$el).attr('href', product.url);
 
@@ -880,13 +880,13 @@ App.module('core', function (module, App) {
                         var description = (product.description || "");
                         if (!description.match(/<li(?:.|\n)*?>/)) {
                             var sentences = _.compact(description.split('.'));
-                            description = '<ul>'
+                            description = '<ul>';
 
                             _.each(sentences, function(sentence) {
                                 description += '<li>' + sentence + '</li>';
                             });
 
-                            description += '</ul>'
+                            description += '</ul>';
                         }
                         $('.description', self.$el).empty()
                             .append('<div class="desc-title">Product Details</div>')
