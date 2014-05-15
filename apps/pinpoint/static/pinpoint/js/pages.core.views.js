@@ -920,20 +920,42 @@ App.module('core', function (module, App) {
             var shrinkContainer = function (element) {
                     return function () {
                         var container = element.closest('.fullscreen'),
-                            reduction = $(window).height();
+                            heightReduction = $(window).height(),
+                            widthReduction = container.outerWidth(),
+                            left = parseInt(container.css('left').split('px')[0], 10),
+                            right = parseInt(container.css('right').split('px')[0], 10);
 
-                        reduction -= element.outerHeight();
-                        reduction -= $('.close', container).outerHeight();
-                        reduction -= 24; // Fudge factor TODO: Calculate this someshow
-                        reduction /= 2; // Split over top and bottom
+                        heightReduction -= element.outerHeight();
+                        heightReduction -= $('.close', container).outerHeight();
+                        heightReduction -= 24; // Fudge factor TODO: Calculate this someshow
+                        heightReduction /= 2; // Split over top and bottom
 
-                        if (reduction <= 0 || App.support.mobile()) {
-                            reduction = '0'; // String because jQuery checks for falsey values
+                        if (heightReduction <= 0 || App.support.mobile()) {
+                            heightReduction = '0'; // String because jQuery checks for falsey values
+                        }
+
+                        widthReduction -= $('.row', container).outerWidth();
+                        widthReduction /= 2;
+
+                        //Only large changes to prevent jitter
+                        if (widthReduction > 15 || widthReduction < -15) {
+                            left += widthReduction;
+                            right += widthReduction;
+                        }
+
+                        if (left <= 0 || App.support.mobile()) {
+                            left = '0';
+                        }
+
+                        if (right <= 0 || App.support.mobile()) {
+                            right = '0';
                         }
 
                         container.css({
-                            'top': reduction,
-                            'bottom': reduction
+                            'top': heightReduction,
+                            'bottom': heightReduction,
+                            'left': left,
+                            'right': right
                         });
                     };
                 };
@@ -961,8 +983,7 @@ App.module('core', function (module, App) {
                 $(document.body).addClass('no-scroll');
             }
 
-            $('img', this.$el).on('load', shrinkContainer(this.$el));
-            setTimeout(shrinkContainer(this.$el), 1);
+            $('.main-image, .image', this.$el).on('load', shrinkContainer(this.$el));
         },
 
         'close': function () {

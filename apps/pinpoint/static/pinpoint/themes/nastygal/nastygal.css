@@ -125,6 +125,7 @@
     text-align: center;
     overflow-y: auto;
     overflow-x: hidden;
+    white-space: nowrap;
 }
 
 .previewContainer .gallery.hidden {
@@ -135,7 +136,7 @@
     margin: 5px 0;
     height: auto;
     width: 82px;
-    display: block;
+    display: inline-block;
     opacity: 0.4;
     filter: alpha(opacity=40);
     cursor: pointer;
@@ -303,6 +304,10 @@
 }
 .previewContainer .main-image-container .gallery-swipe-right:hover {
     background-image: url('/static/pinpoint/themes/nastygal/images/right_arrow_grey.png');
+}
+
+.previewContainer .social-button-container {
+    margin-top: 20px;
 }
 
 .previewContainer .social-buttons .button {
