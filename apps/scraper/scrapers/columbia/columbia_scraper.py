@@ -29,7 +29,13 @@ class ColumbiaProductScraper(ProductDetailScraper):
             print "Product name not found!"
 
         try:
-            product.price = self.find('.price-index.regprice').text
+            if self.select('#member-price'):  # sale
+                product.price = self.find('.price-index.regprice').text
+                product.attributes.update({
+                    'sale_price': self.find('#member-price').text.replace('Now ', '')
+                })
+            else:  # no sale
+                product.price = self.find('.price-index.regprice').text
         except NoSuchElementException:
             print "Product price not found!"
 
@@ -81,15 +87,18 @@ class ColumbiaCategoryScraper(ProductCategoryScraper):
             category_name = self.select('#breadcrumb a')[1].text
             product_elems = self.select(".result-item")
             for product_elem in product_elems:
-                product_link_el = product_elem.find_element_by_css_selector('.prod-model a')
-                product_url = product_link_el.get_attribute('href')
-                product = self._get_product(product_url)
+                try:
+                    product_link_el = product_elem.find_element_by_css_selector('.prod-model a')
+                    product_url = product_link_el.get_attribute('href')
+                    product = self._get_product(product_url)
 
-                product.name = product_link_el.text
-                product.price = product_elem.find_element_by_css_selector('.price-index.regprice').text
-                print u"Scraping product '{}'...".format(product.name)
-                yield {'product': product, 'url': product_url, 'values': {
-                    'category': category_name}}
+                    product.name = product_link_el.text
+                    print u"Scraping product '{}'...".format(product.name)
+                    yield {'product': product, 'url': product_url, 'values': {
+                        'category': category_name}}
+                except:
+                    print "ERROR: Could not scrape {0}!".format(product_elem)
+                    continue
 
             # next page, unless... no more pages
             # paginate (up by 24)
