@@ -149,6 +149,11 @@ class Command(BaseCommand):
             if scraper is None:
                 scraper = self.get_scraper(url)(self.store)
 
+            # if no scraper has been found, exit
+            if not scraper:
+                print('no scraper found for url - ' + url)
+                return
+
             # retrieve the url for the driver to load
             url = scraper.parse_url(url=url, values=values)
 

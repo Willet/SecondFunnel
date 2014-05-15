@@ -77,7 +77,7 @@ class ColumbiaCategoryScraper(ProductCategoryScraper):
                 num_pages = int(x.text)
 
         # http://www.columbia.com/mens/men,default,sc.html?prefn1=collection&amp;prefv1=PFG&amp;start=24&amp;sz=24
-        while page_number <= num_pages:  # TODO: Check for ">>"
+        while page_number < num_pages:  # TODO: Check for ">>"
             category_name = self.select('#breadcrumb a')[1].text
             product_elems = self.select(".result-item")
             for product_elem in product_elems:
@@ -92,14 +92,13 @@ class ColumbiaCategoryScraper(ProductCategoryScraper):
                     'category': category_name}}
 
             # next page, unless... no more pages
-            page_number += 1
-            comps = urlparse.urlparse(url)
-
             # paginate (up by 24)
+            comps = urlparse.urlparse(url)
             url = urlparse.urlunparse((comps.scheme, comps.netloc, comps.path,
                 '',
-                'prefn1=collection&amp;prefv1={0}&amp;start={1}&amp;sz=24'.format(
+                'prefn1=collection&prefv1={0}&start={1}&sz=24'.format(
                     category_name.upper(), page_number * 24),
                 ''))
+            page_number += 1
             self.driver.get(url)
             print('loaded url ' + url)
