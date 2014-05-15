@@ -47,6 +47,10 @@ a, a:hover, a:focus {
     font-weight: bold;
 }
 
+.hide {
+    display: none;
+}
+
 .text-centered {
     text-align: center;
 }
@@ -415,6 +419,7 @@ div.loading {
     left: 0;
     right: 0;
     z-index: 101;
+    text-align: center;
 
     /* Force repaint */
     -webkit-animation: noop 1s infinite;

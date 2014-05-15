@@ -91,9 +91,14 @@
     max-height: none;
 }
 
+.previewContainer .row {
+    display: inline-block;
+}
+
 .previewContainer .content {
     padding-top: 43px;
     box-shadow: 0px 10px 30px 0px #000;
+    border: none;
 }
 
 .previewContainer .mask {
@@ -155,7 +160,7 @@
     overflow: hidden;
 }
 .previewContainer .info.image {
-    padding-left: 0;
+    padding-left: 10px;
 }
 
 .previewContainer .info .title {
