@@ -1,5 +1,4 @@
 import copy
-from scrapy.http import HtmlResponse
 from scrapy.spider import Spider
 from scrapy.utils.spider import iterate_spider_output
 from scrapy_webdriver.http import WebdriverRequest, WebdriverResponse

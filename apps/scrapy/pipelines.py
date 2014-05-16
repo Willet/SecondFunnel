@@ -3,8 +3,8 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from scrapy.contrib.pipeline.images import ImagesPipeline
-from scrapy.exceptions import NotConfigured
-from experiment.scraper.utils import item_to_model, get_or_create, update_model, CloudinaryStore, spider_pipelined
+from apps.scrapy.utils import CloudinaryStore, spider_pipelined, \
+    item_to_model, get_or_create, update_model
 
 
 class CloudinaryPipeline(ImagesPipeline):

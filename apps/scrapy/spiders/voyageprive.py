@@ -1,7 +1,7 @@
 from scrapy.contrib.spiders import XMLFeedSpider
 from scrapy.http import Request
 from scrapy.selector import Selector
-from experiment.scraper.items import ScraperProduct
+from apps.scrapy.items import ScraperProduct
 
 
 class VoyagePriveScraper(XMLFeedSpider):

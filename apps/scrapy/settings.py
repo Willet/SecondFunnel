@@ -6,10 +6,13 @@
 #     http://doc.scrapy.org/en/latest/topics/settings.html
 #
 
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'secondfunnel.settings.dev'
+
 BOT_NAME = 'scraper'
 
-SPIDER_MODULES = ['scraper.spiders']
-NEWSPIDER_MODULE = 'scraper.spiders'
+SPIDER_MODULES = ['apps.scrapy.spiders']
+NEWSPIDER_MODULE = 'apps.scrapy.spiders'
 
 DOWNLOAD_HANDLERS = {
     'http': 'scrapy_webdriver.download.WebdriverDownloadHandler',
@@ -33,9 +36,9 @@ WEBDRIVER_OPTIONS = {
 
 ITEM_PIPELINES = {
     #'scrapy.contrib.pipeline.images.ImagesPipeline': 1,
-    'experiment.scraper.pipelines.CloudinaryPipeline': 1,
-    'experiment.scraper.pipelines.PricePipeline': 2,
-    #'experiment.scraper.pipelines.ItemPersistencePipeline': 999
+    'apps.scrapy.pipelines.CloudinaryPipeline': 1,
+    'apps.scrapy.pipelines.PricePipeline': 2,
+    #'apps.scrapy.pipelines.ItemPersistencePipeline': 999
 }
 # Image storage information here:
 #   http://doc.scrapy.org/en/latest/topics/images.html#images-storage
@@ -45,13 +48,9 @@ IMAGES_STORE = '/Users/nterwoord/Code/ScrapyExperiment'
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'scraper (+http://www.yourdomain.com)'
 
-# import cloudinary
-# cloudinary.config(
-#     cloud_name = 'secondfunnel',
-#     api_key = '471718281466152',
-#     api_secret = '_CR94qpFu7EGChMbwmc4xqCsbXo'
-# )
-
-
-#import os
-#os.environ['DJANGO_SETTINGS_MODULE'] = 'secondfunnel.settings.dev'
+import cloudinary
+cloudinary.config(
+    cloud_name = 'secondfunnel',
+    api_key = '471718281466152',
+    api_secret = '_CR94qpFu7EGChMbwmc4xqCsbXo'
+)
