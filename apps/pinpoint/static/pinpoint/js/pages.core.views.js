@@ -851,7 +851,8 @@ App.module('core', function (module, App) {
                     var $this = $(this),
                         index = $this.data('index'),
                         product = self.model.get('tagged-products')[index],
-                        productModel = new App.core.Product(product);
+                        productModel = new App.core.Product(product),
+                        key;
 
                     $this.addClass('selected').siblings().removeClass('selected');
                     App.options['galleryIndex'] = index;
@@ -874,25 +875,14 @@ App.module('core', function (module, App) {
                         socialButtons.append(buttons);
                     }
 
-                    self.price.show(new App.core.ProductInfoView({
-                        model: productModel,
-                        infoItem: 'price'
-                    }));
-
-                    self.title.show(new App.core.ProductInfoView({
-                        model: productModel,
-                        infoItem: 'title'
-                    }));
-
-                    self.buy.show(new App.core.ProductInfoView({
-                        model: productModel,
-                        infoItem: 'buy'
-                    }));
-
-                    self.description.show(new App.core.ProductInfoView({
-                        model: productModel,
-                        infoItem: 'description'
-                    }));
+                    for (key in self.regions) {
+                        if (self.regions.hasOwnProperty(key)) {
+                            self[key].show(new App.core.ProductInfoView({
+                                model: productModel,
+                                infoItem: key
+                            }));
+                        }
+                    }
                });
 
                 // First image is always selected
@@ -960,30 +950,20 @@ App.module('core', function (module, App) {
                         });
                     };
                 },
-                product;
+                product,
+                key;
 
             if (this.model.get('tagged-products')) {
                 product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
 
-                this.price.show(new App.core.ProductInfoView({
-                    model: product,
-                    infoItem: 'price'
-                }));
-
-                this.title.show(new App.core.ProductInfoView({
-                    model: product,
-                    infoItem: 'title'
-                }));
-
-                this.buy.show(new App.core.ProductInfoView({
-                    model: product,
-                    infoItem: 'buy'
-                }));
-
-                this.description.show(new App.core.ProductInfoView({
-                    model: product,
-                    infoItem: 'description'
-                }));
+                for (key in this.regions) {
+                    if (this.regions.hasOwnProperty(key)) {
+                        this[key].show(new App.core.ProductInfoView({
+                            model: product,
+                            infoItem: key
+                        }));
+                    }
+                }
             }
             /*
             NOTE: Previously, it was thought that adding `no-scroll`
