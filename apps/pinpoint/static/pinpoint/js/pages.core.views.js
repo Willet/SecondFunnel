@@ -845,14 +845,12 @@ App.module('core', function (module, App) {
                 socialButtons.append(buttons);
             }
 
-            /* TODO clean this up */
             if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1) {
                this.$('.stl-look .stl-item').on('click', function () {
                     var $this = $(this),
                         index = $this.data('index'),
                         product = self.model.get('tagged-products')[index],
-                        productModel = new App.core.Product(product),
-                        key;
+                        productModel = new App.core.Product(product);
 
                     $this.addClass('selected').siblings().removeClass('selected');
                     App.options['galleryIndex'] = index;
@@ -875,14 +873,7 @@ App.module('core', function (module, App) {
                         socialButtons.append(buttons);
                     }
 
-                    for (key in self.regions) {
-                        if (self.regions.hasOwnProperty(key)) {
-                            self[key].show(new App.core.ProductInfoView({
-                                model: productModel,
-                                infoItem: key
-                            }));
-                        }
-                    }
+                    self.renderSubregions(productModel);
                });
 
                 // First image is always selected
@@ -890,7 +881,6 @@ App.module('core', function (module, App) {
                     $(this).find('.stl-item').first().click();
                 });
             }
-            /* END TODO */
 
             // hide discovery, then show this window as a page.
             if (App.support.mobile()) {
@@ -950,20 +940,11 @@ App.module('core', function (module, App) {
                         });
                     };
                 },
-                product,
-                key;
+                product;
 
             if (this.model.get('tagged-products')) {
                 product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
-
-                for (key in this.regions) {
-                    if (this.regions.hasOwnProperty(key)) {
-                        this[key].show(new App.core.ProductInfoView({
-                            model: product,
-                            infoItem: key
-                        }));
-                    }
-                }
+                this.renderSubregions(product);
             }
             /*
             NOTE: Previously, it was thought that adding `no-scroll`
@@ -999,6 +980,19 @@ App.module('core', function (module, App) {
             }
 
             App.options['galleryIndex'] = 0;
+        },
+
+        'renderSubregions': function (product) {
+            var key;
+
+            for (key in this.regions) {
+                if (this.regions.hasOwnProperty(key)) {
+                    this[key].show(new App.core.ProductInfoView({
+                        model: product,
+                        infoItem: key
+                    }));
+                }
+            }
         }
     });
 
