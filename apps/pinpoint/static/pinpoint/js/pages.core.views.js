@@ -177,7 +177,20 @@ App.module('core', function (module, App) {
         },
 
         'onClick': function (ev) {
-            var tile = this.model;
+            var tile = this.model, url;
+
+            if (App.option('openTileInPopup', false)) {
+                if (tile.get('template') === 'product') {
+                    url = tile.get('url');
+                } else if (tile.get('tagged-products') &&
+                           tile.get('tagged-products').length) {
+                    url = tile.get('tagged-products')[0].url;
+                }
+                if (url && url.length) {
+                    window.open(url, '_blank');
+                }
+                return;
+            }
 
             // Tile is a banner tile
             if (tile.get('redirect-url') &&
