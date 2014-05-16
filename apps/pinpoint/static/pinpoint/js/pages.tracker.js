@@ -530,7 +530,7 @@ App.module("tracker", function (tracker, App) {
             });
         },
 
-        "click .hero-area a": function (ev) {
+        "click #hero-area a": function (ev) {
             var link = $(this).attr('href');
             trackEvent({
                 'category': 'Hero Area',
