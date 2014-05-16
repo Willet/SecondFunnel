@@ -156,6 +156,23 @@
             </div>
         </script>
 
+        <script type="text/template" id="product_price_template">
+            <%- obj.price %>
+        </script>
+
+        <script type="text/template" id="product_title_template">
+            <%- obj.title || obj.name %>
+        </script>
+
+        <script type="text/template" id="product_buy_template">
+            <a class='button' href='<%= obj.url %>' target='_blank'>
+                <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
+                <div class="inline">
+                    SHOP NOW
+                </div>
+            </a>
+        </script>
+
         <script type="text/template" id="product_preview_template">
             <!-- any (store.name)_(type)_... templates will be used in place
              of default templates if they exist. -->
@@ -242,23 +259,9 @@
                             <% } %>
                         </div>
                         <div class="middle cell info image">
-                            <div class='title'><%= product.title || product.name %></div>
-                            <div class='price<% if (product.sale_price) { %> sale<% } %>'>
-                                <% if (product.sale_price) { %>
-                                    <div class="strike inline">
-                                        <%- product.price %>
-                                    </div>
-                                    <%- product.sale_price %>
-                                <% } else { %>
-                                    <%- product.price %>
-                                <% } %>
-                            </div>
-                            <a class='button' href='<%= product.url %>' target='_blank'>
-                                <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
-                                <div class="inline">
-                                    SHOP NOW
-                                </div>
-                            </a>
+                            <div class='title'></div>
+                            <div class='price'></div>
+                            <div class='buy'></div>
                             <div class='main-image-container'>
                                 <div class="gallery-swipe-left"></div>
                                 <div class="gallery-swipe-right"></div>

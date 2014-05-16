@@ -756,15 +756,32 @@ App.module('core', function (module, App) {
         }
     });
 
+
+    this.ProductPriceView = Marionette.ItemView.extend({
+        'template': '#product_price_template'
+    });
+
+    this.ProductTitleView = Marionette.ItemView.extend({
+        'template': '#product_title_template'
+    });
+
+    this.ProductBuyView = Marionette.ItemView.extend({
+        'template': '#product_buy_template'
+    });
+
+    this.ProductDescriptionView = Marionette.ItemView.extend({
+        'template': '#product_description_template'
+    });
+
     /**
      * Contents inside a PreviewWindow.
      * Content is displayed using a cascading level of templates, which
      * increases in specificity.
      *
      * @constructor
-     * @type {ItemView}
+     * @type {Layout}
      */
-    this.PreviewContent = Marionette.ItemView.extend({
+    this.PreviewContent = Marionette.Layout.extend({
         'template': '#tile_preview_template',
         'templates': function () {
             var templateRules = [
@@ -788,6 +805,13 @@ App.module('core', function (module, App) {
                     });
             }
             return templateRules;
+        },
+
+        'regions': {
+            price: '.price',
+            title: '.title',
+            buy: '.buy',
+            description: '.description'
         },
 
         'onBeforeRender': function () {
@@ -828,7 +852,8 @@ App.module('core', function (module, App) {
                this.$('.stl-look .stl-item').on('click', function () {
                     var $this = $(this),
                         index = $this.data('index'),
-                        product = self.model.get('tagged-products')[index];
+                        product = self.model.get('tagged-products')[index],
+                        productModel = new App.core.Product(product);
 
                     $this.addClass('selected').siblings().removeClass('selected');
                     App.options['galleryIndex'] = index;
@@ -851,47 +876,21 @@ App.module('core', function (module, App) {
                         socialButtons.append(buttons);
                     }
 
-                    //TODO: template
-                    if (App.option('page:slug') === 'swim-city') {
-                        $('.info .title', self.$el).empty().html(product.title || product.name);
-                        $('.info .price', self.$el).empty().html(product.price);
-                        $('.info a.button', self.$el).attr('href', product.url);
-                    } else if (App.option('page:slug') === 'teetime') {
-                        $('.title', self.$el).empty().html(product.title || product.name);
-                        $('.price', self.$el).empty().html('USD: ' + product.price);
-                        $('.madewell-buttons .button', self.$el).attr('href', product.url);
-                        $('.description', self.$el).empty()
-                            .append('<div class="desc-title">Product Details</div>')
-                            .append('<p>' + product.description + '</p>');
-                    } else if (App.option('store:slug') === 'gap') {
-                        $('.title', self.$el).empty().html(product.title || product.name);
-                        $('.gap-buttons .in-store.button', self.$el).attr('href', product.url);
+                    self.price.show(new App.core.ProductPriceView({
+                        model: productModel
+                    }));
 
-                        $('.price', self.$el).empty();
-                        if (product.sale_price) {
-                            $('.price', self.$el).addClass('sale')
-                                .append('<div class="strike inline">' + product.price + '</div>')
-                                .append(product.sale_price);
-                        } else {
-                            $('.price', self.$el).removeClass('sale')
-                                .append(product.price);
-                        }
+                    self.title.show(new App.core.ProductTitleView({
+                        model: productModel
+                    }));
 
-                        var description = (product.description || "");
-                        if (!description.match(/<li(?:.|\n)*?>/)) {
-                            var sentences = _.compact(description.split('.'));
-                            description = '<ul>';
+                    self.buy.show(new App.core.ProductBuyView({
+                        model: productModel
+                    }));
 
-                            _.each(sentences, function(sentence) {
-                                description += '<li>' + sentence + '</li>';
-                            });
-
-                            description += '</ul>';
-                        }
-                        $('.description', self.$el).empty()
-                            .append('<div class="desc-title">Product Details</div>')
-                            .append(description);
-                    }
+                    self.description.show(new App.core.ProductDescriptionView({
+                        model: productModel
+                    }));
                });
 
                 // First image is always selected
@@ -958,7 +957,28 @@ App.module('core', function (module, App) {
                             'right': right
                         });
                     };
-                };
+                },
+                product;
+
+            if (this.model.get('tagged-products')) {
+                product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
+
+                this.price.show(new App.core.ProductPriceView({
+                    model: product
+                }));
+
+                this.title.show(new App.core.ProductTitleView({
+                    model: product
+                }));
+
+                this.buy.show(new App.core.ProductBuyView({
+                    model: product
+                }));
+
+                this.description.show(new App.core.ProductDescriptionView({
+                    model: product
+                }));
+            }
             /*
             NOTE: Previously, it was thought that adding `no-scroll`
             to android devices was OK, because no problems were observed
