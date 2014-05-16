@@ -177,7 +177,6 @@
     font-size: 28px;
     font-style: italic;
     font-family: times,serif;
-    margin-bottom: 20px;
 }
 .previewContainer .info.image .price {
     font-size: 25px;
@@ -222,7 +221,7 @@
     max-height: none;
     white-space: normal;
     padding-bottom: 0;
-    width: 200px;
+    width: 160px;
     display: block;
 }
 .previewContainer .landscape .stl-look {
