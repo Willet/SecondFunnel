@@ -190,23 +190,9 @@
                     </div>
                 <% } %>
                 <div class='cell middle info'>
-                    <div class='title'><%= obj.title || obj.name %></div>
-                    <div class='price<% if (obj.sale_price) { %> sale<% } %>'>
-                        <% if (obj.sale_price) { %>
-                            <div class="strike inline">
-                                <%- obj.price %>
-                            </div>
-                            <%- obj.sale_price %>
-                        <% } else { %>
-                            <%- obj.price %>
-                        <% } %>
-                    </div>
-                    <a class='button' href='<%= obj.url %>' target='_blank'>
-                        <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
-                        <div class="inline">
-                            SHOP NOW
-                        </div>
-                    </a>
+                    <div class='title'></div>
+                    <div class='price'></div>
+                    <div class='buy'></div>
                     <% if (!App.support.mobile()) { %>
                         <div class="gallery"></div>
                         <div class="social-button-container">

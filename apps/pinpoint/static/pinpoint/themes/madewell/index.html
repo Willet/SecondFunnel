@@ -252,10 +252,8 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <!-- any (store.name)_(type)_... templates will be used in place
-             of default templates if they exist. -->
-            <div class='title'><%= obj.title || obj.name %></div>
-            <div class='red marker price'>USD: <%= obj.price %></div>
+            <div class='title'></div>
+            <div class='red marker price'></div>
             <hr>
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
@@ -273,22 +271,12 @@
                     <% } %>
                 </div>
                 <div class='cell info col-sm-6 col-md-6'>
-                    <div class='description'>
-                        <div class='desc-title'>Product Details</div>
-                        <p><%= obj.description %></p>
-                        </ul>
-                    </div>
+                    <div class='description'></div>
                     <div>
                         <div class="social-buttons"></div>
                         <div class='spacer'></div>
                     </div>
-                    <div class='madewell-buttons'>
-                        <a class='button show-now'
-                           href='<%= obj.url %>'
-                           target='_blank'>
-                            Shop Now
-                        </a>
-                    </div>
+                    <div class='buy madewell-buttons'></div>
                 </div>
             </div>
         </script>
@@ -313,23 +301,10 @@
                         <div class='gallery'></div>
                     <% } %>
                 </div>
-                <div class="title">
-                    <%- obj.title || obj.name %>
-                </div>
-                <div>
-                    USD: <%- obj.price %>
-                </div>
-                <a href='<%- obj.url %>' target="_blank">
-                    <div class="button">
-                        shop on Madewell.com
-                    </div>
-                </a>
-                <div class="bold">
-                    Product Details:
-                </div>
-                <div>
-                    <%= obj.description %>
-                </div>
+                <div class="title"></div>
+                <div class="price"></div>
+                <div class="buy"></div>
+                <div class="description"></div>
             </div>
         </script>
 

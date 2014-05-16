@@ -942,10 +942,13 @@ App.module('core', function (module, App) {
                 },
                 product;
 
-            if (this.model.get('tagged-products')) {
+            if (this.model.get('tagged-products') && this.model.get('tagged-products').length) {
                 product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
                 this.renderSubregions(product);
+            } else if (this.model.get('template', '') === 'product') {
+                this.renderSubregions(this.model);
             }
+
             /*
             NOTE: Previously, it was thought that adding `no-scroll`
             to android devices was OK, because no problems were observed
