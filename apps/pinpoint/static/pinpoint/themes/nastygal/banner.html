@@ -5,11 +5,15 @@
     {% include "pinpoint/campaign_head.html" %}
     <link rel="stylesheet"
           href="{% static 'pinpoint/themes/nastygal/nastygal.css' %}"/>
+    <style>
+        body, #discovery-area {
+            overflow: hidden;
+        }
+    </style>
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
         window.OPTIMIZER_TESTS = [];
     </script>
-    <title>{{ page.name|default:"Nasty Gal" }}</title>
 </head>
 <body>
     {% include "pinpoint/campaign_body.html" %}
