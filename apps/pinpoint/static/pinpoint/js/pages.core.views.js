@@ -757,20 +757,18 @@ App.module('core', function (module, App) {
     });
 
 
-    this.ProductPriceView = Marionette.ItemView.extend({
-        'template': '#product_price_template'
-    });
+    this.ProductInfoView = Marionette.ItemView.extend({
+        'initialize': function (options) {
+            if (!options.infoItem) {
+                throw new Error('infoItem is a required property');
+            }
 
-    this.ProductTitleView = Marionette.ItemView.extend({
-        'template': '#product_title_template'
-    });
+            this.options = options;
+        },
 
-    this.ProductBuyView = Marionette.ItemView.extend({
-        'template': '#product_buy_template'
-    });
-
-    this.ProductDescriptionView = Marionette.ItemView.extend({
-        'template': '#product_description_template'
+        'getTemplate': function () {
+            return '#product_' + this.options.infoItem + '_template';
+        },
     });
 
     /**
@@ -876,20 +874,24 @@ App.module('core', function (module, App) {
                         socialButtons.append(buttons);
                     }
 
-                    self.price.show(new App.core.ProductPriceView({
-                        model: productModel
+                    self.price.show(new App.core.ProductInfoView({
+                        model: productModel,
+                        infoItem: 'price'
                     }));
 
-                    self.title.show(new App.core.ProductTitleView({
-                        model: productModel
+                    self.title.show(new App.core.ProductInfoView({
+                        model: productModel,
+                        infoItem: 'title'
                     }));
 
-                    self.buy.show(new App.core.ProductBuyView({
-                        model: productModel
+                    self.buy.show(new App.core.ProductInfoView({
+                        model: productModel,
+                        infoItem: 'buy'
                     }));
 
-                    self.description.show(new App.core.ProductDescriptionView({
-                        model: productModel
+                    self.description.show(new App.core.ProductInfoView({
+                        model: productModel,
+                        infoItem: 'description'
                     }));
                });
 
@@ -963,20 +965,24 @@ App.module('core', function (module, App) {
             if (this.model.get('tagged-products')) {
                 product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
 
-                this.price.show(new App.core.ProductPriceView({
-                    model: product
+                this.price.show(new App.core.ProductInfoView({
+                    model: product,
+                    infoItem: 'price'
                 }));
 
-                this.title.show(new App.core.ProductTitleView({
-                    model: product
+                this.title.show(new App.core.ProductInfoView({
+                    model: product,
+                    infoItem: 'title'
                 }));
 
-                this.buy.show(new App.core.ProductBuyView({
-                    model: product
+                this.buy.show(new App.core.ProductInfoView({
+                    model: product,
+                    infoItem: 'buy'
                 }));
 
-                this.description.show(new App.core.ProductDescriptionView({
-                    model: product
+                this.description.show(new App.core.ProductInfoView({
+                    model: product,
+                    infoItem: 'description'
                 }));
             }
             /*
