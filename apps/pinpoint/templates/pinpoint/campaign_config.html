@@ -85,7 +85,7 @@
             'projectId': '{{ keen_io.projectId }}',
             'writeKey': '{{ keen_io.writeKey }}'
         }
-        , 'openTileInPopup': {{ campaign.open_tile_in_popup|lower|safe|default:"false" }}
+        , 'openTileInPopup': {{ campaign.open_tile_in_popup|default:"false"|lower|safe }}
         // number of viewports worth of results to keep below the page.
         // 0 is not an acceptable value, but 0.0001 is. default is 2.5,
         // i.e. there will always be two pages worth of results
