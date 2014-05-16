@@ -34,6 +34,7 @@ WEBDRIVER_OPTIONS = {
     ]
 }
 
+# http://doc.scrapy.org/en/latest/topics/item-pipeline.html#activating-an-item-pipeline-component
 ITEM_PIPELINES = {
     #'scrapy.contrib.pipeline.images.ImagesPipeline': 1,
     'apps.scrapy.pipelines.CloudinaryPipeline': 1,
