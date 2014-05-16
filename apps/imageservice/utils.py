@@ -120,6 +120,23 @@ def create_image_path(store_id, *args):
     return urlparse.urljoin("store", name, *args)
 
 
+def hex_to_rgb(hex_color):
+    """
+    Turns the given hex code to rgb
+
+    See http://codingsimplicity.com/2012/08/08/python-hex-code-to-rgb-value/ for details
+
+    :param hex_color: the given hex to convert
+    :return tuple(red, green, blue)
+    """
+    hex_color = hex_color.lstrip('#')
+
+    hex_color = ''.join([x * 2 for x in hex_color]) if len(hex_color) == 3 else hex_color
+    hlen = len(hex_color)
+    color_length = hlen/3
+    return tuple(int(hex_color[i:i+color_length], 16) for i in range(0, hlen, color_length))
+
+
 def euclidean_distance(p1, p2):
     """
     Returns the Euclidean distance between two points.
@@ -130,6 +147,51 @@ def euclidean_distance(p1, p2):
     """
     s = sum(list((p1.coords[i] - p2.coords[i]) ** 2 for i in range(p1.n)))
     return math.sqrt(s)
+
+
+def within_color_range(url, color, threshold):
+    """
+    Uses cloudinary to determine if an image's background border is
+    within a given color threshold. If color is None, will check if
+    background is uniform.
+
+    @param url: the location of the image file
+    @param color: string containing the color
+    @param threshold: int, amount average distance between colors must be less than
+    @return boolean
+    """
+    nw_corner = cloudinary.uploader.upload(url, width=1, height=1,
+                                           crop='crop', gravity='north_west',
+                                           tags=['to_delete'], colors=True)["colors"]
+    ne_corner = cloudinary.uploader.upload(url, width=1, height=1,
+                                           crop='crop', gravity='north_east',
+                                           tags=['to_delete'], colors=True)["colors"]
+    se_corner = cloudinary.uploader.upload(url, width=1, height=1,
+                                           crop='crop', gravity='south_east',
+                                           tags=['to_delete'], colors=True)["colors"]
+    sw_corner = cloudinary.uploader.upload(url, width=1, height=1,
+                                           crop='crop', gravity='south_west',
+                                           tags=['to_delete'], colors=True)["colors"]
+
+    cloudinary.api.delete_resources_by_tag("to_delete")  # delete corners just uploaded
+
+    points = [Point(hex_to_rgb(nw_corner[0][0]), 3, 0), Point(hex_to_rgb(ne_corner[0][0]), 3, 0),
+              Point(hex_to_rgb(se_corner[0][0]), 3, 0), Point(hex_to_rgb(sw_corner[0][0]), 3, 0)]
+
+    distance = 0
+
+    if color:
+        color = Point(hex_to_rgb(color), 3, 0)
+        for point in points:
+            distance += euclidean_distance(color, point)
+        distance /= 4
+    else:
+        for corner1 in range(5):
+            for corner2 in range(corner1+1, 4):
+                distance += euclidean_distance(points[corner1], points[corner2])
+        distance /= 6
+
+    return True if distance <= threshold else False
 
 
 def get_dominant_color(img, cluster_count=5, minimum_difference=1.0):

@@ -72,8 +72,10 @@ def campaign_by_slug(request, page_slug, product_identifier='id',
         page_kwargs['store'] = store
 
     try:
-        page = Page.objects.get(**page_kwargs)
-    except Page.DoesNotExist:
+        # if someone creates two pages with the same name (which was allowed
+        # for whatever reason), pick the newest one instead of fixing the schema.
+        page = Page.objects.filter(**page_kwargs).order_by('-created_at')[0]
+    except (Page.DoesNotExist, IndexError):
         return HttpResponseNotFound()
 
     store = page.store

@@ -184,7 +184,7 @@ class BaseModel(models.Model, DirtyFieldsMixin):
                 setattr(self,
                         self._cg_attribute_name_to_python_attribute_name(key),
                         other[key])
-            print "updated {0}.{1} to {2}".format(
+            print u"updated {0}.{1} to {2}".format(
                 self, self._cg_attribute_name_to_python_attribute_name(key),
                 other[key])
 
