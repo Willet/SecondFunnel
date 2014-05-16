@@ -4,18 +4,17 @@
 # http://doc.scrapy.org/en/latest/topics/items.html
 from scrapy.contrib.djangoitem import DjangoItem
 from scrapy.item import Field, Item
-# from experiment.experiment.models import Product, Content
 
 
 class ScraperProduct(Item):
-    # django_model = Product
+    # Fields that are not part of a Django model
+    # will not be saved; neat :)
+
     name = Field()
     price = Field()
     description = Field()
     store = Field()
 
-    # Any additional fields that are not part of the Django model
-    # Will not be saved; neat :)
     image_urls = Field()
     images = Field()
 
@@ -25,5 +24,4 @@ class ScraperProduct(Item):
 
 
 class ScraperContent(DjangoItem):
-    # django_model = Content
     pass
