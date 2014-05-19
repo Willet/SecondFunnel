@@ -37,9 +37,10 @@ WEBDRIVER_OPTIONS = {
 # http://doc.scrapy.org/en/latest/topics/item-pipeline.html#activating-an-item-pipeline-component
 ITEM_PIPELINES = {
     #'scrapy.contrib.pipeline.images.ImagesPipeline': 1,
-    'apps.scrapy.pipelines.CloudinaryPipeline': 1,
+    #'apps.scrapy.pipelines.CloudinaryPipeline': 1,
     'apps.scrapy.pipelines.PricePipeline': 2,
-    #'apps.scrapy.pipelines.ItemPersistencePipeline': 999
+    'apps.scrapy.pipelines.ProductForeignKeyPipeline': 998,
+    'apps.scrapy.pipelines.ItemPersistencePipeline': 999
 }
 # Image storage information here:
 #   http://doc.scrapy.org/en/latest/topics/images.html#images-storage

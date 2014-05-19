@@ -16,6 +16,7 @@ class VoyagePriveScraper(XMLFeedSpider):
 
     # Custom properties
     categories = [u'10033'] # 10029 - Sejourner
+    store_slug = name
     AVAILABLE_STATUS = u'1'
 
     def __init__(self, *args, **kwargs):
@@ -30,8 +31,9 @@ class VoyagePriveScraper(XMLFeedSpider):
     def parse_node(self, response, node):
         # name, price, image_urls
         item = ScraperProduct()
+        item['attributes'] = {}
         item['image_urls'] = []
-        item['store'] = self.name
+        item['store'] = 1
 
         sections = node.xpath('sections/text()').extract()
 
@@ -76,17 +78,17 @@ class VoyagePriveScraper(XMLFeedSpider):
             '.viewp-product-editorialist blockquote::text'
         ).extract()
         if review_text:
-            item['review_text'] = review_text[0]
+            item['attributes']['review_text'] = review_text[0]
 
         reviewer = details.css('.viewp-product-owner > a::text').extract()
         if reviewer:
-            item['reviewer_name'] = reviewer[0]
+            item['attributes']['reviewer_name'] = reviewer[0]
 
         reviewer_img = details.css(
             '.viewp-product-editorialist img::attr(src)'
         ).extract()
         if reviewer_img:
-            item['reviewer_img'] = reviewer_img[0]
+            item['attributes']['reviewer_img'] = reviewer_img[0]
 
         # Images are lazy-loaded? Shit.
         product_images = details.css(
