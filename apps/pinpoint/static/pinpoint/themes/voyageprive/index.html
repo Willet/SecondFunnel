@@ -48,31 +48,31 @@
                     tests = {{ tests|safe }},
                     weightedSample;
 
-                if (!tests.length) {
+                if (!(tests && tests.length)) {
                     tests = ["A", "B", "C", "D", "E"];
                 }
 
                 // If we want to allow weighting,
                 // we need to do things differently
-                weightedSample = function(elements) {
-                    var getWeight = function(elem) {
+                weightedSample = function (elements) {
+                    var getWeight = function (elem) {
                             return _.isArray(elem) ? elem[1] : 1;
                         },
-                        totalWeight = _.reduce(elements, function(memo, elem) {
+                        totalWeight = _.reduce(elements, function (memo, elem) {
                             return memo + getWeight(elem);
                         }, 0),
                         threshold = Math.random() * totalWeight,
                         cumulativeWeight = 0,
                         index, elem;
 
-                    for(index=0; index < elements.length; index++) {
+                    for (index = 0; index < elements.length; index++) {
                         elem = elements[index];
                         cumulativeWeight += getWeight(elem);
 
                         if (threshold <= cumulativeWeight) {
                             return _.isArray(elem) ? elem[0]: elem;
                         }
-                    };
+                    }
                 };
 
                 cookie = cookie || weightedSample(tests);
@@ -108,7 +108,7 @@
     </script>
     {% if environment == 'production' %}
     <script type='text/javascript'>
-        var interval = setInterval(function() {
+        var interval = setInterval(function () {
             var test, bindFn;
 
             if (!window.ACTIVE_TEST) {
@@ -133,9 +133,9 @@
                 });
             };
 
-            bindFn = function() {
+            bindFn = function () {
                 (new Image).src = window.TRACKING_PIXELS[test].click;
-            }
+            };
 
             clearInterval(interval);
             test = window.ACTIVE_TEST;
@@ -152,6 +152,13 @@
             // Append page view pixel
             (new Image).src = window.TRACKING_PIXELS[test].view;
         }, 1000);
+
+        $(document).ready(function () {
+            // featured product clickthrough tracking
+            $('#hero-area').on('click', '.view a', function () {
+                (new Image).src = 'http://cm.gy/v610';
+            });
+        });
     </script>
     {% endif %}
     <title>Voyage Privé</title>
@@ -220,6 +227,15 @@
                     {{ legal_copy }}
                 </div>
             {% endif %}
+            <% if (obj.direct_site_image || obj.direct_site_name) { %>
+                <div class="direct-site-info">
+                    <% if (obj.direct_site_image) { %>
+                        <img src="<%- obj.direct_site_image %>" />
+                    <% } else { %>
+                        <%- obj.direct_site_name %>
+                    <% } %>
+                </div>
+            <% } %>
             <div class="view">
                 <a href='<%= obj.url %>' target='_blank'>
                     <%= obj.price %>  |  Voir le bon plan
