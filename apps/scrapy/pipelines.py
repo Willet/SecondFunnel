@@ -7,7 +7,8 @@ from scrapy.contrib.djangoitem import DjangoItem
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from apps.assets.models import Store
-from apps.scrapy.items import ScraperProduct
+from apps.scraper.scrapers import ProductScraper
+from apps.scrapy.items import ScraperProduct, ScraperContent
 from apps.scrapy.utils import CloudinaryStore, spider_pipelined, \
     item_to_model, get_or_create, update_model
 
@@ -56,12 +57,19 @@ class PricePipeline(object):
         item['price'] = int(float(item['price']))
         return item
 
+
 # At the moment, ForeignKeys are a bitch, so, handle those separately.
 class ProductForeignKeyPipeline(object):
     def process_item(self, item, spider):
-        if not isinstance(item, ScraperProduct):
-            return item
+        if isinstance(item, ScraperProduct):
+            return self.process_product(item, spider)
 
+        elif isinstance(item, ScraperContent):
+            return self.process_content(item, spider)
+
+        return item
+
+    def process_product(self, item, spider):
         store_slug = getattr(spider, 'store_slug', '')
 
         try:
@@ -70,11 +78,15 @@ class ProductForeignKeyPipeline(object):
             raise DropItem("Can't add item to non-existent store")
 
         item['store'] = store
+
         return item
 
-# This must be the last thing that we to the item
-# Why? Because after we persist to the database, it doesn't matter
-# What changes we make to the item.
+    def process_content(self, item, spider):
+        return item
+
+
+# Any changes to the item after this pipeline will not be persisted.
+# It is suggested that this be the last pipeline
 class ItemPersistencePipeline(object):
     def process_item(self, item, spider):
         try:
@@ -90,8 +102,17 @@ class ItemPersistencePipeline(object):
             messages = ','.join(e.messages)
             raise DropItem('Item didn\'t validate. ({})'.format(messages))
 
-        # Any item exporters will fail if we don't clean up the object
-        # Why? Because it can't serialize Django items
-        # How do you serialize django items? IDK.
+        return item
+
+
+class ProductImagePipeline(object):
+    def process_item(self, item, spider):
+        for image_url in item.get('image_urls', []):
+            self.process_image(item, image_url)
 
         return item
+
+    def process_image(self, item, image_url):
+        store = item['store']
+        product = item['sku']
+        ProductScraper.process_image(image_url, product, store)

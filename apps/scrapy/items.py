@@ -19,23 +19,6 @@ class ScraperProduct(DjangoItem):
 
     store = Field(serializer=store_serializer)
 
-    # store_id = Field()
-    #
-    # name = Field()
-    # description = Field()
-    # details = Field()
-    # url = Field()
-    # sku = Field()
-    # price = Field()
-    #
-    # product_image_id = Field
-    #
-    # last_scraped_at = Field()
-    #
-    # in_stock = Field()
-    #
-    # attributes = Field()
-
 
 class ScraperContent(DjangoItem):
     pass
