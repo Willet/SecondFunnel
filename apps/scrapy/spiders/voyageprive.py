@@ -33,7 +33,12 @@ class VoyagePriveScraper(XMLFeedSpider):
         item = ScraperProduct()
         item['attributes'] = {}
         item['image_urls'] = []
-        item['store'] = 1
+
+        sku = node.xpath('id/text()').extract()
+        if not sku:
+            return
+
+        item['sku'] = sku[0]
 
         sections = node.xpath('sections/text()').extract()
 
@@ -49,6 +54,9 @@ class VoyagePriveScraper(XMLFeedSpider):
 
         if not (is_part_of_campaign and is_available):
             return
+
+        item['url'] = 'http://www.officiel-des-vacances.com/' \
+                      'route-to/{0}/section'.format(item['sku'])
 
         name = node.xpath('titre/text()').extract()
         if name:
@@ -101,4 +109,5 @@ class VoyagePriveScraper(XMLFeedSpider):
 
     @staticmethod
     def price_pipeline(item, spider):
+        item['price'] = '$' + item['price']
         return item

@@ -2,6 +2,7 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
+from django.core.exceptions import ValidationError
 from scrapy.contrib.djangoitem import DjangoItem
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
@@ -83,6 +84,14 @@ class ItemPersistencePipeline(object):
 
         model, created = get_or_create(item_model)
 
-        update_model(model, item)
+        try:
+            update_model(model, item)
+        except ValidationError as e:
+            messages = ','.join(e.messages)
+            raise DropItem('Item didn\'t validate. ({})'.format(messages))
+
+        # Any item exporters will fail if we don't clean up the object
+        # Why? Because it can't serialize Django items
+        # How do you serialize django items? IDK.
 
         return item

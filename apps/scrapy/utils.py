@@ -5,7 +5,6 @@ import re
 import tempfile
 import webbrowser
 import cloudinary.uploader as uploader
-from django.forms import model_to_dict
 from scrapy.http import HtmlResponse, TextResponse
 from scrapy_webdriver.http import WebdriverResponse
 
@@ -138,3 +137,11 @@ class CloudinaryStore(object):
         Returns information about a file
         """
         return None
+
+
+def django_serializer(value):
+    return value.id  # serializers.serialize('json', [ value, ])
+
+
+def store_serializer(value):
+    django_serializer(value)
