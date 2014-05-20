@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from scrapy.contrib.djangoitem import DjangoItem
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
-from apps.assets.models import Store
+from apps.assets.models import Store, Product
 from apps.scraper.scrapers import ProductScraper
 from apps.scrapy.items import ScraperProduct, ScraperContent
 from apps.scrapy.utils import CloudinaryStore, spider_pipelined, \
@@ -96,4 +96,12 @@ class ProductImagePipeline(object):
     def process_image(self, item, image_url):
         store = item['store']
         product = item['sku']
-        ProductScraper.process_image(image_url, product, store)
+        try:
+            ProductScraper.process_image(image_url, product, store)
+        except Product.MultipleObjectsReturned:
+            raise DropItem(
+                'Unclear which product to attach to image. '\
+                'More than one product (sku: "{}", store: "{}")'.format(
+                    product, store.id
+                )
+            )
