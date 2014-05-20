@@ -1138,8 +1138,11 @@ div.header {
         color: white;
         z-index: 1;
         border: 1px solid white;
-        padding: 10px 10px;
         font-size: 24px;
+    }
+
+    .previewContainer .price .price-wrapper {
+        padding: 10px;
     }
 }
 

@@ -412,8 +412,8 @@
         </script>
 
         <script type="text/template" id="product_price_template">
-            <% if (obj.sale_price) { %>
-                <div class="sale">
+            <div class="price-wrapper <% if (obj.sale_price) { %>sale<% } %>">
+                <% if (obj.sale_price) { %>
                     <% if (App.support.mobile()) { %>
                         <%- obj.sale_price %>
                         <div class="strike">
@@ -425,10 +425,10 @@
                         </div>
                         <%- obj.sale_price %>
                     <% } %>
-                </div>
-            <% } else { %>
-                <%- obj.price %>
-            <% } %>
+                <% } else { %>
+                    <%- obj.price %>
+                <% } %>
+            </div>
         </script>
 
         <script type="text/template" id="product_title_template">
@@ -502,7 +502,7 @@
                     <% } %>
                 </div>
             </div>
-            <div class="price<% if (obj.sale_price) { %> sale<% } %>"></div>
+            <div class="price"></div>
             <div class="close">
                 Back
             </div>
@@ -542,7 +542,7 @@
                         <% } %>
                     </div>
                 </div>
-                <div class="price<% if (product.sale_price) { %> sale<% } %>"></div>
+                <div class="price"></div>
                 <div class="close">
                     Back
                 </div>
