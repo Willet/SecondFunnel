@@ -31,6 +31,8 @@ App.module('core', function (core, App) {
         }
     });
 
+    this.Product = Backbone.Model.extend();
+
     /**
      * Object store for information about a particular database product,
      * its contents, or its media.
