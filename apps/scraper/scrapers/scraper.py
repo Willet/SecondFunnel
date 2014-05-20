@@ -113,7 +113,7 @@ class ProductScraper(Scraper):
         original_url, product, store, remove_background=False, color=None,
     ):
         if not isinstance(product, Model):
-            product = Product.objects.get(sku=product)
+            product = Product.objects.get(sku=product, store_id=store.id)
 
         # Doesn't this mean that if we ever end up seeing the same URL twice,
         # then we'll create new product images if the product differs?
