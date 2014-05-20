@@ -11,10 +11,18 @@ from scrapy_webdriver.http import WebdriverResponse
 
 
 def open_in_browser(response, _openfunc=webbrowser.open):
-    """Open the given response in a local web browser, populating the <base>
-    tag for external links to work
     """
-    # XXX: this implementation is a bit dirty and could be improved
+    Open the given response in a local web browser, populating the <base>
+    tag for external links to work
+
+    Very useful for debugging a scraper.
+
+    Duplicated from scrapy.utils.response.open_in_browser to support
+    WebdriverResponse.
+
+    For more details on usage, see:
+        http://doc.scrapy.org/en/latest/topics/debug.html#open-in-browser
+    """
     body = response.body
     if isinstance(response, HtmlResponse) or isinstance(response, WebdriverResponse):
         if '<base' not in body:
