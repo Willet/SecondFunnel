@@ -262,3 +262,20 @@ def track_tiles(request, action, **kwargs):
 
     update_tiles(tile_ids, action=action)
     return HttpResponse(status=204)
+
+
+def _predictionio_record_action(request):
+    """Private testing handler for interacting with predict instance.
+    Do not use.
+    """
+    try:
+        with PredictionIOInstance() as predictor:
+            predictor.set_user(request)
+            if request.method == 'GET':
+                return HttpResponse(predictor.get_recommended_tiles(
+                    request.GET.get('ids')))
+            elif request.method == 'POST':
+                return HttpResponse(predictor.track_tile_view(
+                    request, request.body))
+    except BaseException as err:
+        return HttpResponse(err.message)

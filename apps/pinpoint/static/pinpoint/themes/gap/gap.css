@@ -766,12 +766,14 @@ div.header {
     margin: 0 0 20px 0;
 }
 
-.previewContainer .price.sale {
+.previewContainer .price.sale,
+.previewContainer .price .sale {
     color: #f44c43;
     font-weight: bold;
 }
 
-.previewContainer .price.sale .strike {
+.previewContainer .price.sale .strike,
+.previewContainer .price .sale .strike {
     color: #CCC;
     font-weight: normal;
 }
@@ -861,8 +863,14 @@ div.header {
         border: 1px solid #FFFFFF;
     }
 
+    .previewContainer .gap-buttons .buy {
+        width: 47%;
+    }
+
     .previewContainer .gap-buttons .in-store {
         padding: 10px 4px 10px 4px;
+        width: auto;
+        display: block;
     }
 
     .previewContainer .gap-buttons .find-store {
@@ -875,13 +883,15 @@ div.header {
         margin-bottom: 5px;
     }
 
-    .previewContainer .price.sale {
+    .previewContainer .price.sale,
+    .previewContainer .price .sale {
         color: white;
         font-weight: normal;
         background-color: #f44c43;
     }
 
-    .previewContainer .price.sale .strike {
+    .previewContainer .price.sale .strike,
+    .previewContainer .price .sale .strike {
         font-size: 14px;
         text-align: center;
         color: #CCC;
@@ -1128,8 +1138,11 @@ div.header {
         color: white;
         z-index: 1;
         border: 1px solid white;
-        padding: 10px 10px;
         font-size: 24px;
+    }
+
+    .previewContainer .price .price-wrapper {
+        padding: 10px;
     }
 }
 

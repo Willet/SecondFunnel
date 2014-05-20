@@ -177,7 +177,20 @@ App.module('core', function (module, App) {
         },
 
         'onClick': function (ev) {
-            var tile = this.model;
+            var tile = this.model, url;
+
+            if (App.option('openTileInPopup', false)) {
+                if (tile.get('template') === 'product') {
+                    url = tile.get('url');
+                } else if (tile.get('tagged-products') &&
+                           tile.get('tagged-products').length) {
+                    url = tile.get('tagged-products')[0].url;
+                }
+                if (url && url.length) {
+                    window.open(url, '_blank');
+                }
+                return;
+            }
 
             // Tile is a banner tile
             if (tile.get('redirect-url') &&
@@ -756,15 +769,30 @@ App.module('core', function (module, App) {
         }
     });
 
+
+    this.ProductInfoView = Marionette.ItemView.extend({
+        'initialize': function (options) {
+            if (!options.infoItem) {
+                throw new Error('infoItem is a required property');
+            }
+
+            this.options = options;
+        },
+
+        'getTemplate': function () {
+            return '#product_' + this.options.infoItem + '_template';
+        },
+    });
+
     /**
      * Contents inside a PreviewWindow.
      * Content is displayed using a cascading level of templates, which
      * increases in specificity.
      *
      * @constructor
-     * @type {ItemView}
+     * @type {Layout}
      */
-    this.PreviewContent = Marionette.ItemView.extend({
+    this.PreviewContent = Marionette.Layout.extend({
         'template': '#tile_preview_template',
         'templates': function () {
             var templateRules = [
@@ -788,6 +816,13 @@ App.module('core', function (module, App) {
                     });
             }
             return templateRules;
+        },
+
+        'regions': {
+            price: '.price',
+            title: '.title',
+            buy: '.buy',
+            description: '.description'
         },
 
         'onBeforeRender': function () {
@@ -823,12 +858,12 @@ App.module('core', function (module, App) {
                 socialButtons.append(buttons);
             }
 
-            /* TODO clean this up */
             if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1) {
                this.$('.stl-look .stl-item').on('click', function () {
                     var $this = $(this),
                         index = $this.data('index'),
-                        product = self.model.get('tagged-products')[index];
+                        product = self.model.get('tagged-products')[index],
+                        productModel = new App.core.Product(product);
 
                     $this.addClass('selected').siblings().removeClass('selected');
                     App.options['galleryIndex'] = index;
@@ -851,47 +886,7 @@ App.module('core', function (module, App) {
                         socialButtons.append(buttons);
                     }
 
-                    //TODO: template
-                    if (App.option('page:slug') === 'swim-city') {
-                        $('.info .title', self.$el).empty().html(product.title || product.name);
-                        $('.info .price', self.$el).empty().html(product.price);
-                        $('.info a.button', self.$el).attr('href', product.url);
-                    } else if (App.option('page:slug') === 'teetime') {
-                        $('.title', self.$el).empty().html(product.title || product.name);
-                        $('.price', self.$el).empty().html('USD: ' + product.price);
-                        $('.madewell-buttons .button', self.$el).attr('href', product.url);
-                        $('.description', self.$el).empty()
-                            .append('<div class="desc-title">Product Details</div>')
-                            .append('<p>' + product.description + '</p>');
-                    } else if (App.option('store:slug') === 'gap') {
-                        $('.title', self.$el).empty().html(product.title || product.name);
-                        $('.gap-buttons .in-store.button', self.$el).attr('href', product.url);
-
-                        $('.price', self.$el).empty();
-                        if (product.sale_price) {
-                            $('.price', self.$el).addClass('sale')
-                                .append('<div class="strike inline">' + product.price + '</div>')
-                                .append(product.sale_price);
-                        } else {
-                            $('.price', self.$el).removeClass('sale')
-                                .append(product.price);
-                        }
-
-                        var description = (product.description || "");
-                        if (!description.match(/<li(?:.|\n)*?>/)) {
-                            var sentences = _.compact(description.split('.'));
-                            description = '<ul>';
-
-                            _.each(sentences, function(sentence) {
-                                description += '<li>' + sentence + '</li>';
-                            });
-
-                            description += '</ul>';
-                        }
-                        $('.description', self.$el).empty()
-                            .append('<div class="desc-title">Product Details</div>')
-                            .append(description);
-                    }
+                    self.renderSubregions(productModel);
                });
 
                 // First image is always selected
@@ -899,7 +894,6 @@ App.module('core', function (module, App) {
                     $(this).find('.stl-item').first().click();
                 });
             }
-            /* END TODO */
 
             // hide discovery, then show this window as a page.
             if (App.support.mobile()) {
@@ -958,7 +952,16 @@ App.module('core', function (module, App) {
                             'right': right
                         });
                     };
-                };
+                },
+                product;
+
+            if (this.model.get('tagged-products') && this.model.get('tagged-products').length) {
+                product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
+                this.renderSubregions(product);
+            } else if (this.model.get('template', '') === 'product') {
+                this.renderSubregions(this.model);
+            }
+
             /*
             NOTE: Previously, it was thought that adding `no-scroll`
             to android devices was OK, because no problems were observed
@@ -993,6 +996,19 @@ App.module('core', function (module, App) {
             }
 
             App.options['galleryIndex'] = 0;
+        },
+
+        'renderSubregions': function (product) {
+            var key;
+
+            for (key in this.regions) {
+                if (this.regions.hasOwnProperty(key)) {
+                    this[key].show(new App.core.ProductInfoView({
+                        model: product,
+                        infoItem: key
+                    }));
+                }
+            }
         }
     });
 

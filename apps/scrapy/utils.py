@@ -12,10 +12,18 @@ from scrapy_webdriver.http import WebdriverResponse
 
 
 def open_in_browser(response, _openfunc=webbrowser.open):
-    """Open the given response in a local web browser, populating the <base>
-    tag for external links to work
     """
-    # XXX: this implementation is a bit dirty and could be improved
+    Open the given response in a local web browser, populating the <base>
+    tag for external links to work
+
+    Very useful for debugging a scraper.
+
+    Duplicated from scrapy.utils.response.open_in_browser to support
+    WebdriverResponse.
+
+    For more details on usage, see:
+        http://doc.scrapy.org/en/latest/topics/debug.html#open-in-browser
+    """
     body = response.body
     if isinstance(response, HtmlResponse) or isinstance(response, WebdriverResponse):
         if '<base' not in body:
@@ -76,9 +84,24 @@ def update_model(destination, source, commit=True):
 
 def camel_to_underscore(name):
     """
-    Converts CamelCase strings to camel_case
+    Converts CamelCase strings to camel_case.
 
-    http://stackoverflow.com/a/1176023
+    Source: http://stackoverflow.com/a/1176023
+
+    >>> convert('CamelCase')
+    'camel_case'
+    >>> convert('CamelCamelCase')
+    'camel_camel_case'
+    >>> convert('Camel2Camel2Case')
+    'camel2_camel2_case'
+    >>> convert('getHTTPResponseCode')
+    'get_http_response_code'
+    >>> convert('get2HTTPResponseCode')
+    'get2_http_response_code'
+    >>> convert('HTTPResponseCode')
+    'http_response_code'
+    >>> convert('HTTPResponseCodeXYZ')
+    'http_response_code_xyz'
     """
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
@@ -89,6 +112,9 @@ def spider_pipelined(process_item):
     """
     A decorator for `Pipeline.process_item` to defer to spider-specific
     pipelines if they exist.
+
+    Use this when a spider has specific steps that need to happen (instead of
+    the default pipeline).
 
     Note: If a spider-specific pipeline exists, *this pipeline will not be
     called*
@@ -111,16 +137,10 @@ def spider_pipelined(process_item):
 
 
 class CloudinaryStore(object):
-    def _upload(self):
-        pass
-
     def persist_file(self, path, buf, info, meta=None, headers=None):
-        """
-        Uploads the file to Cloudinary
-        """
-        # Fuck it; for whatever reason, can't save cStringIO
+        # This is the de facto way to upload an image (according to
+        # Cloudinary support) if the image is just bytes
         b64img = base64.b64encode(buf.getvalue())
-
         data = 'data:{};base64,{}'.format(
             headers.get('Content-Type'),
             b64img
