@@ -25,8 +25,11 @@ class Scraper(object):
     the regexs variable must define a list of regexs for the scraper
     """
     regexs = []
+    store = None
+    feed = None  # if available, scraper subclasses *might* automatically add
+                 # scraped objects to this feed.
 
-    def __init__(self, store):
+    def __init__(self, store, feed=None):
         # initialize the head-less browser PhantomJS
         # hmm... might not run on windows
 
@@ -36,6 +39,7 @@ class Scraper(object):
         except WebDriverException:
             self.driver = webdriver.PhantomJS(service_log_path='/tmp/ghostdriver.log')
         self.store = store
+        self.feed = feed
 
     def parse_url(self, url, values, **kwargs):
         """
