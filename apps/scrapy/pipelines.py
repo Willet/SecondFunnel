@@ -49,7 +49,7 @@ class CloudinaryPipeline(ImagesPipeline):
 class PricePipeline(object):
     @spider_pipelined
     def process_item(self, item, spider):
-        item['price'] = item['price'].strip()
+        item['price'] = item.get('price', '').strip()
 
         if item['price'].startswith('$'):
             item['price'] = item['price'][1:]
