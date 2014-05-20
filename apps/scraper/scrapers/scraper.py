@@ -109,9 +109,8 @@ class ProductScraper(Scraper):
         return product
 
     @staticmethod
-    def process_image(
-        original_url, product, store, remove_background=False, color=None,
-    ):
+    def process_image(original_url, product, store, remove_background=False,
+        color=None):
         if not isinstance(product, Model):
             product = Product.objects.get(sku=product, store_id=store.id)
 
