@@ -10,6 +10,9 @@ our existing setup. Plus, its faster!
 Most of what is possible can be revealed by calling the `scrapy` command with no
  arguments, however, the most common commands have been outlined below.
 
+*Note: All commands should be run from the root of the project,
+as you would do with `manage.py`*
+
 ### Starting a scrape
 
     scrapy crawl <scraper_name> [-a <spider-argument>=<spider-value>] [-t <output format> -o <filename>]`
