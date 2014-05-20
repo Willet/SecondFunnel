@@ -34,20 +34,20 @@ class VoyagePriveScraper(XMLFeedSpider):
         item['attributes'] = {}
         item['image_urls'] = []
 
-        sku = node.xpath('id/text()').extract()
+        sku = node.xpath('id/text()').extract_first()
         if not sku:
             return
 
-        item['sku'] = sku[0]
+        item['sku'] = sku
 
-        sections = node.xpath('sections/text()').extract()
+        sections = node.xpath('sections/text()').extract_first()
 
         if not sections:
             return
 
-        status = node.xpath('statut/text()').extract()
+        status = node.xpath('statut/text()').extract_first()
 
-        node_categories = set(sections[0].split(','))
+        node_categories = set(sections.split(','))
         scraper_categories = set(self.categories)
         is_part_of_campaign = node_categories.intersection(scraper_categories)
         is_available = self.AVAILABLE_STATUS in status
@@ -58,19 +58,19 @@ class VoyagePriveScraper(XMLFeedSpider):
         item['url'] = 'http://www.officiel-des-vacances.com/' \
                       'route-to/{0}/section'.format(item['sku'])
 
-        name = node.xpath('titre/text()').extract()
+        name = node.xpath('titre/text()').extract_first()
         if name:
-            item['name'] = name[0]
+            item['name'] = name
 
-        price = node.xpath('prix/text()').extract()[0]
+        price = node.xpath('prix/text()').extract_first()
         if price:
-            item['price'] = price[0]
+            item['price'] = price
 
-        image = node.xpath('image-fournisseur/text()').extract()
+        image = node.xpath('image-fournisseur/text()').extract_first()
         if image:
-            item['image_urls'].append(image[0])
+            item['image_urls'].append(image)
 
-        url = node.xpath('url-detail/text()').extract()[0]
+        url = node.xpath('url-detail/text()').extract_first()
         request = Request(url, callback=self.parse_page)
         request.meta['item'] = item
         return request
@@ -84,19 +84,20 @@ class VoyagePriveScraper(XMLFeedSpider):
 
         review_text = details.css(
             '.viewp-product-editorialist blockquote::text'
-        ).extract()
+        ).extract_first()
         if review_text:
-            item['attributes']['review_text'] = review_text[0]
+            item['attributes']['review_text'] = review_text
 
-        reviewer = details.css('.viewp-product-owner > a::text').extract()
+        reviewer = details.css('.viewp-product-owner > a::text')\
+            .extract_first()
         if reviewer:
-            item['attributes']['reviewer_name'] = reviewer[0]
+            item['attributes']['reviewer_name'] = reviewer
 
         reviewer_img = details.css(
             '.viewp-product-editorialist img::attr(src)'
-        ).extract()
+        ).extract_first()
         if reviewer_img:
-            item['attributes']['reviewer_img'] = reviewer_img[0]
+            item['attributes']['reviewer_img'] = reviewer_img
 
         # Images are lazy-loaded? Shit.
         product_images = details.css(

@@ -45,8 +45,8 @@ class GapSpider(WebdriverCrawlSpider):
 
         for division in divisions:
             # TODO: Extract returns one-element list: how to avoid?
-            url = division.css('::attr(href)').extract()[0].strip()
-            text = division.css('::text').extract()[0].strip()
+            url = division.css('::attr(href)').extract_first().strip()
+            text = division.css('::text').extract_first().strip()
             msg = u'PARSE_DIVISION - {category}: {url}'.format(url=url,
                                                                category=text)
             log.msg(msg, level=log.DEBUG)
@@ -60,8 +60,8 @@ class GapSpider(WebdriverCrawlSpider):
         products = sel.css('.productCatItem > a')
 
         for product in products:
-            url = product.css('::attr(href)').extract()[0].strip()
-            text = product.css('::text').extract()[0].strip()
+            url = product.css('::attr(href)').extract_first().strip()
+            text = product.css('::text').extract_first().strip()
             msg = u'PARSE CATEGORY - {product}: {url}'.format(url=url,
                                                               product=text)
             log.msg(msg, level=log.DEBUG)
@@ -75,19 +75,20 @@ class GapSpider(WebdriverCrawlSpider):
         item['image_urls'] = []
         item['store'] = self.name
 
-        product_name = sel.css('#productNameText .productName::text').extract()
+        product_name = sel.css('#productNameText .productName::text')\
+            .extract_first()
         if product_name:
-            item['name'] = product_name[0]
+            item['name'] = product_name
 
-        price = sel.css('#priceText::text').extract()\
-            or sel.css('#priceText strike::text').extract()
+        price = sel.css('#priceText::text').extract_first()\
+            or sel.css('#priceText strike::text').extract_first()
 
         if price:
-            item['price'] = price[0]
+            item['price'] = price
 
         # Mostly for proof of concept
-        image = sel.css('#product_image_bg img::attr(src)').extract()
+        image = sel.css('#product_image_bg img::attr(src)').extract_first()
         if image:
-            item['image_urls'].append(image[0])
+            item['image_urls'].append(image)
 
         yield item
