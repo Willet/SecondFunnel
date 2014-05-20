@@ -98,3 +98,16 @@ pycrypto==2.6.1
 django-nose==1.2
 raven==4.2.0
 PredictionIO==0.6.3
+
+# Scrapy
+Scrapy==0.22.2
+Twisted==13.2.0
+cffi==0.8.2
+cryptography==0.3
+cssselect==0.9.1
+pyOpenSSL==0.14
+pycparser==2.10
+queuelib==1.1.1
+w3lib==1.5
+zope.interface==4.1.1
+https://github.com/sosign/scrapy-webdriver/archive/master.zip
