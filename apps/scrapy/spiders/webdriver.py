@@ -7,6 +7,20 @@ from scrapy_webdriver.http import WebdriverRequest, WebdriverResponse
 # TODO: Just patch Scrapy -> make request configurable.
 
 class WebdriverCrawlSpider(Spider):
+    """
+    A spider that can automatically crawl other webpages based on rules.
+
+    Duplicates code from scrapy.contrib.spiders.CrawlSpider in order to support
+    WebdriverResponse and WebdriverRequest. Why? So that we can scrape
+    JavaScript!
+
+    For more details on usage, see:
+        http://doc.scrapy.org/en/latest/topics/spiders.html#crawlspider
+
+    Note: Since we've duplicated core code, if we ever update,
+    we lose the benefit of the updates. It would be best for us to contibute
+    to the project to make the request / response configurable somehow.
+    """
 
     rules = ()
 
@@ -14,19 +28,8 @@ class WebdriverCrawlSpider(Spider):
         super(WebdriverCrawlSpider, self).__init__(*a, **kw)
         self._compile_rules()
 
-    def parse(self, response):
-        return self._parse_response(response, self.parse_start_url, cb_kwargs={}, follow=True)
-
-    def parse_start_url(self, response):
-        return []
-
-    def process_results(self, response, results):
-        return results
-
     def _requests_to_follow(self, response):
-        # Changed this line...
-        # Unfortunately, WebdriverResponse is a subclass of TextResponse
-        # (not HTML response)
+        # Support WebdriverResponse to allow Javascript scraping
         if not isinstance(response, WebdriverResponse):
             return
         seen = set()
@@ -36,10 +39,23 @@ class WebdriverCrawlSpider(Spider):
                 links = rule.process_links(links)
             seen = seen.union(links)
             for link in links:
-                # ... and this one
+                # Use WebdriverRequests to allow Javascript scraping
                 r = WebdriverRequest(url=link.url, callback=self._response_downloaded)
                 r.meta.update(rule=n, link_text=link.text)
                 yield rule.process_request(r)
+
+    # --------------------------------------------------------------------------
+    #   Everything below this line is duplicated verbatim
+    #   from scrapy.contrib.spiders.CrawlSpider
+    # --------------------------------------------------------------------------
+    def parse(self, response):
+        return self._parse_response(response, self.parse_start_url, cb_kwargs={}, follow=True)
+
+    def parse_start_url(self, response):
+        return []
+
+    def process_results(self, response, results):
+        return results
 
     def _response_downloaded(self, response):
         rule = self._rules[response.meta['rule']]
