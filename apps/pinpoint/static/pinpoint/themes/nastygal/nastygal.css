@@ -97,6 +97,7 @@
 
 .previewContainer .content {
     padding-top: 43px;
+    padding-bottom: 0px;
     box-shadow: 0px 10px 30px 0px #000;
     border: none;
 }
@@ -158,6 +159,7 @@
 .previewContainer .info {
     text-align: center;
     padding-left: 20px;
+    padding-right: 20px;
     overflow: hidden;
 }
 .previewContainer .info.image {
@@ -171,6 +173,10 @@
 .previewContainer .info.image .title {
     margin-top: 0;
     font-size: 28px;
+}
+.previewContainer .image-without-tagged-products .title {
+    font-size: 26px;
+    margin-bottom: 10px;
 }
 
 .previewContainer .info .price {
@@ -221,7 +227,7 @@
     max-height: none;
     white-space: normal;
     padding-bottom: 0;
-    width: 160px;
+    width: 120px;
     display: block;
 }
 .previewContainer .landscape .stl-look {
@@ -242,7 +248,7 @@
 
 .previewContainer .stl-look .stl-item img {
     display: block;
-    width: 82px;
+    width: 72px;
     max-width: none;
     max-height: none;
     height: auto;

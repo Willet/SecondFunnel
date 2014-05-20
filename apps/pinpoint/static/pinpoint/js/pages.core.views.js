@@ -921,7 +921,6 @@ App.module('core', function (module, App) {
 
                         heightReduction -= element.outerHeight();
                         heightReduction -= $('.close', container).outerHeight();
-                        heightReduction -= 24; // Fudge factor TODO: Calculate this someshow
                         heightReduction /= 2; // Split over top and bottom
 
                         if (heightReduction <= 0 || App.support.mobile()) {
