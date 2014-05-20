@@ -2,6 +2,7 @@ import base64
 from functools import wraps
 import os
 import re
+from scrapy.selector import SelectorList
 import tempfile
 import webbrowser
 import cloudinary.uploader as uploader
@@ -157,6 +158,19 @@ class CloudinaryStore(object):
         Returns information about a file
         """
         return None
+
+
+def monkeypatch_method(cls):
+    """
+    A decorator to replace / add a method of an existing class.
+
+    From Guido van Rossum himself:
+        https://mail.python.org/pipermail/python-dev/2008-January/076194.html
+    """
+    def decorator(func):
+        setattr(cls, func.__name__, func)
+        return func
+    return decorator
 
 
 def django_serializer(value):
