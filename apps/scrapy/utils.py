@@ -6,7 +6,6 @@ from scrapy.selector import SelectorList
 import tempfile
 import webbrowser
 import cloudinary.uploader as uploader
-from django.forms import model_to_dict
 from scrapy.http import HtmlResponse, TextResponse
 from scrapy_webdriver.http import WebdriverResponse
 
@@ -40,6 +39,10 @@ def open_in_browser(response, _openfunc=webbrowser.open):
     return _openfunc("file://%s" % fname)
 
 
+def django_item_values(item):
+    # Modified from DjangoItem.instance
+    return ((k, item.get(k)) for k in item._values if k in item._model_fields)
+
 def item_to_model(item):
     model_class = getattr(item, 'django_model')
     if not model_class:
@@ -67,11 +70,10 @@ def get_or_create(model):
     return (obj, created)
 
 
-def update_model(destination, source, commit=True):
+def update_model(destination, source_item, commit=True):
     pk = destination.pk
 
-    source_dict = model_to_dict(source)
-    for (key, value) in source_dict.items():
+    for (key, value) in django_item_values(source_item):
         setattr(destination, key, value)
 
     setattr(destination, 'pk', pk)
@@ -169,3 +171,11 @@ def monkeypatch_method(cls):
         setattr(cls, func.__name__, func)
         return func
     return decorator
+
+
+def django_serializer(value):
+    return value.id  # serializers.serialize('json', [ value, ])
+
+
+def store_serializer(value):
+    django_serializer(value)
