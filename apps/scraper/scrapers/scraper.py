@@ -1,4 +1,5 @@
 import bleach
+from django.db.models import Model
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException, NoSuchElementException
@@ -107,16 +108,14 @@ class ProductScraper(Scraper):
 
         return product
 
-    def _process_image(self, original_url, product, remove_background=False, color=None):
-        """
-        This function uploads the image from the url and adds all necessary data to the image object
+    @staticmethod
+    def process_image(original_url, product, store, remove_background=False,
+        color=None):
+        if not isinstance(product, Model):
+            product = Product.objects.get(sku=product, store_id=store.id)
 
-        If no image object is passed in, it creates a ProductImage as the default image object type
-
-        @param remove_background: whether or not to trim the image
-        @param color: if provided, the color the background should be to remove it
-        """
-
+        # Doesn't this mean that if we ever end up seeing the same URL twice,
+        # then we'll create new product images if the product differs?
         try:
             image = ProductImage.objects.get(original_url=original_url, product=product)
         except ProductImage.DoesNotExist:
@@ -124,7 +123,7 @@ class ProductScraper(Scraper):
 
         if not (image.url and image.file_type):
             print('\nprocessing image - ' + original_url)
-            data = process_image(original_url, create_image_path(self.store.id),
+            data = process_image(original_url, create_image_path(store.id),
                                  remove_background=remove_background)
             image.url = data.get('url')
             image.file_type = data.get('format')
@@ -142,6 +141,20 @@ class ProductScraper(Scraper):
         print(image.to_json())
 
         return image
+
+    def _process_image(self, original_url, product, remove_background=False, color=None):
+        """
+        This function uploads the image from the url and adds all necessary data to the image object
+
+        If no image object is passed in, it creates a ProductImage as the default image object type
+
+        @param remove_background: whether or not to trim the image
+        @param color: if provided, the color the background should be to remove it
+        """
+
+        return self.process_image(
+            original_url, product, self.store, remove_background, color
+        )
 
     def _add_to_category(self, product, name=None, url=None):
         """
