@@ -11,7 +11,7 @@ from django.db.models import Q
 
 from selenium.common.exceptions import WebDriverException
 
-from apps.assets.models import Product, Store
+from apps.assets.models import Product, Store, Feed
 from apps.scraper.scrapers import ProductDetailScraper
 from apps.scraper.scrapers import NastygalCategoryScraper, NastygalProductScraper
 from apps.scraper.scrapers import GapProductScraper, GapCategoryScraper
@@ -28,9 +28,13 @@ from . import __doc__
 
 
 class Command(BaseCommand):
+    store = None
+    feed = None
+
     option_list = BaseCommand.option_list + (
         make_option('--store-id', default=None, dest='store-id'),
         make_option('--url', default=None),
+        make_option('--feed-id', default=None, dest='feed-id'),
         make_option('--folder', default=None))  # --folder is deprecated
 
     __doc__ = __doc__
@@ -66,6 +70,7 @@ class Command(BaseCommand):
         Otherwise, scrapes all urls listed in all text files in the urls folder.
         """
         store_id = kwargs.pop('store-id', None)
+        feed_id = kwargs.pop('feed-id', None)
         url = kwargs.pop('url', None)
         urls_folder = kwargs.pop('folder', None)
 
@@ -87,6 +92,11 @@ class Command(BaseCommand):
             stores = [store]
         else:  # scrape all stores
             stores = Store.objects.all()
+
+        try:
+            self.feed = Feed.objects.get(id=feed_id)
+        except ObjectDoesNotExist:
+            pass
 
         if store and url:
             # "scrape this url for this store"
@@ -128,6 +138,9 @@ class Command(BaseCommand):
     def set_store(self, store):
         self.store = store
 
+    def set_feed(self, feed):
+        self.feed = feed
+
     def get_scraper(self, url):
         """
         If a scraper exists with a regex that matches the given url, then
@@ -147,7 +160,8 @@ class Command(BaseCommand):
         url = url.strip()
         try:
             if scraper is None:
-                scraper = self.get_scraper(url)(self.store)
+                scraper = self.get_scraper(url)(store=self.store,
+                                                feed=self.feed)
 
             # if no scraper has been found, exit
             if not scraper:

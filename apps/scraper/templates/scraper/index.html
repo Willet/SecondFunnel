@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <h1>Scraper</h1>
+    {% if msg %}
+        <h2>{{ msg }}</h2>
+    {% endif %}
+    <form method="post">
+        <label>Store:
+            <select name="store-id">
+                {% for store in stores %}
+                    <option value="{{ store.id }}">{{ store.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br/>
+        <label>
+            URL:
+            <input type="text" name="url" />
+        </label>
+        <br/>
+        <hr/>
+        <input type="submit" value="Scrape this url for this store"/>
+        <br/>
+        This cannot be undone.
+    </form>
+</body>
+</html>

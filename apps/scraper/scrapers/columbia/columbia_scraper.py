@@ -65,6 +65,9 @@ class ColumbiaProductScraper(ProductDetailScraper):
         product.product_images = [product.default_image]
         product.save()
 
+        if self.feed:
+            self.feed.add_product(product=product)
+
         yield {'product': product}
 
 

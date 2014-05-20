@@ -186,6 +186,10 @@ App.module('core', function (module, App) {
                            tile.get('tagged-products').length) {
                     url = tile.get('tagged-products')[0].url;
                 }
+                if (App.option('tilePopupUrl')) {
+                    // override for ad units whose tiles point to our pages
+                    url = App.option('tilePopupUrl');
+                }
                 if (url && url.length) {
                     window.open(url, '_blank');
                 }

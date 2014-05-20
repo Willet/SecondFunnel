@@ -32,6 +32,10 @@ class StyldByPartnersScraper(ContentCategoryScraper):
             image.source = self.SOURCE
             image = self._process_image(image_url, image)
             image.save()
+
+            if self.feed:
+                self.feed.add_content(content=image)
+
             yield {'content': image}
 
 
@@ -65,6 +69,10 @@ class StyldByFilterScraper(ContentCategoryScraper):
                     image.source = self.SOURCE
                     image = self._process_image(image_url, image)
                     image.save()
+
+                    if self.feed:
+                        self.feed.add_content(content=image)
+
                     yield {'content': image}
             try:
                 self.driver.find_element_by_xpath('//div[@class="pagination"]/a[@rel="next"]')

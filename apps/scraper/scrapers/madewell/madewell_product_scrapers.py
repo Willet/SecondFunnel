@@ -51,6 +51,9 @@ class MadewellProductScraper(ProductDetailScraper):
             product.default_image = images[0]
             product.save()
 
+        if self.feed:
+            self.feed.add_product(product=product)
+
         yield {'product': product}
 
     def _get_images(self, driver, product):
