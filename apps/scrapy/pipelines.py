@@ -15,35 +15,16 @@ from apps.scrapy.utils import CloudinaryStore, spider_pipelined, \
 
 class CloudinaryPipeline(ImagesPipeline):
     """
-    Try to hook into the existing ImagesPipeline making as few changes as
-    possible.
+    Enable Cloudinary storage using the ImagePipeline.
+
+    Highly experimental, as ImagePipeline isn't really extensible at the
+    moment.
+
+    More details on the Image Pipeline here:
+        http://doc.scrapy.org/en/latest/topics/images.html
     """
     def _get_store(self, uri):
         return CloudinaryStore()
-
-    def image_downloaded(self, response, request, info):
-        """
-        Store the downloaded image and return the checksum.
-
-        Called after the file has been downloaded locally.
-        """
-        return super(CloudinaryPipeline, self).image_downloaded(
-            response, request, info
-        )
-
-    def get_images(self, response, request, info):
-        """
-        Obtains a list of path, image, and buffer tuples
-        """
-        return super(CloudinaryPipeline, self).get_images(
-            response, request, info
-        )
-
-    def convert_image(self, image, size=None):
-        """
-        Standardizes images
-        """
-        return super(CloudinaryPipeline, self).convert_image(image, size)
 
 
 class PricePipeline(object):

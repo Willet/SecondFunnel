@@ -281,7 +281,8 @@ def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     random_tiles = ir_random(tiles=tiles,
                              results=(results - len(prioritized_tiles)),
                              exclude_set=prioritized_tile_ids,
-                             allowed_set=allowed_set)
+                             allowed_set=allowed_set,
+                             feed=kwargs.get('feed', None))
 
     tiles = list(prioritized_tiles) + list(random_tiles)
     return qs_for(tiles[:results])
@@ -342,7 +343,8 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     random_tiles = ir_prioritized(tiles=tiles, prioritized_set='',
                                   results=(results - len(prioritized_tiles)),
                                   exclude_set=exclude_set,
-                                  allowed_set=allowed_set)
+                                  allowed_set=allowed_set,
+                                  feed=kwargs.get('feed', None))
 
     tiles = list(prioritized_tiles) + list(random_tiles)
     return tiles[:results]
