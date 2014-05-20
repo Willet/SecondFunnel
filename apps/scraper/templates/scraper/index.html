@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <form method="post">
+        <label>Store ID:
+            <input type="text" name="store-id" required="required"/>
+        </label>
+        <label>
+            URL:
+            <input type="text" name="url" />
+        </label>
+        <input type="submit"/>
+    </form>
+    {% if msg %}
+        <h2>{{ msg }}</h2>
+    {% endif %}
+</body>
+</html>
