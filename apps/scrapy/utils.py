@@ -104,6 +104,9 @@ def spider_pipelined(process_item):
     A decorator for `Pipeline.process_item` to defer to spider-specific
     pipelines if they exist.
 
+    Use this when a spider has specific steps that need to happen (instead of
+    the default pipeline).
+
     Note: If a spider-specific pipeline exists, *this pipeline will not be
     called*
 
