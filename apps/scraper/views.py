@@ -1,19 +1,27 @@
+from django.contrib.auth.decorators import login_required
+from django.core.management import call_command
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
+from django.utils.decorators import method_decorator
 from django.views.generic import View
-from django.core.management import call_command
 
+from apps.assets.models import Store
 from apps.utils import async
 
 
 class ScrapeNowView(View):
     """Scrape a single url without going into Jenkins."""
+    @method_decorator(login_required)
     def get(self, request):
         """The "Add URL" UI"""
-        return render_to_response('scraper/index.html')
+        stores = Store.objects.all()
+        return render_to_response('scraper/index.html', {"stores": stores})
 
+    @method_decorator(login_required)
     def post(self, request):
         """The submission controller"""
+        stores = Store.objects.all()
+
         if not request.POST.get('store-id'):
             return HttpResponse(status=400)
 
@@ -24,6 +32,7 @@ class ScrapeNowView(View):
         self._run_scraper(**kwds)
 
         return render_to_response('scraper/index.html', {
+            "stores": stores,
             "msg": "If valid, the URL will be scraped."
         })
 

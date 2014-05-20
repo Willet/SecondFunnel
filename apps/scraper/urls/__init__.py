@@ -9,5 +9,5 @@ from apps.scraper.views import ScrapeNowView
 
 urlpatterns = patterns('apps.scraper.views',
     # regenerate == generate
-    url(r'^scrape/?$', ScrapeNowView.as_view()),
+    url(r'^/?$', ScrapeNowView.as_view()),
 )
