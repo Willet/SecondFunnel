@@ -169,11 +169,3 @@ def monkeypatch_method(cls):
         setattr(cls, func.__name__, func)
         return func
     return decorator
-
-
-# TODO: Where does this belong
-# MonkeyPatch SelectorList to add useful methods
-@monkeypatch_method(SelectorList)
-def extract_first(self):
-    items = iter(self.extract())
-    return next(items, None)
