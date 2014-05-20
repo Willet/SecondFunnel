@@ -125,16 +125,10 @@ def spider_pipelined(process_item):
 
 
 class CloudinaryStore(object):
-    def _upload(self):
-        pass
-
     def persist_file(self, path, buf, info, meta=None, headers=None):
-        """
-        Uploads the file to Cloudinary
-        """
-        # Fuck it; for whatever reason, can't save cStringIO
+        # This is the de facto way to upload an image (according to
+        # Cloudinary support) if the image is just bytes
         b64img = base64.b64encode(buf.getvalue())
-
         data = 'data:{};base64,{}'.format(
             headers.get('Content-Type'),
             b64img
