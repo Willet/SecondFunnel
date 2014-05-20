@@ -75,9 +75,24 @@ def update_model(destination, source, commit=True):
 
 def camel_to_underscore(name):
     """
-    Converts CamelCase strings to camel_case
+    Converts CamelCase strings to camel_case.
 
-    http://stackoverflow.com/a/1176023
+    Source: http://stackoverflow.com/a/1176023
+
+    >>> convert('CamelCase')
+    'camel_case'
+    >>> convert('CamelCamelCase')
+    'camel_camel_case'
+    >>> convert('Camel2Camel2Case')
+    'camel2_camel2_case'
+    >>> convert('getHTTPResponseCode')
+    'get_http_response_code'
+    >>> convert('get2HTTPResponseCode')
+    'get2_http_response_code'
+    >>> convert('HTTPResponseCode')
+    'http_response_code'
+    >>> convert('HTTPResponseCodeXYZ')
+    'http_response_code_xyz'
     """
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
