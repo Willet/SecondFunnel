@@ -159,6 +159,12 @@ class CloudinaryStore(object):
 
 
 def monkeypatch_method(cls):
+    """
+    A decorator to replace / add a method of an existing class.
+
+    From Guido van Rossum himself:
+        https://mail.python.org/pipermail/python-dev/2008-January/076194.html
+    """
     def decorator(func):
         setattr(cls, func.__name__, func)
         return func
