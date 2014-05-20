@@ -516,7 +516,8 @@ html.tablet #hero-area .find.white a:visited {
     display: none;
 }
 
-.tile.banner .overlay .direct-site-info {
+.tile.banner .overlay .direct-site-info,
+#hero-area .direct-site-info {
     position: absolute;
     bottom: 10px;
     left: 10px;
@@ -531,14 +532,19 @@ html.tablet #hero-area .find.white a:visited {
 .tile.banner.wide .overlay .direct-site-info {
     bottom: 50px;
     left: 50px;
+}
+
+#hero-area .direct-site-info {
     max-width: none;
 }
 
-.tile.banner .overlay .direct-site-info .price-container {
+.tile.banner .overlay .direct-site-info .price-container,
+#hero-area .direct-site-info .price-container {
     font-size: 12px;
 }
 
-.tile.banner .overlay .direct-site-info .price-container .price {
+.tile.banner .overlay .direct-site-info .price-container .price,
+#hero-area .direct-site-info .price-container .price {
     font-size: 20px;
     color: #fc601d;
 }

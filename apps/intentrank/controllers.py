@@ -134,3 +134,15 @@ class PredictionIOInstance(object):
         tile_key = 'tile-{0}'.format(tile)
         self.client.create_item(tile_key, ('tile',))
         self.client.arecord_action_on_item("view", tile_key)
+
+    def get_recommended_tiles(self, tile_ids=""):
+        """
+        :param tile_ids: either a list of tile_ids, or a raw CSV of tile-id
+                         that prediction.io uses.
+
+        :returns 404 body: {"message":"Cannot find similar items for item."}
+        """
+        tile_sim = tile_ids
+        if isinstance(tile_ids, list):
+            tile_sim = ",".join("tile-{0}".format(i) for i in tile_ids)
+        return self.client.get_itemsim_topn("ir_similar", tile_sim, 10)
