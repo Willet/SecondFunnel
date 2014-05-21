@@ -45,10 +45,12 @@ App.module('core', function (module, App) {
                 if (!(App.support.touch() || App.support.mobile()) &&
                     this.$('.social-buttons').length >= 1) {
 
-                    buttons = new App.sharing.SocialButtons({
-                        'model': this.model
-                    }).render().load();
-                    this.$('.social-buttons').html(buttons.$el);
+                    if (App.sharing) {
+                        buttons = new App.sharing.SocialButtons({
+                            'model': this.model
+                        }).render().load();
+                        this.$('.social-buttons').html(buttons.$el);
+                    }
                 }
                 App.heroArea.$el.append(this.$el);
             }
@@ -160,7 +162,7 @@ App.module('core', function (module, App) {
             }
 
             // load buttons for this tile only if it hasn't already been loaded
-            if (!this.socialButtons.$el) {
+            if (!this.socialButtons.$el && App.sharing) {
                 this.socialButtons.show(new App.sharing.SocialButtons({
                     model: this.model
                 }));
@@ -318,7 +320,8 @@ App.module('core', function (module, App) {
                 };
             }
 
-            if (App.option('conditionalSocialButtons', {})[model.get('colspan')]) {
+            if (App.sharing &&
+                App.option('conditionalSocialButtons', {})[model.get('colspan')]) {
                 var socialButtons = $('.socialButtons', this.$el),
                     buttons = new App.sharing.SocialButtons({
                         'model': model,

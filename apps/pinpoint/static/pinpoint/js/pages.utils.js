@@ -85,6 +85,16 @@ App.module("utils", function (utils, App) {
     };
 
     /**
+     * @returns true     if the page is in an iframe.
+     */
+    this.isIframe = function () {
+        if (typeof top === "undefined") {
+            return false;
+        }
+        return (window === top);
+    };
+
+    /**
      * add a predefined UI component implemented as a region.
      * @param {string} name of the widget.
      *                 name must be unique.

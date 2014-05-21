@@ -31,8 +31,12 @@ function reinitialize(app) {
     app.addInitializer(function () {
         // set its width to whatever it began with.
         app.options.initialWidth = $(window).width();
-        app.optimizer.initialize();
-        app.tracker.initialize();
+        if (app.optimizer) {
+            app.optimizer.initialize();
+        }
+        if (app.tracker) {
+            app.tracker.initialize();
+        }
     });
 
     app.addInitializer(function () {
@@ -190,7 +194,7 @@ function reinitialize(app) {
         if (app.support.isAniPad()) {
             $('html').addClass('ipad');
         }
-        if ($.browser.mobile && !app.support.isAniPad()) {
+        if ($.browser && $.browser.mobile && !app.support.isAniPad()) {
             $('html').addClass('mobile-phone');
         }
 
