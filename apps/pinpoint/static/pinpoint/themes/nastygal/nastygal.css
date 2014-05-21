@@ -169,14 +169,12 @@
 }
 
 .previewContainer .info .title {
-    font-size: 34px;
-    line-height: 34px;
+    font-size: 28px;
+    line-height: 28px;
     margin-top: 50px;
 }
 .previewContainer .info.image .title {
     margin-top: 0;
-    font-size: 28px;
-    line-height: 28px
 }
 .previewContainer .image-without-tagged-products .title {
     font-size: 26px;
