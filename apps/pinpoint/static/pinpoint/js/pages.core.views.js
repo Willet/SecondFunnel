@@ -320,7 +320,8 @@ App.module('core', function (module, App) {
                 };
             }
 
-            if (App.option('conditionalSocialButtons', {})[model.get('colspan')]) {
+            if (App.sharing &&
+                App.option('conditionalSocialButtons', {})[model.get('colspan')]) {
                 var socialButtons = $('.socialButtons', this.$el),
                     buttons = new App.sharing.SocialButtons({
                         'model': model,

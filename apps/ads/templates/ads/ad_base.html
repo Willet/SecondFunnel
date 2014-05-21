@@ -7,7 +7,6 @@
         {% include "pinpoint/campaign_config.html" %}
         <!--Begin CSS-->
         {% compress css %}
-        <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}" />
         <link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/base.css' %}">
         <link rel="stylesheet"
               href="{% static 'pinpoint/themes/nastygal/nastygal.css' %}"/>
@@ -19,7 +18,6 @@
         <script src="{% static 'js/backbone.min.js' %}"></script>
         <script src="{% static 'js/backbone.marionette.min.js' %}"></script><!-- after backbone -->
         <script src="{% static 'js/jquery.masonry.pkgd.min.js' %}"></script>
-        <script src="{% static 'js/bootstrap.min.js' %}"></script>
         <script src="{% static 'js/jquery.cloudinary.js' %}"></script><!-- anywhere before our app -->
         <script src="{% static 'pinpoint/js/pages.preinit.js' %}"></script><!-- after marionette -->
         <script src="{% static 'pinpoint/js/pages.core.js' %}"></script><!-- after preinit -->

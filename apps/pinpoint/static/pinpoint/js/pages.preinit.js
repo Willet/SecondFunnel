@@ -38,7 +38,7 @@ App.options.urlParams = window.location.search;
 
     // feature, not a bug
     if (window.console && console.log) {
-        console.log("%cSecondFunnel", "font-family:sans-serif; font-size:32pt;");
+        console.log("%cSecondFunnel", "font-family:sans-serif; font-weight:bold; font-size:12pt;");
         console.log('Published ' + pubDate);
     }
 }(App.options));
