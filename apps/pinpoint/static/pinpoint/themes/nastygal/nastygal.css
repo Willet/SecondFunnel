@@ -128,6 +128,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     white-space: nowrap;
+    margin: auto;
 }
 
 .previewContainer .gallery.hidden {
@@ -166,16 +167,14 @@
 }
 
 .previewContainer .info .title {
-    font-size: 28px;
-    line-height: 28px;
+    font-size: 26px;
+    line-height: 26px;
     margin-top: 50px;
 }
 .previewContainer .info.image .title {
     margin-top: 0;
 }
 .previewContainer .image-without-tagged-products .title {
-    font-size: 26px;
-    line-height: 26px;
     margin-bottom: 10px;
 }
 
@@ -217,7 +216,7 @@
 }
 
 .previewContainer .landscape .stl-title {
-    margin-top: 30px;
+    margin-top: 10px;
 }
 
 .previewContainer .stl-look {
