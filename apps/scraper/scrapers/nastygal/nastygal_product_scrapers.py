@@ -54,7 +54,7 @@ class NastygalProductScraper(ProductDetailScraper):
             return images
 
         for image_url in images_data:
-            images.append(self._process_image(image_url, product))
+            images.append(self._process_image(image_url, product, remove_background='#FFF'))
 
         for image in product.product_images.exclude(id__in=[image.id for image in images]):
             image.delete()
