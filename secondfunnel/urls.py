@@ -21,6 +21,8 @@ urlpatterns = patterns('',
     url(r'^imageservice/', include('apps.imageservice.urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
     url(r'^tracker/', include('apps.tracking.urls')),
+    # dashboard
+    url(r'^dashboard/', include('apps.dashboard.urls')),
 
     # special top-level urls for RSS feeds
     url(r'^(?P<page_slug>[^/\.]+)/?$',

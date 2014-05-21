@@ -1,0 +1,56 @@
+body{
+    font-family: Helvetica Neue, Helvetica, Arial;
+    font-size: 1em;
+}
+
+header{
+    position: fixed;
+    z-index: 9999999;
+    background-color: #808080;
+}
+
+header h1{
+    font-size: 1.5em;
+    text-transform: uppercase;
+    font-weight: 200;
+}
+main{
+    position:absolute;
+    top: 70px;
+    width:100%;
+    background-color: green;
+    color: #ffffff;
+}
+#sidebar{
+    position:fixed;
+    top:70px;
+    width: 200px;
+    height:100%;
+    background-color: black;
+}
+#sidebar ul{
+    list-style: outside none;
+    margin-left: -20px;
+}
+#sidebar li{
+    padding: 0px;
+    margin:0px;
+}
+#content{
+    position:absolute;
+    left:200px;
+    right:0;
+    background-color: red;
+}
+
+#authorize-button{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+}
+
+footer{
+    position:fixed;
+    bottom:0;
+    background-color: blue;
+}

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+    <head>
+        <title> Dashboard - {%  block title %}Defualt{%  endblock %}</title>
+        <link rel="stylesheet" href="{% static "base.css" %}">
+        <!--script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js' %}"></script-->
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+        <script src="http://analytics-api-samples.googlecode.com/svn/trunk/src/reporting/javascript/ez-ga-dash/gadash-1.0.js"></script>
+        <script src="https://apis.google.com/js/client.js?onload=gadashInit"></script>
+        <link rel="stylesheet" href="http://cdn.oesmith.co.uk/morris-0.4.3.min.css">
+        <!--script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script-->
+        <!--script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+        <script src="http://cdn.oesmith.co.uk/morris-0.4.3.min.js"></script-->
+        {% block scripts %}{% endblock %}
+    </head>
+    <body>
+        <header>
+            {% block header %}{% endblock %}
+        </header>
+        <main>
+            <div id="sidebar">
+                <div id="total sessions">
+                    {% block sessions %}{% endblock %}
+                </div>
+                <div>
+                    {% block sidebar %}{% endblock %}
+                </div>
+            </div>
+            <div id="content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+        <footer>
+            Copyright Secondfunnel, Willet Inc.
+        </footer>
+    </body>
+</html>

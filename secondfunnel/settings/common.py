@@ -301,6 +301,7 @@ INSTALLED_APPS = (
     'apps.utils',
     'apps.imageservice',
     'apps.scraper',
+    'apps.dashboard',
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = (
