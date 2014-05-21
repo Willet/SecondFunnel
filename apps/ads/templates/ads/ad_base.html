@@ -3,15 +3,20 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><!-- required by bootstrap -->
-        {% include "pinpoint/campaign_config.html" %}
-        <!--Begin CSS-->
         {% compress css %}
-        <link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/base.css' %}">
+        <link rel="stylesheet" type="text/css"
+              href="{% static 'pinpoint/css/base.css' %}">
         <link rel="stylesheet"
               href="{% static 'pinpoint/themes/nastygal/nastygal.css' %}"/>
+        <style>
+            html, .container {
+                overflow: hidden;
+            }
+        </style>
         {% endcompress css %}
 
+        {% compress js %}
+        {% include "pinpoint/campaign_config.html" %}
         <script src="{% static 'js/jquery-1.10.2.min.js' %}"></script>
         <script src="{% static 'js/jquery.viewport.min.js' %}"></script><!-- after browser mobile -->
         <script src="{% static 'js/underscore.min.js' %}"></script>
@@ -29,11 +34,12 @@
         <script src="{% static 'pinpoint/js/pages.optimizer.js' %}"></script><!-- after marionette -->
         <script src="{% static 'pinpoint/js/pages.layoutengine.js' %}"></script><!-- after marionette -->
         <script src="{% static 'pinpoint/js/pages.init.js' %}"></script><!-- after pages -->
+        {% endcompress js %}
     </head>
 
     <body>
         <div class="waterfall container">
-            <div id="discovery-area" class="discovery-area"></div>
+            <div id="discovery-area"></div>
         </div>
 
         {% include "pinpoint/default_templates.html" %}

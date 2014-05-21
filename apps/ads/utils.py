@@ -3,29 +3,15 @@ import json
 from datetime import datetime
 
 from django.conf import settings
-from django.shortcuts import get_object_or_404
 from django.template import RequestContext, Template
-from apps.assets.models import Theme
-from apps.intentrank.controllers import IntentRank
 from apps.intentrank.views import get_results
 
 
 def render_banner(page, request):
-    """Generates the HTML page for a standard pinpoint product page.
-
-    Backup products are populated statically only if a request object
-    is provided.
-
-    :param store_id: optional, legacy, unused
-    :param product: if provided, the theme may attempt to display this
-                    product in the hero area
-    """
+    """Generates the HTML page for a standard pinpoint banner ad."""
 
     # grab required assets
-    # banner_theme = request.GET.get('theme', '300x600')
-    # page_template = get_object_or_404(Theme, name=banner_theme)
     page_template = page.theme.load_theme()
-
     store = page.store
 
     ir_base_url = '/intentrank'
