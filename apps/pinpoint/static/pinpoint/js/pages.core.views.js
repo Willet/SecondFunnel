@@ -917,6 +917,10 @@ App.module('core', function (module, App) {
         'onShow': function () {
             var shrinkContainer = function (element) {
                     return function () {
+                        if (--imageCount !== 0) {
+                            return;
+                        }
+
                         var container = element.closest('.fullscreen'),
                             heightReduction = $(window).height(),
                             widthReduction = container.outerWidth(),
@@ -956,7 +960,8 @@ App.module('core', function (module, App) {
                         });
                     };
                 },
-                product;
+                product,
+                imageCount;
 
             if (this.model.get('tagged-products') && this.model.get('tagged-products').length) {
                 product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
@@ -989,7 +994,8 @@ App.module('core', function (module, App) {
                 $(document.body).addClass('no-scroll');
             }
 
-            $('.main-image, .image', this.$el).on('load', shrinkContainer(this.$el));
+            imageCount = $('img.main-image, img.image', this.$el).length;
+            $('img.main-image, img.image', this.$el).on('load', shrinkContainer(this.$el));
         },
 
         'close': function () {
