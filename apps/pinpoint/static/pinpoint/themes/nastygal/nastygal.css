@@ -390,6 +390,10 @@
         display: inline-block;
     }
 
+    .previewContainer .info.image {
+        max-width: none;
+    }
+
     .previewContainer .info .title {
         margin-top: 5px;
     }
