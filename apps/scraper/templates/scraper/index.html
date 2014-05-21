@@ -2,6 +2,17 @@
 <html>
 <head>
     <title></title>
+    <style>
+        html {
+            font-family: monospace;
+        }
+        h2 {
+            color: darkgreen;
+        }
+        label {
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     <h1>Scraper</h1>
@@ -10,7 +21,8 @@
     {% endif %}
     <form method="post">
         <label>Store:
-            <select name="store-id">
+            <select name="store-id" required="required">
+                <option value="" disabled="disabled">Pick a store</option>
                 {% for store in stores %}
                     <option value="{{ store.id }}">{{ store.name }}</option>
                 {% endfor %}
@@ -19,13 +31,20 @@
         <br/>
         <label>
             URL:
-            <input type="text" name="url" />
+            <input type="url" name="url" required="required" />
         </label>
         <br/>
         <hr/>
-        <input type="submit" value="Scrape this url for this store"/>
-        <br/>
-        This cannot be undone.
+        <ul>
+            <li><b>This cannot be undone.</b></li>
+            <li>Not all URLs can be scraped. <br/>
+                If a URL didn't get scraped, contact a developer.</li>
+            <li>Each item will take about one minute to scrape.</li>
+            <li>No alert will be given </li>
+            <li>Do not submit more than one product URL every minute, or
+                more than one category URL every 30 minutes.</li>
+        </ul>
+        <input type="submit" value="Scrape this URL for this store"/>
     </form>
 </body>
 </html>
