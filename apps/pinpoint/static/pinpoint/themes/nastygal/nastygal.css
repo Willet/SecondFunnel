@@ -163,7 +163,12 @@
     padding-left: 10px;
     padding-right: 10px;
     overflow: hidden;
+}
+.previewContainer .info.image {
     max-width: 320px;
+}
+.previewContainer .info.image.landscape {
+    max-width: none;
 }
 
 .previewContainer .info .title {
@@ -198,8 +203,8 @@
     white-space: nowrap;
 }
 .previewContainer .info.image a.button {
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-top: 7px;
+    margin-bottom: 7px;
 }
 
 .previewContainer .info a.button:hover {
@@ -356,6 +361,14 @@
 }
 
 @media screen and (max-width: 768px) {
+    .navbar {
+        display: none;
+    }
+
+    .jumbotron {
+        margin-top: 0;
+    }
+
     .previewContainer .content {
         padding: 0;
         padding-top: 43px;
