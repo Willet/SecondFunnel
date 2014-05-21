@@ -149,7 +149,7 @@
 }
 
 .previewContainer .image-with-tagged-products .cell {
-    padding-top: 10px;
+    padding-top: 4px;
 }
 
 .previewContainer .image-with-tagged-products .cell.info {
@@ -161,21 +161,26 @@
     padding-left: 20px;
     padding-right: 20px;
     overflow: hidden;
+    max-width: 320px;
 }
 .previewContainer .info.image {
     padding-left: 10px;
+    padding-right: 10px;
 }
 
 .previewContainer .info .title {
     font-size: 34px;
+    line-height: 34px;
     margin-top: 50px;
 }
 .previewContainer .info.image .title {
     margin-top: 0;
     font-size: 28px;
+    line-height: 28px
 }
 .previewContainer .image-without-tagged-products .title {
     font-size: 26px;
+    line-height: 26px;
     margin-bottom: 10px;
 }
 
@@ -193,7 +198,7 @@
     color: #FFF;
     background-color: black;
     text-decoration: none;
-    padding: 10px 30px;
+    padding: 10px 20px;
     display: inline-block;
     margin-bottom: 20px;
     white-space: nowrap;
@@ -209,7 +214,6 @@
 
 .previewContainer .info a.button div {
     vertical-align: middle;
-    padding-left: 20px;
 }
 
 .previewContainer .stl-title {
