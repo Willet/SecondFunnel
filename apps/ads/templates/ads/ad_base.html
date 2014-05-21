@@ -1,16 +1,44 @@
+{% load staticfiles %}
+{% load compress %}
 <!DOCTYPE html>
-<html lang="en">
+<html>
     <head>
-        {% include "pinpoint/campaign_head.html" %}
+        <meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><!-- required by bootstrap -->
+        {% include "pinpoint/campaign_config.html" %}
+        <!--Begin CSS-->
+        {% compress css %}
+        <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}" />
+        <link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/base.css' %}">
+        <link rel="stylesheet"
+              href="{% static 'pinpoint/themes/nastygal/nastygal.css' %}"/>
+        {% endcompress css %}
+
+        <script src="{% static 'js/jquery-1.10.2.min.js' %}"></script>
+        <script src="{% static 'js/jquery.viewport.min.js' %}"></script><!-- after browser mobile -->
+        <script src="{% static 'js/underscore.min.js' %}"></script>
+        <script src="{% static 'js/backbone.min.js' %}"></script>
+        <script src="{% static 'js/backbone.marionette.min.js' %}"></script><!-- after backbone -->
+        <script src="{% static 'js/jquery.masonry.pkgd.min.js' %}"></script>
+        <script src="{% static 'js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/jquery.cloudinary.js' %}"></script><!-- anywhere before our app -->
+        <script src="{% static 'pinpoint/js/pages.preinit.js' %}"></script><!-- after marionette -->
+        <script src="{% static 'pinpoint/js/pages.core.js' %}"></script><!-- after preinit -->
+        <script src="{% static 'pinpoint/js/pages.ir.js' %}"></script><!-- after marionette -->
+        <script src="{% static 'pinpoint/js/pages.utils.js' %}"></script><!-- before pages -->
+        <script src="{% static 'pinpoint/js/pages.core.models.js' %}"></script><!-- after preinit -->
+        <script src="{% static 'pinpoint/js/pages.core.views.js' %}"></script><!-- after preinit -->
+        <script src="{% static 'pinpoint/js/pages.support.js' %}"></script><!-- after marionette -->
+        <script src="{% static 'pinpoint/js/pages.optimizer.js' %}"></script><!-- after marionette -->
+        <script src="{% static 'pinpoint/js/pages.layoutengine.js' %}"></script><!-- after marionette -->
+        <script src="{% static 'pinpoint/js/pages.init.js' %}"></script><!-- after pages -->
     </head>
 
     <body>
         <div class="waterfall container">
             <div id="discovery-area" class="discovery-area"></div>
-            <div class="no-noscript loading"></div>
         </div>
 
-        {% include "pinpoint/campaign_config.html" %}
-        {% include "pinpoint/campaign_body.html" %}
+        {% include "pinpoint/default_templates.html" %}
+        <script>App.start();</script>
     </body>
 </html>

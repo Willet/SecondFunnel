@@ -6,6 +6,8 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext, Template
 from apps.assets.models import Theme
+from apps.intentrank.controllers import IntentRank
+from apps.intentrank.views import get_results
 
 
 def render_banner(page, request):
@@ -20,8 +22,9 @@ def render_banner(page, request):
     """
 
     # grab required assets
-    banner_theme = request.GET.get('theme', '300x600')
-    page_template = get_object_or_404(Theme, name=banner_theme)
+    # banner_theme = request.GET.get('theme', '300x600')
+    # page_template = get_object_or_404(Theme, name=banner_theme)
+    page_template = page.theme.load_theme()
 
     store = page.store
 
@@ -33,13 +36,17 @@ def render_banner(page, request):
     if page.get('tests'):
         tests = json.dumps(page.get('tests'))
 
+    # products_only=True is a nastygal-only copyright thing that ought to be
+    # isolated from this logic, when need be
+    initial_results = get_results(feed=page.feed, products_only=True)
+
     attributes = {
         "session_id": request.session.session_key,
         "campaign": page,
         "store": store,
         "columns": range(4),
         "product": "undefined",
-        "initial_results": [],  # JS now fetches its own initial results
+        "initial_results": json.dumps(initial_results),
         "backup_results": [],
         "social_buttons": '',
         "conditional_social_buttons": "{}",

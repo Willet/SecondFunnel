@@ -98,7 +98,7 @@
 
         , 'resultsThreshold': {{ campaign.results_threshold|default:"undefined"|safe }}  // {[tileId: num,]}
 
-        , 'initialResults': []  // DEPRECATED (IR done on client)
+        , 'initialResults': {{ initial_results|default:"[]"|safe }}
         , 'backupResults': []  // DEPRECATED (IR done on client)
     };
 
