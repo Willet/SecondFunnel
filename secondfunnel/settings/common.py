@@ -290,6 +290,7 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',  # logging
 
     # our apps
+    'apps.ads',
     'apps.api',
     'apps.assets',
     'apps.pinpoint',

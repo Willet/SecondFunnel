@@ -30,6 +30,9 @@ def filter_tiles(fn):
         allowed_set, exclude_set = kwargs.get('allowed_set'), kwargs.get('exclude_set')
         offset, results = kwargs.get('offset', None), kwargs.get('results', 10)
 
+        content_only = kwargs.get('content_only', False)
+        products_only = kwargs.get('products_only', False)
+
         if not feed and tiles is None:  # permit [] for tiles
             raise ValueError("Either tiles or feed must be supplied")
 
@@ -49,6 +52,10 @@ def filter_tiles(fn):
             tiles = tiles.filter(id__in=allowed_set)
         if exclude_set:
             tiles = tiles.exclude(id__in=exclude_set)
+        if products_only:
+            tiles = tiles.filter(template='product')
+        if content_only:
+            tiles = tiles.exclude(template='product')
 
         # tiles that have neither products nor content are blank tiles.
         tiles = tiles.exclude(products__isnull=True, content__isnull=True)
