@@ -32,7 +32,8 @@ class PricePipeline(object):
     def process_item(self, item, spider):
         item['price'] = item.get('price', '').strip()
 
-        if item['price'].startswith('$'):
+        currency = getattr(spider, 'currency_symbol', '$')
+        if item['price'].startswith(currency):
             item['price'] = item['price'][1:]
 
         item['price'] = int(float(item['price']))

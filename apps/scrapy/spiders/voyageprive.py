@@ -17,6 +17,7 @@ class VoyagePriveScraper(XMLFeedSpider):
     # Custom properties
     categories = [u'10033'] # 10029 - Sejourner
     store_slug = name
+    currency_symbol = u'\u20ac'  # Euro symbol
     AVAILABLE_STATUS = u'1'
 
     def __init__(self, *args, **kwargs):
@@ -26,7 +27,6 @@ class VoyagePriveScraper(XMLFeedSpider):
             self.categories = kwargs.get('categories').split(',')
 
 
-    # TODO: Why do we always have to access the first element?
     # Is there a way to do so by default?
     def parse_node(self, response, node):
         # name, price, image_urls
@@ -106,9 +106,4 @@ class VoyagePriveScraper(XMLFeedSpider):
 
         item['image_urls'].extend(product_images)
 
-        return item
-
-    @staticmethod
-    def price_pipeline(item, spider):
-        item['price'] = '$' + item['price']
         return item
