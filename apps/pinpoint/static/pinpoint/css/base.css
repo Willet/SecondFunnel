@@ -627,7 +627,7 @@ div.loading {
     }
 
     .previewContainer .content {
-        overflow: visible !important;
+        overflow: auto;
         display: block;
         margin: auto;
     }
