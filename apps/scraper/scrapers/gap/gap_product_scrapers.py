@@ -34,7 +34,7 @@ class GapProductScraper(ProductDetailScraper):
 
         # retrieve the sale price of the product
         try:
-            sale_price = self.driver.find_element_by_xpath('//span[@id="priceText"]/span[@class="salePrice"]').text
+            sale_price = self.find('#priceText span.salePrice, #colorSwatchContent .salePrice').text
             product.attributes.update({'sale_price': sale_price})
         except NoSuchElementException:
             try:
