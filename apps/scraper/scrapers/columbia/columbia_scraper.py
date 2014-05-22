@@ -59,7 +59,7 @@ class ColumbiaProductScraper(ProductDetailScraper):
             r'image=([^&]+)&',
             self.find('//div[@id="flashcontent"]/*').get_attribute('outerHTML'),
             re.I | re.U | re.M)[0]
-        master_image_url = "http://s7d5.scene7.com/is/image/{0}?scl=1&fmt=jpeg".format(
+        master_image_url = "http://s7d5.scene7.com/is/image/{0}?scl=1.1&fmt=jpeg".format(
             product_image_id)
 
         # because there isn't a way to find more images in the flash object,
