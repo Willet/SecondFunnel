@@ -1,3 +1,4 @@
+import re
 from scrapy.contrib.spiders import XMLFeedSpider
 from scrapy.http import Request
 from scrapy.selector import Selector
@@ -21,6 +22,10 @@ class VoyagePriveScraper(XMLFeedSpider):
         'symbol': u'\u20ac',  # Euro symbol
         'position-at-end': True
     }
+    NAME_REGEX = re.compile(r"""(.+),?         # Name of product
+                                 \s*            # Followed by 0 or more spaces
+                                 (-\s*\d+%)     # Percentage of product off
+                              """, re.VERBOSE)
     AVAILABLE_STATUS = u'1'
 
     def __init__(self, *args, **kwargs):
@@ -108,5 +113,18 @@ class VoyagePriveScraper(XMLFeedSpider):
         ).extract()
 
         item['image_urls'].extend(product_images)
+
+        return item
+
+    @staticmethod
+    def name_pipeline(item, spider):
+        match = re.match(spider.NAME_REGEX, item['name'])
+        if match:
+            item['name'] = match.group(1).strip()
+            item['attributes']['discount'] = match.group(2)
+
+        # in no position of the product name is "jusqu'a" a useful term to keep
+        item['name'] = re.sub(u"jusqu.\u00e0", '', item['name'])
+        item['name'] = item['name'].strip(' ,')  # remove spaces, commas, ...
 
         return item

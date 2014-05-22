@@ -27,6 +27,12 @@ class CloudinaryPipeline(ImagesPipeline):
         return CloudinaryStore()
 
 
+class NamePipeline(object):
+    @spider_pipelined
+    def process_item(self, item, spider):
+        return item
+
+
 class PricePipeline(object):
     @spider_pipelined
     def process_item(self, item, spider):

@@ -38,7 +38,8 @@ WEBDRIVER_OPTIONS = {
 ITEM_PIPELINES = {
     #'scrapy.contrib.pipeline.images.ImagesPipeline': 1,
     #'apps.scrapy.pipelines.CloudinaryPipeline': 1,
-    'apps.scrapy.pipelines.PricePipeline': 2,
+    'apps.scrapy.pipelines.NamePipeline': 2,
+    'apps.scrapy.pipelines.PricePipeline': 3,
     'apps.scrapy.pipelines.ProductForeignKeyPipeline': 997,
     'apps.scrapy.pipelines.ItemPersistencePipeline': 998,
     'apps.scrapy.pipelines.ProductImagePipeline': 999
