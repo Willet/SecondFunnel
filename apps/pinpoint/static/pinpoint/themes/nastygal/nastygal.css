@@ -58,8 +58,6 @@
 }
 
 .tile {
-	margin: 0;
-	box-shadow: none;
 	color: #000;
 	text-align: center;
 	text-rendering: optimizelegibility;
@@ -67,14 +65,6 @@
     text-shadow: none;
 	font-family: "ff-super-grotesk-web", helvetica,arial;
 	font-weight: 200;
-}
-
-.tile.wide {
-	width: 480px;
-}
-
-.tile img.focus {
-	min-width: 100%;
 }
 
 .previewContainer {

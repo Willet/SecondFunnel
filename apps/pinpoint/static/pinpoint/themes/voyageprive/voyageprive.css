@@ -290,9 +290,7 @@ html.tablet #hero-area .find.white a:visited {
 
 .tile {
     border: 0;
-    box-shadow: none;
     width: 50%;
-    margin: 0;
 }
 
 .tile.wide {
@@ -684,15 +682,6 @@ html.tablet .tile.banner .overlay .view {
 .image-without-tagged-prodoucts .author a:visited {
     text-decoration: underline;
 }
-
-.tile img.focus {
-    min-width: inherit;
-    width: 100%;
-}
-
-/* TODO: END Make desktop specific */
-
-
 
 #discovery-area {
     width: 990px;

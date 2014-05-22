@@ -270,9 +270,7 @@ div.header {
 
 .tile {
     border: 0;
-    box-shadow: none;
     width: 202px;
-    margin: 0;
 }
 
 .tile.wide {
@@ -466,15 +464,6 @@ div.header {
 .tile.image .overlay:hover {
     opacity: 1;
 }
-
-.tile img.focus {
-    min-width: inherit;
-}
-
-/* TODO: END Make desktop specific */
-
-
-
 
 @media (max-width: 992px) and (min-width: 769px) {
     #discovery-area {
