@@ -34,6 +34,17 @@
             <input type="url" name="url" required="required" />
         </label>
         <br/>
+        <label>
+            Add to:
+            <select name="feed-id">
+                <option value="">(Don't add to any feed)</option>
+                {% for feed in feeds %}
+                    <option value="{{ feed.id }}">{{ feed }}</option>
+                {% endfor %}
+            </select>
+            (optional)
+        </label>
+        <br/>
         <hr/>
         <ul>
             <li><b>This cannot be undone.</b></li>

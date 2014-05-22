@@ -431,3 +431,12 @@
         display: none !important;
     }
 }
+
+@media screen and (max-width: 310px) {
+    .tile .caption {
+        background-color: transparent;
+        color: black;
+        position: relative;
+        padding-top: 5px;
+    }
+}
