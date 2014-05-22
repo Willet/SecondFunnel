@@ -105,7 +105,7 @@ class VoyagePriveScraper(XMLFeedSpider):
             '.viewp-product-editorialist img::attr(src)'
         ).extract_first()
         if reviewer_img:
-            item['attributes']['reviewer_img'] = reviewer_img
+            item['attributes']['reviewer_image'] = reviewer_img
 
         # Images are lazy-loaded? Shit.
         product_images = details.css(
