@@ -32,11 +32,21 @@ class PricePipeline(object):
     def process_item(self, item, spider):
         item['price'] = item.get('price', '').strip()
 
-        currency = getattr(spider, 'currency_symbol', '$')
-        if item['price'].startswith(currency):
-            item['price'] = item['price'][1:]
+        # TODO: Maybe have default currency options in options?
+        currency_info = getattr(spider, 'currency_info', {})
+        symbol = currency_info.get('symbol', '$')
+        position_at_end = currency_info.get('position-at-end')
 
-        item['price'] = int(float(item['price']))
+        item['price'] = item['price'].strip(symbol)
+        item['price'] = float(item['price'])
+
+        if position_at_end:
+            template = u'{price}{symbol}'
+        else:
+            template = u'{symbol}{price}'
+
+        item['price'] = template.format(price=item['price'], symbol=symbol)
+
         return item
 
 

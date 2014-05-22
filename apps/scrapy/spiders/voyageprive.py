@@ -17,7 +17,10 @@ class VoyagePriveScraper(XMLFeedSpider):
     # Custom properties
     categories = [u'10033'] # 10029 - Sejourner
     store_slug = name
-    currency_symbol = u'\u20ac'  # Euro symbol
+    currency_info = {
+        'symbol': u'\u20ac',  # Euro symbol
+        'position-at-end': True
+    }
     AVAILABLE_STATUS = u'1'
 
     def __init__(self, *args, **kwargs):
