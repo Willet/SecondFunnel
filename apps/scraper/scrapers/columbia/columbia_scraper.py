@@ -1,5 +1,7 @@
 import re
 import urlparse
+from django.db import transaction
+from django.utils.decorators import method_decorator
 from selenium.common.exceptions import NoSuchElementException
 
 from apps.assets.models import Category
@@ -9,6 +11,7 @@ from apps.scraper.scrapers import ProductDetailScraper, ProductCategoryScraper
 class ColumbiaProductScraper(ProductDetailScraper):
     regexs = [r'(?:https?://)?(?:www\.)?columbia\.com/(.+pd\.html.*)$']
 
+    @method_decorator(transaction.atomic)
     def scrape(self, url, values, **kwargs):
         self.driver.get(url)
         print('loaded url ' + url)

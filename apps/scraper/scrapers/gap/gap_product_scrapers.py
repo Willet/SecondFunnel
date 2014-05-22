@@ -1,4 +1,6 @@
 import re
+from django.db import transaction
+from django.utils.decorators import method_decorator
 
 from selenium.common.exceptions import NoSuchElementException
 
@@ -14,6 +16,7 @@ class GapProductScraper(ProductDetailScraper):
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.regexs[0], url).group(1)
 
+    @method_decorator(transaction.atomic)
     def scrape(self, url, product, values, **kwargs):
         print('loading ' + url)
         self.driver.get(url)
