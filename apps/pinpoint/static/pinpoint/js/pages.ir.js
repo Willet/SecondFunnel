@@ -104,7 +104,7 @@ App.module("intentRank", function (intentRank, App) {
                 .value();
 
         if (resultsAlreadyRequested.length) {
-            data.shown = resultsAlreadyRequested.join(',');
+            data.shown = resultsAlreadyRequested.sort().join(',');
         }
         data.algorithm = intentRank.options.IRAlgo;
         data.reqNum = intentRank.options.IRReqNum;
@@ -125,7 +125,7 @@ App.module("intentRank", function (intentRank, App) {
             'xhrFields': {
                 'withCredentials': true
             },
-            parse: true,
+            'parse': true,
             'data': data
         }, this.config, intentRank.options, options);
 
