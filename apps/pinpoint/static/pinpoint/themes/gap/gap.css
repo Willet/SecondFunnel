@@ -964,10 +964,6 @@ div.header {
 }
 
 @media screen and (min-width: 769px) {
-    .previewContainer .content {
-        overflow: hidden;
-    }
-
     .previewContainer .image-with-tagged-products .row .gallery {
         max-width: 192px;
         height: 71px;

@@ -3,6 +3,7 @@ from django.core.management import call_command
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.views.generic import View
 
 from apps.assets.models import Feed, Store
@@ -15,6 +16,7 @@ class ScrapeNowView(View):
     feeds = Feed.objects.all()
 
     @method_decorator(login_required)
+    @method_decorator(never_cache)
     def get(self, request):
         """The "Add URL" UI"""
         return render_to_response('scraper/index.html', {
@@ -23,6 +25,7 @@ class ScrapeNowView(View):
         })
 
     @method_decorator(login_required)
+    @method_decorator(never_cache)
     def post(self, request):
         """The submission controller"""
 
