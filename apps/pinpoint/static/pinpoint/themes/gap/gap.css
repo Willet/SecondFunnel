@@ -345,13 +345,7 @@ div.header {
 
 .tile {
     border: 0;
-    box-shadow: none;
     width: 240px;
-    margin: 0;
-}
-
-.tile.wide {
-    width: 480px;
 }
 
 .tile .caption {
@@ -520,15 +514,6 @@ div.header {
     cursor: zoom-in;
     filter: none;
 }
-
-.tile img.focus {
-    min-width: inherit;
-}
-
-/* TODO: END Make desktop specific */
-
-
-
 
 @media (max-width: 992px) and (min-width: 769px) {
     #discovery-area {
