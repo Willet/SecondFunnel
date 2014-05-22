@@ -34,8 +34,6 @@ class VoyagePriveScraper(XMLFeedSpider):
         if kwargs.get('categories'):
             self.categories = kwargs.get('categories').split(',')
 
-
-    # Is there a way to do so by default?
     def parse_node(self, response, node):
         # name, price, image_urls
         item = ScraperProduct()
@@ -43,15 +41,9 @@ class VoyagePriveScraper(XMLFeedSpider):
         item['image_urls'] = []
 
         sku = node.xpath('id/text()').extract_first()
-        if not sku:
-            return
-
         item['sku'] = sku
 
         sections = node.xpath('sections/text()').extract_first()
-
-        if not sections:
-            return
 
         status = node.xpath('statut/text()').extract_first()
 
@@ -74,9 +66,13 @@ class VoyagePriveScraper(XMLFeedSpider):
         if price:
             item['price'] = price
 
-        image = node.xpath('image-fournisseur/text()').extract_first()
-        if image:
-            item['image_urls'].append(image)
+        site_image = node.xpath('image-fournisseur/text()').extract_first()
+        if site_image:
+            item['attributes']['direct_site_image'] = site_image
+
+        site_name = node.xpath('nom-fournisseur/text()').extract_first()
+        if site_name:
+            item['attributes']['direct_site_name'] = site_name
 
         url = node.xpath('url-detail/text()').extract_first()
         request = Request(url, callback=self.parse_page)

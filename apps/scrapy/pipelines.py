@@ -33,6 +33,31 @@ class NamePipeline(object):
         return item
 
 
+class ValidationPipeline(object):
+    def process_item(self, item, spider):
+        if isinstance(item, ScraperProduct):
+            return self.process_product(item, spider)
+
+        elif isinstance(item, ScraperContent):
+            return self.process_content(item, spider)
+
+        return item
+
+    def process_product(self, item, spider):
+        # Drop items missing required fields
+        required_keys = ['sku', 'name']
+        empty_fields = [k for (k,v) in item.items() if not v]
+        if empty_fields:
+            msg = 'Product fields cannot be blank: ({})'.format(
+                ', '.join(empty_fields)
+            )
+            raise DropItem(msg)
+
+        return item
+
+    def process_content(self, item, spider):
+        pass
+
 class PricePipeline(object):
     @spider_pipelined
     def process_item(self, item, spider):
