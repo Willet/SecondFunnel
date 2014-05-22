@@ -45,8 +45,8 @@ class ValidationPipeline(object):
 
     def process_product(self, item, spider):
         # Drop items missing required fields
-        required_keys = ['sku', 'name']
-        empty_fields = [k for (k,v) in item.items() if not v]
+        required = ['sku', 'name']
+        empty_fields = [k for (k,v) in item.items() if not v and k in required]
         if empty_fields:
             msg = 'Product fields cannot be blank: ({})'.format(
                 ', '.join(empty_fields)
@@ -71,12 +71,18 @@ class PricePipeline(object):
         item['price'] = item['price'].strip(symbol)
         item['price'] = float(item['price'])
 
-        if position_at_end:
-            template = u'{price}{symbol}'
-        else:
-            template = u'{symbol}{price}'
+        # Our Product model uses a narrow regex...
+        # So, forget all this fanciness until that is changed.
 
-        item['price'] = template.format(price=item['price'], symbol=symbol)
+        # if position_at_end:
+        #     template = u'{price}{symbol}'
+        # else:
+        #     template = u'{symbol}{price}'
+
+        # item['price'] = template.format(price=item['price'], symbol=symbol)
+        item['price'] = u'{symbol}{price}'.format(
+            price=item['price'], symbol=symbol
+        )
 
         return item
 

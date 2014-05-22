@@ -19,7 +19,7 @@ class VoyagePriveScraper(XMLFeedSpider):
     categories = [u'10033'] # 10029 - Sejourner
     store_slug = name
     currency_info = {
-        'symbol': u'\u20ac',  # Euro symbol
+        'symbol': u'\u20AC',  # Euro symbol
         'position-at-end': True
     }
     NAME_REGEX = re.compile(r"""(.+),?         # Name of product
@@ -34,8 +34,13 @@ class VoyagePriveScraper(XMLFeedSpider):
         if kwargs.get('categories'):
             self.categories = kwargs.get('categories').split(',')
 
+    # Item Loaders can simplify this code even further.
+    # However, there are some complications, namely:
+    #   - Attributes: Would need a custom item loader
+    #   - Fields that depend on fields, but that can be accomplished via
+    #     processors:
+    #       http://stackoverflow.com/a/19974695
     def parse_node(self, response, node):
-        # name, price, image_urls
         item = ScraperProduct()
         item['attributes'] = {}
         item['image_urls'] = []
