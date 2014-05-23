@@ -1,0 +1,29 @@
+@charset "UTF-8";
+
+#topbar {
+    background: #000;
+    color: #fff;
+    margin: -8px -8px 8px -8px;
+    padding: 8px;
+}
+
+#topbar img {
+    max-height: 30px;
+    vertical-align: middle;
+}
+
+#topbar .nastygal {
+    height: 37px;
+}
+
+#topbar .bustle {
+    height: 25px;
+    margin-left: 4px;
+}
+
+#discovery-area .tile .caption {
+    background-color: transparent;
+    color: black;
+    position: relative;
+    padding-top: 5px;
+}
