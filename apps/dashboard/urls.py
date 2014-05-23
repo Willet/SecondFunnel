@@ -3,4 +3,6 @@ from django.http import HttpResponse
 
 urlpatterns = patterns('apps.dashboard.views',
                        url(r'^$', 'summerloves', name="index"),
+                       url(r'^gap', 'summerloves', name="gap"),
+                       url(r'^oauth2callback', 'auth_return'),
 )
