@@ -140,8 +140,13 @@
 
         <script type="text/template" id="preview_container_template">
             <div class="fullscreen">
-                <span class="close">X</span>
+                <% if (!App.support.mobile()) { %>
+                    <span class="close">X</span>
+                <% } %>
                 <div class="content">
+                    <% if (App.support.mobile()) { %>
+                        <span class="close">Back to browsing</span>
+                    <% } %>
                     <div class="scrollable">
                         <div class="template target"></div>
                     </div>
@@ -181,16 +186,21 @@
             </a>
         </script>
 
-        <script type="text/template" id="product_description_template">
-            <%= obj.description %>
-        </script>
-
         <script type="text/template" id="product_preview_template">
             <div class='content-wrapper row'>
+                <% if (App.support.mobile) { %>
+                    <div class='cell info'>
+                        <div class='title'></div>
+                        <div class='price'></div>
+                        <div class='buy'></div>
+                    </div>
+                <% } %>
                 <div class='cell middle'>
                     <div class="main-image-container">
-                        <div class="gallery-swipe-left"></div>
-                        <div class="gallery-swipe-right"></div>
+                        <% if (obj.images.length > 1) { %>
+                            <div class="gallery-swipe-left"></div>
+                            <div class="gallery-swipe-right"></div>
+                        <% } %>
                         <img class="main-image" src='<%= obj.image.url %>'/>
                     </div>
                 </div>
@@ -199,15 +209,14 @@
                         <div class='gallery dots'></div>
                     </div>
                 <% } %>
-                <div class='cell middle info'>
-                    <div class='title'></div>
-                    <div class='price'></div>
-                    <div class='description'></div>
-                    <div class='buy'></div>
-                    <% if (!App.support.mobile()) { %>
-                        <div class="gallery"></div>
-                    <% } %>
-                </div>
+                <% if (!App.support.mobile()) { %>
+                    <div class='cell middle info'>
+                        <div class='title'></div>
+                        <div class='price'></div>
+                        <div class='buy'></div>
+                        <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
+                    </div>
+                <% } %>
             </div>
         </script>
 
@@ -232,18 +241,53 @@
                                 </div>
                             </div>
                         <% } %>
+                        <div class="image cell desktop-only">
+                            <img src="<%= obj.image.url %>" alt="image"/>
+                        </div>
                         <div class="middle cell info image">
+                            <% if (App.support.mobile()) { %>
+                                <div class='title'></div>
+                                <div class='price'></div>
+                                <div class='buy'></div>
+                            <% } %>
                             <div class='main-image-container'>
-                                <div class="gallery-swipe-left"></div>
-                                <div class="gallery-swipe-right"></div>
+                                <% if (obj.images.length > 1) { %>
+                                    <div class="gallery-swipe-left"></div>
+                                    <div class="gallery-swipe-right"></div>
+                                <% } %>
                                 <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
                             </div>
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <div class='description'></div>
-                            <div class='buy'></div>
-                            <div class='gallery'></div>
+                            <% if (!App.support.mobile()) { %>
+                                <div class='title'></div>
+                                <div class='price'></div>
+                                <div class='buy'></div>
+                            <% } %>
+                            <div class='gallery<% if (App.support.mobile()) { %> dots<% } %><% if (obj.images.length < 2) { %> hide<% } %>'></div>
                         </div>
+                        <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
+                            <div class="more-info">
+                                More from this look...
+                            </div>
+                        <% } %>
+                        <div class="image cell mobile-only">
+                            <img src="<%= obj.image.url %>" alt="image"/>
+                        </div>
+                        <% if (obj['tagged-products'].length > 1) { %>
+                            <div class="cell mobile-only">
+                                <div class="stl-title">The Look</div>
+                                <div class="stl-look">
+                                    <% var  related = obj['tagged-products'] %>
+                                    <% for (var i = 0; i < related.length; i++) { %>
+                                        <div class="stl-item" data-index="<%- i %>">
+                                            <img src="<%- related[i].images[0].url %>" />
+                                            <div class="name">
+                                                <%- related[i].title || related[i].name %>
+                                            </div>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
                     </div>
                 </div>
             <% } else { %>
@@ -257,9 +301,11 @@
                                 <div class="title">
                                     Coming soon to Columbia!
                                 </div>
-                                <a class='button' href='http://www.columbia.com/fishing/Collection_PFG,default,pg.html' target='_blank'>
-                                    Shop On Columbia
-                                </a>
+                                <div class="buy">
+                                    <a class='button' href='http://www.columbia.com/fishing/Collection_PFG,default,pg.html' target='_blank'>
+                                        Shop On Columbia
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
