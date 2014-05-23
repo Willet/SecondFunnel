@@ -471,7 +471,7 @@ div.loading {
 }
 
 .previewContainer .fullscreen .content {
-    max-height: none;
+    max-height: 100%;
     width: 100%;
     -moz-border-radius: 0px;
     -webkit-border-radius: 0px;
