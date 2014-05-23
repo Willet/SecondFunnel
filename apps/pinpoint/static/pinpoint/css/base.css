@@ -104,15 +104,39 @@ a, a:hover, a:focus {
     /* override bootstrap responsiveness */
     float: right!important;
 }
+
+#hero-area .jumbotron {
+    border-radius: 0px;
+}
+
 .jumbotron {
     background-size: cover;
-    height: 410px;  /* adjusts image size */
-    max-height: 25%;  /* adjusts image size */
+    background-repeat: no-repeat;
+    width: 1024px;
+    height: 300px;
+    border-bottom: 1px silver solid;
+    margin: 10px auto 0px auto;
+    max-height: 25%;
     max-width: 100%;
+}
+
+.visible-xs.jumbotron, .visible-sm.jumbotron {
+    padding: 0;
+    height: auto;
+    margin-bottom: 5px;
 }
 
 .visible-md.jumbotron, .visible-lg.jumbotron {
     margin-bottom: 5px;
+}
+
+.visible-xs.jumbotron img {
+    visibility:  hidden;
+    width: 100%;
+}
+
+.visible-sm.jumbotron img {
+    width: 100%;
 }
 
 .container {

@@ -166,36 +166,8 @@ div.header {
     background-image: none;
 }
 
-#hero-area .jumbotron {
-    border-radius: 0px;
-}
-
 #hero-area .hero-image-wrapper {
     position: relative;
-}
-
-.jumbotron {
-    background-repeat: no-repeat;
-    width: 1024px;
-    height: 300px;  /* adjusts image size */
-    border-bottom: 1px silver solid;
-    margin: 10px auto 0px auto;
-}
-
-.visible-xs.jumbotron, .visible-sm.jumbotron {
-    padding: 0;
-    height: auto;
-    margin-bottom: 5px;
-}
-
-.visible-xs.jumbotron img {
-    /* set a background image with ratio constraints http://stackoverflow.com/a/12098334/1558430 */
-    visibility:  hidden;
-    width: 100%;
-}
-
-.visible-sm.jumbotron img {
-    width: 100%;
 }
 
 #hero-area {
