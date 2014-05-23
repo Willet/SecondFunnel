@@ -90,34 +90,26 @@ div.header {
     background-image: none;
 }
 
-#hero-area .jumbotron {
-    border-radius: 0px;
-}
-
 #hero-area .hero-image-wrapper {
     position: relative;
 }
 
 .jumbotron {
-    background-repeat: no-repeat;
-    width: 1024px;
     height: 542px;  /* adjusts image size */
     margin: 0px auto 40px auto;
 }
 
 .visible-xs.jumbotron {
-    padding: 0;
-    height: auto;
+    margin-bottom: 40px;
 }
 
 .visible-sm.jumbotron {
-    height: auto;
+    padding: 30px;
+    margin-bottom: 40px;
 }
 
-.visible-xs.jumbotron img, .visible-sm.jumbotron img {
-    /* set a background image with ratio constraints http://stackoverflow.com/a/12098334/1558430 */
+.visible-sm.jumbotron img {
     visibility:  hidden;
-    width: 100%;
 }
 
 /* TODO: START make non-desktop specific*/
