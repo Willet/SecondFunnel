@@ -509,7 +509,7 @@
                 },
                 // 3 - Social Subscribe Links
                 'click .nav.navbar-nav.navbar-right a, .stay-connected .dropdown-menu a': function () {
-                    var social_network = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
+                    var social_network = /(?:(\w+?)\.com)/.exec($(this).attr('href'))[1];
                     recordEvent('social_follow', 'follow', social_network + ' follow', 'follow');
                 },
                 // 4 - Main Visual
@@ -554,7 +554,7 @@
                 },
                 // 10 - Share deal
                 'click #hero-area .buttons a': function () {
-                    var social_network = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
+                    var social_network = /(?:(\w+?)\.com)/.exec($(this).attr('href'))[1];
                     recordEvent('deal_share', 'header', social_network + ' share', 'share page');
                 },
                 // 13 - Lifestyle Feed Visuals
