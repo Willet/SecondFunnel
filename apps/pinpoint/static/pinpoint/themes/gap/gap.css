@@ -27,10 +27,6 @@ div.header {
 
 .navbar {
     background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/gap-rebar.png') repeat-x;
-    border-radius: 0;
-    /* box-shadow: 0px 0px 21px #999; */
-    height: 56px;
-    /* background-size: 100% 64px; */
     background-color: #fff;
 }
 

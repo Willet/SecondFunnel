@@ -25,18 +25,8 @@ html.tablet .container {
 }
 
 .navbar {
-    height: 56px;
-    line-height: 56px;
     background-color: #fc601d;
-    border-radius: 0;
     color: white;
-    margin-bottom: 0;
-    white-space: nowrap;
-}
-
-.navbar img {
-    height: 100%;
-    vertical-align: top;
 }
 
 .navbar .tag-line {

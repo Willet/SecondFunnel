@@ -1,22 +1,6 @@
 
 .navbar {
-    height: 56px;
-    line-height: 56px;
     background-color: #000;
-    border-radius: 0;
-    color: white;
-    margin-bottom: 0;
-    white-space: nowrap;
-    z-index: 10;
-}
-
-.navbar .container {
-	height: 100%;
-}
-
-.navbar .container img {
-    height: 100%;
-    vertical-align: top;
 }
 
 #hero-area .jumbotron {
