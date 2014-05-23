@@ -7,3 +7,36 @@
 #discovery-area {
     width: 960px;
 }
+
+.previewContainer .content {
+    padding-top: 5px;
+    padding-bottom: 0px;
+    border-color: #36a0dc;
+    border-width: 2px;
+    max-width: 900px;
+}
+
+.previewContainer .close {
+	color: white;
+	border-radius: 25px;
+	background-color: #36a0dc;
+	height: 50px;
+	width: 50px;
+	line-height: 50px;
+	right: -25px;
+	top: -25px;
+	z-index: 1003;
+}
+
+.previewContainer .gallery img {
+    margin: 5px 0;
+    width: 82px;
+    opacity: 0.4;
+    filter: alpha(opacity=40);
+    cursor: pointer;
+}
+.previewContainer .gallery img.selected {
+    opacity: 1;
+    filter: alpha(opacity=100);
+    cursor: default;
+}
