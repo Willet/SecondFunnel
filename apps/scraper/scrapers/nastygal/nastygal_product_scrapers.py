@@ -1,4 +1,6 @@
 import re
+from django.db import transaction
+from django.utils.decorators import method_decorator
 
 from selenium.common.exceptions import NoSuchElementException
 
@@ -8,6 +10,7 @@ from apps.scraper.scrapers import Scraper, ProductDetailScraper, ProductCategory
 class NastygalProductScraper(ProductDetailScraper):
     regexs = [r'(?:https?://)?(?:www\.)?nastygal\.com/([^/]+)/([^/]+)/?(?:#.*)?$']
 
+    @method_decorator(transaction.atomic)
     def scrape(self, url, product, values, **kwargs):
         self.driver.get(url)  # TODO: ?currency_code=USD&country_code=US
 
