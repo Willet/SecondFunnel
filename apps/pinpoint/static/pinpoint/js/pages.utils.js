@@ -91,7 +91,7 @@ App.module("utils", function (utils, App) {
         if (typeof top === "undefined") {
             return false;
         }
-        return (window === top);
+        return (window !== top);
     };
 
     /**
