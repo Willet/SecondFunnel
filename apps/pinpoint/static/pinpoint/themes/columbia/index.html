@@ -300,57 +300,6 @@
         </noscript>
     </div>
 
-    <!-- TODO: do we have adroll + pa setup for columbia?, need to update these values if so??? -->
-
-    <!-- Perfect Audience -->
-    <script type="text/javascript">
-      (function() {
-        window._pa = window._pa || {};
-        // _pa.orderId = "myOrderId"; // OPTIONAL: attach unique conversion identifier to conversions
-        // _pa.revenue = "19.99"; // OPTIONAL: attach dynamic purchase values to conversions
-        // _pa.productId = "myProductId"; // OPTIONAL: Include product ID for use with dynamic ads
-        var pa = document.createElement('script'); pa.type = 'text/javascript'; pa.async = true;
-        pa.src = ('https:' === document.location.protocol ? 'https:' : 'http:') + "//tag.perfectaudience.com/serve/535538ebd9a0e9beae000073.js";
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(pa, s);
-      })();
-    </script>
-
-    <!-- AdRoll -->
-    <script type="text/javascript">
-    adroll_adv_id = "7HUSQEXE6ZBQTE6BZ2HE5B";
-    adroll_pix_id = "JKZ3HVQNCVGQ7GONAFDN5O";
-    (function () {
-       __adroll_loaded=true;
-       var scr = document.createElement("script");
-       var host = (("https:" === document.location.protocol) ? "https://s.adroll.com" : "http://a.adroll.com");
-       scr.setAttribute('async', 'true');
-       scr.type = "text/javascript";
-       scr.src = host + "/j/roundtrip.js";
-       ((document.getElementsByTagName('head') || [null])[0] ||
-        document.getElementsByTagName('script')[0].parentNode).appendChild(scr);
-    }());
-    </script>
-
-    <!-- Dev Only -->
-    <script type='text/javascript'>
-        (function(){
-            window.DEV_FUNCTIONS = {};
-            window.DEV_FUNCTIONS.track_me = function() {
-                // Track via AdRoll
-                try {
-                    // Segment must match that of AdRoll
-                    __adroll.record_user({"adroll_segments": "developers"});
-                } catch(err) {}
-
-                // Track via Perfect Audience
-                try {
-                    window._pq = window._pq || [];
-                    _pq.push(['track', 'developers']);
-                } catch(err) {}
-            }
-        }());
-    </script>
-
     <!-- Tracking Pixels -->
     <img src='{% url 'apps.tracking.views.pixel' %}'/>
 </body>
