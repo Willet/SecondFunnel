@@ -19,7 +19,7 @@ class GapGeneralSpider(WebdriverCrawlSpider):
     name = 'gapspider'
     allowed_domains = ['gap.com']
     # start_urls = ['http://www.gap.com/']
-    start_urls = ['http://www.gap.com/browse/category.do?cid=65289']
+    start_urls = ['http://www.gap.com/browse/category.do?cid=65289#style=1013532']
     rules = [
         # Rule(SgmlLinkExtractor(allow=[
         #     r'\/browse\/subDivision.do\?.*?cid=\d+'
@@ -29,7 +29,7 @@ class GapGeneralSpider(WebdriverCrawlSpider):
         # ]), 'parse_category'),
         Rule(SgmlLinkExtractor(allow=[
             r'/browse/product.do\?.*?pid=\d+'
-        ]), 'parse_product')
+        ]), 'parse_product', follow=False)
     ]
 
     # For some reason, Always defaults to regular requests...
