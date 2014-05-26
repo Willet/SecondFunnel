@@ -15,8 +15,8 @@ from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider
 
 
 
-class GapSpider(WebdriverCrawlSpider):
-    name = 'gap'
+class GapGeneralSpider(WebdriverCrawlSpider):
+    name = 'gapspider'
     allowed_domains = ['gap.com']
     # start_urls = ['http://www.gap.com/']
     start_urls = ['http://www.gap.com/browse/category.do?cid=65289']
@@ -44,7 +44,6 @@ class GapSpider(WebdriverCrawlSpider):
         divisions = sel.css('.category > a')
 
         for division in divisions:
-            # TODO: Extract returns one-element list: how to avoid?
             url = division.css('::attr(href)').extract_first().strip()
             text = division.css('::text').extract_first().strip()
             msg = u'PARSE_DIVISION - {category}: {url}'.format(url=url,
