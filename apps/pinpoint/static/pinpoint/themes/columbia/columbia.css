@@ -198,8 +198,8 @@
 .previewContainer .more-info {
     text-align: right;
     padding-right: 20px;
-    font-size: 24px;
-    line-height: 24px;
+    font-size: 20px;
+    line-height: 20px;
     font-weight: bold;
 }
 
@@ -266,6 +266,7 @@
 
     .previewContainer .info .buy .button {
         display: inline-block;
+        min-width: 280px;
     }
 
     .previewContainer .stl-look {
