@@ -124,6 +124,9 @@ class GapSpider(WebdriverCrawlSpider):
         category_url = category_sel.css('::attr(href)')
         category_name = category_sel.css('::text')
 
+        item['attributes']['categories'] = []
+        item['attributes']['categories'].append((category_name, category_url))
+
         # Mostly for proof of concept
         image = sel.css('#product_image_bg img::attr(src)').extract_first()
         if image:

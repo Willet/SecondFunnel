@@ -100,6 +100,7 @@ class ForeignKeyPipeline(object):
 
     def process_product(self, item, spider):
         item = self.associate_store(item, spider)
+        item = self.associate_categories(item, spider)  # Depends on store
 
         return item
 
@@ -112,6 +113,21 @@ class ForeignKeyPipeline(object):
             raise DropItem("Can't add item to non-existent store")
 
         item['store'] = store
+        return item
+
+    def associate_categories(self, item, spider):
+        old_categories = item.get('attributes', {}).get('categories', [])
+        store = item['store']
+
+        new_categories = []
+        for name, url in old_categories:
+            category = Category.objects.get_or_create(
+                store=store, name=name, url=url
+            )
+            new_categories.append(category)
+
+        item['attributes']['categories'] = new_categories
+
         return item
 
     def process_content(self, item, spider):

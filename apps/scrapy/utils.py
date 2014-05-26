@@ -178,4 +178,4 @@ def django_serializer(value):
 
 
 def store_serializer(value):
-    django_serializer(value)
+    return django_serializer(value)
