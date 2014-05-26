@@ -5,4 +5,4 @@ from apps.scrapy.utils import monkeypatch_method
 @monkeypatch_method(SelectorList)
 def extract_first(self):
     items = iter(self.extract())
-    return next(items, None)
+    return next(items, '')
