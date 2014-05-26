@@ -16,8 +16,8 @@ from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider
 
 
 
-class GapGeneralSpider(WebdriverCrawlSpider):
-    name = 'gapspider'
+class GapSpider(WebdriverCrawlSpider):
+    name = 'gap'
     allowed_domains = ['gap.com']
     # start_urls = ['http://www.gap.com/']
     start_urls = ['http://www.gap.com/browse/category.do?cid=65289#style=1013532']
@@ -32,6 +32,8 @@ class GapGeneralSpider(WebdriverCrawlSpider):
             r'/browse/product.do\?.*?pid=\d+'
         ]), 'parse_product', follow=False)
     ]
+
+    store_slug = name
 
     # For some reason, Always defaults to regular requests...
     # So, we override...
@@ -72,17 +74,17 @@ class GapGeneralSpider(WebdriverCrawlSpider):
         sel = Selector(response)
 
         item = ScraperProduct()
+        item['attributes'] = {}
         item['image_urls'] = []
         item['store'] = self.name
-
-        canonical_url = sel.css('link[rel="canonical"]::attr(href)')\
-            .extract_first()
 
         url = response.url
         item['url'] = url
 
-        sku = re.match(r'^http://www\.gap\.com/browse/product\.do\?pid=(\d{'
-                       r'6})$', url).group(1)
+        sku = sel.css('link[rel="canonical"]::attr(href)').\
+            re_first('/P(\d+).jsp')
+        if sku:
+            item['sku'] = sku
 
         product_name = sel.css('.productName::text')\
             .extract_first()
