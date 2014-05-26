@@ -51,13 +51,14 @@ class VoyagePriveScraper(XMLFeedSpider):
         sections = node.xpath('sections/text()').extract_first()
 
         status = node.xpath('statut/text()').extract_first()
+        item['in_stock'] = (status == self.AVAILABLE_STATUS)
 
         node_categories = set(sections.split(','))
         scraper_categories = set(self.categories)
         is_part_of_campaign = node_categories.intersection(scraper_categories)
-        is_available = self.AVAILABLE_STATUS in status
 
-        if not (is_part_of_campaign and is_available):
+        # TODO: This validation should be left to a pipeline
+        if not is_part_of_campaign:
             return
 
         item['url'] = 'http://www.officiel-des-vacances.com/' \
