@@ -1,3 +1,4 @@
+import re
 from urlparse import urljoin
 from scrapy import log
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
@@ -74,13 +75,36 @@ class GapGeneralSpider(WebdriverCrawlSpider):
         item['image_urls'] = []
         item['store'] = self.name
 
-        product_name = sel.css('#productNameText .productName::text')\
+        canonical_url = sel.css('link[rel="canonical"]::attr(href)')\
             .extract_first()
+
+        url = response.url
+        item['url'] = url
+
+        sku = re.match(r'^http://www\.gap\.com/browse/product\.do\?pid=(\d{'
+                       r'6})$', url).group(1)
+
+        product_name = sel.css('.productName::text')\
+            .extract_first()
+
+        # Presence of product name determines product availability
         if product_name:
             item['name'] = product_name
+            item['in_stock'] = True
+        else:
+            item['in_stock'] = False
 
-        price = sel.css('#priceText::text').extract_first()\
-            or sel.css('#priceText strike::text').extract_first()
+        description = sel.css('#tabWindow').extract_first()
+        if description:
+            item['description'] = description
+
+        sale_price = sel.css('#priceText .salePrice::text').extract_first()
+
+        if not sale_price:
+            price = sel.css('#priceText::text').extract_first()
+        else:
+            price = sel.css('#priceText strike::text').extract_first()
+            item['attributes']['sales_price'] = sale_price
 
         if price:
             item['price'] = price
