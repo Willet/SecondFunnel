@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from scrapy.contrib.djangoitem import DjangoItem
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
-from apps.assets.models import Store, Product
+from apps.assets.models import Store, Product, Category
 from apps.scraper.scrapers import ProductScraper
 from apps.scrapy.items import ScraperProduct, ScraperContent
 from apps.scrapy.utils import CloudinaryStore, spider_pipelined, \
@@ -88,7 +88,7 @@ class PricePipeline(object):
 
 
 # At the moment, ForeignKeys are a bitch, so, handle those separately.
-class ProductForeignKeyPipeline(object):
+class ForeignKeyPipeline(object):
     def process_item(self, item, spider):
         if isinstance(item, ScraperProduct):
             return self.process_product(item, spider)
@@ -99,6 +99,11 @@ class ProductForeignKeyPipeline(object):
         return item
 
     def process_product(self, item, spider):
+        item = self.associate_store(item, spider)
+
+        return item
+
+    def associate_store(self, item, spider):
         store_slug = getattr(spider, 'store_slug', '')
 
         try:
@@ -107,7 +112,6 @@ class ProductForeignKeyPipeline(object):
             raise DropItem("Can't add item to non-existent store")
 
         item['store'] = store
-
         return item
 
     def process_content(self, item, spider):

@@ -19,8 +19,7 @@ from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider
 class GapSpider(WebdriverCrawlSpider):
     name = 'gap'
     allowed_domains = ['gap.com']
-    # start_urls = ['http://www.gap.com/']
-    start_urls = ['http://www.gap.com/browse/category.do?cid=65289#style=1013532']
+    start_urls = ['http://www.gap.com/']
     rules = [
         # Rule(SgmlLinkExtractor(allow=[
         #     r'\/browse\/subDivision.do\?.*?cid=\d+'
@@ -34,6 +33,16 @@ class GapSpider(WebdriverCrawlSpider):
     ]
 
     store_slug = name
+
+    # TODO: Handle 'styles'
+    category_url = 'http://www.gap.com/browse/category.do?cid={}'
+
+    def __init__(self, *args, **kwargs):
+        super(GapSpider, self).__init__()
+
+        if kwargs.get('categories'):
+            categories = kwargs.get('categories').split(',')
+            self.start_urls = [self.category_url.format(c) for c in categories]
 
     # For some reason, Always defaults to regular requests...
     # So, we override...
@@ -110,6 +119,10 @@ class GapSpider(WebdriverCrawlSpider):
 
         if price:
             item['price'] = price
+
+        category_sel = sel.css('li a[class*=selected]')
+        category_url = category_sel.css('::attr(href)')
+        category_name = category_sel.css('::text')
 
         # Mostly for proof of concept
         image = sel.css('#product_image_bg img::attr(src)').extract_first()

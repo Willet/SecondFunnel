@@ -41,7 +41,7 @@ ITEM_PIPELINES = {
     'apps.scrapy.pipelines.ValidationPipeline': 2,
     'apps.scrapy.pipelines.NamePipeline': 10,
     'apps.scrapy.pipelines.PricePipeline': 11,
-    'apps.scrapy.pipelines.ProductForeignKeyPipeline': 997,
+    'apps.scrapy.pipelines.ForeignKeyPipeline': 997,
     'apps.scrapy.pipelines.ItemPersistencePipeline': 998,
     'apps.scrapy.pipelines.ProductImagePipeline': 999
 }
