@@ -1,6 +1,7 @@
 
 .navbar {
-    background-color: #E5E5E5;
+    background-color: #F5F5F5;
+    box-shadow: 0px 2px 5px 3px rgba(0,0,0,0.20);
 }
 
 .tile {
@@ -19,7 +20,7 @@
 .previewContainer .content {
     padding-top: 5px;
     padding-bottom: 0px;
-    border-color: #36a0dc;
+    border-color: #2087cc;
     border-width: 2px;
     max-width: 900px;
 }
@@ -27,7 +28,7 @@
 .previewContainer .close {
 	color: white;
 	border-radius: 25px;
-	background-color: #36a0dc;
+	background-color: #2087cc;
 	height: 50px;
 	width: 50px;
 	line-height: 50px;
@@ -85,7 +86,7 @@
 
 .previewContainer .info .price {
     font-size: 26px;
-    color: #36a0dc;
+    color: #2087cc;
     font-weight: bold;
     margin-bottom: 15px;
 }
@@ -96,7 +97,7 @@
 .previewContainer .info .buy .button {
     font-size: 24px;
     color: #FFF;
-    background-color: #969696;
+    background-color: #2087cc;
     text-decoration: none;
     padding: 20px 30px;
     display: block;
