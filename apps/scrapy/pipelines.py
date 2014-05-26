@@ -27,15 +27,63 @@ class CloudinaryPipeline(ImagesPipeline):
         return CloudinaryStore()
 
 
+class NamePipeline(object):
+    @spider_pipelined
+    def process_item(self, item, spider):
+        return item
+
+
+class ValidationPipeline(object):
+    def process_item(self, item, spider):
+        if isinstance(item, ScraperProduct):
+            return self.process_product(item, spider)
+
+        elif isinstance(item, ScraperContent):
+            return self.process_content(item, spider)
+
+        return item
+
+    def process_product(self, item, spider):
+        # Drop items missing required fields
+        required = ['sku', 'name']
+        empty_fields = [k for (k,v) in item.items() if not v and k in required]
+        if empty_fields:
+            msg = 'Product fields cannot be blank: ({})'.format(
+                ', '.join(empty_fields)
+            )
+            raise DropItem(msg)
+
+        return item
+
+    def process_content(self, item, spider):
+        pass
+
 class PricePipeline(object):
     @spider_pipelined
     def process_item(self, item, spider):
         item['price'] = item.get('price', '').strip()
 
-        if item['price'].startswith('$'):
-            item['price'] = item['price'][1:]
+        # TODO: Maybe have default currency options in options?
+        currency_info = getattr(spider, 'currency_info', {})
+        symbol = currency_info.get('symbol', '$')
+        position_at_end = currency_info.get('position-at-end')
 
-        item['price'] = int(float(item['price']))
+        item['price'] = item['price'].strip(symbol)
+        item['price'] = float(item['price'])
+
+        # Our Product model uses a narrow regex...
+        # So, forget all this fanciness until that is changed.
+
+        # if position_at_end:
+        #     template = u'{price}{symbol}'
+        # else:
+        #     template = u'{symbol}{price}'
+
+        # item['price'] = template.format(price=item['price'], symbol=symbol)
+        item['price'] = u'{symbol}{price}'.format(
+            price=item['price'], symbol=symbol
+        )
+
         return item
 
 

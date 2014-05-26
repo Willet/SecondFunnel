@@ -133,7 +133,7 @@ def spider_pipelined(process_item):
         if pipeline:
             return pipeline(item, spider)
 
-        return process_item(item)
+        return process_item(self, item, spider)
 
     return wrapper
 

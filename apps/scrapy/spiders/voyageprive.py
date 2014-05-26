@@ -1,3 +1,4 @@
+import re
 from scrapy.contrib.spiders import XMLFeedSpider
 from scrapy.http import Request
 from scrapy.selector import Selector
@@ -17,6 +18,14 @@ class VoyagePriveScraper(XMLFeedSpider):
     # Custom properties
     categories = [u'10033'] # 10029 - Sejourner
     store_slug = name
+    currency_info = {
+        'symbol': u'\u20AC',  # Euro symbol
+        'position-at-end': True
+    }
+    NAME_REGEX = re.compile(r"""(.+),?         # Name of product
+                                 \s*            # Followed by 0 or more spaces
+                                 (-\s*\d+%)     # Percentage of product off
+                              """, re.VERBOSE)
     AVAILABLE_STATUS = u'1'
 
     def __init__(self, *args, **kwargs):
@@ -25,34 +34,31 @@ class VoyagePriveScraper(XMLFeedSpider):
         if kwargs.get('categories'):
             self.categories = kwargs.get('categories').split(',')
 
-
-    # TODO: Why do we always have to access the first element?
-    # Is there a way to do so by default?
+    # Item Loaders can simplify this code even further.
+    # However, there are some complications, namely:
+    #   - Attributes: Would need a custom item loader
+    #   - Fields that depend on fields, but that can be accomplished via
+    #     processors:
+    #       http://stackoverflow.com/a/19974695
     def parse_node(self, response, node):
-        # name, price, image_urls
         item = ScraperProduct()
         item['attributes'] = {}
         item['image_urls'] = []
 
         sku = node.xpath('id/text()').extract_first()
-        if not sku:
-            return
-
         item['sku'] = sku
 
         sections = node.xpath('sections/text()').extract_first()
 
-        if not sections:
-            return
-
         status = node.xpath('statut/text()').extract_first()
+        item['in_stock'] = (status == self.AVAILABLE_STATUS)
 
         node_categories = set(sections.split(','))
         scraper_categories = set(self.categories)
         is_part_of_campaign = node_categories.intersection(scraper_categories)
-        is_available = self.AVAILABLE_STATUS in status
 
-        if not (is_part_of_campaign and is_available):
+        # TODO: This validation should be left to a pipeline
+        if not is_part_of_campaign:
             return
 
         item['url'] = 'http://www.officiel-des-vacances.com/' \
@@ -66,9 +72,13 @@ class VoyagePriveScraper(XMLFeedSpider):
         if price:
             item['price'] = price
 
-        image = node.xpath('image-fournisseur/text()').extract_first()
-        if image:
-            item['image_urls'].append(image)
+        site_image = node.xpath('image-fournisseur/text()').extract_first()
+        if site_image:
+            item['attributes']['direct_site_image'] = site_image
+
+        site_name = node.xpath('nom-fournisseur/text()').extract_first()
+        if site_name:
+            item['attributes']['direct_site_name'] = site_name
 
         url = node.xpath('url-detail/text()').extract_first()
         request = Request(url, callback=self.parse_page)
@@ -97,7 +107,7 @@ class VoyagePriveScraper(XMLFeedSpider):
             '.viewp-product-editorialist img::attr(src)'
         ).extract_first()
         if reviewer_img:
-            item['attributes']['reviewer_img'] = reviewer_img
+            item['attributes']['reviewer_image'] = reviewer_img
 
         # Images are lazy-loaded? Shit.
         product_images = details.css(
@@ -109,6 +119,14 @@ class VoyagePriveScraper(XMLFeedSpider):
         return item
 
     @staticmethod
-    def price_pipeline(item, spider):
-        item['price'] = '$' + item['price']
+    def name_pipeline(item, spider):
+        match = re.match(spider.NAME_REGEX, item['name'])
+        if match:
+            item['name'] = match.group(1).strip()
+            item['attributes']['discount'] = match.group(2)
+
+        # in no position of the product name is "jusqu'a" a useful term to keep
+        item['name'] = re.sub(u"jusqu.\u00e0", '', item['name'])
+        item['name'] = item['name'].strip(' ,')  # remove spaces, commas, ...
+
         return item
