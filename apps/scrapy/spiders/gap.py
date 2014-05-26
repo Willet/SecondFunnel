@@ -121,8 +121,8 @@ class GapSpider(WebdriverCrawlSpider):
             item['price'] = price
 
         category_sel = sel.css('li a[class*=selected]')
-        category_url = category_sel.css('::attr(href)')
-        category_name = category_sel.css('::text')
+        category_url = category_sel.css('::attr(href)').extract_first()
+        category_name = category_sel.css('::text').extract_first()
 
         item['attributes']['categories'] = []
         item['attributes']['categories'].append((category_name, category_url))

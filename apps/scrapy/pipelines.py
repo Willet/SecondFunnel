@@ -100,7 +100,6 @@ class ForeignKeyPipeline(object):
 
     def process_product(self, item, spider):
         item = self.associate_store(item, spider)
-        item = self.associate_categories(item, spider)  # Depends on store
 
         return item
 
@@ -113,21 +112,6 @@ class ForeignKeyPipeline(object):
             raise DropItem("Can't add item to non-existent store")
 
         item['store'] = store
-        return item
-
-    def associate_categories(self, item, spider):
-        old_categories = item.get('attributes', {}).get('categories', [])
-        store = item['store']
-
-        new_categories = []
-        for name, url in old_categories:
-            category = Category.objects.get_or_create(
-                store=store, name=name, url=url
-            )
-            new_categories.append(category)
-
-        item['attributes']['categories'] = new_categories
-
         return item
 
     def process_content(self, item, spider):
@@ -152,6 +136,32 @@ class ItemPersistencePipeline(object):
             raise DropItem('Item didn\'t validate. ({})'.format(messages))
 
         return item
+
+
+class CategoryPipeline(object):
+    def process_item(self, item, spider):
+        categories = item.get('attributes', {}).get('categories', [])
+        for name, url in categories:
+            self.add_to_category(item, name, url)
+
+        return item
+
+    def add_to_category(self, item, name, url):
+        store = item['store']
+
+        category, created = Category.objects.get_or_create(
+            store=store, name=name, url=url
+        )
+        category.save()
+
+        try:
+            item_model = item_to_model(item)
+        except TypeError:
+            return
+
+        product, _ = get_or_create(item_model)
+        category.products.add(product)
+        category.save()
 
 
 class ProductImagePipeline(object):

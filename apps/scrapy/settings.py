@@ -41,8 +41,10 @@ ITEM_PIPELINES = {
     'apps.scrapy.pipelines.ValidationPipeline': 2,
     'apps.scrapy.pipelines.NamePipeline': 10,
     'apps.scrapy.pipelines.PricePipeline': 11,
-    'apps.scrapy.pipelines.ForeignKeyPipeline': 997,
-    'apps.scrapy.pipelines.ItemPersistencePipeline': 998,
+    # 900 - Persistence-related Pipelines
+    'apps.scrapy.pipelines.ForeignKeyPipeline': 900,
+    'apps.scrapy.pipelines.ItemPersistencePipeline': 990,
+    'apps.scrapy.pipelines.CategoryPipeline': 998,
     'apps.scrapy.pipelines.ProductImagePipeline': 999
 }
 # Image storage information here:
