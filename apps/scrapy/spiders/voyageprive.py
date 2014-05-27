@@ -16,7 +16,13 @@ class VoyagePriveScraper(XMLFeedSpider):
     itertag = 'node'
 
     # Custom properties
-    categories = [u'10033'] # 10029 - Sejourner
+    categories = [u'10033']
+
+    # TODO: Is there a better way to track id -> name pairings
+    categories_dict = {
+        u'10033': 'week-end',
+        u'10029': 'sejour'
+    }
     store_slug = name
     currency_info = {
         'symbol': u'\u20AC',  # Euro symbol
@@ -44,6 +50,7 @@ class VoyagePriveScraper(XMLFeedSpider):
         item = ScraperProduct()
         item['attributes'] = {}
         item['image_urls'] = []
+        item['attributes']['categories'] = []
 
         sku = node.xpath('id/text()').extract_first()
         item['sku'] = sku
@@ -60,6 +67,13 @@ class VoyagePriveScraper(XMLFeedSpider):
         # TODO: This validation should be left to a pipeline
         if not is_part_of_campaign:
             return
+
+        for category_id in node_categories:
+            category = self.categories_dict.get(category_id)
+            if not category:
+                continue
+
+            item['attributes']['categories'].append((category, None))
 
         item['url'] = 'http://www.officiel-des-vacances.com/' \
                       'route-to/{0}/section'.format(item['sku'])

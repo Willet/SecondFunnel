@@ -146,12 +146,16 @@ class CategoryPipeline(object):
 
         return item
 
-    def add_to_category(self, item, name, url):
-        store = item['store']
+    def add_to_category(self, item, name, url=None):
+        kwargs = {
+            'store': item['store'],
+            'name': name
+        }
 
-        category, created = Category.objects.get_or_create(
-            store=store, name=name, url=url
-        )
+        if url:
+            kwargs['url'] = url
+
+        category, created = Category.objects.get_or_create(**kwargs)
         category.save()
 
         try:
