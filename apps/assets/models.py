@@ -870,6 +870,11 @@ class Tile(BaseModel):
         return super(Tile, self).full_clean(exclude=exclude,
                                             validate_unique=validate_unique)
 
+    def save(self, *args, **kwargs):
+        super(Tile, self).save(*args, **kwargs)  # get PK
+        self.ir_cache = json.dumps(self.to_json())
+        super(Tile, self).save(*args, **kwargs)
+
     def to_json(self):
         return json.loads(self.to_str())
 

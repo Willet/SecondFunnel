@@ -139,18 +139,3 @@ def content_saved(sender, **kwargs):
     with transaction.atomic():
         for tile in content.tiles.all():
             tile.save()
-
-
-@receiver(pre_save, sender=Tile)
-def tile_saved(sender, **kwargs):
-    """Generate cache for IR whenever a tile is saved."""
-    tile = kwargs.pop('instance', None)
-    if not tile:  # TypeError: tile_saved() takes exactly 2 arguments (1 given)
-        return
-    try:
-        tile.ir_cache = ''
-        tile.ir_cache = json.dumps(tile.to_json())
-    except (AttributeError, ValueError) as err:
-        # this happens when: tile is new, or schema is borked
-        print "Could not save tile cache for tile #{}: {}".format(
-            getattr(tile, 'id'), err.message)

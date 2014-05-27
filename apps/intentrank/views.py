@@ -115,9 +115,11 @@ def get_results_view(request, page_id):
                           exclude_set=exclude_set,
                           category_name=category,
                           offset=offset, tile_id=tile_id)
+    # results is a list of stringified tiles!
+    results = results.values_list('ir_cache', flat=True)
 
     # manually construct a json array
-    response_text = "[{}]".format(",".join(results.values_list('ir_cache', flat=True)))
+    response_text = "[{}]".format(",".join(results))
     if callback:
         response_text = "{0}({1});".format(callback, response_text)
     return HttpResponse(response_text, content_type='application/json')
@@ -173,9 +175,11 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
 
     # results is a queryset!
     results = get_results(feed=feed, request=request, algorithm=ir_all)
+    # results is a list of stringified tiles!
+    results = results.values_list('ir_cache', flat=True)
 
     # manually construct a json array
-    response_text = "[{}]".format(",".join([tile.to_str() for tile in results]))
+    response_text = "[{}]".format(",".join(results))
     if callback:
         response_text = "{0}({1});".format(callback, response_text)
     return HttpResponse(response_text, content_type='application/json')
