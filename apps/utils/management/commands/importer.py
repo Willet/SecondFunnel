@@ -346,4 +346,4 @@ class Command(BaseCommand):
                 tile.updated_at = datetime.datetime.fromtimestamp(
                     float(tile_updated_at) / 1000,
                     tz=pytz.timezone(settings.TIME_ZONE))
-            tile.save(skip_updated_at=True)
+            tile.save()
