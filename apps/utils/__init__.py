@@ -1,6 +1,7 @@
 # python.net/~goodger/projects/pycon/2007/idiomatic/handout.html#importing
 from functools import wraps
 import itertools
+import os
 from threading import current_thread
 
 from functional import async, check_keys_exist, memoize, noop, proxy, where
@@ -37,6 +38,25 @@ def thread_id(fn):
         return rtn
 
     return func
+
+
+def get_processes():
+    """returns a list of running process paths e.g. "/usr/bin/kate" """
+    try:
+        pids = [pid for pid in os.listdir('/proc') if pid.isdigit()]
+        processes = []
+
+        for pid in pids:
+            try:
+                process_path = open(os.path.join('/proc', pid, 'cmdline'),
+                                    'rb').read().strip()
+                if process_path:
+                    processes.append(process_path)
+            except IOError: # proc has already terminated
+                continue
+        return processes
+    except (OSError, IOError) as err:
+        return []
 
 
 def flatten(list_of_lists):

@@ -1,4 +1,6 @@
 import re
+from django.db import transaction
+from django.utils.decorators import method_decorator
 
 from selenium.common.exceptions import NoSuchElementException
 
@@ -14,6 +16,7 @@ class GapProductScraper(ProductDetailScraper):
     def parse_url(self, url, **kwargs):
         return 'http://www.gap.com/browse/product.do?pid=' + re.match(self.regexs[0], url).group(1)
 
+    @method_decorator(transaction.atomic)
     def scrape(self, url, product, values, **kwargs):
         print('loading ' + url)
         self.driver.get(url)
@@ -34,7 +37,7 @@ class GapProductScraper(ProductDetailScraper):
 
         # retrieve the sale price of the product
         try:
-            sale_price = self.driver.find_element_by_xpath('//span[@id="priceText"]/span[@class="salePrice"]').text
+            sale_price = self.find('#priceText span.salePrice, #colorSwatchContent .salePrice').text
             product.attributes.update({'sale_price': sale_price})
         except NoSuchElementException:
             try:

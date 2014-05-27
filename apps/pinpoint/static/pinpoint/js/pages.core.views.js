@@ -556,11 +556,19 @@ App.module('core', function (module, App) {
                 $(window).on('rotate', globals.orientationChangeHandler);
             }(App._globals));
 
-            $window
-                .scrollStopped(function () {
+            $window.scrollStopped(function () {
+                // deal with tap indicator fade in/outs
+                App.vent.trigger('scrollStopped', self);
+            });
+
+            if (App.utils.isIframe()) {
+                $window.scrollStopped(function () {
                     // deal with tap indicator fade in/outs
-                    App.vent.trigger('scrollStopped', self);
+                    self.$('.tile:not(:in-viewport)').css({'visibility': 'hidden'});
+                    // the rest are visible
+                    self.$('.tile:in-viewport').css({'visibility': 'visible'});
                 });
+            }
 
             // Vent Listeners
             App.vent.on("click:tile", this.updateContentStream, this);
@@ -788,7 +796,7 @@ App.module('core', function (module, App) {
 
         'getTemplate': function () {
             return '#product_' + this.options.infoItem + '_template';
-        },
+        }
     });
 
     /**
@@ -920,15 +928,22 @@ App.module('core', function (module, App) {
         'onShow': function () {
             var shrinkContainer = function (element) {
                     return function () {
+                        var container = element.closest('.fullscreen'),
+                            heightReduction, widthReduction, left, right;
+
                         if (--imageCount !== 0) {
                             return;
                         }
 
-                        var container = element.closest('.fullscreen'),
-                            heightReduction = $(window).height(),
-                            widthReduction = container.outerWidth(),
-                            left = parseInt(container.css('left').split('px')[0], 10),
-                            right = parseInt(container.css('right').split('px')[0], 10);
+                        if (!(container && container.length)) {
+                            // no container to shrink
+                            return;
+                        }
+
+                        heightReduction = $(window).height();
+                        widthReduction = container.outerWidth();
+                        left = parseInt(container.css('left').split('px')[0], 10);
+                        right = parseInt(container.css('right').split('px')[0], 10);
 
                         heightReduction -= element.outerHeight();
                         heightReduction -= $('.close', container).outerHeight();

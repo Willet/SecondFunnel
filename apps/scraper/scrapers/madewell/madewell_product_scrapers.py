@@ -1,4 +1,6 @@
 import re
+from django.db import transaction
+from django.utils.decorators import method_decorator
 
 from selenium.common.exceptions import NoSuchElementException
 
@@ -24,6 +26,7 @@ class MadewellProductScraper(ProductDetailScraper):
 
         return url
 
+    @method_decorator(transaction.atomic)
     def scrape(self, url, product, values, **kwargs):
         self.driver.get(url)
         product.sku = re.match(self.regexs[0], product.url).group(3)

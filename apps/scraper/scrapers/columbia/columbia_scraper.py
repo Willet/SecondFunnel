@@ -1,5 +1,7 @@
 import re
 import urlparse
+from django.db import transaction
+from django.utils.decorators import method_decorator
 from selenium.common.exceptions import NoSuchElementException
 
 from apps.assets.models import Category
@@ -9,6 +11,7 @@ from apps.scraper.scrapers import ProductDetailScraper, ProductCategoryScraper
 class ColumbiaProductScraper(ProductDetailScraper):
     regexs = [r'(?:https?://)?(?:www\.)?columbia\.com/(.+pd\.html.*)$']
 
+    @method_decorator(transaction.atomic)
     def scrape(self, url, values, **kwargs):
         self.driver.get(url)
         print('loaded url ' + url)
@@ -56,7 +59,7 @@ class ColumbiaProductScraper(ProductDetailScraper):
             r'image=([^&]+)&',
             self.find('//div[@id="flashcontent"]/*').get_attribute('outerHTML'),
             re.I | re.U | re.M)[0]
-        master_image_url = "http://s7d5.scene7.com/is/image/{0}?scl=1&fmt=jpeg".format(
+        master_image_url = "http://s7d5.scene7.com/is/image/{0}?scl=1.1&fmt=jpeg".format(
             product_image_id)
 
         # because there isn't a way to find more images in the flash object,

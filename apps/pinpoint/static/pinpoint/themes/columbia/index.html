@@ -6,46 +6,19 @@
     {% include "pinpoint/campaign_head.html" %}
     <!-- End Optimizer Tests -->
     <link rel="shortcut icon"
-         href="http://assets.nastygal.com/assets/current/images/favicon/favicon-152.png" />
+         href="http://demandware.edgesuite.net/aacw_prd/on/demandware.static/Sites-Columbia_US-Site/-/default/v1400764540841/images/apple-icons/152.png" />
     <link rel="stylesheet"
-          href="{% static 'pinpoint/themes/nastygal/nastygal.css' %}"/>
+          href="{% static 'pinpoint/themes/columbia/columbia.css' %}"/>
     {% include "pinpoint/campaign_respond.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
         window.TRACKING_PIXELS = {
             'A': {
-                'view': 'http://cm.gy/cej4',
-                'click': 'http://cm.gy/umez'
-            },
-            'B': {
-                'view': 'http://cm.gy/q3ay',
-                'click': 'http://cm.gy/771t'
+                'view': 'http://cm.gy/b8p5',
+                'click': 'http:/cm.gy/yoio'
             }
         };
         window.ACTIVE_TEST = 'A';
-        window.OPTIMIZER_TESTS = [];
-        window.OPTIMIZER_TESTS.push({
-            index: 7,
-            test: 'custom',
-            custom: function (cookie) {
-                var tileTemplateId = 'image_preview_template',
-                    tests = {{ tests|safe }};
-
-                if (!(tests && tests.length)) {
-                    tests = ["A", "B"];
-                }
-
-                cookie = cookie || _.sample(tests);
-                window.ACTIVE_TEST = cookie;
-
-                if (cookie !== "A") {  // A is base case
-                    $('#' + tileTemplateId).html($('#' +
-                        cookie.toLowerCase() + '_' + tileTemplateId).html());
-                }
-
-                return cookie;
-            }
-        });
     </script>
     {% if environment == 'production' %}
         <script type='text/javascript'>
@@ -95,7 +68,7 @@
             }, 1000);
         </script>
     {% endif %}
-    <title>{{ page.name|default:"Nasty Gal" }}</title>
+    <title>{{ page.name|default:"Columbia" }}</title>
     <style type="text/css">
         /* out of necessity */
         .visible-xs.jumbotron { /* mobile hero */
@@ -117,7 +90,7 @@
 <body>
     <div class='navbar'>
         <div class="container">
-            <img src="{% static 'pinpoint/themes/nastygal/images/logo.png' %}">
+            <img src="{% static 'pinpoint/themes/columbia/images/logo.png' %}">
         </div>
     </div>
 
@@ -174,8 +147,13 @@
 
         <script type="text/template" id="preview_container_template">
             <div class="fullscreen">
+                <% if (!App.support.mobile()) { %>
+                    <span class="close">X</span>
+                <% } %>
                 <div class="content">
-                    <span class="close">BACK TO BROWSING</span>
+                    <% if (App.support.mobile()) { %>
+                        <span class="close">Back to browsing</span>
+                    <% } %>
                     <div class="scrollable">
                         <div class="template target"></div>
                     </div>
@@ -201,42 +179,6 @@
             </div>
         </script>
 
-        <script type="text/template" id="facebook_social_button_template">
-            <div class='button facebook'>
-                <fb:like href="<%= url %>" width="25" layout="button"
-                         show_faces="false"></fb:like>
-            </div>
-        </script>
-
-        <script type="text/template" id="twitter_social_button_template">
-            <% var desc = caption || description || name; %>
-            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
-            <div class='button twitter'>
-                <a href="//twitter.com/share?url=<%= url %>&text=<%= cleanDesc %>"
-                   target="_blank">
-                    <img src="{% static 'pinpoint/themes/nastygal/images/twitter.png' %}"/>
-                </a>
-            </div>
-        </script>
-
-        <script type="text/template" id="pinterest_social_button_template">
-            <% var desc = caption || description || name; %>
-            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
-            <div class='button pinterest'>
-                <a data-pin-do="none" href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= cleanDesc %>"
-                   target="_blank"><img src="{% static 'pinpoint/themes/nastygal/images/pinterest.png' %}"/></a>
-            </div>
-        </script>
-
-        <script type="text/template" id="tumblr_social_button_template">
-            <% var desc = caption || description || name; %>
-            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
-            <div class="button tumblr">
-                <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= cleanDesc %>&click_thru=<%= url %>"
-                     target='_blank'><img src="{% static 'pinpoint/themes/nastygal/images/tumblr.png' %}"/></a>
-            </div>
-        </script>
-
         <script type="text/template" id="product_price_template">
             <%- obj.price %>
         </script>
@@ -247,21 +189,25 @@
 
         <script type="text/template" id="product_buy_template">
             <a class='button' href='<%= obj.url %>' target='_blank'>
-                <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
-                <div class="inline">
-                    SHOP NOW
-                </div>
+                Shop Now
             </a>
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <!-- any (store.name)_(type)_... templates will be used in place
-             of default templates if they exist. -->
             <div class='content-wrapper row'>
+                <% if (App.support.mobile()) { %>
+                    <div class='cell info'>
+                        <div class='title'></div>
+                        <div class='price'></div>
+                        <div class='buy'></div>
+                    </div>
+                <% } %>
                 <div class='cell middle'>
                     <div class="main-image-container">
-                        <div class="gallery-swipe-left"></div>
-                        <div class="gallery-swipe-right"></div>
+                        <% if (obj.images.length > 1) { %>
+                            <div class="gallery-swipe-left"></div>
+                            <div class="gallery-swipe-right"></div>
+                        <% } %>
                         <img class="main-image" src='<%= obj.image.url %>'/>
                     </div>
                 </div>
@@ -270,132 +216,15 @@
                         <div class='gallery dots'></div>
                     </div>
                 <% } %>
-                <div class='cell middle info'>
-                    <div class='title'></div>
-                    <div class='price'></div>
-                    <div class='buy'></div>
-                    <% if (!App.support.mobile()) { %>
-                        <div class="gallery"></div>
-                        <div class="social-button-container">
-                            <div class="social-buttons"></div>
-                        </div>
-                    <% } %>
-                </div>
+                <% if (!App.support.mobile()) { %>
+                    <div class='cell middle info'>
+                        <div class='title'></div>
+                        <div class='price'></div>
+                        <div class='buy'></div>
+                        <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
+                    </div>
+                <% } %>
             </div>
-        </script>
-
-        <script type="text/template" id="b_image_preview_template">
-            <% if (obj['tagged-products'].length) { %>
-                <% var product = obj['tagged-products'][0]; %>
-                <div class="image-with-tagged-products">
-                    <div class="row">
-                        <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
-                            <div class="cell desktop-only">
-                                <div class="stl-title">THE LOOK</div>
-                                <div class="stl-look">
-                                    <% var  related = obj['tagged-products'] %>
-                                    <% for (var i = 0; i < related.length; i++) { %>
-                                        <div class="stl-item" data-index="<%- i %>">
-                                            <img src="<%- related[i].images[0].url %>" />
-                                            <div class="name">
-                                                <%- related[i].title || related[i].name %>
-                                            </div>
-                                        </div>
-                                    <% } %>
-                                </div>
-                            </div>
-                        <% } %>
-                        <div class="image middle cell capped-width desktop-only">
-                            <img src="<%= obj.image.url %>" alt="image" class="image"/>
-                            <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
-                            <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
-                                <div class="landscape">
-                                    <div class="stl-title">THE LOOK</div>
-                                    <div class="stl-look">
-                                        <% var  related = obj['tagged-products'] %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <div class="name">
-                                                    <%- related[i].title || related[i].name %>
-                                                </div>
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            <% } %>
-                        </div>
-                        <div class="image middle cell capped-width mobile-only">
-                            <img src="<%= obj.image.url %>" alt="image"/>
-                            <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
-                        </div>
-                        <div class="middle cell info image<% if (obj.orientation === 'landscape') { %> landscape<% } %>">
-                            <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
-                                <div class="more-info">
-                                    MORE FROM THAT LOOK
-                                    <img src="{% static 'pinpoint/themes/nastygal/images/down_arrow.png' %}" />
-                                </div>
-                            <% } %>
-                            <% if (!App.support.mobile()) { %>
-                                <div class='title'></div>
-                                <div class='price'></div>
-                                <div class='buy'></div>
-                            <% } %>
-                            <div class='main-image-container'>
-                                <div class="gallery-swipe-left"></div>
-                                <div class="gallery-swipe-right"></div>
-                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                            </div>
-                            <div class='gallery dots'></div>
-                            <% if (App.support.mobile()) { %>
-                                <div class='price'></div>
-                                <div class='buy'></div>
-                            <% } %>
-                            <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
-                                <div class="landscape">
-                                    <div class="stl-title">THE LOOK</div>
-                                    <div class="stl-look">
-                                        <% var  related = obj['tagged-products'] %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <div class="name">
-                                                    <%- related[i].title || related[i].name %>
-                                                </div>
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            <% } %>
-                            <% if (!App.support.mobile()) { %>
-                                <div class="social-buttons"></div>
-                            <% } %>
-                        </div>
-                    </div>
-                </div>
-            <% } else { %>
-                <div class="image-without-tagged-products">
-                    <div class="row">
-                        <div class="image middle cell capped-width">
-                            <img src="<%= obj.image.url %>" alt="image" class="main-image" />
-                        </div>
-                        <div class="middle cell">
-                            <div class="info">
-                                <div class="title">
-                                    Coming soon to Nasty Gal!
-                                </div>
-                                <a class='button' href='http://www.nastygal.com/lookbooks-swim-city' target='_blank'>
-                                    <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
-                                    <div class="inline">
-                                        SHOP ON NASTY GAL
-                                    </div>
-                                </a>
-                                <div class="social-buttons"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <% } %>
         </script>
 
         <script type="text/template" id="image_preview_template">
@@ -403,9 +232,9 @@
                 <% var product = obj['tagged-products'][0]; %>
                 <div class="image-with-tagged-products">
                     <div class="row">
-                        <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
+                        <% if (obj['tagged-products'].length > 1) { %>
                             <div class="cell desktop-only">
-                                <div class="stl-title">THE LOOK</div>
+                                <div class="stl-title">The Look</div>
                                 <div class="stl-look">
                                     <% var  related = obj['tagged-products'] %>
                                     <% for (var i = 0; i < related.length; i++) { %>
@@ -419,65 +248,60 @@
                                 </div>
                             </div>
                         <% } %>
-                        <div class="image middle cell capped-width desktop-only">
-                            <img src="<%= obj.image.url %>" alt="image" class="image"/>
-                            <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
-                            <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
-                                <div class="landscape">
-                                    <div class="stl-title">THE LOOK</div>
-                                    <div class="stl-look">
-                                        <% var  related = obj['tagged-products'] %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <div class="name">
-                                                    <%- related[i].title || related[i].name %>
-                                                </div>
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            <% } %>
-                        </div>
-                        <div class="middle cell info image<% if (obj.orientation === 'landscape') { %> landscape<% } %>">
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <div class='buy'></div>
-                            <div class='main-image-container'>
-                                <div class="gallery-swipe-left"></div>
-                                <div class="gallery-swipe-right"></div>
-                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                            </div>
-                            <div class='gallery dots'></div>
-                            <% if (!App.support.mobile()) { %>
-                                <div class="social-buttons"></div>
-                            <% } else if (obj['tagged-products'].length > 1) { %>
-                                <div class="more-info">
-                                    MORE FROM THAT LOOK
-                                    <img src="{% static 'pinpoint/themes/nastygal/images/down_arrow.png' %}" />
-                                </div>
-                            <% } %>
-                        </div>
-                        <div class="image middle cell capped-width mobile-only">
+                        <div class="image cell desktop-only">
                             <img src="<%= obj.image.url %>" alt="image"/>
-                            <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
-                            <% if (obj['tagged-products'].length > 1) { %>
-                                <div class="landscape">
-                                    <div class="stl-title">THE LOOK</div>
-                                    <div class="stl-look">
-                                        <% var  related = obj['tagged-products'] %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <div class="name">
-                                                    <%- related[i].title || related[i].name %>
-                                                </div>
-                                            </div>
-                                        <% } %>
-                                    </div>
+                        </div>
+                        <div class="middle cell info image">
+                            <% if (App.support.mobile()) { %>
+                                <div class='title'></div>
+                                <div class='price'></div>
+                                <div class='buy'></div>
+                                <div class='main-image-container'>
+                                    <% if (obj.images.length > 1) { %>
+                                        <div class="gallery-swipe-left"></div>
+                                        <div class="gallery-swipe-right"></div>
+                                    <% } %>
+                                    <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
                                 </div>
                             <% } %>
+                            <% if (!App.support.mobile()) { %>
+                                <div class='title'></div>
+                                <div class='price'></div>
+                                <div class='main-image-container'>
+                                    <% if (obj.images.length > 1) { %>
+                                        <div class="gallery-swipe-left"></div>
+                                        <div class="gallery-swipe-right"></div>
+                                    <% } %>
+                                    <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
+                                </div>
+                                <div class='buy'></div>
+                            <% } %>
+                            <div class='gallery<% if (App.support.mobile()) { %> dots<% } %><% if (obj.images.length < 2) { %> hide<% } %>'></div>
                         </div>
+                        <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
+                            <div class="more-info">
+                                More from this look...
+                            </div>
+                        <% } %>
+                        <div class="image cell mobile-only">
+                            <img src="<%= obj.image.url %>" alt="image"/>
+                        </div>
+                        <% if (obj['tagged-products'].length > 1) { %>
+                            <div class="cell mobile-only">
+                                <div class="stl-title">The Look</div>
+                                <div class="stl-look">
+                                    <% var  related = obj['tagged-products'] %>
+                                    <% for (var i = 0; i < related.length; i++) { %>
+                                        <div class="stl-item" data-index="<%- i %>">
+                                            <img src="<%- related[i].images[0].url %>" />
+                                            <div class="name">
+                                                <%- related[i].title || related[i].name %>
+                                            </div>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
                     </div>
                 </div>
             <% } else { %>
@@ -489,15 +313,13 @@
                         <div class="middle cell">
                             <div class="info">
                                 <div class="title">
-                                    Coming soon to Nasty Gal!
+                                    Coming soon to Columbia!
                                 </div>
-                                <a class='button' href='http://www.nastygal.com/lookbooks-swim-city' target='_blank'>
-                                    <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
-                                    <div class="inline">
-                                        SHOP ON NASTY GAL
-                                    </div>
-                                </a>
-                                <div class="social-buttons"></div>
+                                <div class="buy">
+                                    <a class='button' href='http://www.columbia.com/fishing/Collection_PFG,default,pg.html' target='_blank'>
+                                        Shop On Columbia
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
