@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile, Category, Store
-from apps.intentrank.controllers import IntentRank, PredictionIOInstance
+from apps.intentrank.controllers import IntentRank
 from apps.intentrank.algorithms import ir_generic, ir_all, ir_base
 from apps.intentrank.utils import ajax_jsonp
 from apps.utils import thread_id
@@ -37,18 +37,6 @@ def track_tile_view(request, tile_id):
     else:
         request.session['shown'].append(tile_id)
     request.session['shown'] = list(set(request.session['shown']))  # uniq
-
-    # if tile tracking is disabled by the /view handler, also disable this one
-    track_tiles = MemcacheSetting.get('track_tiles', True)
-    if not track_tiles:
-        print "PredictionIO disabled by memory-bound setting"
-        return
-
-    try:
-        with PredictionIOInstance() as predictor:
-            predictor.track_tile_view(request, tile_id)
-    except BaseException as err:
-        print "PredictionIO failed to record tile view: {}".format(err.message)
 
 
 def track_tiles_view(request, tile_ids):
@@ -129,7 +117,7 @@ def get_results_view(request, page_id):
                           offset=offset, tile_id=tile_id)
 
     # manually construct a json array
-    response_text = "[{}]".format(",".join([tile.to_str() for tile in results]))
+    response_text = "[{}]".format(",".join(results.values_list('ir_cache', flat=True)))
     if callback:
         response_text = "{0}({1});".format(callback, response_text)
     return HttpResponse(response_text, content_type='application/json')
@@ -280,20 +268,3 @@ def track_tiles(request, action, **kwargs):
 
     update_tiles(tile_ids, action=action)
     return HttpResponse(status=204)
-
-
-def _predictionio_record_action(request):
-    """Private testing handler for interacting with predict instance.
-    Do not use.
-    """
-    try:
-        with PredictionIOInstance() as predictor:
-            predictor.set_user(request)
-            if request.method == 'GET':
-                return HttpResponse(predictor.get_recommended_tiles(
-                    request.GET.get('ids')))
-            elif request.method == 'POST':
-                return HttpResponse(predictor.track_tile_view(
-                    request, request.body))
-    except BaseException as err:
-        return HttpResponse(err.message)
