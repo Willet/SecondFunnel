@@ -384,3 +384,17 @@ def to_local_database(native=True):
 
     # Finally, load the data
     local('fab load_database_postgres')
+
+def scrapy(command='crawl', spider='', args=''):
+    # crawl gap -a categories=65289 -o feed.json -t json
+    print args
+
+    if not spider:
+        print red('No spider provided; aborting.')
+        return
+
+    # For now, have whoever runs fab handle passing in correct arguments
+    scrapy_cmd = 'scrapy {cmd} {spider} {arguments}'.format(
+        cmd=command, spider=spider, arguments=args
+    )
+    run(scrapy_cmd)
