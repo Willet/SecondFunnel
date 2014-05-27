@@ -112,6 +112,6 @@ def tile_saved(sender, **kwargs):
         return
     try:
         tile.ir_cache = tile.to_json()
-    except AttributeError as err:
-        # if schema mismatch, mask until next successful migration
+    except (AttributeError, ValueError) as err:
+        # this happens when: tile is new, or schema is borked
         print "Could not save tile cache: {}".format(err.message)

@@ -5,7 +5,6 @@ import re
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
-from django.core.serializers.json import Serializer
 from django.db import models
 from django_extensions.db.fields import CreationDateTimeField
 from jsonfield import JSONField
@@ -33,13 +32,15 @@ class SerializableMixin(object):
     """
 
     # @override IntentRank serializer
-    serializer = Serializer
+    serializer = ir_serializers.RawSerializer
 
     # @override ContentGraph serializer
     cg_serializer = cg_serializers.RawSerializer
 
     def to_json(self):
         """default method for all models to have a json representation."""
+        if hasattr(self.serializer, 'dump'):
+            return self.serializer.dump(self)
         return self.serializer().serialize(iter([self]))
 
     def to_cg_json(self):
@@ -296,12 +297,6 @@ class Product(BaseModel):
             if not match:
                 raise ValidationError('Product sale price does not validate')
 
-    def to_json(self):
-        return self.serializer().to_json([self])
-
-    def to_cg_json(self):
-        return self.cg_serializer().to_json([self])
-
 
 class ProductImage(BaseModel):
     """An Image-like model class that is explicitly an image depicting
@@ -331,12 +326,6 @@ class ProductImage(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super(ProductImage, self).__init__(*args, **kwargs)
-
-    def to_json(self):
-        return self.serializer().to_json([self])
-
-    def to_cg_json(self):
-        return self.cg_serializer().to_json([self])
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
@@ -463,7 +452,7 @@ class Image(Content):
     serializer = ir_serializers.ContentTileSerializer
     cg_serializer = cg_serializers.ImageSerializer
 
-    def to_json(self, expand_products=True):
+    def to_json(self):
         """Only Images (not ProductImages) can have tagged-products."""
         dct = {
             "id": str(self.id),
@@ -476,11 +465,8 @@ class Image(Content):
             'status': self.status,
             "orientation": 'landscape' if self.width > self.height else 'portrait',
         }
-        if expand_products:
-            # turn django's string list of strings into a real list of ids
-            dct["tagged-products"] = [x.to_json() for x in self.tagged_products.all()]
-        else:
-            dct["tagged-products"] = self.tagged_products.values_list('id', flat=True)
+
+        dct["tagged-products"] = [x.to_json() for x in self.tagged_products.all()]
 
         return dct
 
@@ -506,9 +492,6 @@ class Video(Content):
 
     serializer = ir_serializers.VideoSerializer
     cg_serializer = cg_serializers.VideoSerializer
-
-    def to_json(self, expand_products=True):
-        return self.serializer(expand_products=expand_products).to_json([self])
 
 
 class Review(Content):
@@ -573,6 +556,8 @@ class Feed(BaseModel):
             return 'Feed (#%s), pages: %s' % (self.id, page_names)
         except (ObjectDoesNotExist, MultipleObjectsReturned):
             return 'Feed (#%s)' % self.id
+        except:
+            return '(Unsaved Feed)'
 
     # and other representation specific of the Feed itself
     def to_json(self):
@@ -888,18 +873,23 @@ class Tile(BaseModel):
         # determine what kind of tile this is
         serializer = None
         if self.template == 'image':
-            serializer = ir_serializers.ContentTileSerializer()
-        else:
-            try:
-                if not serializer:
-                    serializer = getattr(ir_serializers, self.template.capitalize() + 'TileSerializer')()
-            except:  # cannot find e.g. 'Youtube'TileSerializer -- use default
-                serializer = ir_serializers.TileSerializer()
+            serializer = ir_serializers.ContentTileSerializer
 
-        return serializer.to_json([self])
+        if not serializer:
+            try:
+                target_class = self.template.capitalize()
+                serializer = getattr(ir_serializers,
+                                     '{}TileSerializer'.format(target_class))
+            except:  # cannot find e.g. 'Youtube'TileSerializer -- use default
+                pass
+
+        if not serializer:  # default
+            serializer = ir_serializers.TileSerializer
+
+        return serializer.dump(self)
 
     @property
     def tile_config(self):
         """(read-only) representation of the tile as its content graph
         tileconfig."""
-        return cg_serializers.TileConfigSerializer().to_json([self])
+        return cg_serializers.TileConfigSerializer.dump(self)

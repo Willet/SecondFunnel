@@ -29,6 +29,10 @@ class RawSerializer(JSONSerializer):
         pass
 
     def to_json(self, queryset, **options):
+        """Contrary to what the method name suggests, this
+
+        :returns a dict.
+        """
         # single object serialization cache
         # for when an object was done more than once per request
         if len(queryset) == 1:

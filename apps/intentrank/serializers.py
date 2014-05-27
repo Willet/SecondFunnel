@@ -80,11 +80,6 @@ class ProductImageSerializer(IRSerializer):
 
 class ContentSerializer(IRSerializer):
 
-    expand_products = True
-
-    def __init__(self, expand_products=True):
-        self.expand_products = expand_products
-
     def get_dump_object(self, obj):
         from apps.assets.models import Product
 
@@ -103,11 +98,7 @@ class ContentSerializer(IRSerializer):
 
         for product in obj.tagged_products.filter(in_stock=True):
             try:
-                if self.expand_products:
-                    data['tagged-products'].append(product.to_json())
-                else:
-                    data['tagged-products'].append(product.id)
-
+                data['tagged-products'].append(product.to_json())
             except Product.DoesNotExist as err:
                 data['-dbg-tagged-products'].append(str(err.message))
 

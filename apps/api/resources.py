@@ -169,7 +169,7 @@ class ContentResource(BaseCGResource):
 
         # convert a piece of content to its subclass, then serialize that
         bundle.obj = Content.objects.filter(pk=bundle.obj.pk).select_subclasses()[0]
-        bundle.data = bundle.obj.to_json(expand_products=False)
+        bundle.data = bundle.obj.to_json()
 
         return bundle
 
