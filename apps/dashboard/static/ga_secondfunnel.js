@@ -44,7 +44,7 @@ function drawCharts() {
         'query': {
             'ids': TABLE_ID,
             'metrics': 'ga:bounceRate',
-            'dimensions': 'ga:deviceCategory',
+            'dimensions': 'ga:deviceCategory,ga:source',
             'output': 'dataTable'
         },
         'chartOptions': {
@@ -52,7 +52,9 @@ function drawCharts() {
             title: 'Sessions in last 60 days',
             hAxis: {title: 'Date'},
             vAxis: {title: 'Sessions'}
+
         },
+        'view': {'columns' : [0,3]},
 
         'onSuccess': function (response) {
             var totalVisits = response.totalsForAllResults['ga:bounceRate'];
