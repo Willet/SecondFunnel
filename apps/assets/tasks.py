@@ -2,9 +2,12 @@ import json
 
 from celery import Celery
 from celery.utils.log import get_task_logger
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
 
 from apps.api.decorators import (validate_json_deserializable,
                                  require_keys_for_message)
+from apps.assets.models import Tile
 
 from apps.contentgraph.models import TileConfigObject
 
@@ -99,3 +102,16 @@ def handle_content_update_notification_message(message):
     tile_config_object.mark_tile_for_regeneration(content_id=content_id)
 
     return {'scheduled-tiles-for-content': content_id}
+
+
+@receiver(pre_save, sender=Tile)
+def tile_saved(sender, **kwargs):
+    """Generate cache for IR whenever a tile is saved."""
+    tile = kwargs.pop('instance', None)
+    if not tile:  # TypeError: tile_saved() takes exactly 2 arguments (1 given)
+        return
+    try:
+        tile.ir_cache = tile.to_json()
+    except AttributeError as err:
+        # if schema mismatch, mask until next successful migration
+        print "Could not save tile cache: {}".format(err.message)

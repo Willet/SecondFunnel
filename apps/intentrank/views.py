@@ -200,6 +200,8 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     ir = IntentRank(feed=feed)
 
+    feed.tiles.all()[0].save()
+
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
     request = kwargs.get('request', None)

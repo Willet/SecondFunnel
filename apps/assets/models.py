@@ -2,16 +2,13 @@ import calendar
 import datetime
 import re
 
-import pytz
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.core.serializers.json import Serializer
 from django.db import models
 from django_extensions.db.fields import CreationDateTimeField
-from django.utils import timezone
 from jsonfield import JSONField
-from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
 
 from apps.utils import returns_unicode
@@ -29,14 +26,32 @@ default_master_size = {
 }
 
 
-class BaseModel(models.Model, DirtyFieldsMixin):
+class SerializableMixin(object):
+    """Provides to_json() and to_cg_json() methods for model instances.
+
+    To implement specific json formats, override these methods.
+    """
+
+    # @override IntentRank serializer
+    serializer = Serializer
+
+    # @override ContentGraph serializer
+    cg_serializer = cg_serializers.RawSerializer
+
+    def to_json(self):
+        """default method for all models to have a json representation."""
+        return self.serializer().serialize(iter([self]))
+
+    def to_cg_json(self):
+        """serialize into CG model. This is an instance shorthand."""
+        return self.cg_serializer.dump(self)
+
+
+class BaseModel(models.Model, SerializableMixin):
     created_at = CreationDateTimeField(); created_at.editable = True
 
     # To change this value, use model.save(skip_updated_at=True)
-    updated_at = models.DateTimeField()
-
-    serializer = Serializer     # @override IntentRank serializer
-    cg_serializer = cg_serializers.RawSerializer  # @override ContentGraph serializer
+    updated_at = models.DateTimeField(auto_now=True)
 
     # @override
     _attribute_map = (
@@ -95,9 +110,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
                 return cg_py[0]
         return python_attribute_name  # not found, assume identical
 
-    def days_since_creation(self):
-        return (timezone.now() - self.created_at).days
-
     @classmethod
     def update_or_create(cls, defaults=None, **kwargs):
         """Like Model.objects.get_or_create, either gets, updates, or creates
@@ -154,7 +166,7 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         if attr:
             return attr
         if hasattr(self, 'attributes'):
-            return self.attributes.get(key, default=default)
+            return self.attributes.get(key, default)
 
     def update(self, other=None, **kwargs):
         """This is not <dict>.update().
@@ -191,12 +203,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         return self
 
     def save(self, *args, **kwargs):
-        # http://stackoverflow.com/a/7502498/1558430
-        # allows modification of a last-modified timestamp
-        if not kwargs.pop('skip_updated_at', False):
-            self.updated_at = datetime.datetime.now(
-                tz=pytz.timezone(settings.TIME_ZONE))
-
         self.full_clean()
 
         if hasattr(self, 'pk') and self.pk:
@@ -204,14 +210,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
             MemcacheSetting.set(obj_key, None)  # save
 
         super(BaseModel, self).save(*args, **kwargs)
-
-    def to_json(self):
-        """default method for all models to have a json representation."""
-        return self.serializer().serialize(iter([self]))
-
-    def to_cg_json(self):
-        """serialize into CG model. This is an instance shorthand."""
-        return self.cg_serializer.dump(self)
 
     @property
     def cg_created_at(self):
@@ -231,7 +229,8 @@ class Store(BaseModel):
     description = models.TextField(blank=True, null=True)
     slug = models.CharField(max_length=64)
 
-    default_theme = models.ForeignKey('Theme', related_name='store', blank=True, null=True, on_delete=models.SET_NULL)
+    default_theme = models.ForeignKey('Theme', related_name='store', blank=True,
+                                      null=True, on_delete=models.SET_NULL)
 
     public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com",
                                       blank=True, null=True)
@@ -274,7 +273,6 @@ class Product(BaseModel):
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
     # currently known used attrs:
-    # - available
     # - product_set
     attributes = JSONField(blank=True, null=True, default={})
 
