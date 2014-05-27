@@ -37,7 +37,7 @@ def filter_tiles(fn):
             raise ValueError("Either tiles or feed must be supplied")
 
         if feed:
-            tiles = feed.get_tiles()
+            tiles = feed.tiles.all()
 
         if not tiles:  # nothing to give
             return tiles
@@ -88,9 +88,7 @@ def qs_for(tiles):
     except AttributeError as err:
         ids = tiles
 
-    return (Tile.objects.filter(id__in=ids)
-            .prefetch_related(*Tile.ASSOCS)
-            .select_related(*Tile.ASSOCS))
+    return Tile.objects.filter(id__in=ids)
 
 
 @filter_tiles
@@ -354,7 +352,7 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                                   feed=kwargs.get('feed', None))
 
     tiles = list(prioritized_tiles) + list(random_tiles)
-    return tiles[:results]
+    return qs_for(tiles[:results])
 
 
 @filter_tiles
@@ -450,7 +448,7 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # makes it so that blocks of content then products doesn't occur
     random.shuffle(tiles)  # shuffles in place, returns None
 
-    return tiles
+    return qs_for(tiles)
 
 
 def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
@@ -560,9 +558,9 @@ def ir_finite_by(attribute='created_at', reversed_=False):
         if exclude_set or allowed_set:
             # if exclude set is supplied, then the top 10 results should
             # already be the results you should show next
-            return tiles[:results]
+            return qs_for(tiles[:results])
         else:
-            return tiles[offset:offset + results]
+            return qs_for(tiles[offset:offset + results])
 
     return algo
 
@@ -626,7 +624,7 @@ def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     random_tiles = random_tiles.order_by('?')
     tiles += random_tiles
 
-    return tiles[:results]
+    return qs_for(tiles[:results])
 
 
 @filter_tiles
