@@ -91,34 +91,29 @@ class VoyagePriveScraper(XMLFeedSpider):
         sel = Selector(response)
 
         item = response.meta['item']
-
-        details = sel.css('#viewp-section-push')
-
-        review_text = details.css(
-            '.viewp-product-editorialist blockquote::text'
-        ).extract_first()
-        if review_text:
-            item['attributes']['review_text'] = review_text
-
-        reviewer = details.css('.viewp-product-owner > a::text')\
-            .extract_first()
-        if reviewer:
-            item['attributes']['reviewer_name'] = reviewer
-
-        reviewer_img = details.css(
-            '.viewp-product-editorialist img::attr(src)'
-        ).extract_first()
-        if reviewer_img:
-            item['attributes']['reviewer_image'] = reviewer_img
-
-        # Images are lazy-loaded? Shit.
-        product_images = details.css(
+        l = ScraperProductLoader(item=item, response=response)
+        l.add_css(
+            'image_urls',
             '.viewp-product-pictures-carousel-item img::attr(data-original)'
-        ).extract()
+        )
 
-        item['image_urls'].extend(product_images)
+        attributes = {}
+        attributes['review_text'] = sel.css(
+            '#viewp-section-push .viewp-product-editorialist blockquote::text'
+        ).extract_first()
 
-        return item
+        attributes['reviewer_name'] = sel.css(
+            '#viewp-section-push .viewp-product-owner > a::text'
+        ).extract_first()
+
+        attributes['reviewer_image'] = sel.css(
+            '#viewp-section-push .viewp-product-editorialist img::attr(src)'
+        ).extract_first()
+
+        l.add_value('attributes', item['attributes'])
+        l.add_value('attributes', attributes)
+
+        return l.load_item()
 
     @staticmethod
     def name_pipeline(item, spider):

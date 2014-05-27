@@ -187,10 +187,22 @@ def str_to_boolean(value):
     return value.lower() in ['true', 'yes', '1', 't']
 
 
+class MergeDicts(object):
+    def __call__(self, values):
+        itervalues = iter(values)
+        result = next(itervalues, None)
+
+        for value in itervalues:
+            result.update(value)
+
+        return result
+
+
 class ScraperProductLoader(ItemLoader):
     default_output_processor = TakeFirst()
 
-    # attributes
+    attributes_out = MergeDicts()
+
     image_urls_out = Identity()
 
     in_stock_in = Compose(lambda v: v[0], str_to_boolean)
