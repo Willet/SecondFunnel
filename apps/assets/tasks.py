@@ -148,7 +148,9 @@ def tile_saved(sender, **kwargs):
     if not tile:  # TypeError: tile_saved() takes exactly 2 arguments (1 given)
         return
     try:
-        tile.ir_cache = tile.to_json()
+        tile.ir_cache = ''
+        tile.ir_cache = json.dumps(tile.to_json())
     except (AttributeError, ValueError) as err:
         # this happens when: tile is new, or schema is borked
-        print "Could not save tile cache: {}".format(err.message)
+        print "Could not save tile cache for tile #{}: {}".format(
+            getattr(tile, 'id'), err.message)

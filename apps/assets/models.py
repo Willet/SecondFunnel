@@ -1,5 +1,6 @@
 import calendar
 import datetime
+import json
 import re
 
 from django.conf import settings
@@ -42,6 +43,9 @@ class SerializableMixin(object):
         if hasattr(self.serializer, 'dump'):
             return self.serializer.dump(self)
         return self.serializer().serialize(iter([self]))
+
+    def to_str(self):
+        return self.serializer().to_str([self])
 
     def to_cg_json(self):
         """serialize into CG model. This is an instance shorthand."""
@@ -852,12 +856,6 @@ class Tile(BaseModel):
 
     views = models.PositiveIntegerField(default=0)
 
-    # variable used for popularity, the bigger the value, the faster popularity de-values
-    popularity_devalue_rate = 0.15
-
-    # the lower the ratio, the bigger the range between low and high log_scores
-    ratio = 1.5
-
     cg_serializer = cg_serializers.TileSerializer
 
     def full_clean(self, exclude=None, validate_unique=True):
@@ -873,6 +871,9 @@ class Tile(BaseModel):
                                             validate_unique=validate_unique)
 
     def to_json(self):
+        return json.loads(self.to_str())
+
+    def to_str(self):
         # determine what kind of tile this is
         serializer = None
         if self.template == 'image':
@@ -889,7 +890,7 @@ class Tile(BaseModel):
         if not serializer:  # default
             serializer = ir_serializers.TileSerializer
 
-        return serializer.dump(self)
+        return serializer().to_str([self])
 
     @property
     def tile_config(self):
