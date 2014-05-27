@@ -37,7 +37,6 @@ def filter_tiles(fn):
             raise ValueError("Either tiles or feed must be supplied")
 
         if feed:
-            # tiles = feed.get_tiles()
             tiles = feed.tiles.all()
 
         if not tiles:  # nothing to give
@@ -90,10 +89,6 @@ def qs_for(tiles):
         ids = tiles
 
     return Tile.objects.filter(id__in=ids)
-
-    return (Tile.objects.filter(id__in=ids)
-            .prefetch_related(*Tile.ASSOCS)
-            .select_related(*Tile.ASSOCS))
 
 
 @filter_tiles

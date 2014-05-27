@@ -42,7 +42,7 @@ class RawSerializer(JSONSerializer):
             obj = queryset[0]
 
             # representation already made
-            if getattr(obj, 'ir_cache', ''):
+            if self.MEMCACHE_PREFIX == 'ir' and getattr(obj, 'ir_cache', ''):
                 return getattr(obj, 'ir_cache', '')
 
             obj_key = "{0}-{1}-{2}".format(self.MEMCACHE_PREFIX,
