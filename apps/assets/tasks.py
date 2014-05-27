@@ -8,7 +8,7 @@ from django.dispatch import receiver
 
 from apps.api.decorators import (validate_json_deserializable,
                                  require_keys_for_message)
-from apps.assets.models import Tile, Product, Content
+from apps.assets.models import Tile, Product, Content, ProductImage
 
 from apps.contentgraph.models import TileConfigObject
 
@@ -105,6 +105,16 @@ def handle_content_update_notification_message(message):
     return {'scheduled-tiles-for-content': content_id}
 
 
+@receiver(post_save, sender=ProductImage)
+def productimage_saved(sender, **kwargs):
+    """Generate cache for IR tiles if a product is saved."""
+    productimage = kwargs.pop('instance', None)
+    if not (productimage and productimage.product):
+        return
+
+    productimage.product.save()
+
+
 @receiver(post_save, sender=Product)
 def product_saved(sender, **kwargs):
     """Generate cache for IR tiles if a product is saved."""
@@ -115,6 +125,8 @@ def product_saved(sender, **kwargs):
     with transaction.atomic():
         for tile in product.tiles.all():
             tile.save()
+        for content in product.content.all():
+            content.save()
 
 
 @receiver(post_save, sender=Content)
