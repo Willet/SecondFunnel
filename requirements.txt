@@ -1,2 +1,4 @@
+oauth2client
+apiclient
 -r requirements/production.txt
 # Amazon requires that this file exist.

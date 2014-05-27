@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block scripts %}
+    <script type="text/javascript" src="{% static "ga_dashboard.js" %}"></script>
+{% endblock %}
 
 {% block sidebar %}
     <div class="nav-collapse top-margin fixed box-shadow2 hidden-xs" id="sidebar">
@@ -37,48 +40,55 @@
 
     <div class="row">
         <div class="col-md-6">
-            <div class="block-web">
+            <div class="block-web" id="dash-quicklook">
                 <h3 class="content-header"> At a glance:
-                    <div data-toggle="buttons" class="button-group pull-right"><a
-                            class="btn active small border-gray right-margin" href="javascript:;"> <span
-                            class="button-content">
-              <input type="radio" name="radio-toggle-1">
-                Today </span> </a> <a class="btn small border-gray" href="javascript:;"> <span class="button-content">
-              <input type="radio" name="radio-toggle-1">
-                Weekly </span> </a></div>
+                    <div data-toggle="buttons" class="button-group pull-right">
+                        <a class="btn active small border-gray right-margin" id="quicklook-total">
+                            <span class="button-content">
+                                <input type="radio" value="yes" name="quicklook" >
+                                Total
+                            </span>
+                        </a>
+                        <a class="btn small border-gray"  id="quicklook-today">
+                            <span class="button-content">
+                                <input type="radio" value="no" name="quicklook">
+                                Today
+                            </span>
+                        </a>
+                    </div>
                 </h3>
                 <table class="table margin-top-20" width="100%" border="0" cellspacing="0" cellpadding="0">
                     <tr>
                         <td class="fa-border">
-                            <button class="btn btn-danger padd-adj" type="button">7000000</button>
+                            <button class="btn btn-danger padd-adj" id="sessionCount" type="button">7000000</button>
                             Sessions
                         </td>
                         <td class="fa-border">
-                            <button class="btn btn-primary padd-adj" type="button">28.66%</button>
+                            <button class="btn btn-primary padd-adj" id="bounceRate" type="button">28.66%</button>
                             Bounce Rate
                         </td>
                         <td class="fa-border">
-                            <button class="btn btn-info padd-adj" type="button">15.39</button>
+                            <button class="btn btn-info padd-adj" id="sessionDuration" type="button">15.39</button>
                             Session Duration
                         </td>
                     </tr>
                     <tr>
                         <td class="fa-border">
-                            <button class="btn btn-default padd-adj" type="button">200</button>
-                            Tile Opens
+                            <button class="btn btn-default padd-adj" id="buyNowClicks" type="button">200</button>
+                            Shop at Gap
                         </td>
                         <td class="fa-border">
-                            <button class="btn btn-success padd-adj" type="button">40%</button>
-                            Goal Completion Rate
+                            <button class="btn btn-success padd-adj" id="conversions" type="button">40%</button>
+                            Total Conversions
                         </td>
                         <td class="fa-border">
-                            <button class="btn btn-warning padd-adj" type="button">3000</button>
-                            Conversions
+                            <button class="btn btn-warning padd-adj" id="conversionRate" type="button">3000</button>
+                            Conversion Rate
                         </td>
                     </tr>
                 </table>
-                <div class="bottom">
-                    <div id="sessions">
+                <div class="bottom" height="400px">
+                    <div id="quicklook-graph">
                         small sparkline or normal graph here
                         <br> id=sessions
                         <br>
@@ -343,6 +353,5 @@
     <!--/main-content end-->
 
 {% endblock %}
-<script type="text/javascript" src="{% static "ga_dashboard.js" %}"></script>
 </body>
 </html>

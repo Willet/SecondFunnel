@@ -2,7 +2,9 @@ from django.conf.urls import patterns, url
 from django.http import HttpResponse
 
 urlpatterns = patterns('apps.dashboard.views',
-                       url(r'^$', 'summerloves', name="index"),
-                       url(r'^gap', 'summerloves', name="gap"),
+                       url(r'^$', 'index', name="index"),
+                       url(r'^gap', 'gap', name="gap"),
+                       url(r'^test', 'testAnalytics', name="test"),
+                       url(r'retrieve-data', 'get_data', name="get_data"),
                        url(r'^oauth2callback', 'auth_return'),
 )

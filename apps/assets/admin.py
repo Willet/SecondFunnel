@@ -7,6 +7,7 @@ from django.forms import SelectMultiple, ModelMultipleChoiceField
 from apps.assets.forms import CategoryForm
 from apps.assets.models import (Store, Page, Tile, Feed, Product, ProductImage,
                                 Image, Content, Theme, Review, Video, Category)
+from apps.dashboard.models import DashBoard
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -126,6 +127,9 @@ class VideoAdmin(BaseAdmin):
     search_fields = ('id', 'url', 'source_url',)
 
 
+class DashBoardAdmin(admin.ModelAdmin):  # dashboard site admin
+    list_display = ('site', 'table_id')
+
 admin.site.register(Store, StoreAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Page, PageAdmin)
@@ -138,6 +142,7 @@ admin.site.register(Content, ContentAdmin)
 admin.site.register(Theme, ThemeAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(Video, VideoAdmin)
+admin.site.register(DashBoard, DashBoardAdmin)
 
 
 @extend_registered
