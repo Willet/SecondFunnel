@@ -54,6 +54,9 @@ class BaseModel(models.Model, SerializableMixin):
     # To change this value, use model.save(skip_updated_at=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # used by IR to bypass frequent re/deserialization to shave off CPU time
+    ir_cache = models.TextField(blank=True, null=True)
+
     # @override
     _attribute_map = (
         # (cg attribute name, python attribute name)
