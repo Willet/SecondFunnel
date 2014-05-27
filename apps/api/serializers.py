@@ -29,24 +29,36 @@ class RawSerializer(JSONSerializer):
         pass
 
     def to_json(self, queryset, **options):
+        """Contrary to what the method name suggests, this
+
+        :returns a dict.
+        """
+        return json.loads(self.to_str(queryset=queryset, **options))
+
+    def to_str(self, queryset, **options):
         # single object serialization cache
         # for when an object was done more than once per request
         if len(queryset) == 1:
             obj = queryset[0]
+
+            # representation already made
+            if self.MEMCACHE_PREFIX == 'cg' and getattr(obj, 'ir_cache', ''):
+                return getattr(obj, 'ir_cache', '')
+
             obj_key = "{0}-{1}-{2}".format(self.MEMCACHE_PREFIX,
                                            obj.__class__.__name__, obj.id)
 
             # if you have a memcache, that is
             obj_str_cache = MemcacheSetting.get(obj_key, False)
             if obj_str_cache:  # in cache, return it
-                return json.loads(obj_str_cache)
+                return obj_str_cache
             else:  # not in cache, save it
                 obj_str = self.serialize(queryset=queryset, **options)
                 MemcacheSetting.set(obj_key, obj_str,
                                     timeout=self.MEMCACHE_TIMEOUT)  # save
-                return json.loads(obj_str)
+                return obj_str
 
-        return json.loads(self.serialize(queryset=queryset, **options))
+        return self.serialize(queryset=queryset, **options)
 
 
 class StoreSerializer(RawSerializer):

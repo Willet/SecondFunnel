@@ -230,11 +230,30 @@
             </a>
         </script>
 
+        <script type="text/template" id="product_price_template">
+            USD: <%- obj.price %>
+        </script>
+
+        <script type="text/template" id="product_title_template">
+            <%- obj.title || obj.name %>
+        </script>
+
+        <script type="text/template" id="product_buy_template">
+            <a href='<%- obj.url %>' target="_blank">
+                <div class="button">
+                    shop on Madewell.com
+                </div>
+            </a>
+        </script>
+
+        <script type="text/template" id="product_description_template">
+            <div class='desc-title'>Product Details</div>
+            <p><%= obj.description %></p>
+        </script>
+
         <script type="text/template" id="product_preview_template">
-            <!-- any (store.name)_(type)_... templates will be used in place
-             of default templates if they exist. -->
-            <div class='title'><%= obj.title || obj.name %></div>
-            <div class='red marker price'>USD: <%= obj.price %></div>
+            <div class='title'></div>
+            <div class='red marker price'></div>
             <hr>
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
@@ -252,22 +271,12 @@
                     <% } %>
                 </div>
                 <div class='cell info col-sm-6 col-md-6'>
-                    <div class='description'>
-                        <div class='desc-title'>Product Details</div>
-                        <p><%= obj.description %></p>
-                        </ul>
-                    </div>
+                    <div class='description'></div>
                     <div>
                         <div class="social-buttons"></div>
                         <div class='spacer'></div>
                     </div>
-                    <div class='madewell-buttons'>
-                        <a class='button show-now'
-                           href='<%= obj.url %>'
-                           target='_blank'>
-                            Shop Now
-                        </a>
-                    </div>
+                    <div class='buy madewell-buttons'></div>
                 </div>
             </div>
         </script>
@@ -292,23 +301,10 @@
                         <div class='gallery'></div>
                     <% } %>
                 </div>
-                <div class="title">
-                    <%- obj.title || obj.name %>
-                </div>
-                <div>
-                    USD: <%- obj.price %>
-                </div>
-                <a href='<%- obj.url %>' target="_blank">
-                    <div class="button">
-                        shop on Madewell.com
-                    </div>
-                </a>
-                <div class="bold">
-                    Product Details:
-                </div>
-                <div>
-                    <%= obj.description %>
-                </div>
+                <div class="title"></div>
+                <div class="price"></div>
+                <div class="buy"></div>
+                <div class="description"></div>
             </div>
         </script>
 
@@ -335,25 +331,11 @@
                             <div class='gallery'></div>
                         <% } %>
                     </div>
-                    <div class="title">
-                        <span><%= product.title || product.name || obj.title || obj.name ||
-                                  obj.caption || obj.description %></span>
-                    </div>
+                    <div class="title"></div>
                     <% if (products.length > 0) { %>
-                        <div>
-                            USD: <%- product.price %>
-                        </div>
-                        <a href='<%- product.url %>' target="_blank">
-                            <div class="button">
-                                shop on Madewell.com
-                            </div>
-                        </a>
-                        <div class="bold">
-                            Product Details:
-                        </div>
-                        <div>
-                            <%= product.description %>
-                        </div>
+                        <div class="price"></div>
+                        <div class="buy"></div>
+                        <div class="description"></div>
                     <% } %>
                 </div>
             </div>
@@ -369,8 +351,8 @@
                             <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                         </div>
                         <div class="middle cell">
-                            <div class='title'><%= product.title || product.name %></div>
-                            <div class='red marker price'>USD: <%= product.price %></div>
+                            <div class='title'></div>
+                            <div class='red marker price'></div>
                             <hr>
                             <div class="cell middle col-sm-6 col-md-6"> <!-- image-div -->
                                 <% if (product.images.length > 1 && App.support.mobile()) { %>
@@ -393,21 +375,12 @@
                                 <% } %>
                             </div>
                             <div class="cell col-sm-6 col-md-6"> <!-- info -->
-                                <div class='description'>
-                                    <div class='desc-title'>Product Details</div>
-                                    <p><%= product.description %></p>
-                                </div>
+                                <div class='description'></div>
                                 <div>
                                     <div class="social-buttons"></div>
                                     <div class='spacer'></div>
                                 </div>
-                                <div class='madewell-buttons'>
-                                    <a class='button show-now'
-                                       href='<%= product.url %>'
-                                       target='_blank'>
-                                        Shop Now
-                                    </a>
-                                </div>
+                                <div class="buy madewell-buttons"></div>
                             </div>
                         </div>
                     </div>
@@ -536,7 +509,7 @@
                 },
                 // 3 - Social Subscribe Links
                 'click .nav.navbar-nav.navbar-right a, .stay-connected .dropdown-menu a': function () {
-                    var social_network = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
+                    var social_network = /(?:(\w+?)\.com)/.exec($(this).attr('href'))[1];
                     recordEvent('social_follow', 'follow', social_network + ' follow', 'follow');
                 },
                 // 4 - Main Visual
@@ -581,7 +554,7 @@
                 },
                 // 10 - Share deal
                 'click #hero-area .buttons a': function () {
-                    var social_network = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
+                    var social_network = /(?:(\w+?)\.com)/.exec($(this).attr('href'))[1];
                     recordEvent('deal_share', 'header', social_network + ' share', 'share page');
                 },
                 // 13 - Lifestyle Feed Visuals

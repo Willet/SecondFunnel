@@ -1,0 +1,46 @@
+{% load staticfiles %}
+{% load compress %}
+<!DOCTYPE html>
+<html>
+    <head>
+        {% compress css %}
+        <link rel="stylesheet" type="text/css"
+              href="{% static 'pinpoint/css/base.css' %}">
+        <style>
+            html, .container {
+                overflow: hidden;
+            }
+        </style>
+        {% endcompress css %}
+
+        {% compress js %}
+        {% include "pinpoint/campaign_config.html" %}
+        <script src="{% static 'js/jquery-1.10.2.min.js' %}"></script>
+        <script src="{% static 'js/jquery.viewport.min.js' %}"></script><!-- after browser mobile -->
+        <script src="{% static 'js/underscore.min.js' %}"></script>
+        <script src="{% static 'js/backbone.min.js' %}"></script>
+        <script src="{% static 'js/backbone.marionette.min.js' %}"></script><!-- after backbone -->
+        <script src="{% static 'js/jquery.masonry.pkgd.min.js' %}"></script>
+        <script src="{% static 'js/jquery.cloudinary.js' %}"></script><!-- anywhere before our app -->
+        <script src="{% static 'pinpoint/js/pages.preinit.js' %}"></script><!-- after marionette -->
+        <script src="{% static 'pinpoint/js/pages.core.js' %}"></script><!-- after preinit -->
+        <script src="{% static 'pinpoint/js/pages.ir.js' %}"></script><!-- after marionette -->
+        <script src="{% static 'pinpoint/js/pages.utils.js' %}"></script><!-- before pages -->
+        <script src="{% static 'pinpoint/js/pages.core.models.js' %}"></script><!-- after preinit -->
+        <script src="{% static 'pinpoint/js/pages.core.views.js' %}"></script><!-- after preinit -->
+        <script src="{% static 'pinpoint/js/pages.support.js' %}"></script><!-- after marionette -->
+        <script src="{% static 'pinpoint/js/pages.optimizer.js' %}"></script><!-- after marionette -->
+        <script src="{% static 'pinpoint/js/pages.layoutengine.js' %}"></script><!-- after marionette -->
+        <script src="{% static 'pinpoint/js/pages.init.js' %}"></script><!-- after pages -->
+        {% endcompress js %}
+    </head>
+
+    <body>
+        <div class="waterfall container">
+            <div id="discovery-area"></div>
+        </div>
+
+        {% include "pinpoint/default_templates.html" %}
+        <script>App.start();</script>
+    </body>
+</html>

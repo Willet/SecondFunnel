@@ -1,4 +1,6 @@
 import re
+from django.db import transaction
+from django.utils.decorators import method_decorator
 
 from selenium.common.exceptions import NoSuchElementException
 from apps.assets.models import Category
@@ -9,6 +11,7 @@ from apps.scraper.scrapers import Scraper, ProductDetailScraper, ProductCategory
 class BurberryProductScraper(ProductDetailScraper):
     regexs = [r'(?:https?://)?(?:(www|ca|us)\.)?burberry\.com/([a-zA-Z0-9-_]*p\d+)/?(?:#.*)?$']
 
+    @method_decorator(transaction.atomic)
     def scrape(self, url, product, values, **kwargs):
         self.driver.get(url)
 
@@ -30,6 +33,9 @@ class BurberryProductScraper(ProductDetailScraper):
         if len(images) > 0:
             product.default_image = images[0]
             product.save()
+
+        if self.feed:
+            self.feed.add_product(product=product)
 
         yield {'product': product}
 

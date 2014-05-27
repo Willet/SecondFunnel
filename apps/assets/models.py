@@ -1,17 +1,14 @@
 import calendar
 import datetime
+import json
 import re
 
-import pytz
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
-from django.core.serializers.json import Serializer
 from django.db import models
 from django_extensions.db.fields import CreationDateTimeField
-from django.utils import timezone
 from jsonfield import JSONField
-from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
 
 from apps.utils import returns_unicode
@@ -29,14 +26,40 @@ default_master_size = {
 }
 
 
-class BaseModel(models.Model, DirtyFieldsMixin):
+class SerializableMixin(object):
+    """Provides to_json() and to_cg_json() methods for model instances.
+
+    To implement specific json formats, override these methods.
+    """
+
+    # @override IntentRank serializer
+    serializer = ir_serializers.RawSerializer
+
+    # @override ContentGraph serializer
+    cg_serializer = cg_serializers.RawSerializer
+
+    def to_json(self):
+        """default method for all models to have a json representation."""
+        if hasattr(self.serializer, 'dump'):
+            return self.serializer.dump(self)
+        return self.serializer().serialize(iter([self]))
+
+    def to_str(self):
+        return self.serializer().to_str([self])
+
+    def to_cg_json(self):
+        """serialize into CG model. This is an instance shorthand."""
+        return self.cg_serializer.dump(self)
+
+
+class BaseModel(models.Model, SerializableMixin):
     created_at = CreationDateTimeField(); created_at.editable = True
 
     # To change this value, use model.save(skip_updated_at=True)
-    updated_at = models.DateTimeField()
+    updated_at = models.DateTimeField(auto_now=True)
 
-    serializer = Serializer     # @override IntentRank serializer
-    cg_serializer = cg_serializers.RawSerializer  # @override ContentGraph serializer
+    # used by IR to bypass frequent re/deserialization to shave off CPU time
+    ir_cache = models.TextField(blank=True, null=True)
 
     # @override
     _attribute_map = (
@@ -95,9 +118,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
                 return cg_py[0]
         return python_attribute_name  # not found, assume identical
 
-    def days_since_creation(self):
-        return (timezone.now() - self.created_at).days
-
     @classmethod
     def update_or_create(cls, defaults=None, **kwargs):
         """Like Model.objects.get_or_create, either gets, updates, or creates
@@ -154,7 +174,7 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         if attr:
             return attr
         if hasattr(self, 'attributes'):
-            return self.attributes.get(key, default=default)
+            return self.attributes.get(key, default)
 
     def update(self, other=None, **kwargs):
         """This is not <dict>.update().
@@ -191,12 +211,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         return self
 
     def save(self, *args, **kwargs):
-        # http://stackoverflow.com/a/7502498/1558430
-        # allows modification of a last-modified timestamp
-        if not kwargs.pop('skip_updated_at', False):
-            self.updated_at = datetime.datetime.now(
-                tz=pytz.timezone(settings.TIME_ZONE))
-
         self.full_clean()
 
         if hasattr(self, 'pk') and self.pk:
@@ -204,14 +218,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
             MemcacheSetting.set(obj_key, None)  # save
 
         super(BaseModel, self).save(*args, **kwargs)
-
-    def to_json(self):
-        """default method for all models to have a json representation."""
-        return self.serializer().serialize(iter([self]))
-
-    def to_cg_json(self):
-        """serialize into CG model. This is an instance shorthand."""
-        return self.cg_serializer.dump(self)
 
     @property
     def cg_created_at(self):
@@ -231,7 +237,8 @@ class Store(BaseModel):
     description = models.TextField(blank=True, null=True)
     slug = models.CharField(max_length=64)
 
-    default_theme = models.ForeignKey('Theme', related_name='store', blank=True, null=True, on_delete=models.SET_NULL)
+    default_theme = models.ForeignKey('Theme', related_name='store', blank=True,
+                                      null=True, on_delete=models.SET_NULL)
 
     public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com",
                                       blank=True, null=True)
@@ -274,7 +281,6 @@ class Product(BaseModel):
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
     # currently known used attrs:
-    # - available
     # - product_set
     attributes = JSONField(blank=True, null=True, default={})
 
@@ -297,12 +303,6 @@ class Product(BaseModel):
             match = re.match(price_regex, sale_price)
             if not match:
                 raise ValidationError('Product sale price does not validate')
-
-    def to_json(self):
-        return self.serializer().to_json([self])
-
-    def to_cg_json(self):
-        return self.cg_serializer().to_json([self])
 
 
 class ProductImage(BaseModel):
@@ -333,12 +333,6 @@ class ProductImage(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super(ProductImage, self).__init__(*args, **kwargs)
-
-    def to_json(self):
-        return self.serializer().to_json([self])
-
-    def to_cg_json(self):
-        return self.cg_serializer().to_json([self])
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
@@ -465,7 +459,7 @@ class Image(Content):
     serializer = ir_serializers.ContentTileSerializer
     cg_serializer = cg_serializers.ImageSerializer
 
-    def to_json(self, expand_products=True):
+    def to_json(self):
         """Only Images (not ProductImages) can have tagged-products."""
         dct = {
             "id": str(self.id),
@@ -478,11 +472,8 @@ class Image(Content):
             'status': self.status,
             "orientation": 'landscape' if self.width > self.height else 'portrait',
         }
-        if expand_products:
-            # turn django's string list of strings into a real list of ids
-            dct["tagged-products"] = [x.to_json() for x in self.tagged_products.all()]
-        else:
-            dct["tagged-products"] = self.tagged_products.values_list('id', flat=True)
+
+        dct["tagged-products"] = [x.to_json() for x in self.tagged_products.all()]
 
         return dct
 
@@ -508,9 +499,6 @@ class Video(Content):
 
     serializer = ir_serializers.VideoSerializer
     cg_serializer = cg_serializers.VideoSerializer
-
-    def to_json(self, expand_products=True):
-        return self.serializer(expand_products=expand_products).to_json([self])
 
 
 class Review(Content):
@@ -575,6 +563,8 @@ class Feed(BaseModel):
             return 'Feed (#%s), pages: %s' % (self.id, page_names)
         except (ObjectDoesNotExist, MultipleObjectsReturned):
             return 'Feed (#%s)' % self.id
+        except:
+            return '(Unsaved Feed)'
 
     # and other representation specific of the Feed itself
     def to_json(self):
@@ -866,12 +856,6 @@ class Tile(BaseModel):
 
     views = models.PositiveIntegerField(default=0)
 
-    # variable used for popularity, the bigger the value, the faster popularity de-values
-    popularity_devalue_rate = 0.15
-
-    # the lower the ratio, the bigger the range between low and high log_scores
-    ratio = 1.5
-
     cg_serializer = cg_serializers.TileSerializer
 
     def full_clean(self, exclude=None, validate_unique=True):
@@ -887,21 +871,29 @@ class Tile(BaseModel):
                                             validate_unique=validate_unique)
 
     def to_json(self):
+        return json.loads(self.to_str())
+
+    def to_str(self):
         # determine what kind of tile this is
         serializer = None
         if self.template == 'image':
-            serializer = ir_serializers.ContentTileSerializer()
-        else:
-            try:
-                if not serializer:
-                    serializer = getattr(ir_serializers, self.template.capitalize() + 'TileSerializer')()
-            except:  # cannot find e.g. 'Youtube'TileSerializer -- use default
-                serializer = ir_serializers.TileSerializer()
+            serializer = ir_serializers.ContentTileSerializer
 
-        return serializer.to_json([self])
+        if not serializer:
+            try:
+                target_class = self.template.capitalize()
+                serializer = getattr(ir_serializers,
+                                     '{}TileSerializer'.format(target_class))
+            except:  # cannot find e.g. 'Youtube'TileSerializer -- use default
+                pass
+
+        if not serializer:  # default
+            serializer = ir_serializers.TileSerializer
+
+        return serializer().to_str([self])
 
     @property
     def tile_config(self):
         """(read-only) representation of the tile as its content graph
         tileconfig."""
-        return cg_serializers.TileConfigSerializer().to_json([self])
+        return cg_serializers.TileConfigSerializer.dump(self)

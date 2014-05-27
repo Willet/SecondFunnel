@@ -16,10 +16,36 @@
             'A': {
                 'view': 'http://cm.gy/cej4',
                 'click': 'http://cm.gy/umez'
+            },
+            'B': {
+                'view': 'http://cm.gy/q3ay',
+                'click': 'http://cm.gy/771t'
             }
         };
         window.ACTIVE_TEST = 'A';
         window.OPTIMIZER_TESTS = [];
+        window.OPTIMIZER_TESTS.push({
+            index: 7,
+            test: 'custom',
+            custom: function (cookie) {
+                var tileTemplateId = 'image_preview_template',
+                    tests = {{ tests|safe }};
+
+                if (!(tests && tests.length)) {
+                    tests = ["A", "B"];
+                }
+
+                cookie = cookie || _.sample(tests);
+                window.ACTIVE_TEST = cookie;
+
+                if (cookie !== "A") {  // A is base case
+                    $('#' + tileTemplateId).html($('#' +
+                        cookie.toLowerCase() + '_' + tileTemplateId).html());
+                }
+
+                return cookie;
+            }
+        });
     </script>
     {% if environment == 'production' %}
         <script type='text/javascript'>
@@ -211,6 +237,23 @@
             </div>
         </script>
 
+        <script type="text/template" id="product_price_template">
+            <%- obj.price %>
+        </script>
+
+        <script type="text/template" id="product_title_template">
+            <%- obj.title || obj.name %>
+        </script>
+
+        <script type="text/template" id="product_buy_template">
+            <a class='button' href='<%= obj.url %>' target='_blank'>
+                <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
+                <div class="inline">
+                    SHOP NOW
+                </div>
+            </a>
+        </script>
+
         <script type="text/template" id="product_preview_template">
             <!-- any (store.name)_(type)_... templates will be used in place
              of default templates if they exist. -->
@@ -228,23 +271,9 @@
                     </div>
                 <% } %>
                 <div class='cell middle info'>
-                    <div class='title'><%= obj.title || obj.name %></div>
-                    <div class='price<% if (obj.sale_price) { %> sale<% } %>'>
-                        <% if (obj.sale_price) { %>
-                            <div class="strike inline">
-                                <%- obj.price %>
-                            </div>
-                            <%- obj.sale_price %>
-                        <% } else { %>
-                            <%- obj.price %>
-                        <% } %>
-                    </div>
-                    <a class='button' href='<%= obj.url %>' target='_blank'>
-                        <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
-                        <div class="inline">
-                            SHOP NOW
-                        </div>
-                    </a>
+                    <div class='title'></div>
+                    <div class='price'></div>
+                    <div class='buy'></div>
                     <% if (!App.support.mobile()) { %>
                         <div class="gallery"></div>
                         <div class="social-button-container">
@@ -253,6 +282,120 @@
                     <% } %>
                 </div>
             </div>
+        </script>
+
+        <script type="text/template" id="b_image_preview_template">
+            <% if (obj['tagged-products'].length) { %>
+                <% var product = obj['tagged-products'][0]; %>
+                <div class="image-with-tagged-products">
+                    <div class="row">
+                        <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
+                            <div class="cell desktop-only">
+                                <div class="stl-title">THE LOOK</div>
+                                <div class="stl-look">
+                                    <% var  related = obj['tagged-products'] %>
+                                    <% for (var i = 0; i < related.length; i++) { %>
+                                        <div class="stl-item" data-index="<%- i %>">
+                                            <img src="<%- related[i].images[0].url %>" />
+                                            <div class="name">
+                                                <%- related[i].title || related[i].name %>
+                                            </div>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
+                        <div class="image middle cell capped-width desktop-only">
+                            <img src="<%= obj.image.url %>" alt="image" class="image"/>
+                            <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
+                            <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                                <div class="landscape">
+                                    <div class="stl-title">THE LOOK</div>
+                                    <div class="stl-look">
+                                        <% var  related = obj['tagged-products'] %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <div class="name">
+                                                    <%- related[i].title || related[i].name %>
+                                                </div>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
+                        <div class="image middle cell capped-width mobile-only">
+                            <img src="<%= obj.image.url %>" alt="image"/>
+                            <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
+                        </div>
+                        <div class="middle cell info image<% if (obj.orientation === 'landscape') { %> landscape<% } %>">
+                            <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
+                                <div class="more-info">
+                                    MORE FROM THAT LOOK
+                                    <img src="{% static 'pinpoint/themes/nastygal/images/down_arrow.png' %}" />
+                                </div>
+                            <% } %>
+                            <% if (!App.support.mobile()) { %>
+                                <div class='title'></div>
+                                <div class='price'></div>
+                                <div class='buy'></div>
+                            <% } %>
+                            <div class='main-image-container'>
+                                <div class="gallery-swipe-left"></div>
+                                <div class="gallery-swipe-right"></div>
+                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
+                            </div>
+                            <div class='gallery dots'></div>
+                            <% if (App.support.mobile()) { %>
+                                <div class='price'></div>
+                                <div class='buy'></div>
+                            <% } %>
+                            <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
+                                <div class="landscape">
+                                    <div class="stl-title">THE LOOK</div>
+                                    <div class="stl-look">
+                                        <% var  related = obj['tagged-products'] %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <div class="name">
+                                                    <%- related[i].title || related[i].name %>
+                                                </div>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <% if (!App.support.mobile()) { %>
+                                <div class="social-buttons"></div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="image-without-tagged-products">
+                    <div class="row">
+                        <div class="image middle cell capped-width">
+                            <img src="<%= obj.image.url %>" alt="image" class="main-image" />
+                        </div>
+                        <div class="middle cell">
+                            <div class="info">
+                                <div class="title">
+                                    Coming soon to Nasty Gal!
+                                </div>
+                                <a class='button' href='http://www.nastygal.com/lookbooks-swim-city' target='_blank'>
+                                    <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
+                                    <div class="inline">
+                                        SHOP ON NASTY GAL
+                                    </div>
+                                </a>
+                                <div class="social-buttons"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
         </script>
 
         <script type="text/template" id="image_preview_template">
@@ -296,24 +439,10 @@
                                 </div>
                             <% } %>
                         </div>
-                        <div class="middle cell info image">
-                            <div class='title'><%= product.title || product.name %></div>
-                            <div class='price<% if (product.sale_price) { %> sale<% } %>'>
-                                <% if (product.sale_price) { %>
-                                    <div class="strike inline">
-                                        <%- product.price %>
-                                    </div>
-                                    <%- product.sale_price %>
-                                <% } else { %>
-                                    <%- product.price %>
-                                <% } %>
-                            </div>
-                            <a class='button' href='<%= product.url %>' target='_blank'>
-                                <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
-                                <div class="inline">
-                                    SHOP NOW
-                                </div>
-                            </a>
+                        <div class="middle cell info image<% if (obj.orientation === 'landscape') { %> landscape<% } %>">
+                            <div class='title'></div>
+                            <div class='price'></div>
+                            <div class='buy'></div>
                             <div class='main-image-container'>
                                 <div class="gallery-swipe-left"></div>
                                 <div class="gallery-swipe-right"></div>
@@ -359,9 +488,15 @@
                         </div>
                         <div class="middle cell">
                             <div class="info">
-                                <div class='description'>
-                                    <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
+                                <div class="title">
+                                    Coming soon to Nasty Gal!
                                 </div>
+                                <a class='button' href='http://www.nastygal.com/lookbooks-swim-city' target='_blank'>
+                                    <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
+                                    <div class="inline">
+                                        SHOP ON NASTY GAL
+                                    </div>
+                                </a>
                                 <div class="social-buttons"></div>
                             </div>
                         </div>
@@ -460,7 +595,7 @@
                 },
                 // 3 - Social Subscribe Links
                 'click .nav.navbar-nav.navbar-right a, .stay-connected .dropdown-menu a': function () {
-                    var social_network = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
+                    var social_network = /(?:(\w+?)\.com)/.exec($(this).attr('href'))[1];
                     recordEvent('social_follow', 'follow', social_network + ' follow', 'follow');
                 },
                 // 4 - Main Visual
@@ -505,7 +640,7 @@
                 },
                 // 10 - Share deal
                 'click #hero-area .buttons a': function () {
-                    var social_network = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
+                    var social_network = /(?:(\w+?)\.com)/.exec($(this).attr('href'))[1];
                     recordEvent('deal_share', 'header', social_network + ' share', 'share page');
                 },
                 // 13 - Lifestyle Feed Visuals

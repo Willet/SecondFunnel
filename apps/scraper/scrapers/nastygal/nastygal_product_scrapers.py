@@ -1,4 +1,6 @@
 import re
+from django.db import transaction
+from django.utils.decorators import method_decorator
 
 from selenium.common.exceptions import NoSuchElementException
 
@@ -8,6 +10,7 @@ from apps.scraper.scrapers import Scraper, ProductDetailScraper, ProductCategory
 class NastygalProductScraper(ProductDetailScraper):
     regexs = [r'(?:https?://)?(?:www\.)?nastygal\.com/([^/]+)/([^/]+)/?(?:#.*)?$']
 
+    @method_decorator(transaction.atomic)
     def scrape(self, url, product, values, **kwargs):
         self.driver.get(url)  # TODO: ?currency_code=USD&country_code=US
 
@@ -40,6 +43,9 @@ class NastygalProductScraper(ProductDetailScraper):
             product.default_image = images[0]
             product.save()
 
+        if self.feed:
+            self.feed.add_product(product=product)
+
         yield {'product': product}
 
     def _get_images(self, driver, product):
@@ -51,7 +57,7 @@ class NastygalProductScraper(ProductDetailScraper):
             return images
 
         for image_url in images_data:
-            images.append(self._process_image(image_url, product))
+            images.append(self._process_image(image_url, product, remove_background='#FFF'))
 
         for image in product.product_images.exclude(id__in=[image.id for image in images]):
             image.delete()

@@ -232,8 +232,8 @@ class VoyagePriveWeekEndScraper(VoyagePriveCategoryScraper):
     section_id = u'10033'
     category_name = 'week-end'  # coincidentally same as the page name
 
-    def __init__(self, store):
-        super(VoyagePriveWeekEndScraper, self).__init__(store)
+    def __init__(self, store, feed=None):
+        super(VoyagePriveWeekEndScraper, self).__init__(store=store, feed=feed)
         self.feed = self.store.pages.filter(url_slug='week-end')[0].feed
 
 
@@ -245,6 +245,6 @@ class VoyagePriveSejourScraper(VoyagePriveCategoryScraper):
     section_id = u'10029'
     category_name = 'sejour'  # coincidentally same as the page name
 
-    def __init__(self, store):
-        super(VoyagePriveSejourScraper, self).__init__(store)
+    def __init__(self, store, feed=None):
+        super(VoyagePriveSejourScraper, self).__init__(store=store, feed=feed)
         self.feed = self.store.pages.filter(url_slug='sejour')[0].feed

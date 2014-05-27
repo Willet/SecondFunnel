@@ -1,56 +1,6 @@
 
 .navbar {
-    height: 56px;
-    line-height: 56px;
     background-color: #000;
-    border-radius: 0;
-    color: white;
-    margin-bottom: 0;
-    white-space: nowrap;
-    z-index: 10;
-}
-
-.navbar .container {
-	height: 100%;
-}
-
-.navbar .container img {
-    height: 100%;
-    vertical-align: top;
-}
-
-#hero-area .jumbotron {
-    border-radius: 0px;
-}
-
-.jumbotron {
-    background-repeat: no-repeat;
-    width: 1024px;
-    height: 300px;  /* adjusts image size */
-    border-bottom: 1px silver solid;
-    margin: 10px auto 0px auto;
-}
-
-.visible-xs.jumbotron, .visible-sm.jumbotron {
-    padding: 0;
-    height: auto;
-    margin-bottom: 5px;
-}
-
-.visible-xs.jumbotron img {
-    /* set a background image with ratio constraints http://stackoverflow.com/a/12098334/1558430 */
-    visibility:  hidden;
-    width: 100%;
-}
-
-.visible-sm.jumbotron img {
-    width: 100%;
-}
-
-@media screen and (max-width: 768px) {
-    .jumbotron {
-        border-bottom: none;
-    }
 }
 
 #discovery-area {
@@ -58,8 +8,6 @@
 }
 
 .tile {
-	margin: 0;
-	box-shadow: none;
 	color: #000;
 	text-align: center;
 	text-rendering: optimizelegibility;
@@ -67,14 +15,6 @@
     text-shadow: none;
 	font-family: "ff-super-grotesk-web", helvetica,arial;
 	font-weight: 200;
-}
-
-.tile.wide {
-	width: 480px;
-}
-
-.tile img.focus {
-	min-width: 100%;
 }
 
 .previewContainer {
@@ -87,18 +27,12 @@
     font-weight: 200;
 }
 
-.previewContainer img {
-    max-height: none;
-}
-
-.previewContainer .row {
-    display: inline-block;
-}
-
 .previewContainer .content {
     padding-top: 43px;
+    padding-bottom: 0px;
     box-shadow: 0px 10px 30px 0px #000;
     border: none;
+    max-width: 900px;
 }
 
 .previewContainer .mask {
@@ -108,7 +42,7 @@
 .previewContainer .close {
     position: absolute;
     left: 0;
-    top: 0;
+    right: inherit;
     z-index: 1;
     opacity: 1;
     filter: alpha(opacity=100);
@@ -126,6 +60,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     white-space: nowrap;
+    margin: auto;
 }
 
 .previewContainer .gallery.hidden {
@@ -134,9 +69,7 @@
 
 .previewContainer .gallery img {
     margin: 5px 0;
-    height: auto;
     width: 82px;
-    display: inline-block;
     opacity: 0.4;
     filter: alpha(opacity=40);
     cursor: pointer;
@@ -148,7 +81,7 @@
 }
 
 .previewContainer .image-with-tagged-products .cell {
-    padding-top: 10px;
+    padding-top: 4px;
 }
 
 .previewContainer .image-with-tagged-products .cell.info {
@@ -157,20 +90,27 @@
 
 .previewContainer .info {
     text-align: center;
-    padding-left: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
     overflow: hidden;
 }
 .previewContainer .info.image {
-    padding-left: 10px;
+    max-width: 320px;
+}
+.previewContainer .info.image.landscape {
+    max-width: none;
 }
 
 .previewContainer .info .title {
-    font-size: 34px;
+    font-size: 26px;
+    line-height: 26px;
     margin-top: 50px;
 }
 .previewContainer .info.image .title {
     margin-top: 0;
-    font-size: 28px;
+}
+.previewContainer .image-without-tagged-products .title {
+    margin-bottom: 10px;
 }
 
 .previewContainer .info .price {
@@ -187,14 +127,14 @@
     color: #FFF;
     background-color: black;
     text-decoration: none;
-    padding: 10px 30px;
+    padding: 10px 20px;
     display: inline-block;
     margin-bottom: 20px;
     white-space: nowrap;
 }
 .previewContainer .info.image a.button {
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-top: 7px;
+    margin-bottom: 7px;
 }
 
 .previewContainer .info a.button:hover {
@@ -203,7 +143,6 @@
 
 .previewContainer .info a.button div {
     vertical-align: middle;
-    padding-left: 20px;
 }
 
 .previewContainer .stl-title {
@@ -212,7 +151,7 @@
 }
 
 .previewContainer .landscape .stl-title {
-    margin-top: 30px;
+    margin-top: 10px;
 }
 
 .previewContainer .stl-look {
@@ -221,7 +160,7 @@
     max-height: none;
     white-space: normal;
     padding-bottom: 0;
-    width: 160px;
+    width: 120px;
     display: block;
 }
 .previewContainer .landscape .stl-look {
@@ -242,7 +181,7 @@
 
 .previewContainer .stl-look .stl-item img {
     display: block;
-    width: 82px;
+    width: 72px;
     max-width: none;
     max-height: none;
     height: auto;
@@ -352,9 +291,19 @@
 }
 
 @media screen and (max-width: 768px) {
+    .navbar {
+        display: none;
+    }
+
+    .jumbotron {
+        margin-top: 0;
+        border-bottom: none;
+    }
+
     .previewContainer .content {
         padding: 0;
         padding-top: 43px;
+        height: 100%;
     }
 
     .previewContainer .row {
@@ -373,6 +322,10 @@
         display: inline-block;
     }
 
+    .previewContainer .info.image {
+        max-width: none;
+    }
+
     .previewContainer .info .title {
         margin-top: 5px;
     }
@@ -388,7 +341,7 @@
     .previewContainer .stl-look .stl-item,
     .previewContainer .landscape .stl-look .stl-item {
         display: inline-block;
-        width: 150px;
+        width: 135px;
         vertical-align: top;
     }
 

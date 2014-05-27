@@ -17,9 +17,11 @@ urlpatterns = patterns('',
 
     # APPS
     url(r'^assets/', include('apps.assets.urls')),
+    url(r'^ads/', include('apps.ads.urls')),
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
     url(r'^imageservice/', include('apps.imageservice.urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
+    url(r'^scraper/', include('apps.scraper.urls')),
     url(r'^tracker/', include('apps.tracking.urls')),
     # dashboard
     url(r'^dashboard/', include('apps.dashboard.urls')),

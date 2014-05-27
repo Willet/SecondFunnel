@@ -62,7 +62,9 @@ App.module("tracker", function (tracker, App) {
         addItem = function () {
             // wrap ga to obey our tracking
             if (!window.ga) {
-                console.warn('Analytics library is not ready. %o', arguments);
+                if (console.warn) {
+                    console.warn('Analytics library is not ready. %o', arguments);
+                }
                 return;
             }
 

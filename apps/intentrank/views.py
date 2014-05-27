@@ -32,17 +32,23 @@ def track_tile_view(request, tile_id):
 
     tile_id = int(tile_id)
 
-    try:
-        with PredictionIOInstance() as predictor:
-            predictor.track_tile_view(request, tile_id)
-    except BaseException as err:
-        print "PredictionIO failed to record tile view"
-
     if not request.session.get('shown', []):
         request.session['shown'] = [tile_id]
     else:
         request.session['shown'].append(tile_id)
     request.session['shown'] = list(set(request.session['shown']))  # uniq
+
+    # if tile tracking is disabled by the /view handler, also disable this one
+    track_tiles = MemcacheSetting.get('track_tiles', True)
+    if not track_tiles:
+        print "PredictionIO disabled by memory-bound setting"
+        return
+
+    try:
+        with PredictionIOInstance() as predictor:
+            predictor.track_tile_view(request, tile_id)
+    except BaseException as err:
+        print "PredictionIO failed to record tile view: {}".format(err.message)
 
 
 def track_tiles_view(request, tile_ids):
@@ -112,15 +118,21 @@ def get_results_view(request, page_id):
     ir = IntentRank(feed=feed)
 
     algorithm = ir.get_algorithm(algorithm_name)
-    print 'request being handled by {0}'.format(algorithm.__name__)
+    print 'request for [page {}, feed {}] being handled by {}'.format(
+        page.id, feed.id, algorithm.__name__)
 
-    resp = ajax_jsonp(get_results(feed=feed, results=results,
-                                  algorithm=algorithm, request=request,
-                                  exclude_set=exclude_set,
-                                  category_name=category,
-                                  offset=offset, tile_id=tile_id),
-                      callback_name=callback)
-    return resp
+    # results is a queryset!
+    results = get_results(feed=feed, results=results,
+                          algorithm=algorithm, request=request,
+                          exclude_set=exclude_set,
+                          category_name=category,
+                          offset=offset, tile_id=tile_id)
+
+    # manually construct a json array
+    response_text = "[{}]".format(",".join([tile.to_str() for tile in results]))
+    if callback:
+        response_text = "{0}({1});".format(callback, response_text)
+    return HttpResponse(response_text, content_type='application/json')
 
 
 @login_required
@@ -171,8 +183,14 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     if not (feed or tile_id):
         return HttpResponseNotFound("No feed for page {0}".format(page_id))
 
-    return ajax_jsonp(get_results(feed=feed, request=request, algorithm=ir_all),
-                      callback_name=callback)
+    # results is a queryset!
+    results = get_results(feed=feed, request=request, algorithm=ir_all)
+
+    # manually construct a json array
+    response_text = "[{}]".format(",".join([tile.to_str() for tile in results]))
+    if callback:
+        response_text = "{0}({1});".format(callback, response_text)
+    return HttpResponse(response_text, content_type='application/json')
 
 
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
@@ -211,7 +229,7 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         allowed_set = None
 
     tiles = ir_base(feed=feed, allowed_set=allowed_set)
-    return ir.render(algorithm, tiles=tiles, results=results,
+    return algorithm(tiles=tiles, results=results,
                      exclude_set=exclude_set, allowed_set=allowed_set,
                      request=request, offset=offset, tile_id=tile_id, feed=feed)
 

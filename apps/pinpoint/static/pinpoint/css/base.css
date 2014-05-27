@@ -57,10 +57,21 @@ a, a:hover, a:focus {
 
 .navbar {
     background: white;
+    height: 56px;
+    line-height: 56px;
+    white-space: nowrap;
+    border-radius: 0;
+    margin-bottom: 0;
+    z-index: 10;
 }
 
-.navbar-fixed-top {
-    z-index: 10;
+.navbar .container {
+    height: 100%;
+}
+
+.navbar img {
+    height: 100%;
+    vertical-align: top;
 }
 
 .nav>li>a:hover, .nav>li>a:focus {
@@ -93,15 +104,39 @@ a, a:hover, a:focus {
     /* override bootstrap responsiveness */
     float: right!important;
 }
+
+#hero-area .jumbotron {
+    border-radius: 0px;
+}
+
 .jumbotron {
     background-size: cover;
-    height: 410px;  /* adjusts image size */
-    max-height: 25%;  /* adjusts image size */
+    background-repeat: no-repeat;
+    width: 1024px;
+    height: 300px;
+    border-bottom: 1px silver solid;
+    margin: 10px auto 0px auto;
+    max-height: 25%;
     max-width: 100%;
+}
+
+.visible-xs.jumbotron, .visible-sm.jumbotron {
+    padding: 0;
+    height: auto;
+    margin-bottom: 5px;
 }
 
 .visible-md.jumbotron, .visible-lg.jumbotron {
     margin-bottom: 5px;
+}
+
+.visible-xs.jumbotron img {
+    visibility:  hidden;
+    width: 100%;
+}
+
+.visible-sm.jumbotron img {
+    width: 100%;
 }
 
 .container {
@@ -144,10 +179,10 @@ div.loading {
 
 .tile {
     background: #fff;
-    margin: 0 7.5px 15px;
+    margin: 0;
     padding: 5px;
     border-radius: 3px;
-    box-shadow: 0 1px 3px 0 #999;
+    box-shadow: none;
     vertical-align: top;
     position: relative;
 
@@ -193,7 +228,7 @@ div.loading {
 
 .tile img.focus {
     /* the "focus" image (i.e. main image) must be at least some pixels wide. */
-    min-width: 200px;
+    min-width: 100%;
     min-height: 75px;
     display: block;
     margin: auto;
@@ -232,7 +267,7 @@ div.loading {
 }
 
 .tile.wide {
-    width: 495px; /* 480px + 3 margins */
+    width: 480px;
     min-height: 250px;
 }
 
@@ -436,15 +471,23 @@ div.loading {
 }
 
 .previewContainer .fullscreen .content {
-    max-height: none;
-    height: 100%;
+    max-height: 100%;
     width: 100%;
     -moz-border-radius: 0px;
     -webkit-border-radius: 0px;
     -ms-border-radius: 0px;
     -o-border-radius: 0px;
     border-radius: 0px;
-    overflow-y: auto !important;
+    overflow-y: auto;
+}
+
+.previewContainer .close {
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 1;
+    opacity: 1;
+    filter: alpha(opacity=100);
 }
 
 .previewContainer .cell {
@@ -454,7 +497,6 @@ div.loading {
 
 .previewContainer img {
     max-width: 100%;
-    max-height: 100%;
 }
 
 .previewContainer .mask {
@@ -473,6 +515,10 @@ div.loading {
     z-index: 100;
 }
 
+.previewContainer .row {
+    display: inline-block;
+}
+
 .previewContainer .content {
     /* let the preview scroll, but only if it needs to */
     overflow-y: auto;
@@ -487,6 +533,11 @@ div.loading {
 .previewContainer .content .social-buttons {
     display: block;  /* these, however, show by default */
     clear: both;
+}
+
+.previewContainer .gallery img {
+    height: auto;
+    width: auto;
 }
 
 .previewContainer .gallery.dots div {
@@ -627,7 +678,7 @@ div.loading {
     }
 
     .previewContainer .content {
-        overflow: visible !important;
+        overflow: auto;
         display: block;
         margin: auto;
     }
@@ -707,12 +758,12 @@ div.loading {
     }
 }
 
-.discovery-area .tap_indicator {
+#discovery-area .tap_indicator {
     /* show only on large (wide) instagram blocks (see below) */
     display: none;
 }
 
-.touch-enabled .discovery-area .wide .tap_indicator {
+.touch-enabled #discovery-area .wide .tap_indicator {
     /* should contain a '+' symbol, and
        another div with the hint text */
     display: block;
@@ -735,7 +786,7 @@ div.loading {
     line-height: 85px;
 }
 
-.touch-enabled .discovery-area .wide .tap_indicator > div {
+.touch-enabled #discovery-area .wide .tap_indicator > div {
     font-size:10px;
     margin: -54px -1px 0 -1px;
 }
