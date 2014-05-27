@@ -460,17 +460,33 @@
             <% } %>
         </script>
 
+        <script type="text/template" id="product_galleryMainImage_template">
+            <% if (obj.images.length > 1) { %>
+                <div class="gallery-swipe-left"></div>
+                <div class="gallery-swipe-right"></div>
+            <% } %>
+            <% if (!App.support.mobile()) { %>
+                <% if (obj.image) { %>
+                    <img class="main-image" src='<%= obj.image.url %>'/>
+                <% } else { %>
+                    <img class="main-image" src='<%= obj.images[0].url %>'/>
+                <% } %>
+            <% } else { %>
+                <% if (obj.image) { %>
+                    <div class="main-image" src='<%= obj.image.url %>'/>
+                <% } else { %>
+                    <div class="main-image" src='<%= obj.images[0].url %>'/>
+                <% } %>
+            <% } %>
+        </script>
+
         <script type="text/template" id="product_preview_template">
             <!-- any (store.name)_(type)_... templates will be used in place
              of default templates if they exist. -->
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
-                    <div class='image'>
-                        <img src='<%= obj.image.url %>'/>
-                    </div>
-                    <% if (obj.images.length > 1) { %>
-                    <div class='gallery'></div>
-                    <% } %>
+                    <div class="gallery-main-image"></div>
+                    <div class='gallery<% if (obj.images.length === 1) { %> hide<% } %>'></div>
                 </div>
                 <div class='cell middle info col-sm-6 col-md-6'>
                     <div class='title'></div>
@@ -497,9 +513,7 @@
             <div class="info">
                 <div class="title"></div>
                 <div class="center">
-                    <% if (obj.images.length > 1) { %>
-                        <div class='gallery'></div>
-                    <% } %>
+                    <div class='gallery<% if (obj.images.length === 1) { %> hide<% } %>'></div>
                 </div>
             </div>
             <div class="price"></div>
@@ -511,13 +525,7 @@
             <% } else { %>
             <div class="image-region">
             <% } %>
-                <% if (obj.images.length > 1) { %>
-                    <span class="gallery-swipe-left"></span>
-                    <div class="main-image"></div>
-                    <span class="gallery-swipe-right"></span>
-                <% } else { %>
-                    <div class="img" style="background-image: url('<%= obj.image.url %>');"></div>
-                <% } %>
+                <div class="gallery-main-image"></div>
                 <div class="gap-buttons">
                     <div class="buy inline"></div>
                     <a class="button find-store"
@@ -537,9 +545,7 @@
                 <div class="info">
                     <div class="title"></div>
                     <div class="center">
-                        <% if (products.length > 0) { %>
-                            <div class='gallery'></div>
-                        <% } %>
+                        <div class='gallery<% if (products.length === 0) { %> hide<% } %>'></div>
                     </div>
                 </div>
                 <div class="price"></div>
@@ -548,9 +554,7 @@
                 </div>
                 <div class="image-region">
                     <% if (products.length > 0) { %>
-                        <span class="gallery-swipe-left"></span>
-                        <div class="main-image"></div>
-                        <span class="gallery-swipe-right"></span>
+                        <div class="gallery-main-image"></div>
                         <div class="gap-buttons">
                             <% if (product.url) { %>
                                 <div class="buy inline"></div>
@@ -578,8 +582,8 @@
                             <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                         </div>
                         <div class="middle cell center">
-                            <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                            <div class='gallery'></div>
+                            <div class="gallery-main-image"></div>
+                            <div class='gallery<% if (product.images.length === 1) { %> hide<% } %>'></div>
                         </div>
                         <div class="middle cell">
                             <div class='title'></div>
