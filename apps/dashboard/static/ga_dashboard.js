@@ -94,7 +94,6 @@ $(document).ready(function () {
         if(response === undefined){
             return;
         }
-        console.log(response);
 
         // the buttons
         var totalSessions = response.totalsForAllResults['ga:sessions'];
@@ -200,7 +199,6 @@ $(document).ready(function () {
         if(response === undefined){
             return;
         }
-        console.log(response);
 
 
         var data = new google.visualization.DataTable(response.dataTable, 0.6);
@@ -274,12 +272,17 @@ $(document).ready(function () {
         page_options.sortview.current_timeout = setTimeout(update_sortview, refreshRate);
     };
 
+    var refresh_all = function(){
+        refresh_quicklook();
+        refresh_sortview();
+    };
+
     var drawElements = function () {
         // all graphs are drawn in here
-
         //update_all_data();
         update_quicklook();
         update_sortview();
+        refresh_all();
 
     };
 
@@ -294,25 +297,21 @@ $(document).ready(function () {
     google.load('visualization', '1.0', {'packages': ['controls', 'corechart'], callback: drawElements});
 
     $('#quicklook-total').on('click', function () {
-        console.log('quicklook-total was clicked');
         page_options.quicklook.current_selection = 'total';
         refresh_quicklook();
     });
 
     $('#quicklook-today').on('click', function () {
-        console.log('quicklook-today was clicked');
         page_options.quicklook.current_selection = 'today';
         refresh_quicklook();
     });
 
     $('#sortview-device').on('click', function () {
-        console.log('sortview-device was clicked');
         page_options.sortview.current_selection = 'device';
         refresh_sortview();
     });
 
     $('#sortview-source').on('click', function () {
-        console.log('sortview-source was clicked');
         page_options.sortview.current_selection = 'source';
         refresh_sortview();
     });
