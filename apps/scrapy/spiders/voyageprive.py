@@ -6,7 +6,7 @@ from apps.scrapy.items import ScraperProduct
 
 
 class VoyagePriveScraper(XMLFeedSpider):
-    name = 'voyageprive'
+    name = 'voyage-prive'
     allowed_domains = ['officiel-des-vacances.com']
     start_urls = ['http://www.officiel-des-vacances.com/partners/catalog.xml']
     handle_httpstatus_list = [410]
