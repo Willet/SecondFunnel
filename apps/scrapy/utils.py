@@ -2,6 +2,8 @@ import base64
 from functools import wraps
 import os
 import re
+from scrapy.contrib.loader import ItemLoader
+from scrapy.contrib.loader.processor import TakeFirst, Compose, Identity
 from scrapy.selector import SelectorList
 import tempfile
 import webbrowser
@@ -179,3 +181,16 @@ def django_serializer(value):
 
 def store_serializer(value):
     return django_serializer(value)
+
+
+def str_to_boolean(value):
+    return value.lower() in ['true', 'yes', '1', 't']
+
+
+class ScraperProductLoader(ItemLoader):
+    default_output_processor = TakeFirst()
+
+    # attributes
+    image_urls_out = Identity()
+
+    in_stock_in = Compose(lambda v: v[0], str_to_boolean)

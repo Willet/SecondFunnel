@@ -3,6 +3,7 @@ from scrapy.contrib.spiders import XMLFeedSpider
 from scrapy.http import Request
 from scrapy.selector import Selector
 from apps.scrapy.items import ScraperProduct
+from apps.scrapy.utils import ScraperProductLoader
 
 
 class VoyagePriveScraper(XMLFeedSpider):
@@ -47,19 +48,19 @@ class VoyagePriveScraper(XMLFeedSpider):
     #     processors:
     #       http://stackoverflow.com/a/19974695
     def parse_node(self, response, node):
-        item = ScraperProduct()
-        item['attributes'] = {}
-        item['image_urls'] = []
-        item['attributes']['categories'] = []
+        l = ScraperProductLoader(item=ScraperProduct(), selector=node)
+        l.add_xpath('sku', 'id/text()')
+        l.add_xpath('name', 'titre/text()')
+        l.add_xpath('price', 'prix/text()')
+        l.add_xpath('in_stock', 'statut/text()')  # TODO: input processor
+        l.add_value('url', '')
+        # item['url'] = 'http://www.officiel-des-vacances.com/' \
+        #               'route-to/{0}/section'.format(item['sku'])
 
-        sku = node.xpath('id/text()').extract_first()
-        item['sku'] = sku
+        attributes = {}
+        attributes['categories'] = []
 
         sections = node.xpath('sections/text()').extract_first()
-
-        status = node.xpath('statut/text()').extract_first()
-        item['in_stock'] = (status == self.AVAILABLE_STATUS)
-
         node_categories = set(sections.split(','))
         scraper_categories = set(self.categories)
         is_part_of_campaign = node_categories.intersection(scraper_categories)
@@ -73,29 +74,16 @@ class VoyagePriveScraper(XMLFeedSpider):
             if not category:
                 continue
 
-            item['attributes']['categories'].append((category, None))
+            attributes['categories'].append((category, None))
 
-        item['url'] = 'http://www.officiel-des-vacances.com/' \
-                      'route-to/{0}/section'.format(item['sku'])
-
-        name = node.xpath('titre/text()').extract_first()
-        if name:
-            item['name'] = name
-
-        price = node.xpath('prix/text()').extract_first()
-        if price:
-            item['price'] = price
-
-        site_image = node.xpath('image-fournisseur/text()').extract_first()
-        if site_image:
-            item['attributes']['direct_site_image'] = site_image
-
-        site_name = node.xpath('nom-fournisseur/text()').extract_first()
-        if site_name:
-            item['attributes']['direct_site_name'] = site_name
+        attributes['direct_site_image'] = node.xpath('image-fournisseur/text()').extract_first()
+        attributes['direct_site_name'] = node.xpath('nom-fournisseur/text()').extract_first()
+        l.add_value('attributes', attributes)
 
         url = node.xpath('url-detail/text()').extract_first()
         request = Request(url, callback=self.parse_page)
+
+        item = l.load_item()
         request.meta['item'] = item
         return request
 
