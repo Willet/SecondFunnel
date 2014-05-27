@@ -2,7 +2,10 @@ __author__ = 'tristanpotter'
 from django.db import models
 from django.contrib.auth.models import User
 from oauth2client.django_orm import CredentialsField
+from south.modelsinspector import add_introspection_rules
 import jsonfield
+
+add_introspection_rules([], ["^oauth2client\.django_orm\.CredentialsField"])
 
 
 class DashBoard(models.Model):
