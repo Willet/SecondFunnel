@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from scrapy.contrib.djangoitem import DjangoItem
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
-from apps.assets.models import Store, Product
+from apps.assets.models import Store, Product, Category
 from apps.scraper.scrapers import ProductScraper
 from apps.scrapy.items import ScraperProduct, ScraperContent
 from apps.scrapy.utils import CloudinaryStore, spider_pipelined, \
@@ -88,7 +88,7 @@ class PricePipeline(object):
 
 
 # At the moment, ForeignKeys are a bitch, so, handle those separately.
-class ProductForeignKeyPipeline(object):
+class ForeignKeyPipeline(object):
     def process_item(self, item, spider):
         if isinstance(item, ScraperProduct):
             return self.process_product(item, spider)
@@ -99,6 +99,11 @@ class ProductForeignKeyPipeline(object):
         return item
 
     def process_product(self, item, spider):
+        item = self.associate_store(item, spider)
+
+        return item
+
+    def associate_store(self, item, spider):
         store_slug = getattr(spider, 'store_slug', '')
 
         try:
@@ -107,7 +112,6 @@ class ProductForeignKeyPipeline(object):
             raise DropItem("Can't add item to non-existent store")
 
         item['store'] = store
-
         return item
 
     def process_content(self, item, spider):
@@ -132,6 +136,36 @@ class ItemPersistencePipeline(object):
             raise DropItem('Item didn\'t validate. ({})'.format(messages))
 
         return item
+
+
+class CategoryPipeline(object):
+    def process_item(self, item, spider):
+        categories = item.get('attributes', {}).get('categories', [])
+        for name, url in categories:
+            self.add_to_category(item, name, url)
+
+        return item
+
+    def add_to_category(self, item, name, url=None):
+        kwargs = {
+            'store': item['store'],
+            'name': name
+        }
+
+        if url:
+            kwargs['url'] = url
+
+        category, created = Category.objects.get_or_create(**kwargs)
+        category.save()
+
+        try:
+            item_model = item_to_model(item)
+        except TypeError:
+            return
+
+        product, _ = get_or_create(item_model)
+        category.products.add(product)
+        category.save()
 
 
 class ProductImagePipeline(object):

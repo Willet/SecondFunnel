@@ -7,6 +7,7 @@
 .tile {
     color: #000;
     text-align: center;
+    padding: 15px;
 }
 
 #discovery-area {

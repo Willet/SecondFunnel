@@ -837,7 +837,8 @@ App.module('core', function (module, App) {
             price: '.price',
             title: '.title',
             buy: '.buy',
-            description: '.description'
+            description: '.description',
+            galleryMainImage: '.gallery-main-image'
         },
 
         'onBeforeRender': function () {
@@ -882,16 +883,10 @@ App.module('core', function (module, App) {
 
                     $this.addClass('selected').siblings().removeClass('selected');
                     App.options['galleryIndex'] = index;
-                    $('.gallery', self.$el).empty();
-                    App.utils.runWidgets(self);
 
                     if (product.images.length === 1) {
-                        $('.gallery-swipe-left', self.$el).addClass('hide');
-                        $('.gallery-swipe-right', self.$el).addClass('hide');
                         $('.gallery', self.$el).addClass('hide');
                     } else {
-                        $('.gallery-swipe-left', self.$el).removeClass('hide');
-                        $('.gallery-swipe-right', self.$el).removeClass('hide');
                         $('.gallery', self.$el).removeClass('hide');
                     }
 
@@ -1036,6 +1031,10 @@ App.module('core', function (module, App) {
                     }));
                 }
             }
+
+            // TODO: turn gallery into a view
+            $('.gallery', this.$el).empty();
+            App.utils.runWidgets(this);
         }
     });
 
