@@ -385,15 +385,12 @@ _.mixin({
     // patch render to always run widgets.
     _.each(views, function (ViewClass) {
         var oldRender = ViewClass.prototype.render || $.noop;
+
         ViewClass.prototype.render = function () {
             var result;
             try {
                 // call the original function
                 result = oldRender.apply(this, arguments);  // usually 'this'
-
-                // do something else
-                App.utils.runWidgets(this);
-
             } catch (err) {
                 // failed... close the view
                 App.vent.trigger('viewRenderError', err, this);
