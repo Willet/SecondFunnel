@@ -188,6 +188,12 @@ def str_to_boolean(value):
 
 
 class MergeDicts(object):
+    """
+    A processor that, given a list of values (dicts), merges the values
+
+    Note that it does this in the stupidest way possible (i.e. later keys
+    replace earlier keys) but for our purposes this is fine.
+    """
     def __call__(self, values):
         itervalues = iter(values)
         result = next(itervalues, None)
@@ -199,6 +205,19 @@ class MergeDicts(object):
 
 
 class ScraperProductLoader(ItemLoader):
+    """
+    Creates items via XPath or CSS expressions.
+
+    Basically, reduces the amount of work involved in scraping items because
+    the item loader can take an XPath or CSS expression and immediately load
+    that into the item (or add multiple values, if the exist).
+
+    As well, the item loader can handle custom input / output processing for
+    common operations.
+
+    More details available in the docs:
+        http://doc.scrapy.org/en/latest/topics/loaders.html
+    """
     default_output_processor = TakeFirst()
 
     attributes_out = MergeDicts()

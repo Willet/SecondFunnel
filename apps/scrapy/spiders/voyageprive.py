@@ -52,7 +52,7 @@ class VoyagePriveScraper(XMLFeedSpider):
         l.add_xpath('sku', 'id/text()')
         l.add_xpath('name', 'titre/text()')
         l.add_xpath('price', 'prix/text()')
-        l.add_xpath('in_stock', 'statut/text()')  # TODO: input processor
+        l.add_xpath('in_stock', 'statut/text()')
         l.add_value('url', '')
         # item['url'] = 'http://www.officiel-des-vacances.com/' \
         #               'route-to/{0}/section'.format(item['sku'])
@@ -69,6 +69,7 @@ class VoyagePriveScraper(XMLFeedSpider):
         if not is_part_of_campaign:
             return
 
+        # TODO: Perhaps this should be made into an input processor?
         for category_id in node_categories:
             category = self.categories_dict.get(category_id)
             if not category:
@@ -110,6 +111,10 @@ class VoyagePriveScraper(XMLFeedSpider):
             '#viewp-section-push .viewp-product-editorialist img::attr(src)'
         ).extract_first()
 
+        # ItemLoader input processors only apply to elements that are added,
+        # not values that were part of the original object.
+        #
+        # Because of this, we re-add attributes so that the two will be merged.
         l.add_value('attributes', item['attributes'])
         l.add_value('attributes', attributes)
 
