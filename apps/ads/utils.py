@@ -25,6 +25,7 @@ def render_banner(page, request):
     # products_only=True is a nastygal-only copyright thing that ought to be
     # isolated from this logic, when need be
     initial_results = get_results(feed=page.feed, products_only=True)
+    initial_results = [x.to_json() for x in initial_results]
 
     attributes = {
         "session_id": request.session.session_key,
