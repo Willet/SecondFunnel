@@ -1,12 +1,14 @@
 import base64
 from functools import wraps
+from importlib import import_module
 import os
 import re
-from scrapy import signals
+from scrapy import signals, log
 from scrapy.contrib.loader import ItemLoader
 from scrapy.contrib.loader.processor import TakeFirst, Compose, Identity
 from scrapy_sentry.extensions import Signals
-from scrapy_sentry.utils import get_client
+from scrapy_sentry.utils import get_client, response_to_dict
+import sys
 import tempfile
 import webbrowser
 import cloudinary.uploader as uploader
@@ -248,10 +250,37 @@ class SentrySignals(Signals):
 
         sentry_signals = crawler.settings.get("SENTRY_SIGNALS", {})
 
-        default_receiver = o.signal_receiver
+        for signal_name in sentry_signals:
+            signal = getattr(signals, signal_name, None)
+            receiver_fn = getattr(o, signal_name, None)
 
-        for signal_name, config in sentry_signals.iteritems():
-            signal = getattr(signals, signal_name)
-            crawler.signals.connect(default_receiver, signal=signal)
+            if not (signal and receiver_fn):
+                continue
+
+            crawler.signals.connect(receiver_fn, signal=signal)
 
         return o
+
+    def spider_error(self, failure, response, spider, signal=None,
+                     sender=None, *args, **kwargs):
+        # Technically, `failure.value` contains the exception, but no traceback
+        extra = {
+            'sender': sender,
+            'spider': spider.name,
+            'signal': signal,
+            'failure': failure,
+            'response': response_to_dict(response, spider, include_request=True)
+        }
+        exception = sys.exc_info()
+
+        msg = self.client.captureException(exception, extra=extra)
+        id = self.client.get_ident(msg)
+
+        logger = spider.log if spider else log.msg
+        logger("Sentry Exception ID '{}'".format(id), level=log.INFO)
+
+        return id
+
+    def item_dropped(self, item, spider, exception, signal=None,
+                     sender=None, *args, **kwargs):
+        pass
