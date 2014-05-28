@@ -2,9 +2,11 @@ import base64
 from functools import wraps
 import os
 import re
+from scrapy import signals
 from scrapy.contrib.loader import ItemLoader
 from scrapy.contrib.loader.processor import TakeFirst, Compose, Identity
-from scrapy.selector import SelectorList
+from scrapy_sentry.extensions import Signals
+from scrapy_sentry.utils import get_client
 import tempfile
 import webbrowser
 import cloudinary.uploader as uploader
@@ -225,3 +227,31 @@ class ScraperProductLoader(ItemLoader):
     image_urls_out = Identity()
 
     in_stock_in = Compose(lambda v: v[0], str_to_boolean)
+
+
+class SentrySignals(Signals):
+    """
+    Have Sentry handle arbitrary scrapy signals.
+
+    SENTRY_SIGNALS from `settings.py` controls what signals this will listen to.
+
+    A list of available signals can be found in the docs:
+        http://doc.scrapy.org/en/latest/topics/signals.html#module-scrapy.signals
+
+    Modified from scrapy_sentry.extensions.Signals
+    """
+    @classmethod
+    def from_crawler(cls, crawler, client=None, dsn=None):
+        dsn = crawler.settings.get("SENTRY_DSN", None)
+        client = get_client(dsn)
+        o = cls(dsn=dsn)
+
+        sentry_signals = crawler.settings.get("SENTRY_SIGNALS", {})
+
+        default_receiver = o.signal_receiver
+
+        for signal_name, config in sentry_signals.iteritems():
+            signal = getattr(signals, signal_name)
+            crawler.signals.connect(default_receiver, signal=signal)
+
+        return o
