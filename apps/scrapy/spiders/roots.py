@@ -36,9 +36,10 @@ class RootsSpider(WebdriverCrawlSpider):
         # TODO: Sanitize output with bleach
         l.add_css('description', '.prodctdesc .description::text')
 
-        # TODO: Extract *all* images
-        l.add_xpath('image_urls', '//div[contains(@class, "fluid-display-imagegroup")]'
-                                  '//img[contains(@class, ":view")]')
+        # TODO: WTF does this need to be this complicated?
+        image_urls = [x.css('::attr(src)').extract_first()
+                      for x in
+                      sel.xpath('//div[contains(@class, "fluid-display-imagegroup")]//img[contains(@class, ":view")]')]
 
         attributes = {}
         sale_price = sel.css('.pricing #priceTop .special .value::text').extract_first()
@@ -56,6 +57,7 @@ class RootsSpider(WebdriverCrawlSpider):
             category_name = category_sel.css('::text').extract_first()
             attributes['categories'].append((category_name, category_url))
 
+        l.add_value('image_urls', image_urls)
         l.add_value('attributes', attributes)
 
         yield l.load_item()
