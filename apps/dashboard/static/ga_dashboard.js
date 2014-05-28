@@ -60,7 +60,7 @@ $(document).ready(function () {
             selections: [
                 { // today
                     response: undefined,
-                    start_date: 'yesterday',
+                    start_date: 'today',
                     end_date: 'today'
                 },
                 { // total
@@ -124,7 +124,6 @@ $(document).ready(function () {
         if (response === undefined) {
             response = chart.selections[chart.current_selection].response;
         }
-        console.log(response);
         // if response is still undefined, abort
         if (response === undefined) {
             return false;
@@ -288,12 +287,12 @@ $(document).ready(function () {
     });
 
     $('#sortview-device').on('click', function () {
-        pageOptions.sortview.current_selection = 1;
+        pageOptions.sortview.current_selection = 0;
         refresh_sortview();
     });
 
     $('#sortview-source').on('click', function () {
-        pageOptions.sortview.current_selection = 0;
+        pageOptions.sortview.current_selection = 1;
         refresh_sortview();
     });
 
