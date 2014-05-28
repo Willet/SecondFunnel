@@ -53,9 +53,12 @@ class VoyagePriveScraper(XMLFeedSpider):
         l.add_xpath('name', 'titre/text()')
         l.add_xpath('price', 'prix/text()')
         l.add_xpath('in_stock', 'statut/text()')
-        l.add_value('url', '')
-        # item['url'] = 'http://www.officiel-des-vacances.com/' \
-        #               'route-to/{0}/section'.format(item['sku'])
+        l.add_value(
+            'url',
+            'http://www.officiel-des-vacances.com/route-to/{0}/section'.format(
+                l.get_output_value('sku')
+            )
+        )
 
         attributes = {}
         attributes['categories'] = []
