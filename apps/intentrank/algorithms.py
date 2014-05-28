@@ -40,10 +40,10 @@ def filter_tiles(fn):
             tiles = feed.tiles.all()
 
         if not tiles:  # nothing to give
-            return tiles
+            return qs_for([])
 
         if results < 1:  # nothing to get
-            return []
+            return qs_for([])
 
         if not isinstance(tiles, QuerySet):
             tiles = qs_for(tiles)
@@ -82,6 +82,9 @@ def qs_for(tiles):
     """
     if isinstance(tiles, QuerySet):
         return tiles
+
+    if not tiles:
+        tiles = []
 
     try:
         ids = [x.id for x in tiles]
@@ -134,7 +137,7 @@ def ir_last(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             allowed_set=None, *args, **kwargs):
     """sample whichever ones come last"""
     if results < 1:
-        return []
+        return qs_for([])
 
     return tiles.order_by('-id')[:results]
 
@@ -488,7 +491,7 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     prioritized_content += ir_priority_request(tiles=contents, results=10,
                                                exclude_set=exclude_set, allowed_set=allowed_set)
     if len(prioritized_content) >= results:
-        return prioritized_content[:results]
+        return qs_for(prioritized_content[:results])
 
     # second, show the ones for the first request
     exclude_set += ids_of(prioritized_content)
@@ -499,7 +502,7 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     length = len(prioritized_content)
 
     if length >= results:
-        return prioritized_content[:results]
+        return qs_for(prioritized_content[:results])
 
     exclude_set += ids_of(prioritized_content)
     mixed_tiles = ir_mixed(tiles=tiles, results=(results - length),
@@ -507,7 +510,7 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                            request=request, feed=kwargs.get('feed', None))
     prioritized_content += mixed_tiles
 
-    return prioritized_content[:results]
+    return qs_for(prioritized_content[:results])
 
 
 def ir_finite_by(attribute='created_at', reversed_=False):
