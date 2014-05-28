@@ -210,9 +210,6 @@ App.module("sharing", function (sharing, App) {
             this.$el = this.$el.children();
             this.setElement(this.$el);
             this.$el.parent().hide();
-
-            // process widgets
-            App.utils.runWidgets(this);
         },
         'commas': false
     });
@@ -253,9 +250,6 @@ App.module("sharing", function (sharing, App) {
             if (!this.showCount) {
                 this.$el.addClass('no-count');
             }
-
-            // process widgets
-            App.utils.runWidgets(this);
         },
 
         'onTemplateHelpers': function (helpers) {
@@ -363,9 +357,6 @@ App.module("sharing", function (sharing, App) {
                     self.$('.share').append(share.$el);
                 }
             });
-
-            // process widgets in this view
-            App.utils.runWidgets(this);
         }
     });
 
