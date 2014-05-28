@@ -12,12 +12,7 @@ class DashBoard(models.Model):
     """
     The analytics information for a given site.
     Each metric is a JSON file containing the response from a
-    query to the Google Analytics for the given site with respect to the dimensions
-    ga:dateHour,ga:nthMinute,
-    ga:campaign,ga:source,
-    ga:browser,ga:operatingSystem,ga:deviceCategory,
-    later :: ga:latitude,ga:longitude
-    later :: ga:userAgeBracket,ga:userGender
+    query to the Google Analytics for the given site with respect to certain dimensions
     """
     site = models.CharField(max_length=128)  # human name for the site that these statistics correspond to
     # prepend with 'ga:' this is the table id that GA uses to refer to the site
@@ -26,13 +21,14 @@ class DashBoard(models.Model):
     timeStamp = models.DateTimeField(verbose_name="The last time this cache of Analytics was updated",
                                      auto_now=True)
 
-    quicklook_total = jsonfield.JSONField(default="{}", blank=True)
-    quicklook_today = jsonfield.JSONField(default="{}", blank=True)
-
-    def update(self, ga_data):
-        pass
+    # the quicklook graph on the dashboard page.
+    quicklook_total = jsonfield.JSONField(default={}, blank=True)
+    quicklook_today = jsonfield.JSONField(default={}, blank=True)
 
 
 class CredentialsModel(models.Model):
+    """
+    For storing and retrieving Google credentials
+    """
     id = models.ForeignKey(User, primary_key=True)
     credential = CredentialsField()

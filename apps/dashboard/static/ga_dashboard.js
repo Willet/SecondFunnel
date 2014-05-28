@@ -7,8 +7,52 @@ var table = 83581767; //gap table id. for google analytics.
 $(document).ready(function () {
     "use strict";
     var console = window.console;
+    var CHART_OPTIONS = {
+        sparkline: {
+            'axisTitlesPosition': 'none',
+            'dataOpacity': 0,
+            'hAxis': {
+                'baselineColor': '#ffffff',
+                'textPosition': 'none',
+                'textStyle': {color: '#ffffff'},
+                'gridlines': {
+                    color: '#ffffff'
+                }
+            },
+            'lineWidth': 1,
+            'vAxis': {
+                'baselineColor': '#ffffff',
+                'textPosition': 'none',
+                'textStyle': {color: '#ffffff'},
+                'gridlines': {
+                    color: '#ffffff'
+                }
+            }
+        },
+        columnChart: {
+            'axisTitlesPosition': 'none',
+            'dataOpacity': 0,
+            'hAxis': {
+                'baselineColor': '#ffffff',
+                'textPosition': 'none',
+                'textStyle': {color: '#ffffff'},
+                'gridlines': {
+                    color: '#ffffff'
+                }
+            },
+            'lineWidth': 1,
+            'vAxis': {
+                'baselineColor': '#ffffff',
+                'textPosition': 'none',
+                'textStyle': {color: '#ffffff'},
+                'gridlines': {
+                    color: '#ffffff'
+                }
+            }
+        }
+    };
     var refreshRate = 50000;
-    var page_options = {
+    var pageOptions = {
         quicklook: {
             current_selection: 'total',
             current_timeout: -1,
@@ -45,6 +89,7 @@ $(document).ready(function () {
         }
     };
 
+
     /**
      * Retrieves data from the server using AJAX. A JSON object is returned and passed to callback. See
      *  the Google Analytics documentation on the formatting of query values.
@@ -71,11 +116,7 @@ $(document).ready(function () {
             success: callback,
             error: function (xhr, status, errorThrown) {
                 console.log(errorThrown);
-            },
-            complete: function (xhr, status) {
-                console.log(status);
             }
-
         });
     };
 
@@ -85,29 +126,29 @@ $(document).ready(function () {
      * @param {optional object} response - the response to use to update the quicklook.
      */
     var refresh_quicklook = function (response) {
-        if(response === undefined){
-            response = page_options.quicklook.current_selection === 'today' ?
-                page_options.quicklook.today.response :
-                page_options.quicklook.total.response;
+        if (response === undefined) {
+            response = pageOptions.quicklook.current_selection === 'today' ?
+                pageOptions.quicklook.today.response :
+                pageOptions.quicklook.total.response;
         }
         // if response is still undefined, abort
-        if(response === undefined){
+        if (response === undefined) {
             return;
         }
 
         // the buttons
         var totalSessions = response.totalsForAllResults['ga:sessions'];
-        $('#sessionCount').html(totalSessions); // TODO format this number
+        $('#sessionCount').text(totalSessions); // TODO format this number
         var bounceRate = Math.round((parseFloat(response.totalsForAllResults['ga:bounceRate']) + 0.00001) * 100) / 100;
-        $('#bounceRate').html(bounceRate + '%');
+        $('#bounceRate').text(bounceRate + '%');
         var sessionDuration = Math.round((parseFloat(response.totalsForAllResults['ga:avgSessionDuration']) + 0.00001) * 100) / 100;
-        $('#sessionDuration').html(sessionDuration);
+        $('#sessionDuration').text(sessionDuration);
         var conversionRate = Math.round((parseFloat(response.totalsForAllResults['ga:goalConversionRateAll']) + 0.00001) * 100) / 100;
-        $('#conversionRate').html(conversionRate + '%');
+        $('#conversionRate').text(conversionRate + '%');
         var conversions = response.totalsForAllResults['ga:goalCompletionsAll'];
-        $('#conversions').html(conversions);
+        $('#conversions').text(conversions);
         var buyNowClicks = response.totalsForAllResults['ga:goal2Completions'];
-        $('#buyNowClicks').html(buyNowClicks);
+        $('#buyNowClicks').text(buyNowClicks);
 
         var data = new google.visualization.DataTable(response.dataTable, 0.6);
         var sparkline = new google.visualization.LineChart($('#quicklook-graph')[0]);
@@ -115,61 +156,32 @@ $(document).ready(function () {
         var sparkline_data = data.clone();
         sparkline_data.removeColumns(2, 5);
 
-        var sparkline_options = {
-            'axisTitlesPosition': 'none',
-            'dataOpacity': 0,
-            'hAxis':{
-                'baselineColor': '#ffffff',
-                'textPosition': 'none',
-                'textStyle': {color: '#ffffff'},
-                'gridlines' : {
-                    color: '#ffffff'
-                }
-            },
-            'lineWidth': 1,
-            'vAxis':{
-                'baselineColor': '#ffffff',
-                'textPosition': 'none',
-                'textStyle': {color: '#ffffff'},
-                'gridlines' : {
-                    color: '#ffffff'
-                }
-            }
-        };
-        sparkline.draw(sparkline_data, sparkline_options);
+        sparkline.draw(sparkline_data, CHART_OPTIONS.sparkline);
     };
 
     /**
-     * Gets the data for the quicklook, and stores it in page_options_quicklook
+     * Gets the data for the quicklook, and stores it in pageOptions_quicklook
      */
     var datify_quicklook = function () {
         var metrics = "ga:sessions,ga:bounceRate,ga:avgSessionDuration,ga:goalConversionRateAll,ga:goalCompletionsAll,ga:goal2Completions,ga:bounces";
         /* Dimensions are nthHour for total, nthMinute for today*/
 
-        // two function for this in case of making them on separate timers
-        var retrieve_today = function () {
-            retrieveData(metrics, 'ga:nthMinute',
-                page_options.quicklook.today.start_date,
-                page_options.quicklook.today.end_date,
-                function (response) {
-                    // save the response in the correct variable
-                    page_options.quicklook.today.response = response;
-                });
-        };
+        // populate data
+        retrieveData(metrics, 'ga:nthMinute',
+            pageOptions.quicklook.today.start_date,
+            pageOptions.quicklook.today.end_date,
+            function (response) {
+                // save the response in the correct variable
+                pageOptions.quicklook.today.response = response;
+            });
 
-        var retrieve_total = function () {
-            retrieveData(metrics, 'ga:dateHour',
-                page_options.quicklook.total.start_date,
-                page_options.quicklook.total.end_date,
-                function (response) {
-                    // save the response in the correct variable
-                    page_options.quicklook.total.response = response;
-                });
-        };
-
-        // populate the data
-        retrieve_today();
-        retrieve_total();
+        retrieveData(metrics, 'ga:dateHour',
+            pageOptions.quicklook.total.start_date,
+            pageOptions.quicklook.total.end_date,
+            function (response) {
+                // save the response in the correct variable
+                pageOptions.quicklook.total.response = response;
+            });
     };
 
     /**
@@ -183,20 +195,20 @@ $(document).ready(function () {
         // Update the elements
         refresh_quicklook();
 
-        if (page_options.quicklook.current_timeout !== -1) {
-            clearTimeout(page_options.quicklook.current_timeout);
+        if (pageOptions.quicklook.current_timeout !== -1) {
+            clearTimeout(pageOptions.quicklook.current_timeout);
         }
-        page_options.quicklook.current_timeout = setTimeout(update_quicklook, refreshRate);
+        pageOptions.quicklook.current_timeout = setTimeout(update_quicklook, refreshRate);
     };
 
-    var refresh_sortview = function(response){
-        if(response === undefined){
-            response = page_options.sortview.current_selection === 'source' ?
-                page_options.sortview.source.response :
-                page_options.sortview.device.response;
+    var refresh_sortview = function (response) {
+        if (response === undefined) {
+            response = pageOptions.sortview.current_selection === 'source' ?
+                pageOptions.sortview.source.response :
+                pageOptions.sortview.device.response;
         }
         // if response is still undefined, abort
-        if(response === undefined){
+        if (response === undefined) {
             return;
         }
 
@@ -204,75 +216,51 @@ $(document).ready(function () {
         var data = new google.visualization.DataTable(response.dataTable, 0.6);
         var columnChart = new google.visualization.ColumnChart($('#sortview-graph')[0]);
 
-        var columnchart_options = {
-            'axisTitlesPosition': 'none',
-            'dataOpacity': 0,
-            'hAxis':{
-                'baselineColor': '#ffffff',
-                'textPosition': 'none',
-                'textStyle': {color: '#ffffff'},
-                'gridlines' : {
-                    color: '#ffffff'
-                }
-            },
-            'lineWidth': 1,
-            'vAxis':{
-                'baselineColor': '#ffffff',
-                'textPosition': 'none',
-                'textStyle': {color: '#ffffff'},
-                'gridlines' : {
-                    color: '#ffffff'
-                }
-            }
-        };
-
-        columnChart.draw(data);
+        columnChart.draw(data); //add CHART_OPTIONS.columnchart at some point
     };
 
-    var datify_sortview = function(){
-        var metrics = "ga:sessions,ga:bounceRate,ga:avgSessionDuration,ga:goalConversionRateAll,ga:goalCompletionsAll,ga:goal2Completions,ga:bounces";
+    var datify_sortview = function () {
+        var metrics = ['ga:sessions', '' +
+            'ga:bounceRate',
+            'ga:avgSessionDuration',
+            'ga:goalConversionRateAll',
+            'ga:goalCompletionsAll',
+            'ga:goal2Completions',
+            'ga:bounces'];
         metrics = "ga:sessions,ga:bounces";
         /*Dimensions are modified by user*/
 
-        // two function for this in case of making them on separate timers
-        var retrieve_device = function () {
-            retrieveData(metrics, 'ga:deviceCategory',
-                page_options.sortview.device.start_date,
-                page_options.sortview.device.end_date,
-                function (response) {
-                    // save the response in the correct variable
-                    page_options.sortview.device.response = response;
-                });
-        };
+        // populate data
+        retrieveData(metrics.join(','), 'ga:deviceCategory',
+            pageOptions.sortview.device.start_date,
+            pageOptions.sortview.device.end_date,
+            function (response) {
+                // save the response in the correct variable
+                pageOptions.sortview.device.response = response;
+            });
 
-        var retrieve_source = function () {
-            retrieveData(metrics, 'ga:medium',
-                page_options.sortview.source.start_date,
-                page_options.sortview.source.end_date,
-                function (response) {
-                    // save the response in the correct variable
-                    page_options.sortview.source.response = response;
-                });
-        };
-
-        // populate the data
-        retrieve_device();
-        retrieve_source();
+        retrieveData(metrics, 'ga:medium',
+            pageOptions.sortview.source.start_date,
+            pageOptions.sortview.source.end_date,
+            function (response) {
+                // save the response in the correct variable
+                pageOptions.sortview.source.response = response;
+            });
     };
 
-    var update_sortview = function(){
+    var update_sortview = function () {
         // Get Data
         datify_sortview();
         // update elements
         refresh_sortview();
 
-        if (page_options.sortview.current_timeout !== -1) {
-            clearTimeout(page_options.sortview.current_timeout);
+        if (pageOptions.sortview.current_timeout !== -1) {
+            clearTimeout(pageOptions.sortview.current_timeout);
         }
-        page_options.sortview.current_timeout = setTimeout(update_sortview, refreshRate);
+        pageOptions.sortview.current_timeout = setTimeout(update_sortview, refreshRate);
     };
 
-    var refresh_all = function(){
+    var refresh_all = function () {
         refresh_quicklook();
         refresh_sortview();
     };
@@ -297,22 +285,22 @@ $(document).ready(function () {
     google.load('visualization', '1.0', {'packages': ['controls', 'corechart'], callback: drawElements});
 
     $('#quicklook-total').on('click', function () {
-        page_options.quicklook.current_selection = 'total';
+        pageOptions.quicklook.current_selection = 'total';
         refresh_quicklook();
     });
 
     $('#quicklook-today').on('click', function () {
-        page_options.quicklook.current_selection = 'today';
+        pageOptions.quicklook.current_selection = 'today';
         refresh_quicklook();
     });
 
     $('#sortview-device').on('click', function () {
-        page_options.sortview.current_selection = 'device';
+        pageOptions.sortview.current_selection = 'device';
         refresh_sortview();
     });
 
     $('#sortview-source').on('click', function () {
-        page_options.sortview.current_selection = 'source';
+        pageOptions.sortview.current_selection = 'source';
         refresh_sortview();
     });
 
