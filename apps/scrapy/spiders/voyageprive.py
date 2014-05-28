@@ -3,6 +3,7 @@ from scrapy.contrib.spiders import XMLFeedSpider
 from scrapy.http import Request
 from scrapy.selector import Selector
 from apps.scrapy.items import ScraperProduct
+from apps.scrapy.utils import ScraperProductLoader
 
 
 class VoyagePriveScraper(XMLFeedSpider):
@@ -47,19 +48,22 @@ class VoyagePriveScraper(XMLFeedSpider):
     #     processors:
     #       http://stackoverflow.com/a/19974695
     def parse_node(self, response, node):
-        item = ScraperProduct()
-        item['attributes'] = {}
-        item['image_urls'] = []
-        item['attributes']['categories'] = []
+        l = ScraperProductLoader(item=ScraperProduct(), selector=node)
+        l.add_xpath('sku', 'id/text()')
+        l.add_xpath('name', 'titre/text()')
+        l.add_xpath('price', 'prix/text()')
+        l.add_xpath('in_stock', 'statut/text()')
+        l.add_value(
+            'url',
+            'http://www.officiel-des-vacances.com/route-to/{0}/section'.format(
+                l.get_output_value('sku')
+            )
+        )
 
-        sku = node.xpath('id/text()').extract_first()
-        item['sku'] = sku
+        attributes = {}
+        attributes['categories'] = []
 
         sections = node.xpath('sections/text()').extract_first()
-
-        status = node.xpath('statut/text()').extract_first()
-        item['in_stock'] = (status == self.AVAILABLE_STATUS)
-
         node_categories = set(sections.split(','))
         scraper_categories = set(self.categories)
         is_part_of_campaign = node_categories.intersection(scraper_categories)
@@ -68,34 +72,22 @@ class VoyagePriveScraper(XMLFeedSpider):
         if not is_part_of_campaign:
             return
 
+        # TODO: Perhaps this should be made into an input processor?
         for category_id in node_categories:
             category = self.categories_dict.get(category_id)
             if not category:
                 continue
 
-            item['attributes']['categories'].append((category, None))
+            attributes['categories'].append((category, None))
 
-        item['url'] = 'http://www.officiel-des-vacances.com/' \
-                      'route-to/{0}/section'.format(item['sku'])
-
-        name = node.xpath('titre/text()').extract_first()
-        if name:
-            item['name'] = name
-
-        price = node.xpath('prix/text()').extract_first()
-        if price:
-            item['price'] = price
-
-        site_image = node.xpath('image-fournisseur/text()').extract_first()
-        if site_image:
-            item['attributes']['direct_site_image'] = site_image
-
-        site_name = node.xpath('nom-fournisseur/text()').extract_first()
-        if site_name:
-            item['attributes']['direct_site_name'] = site_name
+        attributes['direct_site_image'] = node.xpath('image-fournisseur/text()').extract_first()
+        attributes['direct_site_name'] = node.xpath('nom-fournisseur/text()').extract_first()
+        l.add_value('attributes', attributes)
 
         url = node.xpath('url-detail/text()').extract_first()
         request = Request(url, callback=self.parse_page)
+
+        item = l.load_item()
         request.meta['item'] = item
         return request
 
@@ -103,34 +95,33 @@ class VoyagePriveScraper(XMLFeedSpider):
         sel = Selector(response)
 
         item = response.meta['item']
-
-        details = sel.css('#viewp-section-push')
-
-        review_text = details.css(
-            '.viewp-product-editorialist blockquote::text'
-        ).extract_first()
-        if review_text:
-            item['attributes']['review_text'] = review_text
-
-        reviewer = details.css('.viewp-product-owner > a::text')\
-            .extract_first()
-        if reviewer:
-            item['attributes']['reviewer_name'] = reviewer
-
-        reviewer_img = details.css(
-            '.viewp-product-editorialist img::attr(src)'
-        ).extract_first()
-        if reviewer_img:
-            item['attributes']['reviewer_image'] = reviewer_img
-
-        # Images are lazy-loaded? Shit.
-        product_images = details.css(
+        l = ScraperProductLoader(item=item, response=response)
+        l.add_css(
+            'image_urls',
             '.viewp-product-pictures-carousel-item img::attr(data-original)'
-        ).extract()
+        )
 
-        item['image_urls'].extend(product_images)
+        attributes = {}
+        attributes['review_text'] = sel.css(
+            '#viewp-section-push .viewp-product-editorialist blockquote::text'
+        ).extract_first()
 
-        return item
+        attributes['reviewer_name'] = sel.css(
+            '#viewp-section-push .viewp-product-owner > a::text'
+        ).extract_first()
+
+        attributes['reviewer_image'] = sel.css(
+            '#viewp-section-push .viewp-product-editorialist img::attr(src)'
+        ).extract_first()
+
+        # ItemLoader input processors only apply to elements that are added,
+        # not values that were part of the original object.
+        #
+        # Because of this, we re-add attributes so that the two will be merged.
+        l.add_value('attributes', item['attributes'])
+        l.add_value('attributes', attributes)
+
+        return l.load_item()
 
     @staticmethod
     def name_pipeline(item, spider):
