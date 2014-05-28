@@ -184,7 +184,13 @@ def store_serializer(value):
 
 
 def str_to_boolean(value):
-    return value.lower() in ['true', 'yes', '1', 't']
+    if value is None:
+        return False
+
+    if isinstance(value, bool):
+        return bool
+
+    return value.lower() in ['true', 'yes', '1', 't', 'y']
 
 
 class MergeDicts(object):
