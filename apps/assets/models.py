@@ -846,6 +846,7 @@ class Tile(BaseModel):
                                             validate_unique=validate_unique)
 
     def save(self, *args, **kwargs):
+        self.ir_cache = ""
         super(Tile, self).save(*args, **kwargs)  # get PK
         self.ir_cache = json.dumps(self.to_json())
         super(Tile, self).save(*args, **kwargs)
