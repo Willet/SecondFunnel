@@ -38,6 +38,10 @@
 	z-index: 1003;
 }
 
+.previewContainer .row {
+    padding: 10px;
+}
+
 .previewContainer .gallery {
     text-align: center;
 }
@@ -79,7 +83,7 @@
     line-height: 22px;
     margin-top: 10px;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
 }
 .previewContainer .info.image .title {
     margin-top: 0;
@@ -89,7 +93,7 @@
     font-size: 22px;
     color: #2087cc;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 .previewContainer .info.image .price {
     font-size: 22px;
@@ -102,18 +106,20 @@
     text-decoration: none;
     padding: 20px 30px;
     display: block;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     white-space: nowrap;
     text-align: center;
     font-weight: bold;
 }
-.previewContainer .info.image .buy .button {
-    margin-top: 7px;
-    margin-bottom: 7px;
-}
 
 .previewContainer .info .buy .button:hover {
     text-decoration: none;
+}
+
+.previewContainer .info .description {
+    max-height: 150px;
+    margin-top: 10px;
+    overflow: auto;
 }
 
 .previewContainer .stl-title {

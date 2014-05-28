@@ -260,7 +260,7 @@ def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         exclude_set += ids_of(prioritized_tiles)
 
     if len(prioritized_tiles) >= results:
-        return prioritized_tiles[:results]
+        return qs_for(prioritized_tiles[:results])
 
     # third, show the ones that have never been shown in this session
     if request and hasattr(request, 'session'):
@@ -278,7 +278,7 @@ def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         prioritized_tiles += new_tiles
 
     if len(prioritized_tiles) >= results:
-        return prioritized_tiles[:results]
+        return qs_for(prioritized_tiles[:results])
 
     prioritized_tile_ids = ids_of(prioritized_tiles)
 
@@ -320,7 +320,7 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     prioritized_tiles += ir_priority_request(tiles=tiles, results=10,
                                              allowed_set=allowed_set)
     if len(prioritized_tiles) >= results:
-        return prioritized_tiles[:results]
+        return qs_for(prioritized_tiles[:results])
 
     # second, show the ones for the first request
     exclude_set += ids_of(prioritized_tiles)
@@ -332,7 +332,7 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                                                    allowed_set=allowed_set)
         exclude_set += ids_of(x_prioritized_tiles)
     if len(prioritized_tiles) >= results:
-        return prioritized_tiles[:results]
+        return qs_for(prioritized_tiles[:results])
 
     # fill the first two rows with (8) tiles that are known to be new
     exclude_set += ids_of(prioritized_tiles)
@@ -341,7 +341,7 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                                              exclude_set=exclude_set,
                                              allowed_set=allowed_set)
     if len(prioritized_tiles) >= results:
-        return prioritized_tiles[:results]
+        return qs_for(prioritized_tiles[:results])
 
     # get (10 - number of prioritized) tiles that are not already prioritized
     exclude_set += ids_of(prioritized_tiles)
@@ -406,7 +406,7 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         raise ValueError("Sessions must be enabled for ir_mixed")
 
     if results < 1:
-        return []
+        return qs_for([])
 
     percentage_content = 0.2
     if feed:
@@ -534,7 +534,7 @@ def ir_finite_by(attribute='created_at', reversed_=False):
             return sort_val
 
         if results < 1:
-            return []
+            return qs_for([])
 
         if allowed_set:
             tiles = tiles.filter(id__in=allowed_set)
@@ -615,7 +615,7 @@ def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                       exclude_set=exclude_set, allowed_set=allowed_set,
                       request=request, **kwargs)
     if len(tiles) >= results:
-        return tiles[:results]
+        return qs_for(tiles[:results])
 
     # get random tiles, with *no* exclusion restriction applied
     random_tiles = ir_prioritized(tiles=tiles, prioritized_set='',
