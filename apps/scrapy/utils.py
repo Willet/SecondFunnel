@@ -2,6 +2,8 @@ import base64
 from functools import wraps
 import os
 import re
+from scrapy.contrib.loader import ItemLoader
+from scrapy.contrib.loader.processor import TakeFirst, Compose, Identity
 from scrapy.selector import SelectorList
 import tempfile
 import webbrowser
@@ -179,3 +181,47 @@ def django_serializer(value):
 
 def store_serializer(value):
     return django_serializer(value)
+
+
+def str_to_boolean(value):
+    return value.lower() in ['true', 'yes', '1', 't']
+
+
+class MergeDicts(object):
+    """
+    A processor that, given a list of values (dicts), merges the values
+
+    Note that it does this in the stupidest way possible (i.e. later keys
+    replace earlier keys) but for our purposes this is fine.
+    """
+    def __call__(self, values):
+        itervalues = iter(values)
+        result = next(itervalues, None)
+
+        for value in itervalues:
+            result.update(value)
+
+        return result
+
+
+class ScraperProductLoader(ItemLoader):
+    """
+    Creates items via XPath or CSS expressions.
+
+    Basically, reduces the amount of work involved in scraping items because
+    the item loader can take an XPath or CSS expression and immediately load
+    that into the item (or add multiple values, if the exist).
+
+    As well, the item loader can handle custom input / output processing for
+    common operations.
+
+    More details available in the docs:
+        http://doc.scrapy.org/en/latest/topics/loaders.html
+    """
+    default_output_processor = TakeFirst()
+
+    attributes_out = MergeDicts()
+
+    image_urls_out = Identity()
+
+    in_stock_in = Compose(lambda v: v[0], str_to_boolean)
