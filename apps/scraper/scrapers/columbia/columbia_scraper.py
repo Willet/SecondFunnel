@@ -43,7 +43,9 @@ class ColumbiaProductScraper(ProductDetailScraper):
             print "Product price not found!"
 
         try:
-            product.description = self.find('.description').text.replace(u'\xbb', '')  # is unicode
+            product.description = (self.find('.description').text
+                .replace(u'\xbb', '')
+                .replace(u'View Details', ''))  # is unicode
         except NoSuchElementException:
             print "Product description not found!"
 
