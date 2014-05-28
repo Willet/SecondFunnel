@@ -30,33 +30,32 @@ class RootsSpider(WebdriverCrawlSpider):
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_value('url', response.url)
-        l.add_css('sku', 'link[rel="canonical"]::attr(href)', re='/P(\d+).jsp')
-        l.add_css('name', '.productName::text')
-
-        # Presence of product name determines product availability
-        l.add_value('in_stock', bool(l.get_output_value('name')))
+        l.add_css('sku', '#productdetails .key::text', re='(\d+)')
+        l.add_css('name', '#productName::text')
 
         # TODO: Sanitize output with bleach
-        l.add_css('description', '#tabWindow')
+        l.add_css('description', '.prodctdesc .description::text')
 
         # TODO: Extract *all* images
-        l.add_css('image_urls', '#product_image_bg img::attr(src)')
+        l.add_xpath('image_urls', '//div[contains(@class, "fluid-display-imagegroup")]'
+                                  '//img[contains(@class, ":view")]')
 
         attributes = {}
-        sale_price = sel.css('#priceText .salePrice::text').extract_first()
+        sale_price = sel.css('.pricing #priceTop .special .value::text').extract_first()
 
         if not sale_price:
-            l.add_css('price', '#priceText::text')
+            l.add_css('price', '.pricing #priceTop .value::text')
         else:
-            l.add_css('price', '#priceText strike::text')
+            l.add_css('price', '.pricing #priceTop .standard .value::text')
             attributes['sales_price'] = sale_price
 
-        category_sel = sel.css('li a[class*=selected]')
-        category_url = category_sel.css('::attr(href)').extract_first()
-        category_name = category_sel.css('::text').extract_first()
-
         attributes['categories'] = []
-        attributes['categories'].append((category_name, category_url))
+        category_sels = sel.css('.breadcrumbs').xpath('a[@href!="#"]')
+        for category_sel in category_sels:
+            category_url = category_sel.css('::attr(href)').extract_first()
+            category_name = category_sel.css('::text').extract_first()
+            attributes['categories'].append((category_name, category_url))
+
         l.add_value('attributes', attributes)
 
         yield l.load_item()
