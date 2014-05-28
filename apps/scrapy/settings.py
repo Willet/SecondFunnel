@@ -14,6 +14,10 @@ BOT_NAME = 'scraper'
 SPIDER_MODULES = ['apps.scrapy.spiders']
 NEWSPIDER_MODULE = 'apps.scrapy.spiders'
 
+EXTENSIONS = {
+    "scrapy_sentry.extensions.Errors": 10,
+}
+
 DOWNLOAD_HANDLERS = {
     'http': 'scrapy_webdriver.download.WebdriverDownloadHandler',
     'https': 'scrapy_webdriver.download.WebdriverDownloadHandler',
@@ -54,6 +58,8 @@ IMAGES_STORE = '/Users/nterwoord/Code/ScrapyExperiment'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'scraper (+http://www.yourdomain.com)'
+
+SENTRY_DSN = 'http://be7092f5a43648119e03e77ec002caff:7739e5e90d1b4f1da99ef8db9ba1ca2b@app.getsentry.com/22626'
 
 import cloudinary
 cloudinary.config(
