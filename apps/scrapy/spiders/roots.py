@@ -5,12 +5,13 @@ from scrapy_webdriver.http import WebdriverRequest
 
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider
+from apps.scrapy.utils import open_in_browser, ScraperProductLoader
 
 
 class RootsSpider(WebdriverCrawlSpider):
     name = 'roots'
     allowed_domains = ['usa.roots.com', 'canada.roots.com']
-    start_urls = ['http://usa.roots.com/']
+    start_urls = ['http://usa.roots.com/women/best-sellers/womensBestSellers,default,sc.html']
     rules = [
         Rule(SgmlLinkExtractor(allow=[r'pd.html']),
              callback='parse_product',
@@ -18,16 +19,6 @@ class RootsSpider(WebdriverCrawlSpider):
     ]
 
     store_slug = name
-
-    # TODO: Handle 'styles'
-    category_url = 'http://www.roots.com/browse/category.do?cid={}'
-
-    def __init__(self, *args, **kwargs):
-        super(RootsSpider, self).__init__()
-
-        if kwargs.get('categories'):
-            categories = kwargs.get('categories').split(',')
-            self.start_urls = [self.category_url.format(c) for c in categories]
 
     # For some reason, Always defaults to regular requests...
     # So, we override...
@@ -37,54 +28,35 @@ class RootsSpider(WebdriverCrawlSpider):
     def parse_product(self, response):
         sel = Selector(response)
 
-        item = ScraperProduct()
-        item['attributes'] = {}
-        item['image_urls'] = []
-        item['store'] = self.name
-
-        url = response.url
-        item['url'] = url
-
-        sku = sel.css('link[rel="canonical"]::attr(href)').\
-            re_first('/P(\d+).jsp')
-        if sku:
-            item['sku'] = sku
-
-        product_name = sel.css('.productName::text')\
-            .extract_first()
+        l = ScraperProductLoader(item=ScraperProduct(), response=response)
+        l.add_value('url', response.url)
+        l.add_css('sku', 'link[rel="canonical"]::attr(href)', re='/P(\d+).jsp')
+        l.add_css('name', '.productName::text')
 
         # Presence of product name determines product availability
-        if product_name:
-            item['name'] = product_name
-            item['in_stock'] = True
-        else:
-            item['in_stock'] = False
+        l.add_value('in_stock', bool(l.get_output_value('name')))
 
-        description = sel.css('#tabWindow').extract_first()
-        if description:
-            item['description'] = description
+        # TODO: Sanitize output with bleach
+        l.add_css('description', '#tabWindow')
 
+        # TODO: Extract *all* images
+        l.add_css('image_urls', '#product_image_bg img::attr(src)')
+
+        attributes = {}
         sale_price = sel.css('#priceText .salePrice::text').extract_first()
 
         if not sale_price:
-            price = sel.css('#priceText::text').extract_first()
+            l.add_css('price', '#priceText::text')
         else:
-            price = sel.css('#priceText strike::text').extract_first()
-            item['attributes']['sales_price'] = sale_price
-
-        if price:
-            item['price'] = price
+            l.add_css('price', '#priceText strike::text')
+            attributes['sales_price'] = sale_price
 
         category_sel = sel.css('li a[class*=selected]')
         category_url = category_sel.css('::attr(href)').extract_first()
         category_name = category_sel.css('::text').extract_first()
 
-        item['attributes']['categories'] = []
-        item['attributes']['categories'].append((category_name, category_url))
+        attributes['categories'] = []
+        attributes['categories'].append((category_name, category_url))
+        l.add_value('attributes', attributes)
 
-        # Mostly for proof of concept
-        image = sel.css('#product_image_bg img::attr(src)').extract_first()
-        if image:
-            item['image_urls'].append(image)
-
-        yield item
+        yield l.load_item()
