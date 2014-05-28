@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile, Category, Store
 from apps.intentrank.controllers import IntentRank
-from apps.intentrank.algorithms import ir_generic, ir_all, ir_base, qs_for
+from apps.intentrank.algorithms import ir_generic, ir_all, ir_base
 from apps.intentrank.utils import ajax_jsonp
 from apps.utils import thread_id
 from apps.utils.models import MemcacheSetting
@@ -110,9 +110,9 @@ def get_results_view(request, page_id):
         page.id, feed.id, algorithm.__name__)
 
     # results is a queryset!
-    results = qs_for(get_results(feed=feed, results=results, algorithm=algorithm,
+    results = get_results(feed=feed, results=results, algorithm=algorithm,
         request=request, exclude_set=exclude_set, category_name=category,
-        offset=offset, tile_id=tile_id))
+        offset=offset, tile_id=tile_id)
     # results is a list of stringified tiles!
     results = results.values_list('ir_cache', flat=True)
 
