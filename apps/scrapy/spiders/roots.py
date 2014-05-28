@@ -1,9 +1,5 @@
-import re
-from urlparse import urljoin
-
-from scrapy import log
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-from scrapy.contrib.spiders import CrawlSpider, Rule
+from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
 
@@ -16,15 +12,9 @@ class RootsSpider(WebdriverCrawlSpider):
     allowed_domains = ['usa.roots.com', 'canada.roots.com']
     start_urls = ['http://usa.roots.com/']
     rules = [
-        # Rule(SgmlLinkExtractor(allow=[
-        #     r'\/browse\/subDivision.do\?.*?cid=\d+'
-        # ]), 'parse_division'),
-        # Rule(SgmlLinkExtractor(allow=[
-        #     r'\/browse\/category.do\?.*?cid=\d+'
-        # ]), 'parse_category'),
-        Rule(SgmlLinkExtractor(allow=[
-            r'/browse/product.do\?.*?pid=\d+'
-        ]), 'parse_product', follow=False)
+        Rule(SgmlLinkExtractor(allow=[r'pd.html']),
+             callback='parse_product',
+             follow=False)
     ]
 
     store_slug = name
@@ -43,36 +33,6 @@ class RootsSpider(WebdriverCrawlSpider):
     # So, we override...
     def start_requests(self):
         return [WebdriverRequest(url) for url in self.start_urls]
-
-    def parse_division(self, response):
-        sel = Selector(response)
-        base_url = response.url
-
-        divisions = sel.css('.category > a')
-
-        for division in divisions:
-            url = division.css('::attr(href)').extract_first().strip()
-            text = division.css('::text').extract_first().strip()
-            msg = u'PARSE_DIVISION - {category}: {url}'.format(url=url,
-                                                               category=text)
-            log.msg(msg, level=log.DEBUG)
-
-            yield WebdriverRequest(urljoin(base_url, url))
-
-    def parse_category(self, response):
-        sel = Selector(response)
-        base_url = response.url
-
-        products = sel.css('.productCatItem > a')
-
-        for product in products:
-            url = product.css('::attr(href)').extract_first().strip()
-            text = product.css('::text').extract_first().strip()
-            msg = u'PARSE CATEGORY - {product}: {url}'.format(url=url,
-                                                              product=text)
-            log.msg(msg, level=log.DEBUG)
-
-            yield WebdriverRequest(urljoin(base_url, url))
 
     def parse_product(self, response):
         sel = Selector(response)
