@@ -120,12 +120,7 @@ $(document).ready(function () {
         });
     };
 
-
-    /**
-     * Refreshes the quicklook area with appropriate information
-     * @param {optional object} response - the response to use to update the quicklook.
-     */
-    var refresh_quicklook = function (response) {
+    var checkResponse = function(response){
         if (response === undefined) {
             response = pageOptions.quicklook.current_selection === 'today' ?
                 pageOptions.quicklook.today.response :
@@ -133,6 +128,19 @@ $(document).ready(function () {
         }
         // if response is still undefined, abort
         if (response === undefined) {
+            return false;
+        }
+        return response;
+    };
+
+
+    /**
+     * Refreshes the quicklook area with appropriate information
+     * @param {optional object} response - the response to use to update the quicklook.
+     */
+    var refresh_quicklook = function (response) {
+        response = checkResponse(response);
+        if (!response){
             return;
         }
 
@@ -151,12 +159,11 @@ $(document).ready(function () {
         $('#buyNowClicks').text(buyNowClicks);
 
         var data = new google.visualization.DataTable(response.dataTable, 0.6);
-        var sparkline = new google.visualization.LineChart($('#quicklook-graph')[0]);
-
         var sparkline_data = data.clone();
         sparkline_data.removeColumns(2, 5);
 
-        sparkline.draw(sparkline_data, CHART_OPTIONS.sparkline);
+        var chart = new google.visualization.LineChart($('#quicklook-graph')[0]);
+        chart.draw(sparkline_data, CHART_OPTIONS.sparkline);
     };
 
     /**
@@ -202,21 +209,14 @@ $(document).ready(function () {
     };
 
     var refresh_sortview = function (response) {
-        if (response === undefined) {
-            response = pageOptions.sortview.current_selection === 'source' ?
-                pageOptions.sortview.source.response :
-                pageOptions.sortview.device.response;
-        }
-        // if response is still undefined, abort
-        if (response === undefined) {
+        response = checkResponse(response);
+        if (!response){
             return;
         }
 
-
         var data = new google.visualization.DataTable(response.dataTable, 0.6);
-        var columnChart = new google.visualization.ColumnChart($('#sortview-graph')[0]);
-
-        columnChart.draw(data); //add CHART_OPTIONS.columnchart at some point
+        var chart = new google.visualization.ColumnChart($('#sortview-graph')[0]);
+        chart.draw(data); //add CHART_OPTIONS.columnchart at some point
     };
 
     var datify_sortview = function () {
@@ -274,14 +274,10 @@ $(document).ready(function () {
 
     };
 
-    /**
-     * Update the session graph area
-     */
-
-        // TODO make a function that populates all data on load
+    // TODO make a function that populates all data on load
 
 
-        // Start the sessions counts
+    // Start the sessions counts
     google.load('visualization', '1.0', {'packages': ['controls', 'corechart'], callback: drawElements});
 
     $('#quicklook-total').on('click', function () {
