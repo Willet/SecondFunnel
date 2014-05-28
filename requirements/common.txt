@@ -81,6 +81,7 @@ kombu==3.0.12
 # So we keep our own copy of it
 #https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/packages/google-1.05.zip#egg=google
 #google-api-python-client==1.2
+oauth2client==1.2
 #pyOpenSSL==0.13.1
 #python-gflags==2.0
 

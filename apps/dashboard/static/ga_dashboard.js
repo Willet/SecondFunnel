@@ -2,10 +2,10 @@
 /**
  * Created by tristanpotter on 2014-05-22.
  */
-var table = 83581767; //gap table id. for google analytics.
 
 $(document).ready(function () {
     "use strict";
+    var table = 83581767; //gap table id. for google analytics.
     var console = window.console;
     var CHART_OPTIONS = {
         sparkline: {
@@ -51,41 +51,41 @@ $(document).ready(function () {
             }
         }
     };
-    var refreshRate = 50000;
+    var refreshRate = 30000;
     var pageOptions = {
         quicklook: {
-            current_selection: 'total',
+            current_selection: 0,
             current_timeout: -1,
             refresh_rate: refreshRate, // not used
-            today: {
-                response: undefined,
-                start_date: 'yesterday',
-                end_date: 'today',
-                current_timeout: -1, // if decide to make this on a graph basis
-                refresh_rate: refreshRate // not used
-            },
-            total: {
-                response: undefined,
-                start_date: '2014-04-25',
-                end_date: 'today',
-                current_timeout: -1,
-                refresh_rate: refreshRate
-            }
+            selections: [
+                { // today
+                    response: undefined,
+                    start_date: 'yesterday',
+                    end_date: 'today'
+                },
+                { // total
+                    response: undefined,
+                    start_date: '2014-04-25',
+                    end_date: 'today'
+                }
+            ]
         },
         sortview: {
-            current_selection: 'device',
+            current_selection: 0,
             current_timeout: -1,
             refresh_rate: refreshRate, //not currently used
-            device: {
-                response: undefined,
-                start_date: '2014-04-25',
-                end_date: 'today'
-            },
-            source: {
-                response: undefined,
-                start_date: '2014-04-25',
-                end_date: 'today'
-            }
+            selections: [
+                { // device
+                    response: undefined,
+                    start_date: '2014-04-25',
+                    end_date: 'today'
+                },
+                { // medium/source
+                    response: undefined,
+                    start_date: '2014-04-25',
+                    end_date: 'today'
+                }
+            ]
         }
     };
 
@@ -120,12 +120,11 @@ $(document).ready(function () {
         });
     };
 
-    var checkResponse = function(response){
+    var checkResponse = function (response, chart) {
         if (response === undefined) {
-            response = pageOptions.quicklook.current_selection === 'today' ?
-                pageOptions.quicklook.today.response :
-                pageOptions.quicklook.total.response;
+            response = chart.selections[chart.current_selection].response;
         }
+        console.log(response);
         // if response is still undefined, abort
         if (response === undefined) {
             return false;
@@ -139,8 +138,8 @@ $(document).ready(function () {
      * @param {optional object} response - the response to use to update the quicklook.
      */
     var refresh_quicklook = function (response) {
-        response = checkResponse(response);
-        if (!response){
+        response = checkResponse(response, pageOptions.quicklook);
+        if (!response) {
             return;
         }
 
@@ -170,24 +169,30 @@ $(document).ready(function () {
      * Gets the data for the quicklook, and stores it in pageOptions_quicklook
      */
     var datify_quicklook = function () {
-        var metrics = "ga:sessions,ga:bounceRate,ga:avgSessionDuration,ga:goalConversionRateAll,ga:goalCompletionsAll,ga:goal2Completions,ga:bounces";
+        var metrics = ['ga:sessions',
+            'ga:bounceRate',
+            'ga:avgSessionDuration',
+            'ga:goalConversionRateAll',
+            'ga:goalCompletionsAll',
+            'ga:goal2Completions',
+            'ga:bounces'];
         /* Dimensions are nthHour for total, nthMinute for today*/
 
         // populate data
-        retrieveData(metrics, 'ga:nthMinute',
-            pageOptions.quicklook.today.start_date,
-            pageOptions.quicklook.today.end_date,
+        retrieveData(metrics.join(','), 'ga:nthMinute',
+            pageOptions.quicklook.selections[0].start_date,
+            pageOptions.quicklook.selections[0].end_date,
             function (response) {
                 // save the response in the correct variable
-                pageOptions.quicklook.today.response = response;
+                pageOptions.quicklook.selections[0].response = response;
             });
 
-        retrieveData(metrics, 'ga:dateHour',
-            pageOptions.quicklook.total.start_date,
-            pageOptions.quicklook.total.end_date,
+        retrieveData(metrics.join(','), 'ga:dateHour',
+            pageOptions.quicklook.selections[1].start_date,
+            pageOptions.quicklook.selections[1].end_date,
             function (response) {
                 // save the response in the correct variable
-                pageOptions.quicklook.total.response = response;
+                pageOptions.quicklook.selections[1].response = response;
             });
     };
 
@@ -209,8 +214,8 @@ $(document).ready(function () {
     };
 
     var refresh_sortview = function (response) {
-        response = checkResponse(response);
-        if (!response){
+        response = checkResponse(response, pageOptions.sortview);
+        if (!response) {
             return;
         }
 
@@ -220,31 +225,24 @@ $(document).ready(function () {
     };
 
     var datify_sortview = function () {
-        var metrics = ['ga:sessions', '' +
-            'ga:bounceRate',
-            'ga:avgSessionDuration',
-            'ga:goalConversionRateAll',
-            'ga:goalCompletionsAll',
-            'ga:goal2Completions',
-            'ga:bounces'];
-        metrics = "ga:sessions,ga:bounces";
+        var metrics = ['ga:sessions', 'ga:bounces'];
         /*Dimensions are modified by user*/
 
         // populate data
         retrieveData(metrics.join(','), 'ga:deviceCategory',
-            pageOptions.sortview.device.start_date,
-            pageOptions.sortview.device.end_date,
+            pageOptions.sortview.selections[0].start_date,
+            pageOptions.sortview.selections[0].end_date,
             function (response) {
                 // save the response in the correct variable
-                pageOptions.sortview.device.response = response;
+                pageOptions.sortview.selections[0].response = response;
             });
 
-        retrieveData(metrics, 'ga:medium',
-            pageOptions.sortview.source.start_date,
-            pageOptions.sortview.source.end_date,
+        retrieveData(metrics.join(','), 'ga:medium',
+            pageOptions.sortview.selections[1].start_date,
+            pageOptions.sortview.selections[1].end_date,
             function (response) {
                 // save the response in the correct variable
-                pageOptions.sortview.source.response = response;
+                pageOptions.sortview.selections[1].response = response;
             });
     };
 
@@ -267,7 +265,6 @@ $(document).ready(function () {
 
     var drawElements = function () {
         // all graphs are drawn in here
-        //update_all_data();
         update_quicklook();
         update_sortview();
         refresh_all();
@@ -281,22 +278,22 @@ $(document).ready(function () {
     google.load('visualization', '1.0', {'packages': ['controls', 'corechart'], callback: drawElements});
 
     $('#quicklook-total').on('click', function () {
-        pageOptions.quicklook.current_selection = 'total';
+        pageOptions.quicklook.current_selection = 1;
         refresh_quicklook();
     });
 
     $('#quicklook-today').on('click', function () {
-        pageOptions.quicklook.current_selection = 'today';
+        pageOptions.quicklook.current_selection = 0;
         refresh_quicklook();
     });
 
     $('#sortview-device').on('click', function () {
-        pageOptions.sortview.current_selection = 'device';
+        pageOptions.sortview.current_selection = 1;
         refresh_sortview();
     });
 
     $('#sortview-source').on('click', function () {
-        pageOptions.sortview.current_selection = 'source';
+        pageOptions.sortview.current_selection = 0;
         refresh_sortview();
     });
 

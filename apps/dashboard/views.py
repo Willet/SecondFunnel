@@ -3,11 +3,10 @@ import os
 import json
 from apiclient.discovery import build
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from django.utils.timezone import utc
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
-from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib.auth.models import User
@@ -18,7 +17,6 @@ from oauth2client.django_orm import Storage
 import re
 
 from apps.dashboard.models import CredentialsModel, DashBoard
-from apps.assets.models import Tile
 
 CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secret.json')
 
@@ -48,11 +46,6 @@ def auth_return(request):
     storage = Storage(CredentialsModel, 'id', request.user, 'credential')
     storage.put(credential)
     return HttpResponseRedirect("localhost:8000/dashboard")
-
-
-def test_ajax(request):
-    return HttpResponse(json.dumps({'totalsForAllResults' : {'ga:sessions' : 19999}}),
-                        content_type='application/json')
 
 
 def get_data(request):
