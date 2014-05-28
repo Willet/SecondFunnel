@@ -7,6 +7,7 @@
 #
 
 import os
+
 os.environ['DJANGO_SETTINGS_MODULE'] = 'secondfunnel.settings.dev'
 
 BOT_NAME = 'scraper'
@@ -63,7 +64,7 @@ SENTRY_DSN = 'http://be7092f5a43648119e03e77ec002caff:7739e5e90d1b4f1da99ef8db9b
 
 # Complete list of signals: http://doc.scrapy.org/en/latest/topics/signals.html
 SENTRY_SIGNALS = [
-    # 'item_dropped',
+    'item_dropped',
     'spider_error'
 ]
 

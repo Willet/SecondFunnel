@@ -261,6 +261,19 @@ class SentrySignals(Signals):
 
         return o
 
+    def sentry_message(self, payload, type='message', spider=None, extra=None):
+        if type == 'exception':
+            result = self.client.captureException(payload, extra=extra)
+        else:
+            result = self.client.captureMessage(payload, extra=extra)
+
+        id = self.client.get_ident(result)
+
+        logger = spider.log if spider else log.msg
+        logger("Sentry ID '{}'".format(id), level=log.INFO)
+
+        return id
+
     def spider_error(self, failure, response, spider, signal=None,
                      sender=None, *args, **kwargs):
         # Technically, `failure.value` contains the exception, but no traceback
@@ -273,14 +286,20 @@ class SentrySignals(Signals):
         }
         exception = sys.exc_info()
 
-        msg = self.client.captureException(exception, extra=extra)
-        id = self.client.get_ident(msg)
-
-        logger = spider.log if spider else log.msg
-        logger("Sentry Exception ID '{}'".format(id), level=log.INFO)
-
-        return id
+        return self.sentry_message(
+            exception, type='exception', spider=spider, extra=extra
+        )
 
     def item_dropped(self, item, spider, exception, signal=None,
                      sender=None, *args, **kwargs):
-        pass
+        extra = {
+            'sender': sender,
+            'spider': spider.name,
+            'signal': signal,
+            'item': item
+        }
+
+        msg = 'DropItem: {}'.format(exception.message)
+        return self.sentry_message(
+            msg, type='message', spider=spider, extra=extra
+        )
