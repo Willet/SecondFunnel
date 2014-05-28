@@ -1,5 +1,6 @@
 $(document).ready(function(){
-	
+	"use strict";
+
 	// first example
 	$("#browser").treeview();
 	
@@ -17,7 +18,7 @@ $(document).ready(function(){
 		unique: true,
 		persist: "cookie",
 		toggle: function() {
-			window.console && console.log("%o was toggled", this);
+			window.console && window.console.log("%o was toggled", this);
 		}
 	});
 	

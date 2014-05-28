@@ -2,7 +2,7 @@
 /**
  * Created by tristanpotter on 2014-05-22.
  */
-var table = 83581767;
+var table = 83581767; //gap table id. for google analytics.
 
 $(document).ready(function () {
     "use strict";

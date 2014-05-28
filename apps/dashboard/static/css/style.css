@@ -101,7 +101,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 .sidebar-user-name {
 	font-size: 14px;
-	font-weight: 300;
 	line-height: 26px;
 	margin-top: 10px;
 	font-weight: bold;
@@ -621,6 +620,14 @@ body.container {
 	padding: 20px;
 	position: relative;
 	transition: padding 500ms ease 0s;
+}
+
+.block-web.graph-container{
+    height: 350px;
+}
+
+.graph{
+    height: 100%;
 }
 .block-web.closed {
 	padding-bottom: 9px;
@@ -2248,7 +2255,7 @@ body.container {
 	color: #FFFFFF;
 	content: "";
 	display: inline-block;
-	font-family: 'FontAwesome';
+	font-family: 'FontAwesome' sans-serif;
 	font-size: 11px;
 	height: 16px;
 	left: 3.5px;
