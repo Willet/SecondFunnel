@@ -19,8 +19,8 @@ $(document).ready(function () {
                     color: '#ffffff'
                 }
             },
-            'legend':{
-                'position' : 'top'
+            'legend': {
+                'position': 'top'
             },
             'lineWidth': 1,
             'vAxis': {
@@ -43,7 +43,7 @@ $(document).ready(function () {
                     color: 'black'
                 }
             },
-            'legend' : { 'position' : 'top'},
+            'legend': { 'position': 'top'},
             'lineWidth': 1,
             'vAxis': {
                 'baselineColor': 'black',
@@ -60,66 +60,64 @@ $(document).ready(function () {
         QUICKVIEW: 0,
         SORTVIEW: 1
     };
+
     var pageOptions = {
-        charts: [
-            {// 0: quicklook
-                current_selection: 0,
-                current_timeout: -1,
-                refresh_rate: refreshRate, // not used
-                location: $('#quicklook-graph')[0],
-                selections: [
-                    { // today
-                        response: undefined,
-                        metrics: ['ga:sessions',
-                            'ga:bounceRate',
-                            'ga:avgSessionDuration',
-                            'ga:goalConversionRateAll',
-                            'ga:goalCompletionsAll',
-                            'ga:goal2Completions',
-                            'ga:bounces'],
-                        dimensions: ['ga:nthMinute'],
-                        start_date: 'today',
-                        end_date: 'today'
-                    },
-                    { // total
-                        response: undefined,
-                        metrics: ['ga:sessions',
-                            'ga:bounceRate',
-                            'ga:avgSessionDuration',
-                            'ga:goalConversionRateAll',
-                            'ga:goalCompletionsAll',
-                            'ga:goal2Completions',
-                            'ga:bounces'],
-                        dimensions: ['ga:dateHour'],
-                        start_date: '2014-04-25',
-                        end_date: 'today'
-                    }
-                ]
-            },
-            { // 1: sortview
-                current_selection: 0,
-                current_timeout: -1,
-                refresh_rate: refreshRate, //not currently used
-                location: $('#sortview-graph')[0],
-                selections: [
-                    { // device
-                        response: undefined,
-                        metrics: ['ga:sessions', 'ga:bounces'],
-                        dimensions: ['ga:deviceCategory'],
-                        start_date: '2014-04-25',
-                        end_date: 'today'
-                    },
-                    { // medium/source
-                        response: undefined,
-                        metrics: ['ga:sessions', 'ga:bounces'],
-                        dimensions: ['ga:medium'],
-                        start_date: '2014-04-25',
-                        end_date: 'today'
-                    }
-                ]
-            }
-        ]
+        charts: []
     };
+
+
+    var DashboardChart = function (location, refreshRate) {
+        return {
+            current_selection: 0,
+            current_timeout: -1,
+            refresh_rate: refreshRate,
+            location: location,
+            selections: [],
+            addSelection: function (metrics, dimensions, start_date, end_date) {
+                this.selections.push({
+                    response: undefined,
+                    metrics: metrics,
+                    dimensions: dimensions,
+                    start_date: start_date,
+                    end_date: end_date
+                });
+            }
+        };
+    };
+
+    var addChart = function (name, location, refreshRate) {
+        var chart = DashboardChart(location, refreshRate);
+        var length = pageOptions.charts.push(chart); // push returns new length of array
+        CHARTS[name] = length - 1;
+        return chart;
+    };
+
+
+    var quicklook = addChart("QUICKLOOK", $('#quicklook-graph')[0], refreshRate);
+    quicklook.addSelection(
+        ['ga:sessions', //metrics
+        'ga:bounceRate',
+        'ga:avgSessionDuration',
+        'ga:goalConversionRateAll',
+        'ga:goalCompletionsAll',
+        'ga:goal2Completions',
+        'ga:bounces'],
+        ['ga:nthMinute'], // dimensions
+        'today', 'today'); //start date, end date
+    quicklook.addSelection(
+        ['ga:sessions', //metrics
+        'ga:bounceRate',
+        'ga:avgSessionDuration',
+        'ga:goalConversionRateAll',
+        'ga:goalCompletionsAll',
+        'ga:goal2Completions',
+        'ga:bounces'],
+        ['ga:dateHour'], // dimensions
+        '2014-04-25', 'today'); //start date, end date
+
+    var sortview = addChart("SORTVIEW", $('#sortview-graph')[0], refreshRate);
+    sortview.addSelection(['ga:sessions', 'ga:bounces'],['ga:deviceCategory'],'2014-04-25', 'today');
+    sortview.addSelection(['ga:sessions', 'ga:bounces'],['ga:medium'],'2014-04-25', 'today');
 
 
     /**
@@ -245,9 +243,9 @@ $(document).ready(function () {
 
     var refresh_sortview = function () {
         drawChart(CHARTS.SORTVIEW, google.visualization.ColumnChart,
-            CHART_OPTIONS.columnChart, function(data){
-            return data;
-        });
+            CHART_OPTIONS.columnChart, function (data) {
+                return data;
+            });
     };
 
     var update_sortview = function () {

@@ -34,6 +34,13 @@ def index(request):
 
 
 def gap(request):
+    storage = Storage(CredentialsModel, 'id', request.user, 'credential')
+    credential = storage.get()
+    if credential is None or credential.invalid == True:
+        FLOW.params['state'] = xsrfutil.generate_token(settings.SECRET_KEY,
+                                                       request.user)
+        authorize_url = FLOW.step1_get_authorize_url()
+        return HttpResponseRedirect(authorize_url)
     context = RequestContext(request)
     return render_to_response('index.html', {}, context)
 
@@ -52,7 +59,8 @@ def get_data(request):
     response = {'response': 'Retrieving data failed'}
 
     if request.method == 'GET':
-        storage = Storage(CredentialsModel, 'id', request.user, 'credential')
+        user = request.user
+        storage = Storage(CredentialsModel, 'id', user, 'credential')
         request = request.GET
 
         if ('table' in request) and \
@@ -73,7 +81,7 @@ def get_data(request):
                 if credential is None or credential.invalid:
                     print "Credential is invalid, retrieving new token"
                     FLOW.params['state'] = xsrfutil.generate_token(settings.SECRET_KEY,
-                                                                   request.user)
+                                                                   user)
                     authorize_url = FLOW.step1_get_authorize_url()
                     return HttpResponseRedirect(authorize_url)
                 else:
