@@ -5,6 +5,7 @@ import os
 import re
 from scrapy.http import HtmlResponse, TextResponse
 from scrapy_webdriver.http import WebdriverResponse
+import six
 import tempfile
 import webbrowser
 
@@ -129,4 +130,7 @@ def monkeypatch_method(cls):
 
 
 def str_to_boolean(value):
+    if not isinstance(value, six.string_types):
+        return value
+
     return value.lower() in ['true', 'yes', '1', 't']
