@@ -66,12 +66,14 @@ $(document).ready(function () {
     };
 
 
-    var DashboardChart = function (location, refreshRate) {
+    var DashboardChart = function (location, chartType, chartOptions, refreshRate) {
         return {
             current_selection: 0,
             current_timeout: -1,
             refresh_rate: refreshRate,
             location: location,
+            chartType: chartType,
+            chartOptions: chartOptions,
             selections: [],
             addSelection: function (metrics, dimensions, start_date, end_date) {
                 this.selections.push({
@@ -84,41 +86,12 @@ $(document).ready(function () {
             }
         };
     };
-
-    var addChart = function (name, location, refreshRate) {
-        var chart = DashboardChart(location, refreshRate);
+    var addChart = function (name, location, chartType, chartOptions, refreshRate) {
+        var chart = DashboardChart(location, chartType, chartOptions, refreshRate);
         var length = pageOptions.charts.push(chart); // push returns new length of array
         CHARTS[name] = length - 1;
         return chart;
     };
-
-
-    var quicklook = addChart("QUICKLOOK", $('#quicklook-graph')[0], refreshRate);
-    quicklook.addSelection(
-        ['ga:sessions', //metrics
-        'ga:bounceRate',
-        'ga:avgSessionDuration',
-        'ga:goalConversionRateAll',
-        'ga:goalCompletionsAll',
-        'ga:goal2Completions',
-        'ga:bounces'],
-        ['ga:nthMinute'], // dimensions
-        'today', 'today'); //start date, end date
-    quicklook.addSelection(
-        ['ga:sessions', //metrics
-        'ga:bounceRate',
-        'ga:avgSessionDuration',
-        'ga:goalConversionRateAll',
-        'ga:goalCompletionsAll',
-        'ga:goal2Completions',
-        'ga:bounces'],
-        ['ga:dateHour'], // dimensions
-        '2014-04-25', 'today'); //start date, end date
-
-    var sortview = addChart("SORTVIEW", $('#sortview-graph')[0], refreshRate);
-    sortview.addSelection(['ga:sessions', 'ga:bounces'],['ga:deviceCategory'],'2014-04-25', 'today');
-    sortview.addSelection(['ga:sessions', 'ga:bounces'],['ga:medium'],'2014-04-25', 'today');
-
 
     /**
      * Retrieves data from the server using AJAX. A JSON object is returned and passed to callback. See
@@ -159,15 +132,15 @@ $(document).ready(function () {
         return response;
     };
 
-    var drawChart = function (chartNumber, chartType, chartOptions, dataOperations) {
+    var drawChart = function (chartNumber, dataOperations) {
         var response = checkResponse(chartNumber);
         if (!response) {
             return;
         }
         var data = new google.visualization.DataTable(response.dataTable, 0.6);
         data = dataOperations(data);
-        var chart = new chartType(pageOptions.charts[chartNumber].location);
-        chart.draw(data, chartOptions);
+        var chart = new pageOptions.charts[chartNumber].chartType(pageOptions.charts[chartNumber].location);
+        chart.draw(data, pageOptions.charts[chartNumber].chartOptions);
     };
 
     /**
@@ -180,12 +153,11 @@ $(document).ready(function () {
             return;
         }
 
-        drawChart(CHARTS.QUICKVIEW, google.visualization.LineChart,
-            CHART_OPTIONS.sparkline, function (data) {
-                var nd = data.clone();
-                nd.removeColumns(2, 5);
-                return nd;
-            });
+        drawChart(CHARTS.QUICKVIEW, function (data) {
+            var nd = data.clone();
+            nd.removeColumns(2, 5);
+            return nd;
+        });
 
         // the buttons
         var totalSessions = response.totalsForAllResults['ga:sessions'];
@@ -242,8 +214,7 @@ $(document).ready(function () {
     };
 
     var refresh_sortview = function () {
-        drawChart(CHARTS.SORTVIEW, google.visualization.ColumnChart,
-            CHART_OPTIONS.columnChart, function (data) {
+        drawChart(CHARTS.SORTVIEW, function (data) {
                 return data;
             });
     };
@@ -267,6 +238,34 @@ $(document).ready(function () {
 
     var drawElements = function () {
         // all graphs are drawn in here
+        var quicklook = addChart("QUICKLOOK", $('#quicklook-graph')[0],
+            google.visualization.LineChart, CHART_OPTIONS.sparkline, refreshRate);
+        quicklook.addSelection(
+            ['ga:sessions', //metrics
+                'ga:bounceRate',
+                'ga:avgSessionDuration',
+                'ga:goalConversionRateAll',
+                'ga:goalCompletionsAll',
+                'ga:goal2Completions',
+                'ga:bounces'],
+            ['ga:nthMinute'], // dimensions
+            'today', 'today'); //start date, end date
+        quicklook.addSelection(
+            ['ga:sessions', //metrics
+                'ga:bounceRate',
+                'ga:avgSessionDuration',
+                'ga:goalConversionRateAll',
+                'ga:goalCompletionsAll',
+                'ga:goal2Completions',
+                'ga:bounces'],
+            ['ga:dateHour'], // dimensions
+            '2014-04-25', 'today'); //start date, end date
+
+        var sortview = addChart("SORTVIEW", $('#sortview-graph')[0],
+            google.visualization.ColumnChart, CHART_OPTIONS.columnChart, refreshRate);
+        sortview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:deviceCategory'], '2014-04-25', 'today');
+        sortview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:medium'], '2014-04-25', 'today');
+
         update_quicklook();
         update_sortview();
         refresh_all();

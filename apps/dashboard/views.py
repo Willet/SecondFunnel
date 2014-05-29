@@ -1,3 +1,5 @@
+from django.contrib.auth import BACKEND_SESSION_KEY, SESSION_KEY, load_backend
+from django.contrib.auth.decorators import login_required
 import httplib2
 import os
 import json
@@ -5,7 +7,6 @@ from apiclient.discovery import build
 
 from datetime import datetime
 from django.utils.timezone import utc
-from django.conf import settings
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.shortcuts import render_to_response
@@ -20,12 +21,12 @@ import re
 from apps.dashboard.models import CredentialsModel, DashBoard
 
 CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secret.json')
-
+#redirect = settings.WEBSITE_BASE_URL + '/dashboard/oath2callback'
 
 FLOW = flow_from_clientsecrets(
     CLIENT_SECRETS,
     scope='https://www.googleapis.com/auth/analytics.readonly',
-    redirect_uri=settings.WEBSITE_BASE_URL + '/dashboard/oauth2callback')
+    redirect_uri='http://localhost:8000' + '/dashboard/oauth2callback')
 
 
 def index(request):
@@ -33,33 +34,43 @@ def index(request):
     return render_to_response('index.html', {}, context)  #this will eventually be different
 
 
+@login_required
 def gap(request):
-    storage = Storage(CredentialsModel, 'id', request.user, 'credential')
-    credential = storage.get()
-    if credential is None or credential.invalid == True:
-        FLOW.params['state'] = xsrfutil.generate_token(settings.SECRET_KEY,
-                                                       request.user)
-        authorize_url = FLOW.step1_get_authorize_url()
-        return HttpResponseRedirect(authorize_url)
     context = RequestContext(request)
     return render_to_response('index.html', {}, context)
 
 
 def auth_return(request):
+    print request.REQUEST['state']
+    print request.user.id
+    print request.user
+    print settings.SECRET_KEY
     if not xsrfutil.validate_token(settings.SECRET_KEY, request.REQUEST['state'],
-                                 request.user):
-        return HttpResponseBadRequest()
+                                 request.user.id):
+        return HttpResponse("bad request")
     credential = FLOW.step2_exchange(request.REQUEST)
     storage = Storage(CredentialsModel, 'id', request.user, 'credential')
     storage.put(credential)
     return HttpResponseRedirect("/dashboard")
 
 
+def get_user(request):
+    from django.contrib.auth.models import AnonymousUser
+    try:
+        user_id = request.session[SESSION_KEY]
+        backend_path = request.session[BACKEND_SESSION_KEY]
+        backend = load_backend(backend_path)
+        user = backend.get_user(user_id) or AnonymousUser()
+    except KeyError:
+        user = AnonymousUser()
+    return user
+
+
 def get_data(request):
     response = {'response': 'Retrieving data failed'}
 
     if request.method == 'GET':
-        user = request.user
+        user = get_user(request)
         storage = Storage(CredentialsModel, 'id', user, 'credential')
         request = request.GET
 
