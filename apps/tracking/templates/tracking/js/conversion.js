@@ -1,4 +1,22 @@
 /*global window, document, undefined*/
+/**
+ * Copyright (c) 2014  Willet Incorporated
+ *
+ * To include this script onto the page, include a script tag at the bottom
+ * of the page, before </body>, as follows:
+ *
+ * <script src="(location of this script)"></script>
+ *
+ * If you are not able to host this file. You can also copy and paste this file into
+ * a <script> tag directly. Example:
+ *
+ * ...
+ *     <script type="text/javascript">
+ *         (contents of this script)
+ *     </script>
+ * </body>
+ *
+ */
 ;(function (window, document, undefined) {
     "use strict";
     var guessPrice,
@@ -32,9 +50,11 @@
         return "0.00";
     };
 
+    // Loads the iframe that loads a script inside the iframe to record the
+    // conversion.
     loadPage = function () {
         var clickMeterConversionValue = guessPrice(),
-            clickMeterConversionId = '271C54CB40964B26BD0593C4E24EF1C3',
+            clickMeterConversionId = '{{ clickmeter_conversion_id }}',
             clickMeterConversionParameter = 'empty',
             conversionBase = 'http://clickmeter.com/conversion.aspx',
             convValue,
