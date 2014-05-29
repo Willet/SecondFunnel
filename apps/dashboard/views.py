@@ -26,7 +26,7 @@ CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secret.json')
 FLOW = flow_from_clientsecrets(
     CLIENT_SECRETS,
     scope='https://www.googleapis.com/auth/analytics.readonly',
-    redirect_uri='http://localhost:8000' + '/dashboard/oauth2callback')
+    redirect_uri='http://localhost' + '/dashboard/oauth2callback')
 
 
 def index(request):
@@ -41,10 +41,6 @@ def gap(request):
 
 
 def auth_return(request):
-    print request.REQUEST['state']
-    print request.user.id
-    print request.user
-    print settings.SECRET_KEY
     if not xsrfutil.validate_token(settings.SECRET_KEY, request.REQUEST['state'],
                                  request.user.id):
         return HttpResponse("bad request")
@@ -54,23 +50,11 @@ def auth_return(request):
     return HttpResponseRedirect("/dashboard")
 
 
-def get_user(request):
-    from django.contrib.auth.models import AnonymousUser
-    try:
-        user_id = request.session[SESSION_KEY]
-        backend_path = request.session[BACKEND_SESSION_KEY]
-        backend = load_backend(backend_path)
-        user = backend.get_user(user_id) or AnonymousUser()
-    except KeyError:
-        user = AnonymousUser()
-    return user
-
-
 def get_data(request):
     response = {'response': 'Retrieving data failed'}
 
     if request.method == 'GET':
-        user = get_user(request)
+        user = request.user
         storage = Storage(CredentialsModel, 'id', user, 'credential')
         request = request.GET
 
