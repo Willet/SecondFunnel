@@ -2,6 +2,7 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
+from collections import defaultdict
 from django.core.exceptions import ValidationError
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
@@ -24,6 +25,9 @@ class CloudinaryPipeline(ImagesPipeline):
     """
     def _get_store(self, uri):
         return CloudinaryStore()
+
+
+# TODO: Many of these pipelines could likely be processors instead
 
 
 class NamePipeline(object):
@@ -57,6 +61,7 @@ class ValidationPipeline(object):
     def process_content(self, item, spider):
         pass
 
+
 class PricePipeline(object):
     @spider_pipelined
     def process_item(self, item, spider):
@@ -83,6 +88,26 @@ class PricePipeline(object):
             price=item['price'], symbol=symbol
         )
 
+        return item
+
+
+class DuplicatesPipeline(object):
+    """
+    Detects if there are duplicates based on sku and spider name.
+
+    Alternatively, we could do some sort of merge if there are duplicates...
+    """
+    def __init__(self):
+        self.ids_seen = defaultdict(set)
+
+    def process_item(self, item, spider):
+        spider_name = spider.name
+        sku = item['sku']
+
+        if sku in self.ids_seen[spider_name]:
+            raise DropItem("Duplicate item found: {}".format(item))
+
+        self.ids_seen[spider_name].add(sku)
         return item
 
 
