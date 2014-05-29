@@ -938,6 +938,8 @@ App.module('core', function (module, App) {
                 this.renderSubregions(product);
             } else if (this.model.get('template', '') === 'product') {
                 this.renderSubregions(this.model);
+            } else  {
+                this.resizeContainer();
             }
 
             /*
@@ -975,8 +977,22 @@ App.module('core', function (module, App) {
         },
 
         'renderSubregions': function (product) {
-            var key,
-                shrinkContainer = function (element) {
+            _.keys(this.regions).forEach(function (key) {
+                this[key].show(new App.core.ProductInfoView({
+                    model: product,
+                    infoItem: key
+                }));
+            }, this);
+
+            // TODO: turn gallery into a view
+            $('.gallery', this.$el).empty();
+            App.utils.runWidgets(this);
+
+            this.resizeContainer();
+        },
+
+        'resizeContainer': function () {
+            var shrinkContainer = function (element) {
                     return function () {
                         var container = element.closest('.fullscreen'),
                             heightReduction, widthReduction, left, right;
@@ -1029,19 +1045,6 @@ App.module('core', function (module, App) {
                     };
                 },
                 imageCount;
-
-            for (key in this.regions) {
-                if (this.regions.hasOwnProperty(key)) {
-                    this[key].show(new App.core.ProductInfoView({
-                        model: product,
-                        infoItem: key
-                    }));
-                }
-            }
-
-            // TODO: turn gallery into a view
-            $('.gallery', this.$el).empty();
-            App.utils.runWidgets(this);
 
             imageCount = $('img.main-image, img.image', this.$el).length;
 
