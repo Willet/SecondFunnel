@@ -1,3 +1,4 @@
+import re
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
@@ -26,6 +27,16 @@ class RootsSpider(WebdriverCrawlSpider):
         return [WebdriverRequest(url) for url in self.start_urls]
 
     def parse_product(self, response):
+        def full_size_image(x):
+            """From
+            thumb_variation_A59_view_b_55x55.jpg
+            to
+            main_variation_A59_view_b_579x579.jpg
+
+            (and pray that all their images are all 579 pixels wide)
+            """
+            return 'main_variation_{}_view_{}_579x579.jpg'.format(x.group(1), x.group(2))
+
         sel = Selector(response)
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
@@ -37,9 +48,12 @@ class RootsSpider(WebdriverCrawlSpider):
         l.add_css('description', '.prodctdesc .description::text')
 
         # TODO: WTF does this need to be this complicated?
-        image_urls = [x.css('::attr(src)').extract_first()
-                      for x in
-                      sel.xpath('//div[contains(@class, "fluid-display-imagegroup")]//img[contains(@class, ":view")]')]
+        image_urls = []
+        img_thumbs = sel.xpath('//div[contains(@class, "fluid-display-imagegroup")]//img[contains(@class, ":view")]')
+        for thumb in img_thumbs:
+            thumb_url = thumb.css('::attr(src)').extract_first()
+            full_url = re.sub(r'thumb_variation_(\w\d+)_view_(\w)_\d+x\d+\.jpg', full_size_image, thumb_url)
+            image_urls.append(full_url)
 
         attributes = {}
         sale_price = sel.css('.pricing #priceTop .special .value::text').extract_first()
