@@ -340,12 +340,6 @@
                             <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                         </div>
                         <div class="middle cell info image<% if (obj.orientation === 'landscape') { %> landscape<% } %>">
-                            <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
-                                <div class="more-info">
-                                    MORE FROM THAT LOOK
-                                    <img src="{% static 'pinpoint/themes/nastygal/images/down_arrow.png' %}" />
-                                </div>
-                            <% } %>
                             <% if (!App.support.mobile()) { %>
                                 <div class='title'></div>
                                 <div class='price'></div>
