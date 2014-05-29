@@ -16,7 +16,7 @@ SPIDER_MODULES = ['apps.scrapy.spiders']
 NEWSPIDER_MODULE = 'apps.scrapy.spiders'
 
 EXTENSIONS = {
-    'apps.scrapy.utils.SentrySignals': 10,
+    'apps.scrapy.utils.extensions.SentrySignals': 10,
 }
 
 DOWNLOAD_HANDLERS = {

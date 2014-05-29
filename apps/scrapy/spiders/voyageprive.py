@@ -3,7 +3,7 @@ from scrapy.contrib.spiders import XMLFeedSpider
 from scrapy.http import Request
 from scrapy.selector import Selector
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.utils import ScraperProductLoader
+from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
 class VoyagePriveScraper(XMLFeedSpider):
