@@ -36,18 +36,48 @@ class GapSpider(WebdriverCrawlSpider):
 
     # TODO: Handle 'styles'
     category_url = 'http://www.gap.com/browse/category.do?cid={}'
+    visited = []
 
     def __init__(self, *args, **kwargs):
         super(GapSpider, self).__init__()
 
         if kwargs.get('categories'):
-            categories = kwargs.get('categories').split(',')
-            self.start_urls = [self.category_url.format(c) for c in categories]
+            self.categories = kwargs.get('categories').split(',')
+            self.start_urls = [
+                self.category_url.format(c) for c in self.categories
+            ]
 
     # For some reason, Always defaults to regular requests...
     # So, we override...
     def start_requests(self):
         return [WebdriverRequest(url) for url in self.start_urls]
+
+    def parse_start_url(self, response):
+        """
+        Handles any special parsing from start_urls.
+
+        However, we mostly use it to handle pagination.
+
+        This method is misleading as it actually cascades...
+        """
+
+        if response.url in self.visited:
+            return []
+
+        sel = Selector(response)
+        pages = sel.css('.pagePaginatorLabel').re_first('Page \d+ of (\d+)')
+
+        if not pages:
+            return []
+
+        urls = []
+        pages = int(pages)
+        for page in xrange(pages):
+            url = '{base}#pageId={page}'.format(base=response.url, page=page)
+            self.visited.append(url)
+            urls.append(WebdriverRequest(url))
+
+        return urls
 
     def parse_division(self, response):
         sel = Selector(response)
