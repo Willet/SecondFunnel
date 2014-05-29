@@ -1,4 +1,5 @@
 import base64
+import bleach
 from cloudinary import uploader as uploader
 from functools import wraps
 import os
@@ -134,3 +135,14 @@ def str_to_boolean(value):
         return value
 
     return value.lower() in ['true', 'yes', '1', 't']
+
+
+def sanitize_html(html):
+    allowed_tags = ['div', 'ul', 'ol', 'li', 'p', ]
+    allowed_attrs = {
+        '*': [],
+    }
+
+    return bleach.clean(
+        html, tags=allowed_tags, attributes=allowed_attrs, strip=True
+    )

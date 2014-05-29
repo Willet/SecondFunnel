@@ -1,6 +1,6 @@
 from scrapy.contrib.loader import ItemLoader, Identity
 from scrapy.contrib.loader.processor import TakeFirst, Compose
-from apps.scrapy.utils.misc import str_to_boolean
+from apps.scrapy.utils.misc import str_to_boolean, sanitize_html
 from apps.scrapy.utils.processors import MergeDicts
 
 
@@ -19,6 +19,8 @@ class ScraperProductLoader(ItemLoader):
         http://doc.scrapy.org/en/latest/topics/loaders.html
     """
     default_output_processor = TakeFirst()
+
+    description_in = Compose(lambda v:v[0], sanitize_html)
 
     attributes_out = MergeDicts()
 
