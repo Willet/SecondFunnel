@@ -23,6 +23,8 @@ urlpatterns = patterns('',
     url(r'^intentrank/', include('apps.intentrank.urls')),
     url(r'^scraper/', include('apps.scraper.urls')),
     url(r'^tracker/', include('apps.tracking.urls')),
+    # dashboard
+    url(r'^dashboard/', include('apps.dashboard.urls')),
 
     # special top-level urls for RSS feeds
     url(r'^(?P<page_slug>[^/\.]+)/?$',
