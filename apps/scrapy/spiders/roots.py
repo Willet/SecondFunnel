@@ -54,7 +54,7 @@ class RootsSpider(WebdriverCrawlSpider):
         category_sels = sel.css('.breadcrumbs').xpath('a[@href!="#"]')
         for category_sel in category_sels:
             category_url = category_sel.css('::attr(href)').extract_first()
-            category_name = category_sel.css('::text').extract_first()
+            category_name = category_sel.css('::text').extract_first().strip()
             attributes['categories'].append((category_name, category_url))
 
         l.add_value('image_urls', image_urls)
