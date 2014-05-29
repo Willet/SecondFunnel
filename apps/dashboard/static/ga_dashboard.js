@@ -19,6 +19,9 @@ $(document).ready(function () {
                     color: '#ffffff'
                 }
             },
+            'legend':{
+                'position' : 'top'
+            },
             'lineWidth': 1,
             'vAxis': {
                 'baselineColor': '#ffffff',
@@ -31,19 +34,20 @@ $(document).ready(function () {
         },
         columnChart: {
             'axisTitlesPosition': 'none',
-            'dataOpacity': 0,
+            'dataOpacity': 1,
             'hAxis': {
                 'baselineColor': 'black',
-                'textPosition': 'none',
+                'textPosition': 'out',
                 'textStyle': {color: 'black'},
                 'gridlines': {
                     color: 'black'
                 }
             },
+            'legend' : { 'position' : 'top'},
             'lineWidth': 1,
             'vAxis': {
                 'baselineColor': '#black',
-                'textPosition': 'none',
+                'textPosition': 'out',
                 'textStyle': {color: '#black'},
                 'gridlines': {
                     color: '#black'
