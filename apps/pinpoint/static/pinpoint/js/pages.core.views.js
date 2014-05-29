@@ -977,16 +977,12 @@ App.module('core', function (module, App) {
         },
 
         'renderSubregions': function (product) {
-            var key;
-
-            for (key in this.regions) {
-                if (this.regions.hasOwnProperty(key)) {
-                    this[key].show(new App.core.ProductInfoView({
-                        model: product,
-                        infoItem: key
-                    }));
-                }
-            }
+            _.keys(this.regions).forEach(function (key) {
+                this[key].show(new App.core.ProductInfoView({
+                    model: product,
+                    infoItem: key
+                }));
+            }, this);
 
             // TODO: turn gallery into a view
             $('.gallery', this.$el).empty();
