@@ -879,7 +879,8 @@ App.module('core', function (module, App) {
                     var $this = $(this),
                         index = $this.data('index'),
                         product = self.model.get('tagged-products')[index],
-                        productModel = new App.core.Product(product);
+                        productModel = new App.core.Product(product),
+                        container = self.$el.closest('.fullscreen');
 
                     $this.addClass('selected').siblings().removeClass('selected');
                     App.options['galleryIndex'] = index;
@@ -894,6 +895,15 @@ App.module('core', function (module, App) {
                         socialButtons.empty();
                         buttons = new App.sharing.SocialButtons({model: self.model}).render().load().$el;
                         socialButtons.append(buttons);
+                    }
+
+                    if (container && container.length) {
+                        container.css({
+                            top: '0',
+                            bottom: '0',
+                            left: '0',
+                            right: '0'
+                        });
                     }
 
                     self.renderSubregions(productModel);
@@ -921,7 +931,52 @@ App.module('core', function (module, App) {
 
         // Disable scrolling body when preview is shown
         'onShow': function () {
-            var shrinkContainer = function (element) {
+            var product;
+
+            if (this.model.get('tagged-products') && this.model.get('tagged-products').length) {
+                product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
+                this.renderSubregions(product);
+            } else if (this.model.get('template', '') === 'product') {
+                this.renderSubregions(this.model);
+            }
+
+            /*
+            NOTE: Previously, it was thought that adding `no-scroll`
+            to android devices was OK, because no problems were observed
+            on some device.
+
+            Turns out, that was wrong.
+
+            It seems like no-scroll prevent scrolling on *some* android
+            devices, but not others.
+
+            So, for now, only add no-scroll if the device is NOT an android.
+             */
+            if (!App.support.isAnAndroid()) {
+                var width;
+                width = Marionette.getOption(this, 'width');
+
+                if (width) {
+                    this.$('.content').css('width', width + 'px');
+                } else if (App.support.mobile()) {
+                    this.$el.width($window.width()); // assign width
+                }
+                $(document.body).addClass('no-scroll');
+            }
+        },
+
+        'close': function () {
+            /* See NOTE in onShow */
+            if (!App.support.isAnAndroid()) {
+                $(document.body).removeClass('no-scroll');
+            }
+
+            App.options['galleryIndex'] = 0;
+        },
+
+        'renderSubregions': function (product) {
+            var key,
+                shrinkContainer = function (element) {
                     return function () {
                         var container = element.closest('.fullscreen'),
                             heightReduction, widthReduction, left, right;
@@ -973,55 +1028,7 @@ App.module('core', function (module, App) {
                         });
                     };
                 },
-                product,
                 imageCount;
-
-            if (this.model.get('tagged-products') && this.model.get('tagged-products').length) {
-                product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
-                this.renderSubregions(product);
-            } else if (this.model.get('template', '') === 'product') {
-                this.renderSubregions(this.model);
-            }
-
-            /*
-            NOTE: Previously, it was thought that adding `no-scroll`
-            to android devices was OK, because no problems were observed
-            on some device.
-
-            Turns out, that was wrong.
-
-            It seems like no-scroll prevent scrolling on *some* android
-            devices, but not others.
-
-            So, for now, only add no-scroll if the device is NOT an android.
-             */
-            if (!App.support.isAnAndroid()) {
-                var width;
-                width = Marionette.getOption(this, 'width');
-
-                if (width) {
-                    this.$('.content').css('width', width + 'px');
-                } else if (App.support.mobile()) {
-                    this.$el.width($window.width()); // assign width
-                }
-                $(document.body).addClass('no-scroll');
-            }
-
-            imageCount = $('img.main-image, img.image', this.$el).length;
-            $('img.main-image, img.image', this.$el).on('load', shrinkContainer(this.$el));
-        },
-
-        'close': function () {
-            /* See NOTE in onShow */
-            if (!App.support.isAnAndroid()) {
-                $(document.body).removeClass('no-scroll');
-            }
-
-            App.options['galleryIndex'] = 0;
-        },
-
-        'renderSubregions': function (product) {
-            var key;
 
             for (key in this.regions) {
                 if (this.regions.hasOwnProperty(key)) {
@@ -1035,6 +1042,22 @@ App.module('core', function (module, App) {
             // TODO: turn gallery into a view
             $('.gallery', this.$el).empty();
             App.utils.runWidgets(this);
+
+            imageCount = $('img.main-image, img.image', this.$el).length;
+
+            // http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
+            $('img.main-image, img.image', this.$el)
+                .one('load', shrinkContainer(this.$el))
+                .each(function () {
+                    var self = $(this);
+
+                    if (this.complete) {
+                        // Without the timeout the box may not be rendered. This lets the onShow method return
+                        setTimeout(function () {
+                            self.load();
+                        }, 1);
+                    }
+                });
         }
     });
 
