@@ -67,7 +67,7 @@ class GapSpider(WebdriverCrawlSpider):
         sel = Selector(response)
         pages = sel.css('.pagePaginatorLabel').re_first('Page \d+ of (\d+)')
 
-        if not pages:
+        if not pages or int(pages) <= 1:
             return []
 
         urls = []
