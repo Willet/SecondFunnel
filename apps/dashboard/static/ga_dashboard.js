@@ -46,11 +46,11 @@ $(document).ready(function () {
             'legend' : { 'position' : 'top'},
             'lineWidth': 1,
             'vAxis': {
-                'baselineColor': '#black',
+                'baselineColor': 'black',
                 'textPosition': 'out',
-                'textStyle': {color: '#black'},
+                'textStyle': {color: 'black'},
                 'gridlines': {
-                    color: '#black'
+                    color: 'black'
                 }
             }
         }
