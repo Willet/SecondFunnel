@@ -1,7 +1,4 @@
 /*global window, document, undefined*/
-/**
- * "indicating we did not write this garbage :)"
- */
 ;(function (window, document, undefined) {
     "use strict";
     var guessPrice,
@@ -16,6 +13,7 @@
         var price,
             hybrisVars = window.s_amc_hb;
 
+        // First attempt to find prices from hybris variables.
         if (hybrisVars) {
             price = hybrisVars.hb_orderData_totalPrice ||
                     hybrisVars.hb_cartData_totalPrice;
@@ -24,6 +22,7 @@
                         hybrisVars.contextData.hb_cartData_totalPrice;
             }
         } else if (window.dataLayer && window.dataLayer.length >= 1) {
+        // Then attempt to find prices from Google Tag Manager.
             price = window.dataLayer[0].transactionTotal;
         }
 
