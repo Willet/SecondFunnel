@@ -6,6 +6,7 @@ from apiclient.discovery import build
 from datetime import datetime
 from django.utils.timezone import utc
 from django.conf import settings
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -20,17 +21,16 @@ from apps.dashboard.models import CredentialsModel, DashBoard
 
 CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secret.json')
 
-print CLIENT_SECRETS
 
 FLOW = flow_from_clientsecrets(
     CLIENT_SECRETS,
     scope='https://www.googleapis.com/auth/analytics.readonly',
-    redirect_uri='http://localhost:8000/dashboard/oauth2callback')
+    redirect_uri=settings.WEBSITE_BASE_URL + '/dashboard/oauth2callback')
 
 
 def index(request):
     context = RequestContext(request)
-    return render_to_response('templates_old/index.html', {}, context)
+    return render_to_response('index.html', {}, context)  #this will eventually be different
 
 
 def gap(request):
@@ -45,7 +45,7 @@ def auth_return(request):
     credential = FLOW.step2_exchange(request.REQUEST)
     storage = Storage(CredentialsModel, 'id', request.user, 'credential')
     storage.put(credential)
-    return HttpResponseRedirect("localhost:8000/dashboard")
+    return HttpResponseRedirect("/dashboard")
 
 
 def get_data(request):
