@@ -54,7 +54,8 @@
     // conversion.
     loadPage = function () {
         var clickMeterConversionValue = guessPrice(),
-            clickMeterConversionId = '{{ clickmeter_conversion_id }}',
+            clickMeterConversionId = window.WILLET_CONVERSION_ID ||
+                '{{ clickmeter_conversion_id }}',
             clickMeterConversionParameter = 'empty',
             conversionBase = 'http://clickmeter.com/conversion.aspx',
             convValue,
