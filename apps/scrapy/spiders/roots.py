@@ -6,7 +6,7 @@ from scrapy_webdriver.http import WebdriverRequest
 
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider
-from apps.scrapy.utils import open_in_browser, ScraperProductLoader
+from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
 class RootsSpider(WebdriverCrawlSpider):

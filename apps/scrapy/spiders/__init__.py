@@ -1,5 +1,5 @@
 from scrapy.selector import SelectorList
-from apps.scrapy.utils import monkeypatch_method
+from apps.scrapy.utils.misc import monkeypatch_method
 
 # MonkeyPatch SelectorList to add useful methods
 @monkeypatch_method(SelectorList)

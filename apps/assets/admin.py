@@ -126,6 +126,7 @@ class VideoAdmin(BaseAdmin):
     search_fields = ('id', 'url', 'source_url',)
 
 
+
 admin.site.register(Store, StoreAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Page, PageAdmin)

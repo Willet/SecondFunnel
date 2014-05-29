@@ -1049,8 +1049,13 @@ App.module('core', function (module, App) {
             $('img.main-image, img.image', this.$el)
                 .one('load', shrinkContainer(this.$el))
                 .each(function () {
+                    var self = $(this);
+
                     if (this.complete) {
-                        $(this).load();
+                        // Without the timeout the box may not be rendered. This lets the onShow method return
+                        setTimeout(function () {
+                            self.load();
+                        }, 1);
                     }
                 });
         }

@@ -3,9 +3,9 @@
 # See documentation in:
 # http://doc.scrapy.org/en/latest/topics/items.html
 from scrapy.contrib.djangoitem import DjangoItem
-from scrapy.item import Field, Item
+from scrapy.item import Field
 from apps.assets.models import Product
-from apps.scrapy.utils import store_serializer
+from apps.scrapy.utils.serializers import store_serializer
 
 # Fields that are not part of a Django model
 # will not be saved; neat :)
