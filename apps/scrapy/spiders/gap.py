@@ -7,7 +7,7 @@ from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider
-from apps.scrapy.utils import ScraperProductLoader
+from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 # TODO: Dupe checking
 #   see http://doc.scrapy.org/en/latest/topics/settings.html?highlight=dupe#dupefilter-class

@@ -3,14 +3,13 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from django.core.exceptions import ValidationError
-from scrapy.contrib.djangoitem import DjangoItem
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from apps.assets.models import Store, Product, Category
 from apps.scraper.scrapers import ProductScraper
 from apps.scrapy.items import ScraperProduct, ScraperContent
-from apps.scrapy.utils import CloudinaryStore, spider_pipelined, \
-    item_to_model, get_or_create, update_model
+from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
+from apps.scrapy.utils.misc import CloudinaryStore, spider_pipelined
 
 
 class CloudinaryPipeline(ImagesPipeline):
