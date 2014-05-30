@@ -56,11 +56,7 @@ $(document).ready(function () {
         }
     };
     var refreshRate = 30000;
-    var CHARTS = {
-        QUICKVIEW: 0,
-        SORTVIEW: 1
-    };
-
+    var CHARTS = [];
     var pageOptions = {
         charts: []
     };
@@ -88,8 +84,8 @@ $(document).ready(function () {
     };
     var addChart = function (name, location, chartType, chartOptions, refreshRate) {
         var chart = DashboardChart(location, chartType, chartOptions, refreshRate);
-        var length = pageOptions.charts.push(chart); // push returns new length of array
-        CHARTS[name] = length - 1;
+        pageOptions.charts.push(chart); // push returns new length of array
+        CHARTS.push(name);
         return chart;
     };
 
@@ -137,26 +133,48 @@ $(document).ready(function () {
         if (!response) {
             return;
         }
-        var data = new google.visualization.DataTable(response.dataTable, 0.6);
-        data = dataOperations(data);
+        var data = dataOperations(response);
+        console.log(data);
         var chart = new pageOptions.charts[chartNumber].chartType(pageOptions.charts[chartNumber].location);
         chart.draw(data, pageOptions.charts[chartNumber].chartOptions);
     };
 
     /**
-     * Refreshes the quicklook area with appropriate information
-     * @param {optional object} response - the response to use to update the quicklook.
+     * Gets the data for the quickview, and stores it in pageOptions_quickview
      */
-    var refresh_quicklook = function () {
-        var response = checkResponse(CHARTS.QUICKVIEW);
+    var datify = function (chartNumber) {
+        /* Dimensions are nthHour for total, nthMinute for today*/
+        var chartStorage = pageOptions.charts[chartNumber];
+        var ajax_response = function (i) {
+            return function (response) {
+                chartStorage.selections[i].response = response;
+            };
+        };
+        // populate data
+        for (var i = 0; i < 2; i++) {
+            retrieveData(
+                chartStorage.selections[i].metrics.join(','),
+                chartStorage.selections[i].dimensions.join(','),
+                chartStorage.selections[i].start_date,
+                chartStorage.selections[i].end_date,
+                ajax_response(i));
+        }
+    };
+
+    /**
+     * Refreshes the quickview area with appropriate information
+     * @param {optional object} response - the response to use to update the quickview.
+     */
+    var refresh_quickview = function () {
+        var response = checkResponse(CHARTS.indexOf('QUICKVIEW'));
         if (!response) {
             return;
         }
 
-        drawChart(CHARTS.QUICKVIEW, function (data) {
-            var nd = data.clone();
-            nd.removeColumns(2, 5);
-            return nd;
+        drawChart(CHARTS.indexOf('QUICKVIEW'), function (response) {
+            var data = new google.visualization.DataTable(response.dataTable, 0.6);
+            data.removeColumns(2, 5);
+            return data;
         });
 
         // the buttons
@@ -174,90 +192,48 @@ $(document).ready(function () {
         $('#buyNowClicks').text(buyNowClicks);
     };
 
-    /**
-     * Gets the data for the quicklook, and stores it in pageOptions_quicklook
-     */
-    var datify = function (chartNumber) {
-        /* Dimensions are nthHour for total, nthMinute for today*/
-
-        var ajax_response = function (i) {
-            return function (response) {
-                pageOptions.charts[chartNumber].selections[i].response = response;
-            };
-        };
-        // populate data
-        for (var i = 0; i < 2; i++) {
-            retrieveData(
-                pageOptions.charts[chartNumber].selections[i].metrics.join(','),
-                pageOptions.charts[chartNumber].selections[i].dimensions.join(','),
-                pageOptions.charts[chartNumber].selections[i].start_date,
-                pageOptions.charts[chartNumber].selections[i].end_date,
-                ajax_response(i));
-        }
-    };
-
-    /**
-     * Update the quicklook area with the most recent data from the server with the start and end dates given.
-     * This function is on a timer, and will be called periodically
-     */
-    var update_quicklook = function () {
-        // Get data
-        datify(CHARTS.QUICKVIEW);
-
-        // Update the elements
-        refresh_quicklook();
-
-        if (pageOptions.charts[CHARTS.QUICKVIEW].current_timeout !== -1) {
-            clearTimeout(pageOptions.charts[CHARTS.QUICKVIEW].current_timeout);
-        }
-        pageOptions.charts[CHARTS.QUICKVIEW].current_timeout = setTimeout(update_quicklook, refreshRate);
-    };
-
     var refresh_sortview = function () {
-        drawChart(CHARTS.SORTVIEW, function (data) {
-                return data;
-            });
+        drawChart(CHARTS.indexOf('SORTVIEW'), function (response) {
+            var data = new google.visualization.DataTable(response.dataTable, 0.6);
+            return data;
+        });
     };
 
-    var update_sortview = function () {
+    var updateView = function (chartNumber, refreshFunction) {
         // Get Data
-        datify(CHARTS.SORTVIEW);
+        datify(chartNumber);
         // update elements
-        refresh_sortview();
-
-        if (pageOptions.charts[CHARTS.SORTVIEW].current_timeout !== -1) {
-            clearTimeout(pageOptions.charts[CHARTS.SORTVIEW].current_timeout);
+        refreshFunction();
+        var timeout = pageOptions.charts[chartNumber].current_timeout;
+        if (timeout !== -1) {
+            clearTimeout(timeout);
         }
-        pageOptions.charts[CHARTS.SORTVIEW].current_timeout = setTimeout(update_sortview, refreshRate);
+        pageOptions.charts[chartNumber].current_timeout = setTimeout(function(){updateView(chartNumber,refreshFunction);}, refreshRate);
     };
 
     var refresh_all = function () {
-        refresh_quicklook();
+        refresh_quickview();
         refresh_sortview();
     };
 
     var drawElements = function () {
         // all graphs are drawn in here
-        var quicklook = addChart("QUICKLOOK", $('#quicklook-graph')[0],
+        var quickviewMetrics = [
+            'ga:sessions', //metrics
+            'ga:bounceRate',
+            'ga:avgSessionDuration',
+            'ga:goalConversionRateAll',
+            'ga:goalCompletionsAll',
+            'ga:goal2Completions',
+            'ga:bounces'];
+        var quickview = addChart('QUICKVIEW', $('#quickview-graph')[0],
             google.visualization.LineChart, CHART_OPTIONS.sparkline, refreshRate);
-        quicklook.addSelection(
-            ['ga:sessions', //metrics
-                'ga:bounceRate',
-                'ga:avgSessionDuration',
-                'ga:goalConversionRateAll',
-                'ga:goalCompletionsAll',
-                'ga:goal2Completions',
-                'ga:bounces'],
+        quickview.addSelection(
+            quickviewMetrics,
             ['ga:nthMinute'], // dimensions
             'today', 'today'); //start date, end date
-        quicklook.addSelection(
-            ['ga:sessions', //metrics
-                'ga:bounceRate',
-                'ga:avgSessionDuration',
-                'ga:goalConversionRateAll',
-                'ga:goalCompletionsAll',
-                'ga:goal2Completions',
-                'ga:bounces'],
+        quickview.addSelection(
+            quickviewMetrics,
             ['ga:dateHour'], // dimensions
             '2014-04-25', 'today'); //start date, end date
 
@@ -266,8 +242,8 @@ $(document).ready(function () {
         sortview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:deviceCategory'], '2014-04-25', 'today');
         sortview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:medium'], '2014-04-25', 'today');
 
-        update_quicklook();
-        update_sortview();
+        updateView(0, refresh_quickview);
+        updateView(1, refresh_sortview);
         refresh_all();
 
     };
@@ -278,23 +254,23 @@ $(document).ready(function () {
     // Start the sessions counts
     google.load('visualization', '1.0', {'packages': ['controls', 'corechart'], callback: drawElements});
 
-    $('#quicklook-total').on('click', function () {
-        pageOptions.charts[CHARTS.QUICKVIEW].current_selection = 1;
-        refresh_quicklook();
+    $('#quickview-total').on('click', function () {
+        pageOptions.charts[CHARTS.indexOf('QUICKVIEW')].current_selection = 1;
+        refresh_quickview();
     });
 
-    $('#quicklook-today').on('click', function () {
-        pageOptions.charts[CHARTS.QUICKVIEW].current_selection = 0;
-        refresh_quicklook();
+    $('#quickview-today').on('click', function () {
+        pageOptions.charts[CHARTS.indexOf('QUICKVIEW')].current_selection = 0;
+        refresh_quickview();
     });
 
     $('#sortview-device').on('click', function () {
-        pageOptions.charts[CHARTS.SORTVIEW].current_selection = 0;
+        pageOptions.charts[CHARTS.indexOf('SORTVIEW')].current_selection = 0;
         refresh_sortview();
     });
 
     $('#sortview-source').on('click', function () {
-        pageOptions.charts[CHARTS.SORTVIEW].current_selection = 1;
+        pageOptions.charts[CHARTS.indexOf('SORTVIEW')].current_selection = 1;
         refresh_sortview();
     });
 
