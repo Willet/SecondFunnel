@@ -59,7 +59,8 @@ ITEM_PIPELINES = {
 IMAGES_STORE = '/Users/nterwoord/Code/ScrapyExperiment'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'scraper (+http://www.yourdomain.com)'
+# surlatable.com, err, blocks spiders
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1944.0 Safari/537.36'
 
 SENTRY_DSN = 'http://be7092f5a43648119e03e77ec002caff:7739e5e90d1b4f1da99ef8db9ba1ca2b@app.getsentry.com/22626'
 
