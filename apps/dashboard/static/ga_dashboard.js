@@ -306,12 +306,14 @@ $(document).ready(function () {
 
     $('#quickview-total').on('click', function () {
         pageOptions.charts[CHARTS.indexOf('QUICKVIEW')].current_selection = 1;
+        pageOptions.charts[CHARTS.indexOf('BUTTONS')].current_selection = 1;
         drawChart(0);
         drawChart(2);
     });
 
     $('#quickview-today').on('click', function () {
         pageOptions.charts[CHARTS.indexOf('QUICKVIEW')].current_selection = 0;
+        pageOptions.charts[CHARTS.indexOf('BUTTONS')].current_selection = 0;
         drawChart(0);
         drawChart(2);
     });
