@@ -45,8 +45,11 @@ class SurlatableSpider(WebdriverCrawlSpider):
         # TODO: Sanitize output with bleach
         l.add_value('description', sel.css('#description span.boxsides').extract_first())
 
-        # TODO: Image URLs
-        image_urls = []
+        # TODO: more Image URLs
+        image_urls = [
+            # this is unfortunately reverse-engineered (and 1079 seems to be a magic number)
+            "http://www.surlatable.com//images/customers/c1079/PRO-{sku}/PRO-{sku}_detail/main_variation_Default_view_1_426x426.jpg".format(sku=sku)
+        ]
 
         attributes = {}
 
@@ -55,17 +58,15 @@ class SurlatableSpider(WebdriverCrawlSpider):
             price = sel.css('li.regular::text')[0].extract().replace('\n', '').replace('\t', '').replace('Was:', '')
             attributes['sale_price'] = sale_price
         except IndexError:
-            price = sel.css('li.price::text')[0].extract().replace('\n', '').replace('\t', '')
+            price = sel.css('li.price::text')[-1].extract().replace('\n', '').replace('\t', '')
+
+        # some variable-price like "$10 - $20"...
+        if '-' in price:
+            price = price[:price.index("-")].strip()
 
         l.add_value('price', price)
 
-        # TODO: Monday
-        attributes['categories'] = []
-        category_sels = sel.css('.breadcrumbs').xpath('a[@href!="#"]')
-        for category_sel in category_sels:
-            category_url = category_sel.css('::attr(href)').extract_first()
-            category_name = category_sel.css('::text').extract_first().strip()
-            attributes['categories'].append((category_name, category_url))
+        attributes['categories'] = [('Le Creuset',  'http://www.surlatable.com/category/cat450428/Le-Creuset')]
 
         l.add_value('image_urls', image_urls)
         l.add_value('attributes', attributes)
