@@ -12,11 +12,8 @@ from apps.scrapy.utils.misc import open_in_browser
 
 class SurlatableSpider(WebdriverCrawlSpider):
     name = 'surlatable'
-    allowed_domains = ['surlatable.com', 'www.surlatable.com']
-    start_urls = ['http://www.surlatable.com/category/cat450428/Le-Creuset',
-                  'http://www.surlatable.com/category/cat850441/Le-Creuset-Stoneware',
-                  'http://www.surlatable.com/category/cat450481/Le-Creuset',
-                  'http://www.surlatable.com/category/cat450610/Le-Creuset' ]
+    allowed_domains = ['surlatable.com']
+    start_urls = []
     rules = [
         Rule(SgmlLinkExtractor(allow=[r'.*product/PRO-.*']),
              callback='parse_product',
@@ -24,6 +21,13 @@ class SurlatableSpider(WebdriverCrawlSpider):
     ]
 
     store_slug = name
+
+    def __init__(self, *args, **kwargs):
+        super(SurlatableSpider, self).__init__()
+
+        # Explicit `start_urls` override other `start_urls`
+        if kwargs.get('start_urls'):
+            self.start_urls = kwargs.get('start_urls').split(',')
 
     # For some reason, Always defaults to regular requests...
     # So, we override...
@@ -37,19 +41,14 @@ class SurlatableSpider(WebdriverCrawlSpider):
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_value('url', response.url)
 
-        sku = re.findall(r'(\d+)',response.url)[0]
-        l.add_value('sku', sku)
+        # http://doc.scrapy.org/en/latest/topics/loaders.html#scrapy.contrib.loader.ItemLoader.add_value
+        l.add_value("sku", response.url, re='(\d+)')
+        sku = l.get_output_value("sku")
 
         l.add_css('name', 'h1.name::text')
 
         # TODO: Sanitize output with bleach
-        l.add_value('description', sel.css('#description span.boxsides').extract_first())
-
-        # TODO: more Image URLs
-        image_urls = [
-            # this is unfortunately reverse-engineered (and 1079 seems to be a magic number)
-            "http://www.surlatable.com//images/customers/c1079/PRO-{sku}/PRO-{sku}_detail/main_variation_Default_view_1_426x426.jpg".format(sku=sku)
-        ]
+        l.add_css('description', '#description span.boxsides')
 
         attributes = {}
 
@@ -66,9 +65,13 @@ class SurlatableSpider(WebdriverCrawlSpider):
 
         l.add_value('price', price)
 
-        attributes['categories'] = [('Le Creuset',  'http://www.surlatable.com/category/cat450428/Le-Creuset')]
-
+        # TODO: more Image URLs
+        image_urls = [
+            # this is unfortunately reverse-engineered (and 1079 seems to be a magic number)
+            "http://www.surlatable.com//images/customers/c1079/PRO-{sku}/PRO-{sku}_detail/main_variation_Default_view_1_426x426.jpg".format(sku=sku)
+        ]
         l.add_value('image_urls', image_urls)
+
         l.add_value('attributes', attributes)
 
         yield l.load_item()
