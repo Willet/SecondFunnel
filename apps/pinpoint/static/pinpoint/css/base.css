@@ -649,7 +649,8 @@ div.loading {
         /* since mobile previews are not floating, this class is cancelled */
         display: none;
     }
-    .previewContainer .tablecell, #hero-area .tablecell {
+    .previewContainer .tablecell,
+    #hero-area .tablecell {
         /* since mobile previews are not floating, this class is cancelled */
         display: block;
         width: auto;

@@ -17,7 +17,8 @@
     font-weight: 200;
 }
 
-.previewContainer, #hero-area {
+.previewContainer,
+#hero-area {
     box-shadow: none;
     color: #000;
     text-rendering: optimizelegibility;
@@ -27,7 +28,8 @@
     font-weight: 200;
 }
 
-.previewContainer .content, #hero-area .content {
+.previewContainer .content,
+#hero-area .content {
     padding-top: 43px;
     padding-bottom: 0px;
     box-shadow: 0px 10px 30px 0px #000;
@@ -55,7 +57,8 @@
     text-shadow: none;
 }
 
-.previewContainer .gallery, #hero-area .gallery {
+.previewContainer .gallery,
+#hero-area .gallery {
     text-align: center;
     overflow-y: auto;
     overflow-x: hidden;
@@ -63,24 +66,28 @@
     margin: auto;
 }
 
-.previewContainer .gallery.hidden, #hero-area .gallery.hidden {
+.previewContainer .gallery.hidden,
+#hero-area .gallery.hidden {
     display: none;
 }
 
-.previewContainer .gallery img, #hero-area .gallery img {
+.previewContainer .gallery img,
+#hero-area .gallery img {
     margin: 5px 0;
     width: 82px;
     opacity: 0.4;
     filter: alpha(opacity=40);
     cursor: pointer;
 }
-.previewContainer .gallery img.selected, #hero-area .gallery img.selected {
+.previewContainer .gallery img.selected,
+#hero-area .gallery img.selected {
     opacity: 1;
     filter: alpha(opacity=100);
     cursor: default;
 }
 
-.previewContainer .image-with-tagged-products .cell, #hero-area .image-with-tagged-products .cell {
+.previewContainer .image-with-tagged-products .cell,
+#hero-area .image-with-tagged-products .cell {
     padding-top: 4px;
 }
 
