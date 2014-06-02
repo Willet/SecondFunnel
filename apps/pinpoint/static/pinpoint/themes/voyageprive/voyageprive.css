@@ -119,6 +119,10 @@ html.tablet .dropdown-xs {
     background-image: none;
 }
 
+#hero-area {
+    margin-left: -20px;
+}
+
 #hero-area .hero-image-wrapper {
     position: relative;
 }
