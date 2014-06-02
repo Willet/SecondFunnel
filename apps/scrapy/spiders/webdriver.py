@@ -4,8 +4,15 @@ from scrapy.spider import Spider
 from scrapy.utils.spider import iterate_spider_output
 from scrapy_webdriver.http import WebdriverRequest, WebdriverResponse
 
-# Copy pasted from Original Crawl Spider... *sigh*
-# TODO: Just patch Scrapy -> make request configurable.
+
+class SecondFunnelScraper(object):
+    def __init__(self, *args, **kwargs):
+        super(SecondFunnelScraper, self).__init__(*args, **kwargs)
+
+        # Explicit `start_urls` override other `start_urls`
+        if kwargs.get('start_urls'):
+            self.start_urls = kwargs.get('start_urls').split(',')
+
 
 class WebdriverCrawlSpider(Spider):
     """
