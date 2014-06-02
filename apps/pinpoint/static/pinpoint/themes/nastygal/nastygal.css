@@ -4,17 +4,17 @@
 }
 
 #discovery-area {
-	width: 960px;
+    width: 960px;
 }
 
 .tile {
-	color: #000;
-	text-align: center;
-	text-rendering: optimizelegibility;
-	-webkit-font-smoothing: subpixel-antialiased;
+    color: #000;
+    text-align: center;
+    text-rendering: optimizelegibility;
+    -webkit-font-smoothing: subpixel-antialiased;
     text-shadow: none;
-	font-family: "ff-super-grotesk-web", helvetica,arial;
-	font-weight: 200;
+    font-family: "ff-super-grotesk-web", helvetica,arial;
+    font-weight: 200;
 }
 
 .previewContainer {
@@ -317,7 +317,7 @@
         margin-right: 0;
     }
 
-    .previewContainer .cell {
+    .previewContainer .cell, .featured.product .cell {
         display: block;
         max-width: 100%;
         text-align: center;

@@ -13,51 +13,6 @@ App.module('core', function (module, App) {
         everScrolled = false;
 
     /**
-     * View responsible for the "Hero Area"
-     * (e.g. Shop-the-look, featured, or just a plain div)
-     *
-     * @constructor
-     * @type {ItemView}
-     */
-    this.HeroAreaView = Marionette.ItemView.extend({
-        // $(...).html() defaults to the first item successfully selected
-        // so featured will be used only if stl is not found.
-        'model': module.Tile,
-        'getTemplate': function () {
-            // if page config contains a product, render hero area with a
-            // template that supports it
-            if (App.option('featured') !== undefined &&
-                $('#shopthelook_template').length) {
-                return "#shopthelook_template";
-            }
-            return "#hero_template";
-        },
-        /**
-         * @param data   normal product data, or, if omitted,
-         *               the featured product.
-         */
-        'initialize': function (data) {
-            this.model = new module.Tile(data || App.option('featured'));
-        },
-        'onRender': function () {
-            var buttons;
-            if (this.$el.length) {  // if something rendered, it was successful
-                if (!(App.support.touch() || App.support.mobile()) &&
-                    this.$('.social-buttons').length >= 1) {
-
-                    if (App.sharing) {
-                        buttons = new App.sharing.SocialButtons({
-                            'model': this.model
-                        }).render().load();
-                        this.$('.social-buttons').html(buttons.$el);
-                    }
-                }
-                App.heroArea.$el.append(this.$el);
-            }
-        }
-    });
-
-    /**
      * View for showing a Tile (or its extensions).
      * This Layout contains socialButtons and tapIndicator regions.
      *
@@ -1064,6 +1019,37 @@ App.module('core', function (module, App) {
         }
     });
 
+    /**
+     * View responsible for the "Hero Area"
+     * (e.g. Shop-the-look, featured, or just a plain div)
+     *
+     * @constructor
+     * @type {Layout}
+     */
+    this.HeroAreaView = this.PreviewContent.extend({
+        // $(...).html() defaults to the first item successfully selected
+        // so featured will be used only if stl is not found.
+        'model': module.Tile,
+        'getTemplate': function () {
+            // if page config contains a product, render hero area with a
+            // template that supports it
+            if (App.option('featured') !== undefined &&
+                $('#shopthelook_template').length) {
+                return "#shopthelook_template";
+            }
+            return "#hero_template";
+        },
+        /**
+         * @param data   normal product data, or, if omitted,
+         *               the featured product.
+         */
+        'initialize': function (data) {
+            this.model = new module.Tile(data || App.option('featured'));
+
+            // "super"
+            App.core.PreviewContent.prototype.initialize.apply(this, arguments);
+        }
+    });
 
     /**
      * Container view for a PreviewContent object.

@@ -130,17 +130,28 @@
         </script>
 
         <script type="text/template" id="shopthelook_template">
-            <div class='featured product'>
-                <img class='img-responsive pull-left' src='<%= obj.defaultImage.url %>' />
-                <div class='pull-right'><%= obj.title || obj.name %></div>
-                    <div class='price'><%= obj.price %></div>
-                    <div>
-                        <a href='<%= obj.url %>' target='_blank'>BUY NOW</a>
+            <% debugger; %>
+            <div class='content-wrapper row'>
+                <div class='cell middle'>
+                    <div class="gallery-main-image"></div>
+                </div>
+                <% if (obj.images.length > 1 && App.support.mobile()) { %>
+                    <div class='cell'>
+                        <div class='gallery dots'></div>
                     </div>
+                <% } %>
+                <div class='cell middle info'>
+                    <div class='title'></div>
+                    <div class='price'></div>
+                    <div class='buy'></div>
+                    <% if (!App.support.mobile()) { %>
+                        <div class="gallery"></div>
+                        <div class="social-button-container">
+                            <div class="social-buttons"></div>
+                        </div>
+                    <% } %>
                 </div>
             </div>
-
-            <div class='spacer'></div>
         </script>
 
         <script type="text/template" id="product_tile_template">
