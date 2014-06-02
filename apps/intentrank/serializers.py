@@ -169,6 +169,7 @@ class ProductTileSerializer(TileSerializer):
         data = super(ProductTileSerializer, self).get_dump_object(obj)
         try:
             data.update(obj.products.all()[0].to_json())
+            data['product-ids'] = [x.id for x in obj.products.all()]
         except IndexError as err:
             pass  # no products in this tile
         return data
@@ -182,6 +183,7 @@ class ContentTileSerializer(TileSerializer):
         data = super(ContentTileSerializer, self).get_dump_object(obj)
         try:
             data.update(obj.content.select_subclasses()[0].to_json())
+            data['content-ids'] = [x.id for x in obj.content.all()]
         except IndexError as err:
             pass  # no content in this tile
         return data

@@ -830,7 +830,7 @@ App.module('core', function (module, App) {
             }
 
             if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1) {
-               this.$('.stl-look .stl-item').on('click', function () {
+                this.$('.stl-look .stl-item').on('click', function () {
                     var $this = $(this),
                         index = $this.data('index'),
                         product = self.model.get('tagged-products')[index],
@@ -862,7 +862,7 @@ App.module('core', function (module, App) {
                     }
 
                     self.renderSubregions(productModel);
-               });
+                });
 
                 // First image is always selected
                 this.$('.stl-look').each(function () {
@@ -1044,7 +1044,10 @@ App.module('core', function (module, App) {
          *               the featured product.
          */
         'initialize': function (data) {
-            this.model = new module.Tile(data || App.option('featured'));
+            if ($.isEmptyObject(data)) {
+                data = App.option('featured');
+            }
+            this.model = new module.Tile(data);
 
             // "super"
             App.core.PreviewContent.prototype.initialize.apply(this, arguments);
