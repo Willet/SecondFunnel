@@ -56,17 +56,24 @@ $(document).ready(function () {
         }
     };
     var refreshRate = 30000;
-    var CHARTS = {
-        QUICKVIEW: 0,
-        SORTVIEW: 1
-    };
-
+    var CHARTS = [];
     var pageOptions = {
         charts: []
     };
 
 
-    var DashboardChart = function (location, chartType, chartOptions, refreshRate) {
+    /**
+     * DashboardChart is a chart on the dashboard, an entity that shows information.
+     * TODO make dataOperation a part of chartType
+     * @param location
+     * @param chartType
+     * @param dataOperation
+     * @param chartOptions
+     * @param refreshRate
+     * @returns {{current_selection: number, current_timeout: number, refresh_rate: *, location: *, chartType: *, chartOptions: *, dataOperation: *, selections: Array, addSelection: addSelection}}
+     * @constructor
+     */
+    var DashboardChart = function (location, chartType, dataOperation, chartOptions, refreshRate) {
         return {
             current_selection: 0,
             current_timeout: -1,
@@ -74,6 +81,7 @@ $(document).ready(function () {
             location: location,
             chartType: chartType,
             chartOptions: chartOptions,
+            dataOperation: dataOperation,
             selections: [],
             addSelection: function (metrics, dimensions, start_date, end_date) {
                 this.selections.push({
@@ -86,10 +94,47 @@ $(document).ready(function () {
             }
         };
     };
-    var addChart = function (name, location, chartType, chartOptions, refreshRate) {
-        var chart = DashboardChart(location, chartType, chartOptions, refreshRate);
-        var length = pageOptions.charts.push(chart); // push returns new length of array
-        CHARTS[name] = length - 1;
+
+    /**
+     * This is a chartType, like google.visualization.LineChart
+     * For this chart, location is defined as an Array
+     * TODO make all charts take location as an Array, extend google objects to make this happen
+     * @param locations {Array of DOM elements} - an ordered set of the locations to place data
+     * @returns {{location: *, draw: draw}}
+     * @constructor
+     */
+    var QuickLabel = function (locations) {
+        this.location = locations;
+        /**
+         * Draws the chart (ie labels)
+         * @param data {object} - an object gotten from the response, ie response.totalsForAllResults
+         * @param options - unused, used to maintain compliance with standard
+         */
+        this.draw = function (data, options) {
+            var i = 0;
+            for (var key in data) {
+                if (data.hasOwnProperty(key)) {
+                    $(this.location[i]).text(Math.round((parseFloat(data[key]) + 0.00001) * 100) / 100);
+                    console.log(this.location[i] + " key: " + key + " data:" + data[key]);
+                    i++;
+                }
+            }
+        };
+    };
+
+    /**
+     * Adds a chart to the page
+     * @param name {String}
+     * @param location {DOM element}
+     * @param chartType {chartType object}
+     * @param chartOptions {object}
+     * @param refreshRate {integer}
+     * @returns {}
+     */
+    var addChart = function (name, location, chartType, dataOperation, chartOptions, refreshRate) {
+        var chart = DashboardChart(location, chartType, dataOperation, chartOptions, refreshRate);
+        pageOptions.charts.push(chart);
+        CHARTS.push(name);
         return chart;
     };
 
@@ -132,34 +177,39 @@ $(document).ready(function () {
         return response;
     };
 
-    var drawChart = function (chartNumber, dataOperations) {
+    var drawChart = function (chartNumber) {
         var response = checkResponse(chartNumber);
         if (!response) {
             return;
         }
-        var data = new google.visualization.DataTable(response.dataTable, 0.6);
-        data = dataOperations(data);
+        var data = pageOptions.charts[chartNumber].dataOperation(response);
         var chart = new pageOptions.charts[chartNumber].chartType(pageOptions.charts[chartNumber].location);
         chart.draw(data, pageOptions.charts[chartNumber].chartOptions);
     };
 
     /**
-     * Refreshes the quicklook area with appropriate information
-     * @param {optional object} response - the response to use to update the quicklook.
+     * Gets the data for the quickview, and stores it in pageOptions_quickview
      */
-    var refresh_quicklook = function () {
-        var response = checkResponse(CHARTS.QUICKVIEW);
-        if (!response) {
-            return;
+    var datify = function (chartNumber) {
+        /* Dimensions are nthHour for total, nthMinute for today*/
+        var chartStorage = pageOptions.charts[chartNumber];
+        var ajax_response = function (i) {
+            return function (response) {
+                chartStorage.selections[i].response = response;
+            };
+        };
+        // populate data
+        for (var i = 0; i < 2; i++) {
+            retrieveData(
+                chartStorage.selections[i].metrics.join(','),
+                chartStorage.selections[i].dimensions.join(','),
+                chartStorage.selections[i].start_date,
+                chartStorage.selections[i].end_date,
+                ajax_response(i));
         }
+    };
 
-        drawChart(CHARTS.QUICKVIEW, function (data) {
-            var nd = data.clone();
-            nd.removeColumns(2, 5);
-            return nd;
-        });
-
-        // the buttons
+    var refresh_buttons = function (response) {
         var totalSessions = response.totalsForAllResults['ga:sessions'];
         $('#sessionCount').text(totalSessions); // TODO format this number
         var bounceRate = Math.round((parseFloat(response.totalsForAllResults['ga:bounceRate']) + 0.00001) * 100) / 100;
@@ -174,102 +224,78 @@ $(document).ready(function () {
         $('#buyNowClicks').text(buyNowClicks);
     };
 
-    /**
-     * Gets the data for the quicklook, and stores it in pageOptions_quicklook
-     */
-    var datify = function (chartNumber) {
-        /* Dimensions are nthHour for total, nthMinute for today*/
-
-        var ajax_response = function (i) {
-            return function (response) {
-                pageOptions.charts[chartNumber].selections[i].response = response;
-            };
-        };
-        // populate data
-        for (var i = 0; i < 2; i++) {
-            retrieveData(
-                pageOptions.charts[chartNumber].selections[i].metrics.join(','),
-                pageOptions.charts[chartNumber].selections[i].dimensions.join(','),
-                pageOptions.charts[chartNumber].selections[i].start_date,
-                pageOptions.charts[chartNumber].selections[i].end_date,
-                ajax_response(i));
-        }
-    };
-
-    /**
-     * Update the quicklook area with the most recent data from the server with the start and end dates given.
-     * This function is on a timer, and will be called periodically
-     */
-    var update_quicklook = function () {
-        // Get data
-        datify(CHARTS.QUICKVIEW);
-
-        // Update the elements
-        refresh_quicklook();
-
-        if (pageOptions.charts[CHARTS.QUICKVIEW].current_timeout !== -1) {
-            clearTimeout(pageOptions.charts[CHARTS.QUICKVIEW].current_timeout);
-        }
-        pageOptions.charts[CHARTS.QUICKVIEW].current_timeout = setTimeout(update_quicklook, refreshRate);
-    };
-
-    var refresh_sortview = function () {
-        drawChart(CHARTS.SORTVIEW, function (data) {
-                return data;
-            });
-    };
-
-    var update_sortview = function () {
+    var updateView = function (chartNumber) {
         // Get Data
-        datify(CHARTS.SORTVIEW);
+        datify(chartNumber);
         // update elements
-        refresh_sortview();
-
-        if (pageOptions.charts[CHARTS.SORTVIEW].current_timeout !== -1) {
-            clearTimeout(pageOptions.charts[CHARTS.SORTVIEW].current_timeout);
+        drawChart(chartNumber);
+        var timeout = pageOptions.charts[chartNumber].current_timeout;
+        if (timeout !== -1) {
+            clearTimeout(timeout);
         }
-        pageOptions.charts[CHARTS.SORTVIEW].current_timeout = setTimeout(update_sortview, refreshRate);
+        pageOptions.charts[chartNumber].current_timeout = setTimeout(function () {
+            updateView(chartNumber);
+        }, refreshRate);
+    };
+
+    var update_all = function () {
+        for (var i = 0; i < pageOptions.charts.length; i++) {
+            updateView(i);
+        }
     };
 
     var refresh_all = function () {
-        refresh_quicklook();
-        refresh_sortview();
+        for (var i = 0; i < pageOptions.charts.length; i++) {
+            drawChart(i);
+        }
     };
 
     var drawElements = function () {
         // all graphs are drawn in here
-        var quicklook = addChart("QUICKLOOK", $('#quicklook-graph')[0],
-            google.visualization.LineChart, CHART_OPTIONS.sparkline, refreshRate);
-        quicklook.addSelection(
-            ['ga:sessions', //metrics
-                'ga:bounceRate',
-                'ga:avgSessionDuration',
-                'ga:goalConversionRateAll',
-                'ga:goalCompletionsAll',
-                'ga:goal2Completions',
-                'ga:bounces'],
+        var quickviewMetrics = [
+            'ga:sessions', //metrics
+            'ga:bounceRate',
+            'ga:avgSessionDuration',
+            'ga:goalConversionRateAll',
+            'ga:goalCompletionsAll',
+            'ga:goal2Completions',
+            'ga:bounces'];
+        var quickview = addChart('QUICKVIEW', $('#quickview-graph')[0],
+            google.visualization.LineChart, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                data.removeColumns(2, 5);
+                return data;
+            }, CHART_OPTIONS.sparkline, refreshRate);
+        quickview.addSelection(
+            quickviewMetrics,
             ['ga:nthMinute'], // dimensions
             'today', 'today'); //start date, end date
-        quicklook.addSelection(
-            ['ga:sessions', //metrics
-                'ga:bounceRate',
-                'ga:avgSessionDuration',
-                'ga:goalConversionRateAll',
-                'ga:goalCompletionsAll',
-                'ga:goal2Completions',
-                'ga:bounces'],
+        quickview.addSelection(
+            quickviewMetrics,
             ['ga:dateHour'], // dimensions
             '2014-04-25', 'today'); //start date, end date
 
         var sortview = addChart("SORTVIEW", $('#sortview-graph')[0],
-            google.visualization.ColumnChart, CHART_OPTIONS.columnChart, refreshRate);
+            google.visualization.ColumnChart, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                return data;
+            }, CHART_OPTIONS.columnChart, refreshRate);
         sortview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:deviceCategory'], '2014-04-25', 'today');
         sortview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:medium'], '2014-04-25', 'today');
 
-        update_quicklook();
-        update_sortview();
-        refresh_all();
-
+        var buttons = addChart("BUTTONS", [
+            '#sessionCount',
+            '#bounceRate',
+            '#sessionDuration',
+            '#conversionRate',
+            '#conversions',
+            '#buyNowClicks'
+        ], QuickLabel, function (response) {
+            return response.totalsForAllResults;
+        }, {}, refreshRate);
+        buttons.addSelection(quickviewMetrics, ['ga:userType'], 'today', 'today');
+        buttons.addSelection(quickviewMetrics, ['ga:userType'], '2014-04-25', 'today');
+        update_all();
     };
 
     // TODO make a function that populates all data on load
@@ -278,24 +304,28 @@ $(document).ready(function () {
     // Start the sessions counts
     google.load('visualization', '1.0', {'packages': ['controls', 'corechart'], callback: drawElements});
 
-    $('#quicklook-total').on('click', function () {
-        pageOptions.charts[CHARTS.QUICKVIEW].current_selection = 1;
-        refresh_quicklook();
+    $('#quickview-total').on('click', function () {
+        pageOptions.charts[CHARTS.indexOf('QUICKVIEW')].current_selection = 1;
+        pageOptions.charts[CHARTS.indexOf('BUTTONS')].current_selection = 1;
+        drawChart(0);
+        drawChart(2);
     });
 
-    $('#quicklook-today').on('click', function () {
-        pageOptions.charts[CHARTS.QUICKVIEW].current_selection = 0;
-        refresh_quicklook();
+    $('#quickview-today').on('click', function () {
+        pageOptions.charts[CHARTS.indexOf('QUICKVIEW')].current_selection = 0;
+        pageOptions.charts[CHARTS.indexOf('BUTTONS')].current_selection = 0;
+        drawChart(0);
+        drawChart(2);
     });
 
     $('#sortview-device').on('click', function () {
-        pageOptions.charts[CHARTS.SORTVIEW].current_selection = 0;
-        refresh_sortview();
+        pageOptions.charts[CHARTS.indexOf('SORTVIEW')].current_selection = 0;
+        drawChart(1);
     });
 
     $('#sortview-source').on('click', function () {
-        pageOptions.charts[CHARTS.SORTVIEW].current_selection = 1;
-        refresh_sortview();
+        pageOptions.charts[CHARTS.indexOf('SORTVIEW')].current_selection = 1;
+        drawChart(1);
     });
 
     $(window).resize(function () {

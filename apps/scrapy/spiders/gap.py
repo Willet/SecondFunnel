@@ -47,6 +47,10 @@ class GapSpider(WebdriverCrawlSpider):
                 self.category_url.format(c) for c in self.categories
             ]
 
+        # Explicit `start_urls` override other `start_urls`
+        if kwargs.get('start_urls'):
+            self.start_urls = kwargs.get('start_urls').split(',')
+
     # For some reason, Always defaults to regular requests...
     # So, we override...
     def start_requests(self):

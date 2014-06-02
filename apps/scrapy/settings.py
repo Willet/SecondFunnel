@@ -70,6 +70,11 @@ SENTRY_SIGNALS = [
     'spider_error'
 ]
 
+# TODO: Import instead of copy-paste
+AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
+AWS_SECRET_ACCESS_KEY = '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'
+FEED_URI = "s3://scrapy.secondfunnel.com/dev/feeds/%(name)s/%(time)s.json"
+
 import cloudinary
 cloudinary.config(
     cloud_name = 'secondfunnel',

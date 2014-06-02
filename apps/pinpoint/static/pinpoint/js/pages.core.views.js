@@ -13,51 +13,6 @@ App.module('core', function (module, App) {
         everScrolled = false;
 
     /**
-     * View responsible for the "Hero Area"
-     * (e.g. Shop-the-look, featured, or just a plain div)
-     *
-     * @constructor
-     * @type {ItemView}
-     */
-    this.HeroAreaView = Marionette.ItemView.extend({
-        // $(...).html() defaults to the first item successfully selected
-        // so featured will be used only if stl is not found.
-        'model': module.Tile,
-        'getTemplate': function () {
-            // if page config contains a product, render hero area with a
-            // template that supports it
-            if (App.option('featured') !== undefined &&
-                $('#shopthelook_template').length) {
-                return "#shopthelook_template";
-            }
-            return "#hero_template";
-        },
-        /**
-         * @param data   normal product data, or, if omitted,
-         *               the featured product.
-         */
-        'initialize': function (data) {
-            this.model = new module.Tile(data || App.option('featured'));
-        },
-        'onRender': function () {
-            var buttons;
-            if (this.$el.length) {  // if something rendered, it was successful
-                if (!(App.support.touch() || App.support.mobile()) &&
-                    this.$('.social-buttons').length >= 1) {
-
-                    if (App.sharing) {
-                        buttons = new App.sharing.SocialButtons({
-                            'model': this.model
-                        }).render().load();
-                        this.$('.social-buttons').html(buttons.$el);
-                    }
-                }
-                App.heroArea.$el.append(this.$el);
-            }
-        }
-    });
-
-    /**
      * View for showing a Tile (or its extensions).
      * This Layout contains socialButtons and tapIndicator regions.
      *
@@ -875,7 +830,7 @@ App.module('core', function (module, App) {
             }
 
             if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1) {
-               this.$('.stl-look .stl-item').on('click', function () {
+                this.$('.stl-look .stl-item').on('click', function () {
                     var $this = $(this),
                         index = $this.data('index'),
                         product = self.model.get('tagged-products')[index],
@@ -907,7 +862,7 @@ App.module('core', function (module, App) {
                     }
 
                     self.renderSubregions(productModel);
-               });
+                });
 
                 // First image is always selected
                 this.$('.stl-look').each(function () {
@@ -963,7 +918,10 @@ App.module('core', function (module, App) {
                 } else if (App.support.mobile()) {
                     this.$el.width($window.width()); // assign width
                 }
-                $(document.body).addClass('no-scroll');
+                // if it's a real preview, add no-scroll
+                if (!this.$el.parents('#hero-area').length) {
+                    $(document.body).addClass('no-scroll');
+                }
             }
         },
 
@@ -1064,6 +1022,40 @@ App.module('core', function (module, App) {
         }
     });
 
+    /**
+     * View responsible for the "Hero Area"
+     * (e.g. Shop-the-look, featured, or just a plain div)
+     *
+     * @constructor
+     * @type {Layout}
+     */
+    this.HeroAreaView = this.PreviewContent.extend({
+        'model': module.Tile,
+        'superClass': App.core.PreviewContent,
+        'getTemplate': function () {
+            // if page config contains a product, render hero area with a
+            // template that supports it
+            if (App.option('featured') !== undefined &&
+                $('#shopthelook_template').length) {
+                return "#shopthelook_template";
+            }
+            return "#hero_template";
+        },
+        /**
+         * @param data   normal product data, or, if omitted,
+         *               the featured product.
+         */
+        'initialize': function (data) {
+            var tile = data;
+            if ($.isEmptyObject(data)) {
+                tile = App.option('featured');
+            }
+            this.model = new module.Tile(tile);
+
+            // "super"
+            this.superClass.prototype.initialize.call(this, tile);
+        }
+    });
 
     /**
      * Container view for a PreviewContent object.
