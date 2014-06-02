@@ -6,7 +6,7 @@ from scrapy.contrib.spiders import CrawlSpider, Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 # TODO: Dupe checking
@@ -16,7 +16,7 @@ from apps.scrapy.utils.itemloaders import ScraperProductLoader
 # Pagination
 
 
-class GapSpider(WebdriverCrawlSpider):
+class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     name = 'gap'
     allowed_domains = ['gap.com']
     start_urls = ['http://www.gap.com/']
@@ -39,17 +39,13 @@ class GapSpider(WebdriverCrawlSpider):
     visited = []
 
     def __init__(self, *args, **kwargs):
-        super(GapSpider, self).__init__()
-
         if kwargs.get('categories'):
             self.categories = kwargs.get('categories').split(',')
             self.start_urls = [
                 self.category_url.format(c) for c in self.categories
             ]
 
-        # Explicit `start_urls` override other `start_urls`
-        if kwargs.get('start_urls'):
-            self.start_urls = kwargs.get('start_urls').split(',')
+        super(GapSpider, self).__init__(*args, **kwargs)
 
     # For some reason, Always defaults to regular requests...
     # So, we override...
