@@ -89,11 +89,15 @@
     padding-top: 0;
 }
 
-.previewContainer .info,
-#hero-area .info {
+.previewContainer .info {
     text-align: center;
     padding-left: 10px;
     padding-right: 10px;
+    overflow: hidden;
+}
+#hero-area .info {
+    text-align: center;
+    padding-right: 20px;
     overflow: hidden;
 }
 .previewContainer .image-with-tagged-products .info,
@@ -345,6 +349,9 @@
     .navbar {
         display: none;
     }
+    .stl .navbar {
+        display: block;
+    }
 
     .jumbotron {
         margin-top: 0;
@@ -368,6 +375,9 @@
         max-width: 100%;
         text-align: center;
     }
+    #hero-area .cell {
+        padding: 20px;
+    }
 
     .previewContainer .gallery img {
         display: inline-block;
@@ -380,9 +390,11 @@
         max-width: none;
     }
 
-    .previewContainer .info .title,
-    #hero-area .info .title {
+    .previewContainer .info .title {
         margin-top: 5px;
+    }
+    #hero-area .info .title {
+        margin-top: 30%;
     }
 
     .previewContainer .stl-look,

@@ -1,6 +1,6 @@
 {% load staticfiles %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" {% if product %}class="stl"{% endif %}>
 <head>
     {% include "pinpoint/campaign_opengraph_tags.html" %}
     {% include "pinpoint/campaign_head.html" %}
@@ -131,15 +131,13 @@
 
         <script type="text/template" id="shopthelook_template">
             <div class='text-centered'>
-                <div class='content-wrapper row'>
+                <div class='content-wrapper'>
                     <div class='cell middle'>
                         <div class="gallery-main-image"></div>
-                    </div>
-                    <% if (obj.images.length > 1 && App.support.mobile()) { %>
-                        <div class='cell'>
+                        <% if (obj.images.length > 1 && App.support.mobile()) { %>
                             <div class='gallery dots'></div>
-                        </div>
-                    <% } %>
+                        <% } %>
+                    </div>
                     <div class='cell middle info'>
                         <div class='title'></div>
                         <div class='price'></div>

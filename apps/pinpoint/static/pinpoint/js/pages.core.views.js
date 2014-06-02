@@ -918,7 +918,10 @@ App.module('core', function (module, App) {
                 } else if (App.support.mobile()) {
                     this.$el.width($window.width()); // assign width
                 }
-                $(document.body).addClass('no-scroll');
+                // if it's a real preview, add no-scroll
+                if (!this.$el.parents('#hero-area').length) {
+                    $(document.body).addClass('no-scroll');
+                }
             }
         },
 

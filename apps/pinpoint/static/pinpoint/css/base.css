@@ -633,10 +633,15 @@ div.loading {
 
 /* mobile-grade preview container styles */
 @media screen and (max-width: 768px) {
-    .previewContainer,
-    #hero-area {
+    .previewContainer {
         display: block;
         overflow: auto;
+        height: auto;
+        position: relative;
+    }
+    #hero-area {
+        display: block;
+        overflow: hidden;
         height: auto;
         position: relative;
     }
