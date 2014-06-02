@@ -238,6 +238,10 @@
     text-align: center;
 }
 
+#hero-area .main-image {
+    max-height: 400px;
+}
+
 .previewContainer .main-image-container .gallery-swipe-left,
 .previewContainer .main-image-container .gallery-swipe-right,
 #hero-area .main-image-container .gallery-swipe-left,
