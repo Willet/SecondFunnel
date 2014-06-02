@@ -1030,6 +1030,7 @@ App.module('core', function (module, App) {
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
         'model': module.Tile,
+        'superClass': App.core.PreviewContent,
         'getTemplate': function () {
             // if page config contains a product, render hero area with a
             // template that supports it
@@ -1044,13 +1045,14 @@ App.module('core', function (module, App) {
          *               the featured product.
          */
         'initialize': function (data) {
+            var tile = data;
             if ($.isEmptyObject(data)) {
-                data = App.option('featured');
+                tile = App.option('featured');
             }
-            this.model = new module.Tile(data);
+            this.model = new module.Tile(tile);
 
             // "super"
-            App.core.PreviewContent.prototype.initialize.apply(this, arguments);
+            this.superClass.prototype.initialize.call(this, tile);
         }
     });
 

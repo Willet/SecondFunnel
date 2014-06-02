@@ -438,6 +438,12 @@ div.loading {
     left: 0;
 }
 
+#hero-area {
+    display: table;
+    width: 100%;
+    height: auto;
+}
+
 @keyframes noop {
     0% {
         margin-bottom: 0;
@@ -470,7 +476,8 @@ div.loading {
     transition: all 0.25s linear;
 }
 
-.previewContainer .fullscreen .content {
+.previewContainer .fullscreen .content,
+#hero-area .fullscreen .content {
     max-height: 100%;
     width: 100%;
     -moz-border-radius: 0px;
@@ -490,12 +497,18 @@ div.loading {
     filter: alpha(opacity=100);
 }
 
-.previewContainer .cell {
+#hero-area .close {
+    display: none;
+}
+
+.previewContainer .cell,
+#hero-area .cell {
     display: table-cell;
     vertical-align: top;
 }
 
-.previewContainer img {
+.previewContainer img,
+#hero-area img {
     max-width: 100%;
 }
 
@@ -515,32 +528,38 @@ div.loading {
     z-index: 100;
 }
 
-.previewContainer .row {
+.previewContainer .row,
+#hero-area .row {
     display: inline-block;
 }
 
-.previewContainer .content {
+.previewContainer .content,
+#hero-area .content {
     /* let the preview scroll, but only if it needs to */
     overflow-y: auto;
     overflow-x: hidden;
 }
 
-.previewContainer .content .scrollable {
+.previewContainer .content .scrollable,
+#hero-area .content .scrollable {
     /* if the theme has one of those defined, it has unrestricted height */
     max-width: 100%;
 }
 
-.previewContainer .content .social-buttons {
+.previewContainer .content .social-buttons,
+#hero-area .content .social-buttons {
     display: block;  /* these, however, show by default */
     clear: both;
 }
 
-.previewContainer .gallery img {
+.previewContainer .gallery img,
+#hero-area .gallery img {
     height: auto;
     width: auto;
 }
 
-.previewContainer .gallery.dots div {
+.previewContainer .gallery.dots div,
+#hero-area .gallery.dots div {
     display: inline-block;
     border-radius: 50%;
     width: 8px;
@@ -550,7 +569,8 @@ div.loading {
     cursor: pointer;
 }
 
-.previewContainer .gallery.dots div.selected {
+.previewContainer .gallery.dots div.selected,
+#hero-area .gallery.dots div.selected {
     background-color: #969696;
     cursor: default;
 }
@@ -613,7 +633,8 @@ div.loading {
 
 /* mobile-grade preview container styles */
 @media screen and (max-width: 768px) {
-    .previewContainer {
+    .previewContainer,
+    #hero-area {
         display: block;
         overflow: auto;
         height: auto;
@@ -623,7 +644,7 @@ div.loading {
         /* since mobile previews are not floating, this class is cancelled */
         display: none;
     }
-    .previewContainer .tablecell {
+    .previewContainer .tablecell, #hero-area .tablecell {
         /* since mobile previews are not floating, this class is cancelled */
         display: block;
         width: auto;
