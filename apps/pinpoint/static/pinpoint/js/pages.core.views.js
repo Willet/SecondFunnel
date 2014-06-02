@@ -1030,8 +1030,6 @@ App.module('core', function (module, App) {
      * @type {Layout}
      */
     this.HeroAreaView = this.PreviewContent.extend({
-        // $(...).html() defaults to the first item successfully selected
-        // so featured will be used only if stl is not found.
         'model': module.Tile,
         'superClass': App.core.PreviewContent,
         'getTemplate': function () {
