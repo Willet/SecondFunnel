@@ -34,13 +34,24 @@ class ColumbiaSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        l.add_value('sku', l.get_output_value('url'), re='/(\w{2}\d+),')
+        l.add_css('sku', 'span[itemprop="identifier"]', re='#(\d+)')
         l.add_css('name', '.product_title::text')
-        # TODO: Add details
-        # TODO: remove view details
-        l.add_css('description', '.description')
         l.add_css('price', '.price-index.regprice::text')
         l.add_value('in_stock', True)
+
+        l.add_css('description', '.description')
+        l.replace_value(
+            'description',
+            l.get_output_value('description').replace(u'\xbb', '')\
+                .replace(u'View Details', '')
+        )
+
+        l.add_css('details', '.pdpDetailsContent')
+        l.replace_value(
+            'details',
+            l.get_output_value('details').replace('\t', '')
+        )
+
 
         image = sel.css('#flashcontent').re_first('image=([^&]+)&')
         l.add_value(

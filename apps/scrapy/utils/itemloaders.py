@@ -25,6 +25,8 @@ class ScraperProductLoader(ItemLoader):
 
     description_in = Compose(lambda v:v[0], Scraper._sanitize_html)
 
+    details_in = Compose(lambda v:v[0], Scraper._sanitize_html)
+
     attributes_out = MergeDicts()
 
     image_urls_out = Identity()
