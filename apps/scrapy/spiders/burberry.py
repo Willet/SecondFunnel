@@ -2,6 +2,7 @@ from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
+from urlparse import urlparse
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import SecondFunnelScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
@@ -33,6 +34,9 @@ class BurberrySpider(SecondFunnelScraper, WebdriverCrawlSpider):
     def parse_product(self, response):
         sel = Selector(response)
 
+        url = response.url
+        hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
+
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_css('sku', '.product-id.section span::text')
@@ -46,9 +50,13 @@ class BurberrySpider(SecondFunnelScraper, WebdriverCrawlSpider):
         categories = []
         for level in [1, 2, 3]:
             category_sel = sel.css('.l-{level}-active'.format(level=level))
-            category_name = category_sel.css('::text').extract_first()
+            category_name = category_sel.css('::text').extract_first().strip()
             category_url = category_sel.css('::attr(href)').extract_first()
-            categories.append((category_name, category_url))
+
+            categories.append((
+                category_name,
+                hostname + category_url
+            ))
 
         attributes = {}
         attributes['categories'] = categories
