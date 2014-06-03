@@ -87,6 +87,7 @@ $(document).ready(function () {
             'isStacked' : true
         }
     };
+    // The time between ajax calls to the server in milliseconds
     var refreshRate = 100000;
     var analyticsStart = '2014-05-02';
     var CHARTS = [];
@@ -399,51 +400,70 @@ $(document).ready(function () {
 
     // Buttons that change selection
     $('#quickview-total').on('click', function () {
-        pageOptions.charts[CHARTS.indexOf('QUICKVIEW')].setSelection(1);
-        drawChart(CHARTS.indexOf('QUICKVIEW'));
+        // number referencing the quickview grouping of charts
+        var QUICKVIEW = CHARTS.indexOf('QUICKVIEW');
+        pageOptions.charts[QUICKVIEW].setSelection(1); // 1 represents the quickview today chart
+        drawChart(QUICKVIEW);
     });
 
     $('#quickview-today').on('click', function () {
-        pageOptions.charts[CHARTS.indexOf('QUICKVIEW')].setSelection(0);
-        drawChart(CHARTS.indexOf('QUICKVIEW'));
+        // number referencing the quickview grouping of charts
+        var QUICKVIEW = CHARTS.indexOf('QUICKVIEW');
+        pageOptions.charts[QUICKVIEW].setSelection(0); // 0 represents the quickview total chart
+        drawChart(QUICKVIEW);
     });
 
     $('#sortview-device').on('click', function () {
-        pageOptions.charts[CHARTS.indexOf('SORTVIEW')].setSelection(0);
-        drawChart(1);
+        // integer that references the sortview grouping of charts
+        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
+        pageOptions.charts[SORTVIEW].setSelection(0); // 0 represents the sortview by device chart
+        drawChart(SORTVIEW);
     });
 
     $('#sortview-source').on('click', function () {
-        pageOptions.charts[CHARTS.indexOf('SORTVIEW')].setSelection(1);
-        drawChart(1);
+        // integer that references the sortview grouping of charts
+        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
+        pageOptions.charts[SORTVIEW].setSelection(1); // 1 represents the sortview by source chart
+        drawChart(SORTVIEW);
     });
 
     $('#conversions-source').on('click', function(){
-        pageOptions.charts[CHARTS.indexOf('CONVERSIONS')].setSelection(1);
-        drawChart(2);
+        // integer that references the conversions grouping of charts
+        var CONVERSIONS = CHARTS.indexOf('CONVERSIONS');
+        pageOptions.charts[CONVERSIONS].setSelection(1); // 1 represents the conversions by source graph
+        drawChart(CONVERSIONS);
     });
 
     $('#conversions-device').on('click', function(){
-        pageOptions.charts[CHARTS.indexOf('CONVERSIONS')].setSelection(0);
-        drawChart(2);
+        // integer that references the conversions grouping of charts
+        var CONVERSIONS = CHARTS.indexOf('CONVERSIONS');
+        pageOptions.charts[CONVERSIONS].setSelection(0); // 0 represents the conversions by device graph
+        drawChart(CONVERSIONS);
     });
 
     $('#metrics-sessions').on('click', function(){
-        console.log("clicked");
-        pageOptions.charts[CHARTS.indexOf('METRICS')].setSelection(0);
-        drawChart(3);
+        // integer that references the metrics grouping of charts
+        var METRICS = CHARTS.indexOf('METRICS');
+        pageOptions.charts[METRICS].setSelection(0); // 0 represents the session metrics graph
+        drawChart(METRICS);
     });
     $('#metrics-duration').on('click', function(){
-        pageOptions.charts[CHARTS.indexOf('METRICS')].setSelection(1);
-        drawChart(3);
+        // integer that references the metrics grouping of charts
+        var METRICS = CHARTS.indexOf('METRICS');
+        pageOptions.charts[METRICS].setSelection(1); // 1 represents the avgSessionDuration metrics graph
+        drawChart(METRICS);
     });
     $('#metrics-conversions').on('click', function(){
-        pageOptions.charts[CHARTS.indexOf('METRICS')].setSelection(2);
-        drawChart(3);
+        // integer that references the metrics grouping of charts
+        var METRICS = CHARTS.indexOf('METRICS');
+        pageOptions.charts[METRICS].setSelection(2); // 2 represents the total conversions metrics graph
+        drawChart(METRICS);
     });
     $('#metrics-goals').on('click', function(){
-        pageOptions.charts[CHARTS.indexOf('METRICS')].setSelection(3);
-        drawChart(3);
+        // integer that references the metrics grouping of charts
+        var METRICS = CHARTS.indexOf('METRICS');
+        pageOptions.charts[METRICS].setSelection(3); // 3 represents the goals metrics graph
+        drawChart(METRICS);
     });
 
     $(window).resize(function () {
