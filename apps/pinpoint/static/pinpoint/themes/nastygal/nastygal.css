@@ -1,6 +1,7 @@
 
 .navbar {
     background-color: #000;
+    margin-top: 56px;
 }
 
 #discovery-area {
@@ -15,6 +16,10 @@
     text-shadow: none;
     font-family: "ff-super-grotesk-web", helvetica,arial;
     font-weight: 200;
+}
+
+.previewContainer {
+    z-index: 11;
 }
 
 .previewContainer,
