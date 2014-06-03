@@ -17,6 +17,7 @@ from oauth2client import xsrfutil
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.django_orm import Storage
 import re
+from string import capitalize
 
 from apps.dashboard.models import CredentialsModel, DashBoard
 
@@ -29,7 +30,13 @@ FLOW = flow_from_clientsecrets(
     redirect_uri='http://localhost' + '/dashboard/oauth2callback')
 
 
-def authorization(request):
+def index(request):
+    context = RequestContext(request)
+    return render_to_response('index.html', {}, context)  #this will eventually be different
+
+
+@login_required
+def gap(request):
     user = request.user
     storage = Storage(CredentialsModel, 'id', user, 'credential')
     credential = storage.get()
@@ -40,19 +47,8 @@ def authorization(request):
         authorize_url = FLOW.step1_get_authorize_url()
         return HttpResponseRedirect(authorize_url)
     else:
-        return credential
-
-
-def index(request):
-    context = RequestContext(request)
-    return render_to_response('index.html', {}, context)  #this will eventually be different
-
-
-@login_required
-def gap(request):
-    authorization(request)
-    context = RequestContext(request)
-    return render_to_response('index.html', {}, context)
+        context = RequestContext(request)
+        return render_to_response('index.html', {}, context)
 
 
 def auth_return(request):
@@ -68,6 +64,8 @@ def auth_return(request):
 def get_data(request):
     response = {'response': 'Retrieving data failed'}
 
+    user = request.user
+    storage = Storage(CredentialsModel, 'id', user, 'credential')
     if request.method == 'GET':
         GET_REQUEST = request.GET
 
@@ -81,12 +79,17 @@ def get_data(request):
             start_date = GET_REQUEST['start-date']
             end_date = GET_REQUEST['end-date']
 
-            dash = DashBoard.objects.all()[0]
+            dash = DashBoard.objects.all()[0]  # TODO this is not the way to get a dashboard
 
-            if (dash.timeStamp - datetime.utcnow().replace(tzinfo=utc)).seconds > 30:
-                # TODO Save response in database?
-                credential = authorization(request)
-                if credential:
+            if True:  # (dash.timeStamp - datetime.utcnow().replace(tzinfo=utc)).seconds > 30:
+                credential = storage.get()
+                if credential is None or credential.invalid:
+                    print "Credential is invalid at retrieval"
+                    #FLOW.params['state'] = xsrfutil.generate_token(settings.SECRET_KEY,
+                    #                                               user)
+                    #authorize_url = FLOW.step1_get_authorize_url()
+                    return HttpResponseRedirect('/dashboard')  # TODO to login page or error
+                else:
                     http = httplib2.Http()
                     http = credential.authorize(http)
                     service = build("analytics", "v3", http=http)
@@ -97,24 +100,26 @@ def get_data(request):
                                                    dimensions=dimension,
                                                    output='dataTable')
                     response = data.execute()
+                    for header in response['dataTable']['cols']:
+                        header['label'] = header['label'].split(':')[1]
+                        # Complicated reg-ex:
+                        #   first group is all lower case,
+                        #   second is a single group capital/digit followed by more digits or lower case.
+                        #   ie. goal2Completions -> [(u'goal', u''), (u'', u'2'), (u'', u'Completions')]
+                        temp_title = re.findall(r'(^[a-z]*)|([\dA-Z]{1}[\da-z]*)', header['label'])
+                        # Then take the correct group, make it uppercase, and add them together to form
+                        #   the pretty human readable title for the dataTable columns
+                        # TODO : replace goal 2 etc with descriptive names
+                        title = ''
+                        for group in temp_title:
+                            if group[0] == u'':
+                                title += group[1] + ' '
+                            else:
+                                title += capitalize(group[0]) + ' '
+                        header['label'] = title
+                    #TODO save response here
             else:
-                # TODO get response from database. right now just get response from server
-                credential = authorization(request)
-                if credential:
-                    http = httplib2.Http()
-                    http = credential.authorize(http)
-                    service = build("analytics", "v3", http=http)
-                    data = service.data().ga().get(ids=table_id,
-                                                   start_date=start_date,
-                                                   end_date=end_date,
-                                                   metrics=metrics,
-                                                   dimensions=dimension,
-                                                   output='dataTable')
-                    response = data.execute()
-
-#for header in response['dataTable']['cols']:
-#    header['label'] = header['label'].lstrip('ga:')
-#    header['label'] = ' '.join(re.findall(r'(^[a-z]*)|([\dA-Z]{1}[\da-z]*)', header['label'])).strip()
-#    print header['label']
+                # TODO get from database
+                pass
     response = json.dumps(response)
     return HttpResponse(response, content_type='application/json')
