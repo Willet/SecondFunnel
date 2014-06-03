@@ -42,6 +42,10 @@ class ProductSerializer(IRSerializer):
 
         data = {
             "url": obj.url,
+            # products don't *always* have skus
+            # -- nor are they unique
+            # -- nor are they necessarily numbers
+            "sku": getattr(obj, "sku", ""),
             "price": obj.price,
             "description": obj.description,
             "details": obj.details,

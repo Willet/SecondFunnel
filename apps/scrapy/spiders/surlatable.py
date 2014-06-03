@@ -5,12 +5,12 @@ from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
 
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 from apps.scrapy.utils.misc import open_in_browser
 
 
-class SurlatableSpider(WebdriverCrawlSpider):
+class SurlatableSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     name = 'surlatable'
     allowed_domains = ['surlatable.com']
     start_urls = []
@@ -21,13 +21,6 @@ class SurlatableSpider(WebdriverCrawlSpider):
     ]
 
     store_slug = name
-
-    def __init__(self, *args, **kwargs):
-        super(SurlatableSpider, self).__init__()
-
-        # Explicit `start_urls` override other `start_urls`
-        if kwargs.get('start_urls'):
-            self.start_urls = kwargs.get('start_urls').split(',')
 
     # For some reason, Always defaults to regular requests...
     # So, we override...

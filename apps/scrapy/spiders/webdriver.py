@@ -11,7 +11,8 @@ class SecondFunnelScraper(object):
 
         # Explicit `start_urls` override other `start_urls`
         if kwargs.get('start_urls'):
-            self.start_urls = kwargs.get('start_urls').split(',')
+            separator = getattr(self, "start_urls_separator", ",")
+            self.start_urls = kwargs.get('start_urls').split(separator)
 
 
 class WebdriverCrawlSpider(Spider):

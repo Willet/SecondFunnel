@@ -5,14 +5,17 @@ from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
 
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class RootsSpider(WebdriverCrawlSpider):
+class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     name = 'roots'
     allowed_domains = ['usa.roots.com', 'canada.roots.com']
     start_urls = ['http://usa.roots.com/women/best-sellers/womensBestSellers,default,sc.html']
+    start_urls_separator = "|"  # because urls above contain commas,
+                                # now you need to separate urls in the terminal
+                                # using this symbol.
     rules = [
         Rule(SgmlLinkExtractor(allow=[r'pd.html']),
              callback='parse_product',
