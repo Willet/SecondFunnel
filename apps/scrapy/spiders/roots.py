@@ -7,6 +7,7 @@ from scrapy_webdriver.http import WebdriverRequest
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
+from apps.scrapy.utils.misc import open_in_browser
 
 
 class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
@@ -55,7 +56,24 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
         img_thumbs = sel.xpath('//div[contains(@class, "fluid-display-imagegroup")]//img[contains(@class, ":view")]')
         for thumb in img_thumbs:
             thumb_url = thumb.css('::attr(src)').extract_first()
-            full_url = re.sub(r'thumb_variation_(\w\d+)_view_(\w)_\d+x\d+\.jpg', full_size_image, thumb_url)
+            if thumb_url:
+                full_url = re.sub(r'thumb_variation_(\w\d+)_view_(\w)_\d+x\d+\.jpg', full_size_image, thumb_url)
+            else:
+                # wild(er) guess if JS is behind
+                # (hopefully it won't have to come to this)
+                selectedColor = re.findall(r"var\s?selectedColor\s?=\s?\'(\w+)\';", response.body, re.I | re.M | re.U)
+                if selectedColor:
+                    # construct unverified image url using default color ID
+                    product_image_pid = re.findall(r':view:\d+:(\d+):pdp2', thumb.extract())[0]
+                    full_url = "http://demandware.edgesuite.net/aacg_prd/on/" \
+                               "demandware.static/Sites-RootsCA-Site/" \
+                               "Sites-roots_master_catalog/default/" \
+                               "v1401786139656/customers/c972/{pid}/{pid}_pdp2/" \
+                               "main_variation_{sc}_view_a_579x579.jpg".format(
+                        pid=product_image_pid, sc=selectedColor[0])
+
+            if not full_url:
+                continue
             image_urls.append(full_url)
 
         attributes = {}
