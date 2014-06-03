@@ -5,8 +5,7 @@ import os
 import json
 from apiclient.discovery import build
 
-from datetime import datetime
-from django.utils.timezone import utc
+from django.utils.timezone import now
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.shortcuts import render_to_response
@@ -22,12 +21,12 @@ from string import capitalize
 from apps.dashboard.models import CredentialsModel, DashBoard
 
 CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secret.json')
-#redirect = settings.WEBSITE_BASE_URL + '/dashboard/oath2callback'
+redirect = settings.WEBSITE_BASE_URL + '/dashboard/oath2callback'
 
 FLOW = flow_from_clientsecrets(
     CLIENT_SECRETS,
     scope='https://www.googleapis.com/auth/analytics.readonly',
-    redirect_uri='http://localhost' + '/dashboard/oauth2callback')
+    redirect_uri=redirect)
 
 
 def index(request):
