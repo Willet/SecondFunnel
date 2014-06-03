@@ -113,7 +113,7 @@ def render_campaign(page_id, request, store_id=0, product=None):
     store = page.store
 
     try:
-        tile = Tile.objects.get(products__id=product.id)
+        tile = Tile.objects.filter(products__id=product.id, template="product")[0]
         product_repr = json.dumps(tile.to_json())
     except (Product.DoesNotExist, AttributeError, ValueError) as err:
         product_repr = "undefined"

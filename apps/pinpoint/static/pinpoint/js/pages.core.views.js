@@ -134,7 +134,7 @@ App.module('core', function (module, App) {
         },
 
         'onClick': function (ev) {
-            var tile = this.model, url;
+            var tile = this.model, sku, url;
 
             if (App.option('openTileInPopup', false)) {
                 if (tile.get('template') === 'product') {
@@ -148,6 +148,10 @@ App.module('core', function (module, App) {
                     url = App.option('tilePopupUrl');
                 }
                 if (url && url.length) {
+                    sku = tile.get('sku');
+                    if (sku) {
+                        url += '/sku/' + sku;
+                    }
                     window.open(url, '_blank');
                 }
                 return;
