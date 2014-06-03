@@ -9,7 +9,7 @@
     "use strict";
 
     // conversion id for clickmeter
-    window.WILLET_CONVERSION_ID = '271C54CB40964B26BD0593C4E24EF1C3';
+    window.SECONDFUNNEL_CONVERSION_ID = '271C54CB40964B26BD0593C4E24EF1C3';
 
     if (document === undefined) {
         // the thing that ran this script was not a browser.
@@ -24,8 +24,8 @@
 
         scriptTag.async = 1;
 
-        if (window.WILLET_CONVERSION_ID) {
-            scriptTag.src = scriptSrc + "?id=" + window.WILLET_CONVERSION_ID;
+        if (window.SECONDFUNNEL_CONVERSION_ID) {
+            scriptTag.src = scriptSrc + "?id=" + window.SECONDFUNNEL_CONVERSION_ID;
         } else {
             scriptTag.src = scriptSrc;
         }

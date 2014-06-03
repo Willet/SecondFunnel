@@ -45,10 +45,10 @@
     // conversion.
     loadPage = function () {
         var clickMeterConversionValue = guessPrice(),
-            clickMeterConversionId = window.WILLET_CONVERSION_ID ||
+            clickMeterConversionId = window.SECONDFUNNEL_CONVERSION_ID ||
                 '{{ clickmeter_conversion_id }}',
             clickMeterConversionParameter = 'empty',
-            conversionBase = 'http://clickmeter.com/conversion.aspx',
+            conversionBase = 'https://clickmeter.com/conversion.aspx',
             convValue,
             iframe = document.createElement('iframe'),
             index,
