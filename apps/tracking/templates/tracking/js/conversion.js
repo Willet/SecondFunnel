@@ -1,20 +1,8 @@
 /*global window, document, undefined*/
 /**
- * Copyright (c) 2014  Willet Incorporated
+ * Copyright (c) 2014  SecondFunnel
  *
- * To include this script onto the page, include a script tag at the bottom
- * of the page, before </body>, as follows:
- *
- * <script src="(location of this script)"></script>
- *
- * If you are not able to host this file. You can also copy and paste this file into
- * a <script> tag directly. Example:
- *
- * ...
- *     <script type="text/javascript">
- *         (contents of this script)
- *     </script>
- * </body>
+ * Second Funnel conversion tracking tag
  *
  */
 ;(function (window, document, undefined) {
@@ -42,6 +30,9 @@
         } else if (window.dataLayer && window.dataLayer.length >= 1) {
         // Then attempt to find prices from Google Tag Manager.
             price = window.dataLayer[0].transactionTotal;
+        } else if (window.google_conversion_value) {
+        // Then attempt to find prices from Google AdWords.
+            price = window.google_conversion_value;
         }
 
         try {
