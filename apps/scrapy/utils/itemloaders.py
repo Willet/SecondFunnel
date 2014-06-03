@@ -21,6 +21,8 @@ class ScraperProductLoader(ItemLoader):
     """
     default_output_processor = TakeFirst()
 
+    name_in = Compose(lambda v:v[0], unicode.strip)
+
     description_in = Compose(lambda v:v[0], Scraper._sanitize_html)
 
     attributes_out = MergeDicts()

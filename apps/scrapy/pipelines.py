@@ -68,11 +68,14 @@ class PricePipeline(object):
         item['price'] = item.get('price', '').strip()
 
         # TODO: Maybe have default currency options in options?
+        # TODO: Couldn't `locale.atof` handle this?
         currency_info = getattr(spider, 'currency_info', {})
         symbol = currency_info.get('symbol', '$')
+        group = currency_info.get('group', ',')
         position_at_end = currency_info.get('position-at-end')
 
         item['price'] = item['price'].strip(symbol)
+        item['price'] = ''.join(item['price'].split(group))
         item['price'] = float(item['price'])
 
         # Our Product model uses a narrow regex...
