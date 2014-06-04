@@ -87,7 +87,7 @@ class PricePipeline(object):
         #     template = u'{symbol}{price}'
 
         # item['price'] = template.format(price=item['price'], symbol=symbol)
-        item['price'] = u'{symbol}{price}'.format(
+        item['price'] = u'{symbol}{price:0.2f}'.format(
             price=item['price'], symbol=symbol
         )
 
