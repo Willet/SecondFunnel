@@ -14,7 +14,10 @@ class NastyGalSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     start_urls = ['http://www.nastygal.com/']
     rules = [
         Rule(
-            SgmlLinkExtractor(restrict_xpaths='//a[@class="product-link"]'),
+            SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "next")]')
+        ),
+        Rule(
+            SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "product-link")]'),
             'parse_product', follow=False
         )
     ]
@@ -32,6 +35,9 @@ class NastyGalSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     def parse_product(self, response):
         sel = Selector(response)
 
+        url = response.url
+        hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
+
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_css('sku', '.product-style::text', re='Style #:(\d+)')
@@ -41,5 +47,23 @@ class NastyGalSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
         l.add_css('description', '.product-description')
         l.add_css('image_urls', '.carousel img::attr(src)')
+
+        # Handle categories
+        breadcrumbs = iter(sel.css('.breadcrumb a'))
+        breadcrumb = next(breadcrumbs)  # Skip the first element
+
+        categories = []
+        for breadcrumb in breadcrumbs:
+            category_name = breadcrumb.css('span::text').extract_first().strip()
+            category_url = breadcrumb.css('::attr(href)').extract_first()
+
+            categories.append((
+                category_name,
+                hostname + category_url
+            ))
+
+        attributes = {}
+        attributes['categories'] = categories
+        l.add_value('attributes', attributes)
 
         yield l.load_item()
