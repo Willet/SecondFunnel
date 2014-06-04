@@ -18,8 +18,30 @@ class MadewellSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     ]
 
     store_slug = name
+    product_url = 'http://www.madewell.com/madewell_category/PRDOVR~{0}/{0}.jsp'
 
     def __init__(self, *args, **kwargs):
+        if kwargs.get('products'):
+            # Mostly used for multi-product scraping
+            # For example, this URL:
+            #
+            #    https://www.madewell.com/browse/multi_product_detail.jsp?externalProductCodes=00000%3AA2330%3AA0379%3AA6319%3AA7928%3AA1718%3AA6306%3AA6308%3A03957%3AA2006%3AA6310%3AA6347&FOLDER%3C%3Efolder_id=2534374302027304&bmUID=kk2rB9Q
+            #
+            # ... is really this URL ...
+            #
+            #   https://www.madewell.com/browse/multi_product_detail.jsp?externalProductCodes=00000:A2330:A0379:A6319:A7928:A1718:A6306:A6308:03957:A2006:A6310:A6347&FOLDER<>folder_id=2534374302027304&bmUID=kk2rB9Q
+            #
+            # ... which is really just these products:
+            #
+            #   00000:A2330:A0379:A6319:A7928:A1718:A6306:A6308:03957:A2006:A6310:A6347
+            #
+            # Except for 00000 (which is invalid)
+
+            self.products = kwargs.get('products').split(',')
+            self.start_urls = [
+                self.product_url.format(c) for c in self.products
+            ]
+
         super(MadewellSpider, self).__init__(*args, **kwargs)
 
     # For some reason, Always defaults to regular requests...
