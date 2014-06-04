@@ -83,7 +83,7 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
             l.add_css('price', '.pricing #priceTop .value::text')
         else:
             l.add_css('price', '.pricing #priceTop .standard .value::text')
-            attributes['sales_price'] = sale_price
+            attributes['sale_price'] = sale_price
 
         attributes['categories'] = []
         category_sels = sel.css('.breadcrumbs').xpath('a[@href!="#"]')
