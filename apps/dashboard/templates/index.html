@@ -1,272 +1,35 @@
 {% extends 'base.html' %}
 {% load static %}
-
-{% block scripts %}
-    <script type="text/javascript" src="{% static "ga_dashboard.js" %}"></script>
-{% endblock %}
-
-{% block sidebar %}
-    <div class="nav-collapse top-margin fixed box-shadow2 hidden-xs" id="sidebar">
-        <div class="leftside-navigation">
-            <ul id="nav-accordion" class="sidebar-menu">
-                <li><a href="#" class="active"> <i class="fa fa-dashboard"></i> <span>Dashboard</span> </a></li>
-                <li class="sub-menu dcjq-parent-li"><a href="javascript:;" class="dcjq-parent"> <i
-                        class="fa fa-book"></i>
-                    <span>Your Campaign</span><i class="pull-right fa fa-sort-down"></i></a>
-                    <ul class="sub">
-                        <li><a href="calendar.html"><i class="fa fa-calendar-o"></i> Calender</a></li>
-                        <li><a href="compose-mail.html"><i class="fa fa-envelope"></i> Send Message</a></li>
-                        <li><a href="invoice.html"><i class="fa fa-money"></i> Invoice</a></li>
-                    </ul>
-                </li>
-            </ul>
-            <!--  /nav-accordion sidebar-menu  -->
-        </div>
-        <!--  /leftside-navigation  -->
-    </div>
-    <!--  /sidebar  -->
-{% endblock %}
-
+{% if user.is_authenticated %}
+    {% block head %} {{ user.name }} {% endblock %}
+{% endif %}
 {% block main %}
-    <div id="main-content">
+  
+  <div id="main-content">
     <div class="page-content">
-    <div class="row">
-        <div class="col-md-8">
-            <h2><i class="fa fa-dashboard"></i>Dashboard</h2>
-        </div>
-        <!--  /col-md-8  -->
-        <div class="col-md-4">
-            <label class="col-sm-3 content-header" >Campaign:</label>
-            <div class="col-md-9">
-                <select id="campaign" class="form-control" name="campaign">
-                    <option value="all">All</option>
-                    <option value="memorialday">Memorial Day</option>
-                    <option value="summerloves">Summer Loves</option>
-                    <option value="paddingtonbear">Paddington Bear</option>
-                    <option value="dressedup">Dressed Up</option>
-                    <option value="livedin">Lived In</option>
-                    <option value="presidentsday">Presidents Day</option>
-                    <option value="summersale">Summer Sale</option>
-                </select>
-            </div>
-        </div>
-        <!-- /col-md-4 -->
-    </div>
-    <!--  /row  -->
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="block-web graph-container" id="dash-quickview">
-                <h3 class="content-header"> At a glance:
-                    <div data-toggle="buttons" class="button-group pull-right">
-                        <a class="btn active small border-gray right-margin" id="quickview-total">
-                            <span class="button-content">
-                                <input type="radio" value="yes" name="quickview">
-                                Total
-                            </span>
-                        </a>
-                        <a class="btn small border-gray" id="quickview-today">
-                            <span class="button-content">
-                                <input type="radio" value="no" name="quickview">
-                                Today
-                            </span>
-                        </a>
-                    </div>
-                </h3>
-                <table class="table margin-top-20" width="100%" border="0" cellspacing="0" cellpadding="0">
-                    <tr>
-                        <td class="fa-border">
-                            <button class="btn btn-danger padd-adj" id="sessionCount" type="button">7000000</button>
-                            Sessions
-                        </td>
-                        <td class="fa-border">
-                            <button class="btn btn-primary padd-adj" id="bounceRate" type="button">28.66%</button>
-                            Bounce Rate
-                        </td>
-                        <td class="fa-border">
-                            <button class="btn btn-info padd-adj" id="sessionDuration" type="button">15.39</button>
-                            Session Duration
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="fa-border">
-                            <button class="btn btn-default padd-adj" id="buyNowClicks" type="button">200</button>
-                            Shop at Gap
-                        </td>
-                        <td class="fa-border">
-                            <button class="btn btn-success padd-adj" id="conversions" type="button">40%</button>
-                            Total Conversions
-                        </td>
-                        <td class="fa-border">
-                            <button class="btn btn-warning padd-adj" id="conversionRate" type="button">3000</button>
-                            Conversion Rate
-                        </td>
-                    </tr>
-                </table>
-                <div class="bottom" id="quickview-graph" style="height:170px;">
-                    Currently loading data... Thank you for your patience
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="block-web graph-container">
-                <h3 class="content-header">
-                    <div class="button-group pull-right" data-toggle="buttons">
-                        <a href="javascript:;" class="btn active small border-gray right-margin" id="sortview-device">
-                            <span class="button-content">
-                                <input type="radio" name="sortview">
-                                Device
-                            </span>
-                        </a>
-                        <a href="javascript:;" class="btn small border-gray" id="sortview-source">
-                            <span class="button-content">
-                                <input type="radio" name="sortview">
-                                Source
-                            </span>
-                        </a>
-                    </div>
-                    <!--  /button-group  -->
-                    <h3 class="content-header">Traffic information:</h3>
-                </h3>
-                <div id="sortview-graph" class="graph">
-                    Currently loading data... Thank you for your patience
-                </div>
-            </div>
-            <!--  /block-web  -->
-        </div>
-        <!--  /col-md-6  -->
-    </div>
-    <!--  /row  -->
-
-    <div class="row">
+      <div class="row">
         <div class="col-md-12">
-            <div class="block-web graph-container">
-                <h3 class="content-header"> Total Conversions
-                    <div class="button-group pull-right" data-toggle="buttons">
-                        <a href="javascript:;" class="btn active small border-gray right-margin" id="conversions-device">
-                            <span class="button-content">
-                                <input type="radio" name="conversions">
-                                Device
-                            </span>
-                        </a>
-                        <a href="javascript:;" class="btn small border-gray right-margin" id="conversions-source">
-                            <span class="button-content">
-                                <input type="radio" name="conversions">
-                                Source
-                            </span>
-                        </a>
-                        <a href="javascript:;" class="btn small border-gray" id="conversions-others">
-                            <span class="button-content">
-                                <input type="radio" name="conversions">
-                                Others...?
-                            </span>
-                        </a>
-                    </div>
-                    <!--   /button-group   -->
-                </h3>
-                <div class="graph" id="total-conversions-graph">
-                    Currently loading data... Thank you for your patience
-                </div>
-                <!--  /custom-bar-chart  -->
-            </div>
-            <!--   /block-web  -->
-        </div>
-        <!--   /col-md-12  -->
-    </div>
-    <!--   /row end  -->
-
-
-    <div class="row">
+          <h2>Welcome
+              {% if user.is_authenticated %}
+                {{ user.username }}
+              {% endif %}
+          </h2>
+        </div><!--/col-md-12--> 
+      </div><!--/row-->
+      
+      <div class="row">
         <div class="col-md-12">
-            <div class="block-web graph-container">
-                <h3 class="content-header"> Metrics over time
-                    <div class="button-group pull-right" data-toggle="buttons">
-                        <a href="javascript:;" class="btn active small border-gray right-margin" id="metrics-sessions">
-                            <span class="button-content">
-                                <input type="radio" name="metrics">
-                                Sessions and Bounces
-                            </span>
-                        </a>
-                        <a href="javascript:;" class="btn small border-gray right-margin" id="metrics-duration">
-                            <span class="button-content">
-                                <input type="radio" name="metrics">
-                                Session Duration
-                            </span>
-                        </a>
-                        <a href="javascript:;" class="btn small border-gray right-margin" id="metrics-conversions">
-                            <span class="button-content">
-                                <input type="radio" name="metrics">
-                                Total Conversions
-                            </span>
-                        </a>
-                        <a href="javascript:;" class="btn small border-gray" id="metrics-goals">
-                            <span class="button-content">
-                                <input type="radio" name="metrics">
-                                Goal Completions
-                            </span>
-                        </a>
-                    </div>
-                    <!--   /button-group   -->
-                </h3>
-                <div class="graph" id="metrics-graph">
-                    Currently loading data... Thank you for your patience
-                </div>
-                <!--  /custom-bar-chart  -->
-            </div>
-            <!--   /block-web  -->
-        </div>
-        <!--   /col-md-12  -->
-    </div>
-    <!--   /row end  -->
-
-    <div class="row">
-        <div class="col-lg-4">
-            <div class="block-web graph-container">
-                <h3 class="content-header">
-                    Scroll Rate
-                </h3>
-                <div class="graph" id="scrollRate-graph">
-                    Currently loading data... Thank you for your patience
-                </div>
-                <!--  /custom-bar-chart  -->
-            </div>
-            <!--   /block-web  -->
-        </div>
-        <!--   /col-lg-4  -->
-        <div class="col-lg-4">
-            <div class="block-web graph-container">
-                <h3 class="content-header">
-                    Product Preview Rate
-                </h3>
-                <div class="graph" id="productPreview-graph">
-                    Currently loading data... Thank you for your patience
-                </div>
-                <!--  /custom-bar-chart  -->
-            </div>
-            <!--   /block-web  -->
-        </div>
-        <!--   /col-lg-4  -->
-        <div class="col-lg-4">
-            <div class="block-web graph-container">
-                <h3 class="content-header">
-                    Buy Now Rate
-                </h3>
-                <div class="graph" id="buyNow-graph">
-                    Currently loading data... Thank you for your patience
-                </div>
-                <!--  /custom-bar-chart  -->
-            </div>
-            <!--   /block-web  -->
-        </div>
-        <!--   /col-lg-4  -->
-    </div>
-    <!--   /row end  -->
-    </div>
-    <!--  /page-content end  -->
-    </div>
-    <!--  /main-content end  -->
-
+          <div class="block-web">
+            {% for dash in dashboards %}
+                <p>
+                    {{ site }} : {{ tableId }}
+                </p>
+            {% endfor %}
+          </div><!--/block-web--> 
+        </div><!--/col-md-12--> 
+      </div><!--/row-->
+     
+      
+    </div><!--/page-content end--> 
+  </div><!--/main-content end--> 
 {% endblock %}
-</body>
-</html>

@@ -88,7 +88,7 @@ $(document).ready(function () {
         }
     };
     // The time between ajax calls to the server in milliseconds
-    var refreshRate = 100000;
+    var refreshRate = 1000 * 60 * 15; // 1 second * 60 * 15 = 15 minutes
     var analyticsStart = '2014-05-02';
     var CHARTS = [];
     var pageOptions = {
@@ -241,6 +241,7 @@ $(document).ready(function () {
         var ajax_response = function (chartNumber, numSelection) {
             return function (response) {
                 chartStorage[chartNumber].selections[numSelection].response = response;
+                drawChart(groupNumber);
             };
         };
         for (var chartNumber = 0; chartNumber < chartStorage.length; chartNumber++) {
@@ -260,8 +261,6 @@ $(document).ready(function () {
     var updateView = function (groupNumber) {
         // Get Data
         datify(groupNumber);
-        // update elements
-        drawChart(groupNumber);
         var timeout = pageOptions.charts[groupNumber].current_timeout;
         if (timeout !== -1) {
             clearTimeout(timeout);
