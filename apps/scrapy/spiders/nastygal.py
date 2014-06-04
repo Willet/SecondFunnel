@@ -12,7 +12,6 @@ class NastyGalSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     name = 'nastygal'
     allowed_domains = ['nastygal.com']
     start_urls = ['http://www.nastygal.com/']
-    start_urls_separator = '|'
     rules = [
         Rule(
             SgmlLinkExtractor(restrict_xpaths='//a[@class="product-link"]'),
