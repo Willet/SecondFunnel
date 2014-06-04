@@ -90,7 +90,7 @@ def campaign_by_slug(request, page_slug, product_identifier='id',
 
     if product_identifier in ['id', 'sku']:
         try:
-            product = Product.objects.get(**lookup_map)
+            product = Product.objects.filter(**lookup_map)[0]
         except (Product.DoesNotExist, ValueError) as err:
             product = None
     else:
