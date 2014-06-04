@@ -59,9 +59,13 @@
             // show new products every so often
             // (and roll this into core code if requested by any other client)
             setInterval(function () {
-                $('html, body').animate({
-                    'scrollTop': $('.tile:in-viewport:last').offset().top -
-                            $('#topbar').outerHeight()
+                $('html, body').scrollTop(
+                    $('.tile:in-viewport:last').offset().top -
+                        $('#topbar').outerHeight()
+                );
+                setTimeout(function () {
+                    // remove noscroll after scroll is set
+                    App.vent.trigger('scrollStopped');
                 }, 0);
             }, 10000);
         </script>
