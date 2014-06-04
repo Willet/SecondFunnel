@@ -125,6 +125,16 @@
                 <span class="type"><%= obj['content-type'] %></span>
             <% } %>
             <div class="name"><%= obj.title || obj.name %></div>
+            <div class="price">
+                <% if (obj.sale_price) { %>
+                    <div class="strike inline">
+                        <%- obj.price %>
+                    </div>
+                    <%- obj.sale_price %>
+                <% } else { %>
+                    <%- obj.price %>
+                <% } %>
+            </div>
         </script>
 
         <script type="text/template" id="image_tile_template">
@@ -215,7 +225,6 @@
                         <div class='title'></div>
                         <div class='price'></div>
                         <div class='buy'></div>
-                        <div class='description'></div>
                     </div>
                 <% } %>
                 <div class='cell'>
@@ -231,7 +240,6 @@
                         <div class='title'></div>
                         <div class='price'></div>
                         <div class='buy'></div>
-                        <div class='description'></div>
                         <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
                     </div>
                 <% } %>
@@ -267,7 +275,6 @@
                             <div class='price'></div>
                             <div class='buy'></div>
                             <div class="gallery-main-image"></div>
-                            <div class='description'></div>
                             <div class='gallery<% if (App.support.mobile()) { %> dots<% } %><% if (obj.images.length < 2) { %> hide<% } %>'></div>
                         </div>
                         <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
