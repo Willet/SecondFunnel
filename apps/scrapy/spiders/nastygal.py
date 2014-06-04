@@ -2,6 +2,7 @@ from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
+from urlparse import urlparse
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import SecondFunnelScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
@@ -34,6 +35,9 @@ class NastyGalSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     def parse_product(self, response):
         sel = Selector(response)
 
+        url = response.url
+        hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
+
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_css('sku', '.product-style::text', re='Style #:(\d+)')
@@ -43,5 +47,23 @@ class NastyGalSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
         l.add_css('description', '.product-description')
         l.add_css('image_urls', '.carousel img::attr(src)')
+
+        # Handle categories
+        breadcrumbs = iter(sel.css('.breadcrumb a'))
+        breadcrumb = next(breadcrumbs)  # Skip the first element
+
+        categories = []
+        for breadcrumb in breadcrumbs:
+            category_name = breadcrumb.css('span::text').extract_first().strip()
+            category_url = breadcrumb.css('::attr(href)').extract_first()
+
+            categories.append((
+                category_name,
+                hostname + category_url
+            ))
+
+        attributes = {}
+        attributes['categories'] = categories
+        l._add_value('attributes', attributes)
 
         yield l.load_item()
