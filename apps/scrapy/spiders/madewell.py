@@ -44,11 +44,6 @@ class MadewellSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
         super(MadewellSpider, self).__init__(*args, **kwargs)
 
-    # For some reason, Always defaults to regular requests...
-    # So, we override...
-    def start_requests(self):
-        return [WebdriverRequest(url) for url in self.start_urls]
-
     def parse_product(self, response):
         sel = Selector(response)
 

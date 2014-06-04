@@ -47,11 +47,6 @@ class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
         super(GapSpider, self).__init__(*args, **kwargs)
 
-    # For some reason, Always defaults to regular requests...
-    # So, we override...
-    def start_requests(self):
-        return [WebdriverRequest(url) for url in self.start_urls]
-
     def parse_start_url(self, response):
         """
         Handles any special parsing from start_urls.
