@@ -41,6 +41,12 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
             """
             return 'main_variation_{}_view_{}_579x579.jpg'.format(x.group(1), x.group(2))
 
+        full_url_format = "http://demandware.edgesuite.net/aacg_prd/on/" \
+                          "demandware.static/Sites-RootsCA-Site/" \
+                          "Sites-roots_master_catalog/default/" \
+                          "v1401786139656/customers/c972/{pid}/{pid}_pdp2/" \
+                          "main_variation_{sc}_view_a_579x579.jpg"
+
         sel = Selector(response)
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
@@ -54,6 +60,8 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
         # TODO: WTF does this need to be this complicated?
         image_urls = []
         img_thumbs = sel.xpath('//div[contains(@class, "fluid-display-imagegroup")]//img[contains(@class, ":view")]')
+        selectedColor = re.findall(r"var\s?selectedColor\s?=\s?\'(\w+)\';", response.body, re.I | re.M | re.U)
+
         for thumb in img_thumbs:
             thumb_url = thumb.css('::attr(src)').extract_first()
             if thumb_url:
@@ -61,20 +69,22 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
             else:
                 # wild(er) guess if JS is behind
                 # (hopefully it won't have to come to this)
-                selectedColor = re.findall(r"var\s?selectedColor\s?=\s?\'(\w+)\';", response.body, re.I | re.M | re.U)
                 if selectedColor:
                     # construct unverified image url using default color ID
                     product_image_pid = re.findall(r':view:\d+:(\d+):pdp2', thumb.extract())[0]
-                    full_url = "http://demandware.edgesuite.net/aacg_prd/on/" \
-                               "demandware.static/Sites-RootsCA-Site/" \
-                               "Sites-roots_master_catalog/default/" \
-                               "v1401786139656/customers/c972/{pid}/{pid}_pdp2/" \
-                               "main_variation_{sc}_view_a_579x579.jpg".format(
+                    full_url = full_url_format.format(
                         pid=product_image_pid, sc=selectedColor[0])
 
             if not full_url:
                 continue
             image_urls.append(full_url)
+
+        if not image_urls and selectedColor:
+            # wild guess (2) for pages that have only one image and no "picker"
+            default_pic_id = sel.css('.fluid-display::attr(id)').extract_first()
+            product_image_pid = re.findall(r'display:\d+:(\d+):pdp2',
+                                           default_pic_id)[0]
+            image_urls.append(full_url_format.format(pid=product_image_pid, sc=selectedColor[0]))
 
         attributes = {}
         sale_price = sel.css('.pricing #priceTop .special .value::text').extract_first()
