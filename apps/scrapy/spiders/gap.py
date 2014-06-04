@@ -1,19 +1,12 @@
-import re
 from urlparse import urljoin
 from scrapy import log
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-from scrapy.contrib.spiders import CrawlSpider, Rule
+from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
-
-# TODO: Dupe checking
-#   see http://doc.scrapy.org/en/latest/topics/settings.html?highlight=dupe#dupefilter-class
-#   see http://doc.scrapy.org/en/latest/topics/item-pipeline.html#duplicates-filter
-# TODO: Memory
-# Pagination
 
 
 class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
