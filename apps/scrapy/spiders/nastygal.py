@@ -64,6 +64,6 @@ class NastyGalSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
         attributes = {}
         attributes['categories'] = categories
-        l._add_value('attributes', attributes)
+        l.add_value('attributes', attributes)
 
         yield l.load_item()
