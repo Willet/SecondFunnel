@@ -1,35 +1,54 @@
 {% extends 'base.html' %}
 {% load static %}
 {% if user.is_authenticated %}
-    {% block head %} {{ user.name }} {% endblock %}
+    {% block head %} {{ user.username }} {% endblock %}
 {% endif %}
 {% block main %}
-  
-  <div id="main-content">
-    <div class="page-content">
-      <div class="row">
-        <div class="col-md-12">
-          <h2>Welcome
-              {% if user.is_authenticated %}
-                {{ user.username }}
-              {% endif %}
-          </h2>
-        </div><!--/col-md-12--> 
-      </div><!--/row-->
-      
-      <div class="row">
-        <div class="col-md-12">
-          <div class="block-web">
-            {% for dash in dashboards %}
-                <p>
-                    {{ site }} : {{ tableId }}
-                </p>
-            {% endfor %}
-          </div><!--/block-web--> 
-        </div><!--/col-md-12--> 
-      </div><!--/row-->
-     
-      
-    </div><!--/page-content end--> 
-  </div><!--/main-content end--> 
+
+    <div id="main-content">
+        <div class="page-content">
+
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>Welcome
+                        {% if user.is_authenticated %}
+                            {{ user.username }}
+                        {% endif %}
+                    </h2>
+                </div>
+                <!--/col-md-12-->
+            </div>
+            <!--/row-->
+
+
+            <div class="row">
+                <div class="col-md-12">
+
+                    <div class="block-web">
+                        {% for dash in dashboards %}
+                            <a href="/dashboards/{{ dash.tableId }}"> <!-- TODO figure out the best url for dashboards -->
+
+                                <button class="btn btn-primary btn-lg" type="button"
+                                        style="width: 100%; margin: 10px 0 10px 0;">
+                                    <div style="float: left;">
+                                        {{ dash.site }}
+                                    </div>
+                                    <div style="float: right;">
+                                        Analytics ID: {{ dash.tableId }}
+                                    </div>
+                                </button>
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <!--/block-web-->
+
+                </div>
+                <!--/col-md-12-->
+            </div>
+            <!--/row-->
+
+
+        </div>
+        <!--/page-content end-->
+    </div><!--/main-content end-->
 {% endblock %}
