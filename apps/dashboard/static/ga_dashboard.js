@@ -1,12 +1,10 @@
-/*globals google */
+/*globals google, table*/
 /**
  * Created by tristanpotter on 2014-05-22.
  */
 
 $(document).ready(function () {
     "use strict";
-    // TODO move this to server
-    var table = 83581767; //gap table id. for google analytics.
     var console = window.console;
     var CHART_OPTIONS = {
         sparkline: {
@@ -200,7 +198,6 @@ $(document).ready(function () {
                 'queryName': queryName
             },
             type: "GET", // TODO GET or PUSH?
-            cache: false, // TODO if PUSH, is this necessary
             dataType: "json",
             success: callback,
             error: function (xhr, status, errorThrown) {
@@ -345,12 +342,13 @@ $(document).ready(function () {
             buttonConversions, buttonSessionCount, buttonSessionDuration], refreshRate);
 
         var sortview = createAnalyticsElement($('#sortview-graph')[0],
-            google.visualization.ColumnChart, function (response) {
+            google.visualization.PieChart, function (response) {
                 var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                console.log(data);
                 return data;
-            }, CHART_OPTIONS.columnChart);
-        sortview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:deviceCategory'], analyticsStart, 'today');
-        sortview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:medium'], analyticsStart, 'today');
+            }, {title: 'Testing'});
+        sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, 'today');
+        sortview.addSelection(['ga:sessions'], ['ga:medium'], analyticsStart, 'today');
         createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
 
         var totalConversions = createAnalyticsElement($('#total-conversions-graph')[0],

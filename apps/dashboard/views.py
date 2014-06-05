@@ -1,6 +1,6 @@
 from apiclient.errors import HttpError
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.cache import cache_page
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.views.decorators.cache import cache_page, never_cache
 import httplib2
 import os
 import json
@@ -21,6 +21,7 @@ from oauth2client.client import SignedJwtAssertionCredentials
 from string import capitalize
 
 from apps.dashboard.models import DashBoard, UserProfile
+from apps.utils import async
 
 LOGIN_URL = '/dashboards/login'
 SERVICE_ACCOUNT_EMAIL = "231833496051-kf5r0aath3eh96209hdutfggj5dqld9f@developer.gserviceaccount.com"
@@ -67,9 +68,20 @@ def prettify_data(response):
     return response
 
 
+@async
+def update_data(request):
+    """
+    If the cache_page decorator doesn't perform as expected,
+        then this will be how data is refreshed in the db
+    """
+    pass
+
+
 @login_required(login_url=LOGIN_URL)
+@never_cache
 @cache_page(60 * 60)  # cache for an hour
 def get_data(request):
+    print "data was run"
     response = {'error': 'Retrieving data failed'}
     if request.method == 'GET':
         GET_REQUEST = request.GET
@@ -100,12 +112,13 @@ def get_data(request):
                     print "Querying Google Analytics failed with: ", error
                     response['error'] = 'Querying GA failed'
 
-                #TODO save response here if caching doesn't work
+                    #TODO save response here if caching doesn't work
             else:
                 # TODO get from database
                 pass
     response = json.dumps(response)
     return HttpResponse(response, content_type='application/json')
+
 
 @login_required(login_url=LOGIN_URL)
 def index(request):
@@ -114,8 +127,9 @@ def index(request):
     try:
         profile = UserProfile.objects.get(user=user)
         dashboards = profile.dashboards.all()
-        context_dict = {'dashboards': [{'site': dashboard.site,
-                                       'tableId': dashboard.table_id} for dashboard in dashboards]}
+        context_dict = {'dashboards': [{'site': dashboard.site_name,
+                                        'pk': dashboard.pk,
+                                        'tableId': dashboard.table_id} for dashboard in dashboards]}
     except UserProfile.DoesNotExist:
         print "user does not exist"
 
@@ -123,8 +137,34 @@ def index(request):
     return render_to_response('index.html', context_dict, context)
 
 
+@login_required(login_url=LOGIN_URL)
+def dashboard(request, dashboardId):
+    profile = UserProfile.objects.get(user=request.user)
+    if not profile.dashboards.all().filter(pk=dashboardId):
+        # can't view page
+        return HttpResponseRedirect('/dashboards/')
+    else:
+        context_dict = {}
+        try:
+            dashboard = DashBoard.objects.get(pk=dashboardId)
+        except DashBoard.MultipleObjectsReturned or DashBoard.DoesNotExist:
+            return HttpResponseRedirect('/dashboards/')
+        context_dict['tableId'] = dashboard.table_id
+        context_dict['siteName'] = dashboard.site_name
+        # TODO add this to model
+        context_dict['campaigns'] = [{'value': 'memorialday', 'name': 'Memorial Day'},
+                                     {'value': 'summerloves', 'name': 'Summer Loves'},
+                                     {'value': 'paddingtonbear', 'name': 'Paddington Bear'},
+                                     {'value': 'dressedup', 'name': 'Dressed Up'},
+                                     {'value': 'livedin', 'name': 'Lived In'},
+                                     {'value': 'presidentsday', 'name': 'Presidents Day'},
+                                     {'value': 'summersale', 'name': 'Summer Sale'}]
+
+        return render(request, 'dashboard.html', context_dict)
+
+
 def gap(request):
-    return render(request, 'dashboard.html',)
+    return render(request, 'dashboard.html')
 
 
 def user_login(request):
@@ -152,6 +192,7 @@ def user_login(request):
         return render_to_response('login.html',
                                   {},  # no context variables to pass
                                   context)
+
 
 @login_required(login_url=LOGIN_URL)
 def user_logout(request):
