@@ -75,6 +75,9 @@ class WebdriverCrawlSpider(Spider):
             for request_or_item in self._requests_to_follow(response):
                 yield request_or_item
 
+    def make_requests_from_url(self, url):
+        return WebdriverRequest(url, dont_filter=True)
+
     # --------------------------------------------------------------------------
     #   Everything below this line is duplicated verbatim
     #   from scrapy.contrib.spiders.CrawlSpider

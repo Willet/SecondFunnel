@@ -3,11 +3,9 @@ from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
-
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
-from apps.scrapy.utils.misc import open_in_browser
 
 
 class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
