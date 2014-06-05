@@ -104,7 +104,7 @@ Scrapy==0.22.2
 scrapy-sentry==0.6.1
 Twisted==13.2.0
 cffi==0.8.2
-cryptography==0.3
+cryptography==0.4
 cssselect==0.9.1
 pyOpenSSL==0.14
 pycparser==2.10
