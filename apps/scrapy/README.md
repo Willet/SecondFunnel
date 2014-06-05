@@ -20,6 +20,15 @@ as you would do with `manage.py`*
 - Spider arguments are passed to their `__init__` method as `kwargs`
 - Details on default exporting formats can be found [here](http://doc.scrapy.org/en/latest/topics/feed-exports.html#feed-exporters-base).
 
+### Run a contract
+
+    scrapy check [<scraper_name>] -s SENTRY_SIGNALS=[]
+
+- Small problem when `scraper_name` is not provided: occasionally Ghostdriver
+ throws an exception...
+- The `-s` flag lets you override project settings,
+and we override `SENTRY_SIGNALS` as it causes problems with contracts
+
 ## Documentation
 
 Most of the scraping is build off of ordinary Scrapy or the Scrapy source
