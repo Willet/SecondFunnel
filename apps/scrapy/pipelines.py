@@ -6,7 +6,7 @@ from collections import defaultdict
 from django.core.exceptions import ValidationError
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
-from apps.assets.models import Store, Product, Category
+from apps.assets.models import Store, Product, Category, Feed
 from apps.scraper.scrapers import ProductScraper
 from apps.scrapy.items import ScraperProduct, ScraperContent
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
@@ -193,6 +193,28 @@ class CategoryPipeline(object):
         product, _ = get_or_create(item_model)
         category.products.add(product)
         category.save()
+
+class FeedPipeline(object):
+    def process_item(self, item, spider):
+        feed_ids = getattr(spider, 'feed_ids', [])
+
+        for feed_id in feed_ids:
+            self.add_to_feed(item, feed_id)
+
+        return item
+
+    def add_to_feed(self, item, feed_id):
+        try:
+            feed = Feed.objects.get(id=feed_id)
+        except Feed.DoesNotExist:
+            return
+
+        try:
+            item_model = item_to_model(item)
+        except TypeError:
+            return
+
+        feed.add_product(product=item_model)
 
 
 class ProductImagePipeline(object):
