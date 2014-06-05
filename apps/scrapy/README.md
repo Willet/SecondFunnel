@@ -31,3 +31,18 @@ In order to scrape JavaScript, we leverage scrapy-webdriver which itself uses
 PhantomJS. Assuming that PhantomJS is installed, everything should just work.
 
 - **`scrapy-webdriver` Project**: https://github.com/brandicted/scrapy-webdriver/
+
+## Performance
+At the moment, the slowest part of scraping is likely persistence and image
+processing, namely because it does these two things serially, and one-by-one.
+
+If it is of interest to do scraping more quickly, it would be best to have
+the scraper focus on scraping, return a `jsonlines` feed,
+then have another script iterate over all lines and handle the batch
+insertion, image processing, and association.
+
+Further, some performance is likely to be gained by using the native
+`CrawlSpider` instead of `WebDriverCrawlSpider` to avoid the overhead of
+using `PhantomJS`. This, however, would mean that we wouldn't have any means
+to scrape JavaScript in the scraper, which may require more cleverness when
+writing spiders.
