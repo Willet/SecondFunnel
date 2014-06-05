@@ -41,13 +41,10 @@ class VoyagePriveScraper(XMLFeedSpider):
         if kwargs.get('categories'):
             self.categories = kwargs.get('categories').split(',')
 
-    # Item Loaders can simplify this code even further.
-    # However, there are some complications, namely:
-    #   - Attributes: Would need a custom item loader
-    #   - Fields that depend on fields, but that can be accomplished via
-    #     processors:
-    #       http://stackoverflow.com/a/19974695
     def parse_node(self, response, node):
+        # It *should* be possible to write a contract for this...
+        # but I keep getting this error:
+        #   parse_node() takes exactly 3 arguments (2 given)
         l = ScraperProductLoader(item=ScraperProduct(), selector=node)
         l.add_xpath('sku', 'id/text()')
         l.add_xpath('name', 'titre/text()')
@@ -92,9 +89,17 @@ class VoyagePriveScraper(XMLFeedSpider):
         return request
 
     def parse_page(self, response):
+        """
+        Parses additional product info for Voyage Prive.
+
+        @url http://www.officiel-des-vacances.com/vol/product/32470
+        @returns items 1 1
+        @returns requests 0 0
+        @scrapes image_urls attributes
+        """
         sel = Selector(response)
 
-        item = response.meta['item']
+        item = response.meta.get('item', ScraperProduct())
         l = ScraperProductLoader(item=item, response=response)
         l.add_css(
             'image_urls',
@@ -118,7 +123,7 @@ class VoyagePriveScraper(XMLFeedSpider):
         # not values that were part of the original object.
         #
         # Because of this, we re-add attributes so that the two will be merged.
-        l.add_value('attributes', item['attributes'])
+        l.add_value('attributes', item.get('attributes'))
         l.add_value('attributes', attributes)
 
         return l.load_item()

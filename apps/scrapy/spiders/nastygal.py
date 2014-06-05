@@ -27,6 +27,14 @@ class NastyGalSpider(SecondFunnelScraper, WebdriverCrawlSpider):
         super(NastyGalSpider, self).__init__(*args, **kwargs)
 
     def parse_product(self, response):
+        """
+        Parses a product page on NastyGal.com.
+
+        @url http://www.nastygal.com/whats-new_clothes/after-party-short-and-sweet-top
+        @returns items 1 1
+        @returns requests 0 0
+        @scrapes url sku name price in_stock description image_urls attributes
+        """
         sel = Selector(response)
 
         url = response.url

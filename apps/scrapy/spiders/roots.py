@@ -29,6 +29,14 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
         return [WebdriverRequest(url) for url in self.start_urls]
 
     def parse_product(self, response):
+        """
+        Parses a product page on Roots.com.
+
+        @url http://canada.roots.com/SmallBanffBagHorween/LeatherLuggageBags//18040023,default,pd.html?cgid=leatherWeekenderBags&selectedColor=Z65
+        @returns items 1 1
+        @returns requests 0 0
+        @scrapes url sku name price description image_urls attributes
+        """
         def full_size_image(x):
             """From
             thumb_variation_A59_view_b_55x55.jpg
