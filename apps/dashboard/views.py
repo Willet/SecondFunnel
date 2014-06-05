@@ -1,4 +1,5 @@
 from apiclient.errors import HttpError
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
 import httplib2
 import os
@@ -21,6 +22,7 @@ from string import capitalize
 
 from apps.dashboard.models import DashBoard, UserProfile
 
+LOGIN_URL = '/dashboards/login'
 SERVICE_ACCOUNT_EMAIL = "231833496051-kf5r0aath3eh96209hdutfggj5dqld9f@developer.gserviceaccount.com"
 SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(os.path.dirname(__file__),
                                                 'ad04005e5e7b5a51c66cd176e10277a59cb61824-privatekey.p12')
@@ -65,6 +67,7 @@ def prettify_data(response):
     return response
 
 
+@login_required(login_url=LOGIN_URL)
 @cache_page(60 * 60)  # cache for an hour
 def get_data(request):
     response = {'error': 'Retrieving data failed'}
@@ -104,23 +107,20 @@ def get_data(request):
     response = json.dumps(response)
     return HttpResponse(response, content_type='application/json')
 
-
+@login_required(login_url=LOGIN_URL)
 def index(request):
-    if request.user.is_authenticated():
-        user = User.objects.get(pk=request.user.pk)
-        context_dict = {}
-        try:
-            profile = UserProfile.objects.get(user=user)
-            dashboards = profile.dashboards.all()
-            context_dict = {'dashboards': [{'site': dashboard.site,
-                                           'tableId': dashboard.table_id} for dashboard in dashboards]}
-        except UserProfile.DoesNotExist:
-            print "user does not exist"
+    user = User.objects.get(pk=request.user.pk)
+    context_dict = {}
+    try:
+        profile = UserProfile.objects.get(user=user)
+        dashboards = profile.dashboards.all()
+        context_dict = {'dashboards': [{'site': dashboard.site,
+                                       'tableId': dashboard.table_id} for dashboard in dashboards]}
+    except UserProfile.DoesNotExist:
+        print "user does not exist"
 
-        context = RequestContext(request)
-        return render_to_response('index.html', context_dict, context)
-    else:
-        return HttpResponseRedirect('/dashboard/login/')
+    context = RequestContext(request)
+    return render_to_response('index.html', context_dict, context)
 
 
 def gap(request):
@@ -140,7 +140,7 @@ def user_login(request):
         if user is not None:  # if authentication was successful
             if user.is_active:  # could have been deactivated
                 login(request, user)  # log the user in.
-                return HttpResponseRedirect('/dashboard/')
+                return HttpResponseRedirect('/dashboards/')
             else:  # user account was deactivated
                 return HttpResponse("Your SecondFunnel account is disabled")
 
@@ -153,11 +153,8 @@ def user_login(request):
                                   {},  # no context variables to pass
                                   context)
 
-
+@login_required(login_url=LOGIN_URL)
 def user_logout(request):
-    if request.user.is_authenticated():
-        logout(request)
-        # Take the user back to the homepage.
-        return HttpResponseRedirect('/dashboard/')
-    else:
-        return HttpResponseRedirect('/dashboard/login')
+    logout(request)
+    # Take the user back to the homepage.
+    return HttpResponseRedirect('/dashboards/')
