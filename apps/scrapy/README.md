@@ -28,6 +28,7 @@ as you would do with `manage.py`*
  throws an exception...
 - The `-s` flag lets you override project settings,
 and we override `SENTRY_SIGNALS` as it causes problems with contracts
+- More information on contracts can be found in the [Scrapy docs](http://doc.scrapy.org/en/latest/topics/contracts.html).
 
 ## Documentation
 
