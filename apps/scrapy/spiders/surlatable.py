@@ -19,6 +19,14 @@ class SurlatableSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     store_slug = name
 
     def parse_product(self, response):
+        """
+        Parses a product page on SurLaTable.com.
+
+        @url http://www.surlatable.com/product/PRO-1447598/Fish+Individual+Bowl
+        @returns items 1 1
+        @returns requests 0 0
+        @scrapes url sku name price description image_urls attributes
+        """
 
         sel = Selector(response)
 

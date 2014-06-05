@@ -23,6 +23,14 @@ class ColumbiaSpider(SecondFunnelScraper, WebdriverCrawlSpider):
         super(ColumbiaSpider, self).__init__(*args, **kwargs)
 
     def parse_product(self, response):
+        """
+        Parses a product page on Columbia.com.
+
+        @url http://www.columbia.com/Men%27s-Royce-Peak%E2%84%A2-Zero-Short-Sleeve-Shirt/AM9112,default,pd.html
+        @returns items 1 1
+        @returns requests 0 0
+        @scrapes url sku name price in_stock description details image_urls attributes
+        """
         sel = Selector(response)
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)

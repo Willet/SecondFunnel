@@ -21,14 +21,14 @@ class ScraperProductLoader(ItemLoader):
     """
     default_output_processor = TakeFirst()
 
-    name_in = Compose(lambda v:v[0], unicode.strip)
+    name_in = Compose(TakeFirst(), unicode.strip)
 
-    description_in = Compose(lambda v:v[0], Scraper._sanitize_html)
+    description_in = Compose(TakeFirst(), Scraper._sanitize_html)
 
-    details_in = Compose(lambda v:v[0], Scraper._sanitize_html)
+    details_in = Compose(TakeFirst(), Scraper._sanitize_html)
 
     attributes_out = MergeDicts()
 
     image_urls_out = Identity()
 
-    in_stock_in = Compose(lambda v: v[0], str_to_boolean)
+    in_stock_in = Compose(TakeFirst(), str_to_boolean)
