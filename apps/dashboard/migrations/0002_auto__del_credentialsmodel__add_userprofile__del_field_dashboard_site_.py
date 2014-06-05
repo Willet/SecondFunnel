@@ -8,14 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Deleting field 'UserProfile.website'
-        db.delete_column(u'dashboard_userprofile', 'website')
+        # Deleting model 'CredentialsModel'
+        db.delete_table(u'dashboard_credentialsmodel')
 
-        # Deleting field 'UserProfile.picture'
-        db.delete_column(u'dashboard_userprofile', 'picture')
-
-        # Deleting field 'UserProfile.dashboards'
-        db.delete_column(u'dashboard_userprofile', 'dashboards_id')
+        # Adding model 'UserProfile'
+        db.create_table(u'dashboard_userprofile', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True)),
+        ))
+        db.send_create_signal(u'dashboard', ['UserProfile'])
 
         # Adding M2M table for field dashboards on 'UserProfile'
         m2m_table_name = db.shorten_name(u'dashboard_userprofile_dashboards')
@@ -26,33 +27,40 @@ class Migration(SchemaMigration):
         ))
         db.create_unique(m2m_table_name, ['userprofile_id', 'dashboard_id'])
 
+        # Deleting field 'DashBoard.site'
+        db.delete_column(u'dashboard_dashboard', 'site')
+
+        # Adding field 'DashBoard.site_name'
+        db.add_column(u'dashboard_dashboard', 'site_name',
+                      self.gf('django.db.models.fields.CharField')(default='site', max_length=128),
+                      keep_default=False)
+
 
     def backwards(self, orm):
-        # Adding field 'UserProfile.website'
-        db.add_column(u'dashboard_userprofile', 'website',
-                      self.gf('django.db.models.fields.URLField')(default='', max_length=200, blank=True),
-                      keep_default=False)
+        # Adding model 'CredentialsModel'
+        db.create_table(u'dashboard_credentialsmodel', (
+            ('credential', self.gf('oauth2client.django_orm.CredentialsField')(null=True)),
+            ('id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], primary_key=True)),
+        ))
+        db.send_create_signal(u'dashboard', ['CredentialsModel'])
 
-
-        # User chose to not deal with backwards NULL issues for 'UserProfile.picture'
-        raise RuntimeError("Cannot reverse this migration. 'UserProfile.picture' and its values cannot be restored.")
-        
-        # The following code is provided here to aid in writing a correct migration        # Adding field 'UserProfile.picture'
-        db.add_column(u'dashboard_userprofile', 'picture',
-                      self.gf('django.db.models.fields.files.ImageField')(max_length=100, blank=True),
-                      keep_default=False)
-
-
-        # User chose to not deal with backwards NULL issues for 'UserProfile.dashboards'
-        raise RuntimeError("Cannot reverse this migration. 'UserProfile.dashboards' and its values cannot be restored.")
-        
-        # The following code is provided here to aid in writing a correct migration        # Adding field 'UserProfile.dashboards'
-        db.add_column(u'dashboard_userprofile', 'dashboards',
-                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['dashboard.DashBoard']),
-                      keep_default=False)
+        # Deleting model 'UserProfile'
+        db.delete_table(u'dashboard_userprofile')
 
         # Removing M2M table for field dashboards on 'UserProfile'
         db.delete_table(db.shorten_name(u'dashboard_userprofile_dashboards'))
+
+
+        # User chose to not deal with backwards NULL issues for 'DashBoard.site'
+        raise RuntimeError("Cannot reverse this migration. 'DashBoard.site' and its values cannot be restored.")
+        
+        # The following code is provided here to aid in writing a correct migration        # Adding field 'DashBoard.site'
+        db.add_column(u'dashboard_dashboard', 'site',
+                      self.gf('django.db.models.fields.CharField')(max_length=128),
+                      keep_default=False)
+
+        # Deleting field 'DashBoard.site_name'
+        db.delete_column(u'dashboard_dashboard', 'site_name')
 
 
     models = {
@@ -97,7 +105,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'quicklook_today': ('jsonfield.fields.JSONField', [], {'default': '{}', 'blank': 'True'}),
             'quicklook_total': ('jsonfield.fields.JSONField', [], {'default': '{}', 'blank': 'True'}),
-            'site': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
+            'site_name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'table_id': ('django.db.models.fields.IntegerField', [], {}),
             'timeStamp': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
         },

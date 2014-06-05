@@ -10,7 +10,7 @@ class DashBoard(models.Model):
     query to the Google Analytics for the given site with respect to certain dimensions
     """
     # human name for the site that these statistics correspond to
-    site = models.CharField(max_length=128)
+    site_name = models.CharField(max_length=128)
     # prepend with 'ga:' this is the table id that GA uses to refer to the site
     table_id = models.IntegerField(help_text="The number that refers to this customers analytics data")
 

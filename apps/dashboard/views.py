@@ -81,7 +81,7 @@ def get_data(request):
             start_date = GET_REQUEST['start-date']
             end_date = GET_REQUEST['end-date']
 
-            dash = DashBoard.objects.all()[0]  # TODO this is not the way to get a dashboard
+            #dash = DashBoard.objects.all()[0]  # TODO this is not the way to get a dashboard
 
             if True:  # (dash.timeStamp - datetime.utcnow().replace(tzinfo=utc)).seconds > 30:
                 service = build_analytics()
@@ -97,7 +97,7 @@ def get_data(request):
                     print "Querying Google Analytics failed with: ", error
                     response['error'] = 'Querying GA failed'
 
-                #TODO save response here
+                #TODO save response here if caching doesn't work
             else:
                 # TODO get from database
                 pass
@@ -113,7 +113,7 @@ def index(request):
             profile = UserProfile.objects.get(user=user)
             dashboards = profile.dashboards.all()
             context_dict = {'dashboards': [{'site': dashboard.site,
-                                            'tableId': dashboard.table_id} for dashboard in dashboards]}
+                                           'tableId': dashboard.table_id} for dashboard in dashboards]}
         except UserProfile.DoesNotExist:
             print "user does not exist"
 
