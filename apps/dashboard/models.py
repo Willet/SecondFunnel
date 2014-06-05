@@ -41,7 +41,12 @@ class DashBoard(models.Model):
     # over_quota = models.BooleanField(default=False)
 
     def __unicode__(self):
-        return self.site
+        try:
+            name = self.site_name
+        except:
+            print 'no site, please save object with a site'
+            name = 'nositefound'
+        return name
 
 
 class UserProfile(models.Model):
@@ -49,4 +54,9 @@ class UserProfile(models.Model):
     dashboards = models.ManyToManyField(DashBoard)
 
     def __unicode__(self):
-        return self.user.username
+        username = "null"
+        try:
+            username = self.user.username
+        except:
+            print 'self.user.username caused an exception. Is there a user?'
+        return username
