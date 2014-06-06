@@ -23,7 +23,7 @@ from string import capitalize
 from apps.dashboard.models import DashBoard, UserProfile
 from apps.utils import async
 
-LOGIN_URL = '/dashboards/login'
+LOGIN_URL = '/dashboard/login'
 SERVICE_ACCOUNT_EMAIL = "231833496051-kf5r0aath3eh96209hdutfggj5dqld9f@developer.gserviceaccount.com"
 SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(os.path.dirname(__file__),
                                                 'ad04005e5e7b5a51c66cd176e10277a59cb61824-privatekey.p12')
@@ -65,6 +65,8 @@ def prettify_data(response):
             else:
                 title += capitalize(group[0]) + ' '
         header['label'] = title
+    for row in response['dataTable']['rows']:
+        row['c'][0]['v'] = capitalize(row['c'][0]['v'])
     return response
 
 
@@ -77,11 +79,32 @@ def update_data(request):
     pass
 
 
+def customize_response(response, queryName):
+    pass
+
+
+# def get_data_new(request):
+#     response = {'error': 'Retrieving data failed'}
+#     if request.method == 'GET':
+#         get_request = request.GET
+#         if (('queryName' in get_request) and
+#                 ('table' in get_request) and
+#                 ('campaign' in get_request) and
+#                 ('dimension' in get_request)):
+#             dash = DashBoard.objects.get(table_id=int(get_request['table']))
+#             campaign = dash.campaigns.get(google_id=get_request['campaign'])
+#             response = campaign.get_response_by_dimension(dimension=get_request['dimension'])
+#             response = prettify_data(customize_response(response, get_request['queryName']))
+#             if (campaign.timeStamp - now()).seconds > 30:
+#                 update_data(request)
+#             return response
+#     return response
+
+
 @login_required(login_url=LOGIN_URL)
 @never_cache
 @cache_page(60 * 60)  # cache for an hour
 def get_data(request):
-    print "data was run"
     response = {'error': 'Retrieving data failed'}
     if request.method == 'GET':
         GET_REQUEST = request.GET
@@ -96,26 +119,18 @@ def get_data(request):
             start_date = GET_REQUEST['start-date']
             end_date = GET_REQUEST['end-date']
 
-            #dash = DashBoard.objects.all()[0]  # TODO this is not the way to get a dashboard
-
-            if True:  # (dash.timeStamp - datetime.utcnow().replace(tzinfo=utc)).seconds > 30:
-                service = build_analytics()
-                data = service.data().ga().get(ids=table_id,
-                                               start_date=start_date,
-                                               end_date=end_date,
-                                               metrics=metrics,
-                                               dimensions=dimension,
-                                               output='dataTable')
-                try:
-                    response = prettify_data(data.execute())
-                except HttpError as error:
-                    print "Querying Google Analytics failed with: ", error
-                    response['error'] = 'Querying GA failed'
-
-                    #TODO save response here if caching doesn't work
-            else:
-                # TODO get from database
-                pass
+            service = build_analytics()
+            data = service.data().ga().get(ids=table_id,
+                                           start_date=start_date,
+                                           end_date=end_date,
+                                           metrics=metrics,
+                                           dimensions=dimension,
+                                           output='dataTable')
+            try:
+                response = prettify_data(data.execute())
+            except HttpError as error:
+                print "Querying Google Analytics failed with: ", error
+                response['error'] = 'Querying GA failed'
     response = json.dumps(response)
     return HttpResponse(response, content_type='application/json')
 
@@ -142,13 +157,13 @@ def dashboard(request, dashboardId):
     profile = UserProfile.objects.get(user=request.user)
     if not profile.dashboards.all().filter(pk=dashboardId):
         # can't view page
-        return HttpResponseRedirect('/dashboards/')
+        return HttpResponseRedirect('/dashboard/')
     else:
         context_dict = {}
         try:
             dashboard = DashBoard.objects.get(pk=dashboardId)
         except DashBoard.MultipleObjectsReturned or DashBoard.DoesNotExist:
-            return HttpResponseRedirect('/dashboards/')
+            return HttpResponseRedirect('/dashboard/')
         context_dict['tableId'] = dashboard.table_id
         context_dict['siteName'] = dashboard.site_name
         # TODO add this to model
@@ -180,7 +195,7 @@ def user_login(request):
         if user is not None:  # if authentication was successful
             if user.is_active:  # could have been deactivated
                 login(request, user)  # log the user in.
-                return HttpResponseRedirect('/dashboards/')
+                return HttpResponseRedirect('/dashboard/')
             else:  # user account was deactivated
                 return HttpResponse("Your SecondFunnel account is disabled")
 
@@ -198,4 +213,4 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     # Take the user back to the homepage.
-    return HttpResponseRedirect('/dashboards/')
+    return HttpResponseRedirect('/dashboard/')
