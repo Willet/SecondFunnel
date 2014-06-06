@@ -110,7 +110,7 @@ def campaign_by_slug(request, page_slug, product_identifier='id',
                     product=product)
 
 
-# TODO: THis could probably just be a serializer on the Page object...
+# TODO: This could probably just be a serializer on the Page object...
 @never_cache
 def product_feed(request, page_slug):
     page = get_object_or_404(Page, url_slug=page_slug)
