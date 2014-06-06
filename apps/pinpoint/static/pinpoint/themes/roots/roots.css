@@ -32,7 +32,7 @@
 }
 
 .price .strike {
-	margin-right: 4px;
+    margin-right: 4px;
 }
 
 .previewContainer {
@@ -101,8 +101,8 @@
 }
 
 .previewContainer .info .buy {
-	margin-top: 5px;
-	text-align: center;
+    margin-top: 5px;
+    text-align: center;
 }
 
 .previewContainer .info .buy .button {
@@ -206,8 +206,8 @@
 }
 
 .previewContainer .social-buttons {
-	white-space: nowrap;
-	text-align: center;
+    white-space: nowrap;
+    text-align: center;
 }
 
 .previewContainer .social-buttons .button {
@@ -219,26 +219,26 @@
 }
 
 .previewContainer .roots-logo {
-	position: absolute;
-	top: 5px;
-	left: 245px;
-	width: 340px;
-	height: 43px;
+    position: absolute;
+    top: 5px;
+    left: 245px;
+    width: 340px;
+    height: 43px;
 }
 
 .previewContainer .roots-logo .line {
-	left: 0;
-	right: 0;
-	top: 50%;
-	position: absolute;
-	border-bottom: 1px solid #CCC;
-	z-index: -1;
+    left: 0;
+    right: 0;
+    top: 50%;
+    position: absolute;
+    border-bottom: 1px solid #CCC;
+    z-index: -1;
 }
 
 .previewContainer .roots-logo img {
-	padding: 0 20px;
-	background-color: white;
-	height: 100%;
+    padding: 0 20px;
+    background-color: white;
+    height: 100%;
 }
 
 @media screen and (max-width: 768px) {
