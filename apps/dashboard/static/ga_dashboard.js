@@ -188,25 +188,23 @@ $(document).ready(function () {
      * @param {function} callback - function that gets called when the request is successful
      */
     var retrieveData = function (metrics, dimmension, start_date, end_date, queryName, callback) {
-        if(poll_server) {
-            $.ajax({
-                url: "retrieve-data",
-                data: {
-                    'table': table, //TODO add actual table values, move to server
-                    'metrics': metrics,
-                    'dimension': dimmension,
-                    'start-date': start_date,
-                    'end-date': end_date,
-                    'queryName': queryName
-                },
-                type: "GET", // TODO GET or PUSH?
-                dataType: "json",
-                success: callback,
-                error: function (xhr, status, errorThrown) {
-                    console.log(errorThrown);
-                }
-            });
-        }
+        $.ajax({
+            url: "retrieve-data",
+            data: {
+                'table': table, //TODO add actual table values, move to server
+                'metrics': metrics,
+                'dimension': dimmension,
+                'start-date': start_date,
+                'end-date': end_date,
+                'queryName': queryName
+            },
+            type: "GET", // TODO GET or PUSH?
+            dataType: "json",
+            success: callback,
+            error: function (xhr, status, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
     };
 
     var retrieveData_new = function(queryName, campaign, dimension,  callback){
