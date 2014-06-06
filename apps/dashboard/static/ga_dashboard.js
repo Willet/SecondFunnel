@@ -393,7 +393,7 @@ $(document).ready(function () {
                 return data;
             }, {title: 'Testing'});
         sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, 'today');
-        sortview.addSelection(['ga:sessions'], ['ga:medium'], analyticsStart, 'today');
+        sortview.addSelection(['ga:sessions'], ['ga:medium'], analyticsStart, 'today', 'rows');
         createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
 
         var totalConversions = createAnalyticsElement($('#total-conversions-graph')[0],
@@ -404,25 +404,37 @@ $(document).ready(function () {
         totalConversions.addSelection(['ga:goal1Completions','ga:goal2Completions', 'ga:goal3Completions'], ['ga:source'], analyticsStart, 'today');
         createAnalyticsGroup('CONVERSIONS', [totalConversions], refreshRate);
 
-        var sourceTable = createAnalyticsElement($('#source-table')[0],
+        var sourceTableTraffic = createAnalyticsElement($('#source-table-traffic')[0],
+            google.visualization.Table, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                //data.setRows(data.getFilteredRows());
+                console.log(data);
+                return data;
+            }, {});
+        var tableMetricsTraffic = [
+            'ga:sessions',
+            'ga:newUsers',
+            'ga:avgSessionDuration'];
+        sourceTableTraffic.addSelection(tableMetricsTraffic, ['ga:source'], analyticsStart, 'today');
+        sourceTableTraffic.addSelection(tableMetricsTraffic, ['ga:source'], 'today', 'today');
+        createAnalyticsGroup('TRAFFICTABLE', [sourceTableTraffic], refreshRate);
+
+        var sourceTableGoals = createAnalyticsElement($('#source-table-goals')[0],
             google.visualization.Table, function (response) {
                 var data = new google.visualization.DataTable(response.dataTable, 0.6);
                 console.log(data);
                 return data;
             }, {});
-        var table_metrics = [
-            'ga:sessions',
-            'ga:newUsers',
-            'ga:avgSessionDuration',
+        var tableMetricsGoals = [
             'ga:goal1Completions',
             'ga:goal1ConversionRate',
             'ga:goal2Completions',
             'ga:goal2ConversionRate',
             'ga:goal3Completions',
             'ga:goal3ConversionRate'];
-        sourceTable.addSelection(table_metrics, ['ga:source'], analyticsStart, 'today');
-        sourceTable.addSelection(table_metrics, ['ga:source'], 'today', 'today');
-        createAnalyticsGroup('TABLE', [sourceTable], refreshRate);
+        sourceTableGoals.addSelection(tableMetricsGoals, ['ga:source'], analyticsStart, 'today');
+        sourceTableGoals.addSelection(tableMetricsGoals, ['ga:source'], 'today', 'today');
+        createAnalyticsGroup('GOALTABLE', [sourceTableGoals], refreshRate);
 
         var metricsview = createAnalyticsElement($('#metrics-graph')[0],
         google.visualization.LineChart, function(response){
