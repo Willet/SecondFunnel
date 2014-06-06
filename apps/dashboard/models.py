@@ -16,6 +16,9 @@ class DashBoard(models.Model):
 
     quicklook_total = jsonfield.JSONField(default={}, blank=True)
     quicklook_today = jsonfield.JSONField(default={}, blank=True)
+
+    timeStamp = models.DateTimeField(verbose_name="The last time this cache of Analytics was updated",
+                                     auto_now=True)
     # Whether or not this dashboard has reached its daily quota
     # over_quota = models.BooleanField(default=False)
 
