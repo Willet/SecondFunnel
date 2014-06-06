@@ -39,10 +39,11 @@
 
 .previewContainer {
     font-family: 'ITC Souvenir W01 Light', times new roman, sans;
+    text-transform: uppercase;
 }
 
 .previewContainer .content {
-    padding-top: 53px;
+    padding-top: 60px;
     padding-bottom: 0px;
     border: none;
     max-width: 900px;
@@ -82,7 +83,7 @@
 
 .previewContainer .info {
     text-align: left;
-    padding-left: 15px;
+    padding-left: 25px;
     padding-right: 10px;
     overflow: hidden;
     max-width: 500px;
@@ -164,6 +165,27 @@
     text-align: center;
     font-size: 12px;
     white-space: normal;
+    text-transform: none;
+}
+
+.previewContainer .landscape .stl-title {
+    margin-top: 10px;
+}
+
+.previewContainer .landscape .stl-look {
+    margin: auto;
+    white-space: nowrap;
+    width: auto;
+    text-align: center;
+    max-width: 723px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.previewContainer .landscape .stl-look .stl-item {
+    display: inline-block;
+    width: 150px;
+    vertical-align: top;
 }
 
 .previewContainer .main-image-container {
@@ -228,7 +250,7 @@
 .previewContainer .roots-logo {
     position: absolute;
     top: 5px;
-    left: 245px;
+    left: 280px;
     width: 340px;
     height: 43px;
 }
@@ -302,14 +324,16 @@
         min-width: 280px;
     }
 
-    .previewContainer .stl-look {
+    .previewContainer .stl-look,
+    .previewContainer .landscape .stl-look {
         white-space: normal;
         width: 100%;
         margin: auto;
         text-align: center;
     }
 
-    .previewContainer .stl-look .stl-item {
+    .previewContainer .stl-look .stl-item,
+    .previewContainer .landscape .stl-look .stl-item {
         display: inline-block;
         width: 135px;
         vertical-align: top;
