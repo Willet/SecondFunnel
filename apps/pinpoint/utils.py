@@ -115,7 +115,8 @@ def render_campaign(page_id, request, store_id=0, product=None):
     try:
         tile = Tile.objects.filter(products__id=product.id, template="product")[0]
         product_repr = json.dumps(tile.to_json())
-    except (Product.DoesNotExist, AttributeError, ValueError) as err:
+    # TODO: this may well be a generic Exception catcher
+    except (Product.DoesNotExist, AttributeError, IndexError, ValueError) as err:
         product_repr = "undefined"
 
     ir_base_url = '/intentrank'

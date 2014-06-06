@@ -26,6 +26,14 @@ class BurberrySpider(SecondFunnelScraper, WebdriverCrawlSpider):
         super(BurberrySpider, self).__init__(*args, **kwargs)
 
     def parse_product(self, response):
+        """
+        Parses a product page on Burberry.com.
+
+        @url http://ca.burberry.com/mid-length-cotton-sateen-trench-coat-p45099611
+        @returns items 1 1
+        @returns requests 0 0
+        @scrapes url sku name price in_stock description image_urls attributes
+        """
         sel = Selector(response)
 
         url = response.url

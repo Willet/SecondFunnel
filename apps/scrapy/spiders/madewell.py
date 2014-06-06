@@ -44,6 +44,14 @@ class MadewellSpider(SecondFunnelScraper, WebdriverCrawlSpider):
         super(MadewellSpider, self).__init__(*args, **kwargs)
 
     def parse_product(self, response):
+        """
+        Parses a product page on Madewell.com.
+
+        @url https://www.madewell.com/madewell_category/DENIM/boyjean/PRDOVR~A5477/A5477.jsp
+        @returns items 1 1
+        @returns requests 0 0
+        @scrapes url sku name price in_stock description image_urls
+        """
         sel = Selector(response)
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)

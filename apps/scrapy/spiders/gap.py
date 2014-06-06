@@ -60,6 +60,14 @@ class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
         return urls
 
     def parse_product(self, response):
+        """
+        Parses a product page on Gap.com.
+
+        @url http://www.gap.com/browse/product.do?cid=64526&vid=1&pid=960079012
+        @returns items 1 1
+        @returns requests 0 0
+        @scrapes url sku name price in_stock description image_urls attributes
+        """
         sel = Selector(response)
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
