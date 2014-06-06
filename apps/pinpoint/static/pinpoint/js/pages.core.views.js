@@ -758,40 +758,7 @@ App.module('core', function (module, App) {
         }
     });
 
-    /**
-     * Contents inside a PreviewWindow.
-     * Content is displayed using a cascading level of templates, which
-     * increases in specificity.
-     *
-     * @constructor
-     * @type {Layout}
-     */
-    this.PreviewContent = Marionette.Layout.extend({
-        'template': '#tile_preview_template',
-        'templates': function () {
-            var templateRules = [
-                // supported contexts: options, data
-                '#<%= options.store.slug %>_<%= data.template %>_mobile_preview_template',
-                '#<%= data.template %>_mobile_preview_template',
-                '#<%= options.store.slug %>_<%= data.template %>_preview_template',
-                '#<%= data.template %>_preview_template',
-                '#product_mobile_preview_template',
-                '#product_preview_template',
-                '#tile_mobile_preview_template', // fallback
-                '#tile_preview_template' // fallback
-            ];
-
-            if (!App.support.mobile()) {
-                // remove mobile templates if it isn't mobile, since they take
-                // higher precedence by default
-                templateRules = _.reject(templateRules,
-                    function (t) {
-                        return t.indexOf('mobile') >= 0;
-                    });
-            }
-            return templateRules;
-        },
-
+    this.ExpandedContent = Marionette.Layout.extend({
         'regions': {
             price: '.price',
             title: '.title',
@@ -821,121 +788,18 @@ App.module('core', function (module, App) {
             // templates use this as obj.image.url
             this.model.set('image', image);
         },
-
-        'onRender': function () {
-            // ItemViews don't have regions - have to do it manually
-            var self = this,
-                socialButtons = this.$('.social-buttons'),
-                buttons, related;
-
-            if (socialButtons.length >= 1) {
-                buttons = new App.sharing.SocialButtons({model: this.model}).render().load().$el;
-                socialButtons.append(buttons);
-            }
-
-            if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1) {
-                this.$('.stl-look .stl-item').on('click', function () {
-                    var $this = $(this),
-                        index = $this.data('index'),
-                        product = self.model.get('tagged-products')[index],
-                        productModel = new App.core.Product(product),
-                        container = self.$el.closest('.fullscreen');
-
-                    $this.addClass('selected').siblings().removeClass('selected');
-                    App.options['galleryIndex'] = index;
-
-                    if (product.images.length === 1) {
-                        $('.gallery', self.$el).addClass('hide');
-                    } else {
-                        $('.gallery', self.$el).removeClass('hide');
-                    }
-
-                    if (socialButtons.length >= 1) {
-                        socialButtons.empty();
-                        buttons = new App.sharing.SocialButtons({model: self.model}).render().load().$el;
-                        socialButtons.append(buttons);
-                    }
-
-                    if (container && container.length) {
-                        container.css({
-                            top: '0',
-                            bottom: '0',
-                            left: '0',
-                            right: '0'
-                        });
-                    }
-
-                    self.renderSubregions(productModel);
-                });
-
-                // First image is always selected
-                this.$('.stl-look').each(function () {
-                    $(this).find('.stl-item').first().click();
-                });
-            }
-
-            // hide discovery, then show this window as a page.
-            if (App.support.mobile()) {
-                App.discoveryArea.$el.parent().swapWith(this.$el); // out of scope
-            }
-
-            App.vent.trigger('previewRendered', this);
-        },
-
         'initialize': function() {
             this.$el.attr({
                 'id': 'preview-' + this.model.cid
             });
         },
-
-        // Disable scrolling body when preview is shown
-        'onShow': function () {
-            var product;
-
-            if (this.model.get('tagged-products') && this.model.get('tagged-products').length) {
-                product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
-                this.renderSubregions(product);
-            } else if (this.model.get('template', '') === 'product') {
-                this.renderSubregions(this.model);
-            } else  {
-                this.resizeContainer();
-            }
-
-            /*
-            NOTE: Previously, it was thought that adding `no-scroll`
-            to android devices was OK, because no problems were observed
-            on some device.
-
-            Turns out, that was wrong.
-
-            It seems like no-scroll prevent scrolling on *some* android
-            devices, but not others.
-
-            So, for now, only add no-scroll if the device is NOT an android.
-             */
-            if (!App.support.isAnAndroid()) {
-                var width;
-                width = Marionette.getOption(this, 'width');
-
-                if (width) {
-                    this.$('.content').css('width', width + 'px');
-                } else if (App.support.mobile()) {
-                    this.$el.width($window.width()); // assign width
-                }
-                // if it's a real preview, add no-scroll
-                if (!this.$el.parents('#hero-area').length) {
-                    $(document.body).addClass('no-scroll');
-                }
-            }
-        },
-
         'close': function () {
             /* See NOTE in onShow */
             if (!App.support.isAnAndroid()) {
                 $(document.body).removeClass('no-scroll');
             }
 
-            App.options['galleryIndex'] = 0;
+            App.options.galleryIndex = 0;
         },
 
         'renderSubregions': function (product) {
@@ -1023,6 +887,147 @@ App.module('core', function (module, App) {
                         }, 1);
                     }
                 });
+        },
+        'onRender': function () {
+            // ItemViews don't have regions - have to do it manually
+            var self = this,
+                socialButtons = this.$('.social-buttons'),
+                buttons, related;
+
+            if (socialButtons.length >= 1) {
+                buttons = new App.sharing.SocialButtons({model: this.model}).render().load().$el;
+                socialButtons.append(buttons);
+            }
+
+            if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1) {
+                this.$('.stl-look .stl-item').on('click', function () {
+                    var $this = $(this),
+                        index = $this.data('index'),
+                        product = self.model.get('tagged-products')[index],
+                        productModel = new App.core.Product(product),
+                        container = self.$el.closest('.fullscreen');
+
+                    $this.addClass('selected').siblings().removeClass('selected');
+                    App.options['galleryIndex'] = index;
+
+                    if (product.images.length === 1) {
+                        $('.gallery', self.$el).addClass('hide');
+                    } else {
+                        $('.gallery', self.$el).removeClass('hide');
+                    }
+
+                    if (socialButtons.length >= 1) {
+                        socialButtons.empty();
+                        buttons = new App.sharing.SocialButtons({model: self.model}).render().load().$el;
+                        socialButtons.append(buttons);
+                    }
+
+                    if (container && container.length) {
+                        container.css({
+                            top: '0',
+                            bottom: '0',
+                            left: '0',
+                            right: '0'
+                        });
+                    }
+
+                    self.renderSubregions(productModel);
+                });
+
+                // First image is always selected
+                this.$('.stl-look').each(function () {
+                    $(this).find('.stl-item').first().click();
+                });
+            }
+        },
+        // Disable scrolling body when preview is shown
+        'onShow': function () {
+            var product;
+
+            if (this.model.get('tagged-products') && this.model.get('tagged-products').length) {
+                product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
+                this.renderSubregions(product);
+            } else if (this.model.get('template', '') === 'product') {
+                this.renderSubregions(this.model);
+            } else  {
+                this.resizeContainer();
+            }
+        }
+    });
+
+    /**
+     * Contents inside a PreviewWindow.
+     * Content is displayed using a cascading level of templates, which
+     * increases in specificity.
+     *
+     * @constructor
+     * @type {Layout}
+     */
+    this.PreviewContent = this.ExpandedContent.extend({
+        'superClass': App.core.ExpandedContent,
+        'template': '#tile_preview_template',
+        'templates': function () {
+            var templateRules = [
+                // supported contexts: options, data
+                '#<%= options.store.slug %>_<%= data.template %>_mobile_preview_template',
+                '#<%= data.template %>_mobile_preview_template',
+                '#<%= options.store.slug %>_<%= data.template %>_preview_template',
+                '#<%= data.template %>_preview_template',
+                '#product_mobile_preview_template',
+                '#product_preview_template',
+                '#tile_mobile_preview_template', // fallback
+                '#tile_preview_template' // fallback
+            ];
+
+            if (!App.support.mobile()) {
+                // remove mobile templates if it isn't mobile, since they take
+                // higher precedence by default
+                templateRules = _.reject(templateRules,
+                    function (t) {
+                        return t.indexOf('mobile') >= 0;
+                    });
+            }
+            return templateRules;
+        },
+        'onRender': function () {
+            this.superClass.prototype.onRender.apply(this, arguments);
+
+            // hide discovery, then show this window as a page.
+            if (App.support.mobile()) {
+                App.discoveryArea.$el.parent().swapWith(this.$el); // out of scope
+            }
+
+            App.vent.trigger('previewRendered', this);
+        },
+        // Disable scrolling body when preview is shown
+        'onShow': function () {
+            this.superClass.prototype.onShow.apply(this, arguments);
+
+            /*
+            NOTE: Previously, it was thought that adding `no-scroll`
+            to android devices was OK, because no problems were observed
+            on some device.
+
+            Turns out, that was wrong.
+
+            It seems like no-scroll prevent scrolling on *some* android
+            devices, but not others.
+
+            So, for now, only add no-scroll if the device is NOT an android.
+             */
+            if (!App.support.isAnAndroid()) {
+                var width = Marionette.getOption(this, 'width');
+
+                if (width) {
+                    this.$('.content').css('width', width + 'px');
+                } else if (App.support.mobile()) {
+                    this.$el.width($window.width()); // assign width
+                }
+                // if it's a real preview, add no-scroll
+                if (!this.$el.parents('#hero-area').length) {
+                    $(document.body).addClass('no-scroll');
+                }
+            }
         }
     });
 
@@ -1033,9 +1038,9 @@ App.module('core', function (module, App) {
      * @constructor
      * @type {Layout}
      */
-    this.HeroAreaView = this.PreviewContent.extend({
+    this.HeroAreaView = this.ExpandedContent.extend({
         'model': module.Tile,
-        'superClass': App.core.PreviewContent,
+        'superClass': App.core.ExpandedContent,
         'getTemplate': function () {
             // if page config contains a product, render hero area with a
             // template that supports it
@@ -1050,7 +1055,8 @@ App.module('core', function (module, App) {
          *               the featured product.
          */
         'initialize': function (data) {
-            var tile = data;
+            var self = this,
+                tile = data;
             if ($.isEmptyObject(data)) {
                 tile = App.option('featured');
             }
@@ -1058,6 +1064,11 @@ App.module('core', function (module, App) {
 
             // "super"
             this.superClass.prototype.initialize.call(this, tile);
+
+            this.listenTo(App.vent, 'windowResize', function () {
+                // self.render();
+                App.heroArea.show(self);
+            });
         }
     });
 
