@@ -1,6 +1,25 @@
 
 .navbar {
-	text-align: center;
+    text-align: center;
+    height: 84px;
+}
+
+.navbar .container {
+    position: relative;
+}
+
+.navbar .container .line {
+    left: 0;
+    right: 0;
+    top: 50%;
+    position: absolute;
+    border-bottom: 1px solid #CCC;
+    z-index: -1;
+}
+
+.navbar .container img {
+    padding: 0 20px;
+    background-color: white;
 }
 
 .tile {
@@ -82,6 +101,7 @@
 }
 
 .previewContainer .info .buy {
+	margin-top: 5px;
 	text-align: center;
 }
 
@@ -101,4 +121,212 @@
 
 .previewContainer .info .buy .button:hover {
     text-decoration: none;
+}
+
+.previewContainer .stl-title {
+    text-align: center;
+    font-size: 18px;
+}
+
+.previewContainer .stl-look {
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: none;
+    white-space: normal;
+    padding-bottom: 0;
+    width: 120px;
+    display: block;
+}
+
+.previewContainer .stl-look .stl-item img {
+    display: block;
+    width: 72px;
+    max-width: none;
+    max-height: none;
+    height: auto;
+    margin: 5px auto;
+    opacity: 0.4;
+    filter: alpha(opacity=40);
+    cursor: pointer;
+}
+
+.previewContainer .stl-look .stl-item.selected img {
+    opacity: 1;
+    filter: alpha(opacity=100);
+    cursor: default;
+}
+
+.previewContainer .stl-look .stl-item .name {
+    width: 100px;
+    margin: auto;
+    text-align: center;
+    font-size: 12px;
+    white-space: normal;
+}
+
+.previewContainer .main-image-container {
+    position: relative;
+    text-align: center;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left,
+.previewContainer .main-image-container .gallery-swipe-right {
+    width: 0px;
+    height: 0px;
+    background-color: transparent;
+    border-top: 22.5px solid transparent;
+    border-bottom: 22.5px solid transparent;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    margin-top: -22px;
+    z-index: 1;
+}
+
+
+.previewContainer .main-image-container .gallery-swipe-left.grey,
+.previewContainer .main-image-container .gallery-swipe-right.grey {
+    display: none;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left {
+    border-right: 25px solid #000;
+    left: 5px;
+}
+.previewContainer .main-image-container .gallery-swipe-left:hover {
+    border-right-color: #7D7D7D;
+}
+
+.previewContainer .main-image-container .gallery-swipe-right {
+    border-left: 25px solid #000;
+    right: 5px;
+}
+.previewContainer .main-image-container .gallery-swipe-right:hover {
+    border-left-color: #7D7D7D;
+}
+
+.previewContainer .social-buttons {
+	white-space: nowrap;
+	text-align: center;
+}
+
+.previewContainer .social-buttons .button {
+    margin: 0 5px;
+}
+
+.previewContainer .social-buttons .pinterest {
+    height: 25px;
+}
+
+.previewContainer .roots-logo {
+	position: absolute;
+	top: 5px;
+	left: 245px;
+	width: 340px;
+	height: 43px;
+}
+
+.previewContainer .roots-logo .line {
+	left: 0;
+	right: 0;
+	top: 50%;
+	position: absolute;
+	border-bottom: 1px solid #CCC;
+	z-index: -1;
+}
+
+.previewContainer .roots-logo img {
+	padding: 0 20px;
+	background-color: white;
+	height: 100%;
+}
+
+@media screen and (max-width: 768px) {
+    .navbar {
+        display: none;
+    }
+
+    .jumbotron {
+        margin-top: 0;
+        border-bottom: none;
+    }
+
+    .previewContainer .content {
+        padding: 0;
+        padding-top: 53px;
+        height: 100%;
+    }
+
+    .previewContainer .row {
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .previewContainer .cell {
+        display: block;
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .previewContainer .gallery img {
+        display: inline-block;
+    }
+
+    .previewContainer .info {
+        text-align: left;
+        max-width: none;
+    }
+
+    .previewContainer .info.image {
+        max-width: none;
+    }
+
+    .previewContainer .info .title {
+        margin-top: 5px;
+    }
+
+    .previewContainer .info .buy {
+        text-align: center;
+    }
+
+    .previewContainer .info .buy .button {
+        display: inline-block;
+        min-width: 280px;
+    }
+
+    .previewContainer .stl-look {
+        white-space: normal;
+        width: 100%;
+        margin: auto;
+        text-align: center;
+    }
+
+    .previewContainer .stl-look .stl-item {
+        display: inline-block;
+        width: 135px;
+        vertical-align: top;
+    }
+
+    /* Changing hover on mobile doesn't work very well */
+    .previewContainer .main-image-container .gallery-swipe-left:hover {
+        border-right-color: #000;
+    }
+    .previewContainer .main-image-container .gallery-swipe-right:hover {
+        border-left-color: #000;
+    }
+
+    .previewContainer .roots-logo {
+        display: none;
+    }
+
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+@media screen and (min-width: 769px) {
+    .mobile-only {
+        display: none !important;
+    }
 }
