@@ -914,8 +914,7 @@ App.module('core', function (module, App) {
             So, for now, only add no-scroll if the device is NOT an android.
              */
             if (!App.support.isAnAndroid()) {
-                var width;
-                width = Marionette.getOption(this, 'width');
+                var width = Marionette.getOption(this, 'width');
 
                 if (width) {
                     this.$('.content').css('width', width + 'px');
@@ -935,7 +934,7 @@ App.module('core', function (module, App) {
                 $(document.body).removeClass('no-scroll');
             }
 
-            App.options['galleryIndex'] = 0;
+            App.options.galleryIndex = 0;
         },
 
         'renderSubregions': function (product) {
@@ -1050,7 +1049,8 @@ App.module('core', function (module, App) {
          *               the featured product.
          */
         'initialize': function (data) {
-            var tile = data;
+            var self = this,
+                tile = data;
             if ($.isEmptyObject(data)) {
                 tile = App.option('featured');
             }
@@ -1058,6 +1058,10 @@ App.module('core', function (module, App) {
 
             // "super"
             this.superClass.prototype.initialize.call(this, tile);
+
+            this.listenTo(App.vent, 'rotate', function () {
+                self.render();
+            });
         }
     });
 
