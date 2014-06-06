@@ -139,3 +139,28 @@ def content_saved(sender, **kwargs):
     with transaction.atomic():
         for tile in content.tiles.all():
             tile.save()
+
+
+@receiver(post_save, sender=Tile)
+def tile_saved(sender, **kwargs):
+    """Generate cache for IR tiles if it was change.
+
+    TODO: this is CPU-intensive. How can tile freshness be checked without
+          first computing the updated cache?
+    """
+    tile = kwargs.pop('instance', None)
+    if not tile:
+        return
+
+    original_ir_cache = tile.ir_cache
+    tile.ir_cache = ''  # force tile to regenerate itself
+    new_ir_cache = json.dumps(tile.to_json())
+
+    # up to date / recursive save call
+    if original_ir_cache == new_ir_cache:
+        tile.ir_cache = new_ir_cache  # restore property
+        return
+
+    print "updating tile cache..."
+    tile.ir_cache = new_ir_cache
+    tile.save()
