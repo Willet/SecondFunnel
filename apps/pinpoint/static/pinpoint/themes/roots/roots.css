@@ -25,6 +25,8 @@
 .tile {
     color: #000;
     text-align: center;
+    padding: 10px;
+    font-family: 'ITC Souvenir W01 Light', times new roman, sans;
 }
 
 #discovery-area {
@@ -36,7 +38,7 @@
 }
 
 .previewContainer {
-    font-family: georgia, times, serif;
+    font-family: 'ITC Souvenir W01 Light', times new roman, sans;
 }
 
 .previewContainer .content {
@@ -203,19 +205,6 @@
 }
 .previewContainer .main-image-container .gallery-swipe-right:hover {
     border-left-color: #7D7D7D;
-}
-
-.previewContainer .social-buttons {
-    white-space: nowrap;
-    text-align: center;
-}
-
-.previewContainer .social-buttons .button {
-    margin: 0 5px;
-}
-
-.previewContainer .social-buttons .pinterest {
-    height: 25px;
 }
 
 .previewContainer .roots-logo {
