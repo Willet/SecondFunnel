@@ -1,13 +1,12 @@
-/*globals google */
+/*globals google, table*/
 /**
  * Created by tristanpotter on 2014-05-22.
  */
 
 $(document).ready(function () {
     "use strict";
-    // TODO move this to server
-    var table = 83581767; //gap table id. for google analytics.
     var console = window.console;
+    // for testing
     var CHART_OPTIONS = {
         sparkline: {
             'axisTitlesPosition': 'none',
@@ -143,7 +142,7 @@ $(document).ready(function () {
          * @param options - unused, used to maintain compliance with standard
          */
         this.draw = function (data, options) {
-            this.location.text(Math.round((parseFloat(data) + 0.00001) * 100) / 100);
+            this.location.text(data);
         };
     };
 
@@ -200,7 +199,24 @@ $(document).ready(function () {
                 'queryName': queryName
             },
             type: "GET", // TODO GET or PUSH?
-            cache: false, // TODO if PUSH, is this necessary
+            dataType: "json",
+            success: callback,
+            error: function (xhr, status, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    };
+
+    var retrieveData_new = function(queryName, campaign, dimension,  callback){
+        $.ajax({
+            url: "retrieve-data",
+            data: {
+                'table': table, //TODO add actual table values, move to server
+                'campaign': campaign,
+                'dimension': dimension,
+                'queryName': queryName
+            },
+            type: "GET", // TODO GET or PUSH?
             dataType: "json",
             success: callback,
             error: function (xhr, status, errorThrown) {
@@ -284,74 +300,88 @@ $(document).ready(function () {
 
     var drawElements = function () {
         // all graphs are drawn in here
-        var quickviewMetrics = [ //TODO remove this
-            'ga:sessions', //metrics
-            'ga:bounceRate',
-            'ga:avgSessionDuration',
-            'ga:goalConversionRateAll',
-            'ga:goalCompletionsAll',
-            'ga:goal2Completions',
-            'ga:bounces'];
         var quickview_graph = createAnalyticsElement($('#quickview-graph')[0],
             google.visualization.LineChart, function (response) {
                 var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                //TODO investigate formaters farther
+                var formater = new google.visualization.NumberFormat({'pattern':'@@'});
+                formater.format(data, 0);
                 return data;
-            }, CHART_OPTIONS.sparkline, refreshRate);
+            }, CHART_OPTIONS.lineChart, refreshRate);
         quickview_graph.addSelection(
-            ['ga:sessions','ga:bounces'],
-            ['ga:nthMinute'], // dimensions
+            ['ga:bounceRate'],
+            ['ga:nthHour'], // dimensions
             'today', 'today'); //start date, end date
         quickview_graph.addSelection(
-            ['ga:sessions','ga:bounces'],
-            ['ga:dateHour'], // dimensions
+            ['ga:bounceRate'],
+            ['ga:date'], // dimensions
             analyticsStart, 'today'); //start date, end date
+        createAnalyticsGroup('QUICKVIEW', [quickview_graph], refreshRate);
 
         var buttonSessionCount = createAnalyticsElement($('#sessionCount'), QuickLabel, function (response) {
-            return response.totalsForAllResults['ga:sessions'];
+            var data = response.totalsForAllResults['ga:sessions'];
+            // I have a thing for complicated regex okay?
+            // http://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
+            return data.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }, {});
-        buttonSessionCount.addSelection(quickviewMetrics, ['ga:userType'], 'today', 'today');
-        buttonSessionCount.addSelection(quickviewMetrics, ['ga:userType'], analyticsStart, 'today');
+        buttonSessionCount.addSelection(['ga:sessions'], ['ga:userType'], analyticsStart, 'today');
+
+        // TODO investigate if this needs to be filtered to only new users
+        // or if there is a better metric for this
+        var buttonUniqueVisitors = createAnalyticsElement($('#uniqueVisitors'), QuickLabel, function (response) {
+            var data = response.totalsForAllResults['ga:users'];
+            return data.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }, {});
+        buttonUniqueVisitors.addSelection(['ga:users'], ['ga:userType'], analyticsStart, 'today');
 
         var buttonBounceRate = createAnalyticsElement($('#bounceRate'), QuickLabel, function (response) {
-            return response.totalsForAllResults['ga:bounceRate'];
+            var data = response.totalsForAllResults['ga:bounceRate'];
+            return (Math.round((parseFloat(data) + 0.00001) * 100) / 100) + '%';
         }, {});
-        buttonBounceRate.addSelection(quickviewMetrics, ['ga:userType'], 'today', 'today');
-        buttonBounceRate.addSelection(quickviewMetrics, ['ga:userType'], analyticsStart, 'today');
-
-        var buttonConversionRate = createAnalyticsElement($('#conversionRate'), QuickLabel, function (response) {
-            return response.totalsForAllResults['ga:goalConversionRateAll'];
-        }, {});
-        buttonConversionRate.addSelection(quickviewMetrics, ['ga:userType'], 'today', 'today');
-        buttonConversionRate.addSelection(quickviewMetrics, ['ga:userType'], analyticsStart, 'today');
+        buttonBounceRate.addSelection(['ga:bounceRate'], ['ga:userType'], analyticsStart, 'today');
 
         var buttonSessionDuration = createAnalyticsElement($('#sessionDuration'), QuickLabel, function (response) {
-            return response.totalsForAllResults['ga:avgSessionDuration'];
+            var data = parseFloat(response.totalsForAllResults['ga:avgSessionDuration']);
+            var minutes = Math.floor(data / 60) + 'm';
+            var seconds = Math.round(data % 60) + 's';
+            if (minutes === '0m'){
+                minutes = '';
+            }
+            if (seconds === '0s'){
+                seconds = '';
+            }
+            return minutes + seconds;
         }, {});
-        buttonSessionDuration.addSelection(quickviewMetrics, ['ga:userType'], 'today', 'today');
-        buttonSessionDuration.addSelection(quickviewMetrics, ['ga:userType'], analyticsStart, 'today');
+        buttonSessionDuration.addSelection(['ga:avgSessionDuration'], ['ga:userType'], analyticsStart, 'today');
 
-        var buttonConversions = createAnalyticsElement($('#conversions'), QuickLabel, function (response) {
-            return response.totalsForAllResults['ga:goalCompletionsAll'];
+        var buttonScrollRate = createAnalyticsElement($('#scrollRate'), QuickLabel, function (response) {
+            var data = response.totalsForAllResults['ga:goal3ConversionRate'];
+            return Math.round((parseFloat(data) + 0.00001) * 100) / 100 + '%';
         }, {});
-        buttonConversions.addSelection(quickviewMetrics, ['ga:userType'], 'today', 'today');
-        buttonConversions.addSelection(quickviewMetrics, ['ga:userType'], analyticsStart, 'today');
+        buttonScrollRate.addSelection(['ga:goal3ConversionRate'], ['ga:userType'], analyticsStart, 'today');
 
-        var buttonBuyNowClicks = createAnalyticsElement($('#buyNowClicks'), QuickLabel, function (response) {
-            return response.totalsForAllResults['ga:goal2Completions'];
+        var buttonPreviewRate = createAnalyticsElement($('#previewRate'), QuickLabel, function (response) {
+            var data = response.totalsForAllResults['ga:goal1ConversionRate'];
+            return Math.round((parseFloat(data) + 0.00001) * 100) / 100 + '%';
         }, {});
-        buttonBuyNowClicks.addSelection(quickviewMetrics, ['ga:userType'], 'today', 'today');
-        buttonBuyNowClicks.addSelection(quickviewMetrics, ['ga:userType'], analyticsStart, 'today');
-        createAnalyticsGroup('QUICKVIEW', [quickview_graph, buttonBounceRate, buttonBuyNowClicks, buttonConversionRate,
-            buttonConversions, buttonSessionCount, buttonSessionDuration], refreshRate);
+        buttonPreviewRate.addSelection(['ga:goal1ConversionRate'], ['ga:userType'], analyticsStart, 'today');
 
-        var sortview = createAnalyticsElement($('#sortview-graph')[0],
-            google.visualization.ColumnChart, function (response) {
-                var data = new google.visualization.DataTable(response.dataTable, 0.6);
-                return data;
-            }, CHART_OPTIONS.columnChart);
-        sortview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:deviceCategory'], analyticsStart, 'today');
-        sortview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:medium'], analyticsStart, 'today');
-        createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
+        var buttonBuyNowRate = createAnalyticsElement($('#buyNowRate'), QuickLabel, function (response) {
+            var data = response.totalsForAllResults['ga:goal2ConversionRate'];
+            return Math.round((parseFloat(data) + 0.00001) * 100) / 100 + '%';
+        }, {});
+        buttonBuyNowRate.addSelection(['ga:goal2ConversionRate'], ['ga:userType'], analyticsStart, 'today');
+
+        //TODO add purchase rate button when know how to use click meter API
+//        var buttonPurchaseRate = createAnalyticsElement($('#purchaseRate'), QuickLabel, function (response) {
+//            var data = response.totalsForAllResults['ga:goal4ConversionRate'];
+//            return Math.round((parseFloat(data) + 0.00001) * 100) / 100 + '%';
+//        }, {});
+//        buttonPurchaseRate.addSelection(['ga:goal4Completions'], ['ga:userType'], 'today', 'today');
+//        buttonPurchaseRate.addSelection(['ga:goal4Completions'], ['ga:userType'], analyticsStart, 'today');
+
+        createAnalyticsGroup('BUTTONS', [buttonSessionCount, buttonUniqueVisitors, buttonBounceRate, buttonSessionDuration,
+            buttonScrollRate, buttonPreviewRate, buttonBuyNowRate], refreshRate);
 
         var totalConversions = createAnalyticsElement($('#total-conversions-graph')[0],
         google.visualization.ColumnChart, function(response){
@@ -367,8 +397,6 @@ $(document).ready(function () {
             }, CHART_OPTIONS.lineChart);
         metricsview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:dateHour'], analyticsStart, 'today');
         metricsview.addSelection(['ga:avgSessionDuration'], ['ga:dateHour'], analyticsStart, 'today');
-        metricsview.addSelection(['ga:goalCompletionsAll'], ['ga:dateHour'], analyticsStart, 'today');
-        metricsview.addSelection(['ga:goal1Completions','ga:goal2Completions', 'ga:goal3Completions'], ['ga:dateHour'], analyticsStart, 'today');
         createAnalyticsGroup('METRICS', [metricsview], refreshRate);
 
         var goal1 = createAnalyticsElement($('#productPreview-graph')[0],
@@ -395,7 +423,7 @@ $(document).ready(function () {
 
 
     // Start the sessions counts
-    google.load('visualization', '1.0', {'packages': ['controls', 'corechart'], callback: drawElements});
+    google.load('visualization', '1.0', {'packages': ['table', 'corechart'], callback: drawElements});
 
     // Buttons that change selection
     $('#quickview-total').on('click', function () {
@@ -410,20 +438,6 @@ $(document).ready(function () {
         var QUICKVIEW = CHARTS.indexOf('QUICKVIEW');
         pageOptions.charts[QUICKVIEW].setSelection(0); // 0 represents the quickview total chart
         drawChart(QUICKVIEW);
-    });
-
-    $('#sortview-device').on('click', function () {
-        // integer that references the sortview grouping of charts
-        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
-        pageOptions.charts[SORTVIEW].setSelection(0); // 0 represents the sortview by device chart
-        drawChart(SORTVIEW);
-    });
-
-    $('#sortview-source').on('click', function () {
-        // integer that references the sortview grouping of charts
-        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
-        pageOptions.charts[SORTVIEW].setSelection(1); // 1 represents the sortview by source chart
-        drawChart(SORTVIEW);
     });
 
     $('#conversions-source').on('click', function(){
@@ -450,18 +464,6 @@ $(document).ready(function () {
         // integer that references the metrics grouping of charts
         var METRICS = CHARTS.indexOf('METRICS');
         pageOptions.charts[METRICS].setSelection(1); // 1 represents the avgSessionDuration metrics graph
-        drawChart(METRICS);
-    });
-    $('#metrics-conversions').on('click', function(){
-        // integer that references the metrics grouping of charts
-        var METRICS = CHARTS.indexOf('METRICS');
-        pageOptions.charts[METRICS].setSelection(2); // 2 represents the total conversions metrics graph
-        drawChart(METRICS);
-    });
-    $('#metrics-goals').on('click', function(){
-        // integer that references the metrics grouping of charts
-        var METRICS = CHARTS.indexOf('METRICS');
-        pageOptions.charts[METRICS].setSelection(3); // 3 represents the goals metrics graph
         drawChart(METRICS);
     });
 

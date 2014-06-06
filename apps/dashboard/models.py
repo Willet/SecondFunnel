@@ -14,38 +14,17 @@ class DashBoard(models.Model):
     # prepend with 'ga:' this is the table id that GA uses to refer to the site
     table_id = models.IntegerField(help_text="The number that refers to this customers analytics data")
 
-    # stuff below here isn't used right now
-    # TODO either implement or delete (depending on how cache experiment goes)
-    timeStamp = models.DateTimeField(verbose_name="The last time this cache of Analytics was updated",
-                                     auto_now=True)
-
-    # the quicklook graph on the dashboard page.
     quicklook_total = jsonfield.JSONField(default={}, blank=True)
     quicklook_today = jsonfield.JSONField(default={}, blank=True)
-
-    # # responses will be done by dimension.
-    # # metrics:
-    # #   ga:sessions,ga:bounces
-    # nthMinute = jsonfield.JSONField(blank=True)
-    # #   ga:sessions,ga:bounces,ga:avgSessionDuration,ga:goalCompletionsAll,
-    # #   ga:goal1Completions,ga:goal2Completions,ga:goal3Completions
-    # dateHour = jsonfield.JSONField(blank=True)
-    # #   ga:sessions,ga:bounces,ga:bounceRate,ga:goalConversionRateAll,
-    # #   ga:goal1Completions,ga:goal2Completions,ga:goal3Completions
-    # deviceCategory = jsonfield.JSONField(blank=True)
-    # #   ga:sessions,ga:bounces,
-    # #   ga:goal1Completions,ga:goal2Completions,ga:goal3Completions
-    # source = jsonfield.JSONField(blank=True)
-    #
-    # # Whether or not this dashboard has reached its daily quota
+    # Whether or not this dashboard has reached its daily quota
     # over_quota = models.BooleanField(default=False)
 
     def __unicode__(self):
+        name = 'null'
         try:
             name = self.site_name
         except:
             print 'no site, please save object with a site'
-            name = 'nositefound'
         return name
 
 

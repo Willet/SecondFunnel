@@ -1,5 +1,6 @@
 from apiclient.errors import HttpError
-from django.views.decorators.cache import cache_page
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.views.decorators.cache import cache_page, never_cache
 import httplib2
 import os
 import json
@@ -20,7 +21,9 @@ from oauth2client.client import SignedJwtAssertionCredentials
 from string import capitalize
 
 from apps.dashboard.models import DashBoard, UserProfile
+from apps.utils import async
 
+LOGIN_URL = '/dashboard/login'
 SERVICE_ACCOUNT_EMAIL = "231833496051-kf5r0aath3eh96209hdutfggj5dqld9f@developer.gserviceaccount.com"
 SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(os.path.dirname(__file__),
                                                 'ad04005e5e7b5a51c66cd176e10277a59cb61824-privatekey.p12')
@@ -62,9 +65,44 @@ def prettify_data(response):
             else:
                 title += capitalize(group[0]) + ' '
         header['label'] = title
+    for row in response['dataTable']['rows']:
+        row['c'][0]['v'] = capitalize(row['c'][0]['v'])
     return response
 
 
+@async
+def update_data(request):
+    """
+    If the cache_page decorator doesn't perform as expected,
+        then this will be how data is refreshed in the db
+    """
+    pass
+
+
+def customize_response(response, queryName):
+    pass
+
+
+# def get_data_new(request):
+#     response = {'error': 'Retrieving data failed'}
+#     if request.method == 'GET':
+#         get_request = request.GET
+#         if (('queryName' in get_request) and
+#                 ('table' in get_request) and
+#                 ('campaign' in get_request) and
+#                 ('dimension' in get_request)):
+#             dash = DashBoard.objects.get(table_id=int(get_request['table']))
+#             campaign = dash.campaigns.get(google_id=get_request['campaign'])
+#             response = campaign.get_response_by_dimension(dimension=get_request['dimension'])
+#             response = prettify_data(customize_response(response, get_request['queryName']))
+#             if (campaign.timeStamp - now()).seconds > 30:
+#                 update_data(request)
+#             return response
+#     return response
+
+
+@login_required(login_url=LOGIN_URL)
+@never_cache
 @cache_page(60 * 60)  # cache for an hour
 def get_data(request):
     response = {'error': 'Retrieving data failed'}
@@ -81,50 +119,57 @@ def get_data(request):
             start_date = GET_REQUEST['start-date']
             end_date = GET_REQUEST['end-date']
 
-            #dash = DashBoard.objects.all()[0]  # TODO this is not the way to get a dashboard
-
-            if True:  # (dash.timeStamp - datetime.utcnow().replace(tzinfo=utc)).seconds > 30:
-                service = build_analytics()
-                data = service.data().ga().get(ids=table_id,
-                                               start_date=start_date,
-                                               end_date=end_date,
-                                               metrics=metrics,
-                                               dimensions=dimension,
-                                               output='dataTable')
-                try:
-                    response = prettify_data(data.execute())
-                except HttpError as error:
-                    print "Querying Google Analytics failed with: ", error
-                    response['error'] = 'Querying GA failed'
-
-                #TODO save response here if caching doesn't work
-            else:
-                # TODO get from database
-                pass
+            service = build_analytics()
+            data = service.data().ga().get(ids=table_id,
+                                           start_date=start_date,
+                                           end_date=end_date,
+                                           metrics=metrics,
+                                           dimensions=dimension,
+                                           output='dataTable')
+            try:
+                response = prettify_data(data.execute())
+            except HttpError as error:
+                print "Querying Google Analytics failed with: ", error
+                response['error'] = 'Querying GA failed'
     response = json.dumps(response)
     return HttpResponse(response, content_type='application/json')
 
 
+@login_required(login_url=LOGIN_URL)
 def index(request):
-    if request.user.is_authenticated():
-        user = User.objects.get(pk=request.user.pk)
+    user = User.objects.get(pk=request.user.pk)
+    context_dict = {}
+    try:
+        profile = UserProfile.objects.get(user=user)
+        dashboards = profile.dashboards.all()
+        context_dict = {'dashboards': [{'site': dashboard.site_name,
+                                        'pk': dashboard.pk,
+                                        'tableId': dashboard.table_id} for dashboard in dashboards]}
+    except UserProfile.DoesNotExist:
+        print "user does not exist"
+
+    context = RequestContext(request)
+    return render_to_response('index.html', context_dict, context)
+
+
+@login_required(login_url=LOGIN_URL)
+def dashboard(request, dashboardId):
+    profile = UserProfile.objects.get(user=request.user)
+    if not profile.dashboards.all().filter(pk=dashboardId):
+        # can't view page
+        return HttpResponseRedirect('/dashboard/')
+    else:
         context_dict = {}
         try:
-            profile = UserProfile.objects.get(user=user)
-            dashboards = profile.dashboards.all()
-            context_dict = {'dashboards': [{'site': dashboard.site,
-                                           'tableId': dashboard.table_id} for dashboard in dashboards]}
-        except UserProfile.DoesNotExist:
-            print "user does not exist"
+            dashboard = DashBoard.objects.get(pk=dashboardId)
+        except DashBoard.MultipleObjectsReturned or DashBoard.DoesNotExist:
+            return HttpResponseRedirect('/dashboard/')
+        context_dict['tableId'] = dashboard.table_id
+        context_dict['siteName'] = dashboard.site_name
+        # TODO add this to model
+        context_dict['campaigns'] = []
 
-        context = RequestContext(request)
-        return render_to_response('index.html', context_dict, context)
-    else:
-        return HttpResponseRedirect('/dashboard/login/')
-
-
-def gap(request):
-    return render(request, 'dashboard.html',)
+        return render(request, 'dashboard.html', context_dict)
 
 
 def user_login(request):
@@ -154,10 +199,8 @@ def user_login(request):
                                   context)
 
 
+@login_required(login_url=LOGIN_URL)
 def user_logout(request):
-    if request.user.is_authenticated():
-        logout(request)
-        # Take the user back to the homepage.
-        return HttpResponseRedirect('/dashboard/')
-    else:
-        return HttpResponseRedirect('/dashboard/login')
+    logout(request)
+    # Take the user back to the homepage.
+    return HttpResponseRedirect('/dashboard/')

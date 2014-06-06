@@ -6,5 +6,5 @@ urlpatterns = patterns('apps.dashboard.views',
                        url(r'^logout', 'user_logout', name='logout'),
                        #url(r'^register', 'user_registration', name='register'),
                        url(r'retrieve-data', 'get_data', name="get_data"),
-                       url(r'^gap', 'gap', name="gap"),  # eventually will not exist
+                       url(r'^(?P<dashboardId>\d+)', 'dashboard', name='dashboard'),
 )
