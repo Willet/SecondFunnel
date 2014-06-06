@@ -2,15 +2,13 @@ import re
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
-from scrapy_webdriver.http import WebdriverRequest
-
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelScraper
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider,\
+    SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
-from apps.scrapy.utils.misc import open_in_browser
 
 
-class SurlatableSpider(SecondFunnelScraper, WebdriverCrawlSpider):
+class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'surlatable'
     allowed_domains = ['surlatable.com']
     start_urls = []
@@ -22,12 +20,19 @@ class SurlatableSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
     store_slug = name
 
-    # For some reason, Always defaults to regular requests...
-    # So, we override...
-    def start_requests(self):
-        return [WebdriverRequest(url) for url in self.start_urls]
+    def is_product_page(self, response):
+        is_product_page = re.search('(\d+)', response.url)
+        return is_product_page
 
     def parse_product(self, response):
+        """
+        Parses a product page on SurLaTable.com.
+
+        @url http://www.surlatable.com/product/PRO-1447598/Fish+Individual+Bowl
+        @returns items 1 1
+        @returns requests 0 0
+        @scrapes url sku name price description image_urls attributes
+        """
 
         sel = Selector(response)
 

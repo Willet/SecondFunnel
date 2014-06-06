@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
-    <title>{% block head %}Secondfunnel {% endblock %}Dashboard</title>
+    <title>{% block head %}Secondfunnel {% endblock %}Console</title>
 
 
     <!--  Bootstrap  -->
@@ -30,6 +30,7 @@
             <ul class="nav navbar-nav">
                 <li class="sidebar-toggle-box"><a href="#"><i class="fa fa-bars"></i></a></li>
                 <li class=""><a href="index.html"><strong>Second Funnel</strong></a></li>
+                <li id="last-one"> <a href="/dashboard/logout/">Log Out</a> </li>
             </ul>
             <!-- /nav navbar-nav -->
         </div>
@@ -40,7 +41,27 @@
 <!-- /header -->
 
 <div class="page-container">
-{% block sidebar %}{% endblock %}
+{% block sidebar %}
+    <div class="nav-collapse top-margin fixed box-shadow2 hidden-xs" id="sidebar">
+        <div class="leftside-navigation">
+            <ul id="nav-accordion" class="sidebar-menu">
+                <li><a href="/dashboards/" class="active"> <i class="fa fa-dashboard"></i> <span>Dashboards</span> </a></li>
+                <li class="sub-menu dcjq-parent-li"><a href="javascript:;" class="dcjq-parent"> <i
+                        class="fa fa-book"></i>
+                    <span>Your Campaign</span><i class="pull-right fa fa-sort-down"></i></a>
+                    <ul class="sub">
+                        <li><a href="calendar.html"><i class="fa fa-calendar-o"></i> Calender</a></li>
+                        <li><a href="compose-mail.html"><i class="fa fa-envelope"></i> Send Message</a></li>
+                        <li><a href="invoice.html"><i class="fa fa-money"></i> Invoice</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <!--  /nav-accordion sidebar-menu  -->
+        </div>
+        <!--  /leftside-navigation  -->
+    </div>
+    <!--  /sidebar  -->
+{% endblock %}
 {% block main %}{% endblock %}
 </div>
 <!-- /page-container end -->

@@ -14,6 +14,25 @@ class SecondFunnelScraper(object):
             separator = getattr(self, "start_urls_separator", ",")
             self.start_urls = kwargs.get('start_urls').split(separator)
 
+        if kwargs.get('feed_ids'):
+            self.feed_ids = kwargs.get('feed_ids').split(',')
+
+
+class SecondFunnelCrawlScraper(SecondFunnelScraper):
+    def parse_start_url(self, response):
+        if self.is_product_page(response):
+            self.rules = ()
+            self._rules = []
+            return self.parse_product(response)
+
+        return []
+
+    def is_product_page(self, response):
+        return False
+
+    def parse_product(self, response):
+        return []
+
 
 class WebdriverCrawlSpider(Spider):
     """
@@ -32,6 +51,8 @@ class WebdriverCrawlSpider(Spider):
     """
 
     rules = ()
+    request_cls = WebdriverRequest
+    response_cls = WebdriverResponse
 
     def __init__(self, *a, **kw):
         super(WebdriverCrawlSpider, self).__init__(*a, **kw)
@@ -39,7 +60,7 @@ class WebdriverCrawlSpider(Spider):
 
     def _requests_to_follow(self, response):
         # Support WebdriverResponse to allow Javascript scraping
-        if not isinstance(response, WebdriverResponse):
+        if not isinstance(response, self.response_cls):
             return
         seen = set()
         for n, rule in enumerate(self._rules):
@@ -49,7 +70,7 @@ class WebdriverCrawlSpider(Spider):
             seen = seen.union(links)
             for link in links:
                 # Use WebdriverRequests to allow Javascript scraping
-                r = WebdriverRequest(url=link.url, callback=self._response_downloaded)
+                r = self.request_cls(url=link.url, callback=self._response_downloaded)
                 r.meta.update(rule=n, link_text=link.text)
                 yield rule.process_request(r)
 
@@ -71,6 +92,9 @@ class WebdriverCrawlSpider(Spider):
         if follow and self._follow_links:
             for request_or_item in self._requests_to_follow(response):
                 yield request_or_item
+
+    def make_requests_from_url(self, url):
+        return self.request_cls(url, dont_filter=True)
 
     # --------------------------------------------------------------------------
     #   Everything below this line is duplicated verbatim

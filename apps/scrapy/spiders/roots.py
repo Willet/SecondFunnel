@@ -2,15 +2,13 @@ import re
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
-from scrapy_webdriver.http import WebdriverRequest
-
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelScraper
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
+    SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
-from apps.scrapy.utils.misc import open_in_browser
 
 
-class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
+class RootsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'roots'
     allowed_domains = ['usa.roots.com', 'canada.roots.com']
     start_urls = ['http://usa.roots.com/women/best-sellers/womensBestSellers,default,sc.html']
@@ -25,12 +23,22 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
     store_slug = name
 
-    # For some reason, Always defaults to regular requests...
-    # So, we override...
-    def start_requests(self):
-        return [WebdriverRequest(url) for url in self.start_urls]
+    def is_product_page(self, response):
+        sel = Selector(response)
+
+        is_product_page = sel.css('#productdetails .key')
+
+        return is_product_page
 
     def parse_product(self, response):
+        """
+        Parses a product page on Roots.com.
+
+        @url http://canada.roots.com/SmallBanffBagHorween/LeatherLuggageBags//18040023,default,pd.html?cgid=leatherWeekenderBags&selectedColor=Z65
+        @returns items 1 1
+        @returns requests 0 0
+        @scrapes url sku name price description image_urls attributes
+        """
         def full_size_image(x):
             """From
             thumb_variation_A59_view_b_55x55.jpg
@@ -40,6 +48,12 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
             (and pray that all their images are all 579 pixels wide)
             """
             return 'main_variation_{}_view_{}_579x579.jpg'.format(x.group(1), x.group(2))
+
+        full_url_format = "http://demandware.edgesuite.net/aacg_prd/on/" \
+                          "demandware.static/Sites-RootsCA-Site/" \
+                          "Sites-roots_master_catalog/default/" \
+                          "v1401786139656/customers/c972/{pid}/{pid}_pdp2/" \
+                          "main_variation_{sc}_view_a_579x579.jpg"
 
         sel = Selector(response)
 
@@ -54,6 +68,8 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
         # TODO: WTF does this need to be this complicated?
         image_urls = []
         img_thumbs = sel.xpath('//div[contains(@class, "fluid-display-imagegroup")]//img[contains(@class, ":view")]')
+        selectedColor = re.findall(r"var\s?selectedColor\s?=\s?\'(\w+)\';", response.body, re.I | re.M | re.U)
+
         for thumb in img_thumbs:
             thumb_url = thumb.css('::attr(src)').extract_first()
             if thumb_url:
@@ -61,20 +77,22 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
             else:
                 # wild(er) guess if JS is behind
                 # (hopefully it won't have to come to this)
-                selectedColor = re.findall(r"var\s?selectedColor\s?=\s?\'(\w+)\';", response.body, re.I | re.M | re.U)
                 if selectedColor:
                     # construct unverified image url using default color ID
                     product_image_pid = re.findall(r':view:\d+:(\d+):pdp2', thumb.extract())[0]
-                    full_url = "http://demandware.edgesuite.net/aacg_prd/on/" \
-                               "demandware.static/Sites-RootsCA-Site/" \
-                               "Sites-roots_master_catalog/default/" \
-                               "v1401786139656/customers/c972/{pid}/{pid}_pdp2/" \
-                               "main_variation_{sc}_view_a_579x579.jpg".format(
+                    full_url = full_url_format.format(
                         pid=product_image_pid, sc=selectedColor[0])
 
             if not full_url:
                 continue
             image_urls.append(full_url)
+
+        if not image_urls and selectedColor:
+            # wild guess (2) for pages that have only one image and no "picker"
+            default_pic_id = sel.css('.fluid-display::attr(id)').extract_first()
+            product_image_pid = re.findall(r'display:\d+:(\d+):pdp2',
+                                           default_pic_id)[0]
+            image_urls.append(full_url_format.format(pid=product_image_pid, sc=selectedColor[0]))
 
         attributes = {}
         sale_price = sel.css('.pricing #priceTop .special .value::text').extract_first()
@@ -83,7 +101,7 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
             l.add_css('price', '.pricing #priceTop .value::text')
         else:
             l.add_css('price', '.pricing #priceTop .standard .value::text')
-            attributes['sales_price'] = sale_price
+            attributes['sale_price'] = sale_price
 
         attributes['categories'] = []
         category_sels = sel.css('.breadcrumbs').xpath('a[@href!="#"]')

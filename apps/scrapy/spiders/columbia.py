@@ -1,14 +1,13 @@
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
-from scrapy_webdriver.http import WebdriverRequest
-from urlparse import urlparse
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import SecondFunnelScraper, WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
+    SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class ColumbiaSpider(SecondFunnelScraper, WebdriverCrawlSpider):
+class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'columbia'
     allowed_domains = ['columbia.com']
     start_urls = ['http://www.columbia.com/']
@@ -24,12 +23,22 @@ class ColumbiaSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     def __init__(self, *args, **kwargs):
         super(ColumbiaSpider, self).__init__(*args, **kwargs)
 
-    # For some reason, Always defaults to regular requests...
-    # So, we override...
-    def start_requests(self):
-        return [WebdriverRequest(url) for url in self.start_urls]
+    def is_product_page(self, response):
+        sel = Selector(response)
+
+        is_product_page = sel.css('span[itemprop="identifier"]')
+
+        return is_product_page
 
     def parse_product(self, response):
+        """
+        Parses a product page on Columbia.com.
+
+        @url http://www.columbia.com/Men%27s-Royce-Peak%E2%84%A2-Zero-Short-Sleeve-Shirt/AM9112,default,pd.html
+        @returns items 1 1
+        @returns requests 0 0
+        @scrapes url sku name price in_stock description details image_urls attributes
+        """
         sel = Selector(response)
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)

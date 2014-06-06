@@ -80,7 +80,7 @@ kombu==3.0.12
 # This library has a tendency of disappearing...
 # So we keep our own copy of it
 #https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/packages/google-1.05.zip#egg=google
-#google-api-python-client==1.2
+google-api-python-client==1.2
 oauth2client==1.2
 #pyOpenSSL==0.13.1
 #python-gflags==2.0
@@ -104,7 +104,7 @@ Scrapy==0.22.2
 scrapy-sentry==0.6.1
 Twisted==13.2.0
 cffi==0.8.2
-cryptography==0.3
+cryptography==0.4
 cssselect==0.9.1
 pyOpenSSL==0.14
 pycparser==2.10

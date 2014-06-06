@@ -1,32 +1,18 @@
-import re
-from urlparse import urljoin
-from scrapy import log
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-from scrapy.contrib.spiders import CrawlSpider, Rule
+from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelScraper
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
+    SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
-# TODO: Dupe checking
-#   see http://doc.scrapy.org/en/latest/topics/settings.html?highlight=dupe#dupefilter-class
-#   see http://doc.scrapy.org/en/latest/topics/item-pipeline.html#duplicates-filter
-# TODO: Memory
-# Pagination
 
-
-class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
+class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'gap'
     allowed_domains = ['gap.com']
     start_urls = ['http://www.gap.com/']
     rules = [
-        # Rule(SgmlLinkExtractor(allow=[
-        #     r'\/browse\/subDivision.do\?.*?cid=\d+'
-        # ]), 'parse_division'),
-        # Rule(SgmlLinkExtractor(allow=[
-        #     r'\/browse\/category.do\?.*?cid=\d+'
-        # ]), 'parse_category'),
         Rule(SgmlLinkExtractor(allow=[
             r'/browse/product.do\?.*?pid=\d+'
         ]), 'parse_product', follow=False)
@@ -47,11 +33,6 @@ class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
         super(GapSpider, self).__init__(*args, **kwargs)
 
-    # For some reason, Always defaults to regular requests...
-    # So, we override...
-    def start_requests(self):
-        return [WebdriverRequest(url) for url in self.start_urls]
-
     def parse_start_url(self, response):
         """
         Handles any special parsing from start_urls.
@@ -60,6 +41,10 @@ class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
         This method is misleading as it actually cascades...
         """
+        if self.is_product_page(response):
+            self.rules = ()
+            self._rules = []
+            return self.parse_product(response)
 
         if response.url in self.visited:
             return []
@@ -79,37 +64,23 @@ class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
         return urls
 
-    def parse_division(self, response):
+    def is_product_page(self, response):
         sel = Selector(response)
-        base_url = response.url
 
-        divisions = sel.css('.category > a')
+        is_product_page = sel.css('link[rel="canonical"]::attr(href)')\
+            .re_first('/P(\d+).jsp')
 
-        for division in divisions:
-            url = division.css('::attr(href)').extract_first().strip()
-            text = division.css('::text').extract_first().strip()
-            msg = u'PARSE_DIVISION - {category}: {url}'.format(url=url,
-                                                               category=text)
-            log.msg(msg, level=log.DEBUG)
-
-            yield WebdriverRequest(urljoin(base_url, url))
-
-    def parse_category(self, response):
-        sel = Selector(response)
-        base_url = response.url
-
-        products = sel.css('.productCatItem > a')
-
-        for product in products:
-            url = product.css('::attr(href)').extract_first().strip()
-            text = product.css('::text').extract_first().strip()
-            msg = u'PARSE CATEGORY - {product}: {url}'.format(url=url,
-                                                              product=text)
-            log.msg(msg, level=log.DEBUG)
-
-            yield WebdriverRequest(urljoin(base_url, url))
+        return is_product_page
 
     def parse_product(self, response):
+        """
+        Parses a product page on Gap.com.
+
+        @url http://www.gap.com/browse/product.do?cid=64526&vid=1&pid=960079012
+        @returns items 1 1
+        @returns requests 0 0
+        @scrapes url sku name price in_stock description image_urls attributes
+        """
         sel = Selector(response)
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
