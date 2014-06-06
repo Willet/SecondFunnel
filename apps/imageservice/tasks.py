@@ -196,7 +196,7 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
 
             try: # ignore on failure
                 master_url = upload(path, folder, resized, size)
-                data.sizes.update(dict(size.name, {
+                data['sizes'].append(dict(size.name, {
                     'width': size.width,
                     'height': size.height
                 }))

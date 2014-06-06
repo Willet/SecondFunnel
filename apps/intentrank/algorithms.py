@@ -106,12 +106,18 @@ def qs_for(tiles):
     if not tiles:
         tiles = []
 
-    try:
-        ids = [x.id for x in tiles]
-    except AttributeError as err:
-        ids = tiles
+    # raw SQL for obtaining a queryset the with the same order as the input set
+    # blog.mathieu-leplatre.info/django-create-a-queryset-from-a-list-preserving-order.html
+    # (large-set testing required)
+    pk_list = [x.pk for x in tiles]
+    clauses = ' '.join(['WHEN id=%s THEN %s' % (pk, i)
+                        for i, pk in enumerate(pk_list)])
+    ordering = 'CASE %s END' % clauses
+    qs = Tile.objects.filter(pk__in=pk_list).extra(
+        select={'ordering': ordering},
+        order_by=('ordering', ))
 
-    return Tile.objects.filter(id__in=ids)
+    return qs
 
 
 @filter_tiles
