@@ -142,7 +142,7 @@
 
 .previewContainer .stl-look .stl-item img {
     display: block;
-    width: 72px;
+    width: 100px;
     max-width: none;
     max-height: none;
     height: auto;
@@ -205,6 +205,24 @@
 }
 .previewContainer .main-image-container .gallery-swipe-right:hover {
     border-left-color: #7D7D7D;
+}
+
+.previewContainer .more-info {
+    text-align: right;
+    padding-right: 20px;
+    font-size: 20px;
+    line-height: 20px;
+    font-weight: bold;
+}
+
+.previewContainer .more-info .down-arrow {
+    width: 0px;
+    height: 0px;
+    background-color: transparent;
+    border-left: 10.5px solid transparent;
+    border-right: 10.5px solid transparent;
+    border-top: 15px solid #000;
+    display: inline-block;
 }
 
 .previewContainer .roots-logo {

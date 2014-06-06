@@ -287,14 +287,15 @@
                                 <div class='buy'></div>
                             <% } %>
                         </div>
-                        <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
-                            <div class="more-info">
-                                More from this look...
-                            </div>
-                        <% } %>
                         <div class="cell mobile-only">
                             <img src="<%= obj.image.url %>" alt="image"/>
                         </div>
+                        <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
+                            <div class="more-info">
+                                Shop the rest of this look
+                                <div class="down-arrow"></div>
+                            </div>
+                        <% } %>
                         <% if (obj['tagged-products'].length > 1) { %>
                             <div class="cell mobile-only">
                                 <div class="stl-title">The Look</div>
