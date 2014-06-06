@@ -36,8 +36,7 @@ class NastyGalSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     def is_product_page(self, response):
         sel = Selector(response)
 
-        is_product_page = sel.css('.product-style::text')\
-            .re_first('Style #:(\d+)')
+        is_product_page = sel.css('.product-style')
 
         return is_product_page
 

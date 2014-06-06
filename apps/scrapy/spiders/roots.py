@@ -23,10 +23,19 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
     store_slug = name
 
-    # For some reason, Always defaults to regular requests...
-    # So, we override...
-    def start_requests(self):
-        return [WebdriverRequest(url) for url in self.start_urls]
+    def parse_start_url(self, response):
+        if self.is_product_page(response):
+            self.rules = ()
+            return self.parse_product(response)
+
+        return []
+
+    def is_product_page(self, response):
+        sel = Selector(response)
+
+        is_product_page = sel.css('#productdetails .key')
+
+        return is_product_page
 
     def parse_product(self, response):
         """

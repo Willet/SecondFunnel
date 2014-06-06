@@ -59,6 +59,21 @@ class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
         return urls
 
+    # def parse_start_url(self, response):
+    #     if self.is_product_page(response):
+    #         self.rules = ()
+    #         return self.parse_product(response)
+    #
+    #     return []
+
+    def is_product_page(self, response):
+        sel = Selector(response)
+
+        is_product_page = sel.css('link[rel="canonical"]::attr(href)')\
+            .re_first('/P(\d+).jsp')
+
+        return is_product_page
+
     def parse_product(self, response):
         """
         Parses a product page on Gap.com.
