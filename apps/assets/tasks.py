@@ -129,11 +129,11 @@ def product_saved(sender, **kwargs):
             content.save()
 
 
-@receiver(post_save, sender=Content)
+@receiver(post_save)
 def content_saved(sender, **kwargs):
     """Generate cache for IR tiles if a content is saved."""
     content = kwargs.pop('instance', None)
-    if not content:
+    if not isinstance(content, Content):
         return
 
     with transaction.atomic():
