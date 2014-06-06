@@ -2,10 +2,13 @@ import re
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
+from scrapy_webdriver.http import WebdriverRequest
+from urlparse import urlparse
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider,\
     SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
+from apps.scrapy.utils.misc import open_in_browser
 
 
 class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
@@ -34,6 +37,9 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         @scrapes url sku name price description image_urls attributes
         """
 
+        url = response.url
+        hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
+
         sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_value('url', response.url)
@@ -51,15 +57,39 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         else:
             l.add_css('price', 'li.price::text', re='(\$\d+\.\d+)')
 
-        # TODO: more Image URLs
+        l.add_value('attributes', attributes)
+
+        # URL
+        magic_values = sel.css('.fluid-display::attr(id)')\
+            .extract_first()\
+            .split(':')
+        xml_path = '/images/customers/c{1}/{2}/' \
+            '{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
+
+        item = l.load_item()
+        request = WebdriverRequest(
+            hostname + xml_path, callback=self.parse_images)
+
+        request.meta['item'] = item
+
+        yield request
+
+    def parse_images(self, response):
+        sel = Selector(response)
+
+        item = response.meta.get('item', ScraperProduct())
+        l = ScraperProductLoader(item=item, response=response)
+
+        xml_url = response.url
+        path = xml_url.rsplit('/', 1)[0]
+
+        # There may be cleaner ways to do this but they don't have THIS HAT.
+        relative_urls = sel.xpath('//*[@id="TOUCHZOOM"]/../@url').extract()
         image_urls = [
-            # this is unfortunately reverse-engineered (and 1079 seems to be a magic number)
-            "http://www.surlatable.com//images/customers/c1079/PRO-{sku}/PRO-{sku}_detail/main_variation_Default_view_1_426x426.jpg".format(
-                sku=l.get_output_value("sku")
-            )
+            '{0}/{1}'.format(path, u.rsplit('/', 1)[1]) \
+            for u in relative_urls
         ]
 
         l.add_value('image_urls', image_urls)
-        l.add_value('attributes', attributes)
 
         yield l.load_item()
