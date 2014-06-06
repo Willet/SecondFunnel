@@ -161,6 +161,5 @@ def tile_saved(sender, **kwargs):
         tile.ir_cache = new_ir_cache  # restore property
         return
 
-    print "updating tile cache..."
     tile.ir_cache = new_ir_cache
     tile.save()
