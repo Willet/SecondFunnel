@@ -21,8 +21,8 @@ def get_or_create(model):
     #
     # Instead, we do the two steps separately
     try:
-        # We have no unique identifier at the moment; use the name for now.
-        obj = model_class.objects.get(name=model.name)
+        # We have no unique identifier at the moment; use the sku / store
+        obj = model_class.objects.get(sku=model.sku, store_id=model.store_id)
     except model_class.DoesNotExist:
         created = True
         obj = model  # DjangoItem created a model for us.
