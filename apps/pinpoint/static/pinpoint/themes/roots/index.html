@@ -90,6 +90,7 @@
 <body>
     <div class='navbar'>
         <div class="container">
+            <div class="line"></div>
             <a href="https://canada.roots.com/" target="_blank">
                 <img src="{% static 'pinpoint/themes/roots/images/logo.gif' %}" />
             </a>
@@ -161,6 +162,10 @@
             <div class="fullscreen">
                 <div class="content">
                     <span class="close">Back to browsing</span>
+                    <div class="roots-logo">
+                        <div class="line"></div>
+                        <img src="{% static 'pinpoint/themes/roots/images/logo.gif' %}" />
+                    </div>
                     <div class="scrollable">
                         <div class="template target"></div>
                     </div>
@@ -183,6 +188,42 @@
             +
             <div>
                 <%= App.option('tapIndicatorText', 'tap to see more') %>
+            </div>
+        </script>
+
+        <script type="text/template" id="facebook_social_button_template">
+            <div class='button facebook'>
+                <fb:like href="<%= url %>" width="25" layout="button"
+                         show_faces="false"></fb:like>
+            </div>
+        </script>
+
+        <script type="text/template" id="twitter_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
+            <div class='button twitter'>
+                <a href="//twitter.com/share?url=<%= url %>&text=<%= cleanDesc %>"
+                   target="_blank">
+                    <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
+                </a>
+            </div>
+        </script>
+
+        <script type="text/template" id="pinterest_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
+            <div class='button pinterest'>
+                <a data-pin-do="none" href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= cleanDesc %>"
+                   target="_blank"><img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/></a>
+            </div>
+        </script>
+
+        <script type="text/template" id="tumblr_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
+            <div class="button tumblr">
+                <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= cleanDesc %>&click_thru=<%= url %>"
+                     target='_blank'><img src="http://platform.tumblr.com/v1/share_1.png"/></a>
             </div>
         </script>
 
@@ -273,9 +314,15 @@
                         <div class="cell info">
                             <div class='title'></div>
                             <div class='price'></div>
-                            <div class='buy'></div>
+                            <% if (App.support.mobile()) { %>
+                                <div class='buy'></div>
+                            <% } %>
                             <div class="gallery-main-image"></div>
-                            <div class='gallery<% if (App.support.mobile()) { %> dots<% } %><% if (obj.images.length < 2) { %> hide<% } %>'></div>
+                            <div class='gallery dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                            <% if (!App.support.mobile()) { %>
+                                <div class='buy'></div>
+                            <% } %>
+                            <div class="social-buttons"></div>
                         </div>
                         <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
                             <div class="more-info">
@@ -289,7 +336,7 @@
                             <div class="cell mobile-only">
                                 <div class="stl-title">The Look</div>
                                 <div class="stl-look">
-                                    <% var  related = obj['tagged-products'] %>
+                                    <% var related = obj['tagged-products'] %>
                                     <% for (var i = 0; i < related.length; i++) { %>
                                         <div class="stl-item" data-index="<%- i %>">
                                             <img src="<%- related[i].images[0].url %>" />
@@ -312,11 +359,11 @@
                         <div class="cell">
                             <div class="info">
                                 <div class="title">
-                                    Coming soon to Columbia!
+                                    Coming soon to Roots!
                                 </div>
                                 <div class="buy">
                                     <a class='button' href='https://canada.roots.com/' target='_blank'>
-                                        Shop On Columbia
+                                        Shop On Roots
                                     </a>
                                 </div>
                             </div>
