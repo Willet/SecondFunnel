@@ -2,11 +2,12 @@ from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import SecondFunnelScraper, WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
+    SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class MadewellSpider(SecondFunnelScraper, WebdriverCrawlSpider):
+class MadewellSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'madewell'
     allowed_domains = ['madewell.com']
     start_urls = ['http://www.madewell.com/']
@@ -42,14 +43,6 @@ class MadewellSpider(SecondFunnelScraper, WebdriverCrawlSpider):
             ]
 
         super(MadewellSpider, self).__init__(*args, **kwargs)
-
-    def parse_start_url(self, response):
-        if self.is_product_page(response):
-            self.rules = ()
-            self._rules = []
-            return self.parse_product(response)
-
-        return []
 
     def is_product_page(self, response):
         sel = Selector(response)
