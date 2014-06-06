@@ -191,42 +191,6 @@
             </div>
         </script>
 
-        <script type="text/template" id="facebook_social_button_template">
-            <div class='button facebook'>
-                <fb:like href="<%= url %>" width="25" layout="button"
-                         show_faces="false"></fb:like>
-            </div>
-        </script>
-
-        <script type="text/template" id="twitter_social_button_template">
-            <% var desc = caption || description || name; %>
-            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
-            <div class='button twitter'>
-                <a href="//twitter.com/share?url=<%= url %>&text=<%= cleanDesc %>"
-                   target="_blank">
-                    <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
-                </a>
-            </div>
-        </script>
-
-        <script type="text/template" id="pinterest_social_button_template">
-            <% var desc = caption || description || name; %>
-            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
-            <div class='button pinterest'>
-                <a data-pin-do="none" href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= cleanDesc %>"
-                   target="_blank"><img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/></a>
-            </div>
-        </script>
-
-        <script type="text/template" id="tumblr_social_button_template">
-            <% var desc = caption || description || name; %>
-            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
-            <div class="button tumblr">
-                <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= cleanDesc %>&click_thru=<%= url %>"
-                     target='_blank'><img src="http://platform.tumblr.com/v1/share_1.png"/></a>
-            </div>
-        </script>
-
         <script type="text/template" id="product_price_template">
             <%- obj.price %>
         </script>
@@ -322,7 +286,6 @@
                             <% if (!App.support.mobile()) { %>
                                 <div class='buy'></div>
                             <% } %>
-                            <div class="social-buttons"></div>
                         </div>
                         <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
                             <div class="more-info">
