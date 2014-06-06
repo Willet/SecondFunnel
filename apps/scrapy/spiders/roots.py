@@ -26,6 +26,7 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     def parse_start_url(self, response):
         if self.is_product_page(response):
             self.rules = ()
+            self._rules = []
             return self.parse_product(response)
 
         return []

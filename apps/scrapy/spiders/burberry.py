@@ -19,15 +19,13 @@ class BurberrySpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
     store_slug = name
 
-    category_url = 'http://www.gap.com/browse/category.do?cid={}'
-    visited = []
-
     def __init__(self, *args, **kwargs):
         super(BurberrySpider, self).__init__(*args, **kwargs)
 
     def parse_start_url(self, response):
         if self.is_product_page(response):
             self.rules = ()
+            self._rules = []
             return self.parse_product(response)
 
         return []

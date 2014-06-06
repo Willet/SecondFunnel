@@ -40,6 +40,10 @@ class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
         This method is misleading as it actually cascades...
         """
+        if self.is_product_page(response):
+            self.rules = ()
+            self._rules = []
+            return self.parse_product(response)
 
         if response.url in self.visited:
             return []
@@ -58,13 +62,6 @@ class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
             urls.append(WebdriverRequest(url))
 
         return urls
-
-    # def parse_start_url(self, response):
-    #     if self.is_product_page(response):
-    #         self.rules = ()
-    #         return self.parse_product(response)
-    #
-    #     return []
 
     def is_product_page(self, response):
         sel = Selector(response)
