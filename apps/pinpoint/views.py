@@ -98,10 +98,10 @@ def campaign_by_slug(request, page_slug, product_identifier='id',
             product = (Product.objects.filter(**lookup_map)
                               .annotate(num_tiles=Count('tiles'))
                               .filter(num_tiles__gt=0)
-                              .order_by('-num_tiles'))
+                              .order_by('-num_tiles')[0])
             if not product:
                 product = None
-        except (Product.DoesNotExist, ValueError) as err:
+        except (Product.DoesNotExist, IndexError, ValueError) as err:
             product = None
     else:
         product = None

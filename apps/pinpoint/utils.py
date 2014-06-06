@@ -113,7 +113,7 @@ def render_campaign(page_id, request, store_id=0, product=None):
     store = page.store
 
     try:
-        tile = Tile.objects.filter(products__id=product.id, template="product")[0]
+        tile = Tile.objects.filter(products__id=product.id).order_by('-template')[0]
         product_repr = json.dumps(tile.to_json())
     # TODO: this may well be a generic Exception catcher
     except (Product.DoesNotExist, AttributeError, IndexError, ValueError) as err:
