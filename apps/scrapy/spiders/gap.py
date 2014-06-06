@@ -3,11 +3,12 @@ from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelScraper
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
+    SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
+class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'gap'
     allowed_domains = ['gap.com']
     start_urls = ['http://www.gap.com/']
@@ -40,6 +41,10 @@ class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
         This method is misleading as it actually cascades...
         """
+        if self.is_product_page(response):
+            self.rules = ()
+            self._rules = []
+            return self.parse_product(response)
 
         if response.url in self.visited:
             return []
@@ -58,6 +63,14 @@ class GapSpider(SecondFunnelScraper, WebdriverCrawlSpider):
             urls.append(WebdriverRequest(url))
 
         return urls
+
+    def is_product_page(self, response):
+        sel = Selector(response)
+
+        is_product_page = sel.css('link[rel="canonical"]::attr(href)')\
+            .re_first('/P(\d+).jsp')
+
+        return is_product_page
 
     def parse_product(self, response):
         """

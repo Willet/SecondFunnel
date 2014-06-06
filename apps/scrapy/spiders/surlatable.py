@@ -1,12 +1,14 @@
+import re
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelScraper
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider,\
+    SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class SurlatableSpider(SecondFunnelScraper, WebdriverCrawlSpider):
+class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'surlatable'
     allowed_domains = ['surlatable.com']
     start_urls = []
@@ -17,6 +19,10 @@ class SurlatableSpider(SecondFunnelScraper, WebdriverCrawlSpider):
     ]
 
     store_slug = name
+
+    def is_product_page(self, response):
+        is_product_page = re.search('(\d+)', response.url)
+        return is_product_page
 
     def parse_product(self, response):
         """

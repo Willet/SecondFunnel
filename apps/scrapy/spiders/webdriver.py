@@ -18,6 +18,22 @@ class SecondFunnelScraper(object):
             self.feed_ids = kwargs.get('feed_ids').split(',')
 
 
+class SecondFunnelCrawlScraper(SecondFunnelScraper):
+    def parse_start_url(self, response):
+        if self.is_product_page(response):
+            self.rules = ()
+            self._rules = []
+            return self.parse_product(response)
+
+        return []
+
+    def is_product_page(self, response):
+        return False
+
+    def parse_product(self, response):
+        return []
+
+
 class WebdriverCrawlSpider(Spider):
     """
     A spider that can automatically crawl other webpages based on rules.

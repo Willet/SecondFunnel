@@ -2,13 +2,13 @@ import re
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
-from scrapy_webdriver.http import WebdriverRequest
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelScraper
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
+    SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
+class RootsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'roots'
     allowed_domains = ['usa.roots.com', 'canada.roots.com']
     start_urls = ['http://usa.roots.com/women/best-sellers/womensBestSellers,default,sc.html']
@@ -23,10 +23,12 @@ class RootsSpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
     store_slug = name
 
-    # For some reason, Always defaults to regular requests...
-    # So, we override...
-    def start_requests(self):
-        return [WebdriverRequest(url) for url in self.start_urls]
+    def is_product_page(self, response):
+        sel = Selector(response)
+
+        is_product_page = sel.css('#productdetails .key')
+
+        return is_product_page
 
     def parse_product(self, response):
         """

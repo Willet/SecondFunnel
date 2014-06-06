@@ -3,11 +3,12 @@ from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from urlparse import urlparse
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import SecondFunnelScraper, WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
+    SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class BurberrySpider(SecondFunnelScraper, WebdriverCrawlSpider):
+class BurberrySpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'burberry'
     allowed_domains = ['burberry.com']
     start_urls = ['http://www.burberry.com/']
@@ -19,11 +20,15 @@ class BurberrySpider(SecondFunnelScraper, WebdriverCrawlSpider):
 
     store_slug = name
 
-    category_url = 'http://www.gap.com/browse/category.do?cid={}'
-    visited = []
-
     def __init__(self, *args, **kwargs):
         super(BurberrySpider, self).__init__(*args, **kwargs)
+
+    def is_product_page(self, response):
+        sel = Selector(response)
+
+        is_product_page = sel.css('.product-id.section span')
+
+        return is_product_page
 
     def parse_product(self, response):
         """
