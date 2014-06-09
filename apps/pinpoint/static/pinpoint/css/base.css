@@ -463,7 +463,6 @@ div.loading {
 
     /* Force repaint */
     -webkit-animation: noop 1s infinite;
-    animation: noop 1s infinite;
 
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
