@@ -384,15 +384,15 @@ $(document).ready(function () {
         createAnalyticsGroup('BUTTONS', [buttonSessionCount, buttonUniqueVisitors, buttonBounceRate, buttonSessionDuration,
             buttonScrollRate, buttonPreviewRate, buttonBuyNowRate], refreshRate);
 
-        var sortview = createAnalyticsElement($('#sortview-graph')[0],
-            google.visualization.PieChart, function (response) {
-                var data = new google.visualization.DataTable(response.dataTable, 0.6);
-                //console.log(data);
-                return data;
-            }, {title: 'Testing'});
-        sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, analyticsEnd);
-        sortview.addSelection(['ga:sessions'], ['ga:medium'], analyticsStart, analyticsEnd);
-        createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
+//        var sortview = createAnalyticsElement($('#sortview-graph')[0],
+//            google.visualization.PieChart, function (response) {
+//                var data = new google.visualization.DataTable(response.dataTable, 0.6);
+//                //console.log(data);
+//                return data;
+//            }, {title: 'Testing'});
+//        sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, analyticsEnd);
+//        sortview.addSelection(['ga:sessions'], ['ga:medium'], analyticsStart, analyticsEnd);
+//        createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
 
         var totalConversions = createAnalyticsElement($('#total-conversions-graph')[0],
         google.visualization.ColumnChart, function(response){
@@ -517,19 +517,19 @@ $(document).ready(function () {
         drawChart(QUICKVIEW);
     });
 
-    $('#sortview-device').on('click', function () {
-        // integer that references the sortview grouping of charts
-        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
-        pageOptions.charts[SORTVIEW].setSelection(0); // 0 represents the sortview by device chart
-        drawChart(SORTVIEW);
-    });
-
-    $('#sortview-source').on('click', function () {
-        // integer that references the sortview grouping of charts
-        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
-        pageOptions.charts[SORTVIEW].setSelection(1); // 1 represents the sortview by source chart
-        drawChart(SORTVIEW);
-    });
+//    $('#sortview-device').on('click', function () {
+//        // integer that references the sortview grouping of charts
+//        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
+//        pageOptions.charts[SORTVIEW].setSelection(0); // 0 represents the sortview by device chart
+//        drawChart(SORTVIEW);
+//    });
+//
+//    $('#sortview-source').on('click', function () {
+//        // integer that references the sortview grouping of charts
+//        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
+//        pageOptions.charts[SORTVIEW].setSelection(1); // 1 represents the sortview by source chart
+//        drawChart(SORTVIEW);
+//    });
 
     $('#conversions-source').on('click', function(){
         // integer that references the conversions grouping of charts
