@@ -78,9 +78,13 @@ def create_image(request, img, store_id, source):
     store = Store.objects.get(pk=store_id)
 
     # Get the last old id to use for this object
-    image = Image(original_url=request.POST.get('url'), attributes=data['sizes'],
-        dominant_color=data['dominant-color'], url=data['url'], store=store,
-        source=source, file_type=data['format'])
+    image = Image(original_url=request.POST.get('url'),
+                  attributes={"sizes": data['sizes']},
+                  dominant_color=data['dominant-color'],
+                  url=data['url'],
+                  store=store,
+                  source=source,
+                  file_type=data['format'])
 
     image.save()
     return image.to_json()
@@ -109,7 +113,8 @@ def create_product_image(request, img, store_id, product_id, source):
     # Get the last old id to use for this object
     # TODO: This will eventually be phased out
     image = ProductImage(product=product, original_url=request.POST['url'],
-        attributes=data['sizes'], dominant_color=data['dominant-color'],
+        attributes={"sizes": data['sizes']},
+        dominant_color=data['dominant-color'],
         url=data['url'], file_type=data['format'])
 
     image.save()

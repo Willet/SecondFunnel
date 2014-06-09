@@ -333,6 +333,28 @@ class ProductImage(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super(ProductImage, self).__init__(*args, **kwargs)
+        if not self.attributes:
+            self.attributes = {}
+
+    def save(self, *args, **kwargs):
+        """For whatever reason, ProductImages have separate width and height
+        attributes that are never populated by current code.
+        """
+        master_size = {}
+        try:
+            master_size = self.attributes['sizes']['master']
+        except KeyError as no_sizes:
+            pass
+        except TypeError as wrong_sizes_type:
+            if isinstance(self.attributes, list):
+                self.attributes = {}
+            self.attributes['sizes'] = master_size
+
+        if master_size:
+            self.width = master_size.get('width', 0)
+            self.height = master_size.get('height', 0)
+
+        return super(ProductImage, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
@@ -476,6 +498,27 @@ class Image(Content):
         dct["tagged-products"] = [x.to_json() for x in self.tagged_products.all()]
 
         return dct
+
+    def save(self, *args, **kwargs):
+        """For whatever reason, Images have separate width and height
+        attributes that are never populated by current code.
+        """
+        master_size = {}
+        try:
+            master_size = self.attributes['sizes']['master']
+        except KeyError as no_sizes:
+            pass
+        except TypeError as wrong_sizes_type:
+            if isinstance(self.attributes, list):
+                self.attributes = {}
+            self.attributes['sizes'] = master_size
+
+        if master_size:
+            self.width = master_size.get('width', 0)
+            self.height = master_size.get('height', 0)
+
+        return super(Image, self).save(*args, **kwargs)
+
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
