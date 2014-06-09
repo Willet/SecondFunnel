@@ -89,6 +89,7 @@ $(document).ready(function () {
     // The time between ajax calls to the server in milliseconds
     var refreshRate = 1000 * 60 * 15; // 1 second * 60 * 15 = 15 minutes
     var analyticsStart = '2014-05-02';
+    var analyticsEnd = 'today';
     var CHARTS = [];
     var pageOptions = {
         charts: []
@@ -299,6 +300,18 @@ $(document).ready(function () {
     };
 
     var drawElements = function () {
+        var decimalFormat = new google.visualization.NumberFormat({'fractionDigits': 2});
+        var numberFormat = new google.visualization.NumberFormat({'fractionDigits': 0});
+        var percentFormat = new google.visualization.NumberFormat({'fractionDigits': 2, 'suffix': '%'});
+
+        var parseDateTable = function(data){
+            for(var j = 1; j< data.getNumberOfColumns(); j++){
+                for(var i = 0; i< data.getNumberOfRows(); i++){
+                    data.setValue(i, j, parseFloat(data.getValue(i, j)));
+                }
+            }
+        };
+
         // all graphs are drawn in here
         var quickview_graph = createAnalyticsElement($('#quickview-graph')[0],
             google.visualization.LineChart, function (response) {
@@ -310,12 +323,12 @@ $(document).ready(function () {
             }, CHART_OPTIONS.lineChart, refreshRate);
         quickview_graph.addSelection(
             ['ga:bounceRate'],
-            ['ga:nthHour'], // dimensions
-            'today', 'today'); //start date, end date
+            ['ga:date'], // dimensions
+            analyticsStart, analyticsEnd); //start date, end date
         quickview_graph.addSelection(
             ['ga:bounceRate'],
-            ['ga:date'], // dimensions
-            analyticsStart, 'today'); //start date, end date
+            ['ga:nthHour'], // dimensions
+            'today', 'today'); //start date, end date
         createAnalyticsGroup('QUICKVIEW', [quickview_graph], refreshRate);
 
         var buttonSessionCount = createAnalyticsElement($('#sessionCount'), QuickLabel, function (response) {
@@ -386,11 +399,14 @@ $(document).ready(function () {
         var sortview = createAnalyticsElement($('#sortview-graph')[0],
             google.visualization.PieChart, function (response) {
                 var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                // make numbers actual numbers instead of strings so sorting works
+                parseDateTable(data);
+                numberFormat.format(data,1);
                 //console.log(data);
                 return data;
-            }, {title: 'Testing'});
-        sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, 'today');
-        sortview.addSelection(['ga:sessions'], ['ga:medium'], analyticsStart, 'today');
+            }, {});
+        sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, analyticsEnd);
+        sortview.addSelection(['ga:sessions'], ['ga:userType'], analyticsStart, analyticsEnd);
         createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
 
         var totalConversions = createAnalyticsElement($('#total-conversions-graph')[0],
@@ -401,13 +417,7 @@ $(document).ready(function () {
         totalConversions.addSelection(['ga:goal1Completions','ga:goal2Completions', 'ga:goal3Completions'], ['ga:source'], analyticsStart, 'today');
         createAnalyticsGroup('CONVERSIONS', [totalConversions], refreshRate);
 
-        var sourceTable = createAnalyticsElement($('#source-table')[0],
-            google.visualization.Table, function (response) {
-                var data = new google.visualization.DataTable(response.dataTable, 0.6);
-                console.log(data);
-                return data;
-            }, {});
-        var table_metrics = [
+        var tableMetrics = [
             'ga:sessions',
             'ga:newUsers',
             'ga:avgSessionDuration',
@@ -417,9 +427,50 @@ $(document).ready(function () {
             'ga:goal2ConversionRate',
             'ga:goal3Completions',
             'ga:goal3ConversionRate'];
-        sourceTable.addSelection(table_metrics, ['ga:source'], analyticsStart, 'today');
-        sourceTable.addSelection(table_metrics, ['ga:source'], 'today', 'today');
-        createAnalyticsGroup('TABLE', [sourceTable], refreshRate);
+        var sourceTableTraffic = createAnalyticsElement($('#source-table-traffic')[0],
+            google.visualization.Table, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                var view = new google.visualization.DataView(data);
+                decimalFormat.format(data, 3);
+
+                // make numbers actual numbers instead of strings so sorting works
+                parseDateTable(data);
+                view.hideColumns([4,5,6,7,8,9,10]);
+                return view;
+            }, {
+                'page': 'enable',
+                'pageSize': 10,
+                'sortColumn': 1,
+                'sortAscending': false
+            });
+        sourceTableTraffic.addSelection(tableMetrics, ['ga:source'], analyticsStart, analyticsEnd);
+        sourceTableTraffic.addSelection(tableMetrics, ['ga:source'], 'today', 'today');
+        createAnalyticsGroup('TRAFFICTABLE', [sourceTableTraffic], refreshRate);
+
+        var sourceTableGoals = createAnalyticsElement($('#source-table-goals')[0],
+            google.visualization.Table, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                var view = new google.visualization.DataView(data);
+
+                // make numbers actual numbers instead of strings so sorting works
+                parseDateTable(data);
+
+                percentFormat.format(data, 5);
+                percentFormat.format(data, 7);
+                percentFormat.format(data, 9);
+
+                view.hideColumns([1,2,3]);
+                return view;
+            }, {
+                'page': 'enable',
+                'pageSize': 10,
+                'sortColumn': 1,
+                'sortAscending': false
+            });
+
+        sourceTableGoals.addSelection(tableMetrics, ['ga:source'], analyticsStart, analyticsEnd);
+        sourceTableGoals.addSelection(tableMetrics, ['ga:source'], 'today', 'today');
+        createAnalyticsGroup('GOALTABLE', [sourceTableGoals], refreshRate);
 
         var metricsview = createAnalyticsElement($('#metrics-graph')[0],
         google.visualization.LineChart, function(response){
@@ -459,14 +510,14 @@ $(document).ready(function () {
     $('#quickview-total').on('click', function () {
         // number referencing the quickview grouping of charts
         var QUICKVIEW = CHARTS.indexOf('QUICKVIEW');
-        pageOptions.charts[QUICKVIEW].setSelection(1); // 1 represents the quickview today chart
+        pageOptions.charts[QUICKVIEW].setSelection(0); // 0 represents the quickview total chart
         drawChart(QUICKVIEW);
     });
 
     $('#quickview-today').on('click', function () {
         // number referencing the quickview grouping of charts
         var QUICKVIEW = CHARTS.indexOf('QUICKVIEW');
-        pageOptions.charts[QUICKVIEW].setSelection(0); // 0 represents the quickview total chart
+        pageOptions.charts[QUICKVIEW].setSelection(1); // 1 represents the quickview today chart
         drawChart(QUICKVIEW);
     });
 
