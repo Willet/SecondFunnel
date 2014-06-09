@@ -47,7 +47,7 @@
                         <div class="row">
                             <div class="col-xs-12">
                                 <div class="label-text" id="sessionCount">
-                                    Loading...
+                                    Loading
                                 </div>
                             </div>
                         </div>
@@ -71,7 +71,7 @@
                         <div class="row">
                             <div class="col-xs-12">
                                 <div class="label-text" id="uniqueVisitors">
-                                    Loading...
+                                    Loading
                                 </div>
                             </div>
                         </div>
@@ -95,7 +95,7 @@
                         <div class="row">
                             <div class="col-xs-12">
                                 <div class="label-text" id="bounceRate">
-                                    Loading...
+                                    Loading
                                 </div>
                             </div>
                         </div>
@@ -119,7 +119,7 @@
                         <div class="row">
                             <div class="col-xs-12">
                                 <div class="label-text" id="sessionDuration">
-                                    Loading...
+                                    Loading
                                 </div>
                             </div>
                         </div>
@@ -146,7 +146,7 @@
                         <div class="row">
                             <div class="col-xs-12">
                                 <div class="label-text" id="scrollRate">
-                                    Loading...
+                                    Loading
                                 </div>
                             </div>
                         </div>
@@ -170,7 +170,7 @@
                         <div class="row">
                             <div class="col-xs-12">
                                 <div class="label-text" id="previewRate">
-                                    Loading...
+                                    Loading
                                 </div>
                             </div>
                         </div>
@@ -194,7 +194,7 @@
                         <div class="row">
                             <div class="col-xs-12">
                                 <div class="label-text" id="buyNowRate">
-                                    Loading...
+                                    Loading
                                 </div>
                             </div>
                         </div>
@@ -229,9 +229,10 @@
     <!-- /row  -->
 
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-6">
             <div class="block-web graph-container" id="dash-quickview">
-                <h3 class="content-header"> At a glance:
+                <h3 class="content-header">
+                    At a glance:
                     <div data-toggle="buttons" class="button-group pull-right">
                         <a class="btn active small border-gray right-margin" id="quickview-total">
                             <span class="button-content">
@@ -252,6 +253,34 @@
                 </div>
             </div>
         </div>
+
+        <div class="col-md-6">
+            <div class="block-web graph-container">
+                <h3 class="content-header">
+                    Traffic information:
+                    <div class="button-group pull-right" data-toggle="buttons">
+                        <a href="javascript:;" class="btn active small border-gray right-margin" id="sortview-device">
+                            <span class="button-content">
+                                <input type="radio" name="sortview">
+                                Device
+                            </span>
+                        </a>
+                        <a href="javascript:;" class="btn small border-gray" id="sortview-source">
+                            <span class="button-content">
+                                <input type="radio" name="sortview">
+                                User Type
+                            </span>
+                        </a>
+                    </div>
+                    <!--  /button-group  -->
+                </h3>
+                <div class="graph" id="sortview-graph" >
+                    Currently loading data... Thank you for your patience
+                </div>
+            </div>
+            <!--  /block-web  -->
+        </div>
+        <!--  /col-md-6  -->
     </div>
     <!--  /row  -->
 
@@ -336,6 +365,70 @@
             <!--   /block-web  -->
         </div>
         <!--   /col-lg-4  -->
+    </div>
+    <!--   /row end  -->
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="block-web">
+                <h3 class="content-header"> Traffic by Source
+                    <div class="button-group pull-right" data-toggle="buttons">
+                        <a href="javascript:;" class="btn active small border-gray right-margin"
+                           id="table-traffic-total">
+                            <span class="button-content">
+                                <input type="radio" name="metrics">
+                                Total
+                            </span>
+                        </a>
+                        <a href="javascript:;" class="btn small border-gray" id="table-traffic-today">
+                            <span class="button-content">
+                                <input type="radio" name="metrics">
+                                Today
+                            </span>
+                        </a>
+                    </div>
+                    <!--   /button-group   -->
+                </h3>
+                <div id="source-table-traffic">
+                    Currently loading data... Thank you for your patience
+                </div>
+                <!--  /custom-bar-chart  -->
+            </div>
+            <!--   /block-web  -->
+        </div>
+        <!-- /col -->
+    </div>
+    <!-- /row -->
+
+    <div class="row">
+        <!--   /col-md-6  -->
+        <div class="col-md-12">
+            <div class="block-web">
+                <h3 class="content-header"> Goals by Source
+                    <div class="button-group pull-right" data-toggle="buttons">
+                        <a href="javascript:;" class="btn active small border-gray right-margin" id="table-goals-total">
+                            <span class="button-content">
+                                <input type="radio" name="table-goals">
+                                Total
+                            </span>
+                        </a>
+                        <a href="javascript:;" class="btn small border-gray" id="table-goals-today">
+                            <span class="button-content">
+                                <input type="radio" name="table-goals">
+                                Today
+                            </span>
+                        </a>
+                    </div>
+                    <!--   /button-group   -->
+                </h3>
+                <div id="source-table-goals">
+                    Currently loading data... Thank you for your patience
+                </div>
+                <!--  /custom-bar-chart  -->
+            </div>
+            <!--   /block-web  -->
+        </div>
+        <!--   /col-md-6  -->
     </div>
     <!--   /row end  -->
 

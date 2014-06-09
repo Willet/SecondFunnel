@@ -24,7 +24,7 @@ urlpatterns = patterns('',
     url(r'^scraper/', include('apps.scraper.urls')),
     url(r'^tracker/', include('apps.tracking.urls')),
     # dashboard
-    url(r'^dashboard$', lambda x: HttpResponseRedirect('/dashboards/')),
+    url(r'^dashboard$', lambda x: HttpResponseRedirect('/dashboard/')),
     url(r'^dashboard/', include('apps.dashboard.urls')),
 
     # special top-level urls for RSS feeds

@@ -48,61 +48,33 @@ def build_analytics():
 
 
 def prettify_data(response):
-    for header in response['dataTable']['cols']:
-        header['label'] = header['label'].split(':')[1]
-        # Complicated reg-ex:
-        #   first group is all lower case,
-        #   second is a single group capital/digit followed by more digits or lower case.
-        #   ie. goal2Completions -> [(u'goal', u''), (u'', u'2'), (u'', u'Completions')]
-        temp_title = re.findall(r'(^[a-z]*)|([\dA-Z]{1}[\da-z]*)', header['label'])
-        # Then take the correct group, make it uppercase, and add them together to form
-        #   the pretty human readable title for the dataTable columns
-        # TODO : replace goal 2 etc with descriptive names
-        title = ''
-        for group in temp_title:
-            if group[0] == u'':
-                title += group[1] + ' '
-            else:
-                title += capitalize(group[0]) + ' '
-        header['label'] = title
-    for row in response['dataTable']['rows']:
-        row['c'][0]['v'] = capitalize(row['c'][0]['v'])
+    if 'dataTable' in response:
+        for header in response['dataTable']['cols']:
+            header['label'] = header['label'].split(':')[1]
+            # Complicated reg-ex:
+            #   first group is all lower case,
+            #   second is a single group capital/digit followed by more digits or lower case.
+            #   ie. goal2Completions -> [(u'goal', u''), (u'', u'2'), (u'', u'Completions')]
+            temp_title = re.findall(r'(^[a-z]*)|([\dA-Z]{1}[\da-z]*)', header['label'])
+            # Then take the correct group, make it uppercase, and add them together to form
+            #   the pretty human readable title for the dataTable columns
+            # TODO : replace goal 2 etc with descriptive names
+            title = ''
+            for group in temp_title:
+                if group[0] == u'':
+                    title += group[1] + ' '
+                else:
+                    title += capitalize(group[0]) + ' '
+            header['label'] = title
+        for row in response['dataTable']['rows']:
+            row['c'][0]['v'] = capitalize(row['c'][0]['v'])
+    else:
+        if 'rows' in response:
+            for row in response['dataTable']['rows']:
+                row['c'][0]['v'] = capitalize(row['c'][0]['v'])
     return response
 
-
-@async
-def update_data(request):
-    """
-    If the cache_page decorator doesn't perform as expected,
-        then this will be how data is refreshed in the db
-    """
-    pass
-
-
-def customize_response(response, queryName):
-    pass
-
-
-# def get_data_new(request):
-#     response = {'error': 'Retrieving data failed'}
-#     if request.method == 'GET':
-#         get_request = request.GET
-#         if (('queryName' in get_request) and
-#                 ('table' in get_request) and
-#                 ('campaign' in get_request) and
-#                 ('dimension' in get_request)):
-#             dash = DashBoard.objects.get(table_id=int(get_request['table']))
-#             campaign = dash.campaigns.get(google_id=get_request['campaign'])
-#             response = campaign.get_response_by_dimension(dimension=get_request['dimension'])
-#             response = prettify_data(customize_response(response, get_request['queryName']))
-#             if (campaign.timeStamp - now()).seconds > 30:
-#                 update_data(request)
-#             return response
-#     return response
-
-
 @login_required(login_url=LOGIN_URL)
-@never_cache
 @cache_page(60 * 60)  # cache for an hour
 def get_data(request):
     response = {'error': 'Retrieving data failed'}

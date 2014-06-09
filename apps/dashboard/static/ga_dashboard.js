@@ -188,23 +188,25 @@ $(document).ready(function () {
      * @param {function} callback - function that gets called when the request is successful
      */
     var retrieveData = function (metrics, dimmension, start_date, end_date, queryName, callback) {
-        $.ajax({
-            url: "retrieve-data",
-            data: {
-                'table': table, //TODO add actual table values, move to server
-                'metrics': metrics,
-                'dimension': dimmension,
-                'start-date': start_date,
-                'end-date': end_date,
-                'queryName': queryName
-            },
-            type: "GET", // TODO GET or PUSH?
-            dataType: "json",
-            success: callback,
-            error: function (xhr, status, errorThrown) {
-                console.log(errorThrown);
-            }
-        });
+        if(poll_server) {
+            $.ajax({
+                url: "retrieve-data",
+                data: {
+                    'table': table, //TODO add actual table values, move to server
+                    'metrics': metrics,
+                    'dimension': dimmension,
+                    'start-date': start_date,
+                    'end-date': end_date,
+                    'queryName': queryName
+                },
+                type: "GET", // TODO GET or PUSH?
+                dataType: "json",
+                success: callback,
+                error: function (xhr, status, errorThrown) {
+                    console.log(errorThrown);
+                }
+            });
+        }
     };
 
     var retrieveData_new = function(queryName, campaign, dimension,  callback){
@@ -383,6 +385,16 @@ $(document).ready(function () {
         createAnalyticsGroup('BUTTONS', [buttonSessionCount, buttonUniqueVisitors, buttonBounceRate, buttonSessionDuration,
             buttonScrollRate, buttonPreviewRate, buttonBuyNowRate], refreshRate);
 
+        var sortview = createAnalyticsElement($('#sortview-graph')[0],
+            google.visualization.PieChart, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                //console.log(data);
+                return data;
+            }, {title: 'Testing'});
+        sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, 'today');
+        sortview.addSelection(['ga:sessions'], ['ga:medium'], analyticsStart, 'today');
+        createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
+
         var totalConversions = createAnalyticsElement($('#total-conversions-graph')[0],
         google.visualization.ColumnChart, function(response){
                 return new google.visualization.DataTable(response.dataTable, 0.6);
@@ -390,6 +402,26 @@ $(document).ready(function () {
         totalConversions.addSelection(['ga:goal1Completions','ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
         totalConversions.addSelection(['ga:goal1Completions','ga:goal2Completions', 'ga:goal3Completions'], ['ga:source'], analyticsStart, 'today');
         createAnalyticsGroup('CONVERSIONS', [totalConversions], refreshRate);
+
+        var sourceTable = createAnalyticsElement($('#source-table')[0],
+            google.visualization.Table, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                console.log(data);
+                return data;
+            }, {});
+        var table_metrics = [
+            'ga:sessions',
+            'ga:newUsers',
+            'ga:avgSessionDuration',
+            'ga:goal1Completions',
+            'ga:goal1ConversionRate',
+            'ga:goal2Completions',
+            'ga:goal2ConversionRate',
+            'ga:goal3Completions',
+            'ga:goal3ConversionRate'];
+        sourceTable.addSelection(table_metrics, ['ga:source'], analyticsStart, 'today');
+        sourceTable.addSelection(table_metrics, ['ga:source'], 'today', 'today');
+        createAnalyticsGroup('TABLE', [sourceTable], refreshRate);
 
         var metricsview = createAnalyticsElement($('#metrics-graph')[0],
         google.visualization.LineChart, function(response){
@@ -440,6 +472,20 @@ $(document).ready(function () {
         drawChart(QUICKVIEW);
     });
 
+    $('#sortview-device').on('click', function () {
+        // integer that references the sortview grouping of charts
+        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
+        pageOptions.charts[SORTVIEW].setSelection(0); // 0 represents the sortview by device chart
+        drawChart(SORTVIEW);
+    });
+
+    $('#sortview-source').on('click', function () {
+        // integer that references the sortview grouping of charts
+        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
+        pageOptions.charts[SORTVIEW].setSelection(1); // 1 represents the sortview by source chart
+        drawChart(SORTVIEW);
+    });
+
     $('#conversions-source').on('click', function(){
         // integer that references the conversions grouping of charts
         var CONVERSIONS = CHARTS.indexOf('CONVERSIONS');
@@ -465,6 +511,17 @@ $(document).ready(function () {
         var METRICS = CHARTS.indexOf('METRICS');
         pageOptions.charts[METRICS].setSelection(1); // 1 represents the avgSessionDuration metrics graph
         drawChart(METRICS);
+    });
+
+    $('#title').on('click', function(){
+        if(poll_server){
+            poll_server = false;
+            console.log('no longer polling');
+        } else {
+            poll_server = true;
+            console.log('polling');
+        }
+
     });
 
     $(window).resize(function () {
