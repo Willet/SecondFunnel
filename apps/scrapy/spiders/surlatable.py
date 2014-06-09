@@ -22,6 +22,44 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     ]
 
     store_slug = name
+    visited = []
+
+    def parse_start_url(self, response):
+        """
+        Handles any special parsing from start_urls.
+
+        However, we mostly use it to handle pagination.
+
+        This method is misleading as it actually cascades...
+        """
+        if self.is_product_page(response):
+            self.rules = ()
+            self._rules = []
+            return self.parse_product(response)
+
+        if response.url in self.visited:
+            return []
+
+        sel = Selector(response)
+        pages = sel.xpath('//*[@class="pagination"][1]')\
+            .css('.pageno::attr(href)').extract()
+
+        if not pages:
+            return []
+
+        url = response.url
+        hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
+
+        page_iter = iter(pages)
+        page = next(page_iter)  # Skip first page, as usual
+
+        urls = []
+        for page in page_iter:
+            page_url = hostname + page
+            self.visited.append(page_url)
+            urls.append(WebdriverRequest(page_url))
+
+        return urls
 
     def is_product_page(self, response):
         is_product_page = re.search('.*product/PRO-.*', response.url)
