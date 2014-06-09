@@ -147,11 +147,15 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
         - False - don't trim background
     @return: object
     """
-    if not sizes:
+    if sizes is None:
         sizes = []
 
+    if not sizes:
+        sizes = (SizeConf(width=width, height=height, name=name)
+                 for (name, width, height) in IMAGE_SIZES)
+
     master_url, dominant_color, img_format = None, "transparent", None
-    data = {'sizes': []}
+    data = {'sizes': {}}
 
     # Get the unique folder where we'll store the image
     upload = upload_to_local if settings.ENVIRONMENT == 'dev' else \
@@ -174,6 +178,12 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
         master_url = image_object['url']
         img_format = image_object['format']
 
+        # cloudinary resizes images on their end
+        data['sizes']['master'] = {
+            'width': image_object['width'],
+            'height': image_object['height'],
+        }
+
     else: # fall back to default ImageService is Cloudinary is not available
         if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"
             img = ExtendedImage.open(source)
@@ -185,10 +195,6 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
 
         folder = hashlib.sha224(img.tobytes()).hexdigest()
 
-        if len(sizes) == 0:
-            sizes = (SizeConf(width=width, height=height, name=name)  for \
-                     (name, width, height) in IMAGE_SIZES)
-
         for size in sorted(sizes, key=lambda size: size.width):
             name, width, height = size.name, size.width, size.height
             resized = img.resize(width, height, Image.ANTIALIAS)
@@ -196,10 +202,10 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
 
             try: # ignore on failure
                 master_url = upload(path, folder, resized, size)
-                data['sizes'].append(dict(size.name, {
+                data['sizes'][size.name] = {
                     'width': size.width,
                     'height': size.height
-                }))
+                }
             except (OSError, IOError) as e: # upload failed, don't add to our json
                 continue
 

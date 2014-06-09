@@ -181,7 +181,7 @@ class ExtendedImage(object):
         @param green_coefficient: Multiplier of the green value of the pixel.
         @param blue_coefficient: Multiplier of the blue value of the pixel.
         """
-        coefficients = (red_coefficient, green_coefficient, blue_coefficent)
+        coefficients = (red_coefficient, green_coefficient, blue_coefficient)
         rgb = self.getpixel((x, y))
         luminosity = sum(c * coeff for c, coeff in zip(rgb, coefficients))
 

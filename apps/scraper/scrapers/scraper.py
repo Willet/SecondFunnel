@@ -133,6 +133,8 @@ class ProductScraper(Scraper):
             image.file_type = data.get('format')
             image.dominant_color = data.get('dominant_colour')
 
+            image.attributes['sizes'] = data['sizes']
+
             # save the image
             image.save()
 
@@ -225,6 +227,12 @@ class ContentScraper(Scraper):
         image.file_type = data.get('format')
         image.dominant_color = data.get('dominant_colour')
         image.source_url = source_url
+        try:
+            image.attributes['sizes'] = data['sizes']
+        except KeyError:
+            if not getattr(image, 'attributes'):
+                image.attributes = {}
+            image.attributes['sizes'] = {}
 
         return image
 

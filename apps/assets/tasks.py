@@ -2,6 +2,7 @@ import json
 
 from celery import Celery
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from django.db import transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
@@ -162,4 +163,7 @@ def tile_saved(sender, **kwargs):
         return
 
     tile.ir_cache = new_ir_cache
+    if settings.ENVIRONMENT == 'dev':
+        print "Saving tile cache #{}".format(tile.id)
+
     tile.save()
