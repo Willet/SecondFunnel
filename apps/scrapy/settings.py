@@ -7,12 +7,17 @@
 #
 
 import os
+
 os.environ['DJANGO_SETTINGS_MODULE'] = 'secondfunnel.settings.dev'
 
 BOT_NAME = 'scraper'
 
 SPIDER_MODULES = ['apps.scrapy.spiders']
 NEWSPIDER_MODULE = 'apps.scrapy.spiders'
+
+EXTENSIONS = {
+    'apps.scrapy.utils.extensions.SentrySignals': 10,
+}
 
 DOWNLOAD_HANDLERS = {
     'http': 'scrapy_webdriver.download.WebdriverDownloadHandler',
@@ -41,10 +46,12 @@ ITEM_PIPELINES = {
     'apps.scrapy.pipelines.ValidationPipeline': 2,
     'apps.scrapy.pipelines.NamePipeline': 10,
     'apps.scrapy.pipelines.PricePipeline': 11,
+    'apps.scrapy.pipelines.DuplicatesPipeline': 20,
     # 900 - Persistence-related Pipelines
     'apps.scrapy.pipelines.ForeignKeyPipeline': 900,
     'apps.scrapy.pipelines.ItemPersistencePipeline': 990,
-    'apps.scrapy.pipelines.CategoryPipeline': 998,
+    'apps.scrapy.pipelines.CategoryPipeline': 997,
+    'apps.scrapy.pipelines.FeedPipeline': 998,
     'apps.scrapy.pipelines.ProductImagePipeline': 999
 }
 # Image storage information here:
@@ -53,7 +60,21 @@ ITEM_PIPELINES = {
 IMAGES_STORE = '/Users/nterwoord/Code/ScrapyExperiment'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'scraper (+http://www.yourdomain.com)'
+# surlatable.com, err, blocks spiders
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1944.0 Safari/537.36'
+
+SENTRY_DSN = 'http://be7092f5a43648119e03e77ec002caff:7739e5e90d1b4f1da99ef8db9ba1ca2b@app.getsentry.com/22626'
+
+# Complete list of signals: http://doc.scrapy.org/en/latest/topics/signals.html
+SENTRY_SIGNALS = [
+    'item_dropped',
+    'spider_error'
+]
+
+# TODO: Import instead of copy-paste
+AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
+AWS_SECRET_ACCESS_KEY = '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'
+FEED_URI = "s3://scrapy.secondfunnel.com/dev/feeds/%(name)s/%(time)s.json"
 
 import cloudinary
 cloudinary.config(

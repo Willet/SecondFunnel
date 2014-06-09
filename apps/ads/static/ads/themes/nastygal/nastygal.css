@@ -4,7 +4,12 @@
     background: #000;
     color: #fff;
     margin: -8px -8px 8px -8px;
-    padding: 8px;
+    padding: 16px 16px 8px 16px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 10;
+    left: 0;
 }
 
 #topbar img {
@@ -19,6 +24,10 @@
 #topbar .bustle {
     height: 25px;
     margin-left: 4px;
+}
+
+#discovery-area {
+    margin-top: 40px;
 }
 
 #discovery-area .tile .caption {

@@ -1,13 +1,14 @@
 import base64
+import bleach
+from cloudinary import uploader as uploader
 from functools import wraps
 import os
 import re
-from scrapy.selector import SelectorList
-import tempfile
-import webbrowser
-import cloudinary.uploader as uploader
 from scrapy.http import HtmlResponse, TextResponse
 from scrapy_webdriver.http import WebdriverResponse
+import six
+import tempfile
+import webbrowser
 
 
 def open_in_browser(response, _openfunc=webbrowser.open):
@@ -39,51 +40,6 @@ def open_in_browser(response, _openfunc=webbrowser.open):
     return _openfunc("file://%s" % fname)
 
 
-def django_item_values(item):
-    # Modified from DjangoItem.instance
-    return ((k, item.get(k)) for k in item._values if k in item._model_fields)
-
-def item_to_model(item):
-    model_class = getattr(item, 'django_model')
-    if not model_class:
-        raise TypeError("Item is not a `DjangoItem` or is misconfigured")
-
-    return item.instance
-
-
-def get_or_create(model):
-    model_class = type(model)
-    created = False
-
-    # Normally, we would use `get_or_create`. However, `get_or_create` would
-    # match all properties of an object (i.e. create a new object
-    # anytime it changed) rather than update an existing object.
-    #
-    # Instead, we do the two steps separately
-    try:
-        # We have no unique identifier at the moment; use the name for now.
-        obj = model_class.objects.get(name=model.name)
-    except model_class.DoesNotExist:
-        created = True
-        obj = model  # DjangoItem created a model for us.
-
-    return (obj, created)
-
-
-def update_model(destination, source_item, commit=True):
-    pk = destination.pk
-
-    for (key, value) in django_item_values(source_item):
-        setattr(destination, key, value)
-
-    setattr(destination, 'pk', pk)
-
-    if commit:
-        destination.save()
-
-    return destination
-
-
 def camel_to_underscore(name):
     """
     Converts CamelCase strings to camel_case.
@@ -109,7 +65,6 @@ def camel_to_underscore(name):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
-# Inspired by this: http://stackoverflow.com/a/14165844
 def spider_pipelined(process_item):
     """
     A decorator for `Pipeline.process_item` to defer to spider-specific
@@ -122,6 +77,8 @@ def spider_pipelined(process_item):
     called*
 
     TODO: Add flag to allow pipeline to be called.
+
+    Inspired by this: http://stackoverflow.com/a/14165844
     """
 
     @wraps(process_item)
@@ -173,9 +130,8 @@ def monkeypatch_method(cls):
     return decorator
 
 
-def django_serializer(value):
-    return value.id  # serializers.serialize('json', [ value, ])
+def str_to_boolean(value):
+    if not isinstance(value, six.string_types):
+        return value
 
-
-def store_serializer(value):
-    return django_serializer(value)
+    return value.lower() in ['true', 'yes', '1', 't']

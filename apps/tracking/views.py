@@ -37,3 +37,31 @@ def tracking(request, tracking_id, dev=False):
         context_instance=RequestContext(request),
         content_type='application/javascript')
     return response
+
+
+@never_cache
+def conversion(request):
+    """Loads the clickmeter conversion script."""
+    nastygal_clickmeter_conversion_id = '271C54CB40964B26BD0593C4E24EF1C3'
+    clickmeter_conversion_id = request.GET.get('id', nastygal_clickmeter_conversion_id)
+
+    response = render_to_response('tracking/js/conversion.js',
+        {
+            'clickmeter_conversion_id': clickmeter_conversion_id,
+        },
+        content_type='application/javascript')
+    return response
+
+
+@never_cache
+def conversion_loader(request):
+    """Loads the clickmeter conversion script loader script."""
+    nastygal_clickmeter_conversion_id = '271C54CB40964B26BD0593C4E24EF1C3'
+    clickmeter_conversion_id = request.GET.get('id', nastygal_clickmeter_conversion_id)
+
+    response = render_to_response('tracking/js/conversion-loader.js',
+        {
+            'clickmeter_conversion_id': clickmeter_conversion_id,
+        },
+        content_type='application/javascript')
+    return response

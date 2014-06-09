@@ -139,19 +139,9 @@ def dashboard(request, dashboardId):
         context_dict['tableId'] = dashboard.table_id
         context_dict['siteName'] = dashboard.site_name
         # TODO add this to model
-        context_dict['campaigns'] = [{'value': 'memorialday', 'name': 'Memorial Day'},
-                                     {'value': 'summerloves', 'name': 'Summer Loves'},
-                                     {'value': 'paddingtonbear', 'name': 'Paddington Bear'},
-                                     {'value': 'dressedup', 'name': 'Dressed Up'},
-                                     {'value': 'livedin', 'name': 'Lived In'},
-                                     {'value': 'presidentsday', 'name': 'Presidents Day'},
-                                     {'value': 'summersale', 'name': 'Summer Sale'}]
+        context_dict['campaigns'] = []
 
         return render(request, 'dashboard.html', context_dict)
-
-
-def gap(request):
-    return render(request, 'dashboard.html')
 
 
 def user_login(request):

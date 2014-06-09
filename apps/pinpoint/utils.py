@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.template import RequestContext, Template
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Page, Store, Product
+from apps.assets.models import Page, Store, Product, Tile
 
 
 def read_a_file(file_name, default_value=''):
@@ -113,8 +113,10 @@ def render_campaign(page_id, request, store_id=0, product=None):
     store = page.store
 
     try:
-        product_repr = json.dumps(product.to_json())
-    except (Product.DoesNotExist, AttributeError, ValueError) as err:
+        tile = Tile.objects.filter(products__id=product.id).order_by('-template')[0]
+        product_repr = json.dumps(tile.to_json())
+    # TODO: this may well be a generic Exception catcher
+    except (Product.DoesNotExist, AttributeError, IndexError, ValueError) as err:
         product_repr = "undefined"
 
     ir_base_url = '/intentrank'

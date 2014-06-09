@@ -2,6 +2,7 @@ from itertools import ifilter
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, tostring
 from django.conf import settings
+from django.db.models import Count
 from apps.intentrank.algorithms import ir_base
 
 try:
@@ -90,8 +91,17 @@ def campaign_by_slug(request, page_slug, product_identifier='id',
 
     if product_identifier in ['id', 'sku']:
         try:
-            product = Product.objects.get(**lookup_map)
-        except (Product.DoesNotExist, ValueError) as err:
+            # if a store has two or more products with the same sku,
+            # assume the one the user wanted is the one with
+            # - the most tiles
+            # - has at least a tile
+            product = (Product.objects.filter(**lookup_map)
+                              .annotate(num_tiles=Count('tiles'))
+                              .filter(num_tiles__gt=0)
+                              .order_by('-num_tiles')[0])
+            if not product:
+                product = None
+        except (Product.DoesNotExist, IndexError, ValueError) as err:
             product = None
     else:
         product = None
@@ -100,7 +110,7 @@ def campaign_by_slug(request, page_slug, product_identifier='id',
                     product=product)
 
 
-# TODO: THis could probably just be a serializer on the Page object...
+# TODO: This could probably just be a serializer on the Page object...
 @never_cache
 def product_feed(request, page_slug):
     page = get_object_or_404(Page, url_slug=page_slug)

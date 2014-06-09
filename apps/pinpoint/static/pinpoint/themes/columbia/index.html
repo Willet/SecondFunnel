@@ -90,7 +90,9 @@
 <body>
     <div class='navbar'>
         <div class="container">
-            <img src="{% static 'pinpoint/themes/columbia/images/logo.png' %}">
+            <a href="http://www.columbia.com/" target="_blank">
+                <img src="{% static 'pinpoint/themes/columbia/images/logo.png' %}" />
+            </a>
         </div>
     </div>
 
@@ -193,6 +195,24 @@
             </a>
         </script>
 
+        <script type="text/template" id="product_description_template">
+            <%= obj.description %>
+        </script>
+
+        <script type="text/template" id="product_galleryMainImage_template">
+            <div class="main-image-container">
+                <% if (obj.images.length > 1) { %>
+                    <div class="gallery-swipe-left"></div>
+                    <div class="gallery-swipe-right"></div>
+                <% } %>
+                <% if (obj.image) { %>
+                    <img class="main-image" src='<%= obj.image.url %>'/>
+                <% } else { %>
+                    <img class="main-image" src='<%= obj.images[0].url %>'/>
+                <% } %>
+            </div>
+        </script>
+
         <script type="text/template" id="product_preview_template">
             <div class='content-wrapper row'>
                 <% if (App.support.mobile()) { %>
@@ -200,16 +220,11 @@
                         <div class='title'></div>
                         <div class='price'></div>
                         <div class='buy'></div>
+                        <div class='description'></div>
                     </div>
                 <% } %>
-                <div class='cell middle'>
-                    <div class="main-image-container">
-                        <% if (obj.images.length > 1) { %>
-                            <div class="gallery-swipe-left"></div>
-                            <div class="gallery-swipe-right"></div>
-                        <% } %>
-                        <img class="main-image" src='<%= obj.image.url %>'/>
-                    </div>
+                <div class='cell'>
+                    <div class="gallery-main-image"></div>
                 </div>
                 <% if (obj.images.length > 1 && App.support.mobile()) { %>
                     <div class='cell'>
@@ -217,10 +232,11 @@
                     </div>
                 <% } %>
                 <% if (!App.support.mobile()) { %>
-                    <div class='cell middle info'>
+                    <div class='cell info'>
                         <div class='title'></div>
                         <div class='price'></div>
                         <div class='buy'></div>
+                        <div class='description'></div>
                         <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
                     </div>
                 <% } %>
@@ -248,34 +264,15 @@
                                 </div>
                             </div>
                         <% } %>
-                        <div class="image cell desktop-only">
-                            <img src="<%= obj.image.url %>" alt="image"/>
+                        <div class="cell desktop-only">
+                            <img src="<%= obj.image.url %>" alt="image" class="image"/>
                         </div>
-                        <div class="middle cell info image">
-                            <% if (App.support.mobile()) { %>
-                                <div class='title'></div>
-                                <div class='price'></div>
-                                <div class='buy'></div>
-                                <div class='main-image-container'>
-                                    <% if (obj.images.length > 1) { %>
-                                        <div class="gallery-swipe-left"></div>
-                                        <div class="gallery-swipe-right"></div>
-                                    <% } %>
-                                    <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                                </div>
-                            <% } %>
-                            <% if (!App.support.mobile()) { %>
-                                <div class='title'></div>
-                                <div class='price'></div>
-                                <div class='main-image-container'>
-                                    <% if (obj.images.length > 1) { %>
-                                        <div class="gallery-swipe-left"></div>
-                                        <div class="gallery-swipe-right"></div>
-                                    <% } %>
-                                    <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                                </div>
-                                <div class='buy'></div>
-                            <% } %>
+                        <div class="cell info">
+                            <div class='title'></div>
+                            <div class='price'></div>
+                            <div class='buy'></div>
+                            <div class="gallery-main-image"></div>
+                            <div class='description'></div>
                             <div class='gallery<% if (App.support.mobile()) { %> dots<% } %><% if (obj.images.length < 2) { %> hide<% } %>'></div>
                         </div>
                         <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
@@ -283,7 +280,7 @@
                                 More from this look...
                             </div>
                         <% } %>
-                        <div class="image cell mobile-only">
+                        <div class="cell mobile-only">
                             <img src="<%= obj.image.url %>" alt="image"/>
                         </div>
                         <% if (obj['tagged-products'].length > 1) { %>
@@ -307,10 +304,10 @@
             <% } else { %>
                 <div class="image-without-tagged-products">
                     <div class="row">
-                        <div class="image middle cell capped-width">
+                        <div class="cell capped-width">
                             <img src="<%= obj.image.url %>" alt="image" class="main-image" />
                         </div>
-                        <div class="middle cell">
+                        <div class="cell">
                             <div class="info">
                                 <div class="title">
                                     Coming soon to Columbia!

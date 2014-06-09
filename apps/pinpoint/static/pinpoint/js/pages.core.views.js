@@ -13,51 +13,6 @@ App.module('core', function (module, App) {
         everScrolled = false;
 
     /**
-     * View responsible for the "Hero Area"
-     * (e.g. Shop-the-look, featured, or just a plain div)
-     *
-     * @constructor
-     * @type {ItemView}
-     */
-    this.HeroAreaView = Marionette.ItemView.extend({
-        // $(...).html() defaults to the first item successfully selected
-        // so featured will be used only if stl is not found.
-        'model': module.Tile,
-        'getTemplate': function () {
-            // if page config contains a product, render hero area with a
-            // template that supports it
-            if (App.option('featured') !== undefined &&
-                $('#shopthelook_template').length) {
-                return "#shopthelook_template";
-            }
-            return "#hero_template";
-        },
-        /**
-         * @param data   normal product data, or, if omitted,
-         *               the featured product.
-         */
-        'initialize': function (data) {
-            this.model = new module.Tile(data || App.option('featured'));
-        },
-        'onRender': function () {
-            var buttons;
-            if (this.$el.length) {  // if something rendered, it was successful
-                if (!(App.support.touch() || App.support.mobile()) &&
-                    this.$('.social-buttons').length >= 1) {
-
-                    if (App.sharing) {
-                        buttons = new App.sharing.SocialButtons({
-                            'model': this.model
-                        }).render().load();
-                        this.$('.social-buttons').html(buttons.$el);
-                    }
-                }
-                App.heroArea.$el.append(this.$el);
-            }
-        }
-    });
-
-    /**
      * View for showing a Tile (or its extensions).
      * This Layout contains socialButtons and tapIndicator regions.
      *
@@ -179,7 +134,7 @@ App.module('core', function (module, App) {
         },
 
         'onClick': function (ev) {
-            var tile = this.model, url;
+            var tile = this.model, sku, url;
 
             if (App.option('openTileInPopup', false)) {
                 if (tile.get('template') === 'product') {
@@ -193,6 +148,10 @@ App.module('core', function (module, App) {
                     url = App.option('tilePopupUrl');
                 }
                 if (url && url.length) {
+                    sku = tile.get('sku');
+                    if (sku) {
+                        url += '/sku/' + sku;
+                    }
                     window.open(url, '_blank');
                 }
                 return;
@@ -799,45 +758,13 @@ App.module('core', function (module, App) {
         }
     });
 
-    /**
-     * Contents inside a PreviewWindow.
-     * Content is displayed using a cascading level of templates, which
-     * increases in specificity.
-     *
-     * @constructor
-     * @type {Layout}
-     */
-    this.PreviewContent = Marionette.Layout.extend({
-        'template': '#tile_preview_template',
-        'templates': function () {
-            var templateRules = [
-                // supported contexts: options, data
-                '#<%= options.store.slug %>_<%= data.template %>_mobile_preview_template',
-                '#<%= data.template %>_mobile_preview_template',
-                '#<%= options.store.slug %>_<%= data.template %>_preview_template',
-                '#<%= data.template %>_preview_template',
-                '#product_mobile_preview_template',
-                '#product_preview_template',
-                '#tile_mobile_preview_template', // fallback
-                '#tile_preview_template' // fallback
-            ];
-
-            if (!App.support.mobile()) {
-                // remove mobile templates if it isn't mobile, since they take
-                // higher precedence by default
-                templateRules = _.reject(templateRules,
-                    function (t) {
-                        return t.indexOf('mobile') >= 0;
-                    });
-            }
-            return templateRules;
-        },
-
+    this.ExpandedContent = Marionette.Layout.extend({
         'regions': {
             price: '.price',
             title: '.title',
             buy: '.buy',
-            description: '.description'
+            description: '.description',
+            galleryMainImage: '.gallery-main-image'
         },
 
         'onBeforeRender': function () {
@@ -861,71 +788,36 @@ App.module('core', function (module, App) {
             // templates use this as obj.image.url
             this.model.set('image', image);
         },
-
-        'onRender': function () {
-            // ItemViews don't have regions - have to do it manually
-            var self = this,
-                socialButtons = this.$('.social-buttons'),
-                buttons, related;
-
-            if (socialButtons.length >= 1) {
-                buttons = new App.sharing.SocialButtons({model: this.model}).render().load().$el;
-                socialButtons.append(buttons);
-            }
-
-            if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1) {
-               this.$('.stl-look .stl-item').on('click', function () {
-                    var $this = $(this),
-                        index = $this.data('index'),
-                        product = self.model.get('tagged-products')[index],
-                        productModel = new App.core.Product(product);
-
-                    $this.addClass('selected').siblings().removeClass('selected');
-                    App.options['galleryIndex'] = index;
-                    $('.gallery', self.$el).empty();
-                    App.utils.runWidgets(self);
-
-                    if (product.images.length === 1) {
-                        $('.gallery-swipe-left', self.$el).addClass('hide');
-                        $('.gallery-swipe-right', self.$el).addClass('hide');
-                        $('.gallery', self.$el).addClass('hide');
-                    } else {
-                        $('.gallery-swipe-left', self.$el).removeClass('hide');
-                        $('.gallery-swipe-right', self.$el).removeClass('hide');
-                        $('.gallery', self.$el).removeClass('hide');
-                    }
-
-                    if (socialButtons.length >= 1) {
-                        socialButtons.empty();
-                        buttons = new App.sharing.SocialButtons({model: self.model}).render().load().$el;
-                        socialButtons.append(buttons);
-                    }
-
-                    self.renderSubregions(productModel);
-               });
-
-                // First image is always selected
-                this.$('.stl-look').each(function () {
-                    $(this).find('.stl-item').first().click();
-                });
-            }
-
-            // hide discovery, then show this window as a page.
-            if (App.support.mobile()) {
-                App.discoveryArea.$el.parent().swapWith(this.$el); // out of scope
-            }
-
-            App.vent.trigger('previewRendered', this);
-        },
-
         'initialize': function() {
             this.$el.attr({
                 'id': 'preview-' + this.model.cid
             });
         },
+        'close': function () {
+            /* See NOTE in onShow */
+            if (!App.support.isAnAndroid()) {
+                $(document.body).removeClass('no-scroll');
+            }
 
-        // Disable scrolling body when preview is shown
-        'onShow': function () {
+            App.options.galleryIndex = 0;
+        },
+
+        'renderSubregions': function (product) {
+            _.keys(this.regions).forEach(function (key) {
+                this[key].show(new App.core.ProductInfoView({
+                    model: product,
+                    infoItem: key
+                }));
+            }, this);
+
+            // TODO: turn gallery into a view
+            $('.gallery', this.$el).empty();
+            App.utils.runWidgets(this);
+
+            this.resizeContainer();
+        },
+
+        'resizeContainer': function () {
             var shrinkContainer = function (element) {
                     return function () {
                         var container = element.closest('.fullscreen'),
@@ -978,15 +870,138 @@ App.module('core', function (module, App) {
                         });
                     };
                 },
-                product,
                 imageCount;
+
+            imageCount = $('img.main-image, img.image', this.$el).length;
+
+            // http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
+            $('img.main-image, img.image', this.$el)
+                .one('load', shrinkContainer(this.$el))
+                .each(function () {
+                    var self = $(this);
+
+                    if (this.complete) {
+                        // Without the timeout the box may not be rendered. This lets the onShow method return
+                        setTimeout(function () {
+                            self.load();
+                        }, 1);
+                    }
+                });
+        },
+        'onRender': function () {
+            // ItemViews don't have regions - have to do it manually
+            var self = this,
+                socialButtons = this.$('.social-buttons'),
+                buttons, related;
+
+            if (socialButtons.length >= 1) {
+                buttons = new App.sharing.SocialButtons({model: this.model}).render().load().$el;
+                socialButtons.append(buttons);
+            }
+
+            if (this.model.get('tagged-products') && this.model.get('tagged-products').length > 1) {
+                this.$('.stl-look .stl-item').on('click', function () {
+                    var $this = $(this),
+                        index = $this.data('index'),
+                        product = self.model.get('tagged-products')[index],
+                        productModel = new App.core.Product(product),
+                        container = self.$el.closest('.fullscreen');
+
+                    $this.addClass('selected').siblings().removeClass('selected');
+                    App.options['galleryIndex'] = index;
+
+                    if (product.images.length === 1) {
+                        $('.gallery', self.$el).addClass('hide');
+                    } else {
+                        $('.gallery', self.$el).removeClass('hide');
+                    }
+
+                    if (socialButtons.length >= 1) {
+                        socialButtons.empty();
+                        buttons = new App.sharing.SocialButtons({model: self.model}).render().load().$el;
+                        socialButtons.append(buttons);
+                    }
+
+                    if (container && container.length) {
+                        container.css({
+                            top: '0',
+                            bottom: '0',
+                            left: '0',
+                            right: '0'
+                        });
+                    }
+
+                    self.renderSubregions(productModel);
+                });
+
+                // First image is always selected
+                this.$('.stl-look').each(function () {
+                    $(this).find('.stl-item').first().click();
+                });
+            }
+        },
+        // Disable scrolling body when preview is shown
+        'onShow': function () {
+            var product;
 
             if (this.model.get('tagged-products') && this.model.get('tagged-products').length) {
                 product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
                 this.renderSubregions(product);
             } else if (this.model.get('template', '') === 'product') {
                 this.renderSubregions(this.model);
+            } else  {
+                this.resizeContainer();
             }
+        }
+    });
+
+    /**
+     * Contents inside a PreviewWindow.
+     * Content is displayed using a cascading level of templates, which
+     * increases in specificity.
+     *
+     * @constructor
+     * @type {Layout}
+     */
+    this.PreviewContent = this.ExpandedContent.extend({
+        'superClass': App.core.ExpandedContent,
+        'template': '#tile_preview_template',
+        'templates': function () {
+            var templateRules = [
+                // supported contexts: options, data
+                '#<%= options.store.slug %>_<%= data.template %>_mobile_preview_template',
+                '#<%= data.template %>_mobile_preview_template',
+                '#<%= options.store.slug %>_<%= data.template %>_preview_template',
+                '#<%= data.template %>_preview_template',
+                '#product_mobile_preview_template',
+                '#product_preview_template',
+                '#tile_mobile_preview_template', // fallback
+                '#tile_preview_template' // fallback
+            ];
+
+            if (!App.support.mobile()) {
+                // remove mobile templates if it isn't mobile, since they take
+                // higher precedence by default
+                templateRules = _.reject(templateRules,
+                    function (t) {
+                        return t.indexOf('mobile') >= 0;
+                    });
+            }
+            return templateRules;
+        },
+        'onRender': function () {
+            this.superClass.prototype.onRender.apply(this, arguments);
+
+            // hide discovery, then show this window as a page.
+            if (App.support.mobile()) {
+                App.discoveryArea.$el.parent().swapWith(this.$el); // out of scope
+            }
+
+            App.vent.trigger('previewRendered', this);
+        },
+        // Disable scrolling body when preview is shown
+        'onShow': function () {
+            this.superClass.prototype.onShow.apply(this, arguments);
 
             /*
             NOTE: Previously, it was thought that adding `no-scroll`
@@ -1001,44 +1016,61 @@ App.module('core', function (module, App) {
             So, for now, only add no-scroll if the device is NOT an android.
              */
             if (!App.support.isAnAndroid()) {
-                var width;
-                width = Marionette.getOption(this, 'width');
+                var width = Marionette.getOption(this, 'width');
 
                 if (width) {
                     this.$('.content').css('width', width + 'px');
                 } else if (App.support.mobile()) {
                     this.$el.width($window.width()); // assign width
                 }
-                $(document.body).addClass('no-scroll');
-            }
-
-            imageCount = $('img.main-image, img.image', this.$el).length;
-            $('img.main-image, img.image', this.$el).on('load', shrinkContainer(this.$el));
-        },
-
-        'close': function () {
-            /* See NOTE in onShow */
-            if (!App.support.isAnAndroid()) {
-                $(document.body).removeClass('no-scroll');
-            }
-
-            App.options['galleryIndex'] = 0;
-        },
-
-        'renderSubregions': function (product) {
-            var key;
-
-            for (key in this.regions) {
-                if (this.regions.hasOwnProperty(key)) {
-                    this[key].show(new App.core.ProductInfoView({
-                        model: product,
-                        infoItem: key
-                    }));
+                // if it's a real preview, add no-scroll
+                if (!this.$el.parents('#hero-area').length) {
+                    $(document.body).addClass('no-scroll');
                 }
             }
         }
     });
 
+    /**
+     * View responsible for the "Hero Area"
+     * (e.g. Shop-the-look, featured, or just a plain div)
+     *
+     * @constructor
+     * @type {Layout}
+     */
+    this.HeroAreaView = this.ExpandedContent.extend({
+        'model': module.Tile,
+        'superClass': App.core.ExpandedContent,
+        'getTemplate': function () {
+            // if page config contains a product, render hero area with a
+            // template that supports it
+            if (App.option('featured') !== undefined &&
+                $('#shopthelook_template').length) {
+                return "#shopthelook_template";
+            }
+            return "#hero_template";
+        },
+        /**
+         * @param data   normal product data, or, if omitted,
+         *               the featured product.
+         */
+        'initialize': function (data) {
+            var self = this,
+                tile = data;
+            if ($.isEmptyObject(data)) {
+                tile = App.option('featured');
+            }
+            this.model = new module.Tile(tile);
+
+            // "super"
+            this.superClass.prototype.initialize.call(this, tile);
+
+            this.listenTo(App.vent, 'windowResize', function () {
+                // self.render();
+                App.heroArea.show(self);
+            });
+        }
+    });
 
     /**
      * Container view for a PreviewContent object.

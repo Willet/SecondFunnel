@@ -129,11 +129,11 @@ def product_saved(sender, **kwargs):
             content.save()
 
 
-@receiver(post_save, sender=Content)
+@receiver(post_save)
 def content_saved(sender, **kwargs):
     """Generate cache for IR tiles if a content is saved."""
     content = kwargs.pop('instance', None)
-    if not content:
+    if not isinstance(content, Content):
         return
 
     with transaction.atomic():
@@ -141,16 +141,25 @@ def content_saved(sender, **kwargs):
             tile.save()
 
 
-@receiver(pre_save, sender=Tile)
+@receiver(post_save, sender=Tile)
 def tile_saved(sender, **kwargs):
-    """Generate cache for IR whenever a tile is saved."""
+    """Generate cache for IR tiles if it was change.
+
+    TODO: this is CPU-intensive. How can tile freshness be checked without
+          first computing the updated cache?
+    """
     tile = kwargs.pop('instance', None)
-    if not tile:  # TypeError: tile_saved() takes exactly 2 arguments (1 given)
+    if not tile:
         return
-    try:
-        tile.ir_cache = ''
-        tile.ir_cache = json.dumps(tile.to_json())
-    except (AttributeError, ValueError) as err:
-        # this happens when: tile is new, or schema is borked
-        print "Could not save tile cache for tile #{}: {}".format(
-            getattr(tile, 'id'), err.message)
+
+    original_ir_cache = tile.ir_cache
+    tile.ir_cache = ''  # force tile to regenerate itself
+    new_ir_cache = json.dumps(tile.to_json())
+
+    # up to date / recursive save call
+    if original_ir_cache == new_ir_cache:
+        tile.ir_cache = new_ir_cache  # restore property
+        return
+
+    tile.ir_cache = new_ir_cache
+    tile.save()

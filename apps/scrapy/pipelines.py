@@ -2,15 +2,15 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
+from collections import defaultdict
 from django.core.exceptions import ValidationError
-from scrapy.contrib.djangoitem import DjangoItem
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
-from apps.assets.models import Store, Product, Category
+from apps.assets.models import Store, Product, Category, Feed
 from apps.scraper.scrapers import ProductScraper
 from apps.scrapy.items import ScraperProduct, ScraperContent
-from apps.scrapy.utils import CloudinaryStore, spider_pipelined, \
-    item_to_model, get_or_create, update_model
+from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
+from apps.scrapy.utils.misc import CloudinaryStore, spider_pipelined
 
 
 class CloudinaryPipeline(ImagesPipeline):
@@ -25,6 +25,9 @@ class CloudinaryPipeline(ImagesPipeline):
     """
     def _get_store(self, uri):
         return CloudinaryStore()
+
+
+# TODO: Many of these pipelines could likely be processors instead
 
 
 class NamePipeline(object):
@@ -58,17 +61,21 @@ class ValidationPipeline(object):
     def process_content(self, item, spider):
         pass
 
+
 class PricePipeline(object):
     @spider_pipelined
     def process_item(self, item, spider):
         item['price'] = item.get('price', '').strip()
 
         # TODO: Maybe have default currency options in options?
+        # TODO: Couldn't `locale.atof` handle this?
         currency_info = getattr(spider, 'currency_info', {})
         symbol = currency_info.get('symbol', '$')
+        group = currency_info.get('group', ',')
         position_at_end = currency_info.get('position-at-end')
 
         item['price'] = item['price'].strip(symbol)
+        item['price'] = ''.join(item['price'].split(group))
         item['price'] = float(item['price'])
 
         # Our Product model uses a narrow regex...
@@ -80,10 +87,30 @@ class PricePipeline(object):
         #     template = u'{symbol}{price}'
 
         # item['price'] = template.format(price=item['price'], symbol=symbol)
-        item['price'] = u'{symbol}{price}'.format(
+        item['price'] = u'{symbol}{price:0.2f}'.format(
             price=item['price'], symbol=symbol
         )
 
+        return item
+
+
+class DuplicatesPipeline(object):
+    """
+    Detects if there are duplicates based on sku and spider name.
+
+    Alternatively, we could do some sort of merge if there are duplicates...
+    """
+    def __init__(self):
+        self.ids_seen = defaultdict(set)
+
+    def process_item(self, item, spider):
+        spider_name = spider.name
+        sku = item['sku']
+
+        if sku in self.ids_seen[spider_name]:
+            raise DropItem("Duplicate item found: {}".format(item))
+
+        self.ids_seen[spider_name].add(sku)
         return item
 
 
@@ -166,6 +193,28 @@ class CategoryPipeline(object):
         product, _ = get_or_create(item_model)
         category.products.add(product)
         category.save()
+
+class FeedPipeline(object):
+    def process_item(self, item, spider):
+        feed_ids = getattr(spider, 'feed_ids', [])
+
+        for feed_id in feed_ids:
+            self.add_to_feed(item, feed_id)
+
+        return item
+
+    def add_to_feed(self, item, feed_id):
+        try:
+            feed = Feed.objects.get(id=feed_id)
+        except Feed.DoesNotExist:
+            return
+
+        try:
+            item_model = item_to_model(item)
+        except TypeError:
+            return
+
+        feed.add_product(product=item_model)
 
 
 class ProductImagePipeline(object):

@@ -1,6 +1,6 @@
 {% load staticfiles %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" {% if product %}class="stl"{% endif %}>
 <head>
     {% include "pinpoint/campaign_opengraph_tags.html" %}
     {% include "pinpoint/campaign_head.html" %}
@@ -9,6 +9,8 @@
          href="http://assets.nastygal.com/assets/current/images/favicon/favicon-152.png" />
     <link rel="stylesheet"
           href="{% static 'pinpoint/themes/nastygal/nastygal.css' %}"/>
+    <link rel="stylesheet"
+          href="{% static 'pinpoint/themes/nastygal/bustle.css' %}"/>
     {% include "pinpoint/campaign_respond.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
@@ -113,11 +115,47 @@
             {% endif %}
         }
     </style>
+    <link rel="stylesheet" href="http://use.typekit.net/c/94f591/brandon-grotesque:n3:n4:n5,ff-tisa-web-pro:i4:n4:n7.Y2j:N:2,Y2l:N:2,Y2n:N:2,Vdl:N:2,Vdk:N:2,Vdp:N:2/d?3bb2a6e53c9684ffdc9a98f4135b2a62d7ad2c805d37e76a8d7c97eb987b54e58d04ed6ab887c8dfa6f3881c7a78798cce60e1f7fe603815063e972cd5ef309daec6daba7f17bf0bb1c6ce10afcb8c5ce12539ac6001934bed2551761a601610c0c378a58bd4a32325394d4e1fb9221b4222c793abc5da2f9d2e73cda923a06da08748eae613662161cf409ac9bc446b0e0e8767c350ffc85a6a758f95301480c4dd70ea0d09d8462ad77d830718925e342f13c8ce4de853981a7a0aa06603418b2c49ee5bb97c830133115a17a03566219f629b7ee837f9d77da030eaadbe257453f3387d">
 </head>
 <body>
+
+    <!-- bustle header begin -->
+    <div id="bustle">
+    <div id="ember743" class="hoverable ember-view header"><div class="container">
+      <a id="ember746" class="ember-view logo active" href="http://www.bustle.com/">Bustle</a>
+      <div id="ember749" class="ember-view loading-spinner site-loading hide"></div>
+      <div class="main-menu">
+        <ul class="main-navigation" role="navigation">
+          <li><a id="ember750" class="ember-view main-nav-link nav-news" href="http://www.bustle.com/news"><span>News</span></a></li>
+          <li><a id="ember759" class="ember-view main-nav-link nav-entertainment" href="http://www.bustle.com/entertainment"><span>Entertainment</span></a></li>
+          <li><a id="ember766" class="ember-view main-nav-link nav-fashion-beauty" href="http://www.bustle.com/fashion-beauty"><span>Fashion &amp; Beauty</span></a></li>
+          <li><a id="ember773" class="ember-view main-nav-link nav-lifestyle" href="http://www.bustle.com/lifestyle"><span>Lifestyle</span></a></li>
+          <li><a id="ember780" class="ember-view main-nav-link nav-books" href="http://www.bustle.com/books"><span>Books</span></a></li>
+        </ul>
+        <script id="metamorph-1-start" type="text/x-placeholder"></script><script id="metamorph-1-end" type="text/x-placeholder"></script>
+        <a class="main-search-btn" role="search" data-ember-action="1"><i class="icon-search"></i></a>
+        <a id="ember793" class="ember-view menu-btn"><i class="icon-menu"></i></a>
+        <div class="header-social-media">
+          <a href="http://pinterest.com/bustledotcom/" title="Bustle on Pinterest" class="social-link social-link-pinterest"><i class="icon-pinterest-circle"></i></a>
+          <a href="https://www.facebook.com/bustledotcom" title="Bustle on Facebook" class="social-link social-link-facebook"><i class="icon-facebook-circle"></i></a>
+          <a href="https://twitter.com/bustle" title="Bustle on Twitter" class="social-link social-link-twitter"><i class="icon-twitter-circle"></i></a>
+
+          <div class="header-social-media-popup">
+            <iframe class="facebook-like-button" src="//www.facebook.com/plugins/like.php?href=https%3A%2F%2Ffacebook.com%2Fbustledotcom&amp;width&amp;layout=button_count&amp;action=like&amp;show_faces=false&amp;share=false&amp;height=21&amp;appId=132694503601208" scrolling="no" frameborder="0" allowtransparency="true"></iframe>
+            <a class="pinterest-follow-button" href="http://www.pinterest.com/bustledotcom/" title="Follow Bustle on Pinterest" target="_blank"><i class="icon-pinterest-circle"></i>Follow</a>
+            <iframe id="twitter-widget-0" scrolling="no" frameborder="0" allowtransparency="true" src="http://platform.twitter.com/widgets/follow_button.1401325387.html#_=1401772767364&amp;id=twitter-widget-0&amp;lang=en&amp;screen_name=bustle&amp;show_count=false&amp;show_screen_name=false&amp;size=m" class="twitter-follow-button twitter-follow-button" title="Twitter Follow Button" data-twttr-rendered="true" style="width: 60px; height: 20px;"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    </div>
+    <!-- bustle header end -->
+
+
     <div class='navbar'>
         <div class="container">
-            <img src="{% static 'pinpoint/themes/nastygal/images/logo.png' %}">
+            <img alt="NastyGal" class="nastygal" src="{% static 'pinpoint/themes/nastygal/images/logo.png' %}" />
         </div>
     </div>
 
@@ -130,17 +168,27 @@
         </script>
 
         <script type="text/template" id="shopthelook_template">
-            <div class='featured product'>
-                <img class='img-responsive pull-left' src='<%= obj.defaultImage.url %>' />
-                <div class='pull-right'><%= obj.title || obj.name %></div>
-                    <div class='price'><%= obj.price %></div>
-                    <div>
-                        <a href='<%= obj.url %>' target='_blank'>BUY NOW</a>
+            <div class='text-centered'>
+                <div class='content-wrapper row'>
+                    <div class='cell middle'>
+                        <div class="gallery-main-image"></div>
+                        <% if (obj.images.length > 1 && App.support.mobile()) { %>
+                            <div class='gallery dots'></div>
+                        <% } %>
+                    </div>
+                    <div class='cell middle info'>
+                        <div class='title'></div>
+                        <div class='price'></div>
+                        <div class='buy'></div>
+                        <% if (!App.support.mobile()) { %>
+                            <div class="gallery"></div>
+                            <div class="social-button-container">
+                                <div class="social-buttons"></div>
+                            </div>
+                        <% } %>
                     </div>
                 </div>
             </div>
-
-            <div class='spacer'></div>
         </script>
 
         <script type="text/template" id="product_tile_template">
@@ -254,16 +302,26 @@
             </a>
         </script>
 
+        <script type="text/template" id="product_galleryMainImage_template">
+            <div class="main-image-container">
+                <% if (obj.images.length > 1) { %>
+                    <div class="gallery-swipe-left"></div>
+                    <div class="gallery-swipe-right"></div>
+                <% } %>
+                <% if (obj.image) { %>
+                    <img class="main-image" src='<%= obj.image.url %>'/>
+                <% } else { %>
+                    <img class="main-image" src='<%= obj.images[0].url %>'/>
+                <% } %>
+            </div>
+        </script>
+
         <script type="text/template" id="product_preview_template">
             <!-- any (store.name)_(type)_... templates will be used in place
              of default templates if they exist. -->
             <div class='content-wrapper row'>
                 <div class='cell middle'>
-                    <div class="main-image-container">
-                        <div class="gallery-swipe-left"></div>
-                        <div class="gallery-swipe-right"></div>
-                        <img class="main-image" src='<%= obj.image.url %>'/>
-                    </div>
+                    <div class="gallery-main-image"></div>
                 </div>
                 <% if (obj.images.length > 1 && App.support.mobile()) { %>
                     <div class='cell'>
@@ -305,7 +363,7 @@
                                 </div>
                             </div>
                         <% } %>
-                        <div class="image middle cell capped-width desktop-only">
+                        <div class="middle cell capped-width desktop-only">
                             <img src="<%= obj.image.url %>" alt="image" class="image"/>
                             <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                             <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
@@ -325,27 +383,17 @@
                                 </div>
                             <% } %>
                         </div>
-                        <div class="image middle cell capped-width mobile-only">
+                        <div class="middle cell capped-width mobile-only">
                             <img src="<%= obj.image.url %>" alt="image"/>
                             <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                         </div>
                         <div class="middle cell info image<% if (obj.orientation === 'landscape') { %> landscape<% } %>">
-                            <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
-                                <div class="more-info">
-                                    MORE FROM THAT LOOK
-                                    <img src="{% static 'pinpoint/themes/nastygal/images/down_arrow.png' %}" />
-                                </div>
-                            <% } %>
                             <% if (!App.support.mobile()) { %>
                                 <div class='title'></div>
                                 <div class='price'></div>
                                 <div class='buy'></div>
                             <% } %>
-                            <div class='main-image-container'>
-                                <div class="gallery-swipe-left"></div>
-                                <div class="gallery-swipe-right"></div>
-                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                            </div>
+                            <div class='gallery-main-image'></div>
                             <div class='gallery dots'></div>
                             <% if (App.support.mobile()) { %>
                                 <div class='price'></div>
@@ -376,7 +424,7 @@
             <% } else { %>
                 <div class="image-without-tagged-products">
                     <div class="row">
-                        <div class="image middle cell capped-width">
+                        <div class="middle cell capped-width">
                             <img src="<%= obj.image.url %>" alt="image" class="main-image" />
                         </div>
                         <div class="middle cell">
@@ -419,7 +467,7 @@
                                 </div>
                             </div>
                         <% } %>
-                        <div class="image middle cell capped-width desktop-only">
+                        <div class="middle cell capped-width desktop-only">
                             <img src="<%= obj.image.url %>" alt="image" class="image"/>
                             <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                             <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
@@ -439,15 +487,11 @@
                                 </div>
                             <% } %>
                         </div>
-                        <div class="middle cell info image<% if (obj.orientation === 'landscape') { %> landscape<% } %>">
+                        <div class="middle cell info<% if (obj.orientation === 'landscape') { %> landscape<% } %>">
                             <div class='title'></div>
                             <div class='price'></div>
                             <div class='buy'></div>
-                            <div class='main-image-container'>
-                                <div class="gallery-swipe-left"></div>
-                                <div class="gallery-swipe-right"></div>
-                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
-                            </div>
+                            <div class='gallery-main-image'></div>
                             <div class='gallery dots'></div>
                             <% if (!App.support.mobile()) { %>
                                 <div class="social-buttons"></div>
@@ -458,7 +502,7 @@
                                 </div>
                             <% } %>
                         </div>
-                        <div class="image middle cell capped-width mobile-only">
+                        <div class="middle cell capped-width mobile-only">
                             <img src="<%= obj.image.url %>" alt="image"/>
                             <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                             <% if (obj['tagged-products'].length > 1) { %>
@@ -483,7 +527,7 @@
             <% } else { %>
                 <div class="image-without-tagged-products">
                     <div class="row">
-                        <div class="image middle cell capped-width">
+                        <div class="middle cell capped-width">
                             <img src="<%= obj.image.url %>" alt="image" class="main-image" />
                         </div>
                         <div class="middle cell">
