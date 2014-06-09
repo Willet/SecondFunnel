@@ -199,7 +199,7 @@ $(document).ready(function () {
                 'end-date': end_date,
                 'queryName': queryName
             },
-            type: "GET", // TODO GET or PUSH?
+            type: "GET", // TODO GET or POST?
             dataType: "json",
             success: callback,
             error: function (xhr, status, errorThrown) {
@@ -217,7 +217,7 @@ $(document).ready(function () {
                 'dimension': dimension,
                 'queryName': queryName
             },
-            type: "GET", // TODO GET or PUSH?
+            type: "GET", // TODO GET or POST?
             dataType: "json",
             success: callback,
             error: function (xhr, status, errorThrown) {
@@ -453,7 +453,7 @@ $(document).ready(function () {
                 var view = new google.visualization.DataView(data);
 
                 // make numbers actual numbers instead of strings so sorting works
-                parseDateTable(data)
+                parseDateTable(data);
 
                 percentFormat.format(data, 5);
                 percentFormat.format(data, 7);

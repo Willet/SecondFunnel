@@ -74,38 +74,6 @@ def prettify_data(response):
                 row['c'][0]['v'] = capitalize(row['c'][0]['v'])
     return response
 
-
-# @async
-# def update_data(request):
-#     """
-#     If the cache_page decorator doesn't perform as expected,
-#         then this will be how data is refreshed in the db
-#     """
-#     pass
-
-
-# def customize_response(response, queryName):
-#     pass
-
-
-# def get_data_new(request):
-#     response = {'error': 'Retrieving data failed'}
-#     if request.method == 'GET':
-#         get_request = request.GET
-#         if (('queryName' in get_request) and
-#                 ('table' in get_request) and
-#                 ('campaign' in get_request) and
-#                 ('dimension' in get_request)):
-#             dash = DashBoard.objects.get(table_id=int(get_request['table']))
-#             campaign = dash.campaigns.get(google_id=get_request['campaign'])
-#             response = campaign.get_response_by_dimension(dimension=get_request['dimension'])
-#             response = prettify_data(customize_response(response, get_request['queryName']))
-#             if (campaign.timeStamp - now()).seconds > 30:
-#                 update_data(request)
-#             return response
-#     return response
-
-
 @login_required(login_url=LOGIN_URL)
 @cache_page(60 * 60)  # cache for an hour
 def get_data(request):
