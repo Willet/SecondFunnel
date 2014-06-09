@@ -300,6 +300,18 @@ $(document).ready(function () {
     };
 
     var drawElements = function () {
+        var decimalFormat = new google.visualization.NumberFormat({'fractionDigits': 2});
+        var numberFormat = new google.visualization.NumberFormat({'fractionDigits': 0});
+        var percentFormat = new google.visualization.NumberFormat({'fractionDigits': 2, 'suffix': '%'});
+
+        var parseDateTable = function(data){
+            for(var j = 1; j< data.getNumberOfColumns(); j++){
+                for(var i = 0; i< data.getNumberOfRows(); i++){
+                    data.setValue(i, j, parseFloat(data.getValue(i, j)));
+                }
+            }
+        };
+
         // all graphs are drawn in here
         var quickview_graph = createAnalyticsElement($('#quickview-graph')[0],
             google.visualization.LineChart, function (response) {
@@ -384,15 +396,18 @@ $(document).ready(function () {
         createAnalyticsGroup('BUTTONS', [buttonSessionCount, buttonUniqueVisitors, buttonBounceRate, buttonSessionDuration,
             buttonScrollRate, buttonPreviewRate, buttonBuyNowRate], refreshRate);
 
-//        var sortview = createAnalyticsElement($('#sortview-graph')[0],
-//            google.visualization.PieChart, function (response) {
-//                var data = new google.visualization.DataTable(response.dataTable, 0.6);
-//                //console.log(data);
-//                return data;
-//            }, {title: 'Testing'});
-//        sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, analyticsEnd);
-//        sortview.addSelection(['ga:sessions'], ['ga:medium'], analyticsStart, analyticsEnd);
-//        createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
+        var sortview = createAnalyticsElement($('#sortview-graph')[0],
+            google.visualization.PieChart, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                // make numbers actual numbers instead of strings so sorting works
+                parseDateTable(data);
+                numberFormat.format(data,1);
+                //console.log(data);
+                return data;
+            }, {});
+        sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, analyticsEnd);
+        sortview.addSelection(['ga:sessions'], ['ga:userType'], analyticsStart, analyticsEnd);
+        createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
 
         var totalConversions = createAnalyticsElement($('#total-conversions-graph')[0],
         google.visualization.ColumnChart, function(response){
@@ -412,21 +427,14 @@ $(document).ready(function () {
             'ga:goal2ConversionRate',
             'ga:goal3Completions',
             'ga:goal3ConversionRate'];
-        var minValueOfSessions = 100;
-        var numberFormat = new google.visualization.NumberFormat({'fractionDigits': 2});
-        var percentFormat = new google.visualization.NumberFormat({'fractionDigits': 2, 'suffix': '%'});
         var sourceTableTraffic = createAnalyticsElement($('#source-table-traffic')[0],
             google.visualization.Table, function (response) {
                 var data = new google.visualization.DataTable(response.dataTable, 0.6);
                 var view = new google.visualization.DataView(data);
-                numberFormat.format(data, 3);
+                decimalFormat.format(data, 3);
 
                 // make numbers actual numbers instead of strings so sorting works
-                for(var j = 1; j< data.getNumberOfColumns(); j++){
-                    for(var i = 0; i< data.getNumberOfRows(); i++){
-                        data.setValue(i, j, parseFloat(data.getValue(i, j)));
-                    }
-                }
+                parseDateTable(data);
                 view.hideColumns([4,5,6,7,8,9,10]);
                 return view;
             }, {
@@ -445,11 +453,7 @@ $(document).ready(function () {
                 var view = new google.visualization.DataView(data);
 
                 // make numbers actual numbers instead of strings so sorting works
-                for(var j = 1; j< data.getNumberOfColumns(); j++){
-                    for(var i = 0; i< data.getNumberOfRows(); i++){
-                        data.setValue(i, j, parseFloat(data.getValue(i, j)));
-                    }
-                }
+                parseDateTable(data)
 
                 percentFormat.format(data, 5);
                 percentFormat.format(data, 7);
@@ -517,19 +521,19 @@ $(document).ready(function () {
         drawChart(QUICKVIEW);
     });
 
-//    $('#sortview-device').on('click', function () {
-//        // integer that references the sortview grouping of charts
-//        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
-//        pageOptions.charts[SORTVIEW].setSelection(0); // 0 represents the sortview by device chart
-//        drawChart(SORTVIEW);
-//    });
-//
-//    $('#sortview-source').on('click', function () {
-//        // integer that references the sortview grouping of charts
-//        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
-//        pageOptions.charts[SORTVIEW].setSelection(1); // 1 represents the sortview by source chart
-//        drawChart(SORTVIEW);
-//    });
+    $('#sortview-device').on('click', function () {
+        // integer that references the sortview grouping of charts
+        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
+        pageOptions.charts[SORTVIEW].setSelection(0); // 0 represents the sortview by device chart
+        drawChart(SORTVIEW);
+    });
+
+    $('#sortview-source').on('click', function () {
+        // integer that references the sortview grouping of charts
+        var SORTVIEW = CHARTS.indexOf('SORTVIEW');
+        pageOptions.charts[SORTVIEW].setSelection(1); // 1 represents the sortview by source chart
+        drawChart(SORTVIEW);
+    });
 
     $('#conversions-source').on('click', function(){
         // integer that references the conversions grouping of charts
