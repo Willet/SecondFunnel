@@ -340,15 +340,14 @@ class ProductImage(BaseModel):
         """For whatever reason, ProductImages have separate width and height
         attributes that are never populated by current code.
         """
-        master_size = {}
+        master_size = default_master_size
         try:
             master_size = self.attributes['sizes']['master']
         except KeyError as no_sizes:
             pass
         except TypeError as wrong_sizes_type:
             if isinstance(self.attributes, list):
-                self.attributes = {}
-            self.attributes['sizes'] = master_size
+                self.attributes = {"sizes": default_master_size}
 
         if master_size:
             self.width = master_size.get('width', 0)
@@ -503,19 +502,19 @@ class Image(Content):
         """For whatever reason, Images have separate width and height
         attributes that are never populated by current code.
         """
-        master_size = {}
+        master_size = default_master_size
         try:
             master_size = self.attributes['sizes']['master']
         except KeyError as no_sizes:
             pass
         except TypeError as wrong_sizes_type:
             if isinstance(self.attributes, list):
-                self.attributes = {}
-            self.attributes['sizes'] = master_size
+                self.attributes = {"sizes": default_master_size}
 
         if master_size:
             self.width = master_size.get('width', 0)
             self.height = master_size.get('height', 0)
+            print "Setting width and height to %dx%d" % (self.width, self.height)
 
         return super(Image, self).save(*args, **kwargs)
 
