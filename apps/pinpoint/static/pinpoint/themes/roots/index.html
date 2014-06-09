@@ -255,27 +255,10 @@
             <% if (obj['tagged-products'].length) { %>
                 <% var product = obj['tagged-products'][0]; %>
                 <div class="image-with-tagged-products">
-                    <div class="row">
-                        <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
-                            <div class="cell desktop-only">
-                                <div class="stl-title">Shop the look</div>
-                                <div class="stl-look">
-                                    <% var  related = obj['tagged-products'] %>
-                                    <% for (var i = 0; i < related.length; i++) { %>
-                                        <div class="stl-item" data-index="<%- i %>">
-                                            <img src="<%- related[i].images[0].url %>" />
-                                            <div class="name">
-                                                <%- related[i].title || related[i].name %>
-                                            </div>
-                                        </div>
-                                    <% } %>
-                                </div>
-                            </div>
-                        <% } %>
-                        <div class="cell desktop-only">
-                            <img src="<%= obj.image.url %>" alt="image" class="image"/>
-                                <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
-                                <div class="landscape">
+                    <div class="table">
+                        <div class="row">
+                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
+                                <div class="cell desktop-only">
                                     <div class="stl-title">Shop the look</div>
                                     <div class="stl-look">
                                         <% var  related = obj['tagged-products'] %>
@@ -290,44 +273,63 @@
                                     </div>
                                 </div>
                             <% } %>
-                        </div>
-                        <div class="cell info">
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <% if (App.support.mobile()) { %>
-                                <div class='buy'></div>
-                            <% } %>
-                            <div class="gallery-main-image"></div>
-                            <div class='gallery dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                            <% if (!App.support.mobile()) { %>
-                                <div class='buy'></div>
-                            <% } %>
-                        </div>
-                        <div class="cell mobile-only">
-                            <img src="<%= obj.image.url %>" alt="image"/>
-                        </div>
-                        <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
-                            <div class="more-info">
-                                Shop the rest of this look
-                                <div class="down-arrow"></div>
-                            </div>
-                        <% } %>
-                        <% if (obj['tagged-products'].length > 1) { %>
-                            <div class="cell mobile-only">
-                                <div class="stl-title">The Look</div>
-                                <div class="stl-look">
-                                    <% var related = obj['tagged-products'] %>
-                                    <% for (var i = 0; i < related.length; i++) { %>
-                                        <div class="stl-item" data-index="<%- i %>">
-                                            <img src="<%- related[i].images[0].url %>" />
-                                            <div class="name">
-                                                <%- related[i].title || related[i].name %>
-                                            </div>
+                            <div class="cell desktop-only">
+                                <img src="<%= obj.image.url %>" alt="image" class="image"/>
+                                    <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                                    <div class="landscape">
+                                        <div class="stl-title">Shop the look</div>
+                                        <div class="stl-look">
+                                            <% var  related = obj['tagged-products'] %>
+                                            <% for (var i = 0; i < related.length; i++) { %>
+                                                <div class="stl-item" data-index="<%- i %>">
+                                                    <img src="<%- related[i].images[0].url %>" />
+                                                    <div class="name">
+                                                        <%- related[i].title || related[i].name %>
+                                                    </div>
+                                                </div>
+                                            <% } %>
                                         </div>
-                                    <% } %>
-                                </div>
+                                    </div>
+                                <% } %>
                             </div>
-                        <% } %>
+                            <div class="cell info">
+                                <div class='title'></div>
+                                <div class='price'></div>
+                                <% if (App.support.mobile()) { %>
+                                    <div class='buy'></div>
+                                <% } %>
+                                <div class="gallery-main-image"></div>
+                                <div class='gallery dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                <% if (!App.support.mobile()) { %>
+                                    <div class='buy'></div>
+                                <% } %>
+                            </div>
+                            <div class="cell mobile-only">
+                                <img src="<%= obj.image.url %>" alt="image"/>
+                            </div>
+                            <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
+                                <div class="more-info">
+                                    Shop the rest of this look
+                                    <div class="down-arrow"></div>
+                                </div>
+                            <% } %>
+                            <% if (obj['tagged-products'].length > 1) { %>
+                                <div class="cell mobile-only">
+                                    <div class="stl-title">The Look</div>
+                                    <div class="stl-look">
+                                        <% var related = obj['tagged-products'] %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <div class="name">
+                                                    <%- related[i].title || related[i].name %>
+                                                </div>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
             <% } else { %>
