@@ -74,8 +74,8 @@ def prettify_data(response):
                 row['c'][0]['v'] = capitalize(row['c'][0]['v'])
     return response
 
+@never_cache
 @login_required(login_url=LOGIN_URL)
-@cache_page(60 * 60)  # cache for an hour
 def get_data(request):
     response = {'error': 'Retrieving data failed'}
     if request.method == 'GET':
