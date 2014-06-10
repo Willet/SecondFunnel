@@ -93,8 +93,6 @@ class RootsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         yield request
 
-        yield l.load_item()
-
     def parse_images(self, response):
         sel = Selector(response)
 
