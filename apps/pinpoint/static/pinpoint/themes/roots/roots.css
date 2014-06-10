@@ -6,6 +6,8 @@ body {
 .navbar {
     text-align: center;
     height: 84px;
+    max-width: 1024px;
+    margin: auto;
 }
 
 .navbar .container {
