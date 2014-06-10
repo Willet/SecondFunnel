@@ -40,6 +40,14 @@ $(document).ready(function () {
                 },
                 'lineWidth': 1
             },
+            lineChart_singleGoal: {
+                'axisTitlesPosition': 'none',
+                'dataOpacity': 0,
+                'legend': {
+                    'position': 'top'
+                },
+                'lineWidth': 1
+            },
             columnChart: {
                 'axisTitlesPosition': 'none',
                 'dataOpacity': 1,
@@ -505,17 +513,17 @@ $(document).ready(function () {
         var goal1 = createAnalyticsElement($('#productPreview-graph')[0],
             google.visualization.LineChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
-            }, CHART_OPTIONS.lineChart);
+            }, CHART_OPTIONS.lineChart_singleGoal);
         goal1.addSelection(['ga:goal1ConversionRate'], ['ga:dateHour'], analyticsStart, 'today');
         var goal2 = createAnalyticsElement($('#buyNow-graph')[0],
             google.visualization.LineChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
-            }, CHART_OPTIONS.lineChart);
+            }, CHART_OPTIONS.lineChart_singleGoal);
         goal2.addSelection(['ga:goal2ConversionRate'], ['ga:dateHour'], analyticsStart, 'today');
         var goal3 = createAnalyticsElement($('#scrollRate-graph')[0],
             google.visualization.LineChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
-            }, CHART_OPTIONS.lineChart);
+            }, CHART_OPTIONS.lineChart_singleGoal);
         goal3.addSelection(['ga:goal3ConversionRate'], ['ga:dateHour'], analyticsStart, 'today');
         createAnalyticsGroup('GOALS', [goal1, goal2, goal3], refreshRate);
 
