@@ -349,33 +349,20 @@
     
     <div class="row">
         <div class="col-md-12">
-            <div class="block-web graph-container">
-                <h3 class="content-header"> Total Conversions
-                    <div class="button-group pull-right" data-toggle="buttons">
-                        <a href="javascript:;" class="btn active small border-gray right-margin"
-                           id="conversions-device">
-                            <span class="button-content">
-                                <input type="radio" name="conversions">
-                                Device
-                            </span>
-                        </a>
-                        <a href="javascript:;" class="btn small border-gray right-margin" id="conversions-source">
-                            <span class="button-content">
-                                <input type="radio" name="conversions">
-                                Source
-                            </span>
-                        </a>
-                        <a href="javascript:;" class="btn small border-gray" id="conversions-others">
-                            <span class="button-content">
-                                <input type="radio" name="conversions">
-                                Others...?
-                            </span>
-                        </a>
-                    </div>
-                    <!--   /button-group   -->
+            <div class="block-web">
+                <h3 class="content-header">
+                    Total Conversions
                 </h3>
-                <div class="graph" id="total-conversions-graph">
-                    Currently loading data... Thank you for your patience
+                <div class="row graph-container">
+                    <div class="col-xs-4 graph" id="total-conversions-mobile-graph">
+                        Loading graph...
+                    </div>
+                    <div class="col-xs-4 graph" id="total-conversions-tablet-graph">
+                        Loading graph...
+                    </div>
+                    <div class="col-xs-4 graph" id="total-conversions-desktop-graph">
+                        Loading graph...
+                    </div>
                 </div>
                 <!--  /custom-bar-chart  -->
             </div>
