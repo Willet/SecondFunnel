@@ -832,6 +832,13 @@ App.module('core', function (module, App) {
                             return;
                         }
 
+                        container.css({
+                            top: '0',
+                            bottom: '0',
+                            left: '0',
+                            right: '0'
+                        });
+
                         heightReduction = $(window).height();
                         widthReduction = container.outerWidth();
                         left = parseInt(container.css('left').split('px')[0], 10);
@@ -904,8 +911,7 @@ App.module('core', function (module, App) {
                     var $this = $(this),
                         index = $this.data('index'),
                         product = self.model.get('tagged-products')[index],
-                        productModel = new App.core.Product(product),
-                        container = self.$el.closest('.fullscreen');
+                        productModel = new App.core.Product(product);
 
                     $this.addClass('selected').siblings().removeClass('selected');
                     App.options['galleryIndex'] = index;
@@ -920,15 +926,6 @@ App.module('core', function (module, App) {
                         socialButtons.empty();
                         buttons = new App.sharing.SocialButtons({model: self.model}).render().load().$el;
                         socialButtons.append(buttons);
-                    }
-
-                    if (container && container.length) {
-                        container.css({
-                            top: '0',
-                            bottom: '0',
-                            left: '0',
-                            right: '0'
-                        });
                     }
 
                     self.renderSubregions(productModel);
