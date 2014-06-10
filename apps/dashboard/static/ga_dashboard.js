@@ -1,12 +1,12 @@
 /*globals google, table*/
 /**
  * Created by tristanpotter on 2014-05-22.
+ * JavaScript that constructs and populates the dashboard with data.
  */
 
 $(document).ready(function () {
     "use strict";
     var console = window.console,
-    // for testing
         CHART_OPTIONS = {
             sparkline: {
                 'axisTitlesPosition': 'none',
@@ -439,13 +439,93 @@ $(document).ready(function () {
         sortview.addSelection(['ga:sessions'], ['ga:userType'], analyticsStart, analyticsEnd);
         createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
 
-        var totalConversions = createAnalyticsElement($('#total-conversions-graph')[0],
-            google.visualization.ColumnChart, function (response) {
-                return new google.visualization.DataTable(response.dataTable, 0.6);
-            }, CHART_OPTIONS.columnChartStacked);
-        totalConversions.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
-        totalConversions.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:source'], analyticsStart, 'today');
-        createAnalyticsGroup('CONVERSIONS', [totalConversions], refreshRate);
+        var totalConversionsMobile = createAnalyticsElement($('#total-conversions-mobile-graph')[0],
+            google.visualization.PieChart, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6),
+                    view = new google.visualization.DataView(data);
+                parseDataTable(data);
+                view.setRows(data.getFilteredRows([{'column': 0, 'value': 'Mobile'}]));
+
+                var output = new google.visualization.DataTable();
+                output.addColumn('string', 'Goal');
+                output.addColumn('number', 'Completions');
+                var rows = [];
+                for (var i = 1; i<view.getNumberOfColumns(); i++){
+                    rows.push([view.getColumnLabel(i), view.getValue(0, i)]);
+                }
+                output.addRows(rows);
+                numberFormat.format(output, 1);
+                return output;
+            }, {is3D: true,
+                title: 'Mobile',
+                legend: 'none',
+                titleTextStyle: {
+                    fontName: 'Helvetica Neue, Arial, san-serif',
+                    fontSize: 16,
+                    bold: true,
+                    italic: false
+                }});
+        totalConversionsMobile.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
+        createAnalyticsGroup('CONVERSIONS', [totalConversionsMobile], refreshRate);
+
+        var totalConversionsTablet = createAnalyticsElement($('#total-conversions-tablet-graph')[0],
+            google.visualization.PieChart, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6),
+                    view = new google.visualization.DataView(data);
+                parseDataTable(data);
+                view.setRows(data.getFilteredRows([{'column': 0, 'value': 'Tablet'}]));
+
+                var output = new google.visualization.DataTable();
+                output.addColumn('string', 'Goal');
+                output.addColumn('number', 'Completions');
+                var rows = [];
+                for (var i = 1; i<view.getNumberOfColumns(); i++){
+                    rows.push([view.getColumnLabel(i), view.getValue(0, i)]);
+                }
+                output.addRows(rows);
+                numberFormat.format(output, 1);
+                return output;
+            }, {is3D: true,
+                title: 'Tablet',
+                legend: 'none',
+                titleTextStyle: {
+                    fontName: 'Helvetica Neue, Arial, san-serif',
+                    fontSize: 16,
+                    bold: true,
+                    italic: false
+                }});
+        totalConversionsTablet.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
+        createAnalyticsGroup('CONVERSIONS', [totalConversionsTablet], refreshRate);
+
+        var totalConversionsDesktop = createAnalyticsElement($('#total-conversions-desktop-graph')[0],
+            google.visualization.PieChart, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6),
+                    view = new google.visualization.DataView(data);
+                parseDataTable(data);
+                view.setRows(data.getFilteredRows([{'column': 0, 'value': 'Desktop'}]));
+
+
+                var output = new google.visualization.DataTable();
+                output.addColumn('string', 'Goal');
+                output.addColumn('number', 'Completions');
+                var rows = [];
+                for (var i = 1; i<view.getNumberOfColumns(); i++){
+                    rows.push([view.getColumnLabel(i), view.getValue(0, i)]);
+                }
+                output.addRows(rows);
+                numberFormat.format(output, 1);
+                return output;
+            }, {is3D: true,
+                title: 'Desktop',
+                legend: 'none',
+                titleTextStyle: {
+                    fontName: 'Helvetica Neue, Arial, san-serif',
+                    fontSize: 16,
+                    bold: true,
+                    italic: false
+                }});
+        totalConversionsDesktop.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
+        createAnalyticsGroup('CONVERSIONS', [totalConversionsDesktop], refreshRate);
 
         var tableMetrics = [
             'ga:sessions',
@@ -561,19 +641,6 @@ $(document).ready(function () {
         var SORTVIEW = CHARTS.indexOf('SORTVIEW');
         pageOptions.charts[SORTVIEW].setSelection(1); // 1 represents the sortview by source chart
         drawChart(SORTVIEW);
-    });
-
-    $('#conversions-source').on('click', function () {
-        // integer that references the conversions grouping of charts
-        var CONVERSIONS = CHARTS.indexOf('CONVERSIONS');
-        pageOptions.charts[CONVERSIONS].setSelection(1); // 1 represents the conversions by source graph
-        drawChart(CONVERSIONS);
-    });
-    $('#conversions-device').on('click', function () {
-        // integer that references the conversions grouping of charts
-        var CONVERSIONS = CHARTS.indexOf('CONVERSIONS');
-        pageOptions.charts[CONVERSIONS].setSelection(0); // 0 represents the conversions by device graph
-        drawChart(CONVERSIONS);
     });
 
     $('#metrics-sessions').on('click', function () {
