@@ -1,5 +1,6 @@
 import re
 from time import sleep
+from selenium.common.exceptions import NoSuchElementException
 
 from apps.scraper.scrapers import Scraper, ContentDetailScraper, ContentCategoryScraper
 from apps.assets.models import Image
@@ -32,7 +33,7 @@ class PinterestPinScraper(ContentDetailScraper):
 
 class PinterestAlbumScraper(ContentCategoryScraper):
     """pinterest.com/user_name/album_name"""
-    regexs = [Scraper._wrap_regex(r'(?:www\.)?pinterest\.com/(\w+)/(\w+)/?')]
+    regexs = [Scraper._wrap_regex(r'(?:www\.)?pinterest\.com/([A-Za-z0-9-]+)/([A-Za-z0-9-]+)/?')]
 
     def parse_url(self, url, **kwargs):
         match = re.match(self.regexs[0], url)
@@ -58,7 +59,11 @@ class PinterestAlbumScraper(ContentCategoryScraper):
             print "Retrieving {} pins...".format(pin_count)
 
         for element in pins:
-            url = element.find_element_by_css_selector('.pinHolder a').get_attribute('href')
+            try:
+                url = element.find_element_by_css_selector('.pinHolder a').get_attribute('href')
+            except NoSuchElementException:
+                # "Related Boards" pin with no content
+                continue
             try:
                 content = Image.objects.get(store=self.store, original_url=url)
             except Image.DoesNotExist:
