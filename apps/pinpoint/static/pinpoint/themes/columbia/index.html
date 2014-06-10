@@ -214,32 +214,34 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <div class='content-wrapper row'>
-                <% if (App.support.mobile()) { %>
-                    <div class='cell info'>
-                        <div class='title'></div>
-                        <div class='price'></div>
-                        <div class='buy'></div>
-                        <div class='description'></div>
-                    </div>
-                <% } %>
-                <div class='cell'>
-                    <div class="gallery-main-image"></div>
-                </div>
-                <% if (obj.images.length > 1 && App.support.mobile()) { %>
+            <div class="table">
+                <div class='content-wrapper row'>
+                    <% if (App.support.mobile()) { %>
+                        <div class='cell info'>
+                            <div class='title'></div>
+                            <div class='price'></div>
+                            <div class='buy'></div>
+                            <div class='description'></div>
+                        </div>
+                    <% } %>
                     <div class='cell'>
-                        <div class='gallery dots'></div>
+                        <div class="gallery-main-image"></div>
                     </div>
-                <% } %>
-                <% if (!App.support.mobile()) { %>
-                    <div class='cell info'>
-                        <div class='title'></div>
-                        <div class='price'></div>
-                        <div class='buy'></div>
-                        <div class='description'></div>
-                        <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
-                    </div>
-                <% } %>
+                    <% if (obj.images.length > 1 && App.support.mobile()) { %>
+                        <div class='cell'>
+                            <div class='gallery dots'></div>
+                        </div>
+                    <% } %>
+                    <% if (!App.support.mobile()) { %>
+                        <div class='cell info'>
+                            <div class='title'></div>
+                            <div class='price'></div>
+                            <div class='buy'></div>
+                            <div class='description'></div>
+                            <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
+                        </div>
+                    <% } %>
+                </div>
             </div>
         </script>
 
@@ -247,75 +249,79 @@
             <% if (obj['tagged-products'].length) { %>
                 <% var product = obj['tagged-products'][0]; %>
                 <div class="image-with-tagged-products">
-                    <div class="row">
-                        <% if (obj['tagged-products'].length > 1) { %>
+                    <div class="table">
+                        <div class="row">
+                            <% if (obj['tagged-products'].length > 1) { %>
+                                <div class="cell desktop-only shop">
+                                    <div class="stl-title">The Look</div>
+                                    <div class="stl-look">
+                                        <% var  related = obj['tagged-products'] %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <div class="name">
+                                                    <%- related[i].title || related[i].name %>
+                                                </div>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
                             <div class="cell desktop-only">
-                                <div class="stl-title">The Look</div>
-                                <div class="stl-look">
-                                    <% var  related = obj['tagged-products'] %>
-                                    <% for (var i = 0; i < related.length; i++) { %>
-                                        <div class="stl-item" data-index="<%- i %>">
-                                            <img src="<%- related[i].images[0].url %>" />
-                                            <div class="name">
-                                                <%- related[i].title || related[i].name %>
-                                            </div>
-                                        </div>
-                                    <% } %>
+                                <img src="<%= obj.image.url %>" alt="image" class="image"/>
+                            </div>
+                            <div class="cell info">
+                                <div class='title'></div>
+                                <div class='price'></div>
+                                <div class='buy'></div>
+                                <div class="gallery-main-image"></div>
+                                <div class='description'></div>
+                                <div class='gallery<% if (App.support.mobile()) { %> dots<% } %><% if (obj.images.length < 2) { %> hide<% } %>'></div>
+                            </div>
+                            <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
+                                <div class="more-info">
+                                    More from this look...
                                 </div>
-                            </div>
-                        <% } %>
-                        <div class="cell desktop-only">
-                            <img src="<%= obj.image.url %>" alt="image" class="image"/>
-                        </div>
-                        <div class="cell info">
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <div class='buy'></div>
-                            <div class="gallery-main-image"></div>
-                            <div class='description'></div>
-                            <div class='gallery<% if (App.support.mobile()) { %> dots<% } %><% if (obj.images.length < 2) { %> hide<% } %>'></div>
-                        </div>
-                        <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
-                            <div class="more-info">
-                                More from this look...
-                            </div>
-                        <% } %>
-                        <div class="cell mobile-only">
-                            <img src="<%= obj.image.url %>" alt="image"/>
-                        </div>
-                        <% if (obj['tagged-products'].length > 1) { %>
+                            <% } %>
                             <div class="cell mobile-only">
-                                <div class="stl-title">The Look</div>
-                                <div class="stl-look">
-                                    <% var  related = obj['tagged-products'] %>
-                                    <% for (var i = 0; i < related.length; i++) { %>
-                                        <div class="stl-item" data-index="<%- i %>">
-                                            <img src="<%- related[i].images[0].url %>" />
-                                            <div class="name">
-                                                <%- related[i].title || related[i].name %>
-                                            </div>
-                                        </div>
-                                    <% } %>
-                                </div>
+                                <img src="<%= obj.image.url %>" alt="image"/>
                             </div>
-                        <% } %>
+                            <% if (obj['tagged-products'].length > 1) { %>
+                                <div class="cell mobile-only">
+                                    <div class="stl-title">The Look</div>
+                                    <div class="stl-look">
+                                        <% var  related = obj['tagged-products'] %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <div class="name">
+                                                    <%- related[i].title || related[i].name %>
+                                                </div>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
             <% } else { %>
                 <div class="image-without-tagged-products">
-                    <div class="row">
-                        <div class="cell capped-width">
-                            <img src="<%= obj.image.url %>" alt="image" class="main-image" />
-                        </div>
-                        <div class="cell">
-                            <div class="info">
-                                <div class="title">
-                                    Coming soon to Columbia!
-                                </div>
-                                <div class="buy">
-                                    <a class='button' href='http://www.columbia.com/fishing/Collection_PFG,default,pg.html' target='_blank'>
-                                        Shop On Columbia
-                                    </a>
+                    <div class="table">
+                        <div class="row">
+                            <div class="cell capped-width">
+                                <img src="<%= obj.image.url %>" alt="image" class="main-image" />
+                            </div>
+                            <div class="cell">
+                                <div class="info">
+                                    <div class="title">
+                                        Coming soon to Columbia!
+                                    </div>
+                                    <div class="buy">
+                                        <a class='button' href='http://www.columbia.com/fishing/Collection_PFG,default,pg.html' target='_blank'>
+                                            Shop On Columbia
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
