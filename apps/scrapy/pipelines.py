@@ -10,7 +10,7 @@ from apps.assets.models import Store, Product, Category, Feed
 from apps.scraper.scrapers import ProductScraper
 from apps.scrapy.items import ScraperProduct, ScraperContent
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
-from apps.scrapy.utils.misc import CloudinaryStore, spider_pipelined
+from apps.scrapy.utils.misc import CloudinaryStore
 
 
 class CloudinaryPipeline(ImagesPipeline):
@@ -57,7 +57,6 @@ class ValidationPipeline(object):
 
 
 class PricePipeline(object):
-    @spider_pipelined
     def process_item(self, item, spider):
         item['price'] = item.get('price', '').strip()
 
