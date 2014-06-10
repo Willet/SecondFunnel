@@ -267,7 +267,7 @@ App.module("utils", function (utils, App) {
             return 400;
         }
         return 300;
-    },
+    };
 
     /**
      * Returns a formatted url for a cloudinary image
