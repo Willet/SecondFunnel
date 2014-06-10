@@ -1,7 +1,10 @@
 import time
+from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverResponse
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
     SecondFunnelCrawlScraper
+from apps.scrapy.utils.itemloaders import ScraperContentLoader
+from apps.scrapy.items import ScraperImage
 
 
 class PinterestSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
@@ -52,17 +55,18 @@ class SurlatablePinterestSpider(PinterestSpider):
         return self.parse_content(response)
 
     def parse_content(self, response):
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
 
         sel = Selector(response)
-        l = ScraperContentLoader(item=ScraperImage(), response=response)
-        l.add_css('name', 'h1.name::text')
-        l.add_css('description', '#description span.boxsides')
-
-        attributes = {}
-        item = l.load_item()
-
-        request.meta['item'] = item
-
-        yield []
+        pin_selectors = sel.css('.item .pinWrapper')
+        for pin_selector in pin_selectors:
+            l = ScraperContentLoader(item=ScraperImage(), selector=pin_selector)
+            l.add_css('name', '.richPinGridTitle::text')
+            l.add_css('description', '.pinDescription::text')
+            l.add_value('original_url', response.url)
+            l.add_value('source', 'pinterest')
+            image_url = pin_selector.css('.pinImg::attr(src)').extract()
+            l.add_value('source_url', image_url)
+            item = l.load_item()
+            yield item
