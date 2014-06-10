@@ -1,8 +1,8 @@
 
 @font-face {
     font-family:"ITC Souvenir W01 Light";
-    src:url("http://fast.fonts.net/dv2/3/1a67a0c9-a7e7-4761-8e00-068b73527202.woff?d44f19a684109620e4841471ae90e8186df205ea3b7e1c0d250a32d125adc27a69c5a6864d6ab62481f78c18b7a346bdbe432e4146d4f31e17e2d0f3f127b5cfacb57e9dbb3c444b52120a6acc97d4a7d6d72e165e912b7609&projectId=57226605-4f22-4dc9-b1db-e000bf22bdf4") format('woff'),
-        url("http://fast.fonts.net/dv2/1/cf161979-8659-479a-aa1a-57b26f7aa585.ttf?d44f19a684109620e4841471ae90e8186df205ea3b7e1c0d250a32d125adc27a69c5a6864d6ab62481f78c18b7a346bdbe432e4146d4f31e17e2d0f3f127b5cfacb57e9dbb3c444b52120a6acc97d4a7d6d72e165e912b7609&projectId=57226605-4f22-4dc9-b1db-e000bf22bdf4") format('truetype');
+    src:url("/static/pinpoint/themes/roots/fonts/ITC Souvenir W01 Light.woff") format('woff'),
+        url("/static/pinpoint/themes/roots/fonts/ITC Souvenir W01 Light.ttf") format('truetype');
 }
 
 body {

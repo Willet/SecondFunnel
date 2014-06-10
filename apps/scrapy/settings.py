@@ -44,7 +44,6 @@ ITEM_PIPELINES = {
     #'scrapy.contrib.pipeline.images.ImagesPipeline': 1,
     #'apps.scrapy.pipelines.CloudinaryPipeline': 1,
     'apps.scrapy.pipelines.ValidationPipeline': 2,
-    'apps.scrapy.pipelines.NamePipeline': 10,
     'apps.scrapy.pipelines.PricePipeline': 11,
     'apps.scrapy.pipelines.DuplicatesPipeline': 20,
     # 900 - Persistence-related Pipelines

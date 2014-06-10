@@ -56,3 +56,14 @@ Further, some performance is likely to be gained by using the native
 using `PhantomJS`. This, however, would mean that we wouldn't have any means
 to scrape JavaScript in the scraper, which may require more cleverness when
 writing spiders.
+
+## (F?)AQ
+### Why do I get `ScrapyDeprecationWarning: HttpDownloadHandler is deprecated`?
+It is a problem with `scrapy-webdriver`. It sets up a `FALLBACK_HANDLER` in
+`scrapy_webdriver.download` which imports the deprecated
+`HttpDownloadHandler`. Since it doesn't look in settings for an alternate
+value, this warning is hard to get rid of. **Don't worry about it**.
+
+### Why do I get `DeprecationWarning: the sets module is deprecated`?
+**Don't worry about it**. It is from deep in the Twisted framework code,
+and is not something we can fix.

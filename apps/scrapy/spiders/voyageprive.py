@@ -1,4 +1,5 @@
 import re
+from scrapy.contrib.loader.processor import TakeFirst
 from scrapy.contrib.spiders import XMLFeedSpider
 from scrapy.http import Request
 from scrapy.selector import Selector
@@ -47,7 +48,7 @@ class VoyagePriveScraper(XMLFeedSpider):
         #   parse_node() takes exactly 3 arguments (2 given)
         l = ScraperProductLoader(item=ScraperProduct(), selector=node)
         l.add_xpath('sku', 'id/text()')
-        l.add_xpath('name', 'titre/text()')
+        l.add_xpath('name', 'titre/text()', TakeFirst(), self.cleanup_name)
         l.add_xpath('price', 'prix/text()')
         l.add_xpath('in_stock', 'statut/text()')
         l.add_value(
@@ -79,7 +80,7 @@ class VoyagePriveScraper(XMLFeedSpider):
 
         attributes['direct_site_image'] = node.xpath('image-fournisseur/text()').extract_first()
         attributes['direct_site_name'] = node.xpath('nom-fournisseur/text()').extract_first()
-        l.add_value('attributes', attributes)
+        l.add_value('attributes', attributes, self.cleanup_attributes)
 
         url = node.xpath('url-detail/text()').extract_first()
         request = Request(url, callback=self.parse_page)
@@ -129,14 +130,23 @@ class VoyagePriveScraper(XMLFeedSpider):
         return l.load_item()
 
     @staticmethod
-    def name_pipeline(item, spider):
-        match = re.match(spider.NAME_REGEX, item['name'])
+    def cleanup_name(name, loader_context):
+        # Remove discount (if present)
+        match = re.match(VoyagePriveScraper.NAME_REGEX, name)
         if match:
-            item['name'] = match.group(1).strip()
-            item['attributes']['discount'] = match.group(2)
+            name = match.group(1).strip()
+            loader_context['discount'] = match.group(2)
 
-        # in no position of the product name is "jusqu'a" a useful term to keep
-        item['name'] = re.sub(u"jusqu.\u00e0", '', item['name'])
-        item['name'] = item['name'].strip(' ,')  # remove spaces, commas, ...
+        # Cleanup name
+        name = re.sub(u"jusqu.\u00e0", '', name)
+        name = name.strip(' ,')  # remove spaces, commas, ...
 
-        return item
+        return name
+
+    @staticmethod
+    def cleanup_attributes(attrs, loader_context):
+        discount = loader_context.get('discount')
+        if loader_context.get('discount'):
+            attrs['discount'] = discount
+
+        return attrs

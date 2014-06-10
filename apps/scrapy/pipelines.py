@@ -30,12 +30,6 @@ class CloudinaryPipeline(ImagesPipeline):
 # TODO: Many of these pipelines could likely be processors instead
 
 
-class NamePipeline(object):
-    @spider_pipelined
-    def process_item(self, item, spider):
-        return item
-
-
 class ValidationPipeline(object):
     def process_item(self, item, spider):
         if isinstance(item, ScraperProduct):
