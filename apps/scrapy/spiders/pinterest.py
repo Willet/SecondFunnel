@@ -36,7 +36,7 @@ class PinterestSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
                 break
         print('Pinterest, last height:', current_height)
         new_response = WebdriverResponse(response.url, response.webdriver)
-        super(PinterestSpider, self).parse(new_response)
+        return super(PinterestSpider, self).parse(new_response)
 
 
 class SurlatablePinterestSpider(PinterestSpider):
@@ -49,38 +49,19 @@ class SurlatablePinterestSpider(PinterestSpider):
     visited = []
 
     def parse_start_url(self, response):
-        return self.parse_conent(response)
+        return self.parse_content(response)
 
     def parse_content(self, response):
-        import pdb; pdb.set_trace()
+        import pdb
+        pdb.set_trace()
+
         sel = Selector(response)
-        l = ScraperContentLoader(item=ScraperContent(), response=response)
-        l.add_value('url', response.url)
+        l = ScraperContentLoader(item=ScraperImage(), response=response)
         l.add_css('name', 'h1.name::text')
         l.add_css('description', '#description span.boxsides')
-        l.add_value("sku", response.url, re='(\d+)')
 
         attributes = {}
-
-        sale_price = sel.css('li.sale::text').re_first('(\$\d+\.\d+)')
-
-        if sale_price:
-            attributes['sale_price'] = sale_price
-            l.add_css('price', 'li.regular::text', re='(\$\d+\.\d+)')
-        else:
-            l.add_css('price', 'li.price::text', re='(\$\d+\.\d+)')
-
-        l.add_value('attributes', attributes)
-
-        # URL
-        magic_values = sel.css('.fluid-display::attr(id)')\
-            .extract_first()\
-            .split(':')
-        xml_path = '/images/customers/c{1}/{2}/' \
-            '{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
-
         item = l.load_item()
-        request = WebdriverRequest(hostname + xml_path, callback=self.parse_images)
 
         request.meta['item'] = item
 
