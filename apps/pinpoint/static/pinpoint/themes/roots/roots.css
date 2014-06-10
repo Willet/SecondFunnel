@@ -88,7 +88,7 @@ body {
 
 .previewContainer .content {
     padding-top: 60px;
-    padding-bottom: 10px;
+    padding-bottom: 20px;
     border: none;
     max-width: 900px;
 }
@@ -299,7 +299,7 @@ body {
 .previewContainer .roots-logo {
     position: absolute;
     top: 5px;
-    left: 280px;
+    left: 285px;
     width: 340px;
     height: 43px;
 }

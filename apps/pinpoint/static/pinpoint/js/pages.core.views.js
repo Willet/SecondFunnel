@@ -820,6 +820,7 @@ App.module('core', function (module, App) {
                 shrinkContainer = function (element) {
                     return function () {
                         var container = element.closest('.fullscreen'),
+                            containedItem = element.closest('.content'),
                             heightReduction, widthReduction, left, right;
 
                         if (--imageCount !== 0) {
@@ -843,15 +844,14 @@ App.module('core', function (module, App) {
                         left = parseInt(container.css('left').split('px')[0], 10);
                         right = parseInt(container.css('right').split('px')[0], 10);
 
-                        heightReduction -= element.outerHeight();
-                        heightReduction -= $('.close', container).outerHeight();
+                        heightReduction -= containedItem.outerHeight();
                         heightReduction /= 2; // Split over top and bottom
 
                         if (heightReduction <= 0 || App.support.mobile()) {
                             heightReduction = '0'; // String because jQuery checks for falsey values
                         }
 
-                        widthReduction -= $('.row', container).outerWidth();
+                        widthReduction -= containedItem.outerWidth();
                         widthReduction /= 2;
 
                         //Only large changes to prevent jitter
