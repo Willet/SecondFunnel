@@ -77,7 +77,7 @@ class RootsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         root_path = 'http://demandware.edgesuite.net/aacg_prd/on/' \
                     'demandware.static/Sites-RootsCA-Site/' \
                     'Sites-roots_master_catalog/default/' \
-                    'v1402349332188/customers/'
+                    'v1402349332188/customers'
 
         magic_values = sel.css('.fluid-display::attr(id)')\
             .extract_first()\
