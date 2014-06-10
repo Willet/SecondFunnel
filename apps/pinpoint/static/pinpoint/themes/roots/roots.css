@@ -108,6 +108,12 @@ body {
     text-decoration: underline;
 }
 
+.previewContainer .close.small-close {
+    right: 5px;
+    left: inherit;
+    text-decoration: none;
+}
+
 .previewContainer .gallery {
     text-align: center;
 }
@@ -333,6 +339,10 @@ body {
         padding: 0;
         padding-top: 53px;
         height: 100%;
+    }
+
+    .previewContainer .close.small-close {
+        display: none;
     }
 
     .previewContainer .row {
