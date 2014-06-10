@@ -1,12 +1,12 @@
 /*globals google, table*/
 /**
  * Created by tristanpotter on 2014-05-22.
+ * JavaScript that constructs and populates the dashboard with data.
  */
 
 $(document).ready(function () {
     "use strict";
     var console = window.console,
-    // for testing
         CHART_OPTIONS = {
             sparkline: {
                 'axisTitlesPosition': 'none',
@@ -446,8 +446,6 @@ $(document).ready(function () {
                 parseDataTable(data);
                 view.setRows(data.getFilteredRows([{'column': 0, 'value': 'Mobile'}]));
 
-
-                console.log(view);
                 var output = new google.visualization.DataTable();
                 output.addColumn('string', 'Goal');
                 output.addColumn('number', 'Completions');
@@ -455,10 +453,7 @@ $(document).ready(function () {
                 for (var i = 1; i<view.getNumberOfColumns(); i++){
                     rows.push([view.getColumnLabel(i), view.getValue(0, i)]);
                 }
-                console.log(rows);
                 output.addRows(rows);
-                console.log(output);
-
                 numberFormat.format(output, 1);
                 return output;
             }, {is3D: true,
@@ -480,8 +475,6 @@ $(document).ready(function () {
                 parseDataTable(data);
                 view.setRows(data.getFilteredRows([{'column': 0, 'value': 'Tablet'}]));
 
-
-                console.log(view);
                 var output = new google.visualization.DataTable();
                 output.addColumn('string', 'Goal');
                 output.addColumn('number', 'Completions');
@@ -489,10 +482,7 @@ $(document).ready(function () {
                 for (var i = 1; i<view.getNumberOfColumns(); i++){
                     rows.push([view.getColumnLabel(i), view.getValue(0, i)]);
                 }
-                console.log(rows);
                 output.addRows(rows);
-                console.log(output);
-
                 numberFormat.format(output, 1);
                 return output;
             }, {is3D: true,
@@ -515,7 +505,6 @@ $(document).ready(function () {
                 view.setRows(data.getFilteredRows([{'column': 0, 'value': 'Desktop'}]));
 
 
-                console.log(view);
                 var output = new google.visualization.DataTable();
                 output.addColumn('string', 'Goal');
                 output.addColumn('number', 'Completions');
@@ -523,10 +512,7 @@ $(document).ready(function () {
                 for (var i = 1; i<view.getNumberOfColumns(); i++){
                     rows.push([view.getColumnLabel(i), view.getValue(0, i)]);
                 }
-                console.log(rows);
                 output.addRows(rows);
-                console.log(output);
-
                 numberFormat.format(output, 1);
                 return output;
             }, {is3D: true,
