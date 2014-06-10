@@ -5,94 +5,98 @@
 
 $(document).ready(function () {
     "use strict";
-    var console = window.console;
+    var console = window.console,
     // for testing
-    var CHART_OPTIONS = {
-        sparkline: {
-            'axisTitlesPosition': 'none',
-            'dataOpacity': 0,
-            'hAxis': {
-                'baselineColor': '#ffffff',
-                'textPosition': 'none',
-                'textStyle': {color: '#ffffff'},
-                'gridlines': {
-                    color: '#ffffff'
+        CHART_OPTIONS = {
+            sparkline: {
+                'axisTitlesPosition': 'none',
+                'dataOpacity': 0,
+                'hAxis': {
+                    'baselineColor': '#ffffff',
+                    'textPosition': 'none',
+                    'textStyle': {color: '#ffffff'},
+                    'gridlines': {
+                        color: '#ffffff'
+                    }
+                },
+                'legend': {
+                    'position': 'top'
+                },
+                'lineWidth': 1,
+                'vAxis': {
+                    'baselineColor': '#ffffff',
+                    'textPosition': 'none',
+                    'textStyle': {color: '#ffffff'},
+                    'gridlines': {
+                        color: '#ffffff'
+                    }
                 }
             },
-            'legend': {
-                'position': 'top'
+            lineChart: {
+                'axisTitlesPosition': 'none',
+                'dataOpacity': 0,
+                'legend': {
+                    'position': 'top'
+                },
+                'lineWidth': 1
             },
-            'lineWidth': 1,
-            'vAxis': {
-                'baselineColor': '#ffffff',
-                'textPosition': 'none',
-                'textStyle': {color: '#ffffff'},
-                'gridlines': {
-                    color: '#ffffff'
+            columnChart: {
+                'axisTitlesPosition': 'none',
+                'dataOpacity': 1,
+                'hAxis': {
+                    'baselineColor': 'black',
+                    'textPosition': 'out',
+                    'textStyle': {color: 'black'},
+                    'gridlines': {
+                        color: 'black'
+                    }
+                },
+                'legend': { 'position': 'top'},
+                'lineWidth': 1,
+                'vAxis': {
+                    'baselineColor': 'black',
+                    'textPosition': 'out',
+                    'textStyle': {color: 'black'},
+                    'gridlines': {
+                        color: 'black'
+                    }
                 }
+            },
+            columnChartStacked: {
+                'axisTitlesPosition': 'none',
+                'dataOpacity': 1,
+                'hAxis': {
+                    'baselineColor': 'black',
+                    'textPosition': 'out',
+                    'textStyle': {color: 'black'},
+                    'gridlines': {
+                        color: 'black'
+                    }
+                },
+                'legend': { 'position': 'top'},
+                'lineWidth': 1,
+                'vAxis': {
+                    'baselineColor': 'black',
+                    'textPosition': 'out',
+                    'textStyle': {color: 'black'},
+                    'gridlines': {
+                        color: 'black'
+                    }
+                },
+                'isStacked': true
             }
         },
-        lineChart: {
-            'axisTitlesPosition': 'none',
-            'dataOpacity': 0,
-            'legend': {
-                'position': 'top'
-            },
-            'lineWidth': 1
-        },
-        columnChart: {
-            'axisTitlesPosition': 'none',
-            'dataOpacity': 1,
-            'hAxis': {
-                'baselineColor': 'black',
-                'textPosition': 'out',
-                'textStyle': {color: 'black'},
-                'gridlines': {
-                    color: 'black'
-                }
-            },
-            'legend': { 'position': 'top'},
-            'lineWidth': 1,
-            'vAxis': {
-                'baselineColor': 'black',
-                'textPosition': 'out',
-                'textStyle': {color: 'black'},
-                'gridlines': {
-                    color: 'black'
-                }
-            }
-        },
-        columnChartStacked: {
-            'axisTitlesPosition': 'none',
-            'dataOpacity': 1,
-            'hAxis': {
-                'baselineColor': 'black',
-                'textPosition': 'out',
-                'textStyle': {color: 'black'},
-                'gridlines': {
-                    color: 'black'
-                }
-            },
-            'legend': { 'position': 'top'},
-            'lineWidth': 1,
-            'vAxis': {
-                'baselineColor': 'black',
-                'textPosition': 'out',
-                'textStyle': {color: 'black'},
-                'gridlines': {
-                    color: 'black'
-                }
-            },
-            'isStacked' : true
-        }
-    };
-    // The time between ajax calls to the server in milliseconds
-    var refreshRate = 1000 * 60 * 15; // 1 second * 60 * 15 = 15 minutes
-    var analyticsStart = '2014-05-02';
-    var CHARTS = [];
-    var pageOptions = {
-        charts: []
-    };
+        // The time between ajax calls to the server in milliseconds
+        refreshRate = 1000 * 60 * 15, // 1 second * 60 * 15 = 15 minutes
+        // used for determining campaign period
+        analyticsStart = '2014-05-02',
+        analyticsEnd = 'today',
+        // for readability in click code TODO investigate how to remove
+        CHARTS = [],
+        // The options for each chart
+        pageOptions = {
+            charts: []
+        };
 
 
     /**
@@ -164,10 +168,10 @@ $(document).ready(function () {
     var createAnalyticsGroup = function (name, arrayOfElements, refreshRate) {
         pageOptions.charts.push({
             members: arrayOfElements,
-            setSelection : function(selection){
-                for(var i = 0; i < this.members.length; i++){
+            setSelection: function (selection) {
+                for (var i = 0; i < this.members.length; i++) {
                     var len = this.members[i].selections.length;
-                    if(len >= selection){
+                    if (len >= selection) {
                         this.members[i].current_selection = selection;
                     }
                 }
@@ -188,28 +192,26 @@ $(document).ready(function () {
      * @param {function} callback - function that gets called when the request is successful
      */
     var retrieveData = function (metrics, dimmension, start_date, end_date, queryName, callback) {
-        if(poll_server) {
-            $.ajax({
-                url: "retrieve-data",
-                data: {
-                    'table': table, //TODO add actual table values, move to server
-                    'metrics': metrics,
-                    'dimension': dimmension,
-                    'start-date': start_date,
-                    'end-date': end_date,
-                    'queryName': queryName
-                },
-                type: "GET", // TODO GET or PUSH?
-                dataType: "json",
-                success: callback,
-                error: function (xhr, status, errorThrown) {
-                    console.log(errorThrown);
-                }
-            });
-        }
+        $.ajax({
+            url: "retrieve-data",
+            data: {
+                'table': table, //TODO add actual table values, move to server
+                'metrics': metrics,
+                'dimension': dimmension,
+                'start-date': start_date,
+                'end-date': end_date,
+                'queryName': queryName
+            },
+            type: "GET", // TODO GET or PUSH?
+            dataType: "json",
+            success: callback,
+            error: function (xhr, status, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
     };
 
-    var retrieveData_new = function(queryName, campaign, dimension,  callback){
+    var retrieveData_new = function (queryName, campaign, dimension, callback) {
         $.ajax({
             url: "retrieve-data",
             data: {
@@ -244,8 +246,8 @@ $(document).ready(function () {
             if (!response) {
                 return;
             }
-            var data = charts[chartNumber].dataOperation(response);
-            var chart = new charts[chartNumber].chartType(charts[chartNumber].location);
+            var data = charts[chartNumber].dataOperation(response),
+                chart = new charts[chartNumber].chartType(charts[chartNumber].location);
             chart.draw(data, charts[chartNumber].chartOptions);
         }
     };
@@ -255,13 +257,13 @@ $(document).ready(function () {
      */
     var datify = function (groupNumber) {
         /* Dimensions are nthHour for total, nthMinute for today*/
-        var chartStorage = pageOptions.charts[groupNumber].members;
-        var ajax_response = function (chartNumber, numSelection) {
-            return function (response) {
-                chartStorage[chartNumber].selections[numSelection].response = response;
-                drawChart(groupNumber);
+        var chartStorage = pageOptions.charts[groupNumber].members,
+            ajax_response = function (chartNumber, numSelection) {
+                return function (response) {
+                    chartStorage[chartNumber].selections[numSelection].response = response;
+                    drawChart(groupNumber);
+                };
             };
-        };
         for (var chartNumber = 0; chartNumber < chartStorage.length; chartNumber++) {
             // populate data
             for (var i = 0; i < chartStorage[chartNumber].selections.length; i++) {
@@ -301,23 +303,34 @@ $(document).ready(function () {
     };
 
     var drawElements = function () {
+        var decimalFormat = new google.visualization.NumberFormat({'fractionDigits': 2}),
+            numberFormat = new google.visualization.NumberFormat({'fractionDigits': 0}),
+            percentFormat = new google.visualization.NumberFormat({'fractionDigits': 2, 'suffix': '%'});
+
+        var parseDateTable = function (data) {
+            for (var j = 1; j < data.getNumberOfColumns(); j++) {
+                for (var i = 0; i < data.getNumberOfRows(); i++) {
+                    data.setValue(i, j, parseFloat(data.getValue(i, j)));
+                }
+            }
+        };
+
         // all graphs are drawn in here
         var quickview_graph = createAnalyticsElement($('#quickview-graph')[0],
             google.visualization.LineChart, function (response) {
-                var data = new google.visualization.DataTable(response.dataTable, 0.6);
-                //TODO investigate formaters farther
-                var formater = new google.visualization.NumberFormat({'pattern':'@@'});
+                var data = new google.visualization.DataTable(response.dataTable, 0.6),
+                    formater = new google.visualization.NumberFormat({'pattern': '@@'});
                 formater.format(data, 0);
                 return data;
             }, CHART_OPTIONS.lineChart, refreshRate);
         quickview_graph.addSelection(
             ['ga:bounceRate'],
-            ['ga:nthHour'], // dimensions
-            'today', 'today'); //start date, end date
+            ['ga:date'], // dimensions
+            analyticsStart, analyticsEnd); //start date, end date
         quickview_graph.addSelection(
             ['ga:bounceRate'],
-            ['ga:date'], // dimensions
-            analyticsStart, 'today'); //start date, end date
+            ['ga:nthHour'], // dimensions
+            'today', 'today'); //start date, end date
         createAnalyticsGroup('QUICKVIEW', [quickview_graph], refreshRate);
 
         var buttonSessionCount = createAnalyticsElement($('#sessionCount'), QuickLabel, function (response) {
@@ -343,13 +356,14 @@ $(document).ready(function () {
         buttonBounceRate.addSelection(['ga:bounceRate'], ['ga:userType'], analyticsStart, 'today');
 
         var buttonSessionDuration = createAnalyticsElement($('#sessionDuration'), QuickLabel, function (response) {
-            var data = parseFloat(response.totalsForAllResults['ga:avgSessionDuration']);
-            var minutes = Math.floor(data / 60) + 'm';
-            var seconds = Math.round(data % 60) + 's';
-            if (minutes === '0m'){
+            var data = parseFloat(response.totalsForAllResults['ga:avgSessionDuration']),
+                minutes = Math.floor(data / 60) + 'm',
+                seconds = Math.round(data % 60) + 's';
+
+            if (minutes === '0m') {
                 minutes = '';
             }
-            if (seconds === '0s'){
+            if (seconds === '0s') {
                 seconds = '';
             }
             return minutes + seconds;
@@ -388,28 +402,25 @@ $(document).ready(function () {
         var sortview = createAnalyticsElement($('#sortview-graph')[0],
             google.visualization.PieChart, function (response) {
                 var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                // make numbers actual numbers instead of strings so sorting works
+                parseDateTable(data);
+                numberFormat.format(data, 1);
                 //console.log(data);
                 return data;
-            }, {title: 'Testing'});
-        sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, 'today');
-        sortview.addSelection(['ga:sessions'], ['ga:medium'], analyticsStart, 'today');
+            }, {});
+        sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, analyticsEnd);
+        sortview.addSelection(['ga:sessions'], ['ga:userType'], analyticsStart, analyticsEnd);
         createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
 
         var totalConversions = createAnalyticsElement($('#total-conversions-graph')[0],
-        google.visualization.ColumnChart, function(response){
+            google.visualization.ColumnChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
             }, CHART_OPTIONS.columnChartStacked);
-        totalConversions.addSelection(['ga:goal1Completions','ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
-        totalConversions.addSelection(['ga:goal1Completions','ga:goal2Completions', 'ga:goal3Completions'], ['ga:source'], analyticsStart, 'today');
+        totalConversions.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
+        totalConversions.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:source'], analyticsStart, 'today');
         createAnalyticsGroup('CONVERSIONS', [totalConversions], refreshRate);
 
-        var sourceTable = createAnalyticsElement($('#source-table')[0],
-            google.visualization.Table, function (response) {
-                var data = new google.visualization.DataTable(response.dataTable, 0.6);
-                console.log(data);
-                return data;
-            }, {});
-        var table_metrics = [
+        var tableMetrics = [
             'ga:sessions',
             'ga:newUsers',
             'ga:avgSessionDuration',
@@ -419,12 +430,53 @@ $(document).ready(function () {
             'ga:goal2ConversionRate',
             'ga:goal3Completions',
             'ga:goal3ConversionRate'];
-        sourceTable.addSelection(table_metrics, ['ga:source'], analyticsStart, 'today');
-        sourceTable.addSelection(table_metrics, ['ga:source'], 'today', 'today');
-        createAnalyticsGroup('TABLE', [sourceTable], refreshRate);
+        var sourceTableTraffic = createAnalyticsElement($('#source-table-traffic')[0],
+            google.visualization.Table, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6),
+                    view = new google.visualization.DataView(data);
+                decimalFormat.format(data, 3);
+
+                // make numbers actual numbers instead of strings so sorting works
+                parseDateTable(data);
+                view.hideColumns([4, 5, 6, 7, 8, 9, 10]);
+                return view;
+            }, {
+                'page': 'enable',
+                'pageSize': 10,
+                'sortColumn': 1,
+                'sortAscending': false
+            });
+        sourceTableTraffic.addSelection(tableMetrics, ['ga:source'], analyticsStart, analyticsEnd);
+        sourceTableTraffic.addSelection(tableMetrics, ['ga:source'], 'today', 'today');
+        createAnalyticsGroup('TRAFFICTABLE', [sourceTableTraffic], refreshRate);
+
+        var sourceTableGoals = createAnalyticsElement($('#source-table-goals')[0],
+            google.visualization.Table, function (response) {
+                var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                var view = new google.visualization.DataView(data);
+
+                // make numbers actual numbers instead of strings so sorting works
+                parseDateTable(data);
+
+                percentFormat.format(data, 5);
+                percentFormat.format(data, 7);
+                percentFormat.format(data, 9);
+
+                view.hideColumns([1, 2, 3]);
+                return view;
+            }, {
+                'page': 'enable',
+                'pageSize': 10,
+                'sortColumn': 1,
+                'sortAscending': false
+            });
+
+        sourceTableGoals.addSelection(tableMetrics, ['ga:source'], analyticsStart, analyticsEnd);
+        sourceTableGoals.addSelection(tableMetrics, ['ga:source'], 'today', 'today');
+        createAnalyticsGroup('GOALTABLE', [sourceTableGoals], refreshRate);
 
         var metricsview = createAnalyticsElement($('#metrics-graph')[0],
-        google.visualization.LineChart, function(response){
+            google.visualization.LineChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
             }, CHART_OPTIONS.lineChart);
         metricsview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:dateHour'], analyticsStart, 'today');
@@ -432,17 +484,17 @@ $(document).ready(function () {
         createAnalyticsGroup('METRICS', [metricsview], refreshRate);
 
         var goal1 = createAnalyticsElement($('#productPreview-graph')[0],
-        google.visualization.LineChart, function(response){
+            google.visualization.LineChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
             }, CHART_OPTIONS.lineChart);
         goal1.addSelection(['ga:goal1ConversionRate'], ['ga:dateHour'], analyticsStart, 'today');
         var goal2 = createAnalyticsElement($('#buyNow-graph')[0],
-        google.visualization.LineChart, function(response){
+            google.visualization.LineChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
             }, CHART_OPTIONS.lineChart);
         goal2.addSelection(['ga:goal2ConversionRate'], ['ga:dateHour'], analyticsStart, 'today');
         var goal3 = createAnalyticsElement($('#scrollRate-graph')[0],
-        google.visualization.LineChart, function(response){
+            google.visualization.LineChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
             }, CHART_OPTIONS.lineChart);
         goal3.addSelection(['ga:goal3ConversionRate'], ['ga:dateHour'], analyticsStart, 'today');
@@ -461,14 +513,14 @@ $(document).ready(function () {
     $('#quickview-total').on('click', function () {
         // number referencing the quickview grouping of charts
         var QUICKVIEW = CHARTS.indexOf('QUICKVIEW');
-        pageOptions.charts[QUICKVIEW].setSelection(1); // 1 represents the quickview today chart
+        pageOptions.charts[QUICKVIEW].setSelection(0); // 0 represents the quickview total chart
         drawChart(QUICKVIEW);
     });
 
     $('#quickview-today').on('click', function () {
         // number referencing the quickview grouping of charts
         var QUICKVIEW = CHARTS.indexOf('QUICKVIEW');
-        pageOptions.charts[QUICKVIEW].setSelection(0); // 0 represents the quickview total chart
+        pageOptions.charts[QUICKVIEW].setSelection(1); // 1 represents the quickview today chart
         drawChart(QUICKVIEW);
     });
 
@@ -486,42 +538,31 @@ $(document).ready(function () {
         drawChart(SORTVIEW);
     });
 
-    $('#conversions-source').on('click', function(){
+    $('#conversions-source').on('click', function () {
         // integer that references the conversions grouping of charts
         var CONVERSIONS = CHARTS.indexOf('CONVERSIONS');
         pageOptions.charts[CONVERSIONS].setSelection(1); // 1 represents the conversions by source graph
         drawChart(CONVERSIONS);
     });
 
-    $('#conversions-device').on('click', function(){
+    $('#conversions-device').on('click', function () {
         // integer that references the conversions grouping of charts
         var CONVERSIONS = CHARTS.indexOf('CONVERSIONS');
         pageOptions.charts[CONVERSIONS].setSelection(0); // 0 represents the conversions by device graph
         drawChart(CONVERSIONS);
     });
 
-    $('#metrics-sessions').on('click', function(){
+    $('#metrics-sessions').on('click', function () {
         // integer that references the metrics grouping of charts
         var METRICS = CHARTS.indexOf('METRICS');
         pageOptions.charts[METRICS].setSelection(0); // 0 represents the session metrics graph
         drawChart(METRICS);
     });
-    $('#metrics-duration').on('click', function(){
+    $('#metrics-duration').on('click', function () {
         // integer that references the metrics grouping of charts
         var METRICS = CHARTS.indexOf('METRICS');
         pageOptions.charts[METRICS].setSelection(1); // 1 represents the avgSessionDuration metrics graph
         drawChart(METRICS);
-    });
-
-    $('#title').on('click', function(){
-        if(poll_server){
-            poll_server = false;
-            console.log('no longer polling');
-        } else {
-            poll_server = true;
-            console.log('polling');
-        }
-
     });
 
     $(window).resize(function () {
