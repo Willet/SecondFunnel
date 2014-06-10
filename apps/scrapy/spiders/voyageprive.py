@@ -80,7 +80,7 @@ class VoyagePriveScraper(XMLFeedSpider):
 
         attributes['direct_site_image'] = node.xpath('image-fournisseur/text()').extract_first()
         attributes['direct_site_name'] = node.xpath('nom-fournisseur/text()').extract_first()
-        l.add_value('attributes', attributes)
+        l.add_value('attributes', attributes, self.cleanup_attributes)
 
         url = node.xpath('url-detail/text()').extract_first()
         request = Request(url, callback=self.parse_page)
@@ -130,21 +130,23 @@ class VoyagePriveScraper(XMLFeedSpider):
         return l.load_item()
 
     @staticmethod
-    def cleanup_name(value):
-        value = re.sub(u"jusqu.\u00e0", '', value)
-        value = value.strip(' ,')  # remove spaces, commas, ...
-        return value
+    def cleanup_name(name, loader_context):
+        # Remove discount (if present)
+        match = re.match(VoyagePriveScraper.NAME_REGEX, name)
+        if match:
+            name = match.group(1).strip()
+            loader_context['discount'] = match.group(2)
 
+        # Cleanup name
+        name = re.sub(u"jusqu.\u00e0", '', name)
+        name = name.strip(' ,')  # remove spaces, commas, ...
+
+        return name
 
     @staticmethod
-    def name_pipeline(item, spider):
-        match = re.match(spider.NAME_REGEX, item['name'])
-        if match:
-            item['name'] = match.group(1).strip()
-            item['attributes']['discount'] = match.group(2)
+    def cleanup_attributes(attrs, loader_context):
+        discount = loader_context.get('discount')
+        if loader_context.get('discount'):
+            attrs['discount'] = discount
 
-        # in no position of the product name is "jusqu'a" a useful term to keep
-        item['name'] = re.sub(u"jusqu.\u00e0", '', item['name'])
-        item['name'] = item['name'].strip(' ,')  # remove spaces, commas, ...
-
-        return item
+        return attrs
