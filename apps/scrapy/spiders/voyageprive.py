@@ -1,4 +1,5 @@
 import re
+from scrapy.contrib.loader.processor import TakeFirst
 from scrapy.contrib.spiders import XMLFeedSpider
 from scrapy.http import Request
 from scrapy.selector import Selector
@@ -47,7 +48,7 @@ class VoyagePriveScraper(XMLFeedSpider):
         #   parse_node() takes exactly 3 arguments (2 given)
         l = ScraperProductLoader(item=ScraperProduct(), selector=node)
         l.add_xpath('sku', 'id/text()')
-        l.add_xpath('name', 'titre/text()')
+        l.add_xpath('name', 'titre/text()', TakeFirst(), self.cleanup_name)
         l.add_xpath('price', 'prix/text()')
         l.add_xpath('in_stock', 'statut/text()')
         l.add_value(
@@ -127,6 +128,13 @@ class VoyagePriveScraper(XMLFeedSpider):
         l.add_value('attributes', attributes)
 
         return l.load_item()
+
+    @staticmethod
+    def cleanup_name(value):
+        value = re.sub(u"jusqu.\u00e0", '', value)
+        value = value.strip(' ,')  # remove spaces, commas, ...
+        return value
+
 
     @staticmethod
     def name_pipeline(item, spider):
