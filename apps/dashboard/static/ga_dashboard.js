@@ -319,16 +319,18 @@ $(document).ready(function () {
         var quickview_graph = createAnalyticsElement($('#quickview-graph')[0],
             google.visualization.LineChart, function (response) {
                 var data = new google.visualization.DataTable(response.dataTable, 0.6);
-                console.log(data);
                 for(var i = 0; i< data.getNumberOfRows(); i++){
-                    var cellText = parseFloat(data.getValue(i, 0));
+                    var cellNum = parseFloat(data.getValue(i, 0));
                     // if string value is actually a number
-                    if(!isNaN(cellText) && cellText !== undefined){
-                        data.setFormattedValue(i, 0,
-                            (cellText === 0) ? ('12:00AM') :
-                                (cellText === 12) ? ('12:00PM'):
-                                    (cellText > 12) ? ((cellText - 12) + ':00PM'):
-                                        (cellText + ':00AM'));
+                    if(!isNaN(cellNum) && cellNum !== undefined){
+                        //it is pm if hours from 12 onwards
+                        var suffix = (cellNum >= 12)? 'PM' : 'AM';
+                        //only -12 from hours if it is greater than 12 (if not back at mid night)
+                        cellNum = (cellNum > 12)? cellNum -12 : cellNum;
+                        //if 00 then it is 12 am
+                        cellNum = (cellNum === 0)? 12 : cellNum;
+
+                        data.setFormattedValue(i, 0, cellNum + ':00' + suffix);
                     }
                 }
                 return data;
