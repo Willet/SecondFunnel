@@ -8,6 +8,8 @@ body {
     height: 84px;
     max-width: 1024px;
     margin: auto;
+    margin-top: 20px;
+    margin-bottom: 10px;
 }
 
 .navbar .container {
@@ -33,10 +35,24 @@ body {
     text-align: center;
     padding: 10px;
     font-family: 'ITC Souvenir W01 Light', times new roman, sans;
+    width: 256px;
+    line-height: 16px;
+}
+.tile.wide {
+    width: 512px;
+}
+
+.tile .name {
+    margin-top: 5px;
 }
 
 #discovery-area {
-    width: 960px;
+    width: 1024px;
+}
+
+.price {
+    font-family: arial, verdana, tahoma, sans-serif;
+    color: #666;
 }
 
 .price .strike {
