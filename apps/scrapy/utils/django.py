@@ -1,3 +1,6 @@
+from apps.assets.models import Product
+
+
 def django_item_values(item):
     # Modified from DjangoItem.instance
     return ((k, item.get(k)) for k in item._values if k in item._model_fields)
@@ -21,11 +24,16 @@ def get_or_create(model):
     #
     # Instead, we do the two steps separately
     try:
-        # We have no unique identifier at the moment; use the sku / store
-        obj = model_class.objects.get(sku=model.sku, store_id=model.store_id)
+        if isinstance(model, Product):
+            # We have no unique identifier at the moment; use the sku / store
+            obj = model_class.objects.get(sku=model.sku, store_id=model.store_id)
+        else:
+            # TODO: don't always create...
+            created = True
+            obj = model  # djangoitem created a model for us.
     except model_class.DoesNotExist:
         created = True
-        obj = model  # DjangoItem created a model for us.
+        obj = model  # djangoitem created a model for us.
 
     return (obj, created)
 

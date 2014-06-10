@@ -7,8 +7,8 @@ from django.core.exceptions import ValidationError
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from apps.assets.models import Store, Product, Category, Feed
-from apps.scraper.scrapers import ProductScraper
-from apps.scrapy.items import ScraperProduct, ScraperContent
+from apps.scraper.scrapers import ProductScraper, ContentScraper
+from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
 from apps.scrapy.utils.misc import CloudinaryStore, spider_pipelined
 
@@ -53,37 +53,39 @@ class ValidationPipeline(object):
         return item
 
     def process_content(self, item, spider):
-        pass
+        return item
 
 
 class PricePipeline(object):
     @spider_pipelined
     def process_item(self, item, spider):
-        item['price'] = item.get('price', '').strip()
+        if isinstance(item, ScraperProduct):
+            item['price'] = item.get('price', '').strip()
 
-        # TODO: Maybe have default currency options in options?
-        # TODO: Couldn't `locale.atof` handle this?
-        currency_info = getattr(spider, 'currency_info', {})
-        symbol = currency_info.get('symbol', '$')
-        group = currency_info.get('group', ',')
-        position_at_end = currency_info.get('position-at-end')
+            # TODO: Maybe have default currency options in options?
+            # TODO: Couldn't `locale.atof` handle this?
+            currency_info = getattr(spider, 'currency_info', {})
+            symbol = currency_info.get('symbol', '$')
+            group = currency_info.get('group', ',')
+            currency_info.get('position-at-end')
+            #position_at_end = currency_info.get('position-at-end')
 
-        item['price'] = item['price'].strip(symbol)
-        item['price'] = ''.join(item['price'].split(group))
-        item['price'] = float(item['price'])
+            item['price'] = item['price'].strip(symbol)
+            item['price'] = ''.join(item['price'].split(group))
+            item['price'] = float(item['price'])
 
-        # Our Product model uses a narrow regex...
-        # So, forget all this fanciness until that is changed.
+            # Our Product model uses a narrow regex...
+            # So, forget all this fanciness until that is changed.
 
-        # if position_at_end:
-        #     template = u'{price}{symbol}'
-        # else:
-        #     template = u'{symbol}{price}'
+            # if position_at_end:
+            #     template = u'{price}{symbol}'
+            # else:
+            #     template = u'{symbol}{price}'
 
-        # item['price'] = template.format(price=item['price'], symbol=symbol)
-        item['price'] = u'{symbol}{price:0.2f}'.format(
-            price=item['price'], symbol=symbol
-        )
+            # item['price'] = template.format(price=item['price'], symbol=symbol)
+            item['price'] = u'{symbol}{price:0.2f}'.format(
+                price=item['price'], symbol=symbol
+            )
 
         return item
 
@@ -98,13 +100,14 @@ class DuplicatesPipeline(object):
         self.ids_seen = defaultdict(set)
 
     def process_item(self, item, spider):
-        spider_name = spider.name
-        sku = item['sku']
+        if isinstance(item, ScraperProduct):
+            spider_name = spider.name
+            sku = item['sku']
 
-        if sku in self.ids_seen[spider_name]:
-            raise DropItem("Duplicate item found: {}".format(item))
+            if sku in self.ids_seen[spider_name]:
+                raise DropItem("Duplicate item found: {}".format(item))
 
-        self.ids_seen[spider_name].add(sku)
+            self.ids_seen[spider_name].add(sku)
         return item
 
 
@@ -124,6 +127,11 @@ class ForeignKeyPipeline(object):
 
         return item
 
+    def process_content(self, item, spider):
+        item = self.associate_store(item, spider)
+
+        return item
+
     def associate_store(self, item, spider):
         store_slug = getattr(spider, 'store_slug', '')
 
@@ -133,11 +141,6 @@ class ForeignKeyPipeline(object):
             raise DropItem("Can't add item to non-existent store")
 
         item['store'] = store
-        return item
-
-    def process_content(self, item, spider):
-        item = self.associate_store(item, spider)
-
         return item
 
 
@@ -155,17 +158,17 @@ class ItemPersistencePipeline(object):
         try:
             update_model(model, item)
         except ValidationError as e:
-            messages = ','.join(e.messages)
-            raise DropItem('Item didn\'t validate. ({})'.format(messages))
+            raise DropItem('Item didn\'t validate. ({})'.format(e))
 
         return item
 
 
 class CategoryPipeline(object):
     def process_item(self, item, spider):
-        categories = item.get('attributes', {}).get('categories', [])
-        for name, url in categories:
-            self.add_to_category(item, name, url)
+        if isinstance(item, ScraperProduct):
+            categories = item.get('attributes', {}).get('categories', [])
+            for name, url in categories:
+                self.add_to_category(item, name, url)
 
         return item
 
@@ -216,12 +219,12 @@ class FeedPipeline(object):
 
 class ProductImagePipeline(object):
     def process_item(self, item, spider):
-        for image_url in item.get('image_urls', []):
-            self.process_image(item, image_url)
-
+        if isinstance(item, ScraperProduct):
+            for image_url in item.get('image_urls', []):
+                self.process_product_image(item, image_url)
         return item
 
-    def process_image(self, item, image_url):
+    def process_product_image(self, item, image_url):
         store = item['store']
         product = item['sku']
         try:
@@ -233,3 +236,11 @@ class ProductImagePipeline(object):
                     product, store.id
                 )
             )
+
+
+class ContentImagePipeline(object):
+    def process_item(self, item, spider):
+        if isinstance(item, ScraperImage):
+            if item.get('source_url', False):
+                item = ContentScraper.process_image(item['source_url'], item, item['store'])
+        return item

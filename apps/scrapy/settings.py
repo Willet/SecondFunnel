@@ -43,11 +43,13 @@ WEBDRIVER_OPTIONS = {
 ITEM_PIPELINES = {
     #'scrapy.contrib.pipeline.images.ImagesPipeline': 1,
     #'apps.scrapy.pipelines.CloudinaryPipeline': 1,
-    'apps.scrapy.pipelines.ValidationPipeline': 2,
+    'apps.scrapy.pipelines.ForeignKeyPipeline': 1,
+    'apps.scrapy.pipelines.ContentImagePipeline': 2,
+    'apps.scrapy.pipelines.ValidationPipeline': 3,
+    'apps.scrapy.pipelines.NamePipeline': 10,
     'apps.scrapy.pipelines.PricePipeline': 11,
     'apps.scrapy.pipelines.DuplicatesPipeline': 20,
     # 900 - Persistence-related Pipelines
-    'apps.scrapy.pipelines.ForeignKeyPipeline': 900,
     'apps.scrapy.pipelines.ItemPersistencePipeline': 990,
     'apps.scrapy.pipelines.CategoryPipeline': 997,
     'apps.scrapy.pipelines.FeedPipeline': 998,
@@ -77,7 +79,7 @@ FEED_URI = "s3://scrapy.secondfunnel.com/dev/feeds/%(name)s/%(time)s.json"
 
 import cloudinary
 cloudinary.config(
-    cloud_name = 'secondfunnel',
-    api_key = '471718281466152',
-    api_secret = '_CR94qpFu7EGChMbwmc4xqCsbXo'
+    cloud_name='secondfunnel',
+    api_key='471718281466152',
+    api_secret='_CR94qpFu7EGChMbwmc4xqCsbXo'
 )
