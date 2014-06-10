@@ -1,7 +1,11 @@
+import json
+import operator
 import re
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
+from scrapy_webdriver.http import WebdriverRequest
+from urlparse import urlparse
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
     SecondFunnelCrawlScraper
@@ -39,21 +43,9 @@ class RootsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         @returns requests 0 0
         @scrapes url sku name price description image_urls attributes
         """
-        def full_size_image(x):
-            """From
-            thumb_variation_A59_view_b_55x55.jpg
-            to
-            main_variation_A59_view_b_579x579.jpg
 
-            (and pray that all their images are all 579 pixels wide)
-            """
-            return 'main_variation_{}_view_{}_579x579.jpg'.format(x.group(1), x.group(2))
-
-        full_url_format = "http://demandware.edgesuite.net/aacg_prd/on/" \
-                          "demandware.static/Sites-RootsCA-Site/" \
-                          "Sites-roots_master_catalog/default/" \
-                          "v1401786139656/customers/c972/{pid}/{pid}_pdp2/" \
-                          "main_variation_{sc}_view_a_579x579.jpg"
+        url = response.url
+        hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
 
         sel = Selector(response)
 
@@ -61,38 +53,7 @@ class RootsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_value('url', response.url)
         l.add_css('sku', '#productdetails .key::text', re='(\d+)')
         l.add_css('name', '#productName::text')
-
-        # TODO: Sanitize output with bleach
         l.add_css('description', '.prodctdesc .description::text')
-
-        # TODO: WTF does this need to be this complicated?
-        image_urls = []
-        img_thumbs = sel.xpath('//div[contains(@class, "fluid-display-imagegroup")]//img[contains(@class, ":view")]')
-        selectedColor = re.findall(r"var\s?selectedColor\s?=\s?\'(\w+)\';", response.body, re.I | re.M | re.U)
-
-        for thumb in img_thumbs:
-            thumb_url = thumb.css('::attr(src)').extract_first()
-            if thumb_url:
-                full_url = re.sub(r'thumb_variation_(\w\d+)_view_(\w)_\d+x\d+\.jpg', full_size_image, thumb_url)
-            else:
-                # wild(er) guess if JS is behind
-                # (hopefully it won't have to come to this)
-                if selectedColor:
-                    # construct unverified image url using default color ID
-                    product_image_pid = re.findall(r':view:\d+:(\d+):pdp2', thumb.extract())[0]
-                    full_url = full_url_format.format(
-                        pid=product_image_pid, sc=selectedColor[0])
-
-            if not full_url:
-                continue
-            image_urls.append(full_url)
-
-        if not image_urls and selectedColor:
-            # wild guess (2) for pages that have only one image and no "picker"
-            default_pic_id = sel.css('.fluid-display::attr(id)').extract_first()
-            product_image_pid = re.findall(r'display:\d+:(\d+):pdp2',
-                                           default_pic_id)[0]
-            image_urls.append(full_url_format.format(pid=product_image_pid, sc=selectedColor[0]))
 
         attributes = {}
         sale_price = sel.css('.pricing #priceTop .special .value::text').extract_first()
@@ -110,7 +71,59 @@ class RootsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             category_name = category_sel.css('::text').extract_first().strip()
             attributes['categories'].append((category_name, category_url))
 
-        l.add_value('image_urls', image_urls)
         l.add_value('attributes', attributes)
+
+        # URL
+        root_path = 'http://demandware.edgesuite.net/aacg_prd/on/' \
+                    'demandware.static/Sites-RootsCA-Site/' \
+                    'Sites-roots_master_catalog/default/' \
+                    'v1402349332188/customers/'
+
+        magic_values = sel.css('.fluid-display::attr(id)')\
+            .extract_first()\
+            .split(':')
+
+        js_path = '/c{1}/{2}/{2}_{3}/js/data.js'.format(*magic_values)
+
+        item = l.load_item()
+        request = WebdriverRequest(root_path + js_path,
+                                   callback=self.parse_images)
+
+        request.meta['item'] = item
+
+        yield request
+
+        yield l.load_item()
+
+    def parse_images(self, response):
+        sel = Selector(response)
+
+        item = response.meta.get('item', ScraperProduct())
+        l = ScraperProductLoader(item=item, response=response)
+
+        jsonp = sel.css('pre::text')\
+            .re_first('product_view:({.*}),custom_template')
+        data = json.loads(jsonp)
+
+        xml_url = response.url
+        path = xml_url.rsplit('/', 2)[0]
+
+        # There may be cleaner ways to do this but they don't have THIS HAT.
+        # This one is a doozy
+        image_data = data.get('product_view', {}).get('image', [])
+        relative_urls = (
+            x.get('url')
+            for x in image_data
+            if 'TOUCHZOOM' in map(
+                operator.itemgetter('id'), x.get('category_mapping')
+            )
+        )
+
+        image_urls = [
+            '{0}/{1}'.format(path, u.rsplit('/', 1)[1])
+            for u in relative_urls
+        ]
+
+        l.add_value('image_urls', image_urls)
 
         yield l.load_item()
