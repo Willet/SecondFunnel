@@ -2,7 +2,6 @@
 console, location, clearTimeout, setTimeout */
 var App = new Marionette.Application(),
     SecondFunnel = App,  // old alias
-    debugOp,
     ev = new $.Event('remove'),
     orig = $.fn.remove;
 
@@ -270,18 +269,22 @@ $.fn.getClasses = $.fn.getClasses || function () {
 };
 
 
+/**
+ * Special jQuery listener for rotation events.  A rotation event occurs
+ * when the orientation of the page triggers.  A rotation can also be triggered
+ * by the user.
+ */
 (function ($) {
-    /**
-     * Special jQuery listener for rotation events.  A rotation event occurs
-     * when the orientation of the page triggers.  A rotation can also be triggered
-     * by the user.
-     */
+    "use strict";
+    if ($ === undefined) {
+        return;
+    }
     var listener,
         $window = $(window);
     // On iOS devices, orientationchange does not exist, so we have to
     // listen for resize.  Similarly, the use of orientationchange is not
     // standard.  Reference: http://stackoverflow.com/questions/1649086/
-    if ("onorientationchange" in window) {
+    if (_.has(window, "onorientationchange")) {
         listener = "orientationchange";
     } else {
         listener = "resize";
@@ -290,33 +293,7 @@ $.fn.getClasses = $.fn.getClasses || function () {
     $window.on(listener, function () {
         $window.trigger('rotate');
     });
-
-    /**
-     * Executes if the handler is an instance of a function, otherwise if it is an
-     * Integer or undefined, rotates the element by that many degrees or 90.
-     *
-     * @param {Object} e   Degrees to rotate or function
-     * @returns {undefined}
-     */
-    $.fn.rotate = function (e) {
-        var degrees,
-            orientation = $(this).data('rotate') || 0;
-        if (e !== undefined && _.isFunction(e)) {
-            $(this).on(listener, e);
-        } else {
-            degrees = e || 90;
-            orientation = (orientation + degrees) % 360;
-            $(this).data('rotate', orientation);
-            $(this).css({
-                'transform': 'rotate(' + orientation + 'deg)',
-                '-o-transform': 'rotate(' + orientation + 'deg)',
-                '-ms-transform': 'rotate(' + orientation + 'deg)',
-                '-moz-transform': 'rotate(' + orientation + 'deg)',
-                '-webkit-transform': 'rotate(' + orientation + 'deg)'
-            });
-        }
-    };
-})($ || {});
+}(window.jQuery || window.$));
 
 /**
  * Retrieve the first selected element's TileView and Tile, if applicable.
@@ -474,13 +451,6 @@ _.mixin({
         };
     });
 }([Marionette.View, Marionette.CompositeView, Marionette.ItemView]));
-
-/**
- * similar usage as $.noop
- */
-debugOp = function () {
-    console.debug('%O, %O', this, arguments);
-};
 
 /**
  * Initialize cloudinary

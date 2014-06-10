@@ -9,8 +9,7 @@ App.module('core', function (module, App) {
         $document = $(document),
         // specifically, pages scrolled downwards; pagesScrolled defaults
         // to 1 because the user always sees the first page.
-        pagesScrolled = 1,
-        everScrolled = false;
+        pagesScrolled = 1;
 
     /**
      * View for showing a Tile (or its extensions).
@@ -57,10 +56,10 @@ App.module('core', function (module, App) {
             'mouseleave': "onHover"
         },
 
-        'regions': _.extend({}, {  // if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
+        'regions': {  // if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
             'socialButtons': '.social-buttons',
             'tapIndicator': '.tap-indicator-target'
-        }, _.get(App.options, 'regions') || {}),
+        },
 
         /**
          * Creates the TileView using the options.
@@ -181,7 +180,7 @@ App.module('core', function (module, App) {
                 self = this,
                 normalTileWidth = App.layoutEngine.width(),
                 // TODO: Make the configurable; perhaps a page property?
-                widable_templates = {
+                widableTemplates = {
                     'image': true,
                     'youtube': true,
                     'banner': true
@@ -195,7 +194,7 @@ App.module('core', function (module, App) {
             // templates use this as obj.image.url
             this.model.set('image', this.model.get('defaultImage'));
 
-            wideable = widable_templates[this.model.get('template')];
+            wideable = widableTemplates[this.model.get('template')];
             showWide = (Math.random() > App.option('imageTileWide', 0.5));
 
             if (_.isNumber(self.model.get('colspan'))) {
@@ -498,11 +497,11 @@ App.module('core', function (module, App) {
 
             // unbind window.scroll and resize before init binds them again.
             (function (globals) {
-                globals.scrollHandler = _.throttle(self.pageScroll, 500);
-                globals.resizeHandler = _.throttle(function () {
+                globals.scrollHandler = _.debounce(self.pageScroll, 500);
+                globals.resizeHandler = _.debounce(function () {
                     $('.resizable', document).trigger('resize');
                     App.vent.trigger('windowResize');
-                }, 1000);
+                }, 300);
                 globals.orientationChangeHandler = function () {
                     App.vent.trigger("rotate");
                 };
@@ -586,15 +585,13 @@ App.module('core', function (module, App) {
          * @returns deferred
          */
         'getTiles': function (options, tile) {
-            var self = this;
+            var self = this, xhr;
             if (this.loading) {
                 // do nothing
                 return (new $.Deferred()).promise();
             }
 
-            var xhr = this.toggleLoading(true)
-                .collection
-                .fetch();
+            xhr = this.toggleLoading(true).collection.fetch();
 
             xhr.done(function (tileInfo) {
                 // feed ended / IR busted
@@ -698,7 +695,8 @@ App.module('core', function (module, App) {
                 windowTop = $window.scrollTop(),
                 pageBottomPos = pageHeight + windowTop,
                 documentBottomPos = $document.height(),
-                viewportHeights = pageHeight * (App.option('prefetchHeight', 2.5));
+                viewportHeights = pageHeight * (App.option('prefetchHeight', 2.5)),
+                st;
 
             if (this.ended) {
                 return this;
@@ -731,7 +729,7 @@ App.module('core', function (module, App) {
             }
 
             // detect scrolling detection. not used for anything yet.
-            var st = $window.scrollTop();
+            st = $window.scrollTop();
             if (st > this.lastScrollTop) {
                 App.vent.trigger('scrollDown', this);
             } else if (st < this.lastScrollTop) {
@@ -818,7 +816,8 @@ App.module('core', function (module, App) {
         },
 
         'resizeContainer': function () {
-            var shrinkContainer = function (element) {
+            var imageCount,
+                shrinkContainer = function (element) {
                     return function () {
                         var container = element.closest('.fullscreen'),
                             heightReduction, widthReduction, left, right;
@@ -876,8 +875,7 @@ App.module('core', function (module, App) {
                             'right': right
                         });
                     };
-                },
-                imageCount;
+                };
 
             imageCount = $('img.main-image, img.image', this.$el).length;
 
@@ -1187,7 +1185,7 @@ App.module('core', function (module, App) {
         },
 
         'onShow': function () {
-            var position_window = (function (previewWindow) {
+            var positionWindow = (function (previewWindow) {
                 return function () {
                     var window_middle = $window.scrollTop() + $window.height() / 2;
 
@@ -1203,10 +1201,10 @@ App.module('core', function (module, App) {
                 };
             }(this));
 
-            position_window();
+            positionWindow();
 
             $('img', this.$el).on('load', function () {
-                position_window();
+                positionWindow();
             });
         },
 

@@ -74,17 +74,6 @@ App.module("utils", function (utils, App) {
     };
 
     /**
-     * Does minimal URL checking (stackoverflow.com/a/1305082/1558430)
-     *
-     * @param {string} url
-     * @returns {bool}
-     */
-    this.isURL = function (url) {
-        return (typeof url === 'string' && url.length > 2 &&
-            url.indexOf('//') >= 0);
-    };
-
-    /**
      * @returns true     if the page is in an iframe.
      */
     this.isIframe = function () {
@@ -188,25 +177,6 @@ App.module("utils", function (utils, App) {
                 });
             }
         });
-    };
-
-    /**
-     * returns a url that is either
-     *    - the url, if it is not an image service url, or
-     *    - an image url pointing to one that is at least as wide as
-     *      minWidth, or
-     *    - an image url pointing to one that is at most as wide as
-     *      the window width, or
-     *    - if minWidth is ridiculously large, master.jpg.
-     *
-     * @param {string} url
-     * @param {int} minWidth
-     * @deprecated
-     *
-     * @returns {string}
-     */
-    this.pickImageSize = function (url, minWidth) {
-        return url;
     };
 
     /**
