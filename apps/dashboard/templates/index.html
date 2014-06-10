@@ -1,7 +1,7 @@
 {% extends 'console_base.html' %}
 {% load static %}
 {% if user.is_authenticated %}
-    {% block head %} {{ user.username }} {% endblock %}
+    {% block head %} {{ user.first_name }} {% endblock %}
 {% endif %}
 {% block main %}
 
@@ -10,9 +10,9 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    <h2>Welcome
+                    <h2>Welcome&nbsp;
                         {% if user.is_authenticated %}
-                            {{ user.username }}
+                            {{ user.first_name }}
                         {% endif %}
                     </h2>
                 </div>

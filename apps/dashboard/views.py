@@ -65,6 +65,10 @@ def prettify_data(response):
                     title += group[1] + ' '
                 else:
                     title += capitalize(group[0]) + ' '
+            title = title.replace('Goal 1', 'Preview')
+            title = title.replace('Goal 2', 'Buy Now')
+            title = title.replace('Goal 3', 'Scroll')
+            title = title.replace('Conversion', '')
             header['label'] = title
         for row in response['dataTable']['rows']:
             row['c'][0]['v'] = capitalize(row['c'][0]['v'])
