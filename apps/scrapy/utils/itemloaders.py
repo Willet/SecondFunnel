@@ -32,3 +32,16 @@ class ScraperProductLoader(ItemLoader):
     image_urls_out = Identity()
 
     in_stock_in = Compose(TakeFirst(), str_to_boolean)
+
+
+class ScraperContentLoader(ItemLoader):
+
+    default_output_processor = TakeFirst()
+
+    name_in = Compose(TakeFirst(), unicode.strip)
+
+    description_in = Compose(TakeFirst(), Scraper._sanitize_html)
+
+    details_in = Compose(TakeFirst(), Scraper._sanitize_html)
+
+    attributes_out = MergeDicts()

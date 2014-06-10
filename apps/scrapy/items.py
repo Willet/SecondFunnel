@@ -4,11 +4,12 @@
 # http://doc.scrapy.org/en/latest/topics/items.html
 from scrapy.contrib.djangoitem import DjangoItem
 from scrapy.item import Field
-from apps.assets.models import Product
+from apps.assets.models import Product, Content, Image
 from apps.scrapy.utils.serializers import store_serializer
 
 # Fields that are not part of a Django model
 # will not be saved; neat :)
+
 
 # Also, fields that override existing fields don't *seem* to affect
 # the underlying model field (e.g. `store` below)
@@ -21,4 +22,10 @@ class ScraperProduct(DjangoItem):
 
 
 class ScraperContent(DjangoItem):
-    pass
+    django_model = Content
+
+    store = Field(serializer=store_serializer)
+
+
+class ScraperImage(ScraperContent):
+    django_model = Image

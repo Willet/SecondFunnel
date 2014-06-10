@@ -49,7 +49,7 @@ class ValidationPipeline(object):
     def process_product(self, item, spider):
         # Drop items missing required fields
         required = ['sku', 'name']
-        empty_fields = [k for (k,v) in item.items() if not v and k in required]
+        empty_fields = [k for (k, v) in item.items() if not v and k in required]
         if empty_fields:
             msg = 'Product fields cannot be blank: ({})'.format(
                 ', '.join(empty_fields)
@@ -142,6 +142,8 @@ class ForeignKeyPipeline(object):
         return item
 
     def process_content(self, item, spider):
+        item = self.associate_store(item, spider)
+
         return item
 
 
@@ -194,6 +196,7 @@ class CategoryPipeline(object):
         category.products.add(product)
         category.save()
 
+
 class FeedPipeline(object):
     def process_item(self, item, spider):
         feed_ids = getattr(spider, 'feed_ids', [])
@@ -231,7 +234,7 @@ class ProductImagePipeline(object):
             ProductScraper.process_image(image_url, product, store)
         except Product.MultipleObjectsReturned:
             raise DropItem(
-                'Unclear which product to attach to image. '\
+                'Unclear which product to attach to image. '
                 'More than one product (sku: "{}", store: "{}")'.format(
                     product, store.id
                 )
