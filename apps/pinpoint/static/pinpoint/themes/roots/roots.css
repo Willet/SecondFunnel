@@ -141,6 +141,7 @@ body {
     padding-right: 10px;
     overflow: hidden;
     max-width: 500px;
+    width: 290px;
 }
 .previewContainer .info.image {
     max-width: 320px;
@@ -368,6 +369,7 @@ body {
     .previewContainer .info {
         text-align: left;
         max-width: none;
+        width: auto;
     }
 
     .previewContainer .info.image {
