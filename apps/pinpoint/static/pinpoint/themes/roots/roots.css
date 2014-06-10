@@ -295,6 +295,8 @@ body {
     font-size: 20px;
     line-height: 20px;
     font-weight: bold;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .previewContainer .more-info .down-arrow {
@@ -395,6 +397,11 @@ body {
         width: 100%;
         margin: auto;
         text-align: center;
+    }
+
+    .previewContainer .stl-title,
+    .previewContainer .landscape .stl-title {
+        margin-top: 5px;
     }
 
     .previewContainer .stl-look .stl-item,
