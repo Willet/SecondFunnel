@@ -36,6 +36,15 @@ body {
     background-color: white;
 }
 
+.price {
+    font-family: arial, verdana, tahoma, sans-serif;
+    color: #666;
+}
+
+.price .strike {
+    margin-right: 4px;
+}
+
 .tile {
     color: #000;
     text-align: center;
@@ -52,17 +61,12 @@ body {
     margin-top: 5px;
 }
 
+.tile .price {
+    font-size: 12px;
+}
+
 #discovery-area {
     width: 1024px;
-}
-
-.price {
-    font-family: arial, verdana, tahoma, sans-serif;
-    color: #666;
-}
-
-.price .strike {
-    margin-right: 4px;
 }
 
 .previewContainer {
@@ -137,6 +141,7 @@ body {
     padding-right: 10px;
     overflow: hidden;
     max-width: 500px;
+    width: 290px;
 }
 .previewContainer .info.image {
     max-width: 320px;
@@ -364,6 +369,7 @@ body {
     .previewContainer .info {
         text-align: left;
         max-width: none;
+        width: auto;
     }
 
     .previewContainer .info.image {
