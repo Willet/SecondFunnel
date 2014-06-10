@@ -21,7 +21,7 @@ App.module('core', function (module, App) {
      */
     App.option = function (name, defaultValue) {
         var opt = Marionette.getOption(App, name),
-            keyNest = _.compact(name.split(/[:.]/)),
+            keyNest = _.compact(name.split(/[:\.]/)),
             keyName,
             cursor = App.options,
             i,
