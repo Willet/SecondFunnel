@@ -57,11 +57,11 @@ body {
 .previewContainer .row {
     display: table-row;
     width: 100%;
+    margin: 0;
 }
 .previewContainer .row:before,
 .previewContainer .row:after {
     content: none;
-    margin: 0;
 }
 
 .previewContainer .content {
@@ -161,6 +161,7 @@ body {
     padding-bottom: 0;
     width: 120px;
     display: block;
+    margin: auto;
 }
 
 .previewContainer .stl-look .stl-item img {
@@ -249,6 +250,10 @@ body {
 }
 .previewContainer .main-image-container .gallery-swipe-right:hover {
     border-left-color: #7D7D7D;
+}
+
+.previewContainer .image-with-tagged-products .cell.shop {
+    width: 120px;
 }
 
 .previewContainer .more-info {
@@ -367,6 +372,10 @@ body {
     }
     .previewContainer .main-image-container .gallery-swipe-right:hover {
         border-left-color: #000;
+    }
+
+    .previewContainer .image-with-tagged-products .cell.shop {
+        width: auto;
     }
 
     .previewContainer .roots-logo {
