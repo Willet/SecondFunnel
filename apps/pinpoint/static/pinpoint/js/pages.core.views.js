@@ -992,6 +992,7 @@ App.module('core', function (module, App) {
             // hide discovery, then show this window as a page.
             if (App.support.mobile()) {
                 App.discoveryArea.$el.parent().swapWith(this.$el); // out of scope
+                this.trigger("feed:swapped");
             }
 
             App.vent.trigger('previewRendered', this);
@@ -1157,12 +1158,20 @@ App.module('core', function (module, App) {
                 related = this.options.model.get('tagged-products') || [],
                 contentOpts = {
                     'model': this.options.model
-                };
+                },
+                contentInstance;
 
             ContentClass = App.utils.findClass('PreviewContent',
                 template, module.PreviewContent);
 
-            this.content.show(new ContentClass(contentOpts));
+            contentInstance = new ContentClass(contentOpts);
+
+            // remember if $.fn.swapWith is called so the feed can be swapped back
+            contentInstance.on("feed:swapped", function () {
+                self.triggerMethod("feed:swapped");
+            });
+
+            this.content.show(contentInstance);
             previewLoadingScreen.hide();
 
             this.listenTo(App.vent, 'rotate', function (width) {
@@ -1203,12 +1212,16 @@ App.module('core', function (module, App) {
 
         'onClose': function () {
             // hide this, then restore discovery.
-            if (App.support.mobile()) {
+            if (App.support.mobile() || this.feedSwapped) {
                 this.$el.swapWith(App.discoveryArea.$el.parent());
                 // handle results that got loaded while the discovery
                 // area has an undefined height.
                 App.layoutEngine.layout(App.discovery);
             }
+        },
+        // state-keeping for restoring feed previously swapped out
+        'onFeedSwapped': function () {
+            this.feedSwapped = true;
         }
     });
 
