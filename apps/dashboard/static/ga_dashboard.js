@@ -92,7 +92,16 @@ $(document).ready(function () {
                     }
                 },
                 'isStacked': true
-            }
+            },
+            pieChart_noLegend: {
+                is3D: true,
+                legend: 'none',
+                titleTextStyle: {
+                    fontName: 'Helvetica Neue, Arial, san-serif',
+                    fontSize: 16,
+                    bold: true,
+                    italic: false
+                }}
         },
         // The time between ajax calls to the server in milliseconds
         refreshRate = 1000 * 60 * 15, // 1 second * 60 * 15 = 15 minutes
@@ -456,15 +465,7 @@ $(document).ready(function () {
                 output.addRows(rows);
                 numberFormat.format(output, 1);
                 return output;
-            }, {is3D: true,
-                title: 'Mobile',
-                legend: 'none',
-                titleTextStyle: {
-                    fontName: 'Helvetica Neue, Arial, san-serif',
-                    fontSize: 16,
-                    bold: true,
-                    italic: false
-                }});
+            }, $.extend({}, CHART_OPTIONS.pieChart_noLegend, {title: 'Mobile'}));
         totalConversionsMobile.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
         createAnalyticsGroup('CONVERSIONS', [totalConversionsMobile], refreshRate);
 
@@ -485,15 +486,7 @@ $(document).ready(function () {
                 output.addRows(rows);
                 numberFormat.format(output, 1);
                 return output;
-            }, {is3D: true,
-                title: 'Tablet',
-                legend: 'none',
-                titleTextStyle: {
-                    fontName: 'Helvetica Neue, Arial, san-serif',
-                    fontSize: 16,
-                    bold: true,
-                    italic: false
-                }});
+            }, $.extend({}, CHART_OPTIONS.pieChart_noLegend, {title: 'Tablet'}));
         totalConversionsTablet.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
         createAnalyticsGroup('CONVERSIONS', [totalConversionsTablet], refreshRate);
 
@@ -515,15 +508,7 @@ $(document).ready(function () {
                 output.addRows(rows);
                 numberFormat.format(output, 1);
                 return output;
-            }, {is3D: true,
-                title: 'Desktop',
-                legend: 'none',
-                titleTextStyle: {
-                    fontName: 'Helvetica Neue, Arial, san-serif',
-                    fontSize: 16,
-                    bold: true,
-                    italic: false
-                }});
+            }, $.extend({}, CHART_OPTIONS.pieChart_noLegend, {title: 'Desktop'}));
         totalConversionsDesktop.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
         createAnalyticsGroup('CONVERSIONS', [totalConversionsDesktop], refreshRate);
 
