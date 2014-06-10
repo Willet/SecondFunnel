@@ -307,7 +307,7 @@ $(document).ready(function () {
             numberFormat = new google.visualization.NumberFormat({'fractionDigits': 0}),
             percentFormat = new google.visualization.NumberFormat({'fractionDigits': 2, 'suffix': '%'});
 
-        var parseDateTable = function (data) {
+        var parseDataTable = function (data) {
             for (var j = 1; j < data.getNumberOfColumns(); j++) {
                 for (var i = 0; i < data.getNumberOfRows(); i++) {
                     data.setValue(i, j, parseFloat(data.getValue(i, j)));
@@ -318,9 +318,21 @@ $(document).ready(function () {
         // all graphs are drawn in here
         var quickview_graph = createAnalyticsElement($('#quickview-graph')[0],
             google.visualization.LineChart, function (response) {
-                var data = new google.visualization.DataTable(response.dataTable, 0.6),
-                    formater = new google.visualization.NumberFormat({'pattern': '@@'});
-                formater.format(data, 0);
+                var data = new google.visualization.DataTable(response.dataTable, 0.6);
+                for(var i = 0; i< data.getNumberOfRows(); i++){
+                    var cellNum = parseFloat(data.getValue(i, 0));
+                    // if string value is actually a number
+                    if(!isNaN(cellNum) && cellNum !== undefined){
+                        //it is pm if hours from 12 onwards
+                        var suffix = (cellNum >= 12)? 'PM' : 'AM';
+                        //only -12 from hours if it is greater than 12 (if not back at mid night)
+                        cellNum = (cellNum > 12)? cellNum -12 : cellNum;
+                        //if 00 then it is 12 am
+                        cellNum = (cellNum === 0)? 12 : cellNum;
+
+                        data.setFormattedValue(i, 0, cellNum + ':00' + suffix);
+                    }
+                }
                 return data;
             }, CHART_OPTIONS.lineChart, refreshRate);
         quickview_graph.addSelection(
@@ -403,11 +415,18 @@ $(document).ready(function () {
             google.visualization.PieChart, function (response) {
                 var data = new google.visualization.DataTable(response.dataTable, 0.6);
                 // make numbers actual numbers instead of strings so sorting works
-                parseDateTable(data);
+                parseDataTable(data);
                 numberFormat.format(data, 1);
                 //console.log(data);
                 return data;
-            }, {});
+            }, {is3D: true,
+                title: 'Sessions',
+                titleTextStyle: {
+                    fontName: 'Helvetica Neue, Arial, san-serif',
+                    fontSize: 16,
+                    bold: true,
+                    italic: false
+                }});
         sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, analyticsEnd);
         sortview.addSelection(['ga:sessions'], ['ga:userType'], analyticsStart, analyticsEnd);
         createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
@@ -437,7 +456,7 @@ $(document).ready(function () {
                 decimalFormat.format(data, 3);
 
                 // make numbers actual numbers instead of strings so sorting works
-                parseDateTable(data);
+                parseDataTable(data);
                 view.hideColumns([4, 5, 6, 7, 8, 9, 10]);
                 return view;
             }, {
@@ -456,7 +475,7 @@ $(document).ready(function () {
                 var view = new google.visualization.DataView(data);
 
                 // make numbers actual numbers instead of strings so sorting works
-                parseDateTable(data);
+                parseDataTable(data);
 
                 percentFormat.format(data, 5);
                 percentFormat.format(data, 7);
@@ -467,7 +486,7 @@ $(document).ready(function () {
             }, {
                 'page': 'enable',
                 'pageSize': 10,
-                'sortColumn': 1,
+                'sortColumn': 2,
                 'sortAscending': false
             });
 
@@ -516,7 +535,6 @@ $(document).ready(function () {
         pageOptions.charts[QUICKVIEW].setSelection(0); // 0 represents the quickview total chart
         drawChart(QUICKVIEW);
     });
-
     $('#quickview-today').on('click', function () {
         // number referencing the quickview grouping of charts
         var QUICKVIEW = CHARTS.indexOf('QUICKVIEW');
@@ -530,7 +548,6 @@ $(document).ready(function () {
         pageOptions.charts[SORTVIEW].setSelection(0); // 0 represents the sortview by device chart
         drawChart(SORTVIEW);
     });
-
     $('#sortview-source').on('click', function () {
         // integer that references the sortview grouping of charts
         var SORTVIEW = CHARTS.indexOf('SORTVIEW');
@@ -544,7 +561,6 @@ $(document).ready(function () {
         pageOptions.charts[CONVERSIONS].setSelection(1); // 1 represents the conversions by source graph
         drawChart(CONVERSIONS);
     });
-
     $('#conversions-device').on('click', function () {
         // integer that references the conversions grouping of charts
         var CONVERSIONS = CHARTS.indexOf('CONVERSIONS');
@@ -563,6 +579,32 @@ $(document).ready(function () {
         var METRICS = CHARTS.indexOf('METRICS');
         pageOptions.charts[METRICS].setSelection(1); // 1 represents the avgSessionDuration metrics graph
         drawChart(METRICS);
+    });
+
+    $('#table-traffic-total').on('click', function(){
+        // integer that references the table-traffic grouping of charts
+        var TABLE = CHARTS.indexOf('TRAFFICTABLE');
+        pageOptions.charts[TABLE].setSelection(0); // 0 represents the table that shows data for a month
+        drawChart(TABLE);
+    });
+    $('#table-traffic-today').on('click', function(){
+        // integer that references the table-traffic grouping of charts
+        var TABLE = CHARTS.indexOf('TRAFFICTABLE');
+        pageOptions.charts[TABLE].setSelection(1); // 1 represents the table that shows data for a day
+        drawChart(TABLE);
+    });
+
+    $('#table-goals-total').on('click', function(){
+        // integer that references the table-goal grouping of charts
+        var TABLE = CHARTS.indexOf('GOALTABLE');
+        pageOptions.charts[TABLE].setSelection(0); // 0 represents the table that shows data for a month
+        drawChart(TABLE);
+    });
+    $('#table-goals-today').on('click', function(){
+        // integer that references the table-goal grouping of charts
+        var TABLE = CHARTS.indexOf('GOALTABLE');
+        pageOptions.charts[TABLE].setSelection(1); // 1 represents the table that shows data for a day
+        drawChart(TABLE);
     });
 
     $(window).resize(function () {
