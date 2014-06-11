@@ -113,6 +113,7 @@ def productimage_saved(sender, **kwargs):
     if not (productimage and productimage.product):
         return
 
+    print "saving product for {}".format(productimage)
     productimage.product.save()
 
 
@@ -123,6 +124,7 @@ def product_saved(sender, **kwargs):
     if not product:
         return
 
+    print "saving tiles for {}".format(product)
     with transaction.atomic():
         for tile in product.tiles.all():
             tile.save()
@@ -133,10 +135,12 @@ def product_saved(sender, **kwargs):
 @receiver(post_save)
 def content_saved(sender, **kwargs):
     """Generate cache for IR tiles if a content is saved."""
+
     content = kwargs.pop('instance', None)
     if not isinstance(content, Content):
         return
 
+    print "saving {}".format(type(content))
     with transaction.atomic():
         for tile in content.tiles.all():
             tile.save()
@@ -153,6 +157,7 @@ def tile_saved(sender, **kwargs):
     if not tile:
         return
 
+    print "saving tile {}".format(getattr(tile, "id"))
     original_ir_cache = tile.ir_cache
     tile.ir_cache = ''  # force tile to regenerate itself
     new_ir_cache = json.dumps(tile.to_json())
@@ -163,7 +168,7 @@ def tile_saved(sender, **kwargs):
         return
 
     tile.ir_cache = new_ir_cache
-    if settings.ENVIRONMENT == 'dev':
+    if settings.ENVIRONMENT in ['dev', 'test']:
         print "Saving tile cache #{}".format(tile.id)
 
     tile.save()
