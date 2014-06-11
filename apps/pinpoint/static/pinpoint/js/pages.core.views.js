@@ -821,7 +821,7 @@ App.module('core', function (module, App) {
                     return function () {
                         var container = element.closest('.fullscreen'),
                             containedItem = element.closest('.content'),
-                            heightReduction, widthReduction, left, right;
+                            heightReduction, widthReduction;
 
                         if (--imageCount !== 0) {
                             return;
@@ -841,8 +841,6 @@ App.module('core', function (module, App) {
 
                         heightReduction = $(window).height();
                         widthReduction = container.outerWidth();
-                        left = parseInt(container.css('left').split('px')[0], 10);
-                        right = parseInt(container.css('right').split('px')[0], 10);
 
                         heightReduction -= containedItem.outerHeight();
                         heightReduction /= 2; // Split over top and bottom
@@ -854,25 +852,15 @@ App.module('core', function (module, App) {
                         widthReduction -= containedItem.outerWidth();
                         widthReduction /= 2;
 
-                        //Only large changes to prevent jitter
-                        if (widthReduction > 15 || widthReduction < -15) {
-                            left += widthReduction;
-                            right += widthReduction;
-                        }
-
-                        if (left <= 0 || App.support.mobile()) {
-                            left = '0';
-                        }
-
-                        if (right <= 0 || App.support.mobile()) {
-                            right = '0';
+                        if (widthReduction <= 0 || App.support.mobile()) {
+                            widthReduction = '0'; // String because jQuery checks for falsey values
                         }
 
                         container.css({
                             'top': heightReduction,
                             'bottom': heightReduction,
-                            'left': left,
-                            'right': right
+                            'left': widthReduction,
+                            'right': widthReduction
                         });
                     };
                 };
