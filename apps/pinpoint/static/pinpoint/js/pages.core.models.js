@@ -66,26 +66,13 @@ App.module('core', function (core, App) {
             // turn image json into image objects for easier access.
             var self = this,
                 defaultImage,
-                imgInstances = [],
+                imgInstances,
                 relatedProducts;
 
             // replace all image json with their objects.
-            _.each(this.get('images'), function (image) {
-                var localImageVariable;
-                if (typeof image === 'string') {
-                    // Patch old IR responses.
-                    // TODO: Do we still need this?
-                    localImageVariable = {
-                        'format': "jpg",
-                        'dominant-color': "transparent",
-                        'url': image,
-                        'id': self.getDefaultImageId() || 0
-                    };
-                } else { // make a copy
-                    localImageVariable = $.extend(true, {}, image);
-                }
-                imgInstances.push(new core.Image(localImageVariable));
-            });
+            imgInstances = _.map(this.get('images'), function (image) {
+                return new core.Image($.extend(true, {}, image));
+            }) || [];
 
             // this tile has no images, or can be an image itself
             if (imgInstances.length === 0) {
@@ -95,7 +82,7 @@ App.module('core', function (core, App) {
                 }));
             }
 
-            defaultImage = imgInstances[0];
+            defaultImage = self.getDefaultImage();
 
             // Transform related-product image, if necessary
             relatedProducts = this.get('tagged-products');
