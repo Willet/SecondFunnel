@@ -20,7 +20,6 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     store_slug = name
 
-    # TODO: Handle 'styles'
     category_url = 'http://www.gap.com/browse/category.do?cid={}'
     visited = []
 
