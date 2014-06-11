@@ -78,8 +78,36 @@ def prettify_data(response):
                 row['c'][0]['v'] = capitalize(row['c'][0]['v'])
     return response
 
-@never_cache
+
+@cache_page(60*60)  # cache page for an hour
 @login_required(login_url=LOGIN_URL)
+@never_cache
+def get_data_new(request):
+    response = {'error': 'Retrieving data failed'}
+    if request.method == 'GET':
+        user = User.objects.get(pk=request.user.pk)
+        profile = UserProfile.objects.get(user=user)
+        request = request.GET
+
+        dashboardId = -1
+        if 'dashboard' in request:
+            dashboardId = request['dashboard']
+        if not profile.dashboards.all().filter(pk=dashboardId):
+            # can't view page
+            return response
+
+        if('queryName' in request) and ('campaign' in request):
+            # get data from ga based on queryName
+            # set response
+            pass
+    return response
+
+
+
+
+@cache_page(60*60)  # cache page for an hour
+@login_required(login_url=LOGIN_URL)
+@never_cache
 def get_data(request):
     response = {'error': 'Retrieving data failed'}
     if request.method == 'GET':

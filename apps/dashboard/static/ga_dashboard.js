@@ -179,13 +179,12 @@ $(document).ready(function () {
      * @param dimension
      * @param callback
      */
-    var retrieveData_new = function (queryName, campaign, dimension, callback) {
+    var retrieveData_new = function (dashboard, campaign, queryName, callback) {
         $.ajax({
             url: "retrieve-data",
             data: {
-                'table': table, //TODO add actual table values, move to server
+                'dashboard': dashboard,
                 'campaign': campaign,
-                'dimension': dimension,
                 'queryName': queryName
             },
             type: "GET", // TODO GET or PUSH?
