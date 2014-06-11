@@ -11,6 +11,14 @@ TEMPLATE_DEBUG = DEBUG
 DEFAULT_CHARSET = 'utf-8'
 FILE_CHARSET = 'utf-8'  # apparently something we need to enforce for File()
 
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        )
+    )
+)
+
 # aws environment specific settings
 # These values should not be hardcoded. They are only hardcoded because
 # it is convenient to do so :(
@@ -23,7 +31,10 @@ CLOUDFRONT_USER_AGENT = 'Amazon CloudFront'
 
 # Google analytics
 GOOGLE_ANALYTICS_PROFILE = '67271131'         
-GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17' # dev and test (production has a separate profile, -16)  
+GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17' # dev and test (production has a separate profile, -16)
+SERVICE_ACCOUNT_EMAIL = "231833496051-kf5r0aath3eh96209hdutfggj5dqld9f@developer.gserviceaccount.com"
+SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(PROJECT_ROOT,
+                                                'ad04005e5e7b5a51c66cd176e10277a59cb61824-privatekey.p12')
 
 ADMINS = (
     ('Nick "The Goat" Terwoord', 'nick@willetinc.com'),
@@ -43,14 +54,6 @@ MANAGERS = ADMINS
 
 BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(minutes=30))\
     .strftime("%a, %d %b %Y %H:%M:%S GMT")
-
-PROJECT_ROOT = os.path.dirname(
-    os.path.dirname(
-        os.path.dirname(
-            os.path.abspath(__file__)
-        )
-    )
-)
 
 def from_project_root(path):
     """returns the path prepended by the project root."""

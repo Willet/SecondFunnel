@@ -15,6 +15,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
 from django.contrib.auth.models import User
+from django.conf import settings
 
 from oauth2client.client import SignedJwtAssertionCredentials
 
@@ -24,9 +25,6 @@ from apps.dashboard.models import DashBoard, UserProfile
 from apps.utils import async
 
 LOGIN_URL = '/dashboard/login'
-SERVICE_ACCOUNT_EMAIL = "231833496051-kf5r0aath3eh96209hdutfggj5dqld9f@developer.gserviceaccount.com"
-SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(os.path.dirname(__file__),
-                                                'ad04005e5e7b5a51c66cd176e10277a59cb61824-privatekey.p12')
 
 
 def build_analytics():
@@ -34,11 +32,11 @@ def build_analytics():
     Builds and returns an Analytics service object authorized with the given service account
     Returns a service object
     """
-    f = open(SERVICE_ACCOUNT_PKCS12_FILE_PATH, 'rb')
+    f = open(settings.SERVICE_ACCOUNT_PKCS12_FILE_PATH, 'rb')
     key = f.read()
     f.close()
 
-    credentials = SignedJwtAssertionCredentials(SERVICE_ACCOUNT_EMAIL,
+    credentials = SignedJwtAssertionCredentials(settings.SERVICE_ACCOUNT_EMAIL,
                                                 key,
                                                 scope='https://www.googleapis.com/auth/analytics.readonly')
     http = httplib2.Http()
@@ -101,8 +99,6 @@ def get_data_new(request):
             # set response
             pass
     return response
-
-
 
 
 @cache_page(60*60)  # cache page for an hour
