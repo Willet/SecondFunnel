@@ -4,116 +4,61 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from collections import defaultdict
 from django.core.exceptions import ValidationError
-from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
-from apps.assets.models import Store, Product, Category, Feed
+from apps.assets.models import Store, Product, Content, Category, Feed
 from apps.scraper.scrapers import ProductScraper, ContentScraper
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
-from apps.scrapy.utils.misc import CloudinaryStore, spider_pipelined
-
-
-class CloudinaryPipeline(ImagesPipeline):
-    """
-    Enable Cloudinary storage using the ImagePipeline.
-
-    Highly experimental, as ImagePipeline isn't really extensible at the
-    moment.
-
-    More details on the Image Pipeline here:
-        http://doc.scrapy.org/en/latest/topics/images.html
-    """
-    def _get_store(self, uri):
-        return CloudinaryStore()
-
+from scrapy.contrib.djangoitem import DjangoItem
 
 # TODO: Many of these pipelines could likely be processors instead
 
 
-class NamePipeline(object):
-    @spider_pipelined
-    def process_item(self, item, spider):
-        return item
-
-
 class ValidationPipeline(object):
+    """
+    Determine if there is validation errors if we were to save the model
+    so far.
+    """
     def process_item(self, item, spider):
-        if isinstance(item, ScraperProduct):
-            return self.process_product(item, spider)
-
-        elif isinstance(item, ScraperContent):
-            return self.process_content(item, spider)
-
-        return item
-
-    def process_product(self, item, spider):
-        # Drop items missing required fields
-        required = ['sku', 'name']
-        empty_fields = [k for (k, v) in item.items() if not v and k in required]
-        if empty_fields:
-            msg = 'Product fields cannot be blank: ({})'.format(
-                ', '.join(empty_fields)
-            )
-            raise DropItem(msg)
-
-        return item
-
-    def process_content(self, item, spider):
-        return item
-
-
-class PricePipeline(object):
-    @spider_pipelined
-    def process_item(self, item, spider):
-        if isinstance(item, ScraperProduct):
-            item['price'] = item.get('price', '').strip()
-
-            # TODO: Maybe have default currency options in options?
-            # TODO: Couldn't `locale.atof` handle this?
-            currency_info = getattr(spider, 'currency_info', {})
-            symbol = currency_info.get('symbol', '$')
-            group = currency_info.get('group', ',')
-            currency_info.get('position-at-end')
-            #position_at_end = currency_info.get('position-at-end')
-
-            item['price'] = item['price'].strip(symbol)
-            item['price'] = ''.join(item['price'].split(group))
-            item['price'] = float(item['price'])
-
-            # Our Product model uses a narrow regex...
-            # So, forget all this fanciness until that is changed.
-
-            # if position_at_end:
-            #     template = u'{price}{symbol}'
-            # else:
-            #     template = u'{symbol}{price}'
-
-            # item['price'] = template.format(price=item['price'], symbol=symbol)
-            item['price'] = u'{symbol}{price:0.2f}'.format(
-                price=item['price'], symbol=symbol
-            )
-
+        if isinstance(item, DjangoItem):
+            try:
+                django_model = item.save(commit=False)
+                django_model.full_clean()
+            except ValidationError as e:
+                raise DropItem("DjangoItem didn\'t validate. ({})".format(e))
         return item
 
 
 class DuplicatesPipeline(object):
     """
-    Detects if there are duplicates based on sku and spider name.
-
-    Alternatively, we could do some sort of merge if there are duplicates...
+    Detects if there are duplicates based on uniqueness of items
+    from the same spider.
     """
     def __init__(self):
-        self.ids_seen = defaultdict(set)
+        self.ids_seen = defaultdict(list)
 
     def process_item(self, item, spider):
-        if isinstance(item, ScraperProduct):
-            spider_name = spider.name
-            sku = item['sku']
+        # TODO: this assumes only one model type which could be
+        #       a bad assumption if the uniqueness dict's are the same
+        #
+        # e.g. two different item-types that have same uniqueness constraint
+        #      will still collide
+        spider_name = spider.name
+        uniqueness = getattr(item, 'uniqueness', ())
+        for uniq_attributes in uniqueness:
+            lookup_dict = {}
+            for attr in uniq_attributes:
+                if attr in item:
+                    lookup_dict[attr] = item.get(attr)
+                else:
+                    # if no attribute, it can't provide uniqueness
+                    continue
 
-            if sku in self.ids_seen[spider_name]:
+            if lookup_dict in self.ids_seen[spider_name]:
                 raise DropItem("Duplicate item found: {}".format(item))
 
-            self.ids_seen[spider_name].add(sku)
+            self.ids_seen[spider_name].append(lookup_dict)
+
         return item
 
 
@@ -154,17 +99,13 @@ class ForeignKeyPipeline(object):
 # It is suggested that this be the last pipeline
 class ItemPersistencePipeline(object):
     def process_item(self, item, spider):
-        try:
-            item_model = item_to_model(item)
-        except TypeError:
-            return item
-
-        model, created = get_or_create(item_model)
+        model, created = get_or_create(item)
 
         try:
             update_model(model, item)
         except ValidationError as e:
-            raise DropItem('Item didn\'t validate. ({})'.format(e))
+            # This happens when the merged model does not validate
+            raise DropItem('Item didn\'t validate on save. ({})'.format(e))
 
         return item
 
@@ -220,7 +161,10 @@ class FeedPipeline(object):
         except TypeError:
             return
 
-        feed.add_product(product=item_model)
+        if isinstance(item_model, Product):
+            feed.add_product(product=item_model)
+        elif isinstance(item_model, Content):
+            feed.add_content(content=item_model)
 
 
 class ProductImagePipeline(object):

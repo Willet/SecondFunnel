@@ -6,9 +6,12 @@ from scrapy.contrib.djangoitem import DjangoItem
 from scrapy.item import Field
 from apps.assets.models import Product, Content, Image
 from apps.scrapy.utils.serializers import store_serializer
+from scrapy.contrib.loader.processor import MapCompose
 
 # Fields that are not part of a Django model
 # will not be saved; neat :)
+
+from processors import cleanup_price
 
 
 # Also, fields that override existing fields don't *seem* to affect
@@ -18,7 +21,11 @@ class ScraperProduct(DjangoItem):
     image_urls = Field()
     images = Field()
 
+    price_out = MapCompose(cleanup_price)
+
     store = Field(serializer=store_serializer)
+
+    uniqueness = (('store_id', 'sku', 'name'),)
 
 
 class ScraperContent(DjangoItem):
@@ -29,3 +36,5 @@ class ScraperContent(DjangoItem):
 
 class ScraperImage(ScraperContent):
     django_model = Image
+
+    uniqueness = (('store_id', 'source_url'),)

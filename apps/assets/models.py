@@ -287,6 +287,9 @@ class Product(BaseModel):
     serializer = ir_serializers.ProductSerializer
     cg_serializer = cg_serializers.ProductSerializer
 
+    #class Meta:
+    #    unique_together = (('store', 'name','sku'),)
+
     def __init__(self, *args, **kwargs):
         super(Product, self).__init__(*args, **kwargs)
         if not self.attributes:

@@ -14,7 +14,8 @@ def item_to_model(item):
     return item.instance
 
 
-def get_or_create(model):
+def get_or_create(item):
+    model = item_to_model(item)
     model_class = type(model)
     created = False
 
@@ -23,15 +24,28 @@ def get_or_create(model):
     # anytime it changed) rather than update an existing object.
     #
     # Instead, we do the two steps separately
-    try:
-        if isinstance(model, Product):
-            # We have no unique identifier at the moment; use the sku / store
-            obj = model_class.objects.get(sku=model.sku, store_id=model.store_id)
-        else:
-            # TODO: don't always create...
-            created = True
-            obj = model  # djangoitem created a model for us.
-    except model_class.DoesNotExist:
+
+    # if there is a lookup that provides a unique-match
+    # it should be merged with that item.
+    # e.g. ScraperProduct uniqueness is (('store_id', 'sku', 'name'),)
+    uniqueness = getattr(item, 'uniqueness', ())
+    for uniq_attributes in uniqueness:
+        lookup_dict = {}
+        for attr in uniq_attributes:
+            if attr in item:
+                lookup_dict[attr] = item.get(attr)
+            else:
+                # if there isn't that attribute, it can't provide uniqueness
+                continue
+
+        try:
+            obj = model_class.objects.get(**lookup_dict)
+            break  # found a match :)
+        except model_class.DoesNotExist:
+            obj = None
+
+    # if a match was not found, create a new model
+    if obj is None:
         created = True
         obj = model  # djangoitem created a model for us.
 

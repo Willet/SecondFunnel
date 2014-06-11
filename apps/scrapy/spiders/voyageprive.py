@@ -46,6 +46,7 @@ class VoyagePriveScraper(XMLFeedSpider):
         # but I keep getting this error:
         #   parse_node() takes exactly 3 arguments (2 given)
         l = ScraperProductLoader(item=ScraperProduct(), selector=node)
+        l.context['currency_info'] = VoyagePriveScraper.currency_info
         l.add_xpath('sku', 'id/text()')
         l.add_xpath('name', 'titre/text()')
         l.add_xpath('price', 'prix/text()')
@@ -85,6 +86,7 @@ class VoyagePriveScraper(XMLFeedSpider):
         request = Request(url, callback=self.parse_page)
 
         item = l.load_item()
+        item = VoyagePriveScraper.post_process(item, self)
         request.meta['item'] = item
         return request
 
@@ -101,6 +103,7 @@ class VoyagePriveScraper(XMLFeedSpider):
 
         item = response.meta.get('item', ScraperProduct())
         l = ScraperProductLoader(item=item, response=response)
+        l.context['currency_info'] = VoyagePriveScraper.currency_info
         l.add_css(
             'image_urls',
             '.viewp-product-pictures-carousel-item img::attr(data-original)'
@@ -129,7 +132,7 @@ class VoyagePriveScraper(XMLFeedSpider):
         return l.load_item()
 
     @staticmethod
-    def name_pipeline(item, spider):
+    def post_process(item, spider):
         match = re.match(spider.NAME_REGEX, item['name'])
         if match:
             item['name'] = match.group(1).strip()
