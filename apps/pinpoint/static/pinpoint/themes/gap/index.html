@@ -567,6 +567,19 @@
                         </div>
                     <% } else { %>
                         <div class="img" style="background-image: url('<%= obj.image.url %>');"></div>
+                        <div class="gap-buttons">
+                            <div class="coming-soon">
+                                Product coming soon.
+                            </div>
+                            <a class="button" href="http://m.gap.com/" target="_blank">
+                                Shop on Gap.com
+                            </a>
+                            <a class="button find-store"
+                               href="http://m.gap.com/storelocator.html"
+                               target="_blank">
+                                Find a Store
+                            </a>
+                        </div>
                     <% } %>
                 </div>
             </div>
@@ -622,8 +635,16 @@
                     </div>
                     <div class="middle cell">
                         <div class="info">
-                            <div class='title'><%= obj.title || obj.name || "Shop Product" %></div>
-                            <div class='author'>
+                            <div class='title'><%= obj.title || obj.name || "Product coming soon." %></div>
+                            <div class="gap-buttons">
+                                <a class="button" href="http://m.gap.com/" target="_blank">
+                                    Shop on Gap.com
+                                </a>
+                                <a class="button find-store"
+                                   href="http://m.gap.com/storelocator.html"
+                                   target="_blank">
+                                    Find a Store
+                                </a>
                             </div>
                             <div class='description'>
                                 <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
