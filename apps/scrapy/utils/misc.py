@@ -65,36 +65,6 @@ def camel_to_underscore(name):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
-def spider_pipelined(process_item):
-    """
-    A decorator for `Pipeline.process_item` to defer to spider-specific
-    pipelines if they exist.
-
-    Use this when a spider has specific steps that need to happen (instead of
-    the default pipeline).
-
-    Note: If a spider-specific pipeline exists, *this pipeline will not be
-    called*
-
-    TODO: Add flag to allow pipeline to be called.
-
-    Inspired by this: http://stackoverflow.com/a/14165844
-    """
-
-    @wraps(process_item)
-    def wrapper(self, item, spider):
-        class_name = self.__class__.__name__
-        method_name = camel_to_underscore(class_name)
-
-        pipeline = getattr(spider, method_name, None)
-        if pipeline:
-            return pipeline(item, spider)
-
-        return process_item(self, item, spider)
-
-    return wrapper
-
-
 class CloudinaryStore(object):
     def persist_file(self, path, buf, info, meta=None, headers=None):
         # This is the de facto way to upload an image (according to

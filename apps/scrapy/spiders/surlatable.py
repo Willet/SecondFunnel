@@ -8,7 +8,6 @@ from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider,\
     SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
-from apps.scrapy.utils.misc import open_in_browser
 
 
 class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
