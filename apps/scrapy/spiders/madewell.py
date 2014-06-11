@@ -73,5 +73,14 @@ class MadewellSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('image_urls', '.float-left img::attr(data-imgurl)')
 
         # Madewell categories are tricky
+        categories = []
+        category_sel = sel.css('.linkOn')
+        category_name = category_sel.css('::text').extract_first().strip()
+        category_url = category_sel.css('::attr(href)').extract_first()
+        categories.append((category_name,category_url))
+
+        attributes = {}
+        attributes['categories'] = categories
+        l.add_value('attributes', attributes)
 
         yield l.load_item()
