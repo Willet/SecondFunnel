@@ -909,6 +909,22 @@ class Tile(BaseModel):
 
         return serializer().to_str([self])
 
+    def update_ir_cache(self):
+        """Generates and/or updates the IR cache for the current object.
+        This method is generic; BaseModel might benefit later.
+
+        :returns (the cache, whether it was updated)
+        """
+        old_ir_cache = self.ir_cache
+        self.ir_cache = ''  # force tile to regenerate itself
+        new_ir_cache = self.to_str()
+
+        if new_ir_cache == old_ir_cache:
+            return new_ir_cache, False
+
+        self.ir_cache = new_ir_cache
+        return new_ir_cache, True
+
     @property
     def tile_config(self):
         """(read-only) representation of the tile as its content graph
