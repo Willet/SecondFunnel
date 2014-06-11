@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile, Category, Store
 from apps.intentrank.controllers import IntentRank
-from apps.intentrank.algorithms import ir_generic, ir_all, ir_base
+from apps.intentrank.algorithms import ir_generic, ir_all, ir_base, qs_for
 from apps.intentrank.utils import ajax_jsonp
 from apps.utils import thread_id
 from apps.utils.models import MemcacheSetting
@@ -197,7 +197,7 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     :returns           a list of <any>
     """
     if not feed.tiles.count():  # short circuit: return empty resultset
-        return IntentRank(True).transform([])
+        return qs_for([])
 
     ir = IntentRank(feed=feed)
 
