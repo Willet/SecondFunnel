@@ -91,11 +91,7 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         # Presence of product name determines product availability
         l.add_value('in_stock', bool(l.get_output_value('name')))
 
-        # TODO: Sanitize output with bleach
         l.add_css('description', '#tabWindow')
-
-        # TODO: Extract *all* images
-        l.add_css('image_urls', '#product_image_bg img::attr(src)')
 
         attributes = {}
         sale_price = sel.css('#priceText .salePrice::text').extract_first()
@@ -113,5 +109,29 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         attributes['categories'] = []
         attributes['categories'].append((category_name, category_url))
         l.add_value('attributes', attributes)
+
+        data_url = 'http://www.gap.com/browse/productData.do?pid={}'.format(
+            l.get_output_value('sku')
+        )
+        item = l.load_item()
+        request = WebdriverRequest(data_url, callback=self.parse_images)
+
+        request.meta['item'] = item
+
+        yield request
+
+    def parse_images(self, response):
+        sel = Selector(response)
+
+        item = response.meta.get('item', ScraperProduct())
+        l = ScraperProductLoader(item=item, response=response)
+
+        relative_urls = sel.css('body::text').re("'Z': '(.*?)'")
+        image_urls = [
+            'http://www.gap.com' + url
+            for url in relative_urls
+        ]
+
+        l.add_value('image_urls', image_urls)
 
         yield l.load_item()
