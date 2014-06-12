@@ -19,7 +19,7 @@ from oauth2client.client import SignedJwtAssertionCredentials
 
 from string import capitalize
 
-from apps.dashboard.models import DashBoard, UserProfile
+from apps.dashboard.models import DashBoard, UserProfile, Campaign, Query
 from apps.utils import async
 
 LOGIN_URL = '/dashboard/login'
@@ -42,12 +42,11 @@ def get_data(request):
             # can't view page
             return response
 
-        if('queryName' in request) and ('campaign' in request):
+        if('query_id' in request) and ('campaign' in request):
             # get data from ga based on queryName
             # set response
             pass
     return response
-
 
 
 @login_required(login_url=LOGIN_URL)
@@ -82,7 +81,10 @@ def dashboard(request, dashboardId):
         context_dict['tableId'] = dashboard.table_id
         context_dict['siteName'] = dashboard.site_name
         # TODO add this to model
-        context_dict['campaigns'] = []
+        context_dict['campaigns'] = [{'name': 'Lived In', 'value': 'livedin'},
+                                     {'name': 'Summer Loves', 'value': 'summerloves'},
+                                     {'name': 'Paddington Bear', 'value': 'paddington'},
+                                     {'name': 'President', 'value': 'president'}]
 
         return render(request, 'dashboard.html', context_dict)
 

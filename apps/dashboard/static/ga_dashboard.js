@@ -59,6 +59,7 @@ $(document).ready(function () {
     // The time between ajax calls to the server in milliseconds
         refreshRate = 1000 * 60 * 15, // 1 second * 60 * 15 = 15 minutes
     // used for determining campaign period
+        campaign = 'all',
         analyticsStart = '2014-05-02',
         analyticsEnd = 'today',
     // for readability in click code TODO investigate how to remove
@@ -179,13 +180,12 @@ $(document).ready(function () {
      * @param dimension
      * @param callback
      */
-    var retrieveData_new = function (dashboard, campaign, queryName, callback) {
+    var retrieveData_new = function (campaign, queryName, callback) {
         $.ajax({
             url: "retrieve-data",
             data: {
-                'dashboard': dashboard,
                 'campaign': campaign,
-                'queryName': queryName
+                'query_id': queryName
             },
             type: "GET", // TODO GET or PUSH?
             dataType: "json",
@@ -579,9 +579,13 @@ $(document).ready(function () {
 
     // TODO make a function that populates all data on load
 
-
-    // Start everything up
+    // Campaign managing
     google.load('visualization', '1.0', {'packages': ['table', 'corechart'], callback: drawElements});
+
+    $('#campaign').change(function() {
+        campaign = $(this).val();
+        update_all();
+    }).change();
 
     // Buttons that change selection
     // TODO looking for a way to get rid of these

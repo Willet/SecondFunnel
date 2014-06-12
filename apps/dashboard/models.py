@@ -3,6 +3,7 @@ from apiclient.errors import HttpError
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
+from model_utils.managers import InheritanceManager
 import httplib2
 import json
 import requests
@@ -16,12 +17,13 @@ from django.utils.timezone import now
 class Query(models.Model):
     # the name the query goes by
     identifier = models.CharField(max_length=128, help_text='The name of this query.')
-
     cached_response = jsonfield.JSONField(default={})
-
     # TODO add the code that uses this in queries
     timestamp = models.DateTimeField(auto_now=True,
                                      verbose_name="The last time a response was saved")
+
+    # The manager that makes it so that queries will return children if possible
+    objects = InheritanceManager()
 
     def get_query(self, query_id, start_date, end_date):
         """
@@ -42,9 +44,6 @@ class Query(models.Model):
         except:
             print 'no identifier, please save the object'
         return name
-
-    class Meta:
-        abstract = True
 
 
 class AnalyticsQuery(Query):
@@ -104,7 +103,7 @@ class AnalyticsQuery(Query):
             response = self.get_query(query_id, start_date, end_date, campaign=campaign).execute()
         except HttpError as error:
             print "Querying Google Analytics failed with: ", error
-            return response + self.cached_response
+            return dict(response.items() + self.cached_response.items())
 
         if 'dataTable' in response:
             for header in response['dataTable']['cols']:
@@ -176,7 +175,7 @@ class ClickmeterQuery(Query):
             response = requests.get(query['url'], header=query['header'], params=query['payload'])
         except HttpError as error:
             print "Querying Clickmeter failed with: ", error
-            return response + self.cached_response
+            return dict(response.items() + self.cached_response.items())
 
         if not 'error' in response:
             self.cached_response = json.dumps(response)
@@ -210,6 +209,9 @@ class DashBoard(models.Model):
     site_name = models.CharField(max_length=128)
     # prepend with 'ga:' this is the table id that GA uses to refer to the site
     table_id = models.IntegerField(help_text="The number that refers to this customers analytics data")
+
+    queries = models.ManyToManyField(Query)
+    campaigns = models.ManyToManyField(Campaign)
 
     def __unicode__(self):
         name = 'null'
