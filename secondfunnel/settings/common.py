@@ -36,6 +36,10 @@ SERVICE_ACCOUNT_EMAIL = "231833496051-kf5r0aath3eh96209hdutfggj5dqld9f@developer
 SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(PROJECT_ROOT,
                                                 'ad04005e5e7b5a51c66cd176e10277a59cb61824-privatekey.p12')
 
+# Clickmeter
+CLICKMETER_API_KEY = '8306A265-51DC-4D3C-B1E3-79A8FCB2336E'
+
+
 ADMINS = (
     ('Nick "The Goat" Terwoord', 'nick@willetinc.com'),
     ('Brian "The Elite" Lai', 'brian@willetinc.com'),

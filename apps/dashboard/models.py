@@ -1,40 +1,34 @@
 from apiclient.discovery import build
+from apiclient.errors import HttpError
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 import httplib2
+import json
+import requests
 import jsonfield
 from oauth2client.client import SignedJwtAssertionCredentials
-
-
-def build_analytics():
-    """
-    Builds and returns an Analytics service object authorized with the given service account
-    Returns a service object
-    """
-    f = open(settings.SERVICE_ACCOUNT_PKCS12_FILE_PATH, 'rb')
-    key = f.read()
-    f.close()
-
-    credentials = SignedJwtAssertionCredentials(settings.SERVICE_ACCOUNT_EMAIL,
-                                                key,
-                                                scope='https://www.googleapis.com/auth/analytics.readonly')
-    http = httplib2.Http()
-    http = credentials.authorize(http)
-
-    return build('analytics', 'v3', http=http)
+import re
+from string import capitalize
+from django.utils.timezone import now
 
 
 class Query(models.Model):
-    # the name the querry goes by
-    identifier = models.CharField(max_length=128)
+    # the name the query goes by
+    identifier = models.CharField(max_length=128, help_text='The name of this query.')
 
-    # if end and begin date should be 'today', set to end of campaign.
-    # code will check if they are after now() and set to today if they are
-    start_date = models.DateField()
-    end_date = models.DateField()
+    cached_response = jsonfield.JSONField(default={})
 
-    def get_query(self):
+    def get_query(self, query_id, start_date, end_date):
+        """
+        Returns a query object for use by get_response (or other things)
+        """
+        raise NotImplementedError("This is an abstract method and must be overridden")
+
+    def get_response(self, query_id, start_date, end_date):
+        """
+        Returns a JSON string with the data from an api query
+        """
         raise NotImplementedError("This is an abstract method and must be overridden")
 
     def __unicode__(self):
@@ -50,67 +44,151 @@ class Query(models.Model):
 
 
 class AnalyticsQuery(Query):
-    metrics = models.CharField()
-    dimensions = models.CharField()
+    metrics = models.CharField(max_length=512)
+    dimensions = models.CharField(max_length=256)
 
-    def get_querry(self, table_id):
-        service = build_analytics()
-        data = service.data().ga().get(ids=table_id,
-                                       start_date=self.start_date,
-                                       end_date=self.end_date,
+    @staticmethod
+    def get_end_date(date):
+        if date < now():
+            return 'today'
+        return date.strftime('%Y-%m-%d')
+
+    @staticmethod
+    def get_start_date(date):
+        if date > now():
+            return 'today'
+        return date.strftime('%Y-%m-%d')
+
+    @staticmethod
+    def build_analytics():
+        """
+        Builds and returns an Analytics service object authorized with the given service account
+        Returns a service object
+        """
+        f = open(settings.SERVICE_ACCOUNT_PKCS12_FILE_PATH, 'rb')
+        key = f.read()
+        f.close()
+
+        credentials = SignedJwtAssertionCredentials(settings.SERVICE_ACCOUNT_EMAIL,
+                                                    key,
+                                                    scope='https://www.googleapis.com/auth/analytics.readonly')
+        http = httplib2.Http()
+        http = credentials.authorize(http)
+
+        return build('analytics', 'v3', http=http)
+
+    def get_query(self, query_id, start_date, end_date, campaign='all'):
+        """
+        Gets the query object for this query with the given table id.
+        Returns a analytics query object that has an execute method,
+            calling analyticsQuery.get_query().execute() will return
+            a response (in JSON)
+        """
+        service = AnalyticsQuery.build_analytics()
+        data = service.data().ga().get(ids=query_id,
+                                       start_date=self.get_start_date(start_date),
+                                       end_date=self.get_end_date(end_date),
                                        metrics=self.metrics,
                                        dimensions=self.dimensions,
-                                       output='dataTable')
+                                       output='dataTable',
+                                       filter='')
         return data
 
-# class Campaign(models.Model):
-#     title = models.CharField(max_length=128)
-#     google_id = models.CharField(max_length=128)
-#
-#     start_date = models.DateField
-#     end_date = models.DateField
-#
-#     # TODO either implement or delete (depending on how cache experiment goes)
-#     timeStamp = models.DateTimeField(verbose_name="The last time this cache of Analytics was updated",
-#                                      auto_now=True)
-#
-#     # responses will be done by dimension.
-#     # metrics:
-#     #   ga:sessions,ga:bounces, ga:bounceRate,ga:avgSessionDuration,ga:goalCompletionsAll,
-#     #   ga:goal1Completions,ga:goal2Completions,ga:goal3Completions
-#     dateHour = jsonfield.JSONField(blank=True)
-#
-#     #   ga:sessions,ga:bounces,ga:bounceRate,
-#     #   ga:goal1ConversionRate,ga:goal2ConversionRate,ga:goal3ConversionsRate
-#     deviceCategory = jsonfield.JSONField(blank=True)
-#
-#     #   ga:sessions,ga:bounces, ga:avgSessionDuration, ga:sessions:new,
-#     #   ga:goal1Completions,ga:goal2Completions,ga:goal3Completions
-#     #   ga:goal1ConversionRate,ga:goal2ConversionRate,ga:goal3ConversionRate
-#     source = jsonfield.JSONField(blank=True)
-#
-#     #   ga:users,ga:sessions
-#     userType = jsonfield.JSONField(blank=True)
-#
-#     def get_response_by_dimension(self, dimension):
-#         if dimension == 'dateHour':
-#             return self.dateHour
-#         elif dimension == 'deviceCategory':
-#             return self.deviceCategory
-#         elif dimension == 'source':
-#             return self.source
-#         elif dimension == 'userType':
-#             return self.userType
-#         return None
-#
-#
-#     def __unicode__(self):
-#         name = 'null'
-#         try:
-#             name = self.title
-#         except:
-#             print 'please save and give campaign a title'
-#         return name
+    def get_response(self, query_id, start_date, end_date, campaign='all'):
+        response = {'error': 'Failed to retrieve data'}
+        try:
+            response = self.get_query(query_id, start_date, end_date, campaign=campaign).execute()
+        except HttpError as error:
+            print "Querying Google Analytics failed with: ", error
+        if 'dataTable' in response:
+            for header in response['dataTable']['cols']:
+                header['label'] = header['label'].split(':')[1]
+                # Complicated reg-ex:
+                #   first group is all lower case,
+                #   second is a single group capital/digit followed by more digits or lower case.
+                #   ie. goal2Completions -> [(u'goal', u''), (u'', u'2'), (u'', u'Completions')]
+                temp_title = re.findall(r'(^[a-z]*)|([\dA-Z]{1}[\da-z]*)', header['label'])
+                # Then take the correct group, make it uppercase, and add them together to form
+                #   the pretty human readable title for the dataTable columns
+                # TODO : replace goal 2 etc with descriptive names
+                title = ''
+                for group in temp_title:
+                    if group[0] == u'':
+                        title += group[1] + ' '
+                    else:
+                        title += capitalize(group[0]) + ' '
+                title = title.replace('Goal 1', 'Preview')
+                title = title.replace('Goal 2', 'Buy Now')
+                title = title.replace('Goal 3', 'Scroll')
+                title = title.replace('Conversion', '')
+                header['label'] = title
+            for row in response['dataTable']['rows']:
+                row['c'][0]['v'] = capitalize(row['c'][0]['v'])
+        else:
+            if 'rows' in response:
+                for row in response['dataTable']['rows']:
+                    row['c'][0]['v'] = capitalize(row['c'][0]['v'])
+        if not 'error' in response:
+            self.cached_response = json.dumps(response)
+        return self.cached_response
+
+
+class ClickmeterQuery(Query):
+    """
+    Currently only supports getting conversions and other data that takes similar parameters
+    """
+    endpoint = models.CharField(max_length=128)
+    group_by = models.CharField(max_length=64)
+
+    @staticmethod
+    def get_end_date(date):
+        return date.strftime('%Y%m%d')
+
+    @staticmethod
+    def get_start_date(date):
+        return date.strftime('%Y%m%d')
+
+    def get_query(self, query_id, start_date, end_date):
+        """
+        Do authentication and then prepare a request
+        """
+        url = 'http://apiv2.clickmeter.com' + self.endpoint.format(query_id)
+        auth_header = {'X-Clickmeter-Authkey': settings.CLICKMETER_API_KEY}
+        data = {'id': query_id,
+                'timeframe': 'custom',
+                'fromDate': self.get_start_date(start_date),
+                'toDate': self.get_end_date(end_date),
+                'groupBy': self.group_by}
+        return {'url':  url, 'header': auth_header, 'payload': data}
+
+    def get_response(self, query_id, start_date, end_date):
+        query = self.get_query(query_id, start_date, end_date)
+        response = {'error': 'Failed to retrieve data'}
+
+        try:
+            response = requests.get(query['url'], header=query['header'], params=query['payload'])
+        except HttpError as error:
+            print "Querying Clickmeter failed with: ", error
+
+        if not 'error' in response:
+            self.cached_response = json.dumps(response)
+        return self.cached_response
+
+
+class Campaign(models.Model):
+    title = models.CharField(max_length=128)
+    google_id = models.CharField(max_length=128)
+
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+
+    def __unicode__(self):
+        name = 'null'
+        try:
+            name = self.title
+        except:
+            print 'please save and give campaign a title'
+        return name
 
 
 class DashBoard(models.Model):
@@ -123,9 +201,6 @@ class DashBoard(models.Model):
     site_name = models.CharField(max_length=128)
     # prepend with 'ga:' this is the table id that GA uses to refer to the site
     table_id = models.IntegerField(help_text="The number that refers to this customers analytics data")
-
-    quicklook_total = jsonfield.JSONField(default={}, blank=True)
-    quicklook_today = jsonfield.JSONField(default={}, blank=True)
 
     timeStamp = models.DateTimeField(verbose_name="The last time this cache of Analytics was updated",
                                      auto_now=True)
