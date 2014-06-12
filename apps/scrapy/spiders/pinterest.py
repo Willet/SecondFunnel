@@ -55,9 +55,6 @@ class SurlatablePinterestSpider(PinterestSpider):
         return self.parse_content(response)
 
     def parse_content(self, response):
-        #import pdb
-        #pdb.set_trace()
-
         sel = Selector(response)
         pin_selectors = sel.css('.item .pinWrapper')
         for pin_selector in pin_selectors:
