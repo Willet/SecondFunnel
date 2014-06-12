@@ -3,10 +3,9 @@ Automated deployment tasks
 """
 from datetime import datetime
 import os
-from fabric.api import roles, run, cd, execute, settings, env, sudo, hide
+from fabric.api import run, cd, execute, settings, env, sudo, hide
 from fabric.colors import green, yellow, red
 from fabric.contrib import django
-from fabric.decorators import hosts
 from fabric.operations import local, get
 from secondfunnel.settings import common as django_settings
 from scripts.import_ops import importer as real_importer
@@ -18,6 +17,7 @@ import time
 
 env.user = 'ec2-user'
 
+
 def prepend(filepath, content):
     data = ''
     with open(filepath, 'r') as original:
@@ -26,15 +26,19 @@ def prepend(filepath, content):
     with open(filepath, 'w') as new:
         new.write(content + r'\r\n' + data)
 
+
 def append(filepath, content):
     with open(filepath, 'a') as f:
         f.write(content)
 
+
 def is_windows():
     return os.name == 'nt'
 
+
 def get_ec2_conn():
-    return boto.ec2.connect_to_region("us-west-2",
+    return boto.ec2.connect_to_region(
+        "us-west-2",
         aws_access_key_id=django_settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=django_settings.AWS_SECRET_ACCESS_KEY)
 
@@ -44,6 +48,7 @@ def flatten_reservations(reservations):
     chain = itertools.chain(*instances)
 
     return [i for i in list(chain)]
+
 
 def get_instances(name):
     ec2 = get_ec2_conn()
@@ -127,6 +132,7 @@ def stop_celery_services():
     while not "no such file" in result:
         result = run("/etc/init.d/supervisord status")
 
+
 def start_celery_services(cluster_type):
     """Starts celery services and waits until they're confirmed running"""
     print green("Starting worker services...")
@@ -136,6 +142,7 @@ def start_celery_services(cluster_type):
     result = run("/etc/init.d/supervisord status")
     while "STARTING" in result:
         result = run("/etc/init.d/supervisord status")
+
 
 def celery_cluster_size(cluster_type, number_of_instances=None, branch='master'):
     """Manages celery cluster of type `cluster_type`.
@@ -190,6 +197,7 @@ def celery_cluster_size(cluster_type, number_of_instances=None, branch='master')
         print green("Finished adjusting celery cluster size to {0}".format(
             number_of_instances))
 
+
 def deploy_celery(cluster_type, branch):
     """Deploys new code to celery workers and restarts them"""
     print
@@ -231,8 +239,7 @@ def deploy_celery(cluster_type, branch):
     stop_celery_services()
     start_celery_services(cluster_type)
 
-    print green("Success! Celery worker is running latest code from '{0}'"
-    .format(branch))
+    print green("Success! Celery worker is running latest code from '{0}'".format(branch))
 
 
 def deploy(cluster_type='test', branch='master'):
@@ -272,10 +279,10 @@ def get_postgres_arguments():
     )
 
     arguments = '--host=%s --port=%s --username=%s %s' % (
-            settings.DATABASES['default']['HOST'],
-            settings.DATABASES['default']['PORT'],
-            settings.DATABASES['default']['USER'],
-            settings.DATABASES['default']['NAME']
+        settings.DATABASES['default']['HOST'],
+        settings.DATABASES['default']['PORT'],
+        settings.DATABASES['default']['USER'],
+        settings.DATABASES['default']['NAME']
         )
 
     if is_windows():
@@ -286,6 +293,7 @@ def get_postgres_arguments():
         'password': password,
         'arguments': arguments
     }
+
 
 def load_database_postgres(path='db.sql'):
     args = get_postgres_arguments()
@@ -303,6 +311,7 @@ def load_database_postgres(path='db.sql'):
 
     local(command)
 
+
 def dump_database_postgres(path='/tmp/db.sql'):
     args = get_postgres_arguments()
     arguments = args['arguments']
@@ -312,14 +321,14 @@ def dump_database_postgres(path='/tmp/db.sql'):
         command = '{} && pg_dump ' \
             '--data-only ' \
             '{} > {}'.format(
-            password, arguments, path
-        )
+                password, arguments, path
+            )
     else:
         command = 'pg_dump ' \
             '--data-only ' \
             '{} > {}'.format(
-            arguments, path
-        )
+                arguments, path
+            )
 
     local(command)
 
@@ -328,14 +337,17 @@ def dump_database_postgres(path='/tmp/db.sql'):
 
     # Appending to beginning and end of file:
     # http://unix.stackexchange.com/a/65514
-    local('fab prepend:'
+    local(
+        'fab prepend:'
         'filepath={},content="begin; SET CONSTRAINTS ALL DEFERRED;"'
         .format(path)
     )
-    local('fab append:'
+    local(
+        'fab append:'
         'filepath={},content="commit;"'
         .format(path)
     )
+
 
 def flush_database_postgres():
     args = get_postgres_arguments()
@@ -353,11 +365,18 @@ def flush_database_postgres():
 
     local(command)
 
+
 def production():
-    env.hosts = [i.public_dns_name for i in get_instances('tng-master2')][-1:]
+    env.hosts = all_production[-1:]
+
 
 def test():
     env.hosts = [i.public_dns_name for i in get_instances('tng-test2')][-1:]
+
+
+def all_production():
+    print [i.public_dns_name for i in get_instances('tng-master2')]
+
 
 # TODO: Should probably check that psql and pg_dump versions are compatible
 def to_local_database(native=True):
@@ -367,7 +386,7 @@ def to_local_database(native=True):
     # http://docs.fabfile.org/en/1.6/api/contrib/django.html
 
     if not native:
-        pass # Error; not implemented
+        pass  # Error; not implemented
 
     now = datetime.now()
     str_now = now.strftime('%Y-%m-%dT%H:%M.sql')
