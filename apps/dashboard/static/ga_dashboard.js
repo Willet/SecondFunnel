@@ -516,10 +516,24 @@ $(document).ready(function () {
             google.visualization.Table, function (response) {
                 var data = new google.visualization.DataTable(response.dataTable, 0.6),
                     view = new google.visualization.DataView(data);
-                decimalFormat.format(data, 3);
 
                 // make numbers actual numbers instead of strings so sorting works
                 parseDataTable(data);
+
+                // format time
+                var column = 3;
+                for(var i = 0; i < data.getNumberOfRows(); i++){
+                    var minutes = Math.floor(data.getValue(i,column) / 60) + 'm',
+                        seconds = Math.round(data.getValue(i,column) % 60) + 's';
+
+                    if (minutes === '0m') {
+                        minutes = '';
+                    }
+                    if (seconds === '0s') {
+                        seconds = '';
+                    }
+                    data.setFormattedValue(i, column, minutes + ' ' + seconds);
+                }
                 view.hideColumns([4, 5, 6, 7, 8, 9, 10]);
                 return view;
             }, $.extend({}, CHART_OPTIONS.table, {sortColumn: 1}));
