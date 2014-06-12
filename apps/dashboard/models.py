@@ -19,6 +19,9 @@ class Query(models.Model):
 
     cached_response = jsonfield.JSONField(default={})
 
+    timestamp = models.DateTimeField(auto_now=True,
+                                     verbose_name="The last time a response was saved")
+
     def get_query(self, query_id, start_date, end_date):
         """
         Returns a query object for use by get_response (or other things)
@@ -100,6 +103,8 @@ class AnalyticsQuery(Query):
             response = self.get_query(query_id, start_date, end_date, campaign=campaign).execute()
         except HttpError as error:
             print "Querying Google Analytics failed with: ", error
+            return response + self.cached_response
+
         if 'dataTable' in response:
             for header in response['dataTable']['cols']:
                 header['label'] = header['label'].split(':')[1]
@@ -130,6 +135,7 @@ class AnalyticsQuery(Query):
                     row['c'][0]['v'] = capitalize(row['c'][0]['v'])
         if not 'error' in response:
             self.cached_response = json.dumps(response)
+            self.save()
         return self.cached_response
 
 
@@ -169,9 +175,11 @@ class ClickmeterQuery(Query):
             response = requests.get(query['url'], header=query['header'], params=query['payload'])
         except HttpError as error:
             print "Querying Clickmeter failed with: ", error
+            return response + self.cached_response
 
         if not 'error' in response:
             self.cached_response = json.dumps(response)
+            self.save()
         return self.cached_response
 
 
@@ -201,11 +209,6 @@ class DashBoard(models.Model):
     site_name = models.CharField(max_length=128)
     # prepend with 'ga:' this is the table id that GA uses to refer to the site
     table_id = models.IntegerField(help_text="The number that refers to this customers analytics data")
-
-    timeStamp = models.DateTimeField(verbose_name="The last time this cache of Analytics was updated",
-                                     auto_now=True)
-    # Whether or not this dashboard has reached its daily quota
-    # over_quota = models.BooleanField(default=False)
 
     def __unicode__(self):
         name = 'null'
