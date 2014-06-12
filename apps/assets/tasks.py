@@ -4,7 +4,7 @@ from celery import Celery
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db import transaction
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, m2m_changed
 from django.dispatch import receiver
 
 from apps.api.decorators import (validate_json_deserializable,
@@ -126,15 +126,35 @@ def product_saved(sender, **kwargs):
     with transaction.atomic():
         for tile in product.tiles.all():
             tile.save()
-        for content in product.content.all():
-            content.save()
 
 
 @receiver(post_save)
 def content_saved(sender, **kwargs):
     """Generate cache for IR tiles if a content is saved."""
+
     content = kwargs.pop('instance', None)
     if not isinstance(content, Content):
+        return
+
+    with transaction.atomic():
+        for tile in content.tiles.all():
+            tile.save()
+
+
+@receiver(m2m_changed)
+def content_m2m_changed(sender, **kwargs):
+    """Generate cache for IR tiles if it was change.
+
+    TODO: this is CPU-intensive. How can tile freshness be checked without
+          first computing the updated cache?
+    """
+    content = kwargs.pop('instance', None)
+    actionable = kwargs.get('action') in ('post_add', 'post_clear')
+
+    if not isinstance(content, Content):
+        return
+
+    if not actionable:
         return
 
     with transaction.atomic():
@@ -153,17 +173,8 @@ def tile_saved(sender, **kwargs):
     if not tile:
         return
 
-    original_ir_cache = tile.ir_cache
-    tile.ir_cache = ''  # force tile to regenerate itself
-    new_ir_cache = json.dumps(tile.to_json())
-
-    # up to date / recursive save call
-    if original_ir_cache == new_ir_cache:
-        tile.ir_cache = new_ir_cache  # restore property
-        return
-
-    tile.ir_cache = new_ir_cache
-    if settings.ENVIRONMENT == 'dev':
-        print "Saving tile cache #{}".format(tile.id)
-
-    tile.save()
+    cache, updated = tile.update_ir_cache()
+    if updated:
+        post_save.disconnect(tile_saved, sender=Tile)
+        tile.save()
+        post_save.connect(tile_saved, sender=Tile)
