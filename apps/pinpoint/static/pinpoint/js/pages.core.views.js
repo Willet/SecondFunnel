@@ -1262,7 +1262,7 @@ App.module('core', function (module, App) {
         'initialize': function (options) {
             var self = this,
                 home = null,
-                categories = App.option('categories', []).slice(0);
+                categories = App.option('page:categories', []).slice(0);
             this.collection = new App.core.CategoryCollection();
 
             if (App.option('categoryHome', true) && categories.length) {
