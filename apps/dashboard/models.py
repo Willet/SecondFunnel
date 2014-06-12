@@ -19,6 +19,7 @@ class Query(models.Model):
 
     cached_response = jsonfield.JSONField(default={})
 
+    # TODO add the code that uses this in queries
     timestamp = models.DateTimeField(auto_now=True,
                                      verbose_name="The last time a response was saved")
 
