@@ -38,14 +38,19 @@ def get_data(request):
         dashboardId = -1
         if 'dashboard' in request:
             dashboardId = request['dashboard']
-        if not profile.dashboards.all().filter(pk=dashboardId):
-            # can't view page
+        try:
+            dashboard = DashBoard.objects.get(pk=dashboardId)
+        except DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist:
             return response
 
-        if('query_id' in request) and ('campaign' in request):
+        if('query_name' in request) and ('campaign' in request):
             # get data from ga based on queryName
+            campaign_id = request['campaign']
+            campaign = Campaign.objects.get(identifier=campaign_id)
+            query_name = request['query_name']
+            query = Query.objects.get(identifier=query_name)
             # set response
-            pass
+            response = query.get_response(dashboard.table_id, campaign.start_date, campaign.end_date)
     return response
 
 

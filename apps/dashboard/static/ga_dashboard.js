@@ -185,7 +185,7 @@ $(document).ready(function () {
             url: "retrieve-data",
             data: {
                 'campaign': campaign,
-                'query_id': queryName
+                'query_name': queryName
             },
             type: "GET", // TODO GET or PUSH?
             dataType: "json",

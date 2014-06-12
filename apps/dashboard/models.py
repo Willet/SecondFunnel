@@ -16,7 +16,7 @@ from django.utils.timezone import now
 
 class Query(models.Model):
     # the name the query goes by
-    identifier = models.CharField(max_length=128, help_text='The name of this query.')
+    identifier = models.CharField(max_length=128, help_text='The name of this query.', unique=True)
     cached_response = jsonfield.JSONField(default={})
     # TODO add the code that uses this in queries
     timestamp = models.DateTimeField(auto_now=True,
@@ -185,7 +185,7 @@ class ClickmeterQuery(Query):
 
 class Campaign(models.Model):
     title = models.CharField(max_length=128)
-    google_id = models.CharField(max_length=128)
+    identifier = models.CharField(max_length=128, unique=True)
 
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
