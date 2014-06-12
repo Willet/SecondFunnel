@@ -28,7 +28,7 @@ $(document).ready(function () {
                     'textPosition': 'out',
                     'textStyle': {color: 'black'},
                     'gridlines': {
-                        color: 'black'
+                        color: 'white'
                     }
                 },
                 'legend': { 'position': 'top'},
@@ -38,7 +38,7 @@ $(document).ready(function () {
                     'textPosition': 'out',
                     'textStyle': {color: 'black'},
                     'gridlines': {
-                        color: 'black'
+                        color: 'white'
                     }
                 }
             },
@@ -60,7 +60,7 @@ $(document).ready(function () {
         refreshRate = 1000 * 60 * 15, // 1 second * 60 * 15 = 15 minutes
     // used for determining campaign period
         campaign = 'all',
-        analyticsStart = '2014-05-02',
+        analyticsStart = '2014-05-12',
         analyticsEnd = 'today',
     // for readability in click code TODO investigate how to remove
         CHARTS = [],
@@ -319,7 +319,7 @@ $(document).ready(function () {
 
         // The "At a glance:" line graph
         var quickview_graph = new DashboardElement($('#quickview-graph')[0],
-            google.visualization.LineChart, function (response) {
+            google.visualization.ColumnChart, function (response) {
                 var data = new google.visualization.DataTable(response.dataTable, 0.6);
                 for (var i = 0; i < data.getNumberOfRows(); i++) {
                     var cellNum = parseFloat(data.getValue(i, 0));
@@ -336,7 +336,7 @@ $(document).ready(function () {
                     }
                 }
                 return data;
-            }, CHART_OPTIONS.lineChart);
+            }, CHART_OPTIONS.columnChart);
         quickview_graph.addSelection(
             ['ga:bounceRate'],
             ['ga:date'], // dimensions
@@ -515,10 +515,24 @@ $(document).ready(function () {
             google.visualization.Table, function (response) {
                 var data = new google.visualization.DataTable(response.dataTable, 0.6),
                     view = new google.visualization.DataView(data);
-                decimalFormat.format(data, 3);
 
                 // make numbers actual numbers instead of strings so sorting works
                 parseDataTable(data);
+
+                // format time
+                var column = 3;
+                for(var i = 0; i < data.getNumberOfRows(); i++){
+                    var minutes = Math.floor(data.getValue(i,column) / 60) + 'm',
+                        seconds = Math.round(data.getValue(i,column) % 60) + 's';
+
+                    if (minutes === '0m') {
+                        minutes = '';
+                    }
+                    if (seconds === '0s') {
+                        seconds = '';
+                    }
+                    data.setFormattedValue(i, column, minutes + ' ' + seconds);
+                }
                 view.hideColumns([4, 5, 6, 7, 8, 9, 10]);
                 return view;
             }, $.extend({}, CHART_OPTIONS.table, {sortColumn: 1}));
@@ -548,29 +562,31 @@ $(document).ready(function () {
 
         /*---  'Metrics over time' graph at bottom of page  ---*/
         var metricsview = new DashboardElement($('#metrics-graph')[0],
-            google.visualization.LineChart, function (response) {
+            google.visualization.ColumnChart, function (response) {
+                // TODO when data manipulation is completed on server side format this
+                //  avg session time needs to be by #m#s and sessions/bounces formated
                 return new google.visualization.DataTable(response.dataTable, 0.6);
-            }, CHART_OPTIONS.lineChart);
-        metricsview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:dateHour'], analyticsStart, 'today');
-        metricsview.addSelection(['ga:avgSessionDuration'], ['ga:dateHour'], analyticsStart, 'today');
+            }, CHART_OPTIONS.columnChart);
+        metricsview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:date'], analyticsStart, 'today');
+        metricsview.addSelection(['ga:avgSessionDuration'], ['ga:date'], analyticsStart, 'today');
         createAnalyticsGroup('METRICS', [metricsview], refreshRate);
 
         /*--- The three 'Goal over time' graphs ---*/
         var goal1 = new DashboardElement($('#productPreview-graph')[0],
-            google.visualization.LineChart, function (response) {
+            google.visualization.ColumnChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
-            }, CHART_OPTIONS.lineChart);
-        goal1.addSelection(['ga:goal1ConversionRate'], ['ga:dateHour'], analyticsStart, 'today');
+            }, CHART_OPTIONS.columnChart);
+        goal1.addSelection(['ga:goal1ConversionRate'], ['ga:date'], analyticsStart, 'today');
         var goal2 = new DashboardElement($('#buyNow-graph')[0],
-            google.visualization.LineChart, function (response) {
+            google.visualization.ColumnChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
-            }, CHART_OPTIONS.lineChart);
-        goal2.addSelection(['ga:goal2ConversionRate'], ['ga:dateHour'], analyticsStart, 'today');
+            }, CHART_OPTIONS.columnChart);
+        goal2.addSelection(['ga:goal2ConversionRate'], ['ga:date'], analyticsStart, 'today');
         var goal3 = new DashboardElement($('#scrollRate-graph')[0],
-            google.visualization.LineChart, function (response) {
+            google.visualization.ColumnChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
-            }, CHART_OPTIONS.lineChart);
-        goal3.addSelection(['ga:goal3ConversionRate'], ['ga:dateHour'], analyticsStart, 'today');
+            }, CHART_OPTIONS.columnChart);
+        goal3.addSelection(['ga:goal3ConversionRate'], ['ga:date'], analyticsStart, 'today');
         createAnalyticsGroup('GOALS', [goal1, goal2, goal3], refreshRate);
 
         // Get the data and draw all these graphs
@@ -579,7 +595,8 @@ $(document).ready(function () {
 
     // TODO make a function that populates all data on load
 
-    // Campaign managing
+
+    // Start everything up
     google.load('visualization', '1.0', {'packages': ['table', 'corechart'], callback: drawElements});
 
     $('#campaign').change(function() {
