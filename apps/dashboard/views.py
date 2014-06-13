@@ -1,5 +1,6 @@
 from apiclient.errors import HttpError
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.timezone import now
 from django.views.decorators.cache import cache_page, never_cache
 import httplib2
 import json
@@ -18,9 +19,9 @@ from django.conf import settings
 from oauth2client.client import SignedJwtAssertionCredentials
 
 from string import capitalize
+from datetime import timedelta
 
 from apps.dashboard.models import DashBoard, UserProfile, Campaign, Query
-from apps.utils import async
 
 LOGIN_URL = '/dashboard/login'
 
@@ -31,26 +32,49 @@ LOGIN_URL = '/dashboard/login'
 def get_data(request):
     response = {'error': 'Retrieving data failed'}
     if request.method == 'GET':
-        user = User.objects.get(pk=request.user.pk)
-        profile = UserProfile.objects.get(user=user)
+        try:
+            user = User.objects.get(pk=request.user.pk)
+            profile = UserProfile.objects.get(user=user)
+        except:
+            print 'user profile does not exist'
+            return response
         request = request.GET
 
-        dashboardId = -1
+        dashboard_id = -1
         if 'dashboard' in request:
-            dashboardId = request['dashboard']
+            dashboard_id = request['dashboard']
         try:
-            dashboard = DashBoard.objects.get(pk=dashboardId)
+            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
         except DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist:
+            return response
+
+        if not profile.dashboards.all().filter(pk=dashboard_id):
+            # can't view page
             return response
 
         if('query_name' in request) and ('campaign' in request):
             # get data from ga based on queryName
             campaign_id = request['campaign']
-            campaign = Campaign.objects.get(identifier=campaign_id)
+            start_date = now() - timedelta(days=90)
+            end_date = now()
+            try:
+                if not campaign_id == 'all':
+                    campaign = Campaign.objects.get(identifier=campaign_id)
+                    start_date = campaign.start_date
+                    end_date = campaign.end_date
+            except Campaign.MultipleObjectsReturned, Campaign.DoesNotExist:
+                print 'error, multiple campaigns or campaign does not exist'
+                return response
+
             query_name = request['query_name']
-            query = Query.objects.get(identifier=query_name)
+            try:
+                query = Query.objects.get(identifier=query_name)
+            except Query.MultipleObjectsReturned, Query.DoesNotExist:
+                print 'error, multiple campaigns or campaign does not exist'
+                return response
+
             # set response
-            response = query.get_response(dashboard.table_id, campaign.start_date, campaign.end_date)
+            response = query.get_response(cur_dashboard.data_ids, start_date, end_date)
     return response
 
 
@@ -62,8 +86,7 @@ def index(request):
         profile = UserProfile.objects.get(user=user)
         dashboards = profile.dashboards.all()
         context_dict = {'dashboards': [{'site': dashboard.site_name,
-                                        'pk': dashboard.pk,
-                                        'tableId': dashboard.table_id} for dashboard in dashboards]}
+                                        'pk': dashboard.pk} for dashboard in dashboards]}
     except UserProfile.DoesNotExist:
         print "user does not exist"
 
@@ -72,19 +95,19 @@ def index(request):
 
 
 @login_required(login_url=LOGIN_URL)
-def dashboard(request, dashboardId):
+def dashboard(request, dashboard_id):
     profile = UserProfile.objects.get(user=request.user)
-    if not profile.dashboards.all().filter(pk=dashboardId):
+    if not profile.dashboards.all().filter(pk=dashboard_id):
         # can't view page
         return HttpResponseRedirect('/dashboard/')
     else:
         context_dict = {}
         try:
-            dashboard = DashBoard.objects.get(pk=dashboardId)
+            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
         except DashBoard.MultipleObjectsReturned or DashBoard.DoesNotExist:
             return HttpResponseRedirect('/dashboard/')
-        context_dict['tableId'] = dashboard.table_id
-        context_dict['siteName'] = dashboard.site_name
+        context_dict['dashboard_id'] = cur_dashboard.pk
+        context_dict['siteName'] = cur_dashboard.site_name
         # TODO add this to model
         context_dict['campaigns'] = [{'name': 'Lived In', 'value': 'livedin'},
                                      {'name': 'Summer Loves', 'value': 'summerloves'},

@@ -1,11 +1,12 @@
 from django.contrib import admin
 
-from apps.dashboard.models import DashBoard, UserProfile
+from apps.dashboard.models import DashBoard, UserProfile, AnalyticsQuery, ClickmeterQuery, Campaign
 
-
-class DashBoardAdmin(admin.ModelAdmin):  # dashboard site admin
-    list_display = ('site_name', 'table_id')
-
-admin.site.register(DashBoard, DashBoardAdmin)
+admin.site.register(DashBoard)
 admin.site.register(UserProfile)
+admin.site.register(AnalyticsQuery)
+admin.site.register(ClickmeterQuery)
+admin.site.register(Campaign)
+
+
 

@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from apiclient.discovery import build
 from apiclient.errors import HttpError
 from django.conf import settings
@@ -17,7 +18,8 @@ from django.utils.timezone import now
 class Query(models.Model):
     # the name the query goes by
     identifier = models.CharField(max_length=128, help_text='The name of this query.', unique=True)
-    cached_response = jsonfield.JSONField(default={})
+    cached_response = jsonfield.JSONField(default={}, blank=True)
+    is_today = models.BooleanField(default=False)
     # TODO add the code that uses this in queries
     timestamp = models.DateTimeField(auto_now=True,
                                      verbose_name="The last time a response was saved")
@@ -25,13 +27,15 @@ class Query(models.Model):
     # The manager that makes it so that queries will return children if possible
     objects = InheritanceManager()
 
-    def get_query(self, query_id, start_date, end_date):
+    @abstractmethod
+    def get_query(self, data_ids, start_date, end_date):
         """
         Returns a query object for use by get_response (or other things)
         """
         raise NotImplementedError("This is an abstract method and must be overridden")
 
-    def get_response(self, query_id, start_date, end_date):
+    @abstractmethod
+    def get_response(self, data_ids, start_date, end_date):
         """
         Returns a JSON string with the data from an api query
         """
@@ -47,8 +51,10 @@ class Query(models.Model):
 
 
 class AnalyticsQuery(Query):
-    metrics = models.CharField(max_length=512)
-    dimensions = models.CharField(max_length=256)
+    metrics = models.CharField(max_length=512,
+                               help_text='See https://developers.google.com/analytics/devguides/reporting/core/dimsmets')
+    dimensions = models.CharField(max_length=256,
+                                  help_text='See https://developers.google.com/analytics/devguides/reporting/core/dimsmets')
 
     @staticmethod
     def get_end_date(date):
@@ -80,27 +86,35 @@ class AnalyticsQuery(Query):
 
         return build('analytics', 'v3', http=http)
 
-    def get_query(self, query_id, start_date, end_date, campaign='all'):
+    def get_query(self, data_ids, start_date, end_date, campaign='all'):
         """
         Gets the query object for this query with the given table id.
         Returns a analytics query object that has an execute method,
             calling analyticsQuery.get_query().execute() will return
             a response (in JSON)
         """
+        if 'google_analytics' in data_ids:
+            try:
+                table_id = data_ids['google_analytics']
+            except:
+                print 'google analytics table id cannot be found'
+                return {'error': 'id cannot be found'}
+        else:
+            return {'error': 'please define google analytics in dashboard data_ids'}
         service = AnalyticsQuery.build_analytics()
-        data = service.data().ga().get(ids=query_id,
+        data = service.data().ga().get(ids=table_id,
                                        start_date=self.get_start_date(start_date),
                                        end_date=self.get_end_date(end_date),
                                        metrics=self.metrics,
                                        dimensions=self.dimensions,
                                        output='dataTable',
-                                       filter='')
+                                       filter='ga:sessions>=0' if campaign == 'all' else ('ga:campaign==' + campaign))
         return data
 
-    def get_response(self, query_id, start_date, end_date, campaign='all'):
+    def get_response(self, data_ids, start_date, end_date, campaign='all'):
         response = {'error': 'Failed to retrieve data'}
         try:
-            response = self.get_query(query_id, start_date, end_date, campaign=campaign).execute()
+            response = self.get_query(data_ids, start_date, end_date, campaign=campaign).execute()
         except HttpError as error:
             print "Querying Google Analytics failed with: ", error
             return dict(response.items() + self.cached_response.items())
@@ -145,6 +159,8 @@ class ClickmeterQuery(Query):
     """
     endpoint = models.CharField(max_length=128)
     group_by = models.CharField(max_length=64)
+    id_number = models.IntegerField(default=0,
+                                    verbose_name='The index number of the clickmeter_id that this query uses')
 
     @staticmethod
     def get_end_date(date):
@@ -154,21 +170,31 @@ class ClickmeterQuery(Query):
     def get_start_date(date):
         return date.strftime('%Y%m%d')
 
-    def get_query(self, query_id, start_date, end_date):
+    def get_query(self, data_ids, start_date, end_date):
         """
-        Do authentication and then prepare a request
+        Do authentication and then prepare a request. This allows for making requests to any
+            Clickmeter endpoint that requires an id, dates, and groupBy.
         """
-        url = 'http://apiv2.clickmeter.com' + self.endpoint.format(query_id)
+        # determine if we can get an id. if not return (cause we need one for most requests)
+        if 'clickmeter' in data_ids:
+            try:
+                clickmeter_id = data_ids['clickmeter'][self.id_number]
+            except:
+                print 'clickmeter id cannot be found, array is likely out of bounds'
+                return {'error': 'id cannot be found'}
+        else:
+            return {'error': 'id cannot be found'}
+
+        url = 'http://apiv2.clickmeter.com' + self.endpoint.format(clickmeter_id)
         auth_header = {'X-Clickmeter-Authkey': settings.CLICKMETER_API_KEY}
-        data = {'id': query_id,
-                'timeframe': 'custom',
+        data = {'timeframe': 'custom',
                 'fromDate': self.get_start_date(start_date),
                 'toDate': self.get_end_date(end_date),
                 'groupBy': self.group_by}
         return {'url':  url, 'header': auth_header, 'payload': data}
 
-    def get_response(self, query_id, start_date, end_date):
-        query = self.get_query(query_id, start_date, end_date)
+    def get_response(self, data_ids, start_date, end_date):
+        query = self.get_query(data_ids, start_date, end_date)
         response = {'error': 'Failed to retrieve data'}
 
         try:
@@ -208,10 +234,10 @@ class DashBoard(models.Model):
     # human name for the site that these statistics correspond to
     site_name = models.CharField(max_length=128)
     # prepend with 'ga:' this is the table id that GA uses to refer to the site
-    table_id = models.IntegerField(help_text="The number that refers to this customers analytics data")
+    data_ids = jsonfield.JSONField()
 
     queries = models.ManyToManyField(Query)
-    campaigns = models.ManyToManyField(Campaign)
+    campaigns = models.ManyToManyField(Campaign, blank=True)
 
     def __unicode__(self):
         name = 'null'
