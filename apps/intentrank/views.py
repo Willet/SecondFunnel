@@ -265,7 +265,10 @@ def update_tiles(tile_ids, action='views'):
 @csrf_exempt
 @request_methods('POST')
 def track_tiles(request, action, **kwargs):
-    tile_ids = request.GET.get('tile-ids', None) or request.POST.get('tile-ids', '')
+    tile_ids = request.GET.get('tile-ids', None) or request.POST.get('tile-ids', None)
+    if not tile_ids:
+        return HttpResponse(status=204)
+
     tile_ids = map(int, tile_ids.split(','))
 
     update_tiles(tile_ids, action=action)
