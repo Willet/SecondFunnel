@@ -1,8 +1,26 @@
 {% load staticfiles %}
 {% load compress %}
 <!-- Head Contents -->
-<noscript><style> .no-noscript { display: none } </style></noscript>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1">
+
+<!--Begin CSS-->
+{% compress css %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/base.css' %}">
+{% endcompress css %}
+
+<!--[if IE 8]>
+{% compress css %}
+<link rel="stylesheet" type="text/css" href= {% static 'pinpoint/css/ie8.css' %}
+{% endcompress css %}
+<![endif]-->
+
+<!-- End CSS -->
+
 <!-- Begin Javascript -->
+
 <!-- Preload images -->
 <script type="text/javascript">
     {# Preload images #}
@@ -14,7 +32,9 @@
     {% endif %}
 </script>
 <!-- End Preload -->
+
 {% include "pinpoint/campaign_config.html" %}
+
 <script type="text/javascript">
     (function() {
         // http://stackoverflow.com/questions/8567114/how-to-make-an-ajax-call-without-jquery
@@ -42,8 +62,9 @@
         }
     })();
 </script>
+
 {% compress js %}
-   {% include "pinpoint/campaign_js.html" %}
+    {% include "pinpoint/campaign_js.html" %}
 {% endcompress %}
 
 <script type="text/javascript">
@@ -57,23 +78,6 @@
 </script>
 <!-- End Javascript -->
 
-<!--Begin CSS-->
-{% compress css %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}" />
-<link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/base.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/5col.css' %}">
-{% endcompress css %}
-
-<!--[if IE 8]>
-{% compress css %}
-<link rel="stylesheet" type="text/css" href= {% static 'pinpoint/css/ie8.css' %}
-{% endcompress css %}
-<![endif]-->
-
-<!-- End CSS -->
-
-<meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><!-- required by bootstrap -->
-<meta http-equiv="X-UA-Compatible" content="IE=edge"><!-- required by bootstrap, IE -->
 <script type="text/javascript" src="//connect.facebook.net/en_US/all.js" async></script>
 <script src="//cdn.ravenjs.com/1.1.11/jquery,native/raven.min.js"></script>
 

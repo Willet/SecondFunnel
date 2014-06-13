@@ -874,6 +874,9 @@ div.loading {
     overflow: hidden;
 }
 
+html.no-js .no-noscript {
+    display: none;
+}
 
 /* CSS3 Spinner
    https://signalvnoise.com/posts/2577-loading-spinner-animation-using-css-and-webkit */
