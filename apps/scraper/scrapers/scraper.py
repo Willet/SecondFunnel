@@ -90,7 +90,7 @@ class Scraper(object):
         """
         try:
             return self.driver.find_elements_by_xpath(selector)
-        except NoSuchElementException as err:
+        except NoSuchElementException:
             return self.driver.find_elements_by_css_selector(selector)
 
     def find(self, selector):
@@ -113,8 +113,7 @@ class ProductScraper(Scraper):
         return product
 
     @staticmethod
-    def process_image(original_url, product, store, remove_background=False,
-        color=None):
+    def process_image(original_url, product, store, remove_background=False, color=None):
         if not isinstance(product, Model):
             product = Product.objects.get(sku=product, store_id=store.id)
 
@@ -174,7 +173,7 @@ class ProductScraper(Scraper):
 
         if not name:
             name = ''
-        
+
         name = name.lower()
 
         try:
@@ -233,6 +232,27 @@ class ContentScraper(Scraper):
             if not getattr(image, 'attributes'):
                 image.attributes = {}
             image.attributes['sizes'] = {}
+
+        return image
+
+    @staticmethod
+    def process_image(source_url, image, store, remove_background=False):
+        if image.get('url', False) and image.get('file_type', False) and image.get('source_url', False):
+            return image
+
+        print('')
+        print('processing image - ' + source_url)
+        data = process_image(source_url, create_image_path(store.id), remove_background=remove_background)
+        image['url'] = data.get('url')
+        image['file_type'] = data.get('format')
+        image['dominant_color'] = data.get('dominant_colour')
+        image['source_url'] = source_url
+        if not image.get('attributes', False):
+            image['attributes'] = {}
+        try:
+            image['attributes']['sizes'] = data['sizes']
+        except KeyError:
+            image['attributes']['sizes'] = {}
 
         return image
 
