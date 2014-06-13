@@ -435,34 +435,6 @@ class Content(BaseModel):
 
         return super(Content, self).update(other=other)
 
-    def to_json(self, skip_cache=False):
-        """subclasses may implement their own to_json methods that
-        :returns dict objects.
-
-        TODO: is this supposed to be in a serializer?
-        """
-        dct = {
-            'id': str(self.id),
-            'store-id': str(self.store.id if self.store else 0),
-            'source': self.source,
-            'source_url': self.source_url,
-            'url': self.url or self.source_url,
-            'author': self.author,
-            'status': self.status,
-        }
-
-        if self.tagged_products.count() > 0:
-            dct['tagged-products'] = []
-
-        for product in self.tagged_products.all():
-            try:
-                dct['tagged-products'].append(product.to_json(
-                    skip_cache=skip_cache))
-            except Product.DoesNotExist:
-                pass  # ?
-
-        return dct
-
 
 class Image(Content):
     name = models.CharField(max_length=1024, blank=True, null=True)
