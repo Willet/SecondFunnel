@@ -26,9 +26,9 @@ from apps.dashboard.models import DashBoard, UserProfile, Campaign, Query
 LOGIN_URL = '/dashboard/login'
 
 
-@cache_page(60*60)  # cache page for an hour
-@login_required(login_url=LOGIN_URL)
-@never_cache
+# @cache_page(60*60)  # cache page for an hour
+# @login_required(login_url=LOGIN_URL)
+# @never_cache
 def get_data(request):
     response = {'error': 'Retrieving data failed'}
     if request.method == 'GET':
@@ -46,36 +46,39 @@ def get_data(request):
         try:
             cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
         except DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist:
+            print "Dashboard error, multiple or none"
             return response
 
         if not profile.dashboards.all().filter(pk=dashboard_id):
             # can't view page
+            print "User: " + user.username + "cannot view dashboard: " + dashboard_id
             return response
-
-        if('query_name' in request) and ('campaign' in request):
+        if ('query_name' in request) and ('campaign' in request):
             # get data from ga based on queryName
             campaign_id = request['campaign']
             start_date = now() - timedelta(days=90)
             end_date = now()
-            try:
-                if not campaign_id == 'all':
+            if not campaign_id == 'all':
+                try:
                     campaign = Campaign.objects.get(identifier=campaign_id)
-                    start_date = campaign.start_date
-                    end_date = campaign.end_date
-            except Campaign.MultipleObjectsReturned, Campaign.DoesNotExist:
-                print 'error, multiple campaigns or campaign does not exist'
-                return response
+                except Campaign.MultipleObjectsReturned, Campaign.DoesNotExist:
+                    print 'Multiple campaign or campaign dne'
+                    return response
+                start_date = campaign.start_date
+                end_date = campaign.end_date
 
             query_name = request['query_name']
             try:
-                query = Query.objects.get(identifier=query_name)
+                query = Query.objects.filter(identifier=query_name).select_subclasses()
+                print query
             except Query.MultipleObjectsReturned, Query.DoesNotExist:
-                print 'error, multiple campaigns or campaign does not exist'
+                print 'error, multiple queries or query does not exist'
                 return response
-
+            query = query[0]
             # set response
             response = query.get_response(cur_dashboard.data_ids, start_date, end_date)
-    return response
+    print json.dumps(response)
+    return HttpResponse(response, content_type='application/json')
 
 
 @login_required(login_url=LOGIN_URL)

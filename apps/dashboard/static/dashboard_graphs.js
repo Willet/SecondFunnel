@@ -210,7 +210,7 @@ $(document).ready(function () {
         for (var chartNumber = 0; chartNumber < chartStorage.length; chartNumber++) {
             // populate data
             for (var i = 0; i < chartStorage[chartNumber].selections.length; i++) {
-                retrieveData(campaign, chartStorage[chartNumber].queryName, ajax_response(chartNumber, i));
+                retrieveData(campaign, chartStorage[chartNumber].selections[i].queryName, ajax_response(chartNumber, i));
             }
         }
     };

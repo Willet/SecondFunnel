@@ -27,14 +27,12 @@ class Query(models.Model):
     # The manager that makes it so that queries will return children if possible
     objects = InheritanceManager()
 
-    @abstractmethod
     def get_query(self, data_ids, start_date, end_date):
         """
         Returns a query object for use by get_response (or other things)
         """
         raise NotImplementedError("This is an abstract method and must be overridden")
 
-    @abstractmethod
     def get_response(self, data_ids, start_date, end_date):
         """
         Returns a JSON string with the data from an api query
@@ -147,10 +145,11 @@ class AnalyticsQuery(Query):
             if 'rows' in response:
                 for row in response['dataTable']['rows']:
                     row['c'][0]['v'] = capitalize(row['c'][0]['v'])
-        if not 'error' in response:
+        #TODO fix code for saving... is this even necessary?
+        if False:#not 'error' in response:
             self.cached_response = json.dumps(response)
             self.save()
-        return self.cached_response
+        return json.dumps(response)
 
 
 class ClickmeterQuery(Query):
@@ -203,10 +202,11 @@ class ClickmeterQuery(Query):
             print "Querying Clickmeter failed with: ", error
             return dict(response.items() + self.cached_response.items())
 
-        if not 'error' in response:
+        #TODO fix code for saving... is this even necessary?
+        if False:#not 'error' in response:
             self.cached_response = json.dumps(response)
             self.save()
-        return self.cached_response
+        return json.dumps(response)
 
 
 class Campaign(models.Model):
