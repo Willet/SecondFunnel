@@ -28,9 +28,10 @@ SPIDER_MIDDLEWARES = {
     'scrapy_webdriver.middlewares.WebdriverSpiderMiddleware': 543,
 }
 
-WEBDRIVER_BROWSER = 'PhantomJS'  # Or any other from selenium.webdriver
-                                 # or 'your_package.CustomWebdriverClass'
-                                 # or an actual class instead of a string.
+# Or any other from selenium.webdriver
+# or 'your_package.CustomWebdriverClass'
+# or an actual class instead of a string.
+WEBDRIVER_BROWSER = 'PhantomJS'
 
 # Optional passing of parameters to the webdriver
 WEBDRIVER_OPTIONS = {
@@ -41,12 +42,11 @@ WEBDRIVER_OPTIONS = {
 
 # http://doc.scrapy.org/en/latest/topics/item-pipeline.html#activating-an-item-pipeline-component
 ITEM_PIPELINES = {
-    #'scrapy.contrib.pipeline.images.ImagesPipeline': 1,
-    #'apps.scrapy.pipelines.CloudinaryPipeline': 1,
+    # 'scrapy.contrib.pipeline.images.ImagesPipeline': 1,
+    # 'apps.scrapy.pipelines.CloudinaryPipeline': 1,
     'apps.scrapy.pipelines.ForeignKeyPipeline': 1,
     'apps.scrapy.pipelines.ContentImagePipeline': 2,
     'apps.scrapy.pipelines.ValidationPipeline': 3,
-    'apps.scrapy.pipelines.NamePipeline': 10,
     'apps.scrapy.pipelines.PricePipeline': 11,
     'apps.scrapy.pipelines.DuplicatesPipeline': 20,
     # 900 - Persistence-related Pipelines
