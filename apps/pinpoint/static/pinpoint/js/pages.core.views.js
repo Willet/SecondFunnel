@@ -438,8 +438,7 @@ App.module('core', function (module, App) {
          */
         'getItemView': function (item) {
             return App.utils.findClass('TileView',
-                App.core.getModifiedTemplateName(
-                    item.get('type') || item.get('template')),
+                App.core.getModifiedTemplateName(item.get('template')),
                 module.TileView);
         },
 

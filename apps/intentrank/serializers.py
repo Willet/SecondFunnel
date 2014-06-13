@@ -244,6 +244,18 @@ class VideoTileSerializer(ContentTileSerializer):
 
         data.update(super(VideoTileSerializer, self).get_dump_object(obj))
 
+        try:
+            video = obj.content.select_subclasses()[0]
+            data.update({
+                "caption": getattr(video, 'caption', ''),
+                "description": getattr(video, 'description', ''),
+                "original-id": video.original_id or video.id,
+                "original-url": video.source_url or video.url,
+                "source": getattr(video, 'source', 'youtube'),
+            })
+        except:
+            pass # No video in this tile.
+
         return data
 
 
