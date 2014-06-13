@@ -38,7 +38,7 @@ class RawSerializer(JSONSerializer):
     def to_str(self, queryset, **options):
         # single object serialization cache
         # for when an object was done more than once per request
-        skip_cache = options.get('skip_cache', False)
+        skip_cache = options.pop('skip_cache', False)
         if skip_cache:
             print "cache skipped"
             return self.serialize(queryset=queryset, **options)
