@@ -92,13 +92,11 @@ class AnalyticsQuery(Query):
             a response (in JSON)
         """
         if 'google_analytics' in data_ids:
-            try:
-                table_id = data_ids['google_analytics']
-            except:
-                print 'google analytics table id cannot be found'
-                return {'error': 'id cannot be found'}
+            table_id = 'ga:' + str(data_ids['google_analytics'])
         else:
-            return {'error': 'please define google analytics in dashboard data_ids'}
+            return {'error': "please define 'google_analytics' in dashboard data_ids"}
+
+        ga_filter = 'ga:sessions>=0' if (campaign == 'all') else ('ga:campaign==' + campaign)
         service = AnalyticsQuery.build_analytics()
         data = service.data().ga().get(ids=table_id,
                                        start_date=self.get_start_date(start_date),
@@ -106,13 +104,15 @@ class AnalyticsQuery(Query):
                                        metrics=self.metrics,
                                        dimensions=self.dimensions,
                                        output='dataTable',
-                                       filter='ga:sessions>=0' if campaign == 'all' else ('ga:campaign==' + campaign))
+                                       filters=ga_filter)
+        print data
         return data
 
     def get_response(self, data_ids, start_date, end_date, campaign='all'):
         response = {'error': 'Failed to retrieve data'}
         try:
-            response = self.get_query(data_ids, start_date, end_date, campaign=campaign).execute()
+            data = self.get_query(data_ids, start_date, end_date, campaign=campaign)
+            response = data.execute()
         except HttpError as error:
             print "Querying Google Analytics failed with: ", error
             return dict(response.items() + self.cached_response.items())
