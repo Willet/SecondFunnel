@@ -11,9 +11,9 @@ class RawSerializer(JSONSerializer):
     MEMCACHE_TIMEOUT = 60
 
     @classmethod
-    def dump(cls, obj):
+    def dump(cls, obj, skip_cache=False):
         """obj be <Model>"""
-        return cls().to_json([obj])
+        return cls().to_json([obj], skip_cache=skip_cache)
 
     def start_serialization(self):
         if json.__version__.split('.') >= ['2', '1', '3']:
@@ -38,6 +38,11 @@ class RawSerializer(JSONSerializer):
     def to_str(self, queryset, **options):
         # single object serialization cache
         # for when an object was done more than once per request
+        skip_cache = options.get('skip_cache', False)
+        if skip_cache:
+            print "cache skipped"
+            return self.serialize(queryset=queryset, **options)
+
         if len(queryset) == 1:
             obj = queryset[0]
 

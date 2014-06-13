@@ -358,14 +358,6 @@ App.module('core', function (core, App) {
                     continue;  // is this a tile...?
                 }
 
-                // (hopefully) temporary method for newegg pages to restrict
-                // the appearance of a particular youtube video to
-                // "once, including the one in initial results".
-                if (tileJson.template === 'youtube' &&
-                    tileJson['original-id'] === "YICKow4ckUA") {
-                    continue;
-                }
-
                 // decrement the allowed displays of each shown tile.
                 if (self.resultsThreshold[tileId] !== undefined &&
                     --self.resultsThreshold[tileId] < 0) {

@@ -32,20 +32,17 @@ class SerializableMixin(object):
     To implement specific json formats, override these methods.
     """
 
-    # @override IntentRank serializer
     serializer = ir_serializers.RawSerializer
-
-    # @override ContentGraph serializer
     cg_serializer = cg_serializers.RawSerializer
 
-    def to_json(self):
+    def to_json(self, skip_cache=False):
         """default method for all models to have a json representation."""
         if hasattr(self.serializer, 'dump'):
-            return self.serializer.dump(self)
+            return self.serializer.dump(self, skip_cache=skip_cache)
         return self.serializer().serialize(iter([self]))
 
-    def to_str(self):
-        return self.serializer().to_str([self])
+    def to_str(self, skip_cache=False):
+        return self.serializer().to_str([self], skip_cache=skip_cache)
 
     def to_cg_json(self):
         """serialize into CG model. This is an instance shorthand."""
@@ -438,9 +435,11 @@ class Content(BaseModel):
 
         return super(Content, self).update(other=other)
 
-    def to_json(self):
+    def to_json(self, skip_cache=False):
         """subclasses may implement their own to_json methods that
         :returns dict objects.
+
+        TODO: is this supposed to be in a serializer?
         """
         dct = {
             'id': str(self.id),
@@ -457,7 +456,8 @@ class Content(BaseModel):
 
         for product in self.tagged_products.all():
             try:
-                dct['tagged-products'].append(product.to_json())
+                dct['tagged-products'].append(product.to_json(
+                    skip_cache=skip_cache))
             except Product.DoesNotExist:
                 pass  # ?
 
@@ -477,26 +477,8 @@ class Image(Content):
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
-    serializer = ir_serializers.ContentTileSerializer
+    serializer = ir_serializers.ImageSerializer
     cg_serializer = cg_serializers.ImageSerializer
-
-    def to_json(self):
-        """Only Images (not ProductImages) can have tagged-products."""
-        dct = {
-            "id": str(self.id),
-            "store-id": str(self.store.id if self.store else 0),
-            "format": self.file_type,
-            "type": "image",
-            "dominant-color": self.dominant_color or "transparent",
-            "url": self.url or self.source_url,
-            "sizes": self.attributes.get('sizes', default_master_size),
-            'status': self.status,
-            "orientation": 'landscape' if self.width > self.height else 'portrait',
-        }
-
-        dct["tagged-products"] = [x.to_json() for x in self.tagged_products.all()]
-
-        return dct
 
     def save(self, *args, **kwargs):
         """For whatever reason, Images have separate width and height
@@ -609,7 +591,7 @@ class Feed(BaseModel):
             return '(Unsaved Feed)'
 
     # and other representation specific of the Feed itself
-    def to_json(self):
+    def to_json(self, skip_cache=False):
         serializer = ir_serializers.FeedSerializer(self.tiles.all())
         return serializer.serialize()
 
@@ -887,10 +869,10 @@ class Tile(BaseModel):
         return super(Tile, self).full_clean(exclude=exclude,
                                             validate_unique=validate_unique)
 
-    def to_json(self):
-        return json.loads(self.to_str())
+    def to_json(self, skip_cache=False):
+        return json.loads(self.to_str(skip_cache=skip_cache))
 
-    def to_str(self):
+    def to_str(self, skip_cache=False):
         # determine what kind of tile this is
         serializer = None
         if self.template == 'image':
@@ -907,7 +889,7 @@ class Tile(BaseModel):
         if not serializer:  # default
             serializer = ir_serializers.TileSerializer
 
-        return serializer().to_str([self])
+        return serializer().to_str([self], skip_cache=skip_cache)
 
     def update_ir_cache(self):
         """Generates and/or updates the IR cache for the current object.
@@ -917,7 +899,7 @@ class Tile(BaseModel):
         """
         old_ir_cache = self.ir_cache
         self.ir_cache = ''  # force tile to regenerate itself
-        new_ir_cache = self.to_str()
+        new_ir_cache = self.to_str(skip_cache=True)
 
         if new_ir_cache == old_ir_cache:
             return new_ir_cache, False

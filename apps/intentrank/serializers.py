@@ -3,7 +3,7 @@ from apps.api.serializers import RawSerializer
 
 class IRSerializer(RawSerializer):
     MEMCACHE_PREFIX = 'ir'
-    MEMCACHE_TIMEOUT = 300  # 5 minutes of caching each tile (arbitrary)
+    MEMCACHE_TIMEOUT = 0  # use db cache
 
 
 class FeedSerializer(RawSerializer):
@@ -105,6 +105,27 @@ class ContentSerializer(IRSerializer):
                 data['tagged-products'].append(product.to_json())
             except Product.DoesNotExist as err:
                 data['-dbg-tagged-products'].append(str(err.message))
+
+        return data
+
+
+class ImageSerializer(ContentSerializer):
+    """This dumps some fields from the image as JSON."""
+    def get_dump_object(self, obj):
+        """This will be the data used to generate the object."""
+        from apps.assets.models import default_master_size
+
+        data = super(ImageSerializer, self).get_dump_object(obj)
+        data.update({
+            "format": obj.file_type or "jpg",
+            "type": "image",
+            "dominant-color": obj.dominant_color or "transparent",
+            "url": obj.url,
+            "id": obj.id,
+            "status": obj.status,
+            "sizes": obj.attributes.get('sizes', default_master_size),
+            "orientation": 'landscape' if obj.width > obj.height else 'portrait',
+        })
 
         return data
 
@@ -229,6 +250,25 @@ class BannerTileSerializer(TileSerializer):
 
         if not 'images' in data and obj.attributes:
             data['images'] = [obj.attributes]
+
+        return data
+
+
+class ImageTileSerializer(ContentTileSerializer):
+    def get_dump_object(self, obj):
+        """
+        :param obj  <Tile>
+        """
+        data = {
+            'type': 'image'
+        }
+
+        data.update(super(ImageTileSerializer, self).get_dump_object(obj))
+
+        try:
+            data.update(ImageSerializer().get_dump_object(obj.content.all()[0]))
+        except IndexError:
+            pass
 
         return data
 
