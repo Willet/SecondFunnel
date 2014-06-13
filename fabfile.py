@@ -375,7 +375,8 @@ def test():
 
 
 def all_production():
-    print [i.public_dns_name for i in get_instances('tng-master2')]
+    env.hosts = [i.public_dns_name for i in get_instances('tng-master2')]
+    return env.hosts
 
 
 # TODO: Should probably check that psql and pg_dump versions are compatible
