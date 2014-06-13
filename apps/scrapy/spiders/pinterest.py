@@ -64,6 +64,7 @@ class SurlatablePinterestSpider(PinterestSpider):
             l.add_value('original_url', response.url)
             l.add_value('source', 'pinterest')
             image_url = pin_selector.css('.pinImg::attr(src)').extract()
+            image_url = image_url.replace('/192x/', '/736x/')
             l.add_value('source_url', image_url)
             item = l.load_item()
             yield item
