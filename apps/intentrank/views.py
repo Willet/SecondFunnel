@@ -266,7 +266,7 @@ def update_tiles(tile_ids, action='views'):
 @request_methods('POST')
 def track_tiles(request, action, **kwargs):
     tile_ids = request.GET.get('tile-ids', None) or request.POST.get('tile-ids', None)
-    if tile_ids is None or len(tile_ids) == 0:
+    if not tile_ids:
         return HttpResponse(status=204)
 
     tile_ids = map(int, tile_ids.split(','))
