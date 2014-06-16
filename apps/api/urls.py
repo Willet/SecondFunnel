@@ -4,6 +4,7 @@ from tastypie.api import Api
 from apps.api.resources import UserResource
 from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageContentCGHandler, ProductCGHandler, StoreProductCGHandler,
+    ProductImageItemCGHandler,
     StorePageProductCGHandler, StoreCGHandler, StoreItemCGHandler, PageCGHandler,
     StorePageCGHandler, TileConfigCGHandler, PageTileConfigCGHandler,
     StorePageItemCGHandler, StoreProductItemCGHandler, StorePageContentItemCGHandler,
@@ -20,7 +21,6 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageContentDeprioritizeItemCGHandler, StoreContentApproveItemCGHandler,
     StoreContentRejectItemCGHandler, StoreContentUndecideItemCGHandler, ProductItemCGHandler)
 from apps.api.views.content import PageContentAllCGHandler
-from apps.imageservice.views import create as imageservice_create
 
 prefix = 'v1'
 
@@ -70,6 +70,9 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/?$' % prefix, StorePageProductItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/prioritize/?$' % prefix, StorePageProductPrioritizeItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/deprioritize/?$' % prefix, StorePageProductDeprioritizeItemCGHandler.as_view()),
+
+    # product images
+    url(r'^%s/productimage/(?P<productimage_id>\d+)/?$' % prefix, ProductImageItemCGHandler.as_view()),
 
     # page
     url(r'^%s/page/?$' % prefix, PageCGHandler.as_view()),

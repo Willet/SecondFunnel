@@ -9,13 +9,18 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.paginator import BaseCGHandler, BaseItemCGHandler
-from apps.assets.models import Product, Store, Page, Tile
+from apps.assets.models import Product, Store, Page, ProductImage
 from apps.intentrank.utils import ajax_jsonp
 
 
 class ProductCGHandler(BaseCGHandler):
     model = Product
     id_attr = 'product_id'
+
+
+class ProductImageItemCGHandler(BaseItemCGHandler):
+    model = ProductImage
+    id_attr = 'productimage_id'
 
 
 class ProductItemCGHandler(BaseItemCGHandler):
@@ -46,7 +51,7 @@ class StoreProductCGHandler(ProductCGHandler):
         # or
         # filtering for page manager
         search_name = request.GET.get('search-name', '') or \
-                      request.GET.get('tags', '')
+            request.GET.get('tags', '')
         if search_name:
             # if search present, search in name or description
             qs = qs.filter(Q(name__icontains=search_name) |
