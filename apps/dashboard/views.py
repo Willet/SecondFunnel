@@ -3,6 +3,7 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page, never_cache
 from django.contrib.auth import authenticate, login, logout
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, render
@@ -26,27 +27,27 @@ def get_data(request):
         try:
             user = User.objects.get(pk=request.user.pk)
             profile = UserProfile.objects.get(user=user)
-        except:
+        except ObjectDoesNotExist:
             print 'user profile does not exist'
-            return response
-        request = request.GET
+            return HttpResponse(response, content_type='application/json')
+        request_get = request.GET
 
         dashboard_id = -1
-        if 'dashboard' in request:
-            dashboard_id = request['dashboard']
+        if 'dashboard' in request_get:
+            dashboard_id = request_get['dashboard']
         try:
             cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
         except DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist:
             print "Dashboard error, multiple or none"
-            return response
+            return HttpResponse(response, content_type='application/json')
 
         if not profile.dashboards.all().filter(pk=dashboard_id):
             # can't view page
             print "User: " + user.username + "cannot view dashboard: " + dashboard_id
-            return response
-        if ('query_name' in request) and ('campaign' in request):
+            return HttpResponse(response, content_type='application/json')
+        if ('query_name' in request_get) and ('campaign' in request_get):
             # get data from ga based on queryName
-            campaign_id = request['campaign']
+            campaign_id = request_get['campaign']
             start_date = now() - timedelta(days=90)
             end_date = now()
             if not campaign_id == 'all':
@@ -58,13 +59,13 @@ def get_data(request):
                 start_date = campaign.start_date
                 end_date = campaign.end_date
 
-            query_name = request['query_name']
+            query_name = request_get['query_name']
             try:
                 query = Query.objects.filter(identifier=query_name).select_subclasses()
                 print query
             except Query.MultipleObjectsReturned, Query.DoesNotExist:
                 print 'error, multiple queries or query does not exist'
-                return response
+                return HttpResponse(response, content_type='application/json')
             query = query[0]
             # set response
             response = query.get_response(cur_dashboard.data_ids, start_date, end_date)
