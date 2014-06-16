@@ -8,7 +8,7 @@
     <link rel="shortcut icon"
          href="http://canada.roots.com/on/demandware.static/Sites-RootsCA-Site/-/default/v1401786139656/images/favicon.ico" />
     <link rel="stylesheet" href="{% static 'pinpoint/themes/surlatable/lecreuset.css' %}"/>
-    <!-- <link rel="stylesheet" href="http://mattcreative.ca/dev/sf/lecreuset.css"/> -->
+
     {% include "pinpoint/campaign_respond.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
@@ -169,7 +169,7 @@
         <script type="text/template" id="preview_container_template">
             <div class="fullscreen">
                 <div class="content">
-                    <!--<span class="close small-close">Close <img src="http://mattcreative.ca/dev/sf/images/close.gif"></span>-->
+
                     <span class="close small-close">Close <img src="{% static 'pinpoint/themes/surlatable/images/close.gif' %}"></span>
                     <div class="scrollable">
                         <div class="template target"></div>
@@ -178,31 +178,6 @@
             </div>
             <div class="mask"></div>
         </script>
-        
-        <!-- TESTING
-        <script type="text/template" id="preview_container_template">
-            <div class="fullscreen">
-                <table class="wrapper">
-                    <tbody>
-                        <tr class="header">
-                            <td>
-                                <!--<span class="close small-close">Close <img src="http://mattcreative.ca/dev/sf/images/close.gif"></span>-->
-                                <span class="close small-close">Close <img src="{% static 'pinpoint/themes/surlatable/images/close.gif' %}"></span>
-                            </td>
-                        </tr>
-                        <tr class="content">
-                            <td>
-                                <div class="scrollable">
-                                    <div class="template target"></div>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="mask"></div>
-        </script>
-        -->
 
         <script type="text/template" id="tile_preview_template">
             <h2><span class="label label-info"><%= obj.template %>_preview_template</span> is missing.</h2>
@@ -243,7 +218,6 @@
 
         <script type="text/template" id="product_buy_template">
             <a class='button' href='<%= obj.url %>' target='_blank'>
-                <!--Shop Now <img src="http://mattcreative.ca/dev/sf/images/shop-now-arrow.png">-->
                 Shop Now <img src="{% static 'pinpoint/themes/surlatable/images/shop-now-arrow.png' %}">
             </a>
         </script>
@@ -391,149 +365,6 @@
                 </div>
             <% } %>
         </script>
-        
-        <!-- DEFAULT TEMPLATE A
-        <script type="text/template" id="product_preview_template">
-            <div class="table">
-                <div class='content-wrapper row'>
-                    <div class='cell'>
-                        <div class="gallery-main-image"></div>
-                    </div>
-                    <% if (obj.images.length > 1 && App.support.mobile()) { %>
-                        <div class='cell'>
-                            <div class='gallery dots'></div>
-                        </div>
-                    <% } %>
-                    <% if (App.support.mobile()) { %>
-                        <div class='cell info'>
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <div class='buy'></div>
-                        </div>
-                    <% } %>
-                    <% if (!App.support.mobile()) { %>
-                        <div class='cell info'>
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <div class='buy'></div>
-                            <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
-                        </div>
-                    <% } %>
-                </div>
-            </div>
-        </script>
-        
-        <script type="text/template" id="image_preview_template">
-            <% if (obj['tagged-products'].length) { %>
-                <% var product = obj['tagged-products'][0]; %>
-                <div class="image-with-tagged-products">
-                    <div class="table">
-                        <div class="row">
-                            <div class="cell desktop-only">
-                                <img src="<%= obj.image.url %>" alt="image" class="image"/>
-                            </div>
-                            <div class="cell info">
-                                <div class="gallery-main-image"></div>
-                                <div class='gallery dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                                <div class='title'></div>
-                                <div class='price'></div>
-                                <div class='buy'></div>
-                            </div>
-                            
-                            <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
-                                <div class="more-info">
-                                    Companion Products
-                                    <div class="down-arrow"></div>
-                                </div>
-                            <% } %>
-                            <div class="cell mobile-only">
-                                <img src="<%= obj.image.url %>" alt="image"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="table">
-                        <div class="row">
-
-                            <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
-                                <div class="cell desktop-only">
-                                    <div class="landscape">
-                                        <div class="stl-title">Companion Products</div>
-                                        <div class="stl-look">
-                                            <% var  related = obj['tagged-products'] %>
-                                            <% for (var i = 0; i < related.length; i++) { %>
-                                                <div class="stl-item" data-index="<%- i %>">
-                                                    <img src="<%- related[i].images[0].url %>" />
-                                                    <div class="name">
-                                                        <%- related[i].title || related[i].name %>
-                                                    </div>
-                                                </div>
-                                            <% } %>
-                                        </div>
-                                    </div>
-                                </div>
-                            <% } %>
-                            
-                            
-                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
-                                <div class="cell desktop-only shop">
-                                    <div class="stl-title">Companion Products</div>
-                                    <div class="stl-look">
-                                        <% var  related = obj['tagged-products'] %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <div class="name">
-                                                    <%- related[i].title || related[i].name %>
-                                                </div>
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            <% } %>
-                            
-                            <% if (obj['tagged-products'].length > 1) { %>
-                                <div class="cell mobile-only">
-                                    <div class="stl-look">
-                                        <% var related = obj['tagged-products'] %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <div class="name">
-                                                    <%- related[i].title || related[i].name %>
-                                                </div>
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            <% } %>
-                        </div>
-                    </div>
-                </div>
-            <% } else { %>
-                <div class="image-without-tagged-products">
-                    <div class="table">
-                        <div class="row">
-                            <div class="cell capped-width">
-                                <img src="<%= obj.image.url %>" alt="image" class="main-image" />
-                            </div>
-                            <div class="cell">
-                                <div class="info">
-                                    <div class="title">
-                                        Coming soon to Sur la Table!
-                                    </div>
-                                    <div class="buy">
-                                        <a class='button' href='http://surlatable.com/' target='_blank'>
-                                            Shop Sur la Table
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <% } %>
-        </script>
-        -->
 
         <!-- custom templates -->
         <script type="text/template" id="hero_template">
