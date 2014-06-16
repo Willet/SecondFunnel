@@ -7,6 +7,3 @@ admin.site.register(UserProfile)
 admin.site.register(AnalyticsQuery)
 admin.site.register(ClickmeterQuery)
 admin.site.register(Campaign)
-
-
-
