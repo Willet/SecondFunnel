@@ -1,4 +1,6 @@
-/* START testing */
+/* START testing
+ * TODO to Matt: if this isn't required anymore, please remove.
+ */
 .visible-lg {
     background-image: url(images/header_desktop.jpg) !important;
 }
@@ -15,7 +17,7 @@
 
 body {
     background: none;
-    font-family: Veranda, Arial;
+    font-family: Veranda, Arial, sans-serif;
 }
 
 .navbar {
@@ -75,7 +77,6 @@ body {
 }
 
 #hero-area .jumbotron {
-    /*border: 1px solid #212121;*/
     border-radius: 5px;
 }
 
@@ -145,12 +146,6 @@ body {
     text-decoration: underline;
 }
 
-.previewContainer {
-}
-
-.previewContainer .fullscreen {
-}
-
 .previewContainer .table {
     display: block;
     table-layout: fixed;
@@ -168,14 +163,13 @@ body {
 }
 
 .previewContainer .fullscreen .content {
-    border: none;
     display: inline-block;
     width: auto;
     min-width: 500px;
     border-radius: 5px;
     padding-top: 30px;
     border: 1px solid #ccc;
-    box-shadow: 0px 0px 10px 0px #CECECE;
+    box-shadow: 0 0 10px 0 #CECECE;
 }
 
 .previewContainer .close.small-close {
@@ -419,7 +413,7 @@ body {
 
 .previewContainer .main-image-container .gallery-swipe-left {
     background-image: url(http://www.mattcreative.ca/dev/sf/images/left.png);
-    left: 0px;
+    left: 0;
 }
 
 .previewContainer .main-image-container .gallery-swipe-left:hover {
@@ -429,7 +423,7 @@ body {
 
 .previewContainer .main-image-container .gallery-swipe-right {
     background-image: url(http://www.mattcreative.ca/dev/sf/images/right.png);
-    right: 0px;
+    right: 0;
 }
 
 .previewContainer .main-image-container .gallery-swipe-right:hover {
@@ -453,11 +447,11 @@ body {
 }
 
 .previewContainer .more-info .down-arrow {
-    width: 0px;
-    height: 0px;
+    width: 0;
+    height: 0;
     background-color: transparent;
-    border-left: 10.5px solid transparent;
-    border-right: 10.5px solid transparent;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
     border-top: 15px solid #000;
     display: inline-block;
 }
@@ -479,7 +473,7 @@ body {
     }
 
     .previewContainer .fullscreen .content {
-        padding: 0px;
+        padding: 0;
         max-width: none;
         border: none;
     }
@@ -500,7 +494,7 @@ body {
     }
 
     .previewContainer .fullscreen .content {
-        min-width: 0px;
+        min-width: 0;
         width: 100%;
         padding: 0;
         padding-top: 53px;
