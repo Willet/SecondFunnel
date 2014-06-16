@@ -20,7 +20,7 @@ class ProductCGHandler(BaseCGHandler):
 
 class ProductImageItemCGHandler(BaseItemCGHandler):
     model = ProductImage
-    id_attr = 'productimage_id'
+    id_attr = 'id'
 
 
 class ProductItemCGHandler(BaseItemCGHandler):

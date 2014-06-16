@@ -72,7 +72,7 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/deprioritize/?$' % prefix, StorePageProductDeprioritizeItemCGHandler.as_view()),
 
     # product images
-    url(r'^%s/productimage/(?P<productimage_id>\d+)/?$' % prefix, ProductImageItemCGHandler.as_view()),
+    url(r'^%s/productimage/(?P<id>\d+)/?$' % prefix, ProductImageItemCGHandler.as_view()),
 
     # page
     url(r'^%s/page/?$' % prefix, PageCGHandler.as_view()),

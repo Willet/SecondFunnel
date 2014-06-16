@@ -250,4 +250,5 @@ class BaseCGHandler(JSONResponseMixin, ListView):
 class BaseItemCGHandler(BaseCGHandler):
     """Adds small modifications to handle single-object returns."""
     def get(self, request, *args, **kwargs):
-        return ajax_jsonp(self.serialize_one())
+        obj = get_object_or_404(self.model, id=kwargs.get(self.id_attr))
+        return ajax_jsonp(obj)
