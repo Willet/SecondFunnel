@@ -126,7 +126,7 @@ class AnalyticsQuery(Query):
                 #   first group is all lower case,
                 #   second is a single group capital/digit followed by more digits or lower case.
                 #   ie. goal2Completions -> [(u'goal', u''), (u'', u'2'), (u'', u'Completions')]
-                temp_title = re.findall(r'(^[a-z]*)|([\dA-Z]{1}[\da-z]*)', header['label'])
+                temp_title = re.findall(r'(^[a-z]*)|([0-9A-Z]{1}[0-9a-z]*)', header['label'])
                 # Then take the correct group, make it uppercase, and add them together to form
                 #   the pretty human readable title for the dataTable columns
                 # TODO : replace goal 2 etc with descriptive names
