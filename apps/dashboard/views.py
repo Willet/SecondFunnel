@@ -1,26 +1,17 @@
-from apiclient.errors import HttpError
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.utils.timezone import now
-from django.views.decorators.cache import cache_page, never_cache
-import httplib2
 import json
-import re
 
-from apiclient.discovery import build
-
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import cache_page, never_cache
 from django.contrib.auth import authenticate, login, logout
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
-from django.contrib.auth.models import User
-from django.conf import settings
 
-from oauth2client.client import SignedJwtAssertionCredentials
-
-from string import capitalize
+from django.utils.timezone import now
 from datetime import timedelta
 
+from django.contrib.auth.models import User
 from apps.dashboard.models import DashBoard, UserProfile, Campaign, Query
 
 LOGIN_URL = '/dashboard/login'
@@ -152,88 +143,3 @@ def user_logout(request):
     logout(request)
     # Take the user back to the homepage.
     return HttpResponseRedirect('/dashboard/')
-
-
-######## LEGACY CODE ########
-
-def build_analytics():
-    """
-    Builds and returns an Analytics service object authorized with the given service account
-    Returns a service object
-    """
-    f = open(settings.SERVICE_ACCOUNT_PKCS12_FILE_PATH, 'rb')
-    key = f.read()
-    f.close()
-
-    credentials = SignedJwtAssertionCredentials(settings.SERVICE_ACCOUNT_EMAIL,
-                                                key,
-                                                scope='https://www.googleapis.com/auth/analytics.readonly')
-    http = httplib2.Http()
-    http = credentials.authorize(http)
-
-    return build('analytics', 'v3', http=http)
-
-
-def prettify_data(response):
-    if 'dataTable' in response:
-        for header in response['dataTable']['cols']:
-            header['label'] = header['label'].split(':')[1]
-            # Complicated reg-ex:
-            #   first group is all lower case,
-            #   second is a single group capital/digit followed by more digits or lower case.
-            #   ie. goal2Completions -> [(u'goal', u''), (u'', u'2'), (u'', u'Completions')]
-            temp_title = re.findall(r'(^[a-z]*)|([\dA-Z]{1}[\da-z]*)', header['label'])
-            # Then take the correct group, make it uppercase, and add them together to form
-            #   the pretty human readable title for the dataTable columns
-            # TODO : replace goal 2 etc with descriptive names
-            title = ''
-            for group in temp_title:
-                if group[0] == u'':
-                    title += group[1] + ' '
-                else:
-                    title += capitalize(group[0]) + ' '
-            title = title.replace('Goal 1', 'Preview')
-            title = title.replace('Goal 2', 'Buy Now')
-            title = title.replace('Goal 3', 'Scroll')
-            title = title.replace('Conversion', '')
-            header['label'] = title
-        for row in response['dataTable']['rows']:
-            row['c'][0]['v'] = capitalize(row['c'][0]['v'])
-    else:
-        if 'rows' in response:
-            for row in response['dataTable']['rows']:
-                row['c'][0]['v'] = capitalize(row['c'][0]['v'])
-    return response
-
-@cache_page(60*60)  # cache page for an hour
-@login_required(login_url=LOGIN_URL)
-@never_cache
-def get_data_old(request):
-    response = {'error': 'Retrieving data failed'}
-    if request.method == 'GET':
-        GET_REQUEST = request.GET
-
-        if ('table' in GET_REQUEST) and \
-                ('metrics' in GET_REQUEST) and ('dimension' in GET_REQUEST) and \
-                ('start-date' in GET_REQUEST) and ('end-date' in GET_REQUEST):
-
-            table_id = 'ga:' + GET_REQUEST['table']
-            metrics = GET_REQUEST['metrics']
-            dimension = GET_REQUEST['dimension']
-            start_date = GET_REQUEST['start-date']
-            end_date = GET_REQUEST['end-date']
-
-            service = build_analytics()
-            data = service.data().ga().get(ids=table_id,
-                                           start_date=start_date,
-                                           end_date=end_date,
-                                           metrics=metrics,
-                                           dimensions=dimension,
-                                           output='dataTable')
-            try:
-                response = prettify_data(data.execute())
-            except HttpError as error:
-                print "Querying Google Analytics failed with: ", error
-                response['error'] = 'Querying GA failed'
-    response = json.dumps(response)
-    return HttpResponse(response, content_type='application/json')
