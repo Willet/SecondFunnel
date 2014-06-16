@@ -56,17 +56,12 @@ class AnalyticsQuery(Query):
     dimensions = models.CharField(max_length=256,
                                   help_text='See https://developers.google.com/analytics/devguides/reporting/core/dimsmets')
 
-    @staticmethod
-    def get_end_date(date):
-        if date < now():
-            return 'today'
-        return date.strftime('%Y-%m-%d')
-
-    @staticmethod
-    def get_start_date(date):
-        if date > now():
-            return 'today'
-        return date.strftime('%Y-%m-%d')
+    def get_dates(self, start, end):
+        end_date = 'today' if end >= now() else end.strftime('%Y-%m-%d')
+        start_date = 'today' if start >= now() or self.is_today else start.strftime('%Y-%m-%d')
+        if end_date is not 'today':
+            start_date = end_date
+        return {'start': start_date, 'end': end_date}
 
     @staticmethod
     def build_analytics():
@@ -98,11 +93,12 @@ class AnalyticsQuery(Query):
         else:
             return {'error': "please define 'google_analytics' in dashboard data_ids"}
 
+        date = self.get_dates(start_date, end_date)
         ga_filter = 'ga:sessions>=0' if (campaign == 'all') else ('ga:campaign==' + campaign)
         service = AnalyticsQuery.build_analytics()
         data = service.data().ga().get(ids=table_id,
-                                       start_date=self.get_start_date(start_date),
-                                       end_date=self.get_end_date(end_date),
+                                       start_date=date['start'],
+                                       end_date=date['end'],
                                        metrics=self.metrics,
                                        dimensions=self.dimensions,
                                        output='dataTable',
