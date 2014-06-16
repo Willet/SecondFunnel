@@ -1,16 +1,18 @@
-from abc import abstractmethod
+import httplib2
+import requests
+import json
+import jsonfield
+import re
+
 from apiclient.discovery import build
 from apiclient.errors import HttpError
+from oauth2client.client import SignedJwtAssertionCredentials
+
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
+
 from model_utils.managers import InheritanceManager
-import httplib2
-import json
-import requests
-import jsonfield
-from oauth2client.client import SignedJwtAssertionCredentials
-import re
 from string import capitalize
 from django.utils.timezone import now
 
