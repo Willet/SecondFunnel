@@ -57,7 +57,7 @@ class AnalyticsQuery(Query):
                                   help_text='See https://developers.google.com/analytics/devguides/reporting/core/dimsmets')
 
     def get_dates(self, start, end):
-        end_date = 'today' if end >= now() else end.strftime('%Y-%m-%d')
+        end_date = 'today' if end.date() >= now().date() else end.strftime('%Y-%m-%d')
         start_date = 'today' if start >= now() or self.is_today else start.strftime('%Y-%m-%d')
         if end_date is not 'today':
             start_date = end_date
@@ -101,9 +101,7 @@ class AnalyticsQuery(Query):
                                        end_date=date['end'],
                                        metrics=self.metrics,
                                        dimensions=self.dimensions,
-                                       output='dataTable',
-                                       filters=ga_filter)
-        print data
+                                       output='dataTable')
         return data
 
     def get_response(self, data_ids, start_date, end_date, campaign='all'):
@@ -182,20 +180,21 @@ class ClickmeterQuery(Query):
         else:
             return {'error': 'id cannot be found'}
 
-        url = 'http://apiv2.clickmeter.com' + self.endpoint.format(clickmeter_id)
+        url = 'http://apiv2.clickmeter.com' + str(self.endpoint).format(id=clickmeter_id)
         auth_header = {'X-Clickmeter-Authkey': settings.CLICKMETER_API_KEY}
         data = {'timeframe': 'custom',
                 'fromDate': self.get_start_date(start_date),
-                'toDate': self.get_end_date(end_date),
-                'groupBy': self.group_by}
+                'toDate': self.get_end_date(end_date)}
+        print data
         return {'url':  url, 'header': auth_header, 'payload': data}
 
     def get_response(self, data_ids, start_date, end_date):
         query = self.get_query(data_ids, start_date, end_date)
         response = {'error': 'Failed to retrieve data'}
+        print query
 
         try:
-            response = requests.get(query['url'], header=query['header'], params=query['payload'])
+            response = requests.get(query['url'], headers=query['header'], params=query['payload'])
         except HttpError as error:
             print "Querying Clickmeter failed with: ", error
             return dict(response.items() + self.cached_response.items())
@@ -204,6 +203,7 @@ class ClickmeterQuery(Query):
         if False:#not 'error' in response:
             self.cached_response = json.dumps(response)
             self.save()
+        print response
         return json.dumps(response)
 
 

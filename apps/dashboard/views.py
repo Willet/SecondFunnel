@@ -62,14 +62,12 @@ def get_data(request):
             query_name = request_get['query_name']
             try:
                 query = Query.objects.filter(identifier=query_name).select_subclasses()
-                print query
+                query = query[0]
             except Query.MultipleObjectsReturned, Query.DoesNotExist:
                 print 'error, multiple queries or query does not exist'
                 return HttpResponse(response, content_type='application/json')
-            query = query[0]
             # set response
             response = query.get_response(cur_dashboard.data_ids, start_date, end_date)
-    print json.dumps(response)
     return HttpResponse(response, content_type='application/json')
 
 
