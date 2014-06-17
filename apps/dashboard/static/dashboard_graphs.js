@@ -1,4 +1,4 @@
-/*globals google, table*/
+/*globals google, dashboard*/
 /**
  * Created by tristanpotter on 2014-05-22.
  * JavaScript that constructs and populates the dashboard with data.
@@ -59,8 +59,7 @@ $(document).ready(function () {
     // The time between ajax calls to the server in milliseconds
         refreshRate = 1000 * 60 * 15, // 1 second * 60 * 15 = 15 minutes
     // used for determining campaign period
-        analyticsStart = '2014-05-12',
-        analyticsEnd = 'today',
+        campaign = 'all',
     // for readability in click code TODO investigate how to remove
         CHARTS = [],
     // The options for each chart
@@ -85,13 +84,10 @@ $(document).ready(function () {
         this.chartOptions = chartOptions;
         this.dataOperation = dataOperation;
         this.selections = [];
-        this.addSelection = function (metrics, dimensions, start_date, end_date) {
+        this.addSelection = function (queryName) {
             this.selections.push({
                 response: undefined,
-                metrics: metrics,
-                dimensions: dimensions,
-                start_date: start_date,
-                end_date: end_date
+                queryName: queryName
             });
         };
     };
@@ -143,50 +139,18 @@ $(document).ready(function () {
     };
 
     /**
-     * Retrieves data from the server using AJAX. A JSON object is returned and passed to callback. See
-     *  the Google Analytics documentation on the formatting of query values.
-     * @param {string} metrics - the data that should be retrieved from the server ie. 'ga:sessions,ga:bounceRate'
-     * @param {string} dimmension - the categories data should be divided into ie. 'ga:date,ga:source'
-     * @param {string} start_date - the date when data should start ie analyticsStart or 'yesterday'
-     * @param {string} end_date - the date when data should end ie '2014-05-25' or 'today'
-     * @param {function} callback - function that gets called when the request is successful
-     */
-    var retrieveData = function (metrics, dimmension, start_date, end_date, queryName, callback) {
-        $.ajax({
-            url: "retrieve-data",
-            data: {
-                'table': table, //TODO add actual table values, move to server
-                'metrics': metrics,
-                'dimension': dimmension,
-                'start-date': start_date,
-                'end-date': end_date,
-                'queryName': queryName
-            },
-            type: "GET", // TODO GET or PUSH?
-            dataType: "json",
-            success: callback,
-            error: function (xhr, status, errorThrown) {
-                window.console.log(errorThrown);
-            }
-        });
-    };
-
-    /**
-     * TODO implement this, allowing for analytics code to be kept on the server
-     * (where it has to be anyways)
+     * Retrieves the requested data from the server (data being determined by campaign and query)
      * @param queryName
      * @param campaign
-     * @param dimension
      * @param callback
      */
-    var retrieveData_new = function (queryName, campaign, dimension, callback) {
+    var retrieveData = function (campaign, queryName, callback) {
         $.ajax({
             url: "retrieve-data",
             data: {
-                'table': table, //TODO add actual table values, move to server
+                'dashboard': dashboard,
                 'campaign': campaign,
-                'dimension': dimension,
-                'queryName': queryName
+                'query_name': queryName
             },
             type: "GET", // TODO GET or PUSH?
             dataType: "json",
@@ -246,13 +210,7 @@ $(document).ready(function () {
         for (var chartNumber = 0; chartNumber < chartStorage.length; chartNumber++) {
             // populate data
             for (var i = 0; i < chartStorage[chartNumber].selections.length; i++) {
-                retrieveData(
-                    chartStorage[chartNumber].selections[i].metrics.join(','),
-                    chartStorage[chartNumber].selections[i].dimensions.join(','),
-                    chartStorage[chartNumber].selections[i].start_date,
-                    chartStorage[chartNumber].selections[i].end_date,
-                    'SomeQuerry', //TODO make actual value based on group
-                    ajax_response(chartNumber, i));
+                retrieveData(campaign, chartStorage[chartNumber].selections[i].queryName, ajax_response(chartNumber, i));
             }
         }
     };
@@ -338,14 +296,8 @@ $(document).ready(function () {
                 }
                 return data;
             }, CHART_OPTIONS.columnChart);
-        quickview_graph.addSelection(
-            ['ga:bounceRate'],
-            ['ga:date'], // dimensions
-            analyticsStart, analyticsEnd); //start date, end date
-        quickview_graph.addSelection(
-            ['ga:bounceRate'],
-            ['ga:nthHour'], // dimensions
-            'today', 'today'); //start date, end date
+        quickview_graph.addSelection('GA_quickview_total');
+        quickview_graph.addSelection('GA_quickview_today');
         createAnalyticsGroup('QUICKVIEW', [quickview_graph], refreshRate);
 
         /*---  the blue label things at the top of the page  ---*/
@@ -355,7 +307,7 @@ $(document).ready(function () {
             // http://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
             return data.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }, {});
-        buttonSessionCount.addSelection(['ga:sessions'], ['ga:userType'], analyticsStart, 'today');
+        buttonSessionCount.addSelection('GA_sessionCount');
 
         // TODO investigate if this needs to be filtered to only new users
         // or if there is a better metric for this
@@ -363,13 +315,13 @@ $(document).ready(function () {
             var data = response.totalsForAllResults['ga:users'];
             return data.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }, {});
-        buttonUniqueVisitors.addSelection(['ga:users'], ['ga:userType'], analyticsStart, 'today');
+        buttonUniqueVisitors.addSelection('GA_uniqueVisitors');
 
         var buttonBounceRate = new DashboardElement($('#bounceRate'), QuickLabel, function (response) {
             var data = response.totalsForAllResults['ga:bounceRate'];
             return (Math.round((parseFloat(data) + 0.00001) * 100) / 100) + '%';
         }, {});
-        buttonBounceRate.addSelection(['ga:bounceRate'], ['ga:userType'], analyticsStart, 'today');
+        buttonBounceRate.addSelection('GA_bounceRate');
 
         var buttonSessionDuration = new DashboardElement($('#sessionDuration'), QuickLabel, function (response) {
             var data = parseFloat(response.totalsForAllResults['ga:avgSessionDuration']),
@@ -384,33 +336,33 @@ $(document).ready(function () {
             }
             return minutes + seconds;
         }, {});
-        buttonSessionDuration.addSelection(['ga:avgSessionDuration'], ['ga:userType'], analyticsStart, 'today');
+        buttonSessionDuration.addSelection('GA_sessionDuration');
 
         var buttonScrollRate = new DashboardElement($('#scrollRate'), QuickLabel, function (response) {
             var data = response.totalsForAllResults['ga:goal3ConversionRate'];
             return Math.round((parseFloat(data) + 0.00001) * 100) / 100 + '%';
         }, {});
-        buttonScrollRate.addSelection(['ga:goal3ConversionRate'], ['ga:userType'], analyticsStart, 'today');
+        buttonScrollRate.addSelection('GA_scrollRate');
 
         var buttonPreviewRate = new DashboardElement($('#previewRate'), QuickLabel, function (response) {
             var data = response.totalsForAllResults['ga:goal1ConversionRate'];
             return Math.round((parseFloat(data) + 0.00001) * 100) / 100 + '%';
         }, {});
-        buttonPreviewRate.addSelection(['ga:goal1ConversionRate'], ['ga:userType'], analyticsStart, 'today');
+        buttonPreviewRate.addSelection('GA_previewRate');
 
         var buttonBuyNowRate = new DashboardElement($('#buyNowRate'), QuickLabel, function (response) {
             var data = response.totalsForAllResults['ga:goal2ConversionRate'];
             return Math.round((parseFloat(data) + 0.00001) * 100) / 100 + '%';
         }, {});
-        buttonBuyNowRate.addSelection(['ga:goal2ConversionRate'], ['ga:userType'], analyticsStart, 'today');
+        buttonBuyNowRate.addSelection('GA_buyNowRate');
 
-        //TODO add purchase rate button when know how to use click meter API
 //        var buttonPurchaseRate = new DashboardElement($('#purchaseRate'), QuickLabel, function (response) {
-//            var data = response.totalsForAllResults['ga:goal4ConversionRate'];
+//            //TODO figure out data
+//            var data = 0;
 //            return Math.round((parseFloat(data) + 0.00001) * 100) / 100 + '%';
 //        }, {});
-//        buttonPurchaseRate.addSelection(['ga:goal4Completions'], ['ga:userType'], 'today', 'today');
-//        buttonPurchaseRate.addSelection(['ga:goal4Completions'], ['ga:userType'], analyticsStart, 'today');
+//        buttonPurchaseRate.addSelection(); //TODO queryName
+//        buttonPurchaseRate.addSelection(); //TODO queryName
 
         createAnalyticsGroup('BUTTONS', [buttonSessionCount, buttonUniqueVisitors, buttonBounceRate, buttonSessionDuration,
             buttonScrollRate, buttonPreviewRate, buttonBuyNowRate], refreshRate);
@@ -425,8 +377,8 @@ $(document).ready(function () {
                 //console.log(data);
                 return data;
             }, $.extend({}, CHART_OPTIONS.pieChart, {title: 'Sessions'}));
-        sortview.addSelection(['ga:sessions'], ['ga:deviceCategory'], analyticsStart, analyticsEnd);
-        sortview.addSelection(['ga:sessions'], ['ga:userType'], analyticsStart, analyticsEnd);
+        sortview.addSelection('GA_sortview_device');
+        sortview.addSelection('GA_sortview_user');
         createAnalyticsGroup('SORTVIEW', [sortview], refreshRate);
 
         /*---  The three pie charts in 'Total Conversions' area  ---*/
@@ -450,7 +402,7 @@ $(document).ready(function () {
                 numberFormat.format(output, 1);
                 return output;
             }, $.extend({}, CHART_OPTIONS.pieChart, {title: 'Mobile', legend: 'none'}));
-        totalConversionsMobile.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
+        totalConversionsMobile.addSelection('GA_totalConversions');
         createAnalyticsGroup('CONVERSIONS', [totalConversionsMobile], refreshRate);
 
         var totalConversionsTablet = new DashboardElement($('#total-conversions-tablet-graph')[0],
@@ -473,7 +425,7 @@ $(document).ready(function () {
                 numberFormat.format(output, 1);
                 return output;
             }, $.extend({}, CHART_OPTIONS.pieChart, {title: 'Tablet', legend: 'none'}));
-        totalConversionsTablet.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
+        totalConversionsTablet.addSelection('GA_totalConversions');
         createAnalyticsGroup('CONVERSIONS', [totalConversionsTablet], refreshRate);
 
         var totalConversionsDesktop = new DashboardElement($('#total-conversions-desktop-graph')[0],
@@ -497,20 +449,11 @@ $(document).ready(function () {
                 numberFormat.format(output, 1);
                 return output;
             }, $.extend({}, CHART_OPTIONS.pieChart, {title: 'Desktop', legend: 'none'}));
-        totalConversionsDesktop.addSelection(['ga:goal1Completions', 'ga:goal2Completions', 'ga:goal3Completions'], ['ga:deviceCategory'], analyticsStart, 'today');
+        totalConversionsDesktop.addSelection('GA_totalConversions');
         createAnalyticsGroup('CONVERSIONS', [totalConversionsDesktop], refreshRate);
 
         /*---  The two tables on the page  ---*/
-        var tableMetrics = [
-            'ga:sessions',
-            'ga:newUsers',
-            'ga:avgSessionDuration',
-            'ga:goal1Completions',
-            'ga:goal1ConversionRate',
-            'ga:goal2Completions',
-            'ga:goal2ConversionRate',
-            'ga:goal3Completions',
-            'ga:goal3ConversionRate'];
+
         // the 'Traffic by Source' table
         var sourceTableTraffic = new DashboardElement($('#source-table-traffic')[0],
             google.visualization.Table, function (response) {
@@ -537,8 +480,8 @@ $(document).ready(function () {
                 view.hideColumns([4, 5, 6, 7, 8, 9, 10]);
                 return view;
             }, $.extend({}, CHART_OPTIONS.table, {sortColumn: 1}));
-        sourceTableTraffic.addSelection(tableMetrics, ['ga:source'], analyticsStart, analyticsEnd);
-        sourceTableTraffic.addSelection(tableMetrics, ['ga:source'], 'today', 'today');
+        sourceTableTraffic.addSelection('GA_table_total');
+        sourceTableTraffic.addSelection('GA_table_today');
         createAnalyticsGroup('TRAFFICTABLE', [sourceTableTraffic], refreshRate);
 
         // the 'Goals by Source' table
@@ -557,8 +500,8 @@ $(document).ready(function () {
                 view.hideColumns([1, 2, 3]);
                 return view;
             }, $.extend({}, CHART_OPTIONS.table, {sortColumn: 2}));
-        sourceTableGoals.addSelection(tableMetrics, ['ga:source'], analyticsStart, analyticsEnd);
-        sourceTableGoals.addSelection(tableMetrics, ['ga:source'], 'today', 'today');
+        sourceTableGoals.addSelection('GA_table_total');
+        sourceTableGoals.addSelection('GA_table_today');
         createAnalyticsGroup('GOALTABLE', [sourceTableGoals], refreshRate);
 
         /*---  'Metrics over time' graph at bottom of page  ---*/
@@ -568,8 +511,8 @@ $(document).ready(function () {
                 //  avg session time needs to be by #m#s and sessions/bounces formated
                 return new google.visualization.DataTable(response.dataTable, 0.6);
             }, CHART_OPTIONS.columnChart);
-        metricsview.addSelection(['ga:sessions', 'ga:bounces'], ['ga:date'], analyticsStart, 'today');
-        metricsview.addSelection(['ga:avgSessionDuration'], ['ga:date'], analyticsStart, 'today');
+        metricsview.addSelection('GA_metricsview_traffic');
+        metricsview.addSelection('GA_metricsview_sessionDuration');
         createAnalyticsGroup('METRICS', [metricsview], refreshRate);
 
         /*--- The three 'Goal over time' graphs ---*/
@@ -577,17 +520,17 @@ $(document).ready(function () {
             google.visualization.ColumnChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
             }, CHART_OPTIONS.columnChart);
-        goal1.addSelection(['ga:goal1ConversionRate'], ['ga:date'], analyticsStart, 'today');
+        goal1.addSelection('GA_goals_previewRate');
         var goal2 = new DashboardElement($('#buyNow-graph')[0],
             google.visualization.ColumnChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
             }, CHART_OPTIONS.columnChart);
-        goal2.addSelection(['ga:goal2ConversionRate'], ['ga:date'], analyticsStart, 'today');
+        goal2.addSelection('GA_goals_buyNowRate');
         var goal3 = new DashboardElement($('#scrollRate-graph')[0],
             google.visualization.ColumnChart, function (response) {
                 return new google.visualization.DataTable(response.dataTable, 0.6);
             }, CHART_OPTIONS.columnChart);
-        goal3.addSelection(['ga:goal3ConversionRate'], ['ga:date'], analyticsStart, 'today');
+        goal3.addSelection('GA_goals_scrollRate');
         createAnalyticsGroup('GOALS', [goal1, goal2, goal3], refreshRate);
 
         // Get the data and draw all these graphs
@@ -599,6 +542,11 @@ $(document).ready(function () {
 
     // Start everything up
     google.load('visualization', '1.0', {'packages': ['table', 'corechart'], callback: drawElements});
+
+    $('#campaign').change(function() {
+        campaign = $(this).val();
+        update_all();
+    }).change();
 
     // Buttons that change selection
     // TODO looking for a way to get rid of these

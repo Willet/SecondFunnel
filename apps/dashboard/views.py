@@ -1,113 +1,75 @@
-from apiclient.errors import HttpError
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.views.decorators.cache import cache_page, never_cache
-import httplib2
-import os
 import json
-import re
 
-from apiclient.discovery import build
-
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import cache_page, never_cache
 from django.contrib.auth import authenticate, login, logout
+from django.core.exceptions import ObjectDoesNotExist
 
-from django.utils.timezone import now
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
+
+from django.utils.timezone import now
+from datetime import timedelta
+
 from django.contrib.auth.models import User
-
-from oauth2client.client import SignedJwtAssertionCredentials
-
-from string import capitalize
-
-from apps.dashboard.models import DashBoard, UserProfile
-from apps.utils import async
+from apps.dashboard.models import DashBoard, UserProfile, Campaign, Query
 
 LOGIN_URL = '/dashboard/login'
-SERVICE_ACCOUNT_EMAIL = "231833496051-kf5r0aath3eh96209hdutfggj5dqld9f@developer.gserviceaccount.com"
-SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(os.path.dirname(__file__),
-                                                'ad04005e5e7b5a51c66cd176e10277a59cb61824-privatekey.p12')
 
 
-def build_analytics():
-    """
-    Builds and returns an Analytics service object authorized with the given service account
-    Returns a service object
-    """
-    f = open(SERVICE_ACCOUNT_PKCS12_FILE_PATH, 'rb')
-    key = f.read()
-    f.close()
-
-    credentials = SignedJwtAssertionCredentials(SERVICE_ACCOUNT_EMAIL,
-                                                key,
-                                                scope='https://www.googleapis.com/auth/analytics.readonly')
-    http = httplib2.Http()
-    http = credentials.authorize(http)
-
-    return build('analytics', 'v3', http=http)
-
-
-def prettify_data(response):
-    if 'dataTable' in response:
-        for header in response['dataTable']['cols']:
-            header['label'] = header['label'].split(':')[1]
-            # Complicated reg-ex:
-            #   first group is all lower case,
-            #   second is a single group capital/digit followed by more digits or lower case.
-            #   ie. goal2Completions -> [(u'goal', u''), (u'', u'2'), (u'', u'Completions')]
-            temp_title = re.findall(r'(^[a-z]*)|([\dA-Z]{1}[\da-z]*)', header['label'])
-            # Then take the correct group, make it uppercase, and add them together to form
-            #   the pretty human readable title for the dataTable columns
-            # TODO : replace goal 2 etc with descriptive names
-            title = ''
-            for group in temp_title:
-                if group[0] == u'':
-                    title += group[1] + ' '
-                else:
-                    title += capitalize(group[0]) + ' '
-            title = title.replace('Goal 1', 'Preview')
-            title = title.replace('Goal 2', 'Buy Now')
-            title = title.replace('Goal 3', 'Scroll')
-            title = title.replace('Conversion', '')
-            header['label'] = title
-        for row in response['dataTable']['rows']:
-            row['c'][0]['v'] = capitalize(row['c'][0]['v'])
-    else:
-        if 'rows' in response:
-            for row in response['dataTable']['rows']:
-                row['c'][0]['v'] = capitalize(row['c'][0]['v'])
-    return response
-
-@never_cache
-@login_required(login_url=LOGIN_URL)
+# @cache_page(60*60)  # cache page for an hour
+# @login_required(login_url=LOGIN_URL)
+# @never_cache
 def get_data(request):
     response = {'error': 'Retrieving data failed'}
     if request.method == 'GET':
-        GET_REQUEST = request.GET
+        try:
+            user = User.objects.get(pk=request.user.pk)
+            profile = UserProfile.objects.get(user=user)
+        except ObjectDoesNotExist:
+            print 'user profile does not exist'
+            return HttpResponse(response, content_type='application/json')
+        request_get = request.GET
 
-        if ('table' in GET_REQUEST) and \
-                ('metrics' in GET_REQUEST) and ('dimension' in GET_REQUEST) and \
-                ('start-date' in GET_REQUEST) and ('end-date' in GET_REQUEST):
+        dashboard_id = -1
+        if 'dashboard' in request_get:
+            dashboard_id = request_get['dashboard']
+        try:
+            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
+        except DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist:
+            print "Dashboard error, multiple or none"
+            return HttpResponse(response, content_type='application/json')
 
-            table_id = 'ga:' + GET_REQUEST['table']
-            metrics = GET_REQUEST['metrics']
-            dimension = GET_REQUEST['dimension']
-            start_date = GET_REQUEST['start-date']
-            end_date = GET_REQUEST['end-date']
+        if not profile.dashboards.all().filter(pk=dashboard_id):
+            # can't view page
+            print "User: " + user.username + "cannot view dashboard: " + dashboard_id
+            return HttpResponse(response, content_type='application/json')
+        if ('query_name' in request_get) and ('campaign' in request_get):
+            # get data from ga based on queryName
+            campaign_id = request_get['campaign']
+            start_date = now() - timedelta(days=90)
+            end_date = now()
+            if not campaign_id == 'all':
+                try:
+                    campaign = Campaign.objects.get(identifier=campaign_id)
+                except Campaign.MultipleObjectsReturned, Campaign.DoesNotExist:
+                    print 'Multiple campaign or campaign dne'
+                    return response
+                start_date = campaign.start_date
+                end_date = campaign.end_date
 
-            service = build_analytics()
-            data = service.data().ga().get(ids=table_id,
-                                           start_date=start_date,
-                                           end_date=end_date,
-                                           metrics=metrics,
-                                           dimensions=dimension,
-                                           output='dataTable')
+            query_name = request_get['query_name']
             try:
-                response = prettify_data(data.execute())
-            except HttpError as error:
-                print "Querying Google Analytics failed with: ", error
-                response['error'] = 'Querying GA failed'
-    response = json.dumps(response)
+                query = Query.objects.filter(identifier=query_name).select_subclasses()
+                print query
+            except Query.MultipleObjectsReturned, Query.DoesNotExist:
+                print 'error, multiple queries or query does not exist'
+                return HttpResponse(response, content_type='application/json')
+            query = query[0]
+            # set response
+            response = query.get_response(cur_dashboard.data_ids, start_date, end_date)
+    print json.dumps(response)
     return HttpResponse(response, content_type='application/json')
 
 
@@ -119,8 +81,7 @@ def index(request):
         profile = UserProfile.objects.get(user=user)
         dashboards = profile.dashboards.all()
         context_dict = {'dashboards': [{'site': dashboard.site_name,
-                                        'pk': dashboard.pk,
-                                        'tableId': dashboard.table_id} for dashboard in dashboards]}
+                                        'pk': dashboard.pk} for dashboard in dashboards]}
     except UserProfile.DoesNotExist:
         print "user does not exist"
 
@@ -129,21 +90,24 @@ def index(request):
 
 
 @login_required(login_url=LOGIN_URL)
-def dashboard(request, dashboardId):
+def dashboard(request, dashboard_id):
     profile = UserProfile.objects.get(user=request.user)
-    if not profile.dashboards.all().filter(pk=dashboardId):
+    if not profile.dashboards.all().filter(pk=dashboard_id):
         # can't view page
         return HttpResponseRedirect('/dashboard/')
     else:
         context_dict = {}
         try:
-            dashboard = DashBoard.objects.get(pk=dashboardId)
+            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
         except DashBoard.MultipleObjectsReturned or DashBoard.DoesNotExist:
             return HttpResponseRedirect('/dashboard/')
-        context_dict['tableId'] = dashboard.table_id
-        context_dict['siteName'] = dashboard.site_name
+        context_dict['dashboard_id'] = cur_dashboard.pk
+        context_dict['siteName'] = cur_dashboard.site_name
         # TODO add this to model
-        context_dict['campaigns'] = []
+        context_dict['campaigns'] = [{'name': 'Lived In', 'value': 'livedin'},
+                                     {'name': 'Summer Loves', 'value': 'summerloves'},
+                                     {'name': 'Paddington Bear', 'value': 'paddington'},
+                                     {'name': 'President', 'value': 'president'}]
 
         return render(request, 'dashboard.html', context_dict)
 
