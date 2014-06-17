@@ -8,6 +8,7 @@ from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider,\
     SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
+from apps.scrapy.utils.misc import open_in_browser
 
 
 class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
@@ -23,6 +24,9 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     store_slug = name
     visited = []
 
+    def __init__(self, *args, **kwargs):
+        return super(SurlatableSpider, self).__init__(*args, **kwargs)
+
     def parse_start_url(self, response):
         """
         Handles any special parsing from start_urls.
@@ -31,6 +35,7 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         This method is misleading as it actually cascades...
         """
+        # scrape individual products.
         if self.is_product_page(response):
             self.rules = ()
             self._rules = []
@@ -42,6 +47,12 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         sel = Selector(response)
         pages = sel.xpath('//*[@class="pagination"][1]')\
             .css('.pageno::attr(href)').extract()
+
+        meta = {}
+        category_url, category_name = (response.url,
+            sel.css('#main #sidebar h1::text').extract_first())
+        if category_name:
+            meta = {"categories": {category_name: category_url}}
 
         if not pages:
             return []
@@ -56,13 +67,13 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         for page in page_iter:
             page_url = hostname + page
             self.visited.append(page_url)
-            urls.append(WebdriverRequest(page_url))
+            urls.append(WebdriverRequest(page_url, meta=meta))
 
         return urls
 
     def is_product_page(self, response):
         is_product_page = re.search('.*product/PRO-.*', response.url)
-        return is_product_page
+        return bool(is_product_page)
 
     def parse_product(self, response):
         """
@@ -96,6 +107,11 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         else:
             l.add_css('price', 'li.price::text', re='(\$\d+\.\d+)')
 
+        if referer:
+            attributes['categories'] = {
+                'name': referer,
+            }
+
         l.add_value('attributes', attributes)
 
         # URL
@@ -110,8 +126,6 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             hostname + xml_path, callback=self.parse_images)
 
         request.meta['item'] = item
-        if referer:
-            request.meta['category_url'] = referer
 
         yield request
 

@@ -164,10 +164,13 @@ class ItemPersistencePipeline(object):
 
 class CategoryPipeline(object):
     def process_item(self, item, spider):
-        if isinstance(item, ScraperProduct):
-            categories = item.get('attributes', {}).get('categories', [])
-            for name, url in categories:
-                self.add_to_category(item, name, url)
+        if not isinstance(item, ScraperProduct):
+            return item
+
+        # if categories are given, add them
+        categories = item.get('attributes', {}).get('categories', [])
+        for name, url in categories:
+            self.add_to_category(item, name, url)
 
         return item
 
