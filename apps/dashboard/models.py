@@ -185,13 +185,11 @@ class ClickmeterQuery(Query):
         data = {'timeframe': 'custom',
                 'fromDate': self.get_start_date(start_date),
                 'toDate': self.get_end_date(end_date)}
-        print data
         return {'url':  url, 'header': auth_header, 'payload': data}
 
     def get_response(self, data_ids, start_date, end_date):
         query = self.get_query(data_ids, start_date, end_date)
         response = {'error': 'Failed to retrieve data'}
-        print query
 
         try:
             response = requests.get(query['url'], headers=query['header'], params=query['payload'])
@@ -203,7 +201,6 @@ class ClickmeterQuery(Query):
         if False:#not 'error' in response:
             self.cached_response = json.dumps(response)
             self.save()
-        print response
         return json.dumps(response)
 
 
