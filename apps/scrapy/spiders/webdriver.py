@@ -104,10 +104,10 @@ class WebdriverCrawlSpider(Spider):
     #   Everything below this line is duplicated verbatim
     #   from scrapy.contrib.spiders.CrawlSpider
     # --------------------------------------------------------------------------
-    def parse(self, response):
+    def parse(self, response, *args, **kwargs):
         return self._parse_response(response, self.parse_start_url, cb_kwargs={}, follow=True)
 
-    def parse_start_url(self, response):
+    def parse_start_url(self, response, *args, **kwargs):
         return []
 
     def process_results(self, response, results):

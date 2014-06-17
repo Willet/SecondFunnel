@@ -52,7 +52,7 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         category_url, category_name = (response.url,
             sel.css('#main #sidebar h1::text').extract_first())
         if category_name:
-            meta = {"categories": {category_name: category_url}}
+            meta = {category_name: category_url}
 
         if not pages:
             return []
@@ -67,7 +67,9 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         for page in page_iter:
             page_url = hostname + page
             self.visited.append(page_url)
-            urls.append(WebdriverRequest(page_url, meta=meta))
+            request = WebdriverRequest(page_url)
+            request.meta['categories'] = meta
+            urls.append(request)
 
         return urls
 
