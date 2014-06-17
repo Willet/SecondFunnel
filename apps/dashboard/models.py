@@ -181,7 +181,7 @@ class ClickmeterQuery(Query):
             return {'error': 'id cannot be found'}
 
         url = 'http://apiv2.clickmeter.com' + str(self.endpoint).format(id=clickmeter_id)
-        auth_header = {'X-Clickmeter-Authkey': settings.CLICKMETER_API_KEY}
+        auth_header = {"X-Clickmeter-Authkey": settings.CLICKMETER_API_KEY}
         data = {'timeframe': 'custom',
                 'fromDate': self.get_start_date(start_date),
                 'toDate': self.get_end_date(end_date)}
@@ -201,7 +201,8 @@ class ClickmeterQuery(Query):
         if False:#not 'error' in response:
             self.cached_response = json.dumps(response)
             self.save()
-        return json.dumps(response)
+        print response
+        return response
 
 
 class Campaign(models.Model):
