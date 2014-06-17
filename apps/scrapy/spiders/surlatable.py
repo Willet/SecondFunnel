@@ -75,6 +75,8 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         """
 
         url = response.url
+        referer = response.request.headers.get('Referer')
+
         hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
 
         sel = Selector(response)
@@ -108,6 +110,8 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             hostname + xml_path, callback=self.parse_images)
 
         request.meta['item'] = item
+        if referer:
+            request.meta['category_url'] = referer
 
         yield request
 
