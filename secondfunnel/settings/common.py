@@ -30,8 +30,8 @@ CLOUDFRONT_DOMAIN = 'cdn.secondfunnel.com'
 CLOUDFRONT_USER_AGENT = 'Amazon CloudFront'
 
 # Google analytics
-GOOGLE_ANALYTICS_PROFILE = '67271131'         
-GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17' # dev and test (production has a separate profile, -16)
+GOOGLE_ANALYTICS_PROFILE = '67271131'
+GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17'  # dev and test (production has a separate profile, -16)
 SERVICE_ACCOUNT_EMAIL = "231833496051-kf5r0aath3eh96209hdutfggj5dqld9f@developer.gserviceaccount.com"
 SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(PROJECT_ROOT,
                                                 'ad04005e5e7b5a51c66cd176e10277a59cb61824-privatekey.p12')
@@ -59,6 +59,7 @@ MANAGERS = ADMINS
 BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(minutes=30))\
     .strftime("%a, %d %b %Y %H:%M:%S GMT")
 
+
 def from_project_root(path):
     """returns the path prepended by the project root."""
     return os.path.join(PROJECT_ROOT, path)
@@ -75,8 +76,9 @@ if 'RDS_DB_NAME' in os.environ:
             }
     }
 
-    CONN_MAX_AGE = 0  # default to never time out from django's side;
-                      # RDS is its own value set
+    # default to never time out from django's side;
+    # RDS is its own value set
+    CONN_MAX_AGE = 0
 else:  # defaults (dev) for letting bare django run -- do not modify
     DATABASES = {
         'default': {
@@ -265,25 +267,27 @@ ROOT_URLCONF = 'secondfunnel.urls'
 WSGI_APPLICATION = 'secondfunnel.wsgi.application'
 
 TEMPLATE_DIRS = (
-# Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-# Always use forward slashes, even on Windows.
-# Don't forget to use absolute paths, not relative paths.
+    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
 )
 
-INSTALLED_APPS = (
+FRAMEWORK_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_admin_bootstrapped.bootstrap3', # before 'django_admin_bootstrapped'
+    'django_admin_bootstrapped.bootstrap3',  # before 'django_admin_bootstrapped'
     'django_admin_bootstrapped',  # before 'django.contrib.admin'
     'adminactions',  # before 'django.contrib.admin'
     'django.contrib.admin',
     'django.contrib.admindocs',
-    'django.contrib.humanize',
+    'django.contrib.humanize'
+)
 
+THIRD_PARTY_APPS = (
     # external apps
     'djcelery',
     'storages',
@@ -294,8 +298,10 @@ INSTALLED_APPS = (
     'ajax_forms',
     'compressor',
     'corsheaders',
-    'raven.contrib.django.raven_compat',  # logging
+    'raven.contrib.django.raven_compat'  # logging
+)
 
+LOCAL_APPS = (
     # our apps
     'apps.ads',
     'apps.api',
@@ -309,8 +315,11 @@ INSTALLED_APPS = (
     'apps.utils',
     'apps.imageservice',
     'apps.scraper',
-    'apps.dashboard',
+    'apps.dashboard'
 )
+
+INSTALLED_APPS = FRAMEWORK_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
 
 CORS_ORIGIN_REGEX_WHITELIST = (
     # for testing local pages using live IR
@@ -333,11 +342,8 @@ CORS_ALLOW_CREDENTIALS = True
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 JENKINS_TEST_RUNNER = 'django_jenkins.nose_runner.CINoseTestSuiteRunner'
-COVERAGE_REPORT_HTML_OUTPUT_DIR = os.path.join(
-        os.path.dirname(
-            os.path.dirname(
-                os.path.dirname(
-                    os.path.abspath(__file__)))), 'test_report')
+COVERAGE_REPORT_HTML_OUTPUT_DIR = \
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_report')
 
 COVERAGE_ADDITIONAL_MODULES = ['apps']
 COVERAGE_PATH_EXCLUDES = ['.env', 'migrations']
@@ -389,7 +395,7 @@ LOGGING = {
         'django.security.DisallowedHost': {
             'handlers': ['null'],
             'propagate': False,
-       },
+        }
     }
 }
 
@@ -468,7 +474,7 @@ IRCONFIG_RETRY_THRESHOLD = 240  # seconds
 
 TASTYPIE_ALLOW_MISSING_SLASH = True  # allow missing trailing slashes
 
-TRACKING_COOKIE_AGE = 60 * 60 * 24 * 30 # seconds: s*m*h*d; 30 days
+TRACKING_COOKIE_AGE = 60 * 60 * 24 * 30  # seconds: s*m*h*d; 30 days
 TRACKING_COOKIE_DOMAIN = 'px.secondfunnel.com'
 
 # API endpoints and keys will eventually be different for each environment
