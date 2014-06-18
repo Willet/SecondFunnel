@@ -32,9 +32,17 @@ CLOUDFRONT_USER_AGENT = 'Amazon CloudFront'
 # Google analytics
 GOOGLE_ANALYTICS_PROFILE = '67271131'
 GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17'  # dev and test (production has a separate profile, -16)
-SERVICE_ACCOUNT_EMAIL = "231833496051-kf5r0aath3eh96209hdutfggj5dqld9f@developer.gserviceaccount.com"
-SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(PROJECT_ROOT,
-                                                'ad04005e5e7b5a51c66cd176e10277a59cb61824-privatekey.p12')
+GOOGLE_API_PRIVATE_KEY = \
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'keys/google-service-account-prod.p12'
+    )
+SERVICE_ACCOUNT_EMAIL = '231833496051-kf5r0aath3eh96209hdutfggj5dqld9f@developer.gserviceaccount.com'
+SERVICE_ACCOUNT_PKCS12_FILE_PATH = \
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'keys/ad04005e5e7b5a51c66cd176e10277a59cb61824-privatekey.p12'
+    )
 
 # Clickmeter
 CLICKMETER_API_KEY = '8306A265-51DC-4D3C-B1E3-79A8FCB2336E'
