@@ -1,7 +1,7 @@
 from fabric.api import task
 
 
-@task
+@task(alias='deploy')
 def deploy(cluster_type='test', branch='master'):
     """Runs all of our deployment tasks"""
 
