@@ -1,4 +1,5 @@
 import boto
+import boto.ec2
 from secondfunnel.settings import common as django_settings
 from utils import flatten_reservations
 

@@ -14,5 +14,3 @@ def deploy(cluster_type='test', branch='master'):
 
     with settings(hide('stdout', 'commands')):
         execute(deploy_celery, cluster_type, branch, hosts=celery_workers_dns)
-
-
