@@ -32,7 +32,7 @@ def to_local_database(native=True):
 
     # Dump the remote database
     run('fab dump_database')
-    get('/tmp/db.sql', 'db.sql')
+    get('/tmp/db.dump', 'db.dump')
 
     # Finally, load the data
     local('fab load_database')
@@ -105,6 +105,9 @@ def flush_database():
 
 @task
 def load_database(path='db.dump'):
+    """
+    restore database fump dump (--path=db.dump)
+    """
     args = get_arguments()
     arguments = args['arguments']
     password = args['password']
