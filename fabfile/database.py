@@ -3,13 +3,12 @@ import os
 from datetime import datetime
 
 from fabric.operations import get, local, run
-from fabric.api import task, env, hide, settings
-from fabric.tasks import execute
+from fabric.api import task, env, hide
 from fabric.contrib import django
 
 
 @task
-def to_local_database(native=True):
+def remote_to_local(native=True):
     """
     Copy database to local machine
     """
@@ -21,29 +20,37 @@ def to_local_database(native=True):
     if not native:
         pass  # Error; not implemented
 
-    now = datetime.now()
-
     # Dump the remote database
     file_name = 'db.dump'
     file_path = '/tmp/' + file_name
-    #dump_database(file_path)
-    #get(file_path, file_name)
+    dump(file_path)
+    get(file_path, file_name)
 
+    restore_local_from_file(path=file_name)
+
+
+@task
+def restore_local_from_file(path="db.dump"):
+    """ Drops local database, and restores data from file """
     # make it look like a local only command
     env.hosts = []
     django.settings_module('secondfunnel.settings.dev')
     from django.conf import settings
     # Dump our local database to backup, then flush it out
-    local('fab database.dump_database:path=%s' % (now.strftime('%Y-%m-%dT%H:%M.dump')))
+    now = datetime.now()
+    local('fab database.dump:path=%s' % (now.strftime('%Y-%m-%dT%H:%M.dump')))
     # clear all existing data from database
-    flush_local_database()
+    flush_local()
     # load downloaded database
-    load_database(path=file_path)
+    local_restore(path=path)
 
-def flush_local_database():
+
+@task
+def flush_local():
+    """ flush the local machines database """
     old_environment = env.environment
     old_env_hosts = env.hosts
-    env.environment = 'DEV';
+    env.environment = 'DEV'
     env.hosts = []
 
     args = get_arguments()
@@ -57,11 +64,13 @@ def flush_local_database():
     env.hosts = old_env_hosts
     env.environment = old_environment
 
+
 def is_windows():
     return os.name == 'nt'
 
 
 def read_remote_env():
+    from fabric.api import settings
     if env.hosts:
         ret = {}
         with hide('output', 'running', 'warnings'), settings(warn_only=True):
@@ -122,10 +131,8 @@ def get_arguments():
 
 
 @task
-def dump_database(path='/tmp/db.dump'):
-    """
-    dump database to --path=/tmp/db.dump
-    """
+def dump(path='/tmp/db.dump'):
+    """ dump database to --path=/tmp/db.dump """
     args = get_arguments()
     arguments = args['arguments']
     password = args['password']
@@ -142,7 +149,7 @@ def dump_database(path='/tmp/db.dump'):
 
 
 @task
-def load_database(path='db.dump'):
+def local_restore(path='db.dump'):
     """
     restore database fump dump (--path=db.dump)
     """
