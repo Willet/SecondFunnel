@@ -304,7 +304,6 @@ INSTALLED_APPS = (
     'apps.intentrank',
     'apps.contentgraph',
     'apps.website',
-    'apps.static_pages',
     'apps.tracking',
     'apps.utils',
     'apps.imageservice',

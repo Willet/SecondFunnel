@@ -1,8 +1,6 @@
 import os
 import re
-import json
 import hashlib
-import tempfile
 import cStringIO
 import mimetypes
 
@@ -17,7 +15,7 @@ from apps.pinpoint.utils import read_remote_file
 from apps.imageservice.models import SizeConf, ExtendedImage
 from apps.imageservice.utils import create_image, IMAGE_SIZES, within_color_range
 
-from apps.static_pages.aws_utils import upload_to_bucket, s3_key_exists
+from lib.aws_utils import upload_to_bucket
 
 
 # Use a semaphore as image processing is an CPU expensive operation
@@ -50,7 +48,7 @@ def resize_images(sizes, img):
     for size in sizes:
         name, width, height = size.name, size.width, size.height
         resized = img.resize(width, height, Image.ANTIALIAS)
-        resized = resized.filter(ImageFilter.UnsharpMask) # Unsharpen image
+        resized = resized.filter(ImageFilter.UnsharpMask)  # Unsharpen image
         image_sizes.append(resized)
 
     return image_sizes
@@ -92,17 +90,19 @@ def upload_to_s3(path, folder, img, size):
     @param size: SizeConf object
     @return: None
     """
-    output = cStringIO.StringIO() # save into a string to avoid disk write
+    output = cStringIO.StringIO()  # save into a string to avoid disk write
     img.save(output)
 
     file_format = "jpg" if img.format is None else img.format
     filename = "{0}.{1}".format(size.name, file_format)
     bucket = os.path.join(settings.IMAGE_SERVICE_BUCKET, path, folder)
 
-    if not upload_to_bucket(bucket_name=bucket,
-        filename=filename, content=output,
-        content_type=mimetypes.MimeTypes().guess_type(filename)[0],
-        public=True, do_gzip=True):
+    if not upload_to_bucket(
+            bucket_name=bucket,
+            filename=filename, content=output,
+            content_type=mimetypes.MimeTypes().guess_type(filename)[0],
+            public=True,
+            do_gzip=True):
         raise IOError("ImageService could not upload size.")
 
     return os.path.join(bucket, filename)
@@ -184,7 +184,7 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
             'height': image_object['height'],
         }
 
-    else: # fall back to default ImageService is Cloudinary is not available
+    else:  # fall back to default ImageService is Cloudinary is not available
         if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"
             img = ExtendedImage.open(source)
         elif re.match(r'^https?:', source):
@@ -200,13 +200,13 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
             resized = img.resize(width, height, Image.ANTIALIAS)
             resized = resized.filter(ImageFilter.UnsharpMask)
 
-            try: # ignore on failure
+            try:  # ignore on failure
                 master_url = upload(path, folder, resized, size)
                 data['sizes'][size.name] = {
                     'width': size.width,
                     'height': size.height
                 }
-            except (OSError, IOError) as e: # upload failed, don't add to our json
+            except (OSError, IOError):  # upload failed, don't add to our json
                 continue
 
         dominant_color = img.dominant_color

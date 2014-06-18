@@ -8,5 +8,3 @@ from tile import *
 from tileconfig import *
 from user import *
 from proxy import *
-from queue import *
-from irconfig import *

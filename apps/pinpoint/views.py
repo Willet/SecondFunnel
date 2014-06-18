@@ -5,11 +5,6 @@ from django.conf import settings
 from django.db.models import Count
 from apps.intentrank.algorithms import ir_base
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseServerError
 from django.http.response import HttpResponseNotFound
@@ -101,7 +96,7 @@ def campaign_by_slug(request, page_slug, product_identifier='id',
                               .order_by('-num_tiles')[0])
             if not product:
                 product = None
-        except (Product.DoesNotExist, IndexError, ValueError) as err:
+        except (Product.DoesNotExist, IndexError, ValueError):
             product = None
     else:
         product = None
@@ -114,7 +109,7 @@ def campaign_by_slug(request, page_slug, product_identifier='id',
 @never_cache
 def product_feed(request, page_slug):
     page = get_object_or_404(Page, url_slug=page_slug)
-    
+
     url = 'http://{}.secondfunnel.com/{}'.format(
         page.store.slug, page_slug
     )
@@ -160,8 +155,8 @@ def product_feed(request, page_slug):
             link.text = tile.get('redirect-url')
         else:
             link.text = '{}#{}'.format(
-                 url,
-                 tile.get('tile-id')
+                url,
+                tile.get('tile-id')
             )
 
         description = SubElement(item, 'description')
@@ -264,6 +259,7 @@ def product_feed(request, page_slug):
         pretty_feed, content_type='application/rss+xml; charset=utf-8'
     )
 
+
 @login_required
 def page_stats(request, page_slug):
     page = get_object_or_404(Page, url_slug=page_slug)
@@ -272,18 +268,11 @@ def page_stats(request, page_slug):
         'keen': settings.KEEN_CONFIG
     })
 
-def generate_static_campaign(request, store_id, page_id):
-    """Too much confusion over the endpoint. Create alias for
-
-    /pinpoint/id/id/regenerate == /static_pages/id/id/regenerate
-    """
-    from apps.static_pages.views import generate_static_campaign as real_gsc
-    return real_gsc(request=request, store_id=store_id, page_id=page_id)
-
 
 def app_exception_handler(request):
     """Renders the "something broke" page. JS console shows the error."""
-    import sys, traceback
+    import sys
+    import traceback
 
     _, exception, _ = sys.exc_info()
     stack = traceback.format_exc().splitlines()
