@@ -804,7 +804,7 @@ class Tile(BaseModel):
 
     # '': not prioritized.
     # 'request': prioritized for every IR request made by the client.
-    # 'pageview': prioritized for every page view made by the client. (not implemented)
+    # 'pageview': prioritized for every page view made by the client. (implemented in some algorithms, see docs)
     # 'session': prioritized for the beginning of each session.
     # 'cookie': prioritized if the tile cookie does not exist. (not implemented)
     # 'custom': run the tile's priority function that returns an int.
