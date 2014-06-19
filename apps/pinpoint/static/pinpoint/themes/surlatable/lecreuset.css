@@ -67,6 +67,10 @@ body {
     width: 960px;
 }
 
+.tile {
+    padding: 15px;
+}
+
 .tile .name {
     font-size: 0.9em;
     color: #444;
@@ -511,7 +515,7 @@ body {
     }
 
     .previewContainer .info .buy .button img {
-        vertical-align: 0;
+        vertical-align: 0px;
     }
 
     .previewContainer .stl-look,
