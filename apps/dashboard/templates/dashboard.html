@@ -3,9 +3,9 @@
 
 {% block scripts %}
     <script type="text/javascript">
-        table = {{ tableId }};
+        dashboard = {{ dashboard_id }}
     </script>
-    <script type="text/javascript" src="{% static "ga_dashboard.js" %}"></script>
+    <script type="text/javascript" src="{% static "dashboard_graphs.js" %}"></script>
 {% endblock %}
 
 {% block main %}

@@ -56,6 +56,9 @@ body {
 .tile.wide {
     width: 512px;
 }
+.tile.youtube {
+    height: 291px;
+}
 
 .tile .name {
     margin-top: 5px;
