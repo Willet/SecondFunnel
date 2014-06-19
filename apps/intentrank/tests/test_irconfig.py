@@ -32,7 +32,7 @@ class IrConfigNotificationQueueTestSuite(TestCase):
         res = fn('{"store-id": "0", "page-id": "0"}')
         self.assertFalse('generated-page' in res)
 
-    @mock.patch('apps.static_pages.aws_utils.upload_to_bucket')
+    @mock.patch('lib.aws_utils.upload_to_bucket')
     @mock.patch('httplib2.Http.request')
     def test_correct_message_json_mocked(self, mock_request,
                                          mock_upload_to_bucket):

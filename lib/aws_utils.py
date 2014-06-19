@@ -6,6 +6,7 @@ import gzip
 import json
 import re
 import StringIO
+import functools
 
 from functools import partial
 from django.conf import settings
@@ -14,14 +15,17 @@ from boto import sns
 from boto import sqs
 from boto.sqs.message import RawMessage
 
+from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
+from boto.route53.connection import Route53Connection
 from boto.route53.record import ResourceRecordSets
 from boto.route53.exception import DNSServerError
-import sys
 
-from apps.static_pages.decorators import connection_required, get_connection
-
+S3_SERVICE_CLASSES = {
+    's3': S3Connection,
+    'route53': Route53Connection
+}
 
 # Source: http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
 # Currently not accessible via APIs
@@ -36,6 +40,50 @@ S3_WEBSITE_HOSTED_ZONE_IDS = {
     's3-website-sa-east-1.amazonaws.com': 'Z7KQH4QJS55SO',
     's3-website-us-gov-west-1.amazonaws.com': 'Z31GFT0UA1I2HV'
 }
+
+
+def get_connection(service):
+    """
+    Returns an appropriate connection object.
+    """
+    service_class = S3_SERVICE_CLASSES.get(service)
+
+    if not service_class:
+        raise ValueError(
+            "Connection to service not supported: {0}".format(service))
+
+    return service_class(
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+
+
+def connection_required(service_class):
+    """
+    Decorator that ensures passed in connection is of correct type,
+    or creates a connection if none was passed in.
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            proper_conn = S3_SERVICE_CLASSES.get(service_class)
+            if not proper_conn:
+                raise TypeError("Service class not recognized: {0}".format(
+                    service_class))
+
+            conn = kwargs.get("conn")
+            # connection was passed in
+            if conn:
+                if not isinstance(conn, proper_conn):
+                    raise TypeError("Trying to use wrong connection type")
+
+            else:
+                kwargs.update({
+                    'conn': get_connection(service_class)
+                })
+
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 @connection_required("route53")
@@ -55,7 +103,7 @@ def get_route53_change_status(change_id, conn=None):
 
 
 def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
-    public=False, do_gzip=True):
+                     public=False, do_gzip=True):
     """
     Uploads a key to bucket, setting provided content, content type and publicity
     """
@@ -209,12 +257,12 @@ def get_hosted_zone_id(zone_name, conn=None):
             "Could not find HostedZone with name {0}".format(zone_name))
 
     zoneid_match = re.match("/hostedzone/(?P<zoneid>\w+)",
-        zone['GetHostedZoneResponse']['HostedZone']['Id'])
+                            zone['GetHostedZoneResponse']['HostedZone']['Id'])
 
     if not zoneid_match:
-        raise RuntimeError("Route53 returned unexpected HostedZone Id: {0}"
-        .format(
-            zone['GetHostedZoneResponse']['HostedZone']['Id']))
+        raise RuntimeError(
+            "Route53 returned unexpected HostedZone Id: {0}".format(
+                zone['GetHostedZoneResponse']['HostedZone']['Id']))
 
     return zoneid_match.group('zoneid')
 
@@ -277,7 +325,7 @@ def create_bucket_website_alias(dns_name, bucket_name=None):
 
     except DNSServerError, err:
         # attempts to create duplicate records are ignored
-        if not "already exists" in str(err):
+        if "already exists" not in str(err):
             raise
 
         else:
@@ -337,7 +385,7 @@ class SNSTopic(object):
             # the correct ARN is the ARN with the topic name at the end of it
             self.arn = filter(lambda arn: topic_name in arn[-len(topic_name):],
                               arns)[0]
-        except IndexError as err:
+        except IndexError:
             # topic doesn't exist. make one, then get its ARN
             myself = self.create()
             self.arn = myself['CreateTopicResponse']['CreateTopicResult']\
@@ -409,7 +457,7 @@ class SQSQueue(object):
         """
         try:
             return self.queue.get_messages(num_messages=num_messages)
-        except BaseException as err:  # both appear to work the same, so if one fails, do the other
+        except BaseException:  # both appear to work the same, so if one fails, do the other
             return self.connection.receive_message(self.queue,
                                                    number_messages=num_messages)
 
@@ -511,7 +559,7 @@ class SNSErrorLogger(object):
         :param log_level one of "info", "warning", and "error".
         """
 
-        if not log_level in settings.AWS_SNS_LOGGING_LEVELS:
+        if log_level not in settings.AWS_SNS_LOGGING_LEVELS:
             raise ValueError("log_level %s not defined" % log_level)
 
         sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
