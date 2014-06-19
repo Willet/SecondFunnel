@@ -203,7 +203,7 @@ class ClickmeterQuery(Query):
         if False:#not 'error' in response:
             self.cached_response = response
             self.save()
-        return response
+        return json.dumps(response.json())
 
 
 class Campaign(models.Model):
