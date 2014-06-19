@@ -1,14 +1,15 @@
+from urlparse import urlparse
+
 import re
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
-from urlparse import urlparse
+
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider,\
     SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
-from apps.scrapy.utils.misc import open_in_browser
 
 
 class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
@@ -23,9 +24,6 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     store_slug = name
     visited = []
-
-    def __init__(self, *args, **kwargs):
-        return super(SurlatableSpider, self).__init__(*args, **kwargs)
 
     def parse_start_url(self, response):
         """
@@ -48,12 +46,6 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         pages = sel.xpath('//*[@class="pagination"][1]')\
             .css('.pageno::attr(href)').extract()
 
-        meta = {}
-        category_url, category_name = (response.url,
-            sel.css('#main #sidebar h1::text').extract_first())
-        if category_name:
-            meta = {category_name: category_url}
-
         if not pages:
             return []
 
@@ -68,7 +60,6 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             page_url = hostname + page
             self.visited.append(page_url)
             request = WebdriverRequest(page_url)
-            request.meta['categories'] = meta
             urls.append(request)
 
         return urls
