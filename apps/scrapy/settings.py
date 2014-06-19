@@ -25,7 +25,7 @@ DOWNLOAD_HANDLERS = {
 }
 
 SPIDER_MIDDLEWARES = {
-    'scrapy_webdriver.middlewares.WebdriverSpiderMiddleware': 543,
+    'apps.scrapy.utils.manager.WebdriverSpiderMiddleware': 543,
 }
 
 # Or any other from selenium.webdriver
@@ -83,3 +83,5 @@ cloudinary.config(
     api_key='471718281466152',
     api_secret='_CR94qpFu7EGChMbwmc4xqCsbXo'
 )
+CONCURRENT_REQUESTS = 3
+WEBDRIVER_INSTANCES = CONCURRENT_REQUESTS
