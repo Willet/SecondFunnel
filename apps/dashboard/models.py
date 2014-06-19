@@ -157,6 +157,7 @@ class ClickmeterQuery(Query):
     id_number = models.IntegerField(default=0,
                                     verbose_name='The index number of the clickmeter_id that this query uses')
 
+    # DEFER name this better
     @staticmethod
     def get_end_date(date):
         end_date = date.strftime('%Y%m%d%H%M')
