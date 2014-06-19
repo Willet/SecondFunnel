@@ -111,7 +111,7 @@ class AnalyticsQuery(Query):
             response = data.execute()
         except HttpError as error:
             print "Querying Google Analytics failed with: ", error
-            return dict(response.items() + self.cached_response.items())
+            response = dict(response.items() + self.cached_response.items())
 
         if 'dataTable' in response:
             for header in response['dataTable']['cols']:
@@ -198,7 +198,7 @@ class ClickmeterQuery(Query):
             response = requests.get(query['url'], headers=query['header'], params=query['payload'])
         except HttpError as error:
             print "Querying Clickmeter failed with: ", error
-            return dict(response.items() + self.cached_response.items())
+            response = dict(response.items() + self.cached_response.items())
 
         #TODO fix code for saving... is this even necessary?
         if False:#not 'error' in response:

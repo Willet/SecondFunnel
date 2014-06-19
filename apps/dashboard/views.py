@@ -22,7 +22,7 @@ LOGIN_URL = '/dashboard/login'
 # @login_required(login_url=LOGIN_URL)
 # @never_cache
 def get_data(request):
-    response = {'error': 'Retrieving data failed'}
+    response = json.dumps({'error': 'Retrieving data failed'})
     if request.method == 'GET':
         try:
             user = User.objects.get(pk=request.user.pk)
@@ -55,7 +55,7 @@ def get_data(request):
                     campaign = Campaign.objects.get(identifier=campaign_id)
                 except Campaign.MultipleObjectsReturned, Campaign.DoesNotExist:
                     print 'Multiple campaign or campaign dne'
-                    return response
+                    return HttpResponse(response, content_type='application/json')
                 start_date = campaign.start_date
                 end_date = campaign.end_date
 
