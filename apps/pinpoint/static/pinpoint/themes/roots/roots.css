@@ -250,6 +250,17 @@ body {
 .previewContainer .main-image-container {
     position: relative;
     text-align: center;
+    overflow: hidden;
+}
+
+.previewContainer .main-image-container .main-image {
+    white-space: nowrap;
+    font-size: 0;
+}
+
+.previewContainer .main-image-container .main-image img {
+    width: 100%;
+    display: inline-block;
 }
 
 .previewContainer .main-image-container .gallery-swipe-left,
@@ -375,6 +386,7 @@ body {
         text-align: left;
         max-width: none;
         width: auto;
+        padding-left: 0;
     }
 
     .previewContainer .info.image {
@@ -383,6 +395,11 @@ body {
 
     .previewContainer .info .title {
         margin-top: 5px;
+        padding-left: 25px;
+    }
+
+    .previewContainer .info .price {
+        padding-left: 25px;
     }
 
     .previewContainer .info .buy {
