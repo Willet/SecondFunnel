@@ -65,7 +65,9 @@ $(document).ready(function () {
     // The options for each chart
         pageOptions = {
             charts: []
-        };
+        },
+    // The total sessions that have come to the property
+        sessions = 1;
 
 
     /**
@@ -303,6 +305,7 @@ $(document).ready(function () {
         /*---  the blue label things at the top of the page  ---*/
         var buttonSessionCount = new DashboardElement($('#sessionCount'), QuickLabel, function (response) {
             var data = response.totalsForAllResults['ga:sessions'];
+            sessions = parseInt(data, 10);
             // I have a thing for complicated regex okay?
             // http://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
             return data.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -357,12 +360,11 @@ $(document).ready(function () {
         buttonBuyNowRate.addSelection('GA_buyNowRate');
 
 //        var buttonPurchaseRate = new DashboardElement($('#purchaseRate'), QuickLabel, function (response) {
-//            //TODO figure out data
-//            var data = 0;
-//            return Math.round((parseFloat(data) + 0.00001) * 100) / 100 + '%';
+//            //TODO add to button group
+//            var data = parseInt(response.convertedClicks, 10);
+//            return Math.round((((data / sessions) * 100)+ 0.00001) * 100) / 100 + '%';
 //        }, {});
-//        buttonPurchaseRate.addSelection(); //TODO queryName
-//        buttonPurchaseRate.addSelection(); //TODO queryName
+//        buttonPurchaseRate.addSelection('CM_purchaseRate');
 
         createAnalyticsGroup('BUTTONS', [buttonSessionCount, buttonUniqueVisitors, buttonBounceRate, buttonSessionDuration,
             buttonScrollRate, buttonPreviewRate, buttonBuyNowRate], refreshRate);
