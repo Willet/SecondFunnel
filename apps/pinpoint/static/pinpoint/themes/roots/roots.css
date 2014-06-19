@@ -247,22 +247,6 @@ body {
     vertical-align: top;
 }
 
-.previewContainer .main-image-container {
-    position: relative;
-    text-align: center;
-    overflow: hidden;
-}
-
-.previewContainer .main-image-container .main-image {
-    white-space: nowrap;
-    font-size: 0;
-}
-
-.previewContainer .main-image-container .main-image img {
-    width: 100%;
-    display: inline-block;
-}
-
 .previewContainer .main-image-container .gallery-swipe-left,
 .previewContainer .main-image-container .gallery-swipe-right {
     width: 0px;

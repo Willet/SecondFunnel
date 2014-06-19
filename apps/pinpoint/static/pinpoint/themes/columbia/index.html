@@ -208,11 +208,11 @@
                     <div class="gallery-swipe-left"></div>
                     <div class="gallery-swipe-right"></div>
                 <% } %>
-                <% if (obj.image) { %>
-                    <img class="main-image" src='<%= obj.image.url %>'/>
-                <% } else { %>
-                    <img class="main-image" src='<%= obj.images[0].url %>'/>
-                <% } %>
+                <div class="main-image">
+                    <% for (var i = 0; i < obj.images.length; i++) { %>
+                        <img class="image" src="<%- obj.images[i].url %>" />
+                    <% } %>
+                </div>
             </div>
         </script>
 

@@ -270,12 +270,6 @@
     white-space: normal;
 }
 
-.previewContainer .main-image-container,
-#hero-area .main-image-container {
-    position: relative;
-    text-align: center;
-}
-
 #hero-area .main-image {
     max-height: 400px;
 }

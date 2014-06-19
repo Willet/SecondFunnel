@@ -184,11 +184,6 @@
     white-space: normal;
 }
 
-.previewContainer .main-image-container {
-    position: relative;
-    text-align: center;
-}
-
 .previewContainer .main-image-container .gallery-swipe-left,
 .previewContainer .main-image-container .gallery-swipe-right {
     width: 35px;

@@ -544,6 +544,25 @@ div.loading {
     clear: both;
 }
 
+.previewContainer .main-image-container,
+#hero-area .main-image-container {
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+}
+
+.previewContainer .main-image-container .main-image,
+#hero-area .main-image-container .main-image {
+    white-space: nowrap;
+    font-size: 0;
+}
+
+.previewContainer .main-image-container .main-image img,
+#hero-area .main-image-container .main-image img {
+    width: 100%;
+    display: inline-block;
+}
+
 .previewContainer .gallery img,
 #hero-area .gallery img {
     height: auto;
