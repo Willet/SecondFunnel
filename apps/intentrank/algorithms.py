@@ -24,6 +24,7 @@ def filter_tiles(fn):
 
     The algorithm will also be forced to return a QuerySet.
     """
+
     @wraps(fn)
     def wrapped_fn(*args, **kwargs):
         tiles, feed = kwargs.get('tiles'), kwargs.get('feed')
@@ -75,6 +76,7 @@ def filter_tiles(fn):
 
 def returns_qs(fn):
     """Algorithms with this decorator will always return a QuerySet."""
+
     @wraps(fn)
     def wrapped_fn(*args, **kwargs):
         tiles, feed = kwargs.pop('tiles'), kwargs.get('feed')
@@ -177,7 +179,7 @@ def ir_prioritized(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     except the ones in exclude_set, which is a list of old id integers.
     """
     tiles = (tiles.filter(prioritized=prioritized_set)
-                  .order_by('-priority', '?')[:results])
+             .order_by('-priority', '?')[:results])
 
     print "{0} tile(s) were manually prioritized by {1}".format(
         len(tiles), prioritized_set or 'nothing')
@@ -200,7 +202,7 @@ def ir_priority_sorted(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     except the ones in exclude_set, which is a list of id integers.
     """
     tiles = tiles.filter(prioritized=prioritized_state) \
-                 .order_by('-priority')[:results]
+                .order_by('-priority')[:results]
 
     print "{0} tile(s) were manually prioritized".format(len(tiles))
     return tiles
@@ -263,7 +265,7 @@ def ir_generic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     - new ones
     - other ones
 
-    with no repeat.
+    with no repeat per request.
 
     :param tiles: [<Tile>]
     :param results: int (number of results you want)
@@ -422,8 +424,7 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         in the admin (feed_ratio). The tiles are randomly mixed in each
         request so that they do not return as content -> products
 
-        This algorithm support prioritization by pageview (show a tile once and
-            never again on the page) and no other methods of prioritization.
+        This algorithm support prioritization by pageview and no other methods of prioritization.
 
     :param tiles: [<Tile>]
     :param results: int (number of results you want)
@@ -454,14 +455,11 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     contents_temp = tiles.exclude(template='product')
     products = tiles.filter(template='product')
 
-    prioritized_content = ir_priority_pageview(tiles=contents_temp, results=results,
-                                               exclude_set=exclude_set, allowed_set=allowed_set)
-    exclude_set += ids_of(prioritized_content)
     exclude_set = set(exclude_set)
     # if all tiles have been used, reset and start again
     # reset content
     if set(ids_of(contents_temp)).issubset(exclude_set):
-        print "Ran out of contents_temp: resetting"
+        print "Ran out of contents: resetting"
         for x in ids_of(contents_temp):
             exclude_set.discard(x)
         request.session['shown'] = list(exclude_set)
@@ -476,15 +474,13 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     products = products.exclude(id__in=exclude_set)
     contents_temp = contents_temp.exclude(id__in=exclude_set)
 
-    print len(contents_temp)
-    print len(prioritized_content)
     if request and request.GET.get('reqNum', '0') in ['0']:  # only at start, this allows for 10 tiles
+        prioritized_content = ir_priority_pageview(tiles=contents_temp, results=results,
+                                                   exclude_set=exclude_set, allowed_set=allowed_set)
         contents = list(prioritized_content) + \
                    list(contents_temp.order_by('-clicks')[:num_content - len(prioritized_content)])
-        print "first run, prioritized", len(contents)
     else:
         contents = list(contents_temp.order_by('-clicks')[:num_content])
-        print "!first, no priotiry", len(contents)
 
     products = list(products.order_by('-priority')[:num_product])
 
@@ -697,7 +693,7 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             products.extend(list(content.tagged_products.all()))
 
         max_sale = max([parse_int(product.attributes.get('discount',
-            product.attributes.get('sale_price', 0)))
+                                                         product.attributes.get('sale_price', 0)))
                         for product in products])
         return max_sale
 
