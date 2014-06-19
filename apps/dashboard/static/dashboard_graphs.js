@@ -359,15 +359,15 @@ $(document).ready(function () {
         }, {});
         buttonBuyNowRate.addSelection('GA_buyNowRate');
 
-//        var buttonPurchaseRate = new DashboardElement($('#purchaseRate'), QuickLabel, function (response) {
-//            //TODO add to button group
-//            var data = parseInt(response.convertedClicks, 10);
-//            return Math.round((((data / sessions) * 100)+ 0.00001) * 100) / 100 + '%';
-//        }, {});
-//        buttonPurchaseRate.addSelection('CM_purchaseRate');
+        var buttonPurchaseRate = new DashboardElement($('#purchaseRate'), QuickLabel, function (response) {
+            //TODO add to button group
+            var data = parseInt(response.convertedClicks, 10);
+            return Math.round((((data / sessions) * 100)+ 0.00001) * 100) / 100 + '%';
+        }, {});
+        buttonPurchaseRate.addSelection('CM_purchaseRate');
 
         createAnalyticsGroup('BUTTONS', [buttonSessionCount, buttonUniqueVisitors, buttonBounceRate, buttonSessionDuration,
-            buttonScrollRate, buttonPreviewRate, buttonBuyNowRate], refreshRate);
+            buttonScrollRate, buttonPreviewRate, buttonBuyNowRate, buttonPurchaseRate], refreshRate);
 
         /*---  The pie chart in 'Traffic Information' ---*/
         var sortview = new DashboardElement($('#sortview-graph')[0],

@@ -10,7 +10,7 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    <h2>Welcome &nbsp;
+                    <h2>Welcome&nbsp;
                         {% if user.is_authenticated %}
                             {{ user.first_name }}
                         {% endif %}
@@ -30,12 +30,9 @@
 
                                 <button class="btn btn-primary btn-lg" type="button"
                                         style="width: 100%; margin: 10px 0 10px 0;">
-                                    <div style="float: left;">
+                                    <span style="float: left;">
                                         {{ dash.site }}
-                                    </div>
-                                    <div style="float: right;">
-                                        Analytics ID: {{ dash.tableId }}
-                                    </div>
+                                    </span>
                                 </button>
                             </a>
                         {% endfor %}

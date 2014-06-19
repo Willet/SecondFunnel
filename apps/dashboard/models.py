@@ -157,13 +157,16 @@ class ClickmeterQuery(Query):
     id_number = models.IntegerField(default=0,
                                     verbose_name='The index number of the clickmeter_id that this query uses')
 
+    # DEFER name this better
     @staticmethod
     def get_end_date(date):
-        return date.strftime('%Y%m%d')
+        end_date = date.strftime('%Y%m%d%H%M')
+        return end_date
 
     @staticmethod
     def get_start_date(date):
-        return date.strftime('%Y%m%d')
+        start_date = date.strftime('%Y%m%d%H%M')
+        return start_date
 
     def get_query(self, data_ids, start_date, end_date):
         """
@@ -181,10 +184,10 @@ class ClickmeterQuery(Query):
             return {'error': 'id cannot be found'}
 
         url = 'http://apiv2.clickmeter.com' + str(self.endpoint).format(id=clickmeter_id)
-        auth_header = {'X-Clickmeter-Authkey': settings.CLICKMETER_API_KEY}
+        auth_header = {"X-Clickmeter-Authkey": settings.CLICKMETER_API_KEY}
         data = {'timeframe': 'custom',
-                'fromDate': self.get_start_date(start_date),
-                'toDate': self.get_end_date(end_date)}
+                'fromDay': self.get_start_date(start_date),
+                'toDay': self.get_end_date(end_date)}
         return {'url':  url, 'header': auth_header, 'payload': data}
 
     def get_response(self, data_ids, start_date, end_date):
@@ -201,7 +204,7 @@ class ClickmeterQuery(Query):
         if False:#not 'error' in response:
             self.cached_response = json.dumps(response)
             self.save()
-        return json.dumps(response)
+        return response
 
 
 class Campaign(models.Model):
