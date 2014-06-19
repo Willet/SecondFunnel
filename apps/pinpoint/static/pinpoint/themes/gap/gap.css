@@ -347,12 +347,6 @@ div.header {
     line-height: 21px;
 }
 
-.previewContainer img {
-    /* limit how big preview images can be */
-    max-width: 99%;
-    max-height: 99%;
-}
-
 .social-buttons .facebook {
     height: 14px;
     width: 76px;
@@ -627,12 +621,11 @@ div.header {
         text-align: center;
     }
 
-    .previewContainer .image-with-tagged-products .main-image,
-    .previewContainer .image-without-tagged-products .main-image {
+    .previewContainer .image-with-tagged-products .main-image-container,
+    .previewContainer .image-without-tagged-products .main-image-container {
         /* actually the largest product image */
         max-width: 150px;
         margin: 0 20px 0 0;
-        max-height: 200px;
     }
 }
 

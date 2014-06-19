@@ -255,23 +255,17 @@
         </script>
 
         <script type="text/template" id="product_galleryMainImage_template">
-            <% if (obj.images.length > 1) { %>
-                <div class="gallery-swipe-left"></div>
-                <div class="gallery-swipe-right"></div>
-            <% } %>
-            <% if (!App.support.mobile()) { %>
-                <% if (obj.image) { %>
-                    <img class="main-image" src='<%= obj.image.url %>'/>
-                <% } else { %>
-                    <img class="main-image" src='<%= obj.images[0].url %>'/>
+            <div class="main-image-container">
+                <% if (obj.images.length > 1) { %>
+                    <div class="gallery-swipe-left"></div>
+                    <div class="gallery-swipe-right"></div>
                 <% } %>
-            <% } else { %>
-                <% if (obj.image) { %>
-                    <div class="main-image" src='<%= obj.image.url %>'/>
-                <% } else { %>
-                    <div class="main-image" src='<%= obj.images[0].url %>'/>
-                <% } %>
-            <% } %>
+                <div class="main-image">
+                    <% for (var i = 0; i < obj.images.length; i++) { %>
+                        <img class="image" src="<%- obj.images[i].url %>" />
+                    <% } %>
+                </div>
+            </div>
         </script>
 
         <script type="text/template" id="product_preview_template">
