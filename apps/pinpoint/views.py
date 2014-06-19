@@ -3,7 +3,6 @@ from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, tostring
 from django.conf import settings
 from django.db.models import Count
-from apps.ads.views import demo_page_by_slug
 from apps.intentrank.algorithms import ir_base
 
 from django.contrib.auth.decorators import login_required
@@ -15,7 +14,7 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from django.views.decorators.vary import vary_on_headers
 
 from apps.assets.models import Page, Product, Tile, Store
-from apps.pinpoint.utils import render_campaign, get_store_from_request, read_a_file
+from apps.light.utils import read_a_file
 
 
 @login_required
@@ -33,92 +32,6 @@ def social_auth_redirect(request):
         return redirect('asset-manager', store_id=str(store_set.all()[0].id))
     else:
         return redirect('admin')
-
-
-@cache_control(must_revalidate=True, max_age=(1 * 60))
-@cache_page(60 * 10, key_prefix="pinpoint-")
-@vary_on_headers('Accept-Encoding')
-def campaign(request, store_id, page_id, tile=None):
-    """Returns a rendered campaign response of the given id.
-
-    :param tile: if given, the tile is shown featured.
-    """
-    rendered_content = render_campaign(page_id=page_id, request=request,
-                                       store_id=store_id, tile=tile)
-
-    return HttpResponse(rendered_content)
-
-
-def domain_contains_demo(hostname):
-    return 'demo' in hostname
-
-
-def campaign_by_slug(request, page_slug, identifier='id',
-                     identifier_value=''):
-    """Used to render a page using only its name.
-
-    If two pages have the same name (which was possible in CG), then django
-    decides which page to render.
-
-    :param identifier: selects the featured product.
-           allowed values: 'id', 'sku', or 'tile' (whitelisted to prevent abuse)
-    :param identifier_value: the product or tile's id or sku, respectively
-    """
-    # special case: show demo pages with ad, not actual landing pages
-    hostname = request.get_host()
-    if domain_contains_demo(hostname=hostname):
-        return demo_page_by_slug(request, ad_slug=page_slug)
-
-    page_kwargs = {
-        'url_slug': page_slug
-    }
-
-    store = get_store_from_request(request)
-
-    if store:
-        page_kwargs['store'] = store
-
-    try:
-        # if someone creates two pages with the same name (which was allowed
-        # for whatever reason), pick the newest one instead of fixing the schema.
-        page = Page.objects.filter(**page_kwargs).order_by('-created_at')[0]
-    except (Page.DoesNotExist, IndexError):
-        raise Http404
-
-    store = page.store
-    store_id = store.id
-
-    # if necessary, get product
-    # livedin/sku/123
-    lookup_map = {identifier: identifier_value}
-    if request.GET.get('product_id'):  # livedin?product_id=123
-        lookup_map = {'id': request.GET.get('product_id')}
-    lookup_map['store'] = store
-
-    tile = None
-    if identifier in ['id', 'sku']:
-        try:
-            # if a store has two or more products with the same sku,
-            # assume the one the user wanted is the one with
-            # - the most tiles
-            # - has at least a tile
-            product = (Product.objects.filter(**lookup_map)
-                              .annotate(num_tiles=Count('tiles'))
-                              .filter(num_tiles__gt=0)
-                              .order_by('-num_tiles')[0])
-            if not product:
-                tile = None
-            else:
-                tile = product.tiles.all()[0]
-        except (Product.DoesNotExist, IndexError, ValueError):
-            tile = None
-    elif identifier == 'tile':
-        tiles = Tile.objects.filter(id=identifier_value)
-        if len(tiles):
-            tile = tiles[0]
-
-    return campaign(request, store_id=store_id, page_id=page.id,
-                    tile=tile)
 
 
 # TODO: This could probably just be a serializer on the Page object...
@@ -295,19 +208,6 @@ def get_overview(request):
         'stores': stores,
         'domain': settings.WEBSITE_BASE_URL,
     })
-
-
-def app_exception_handler(request):
-    """Renders the "something broke" page. JS console shows the error."""
-    import sys
-    import traceback
-
-    _, exception, _ = sys.exc_info()
-    stack = traceback.format_exc().splitlines()
-
-    return HttpResponseServerError(loader.get_template('500.html').render(
-        Context({'exception': exception,
-                 'traceback': '\n'.join(stack)})))
 
 
 def fail(request):

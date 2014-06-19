@@ -1,0 +1,323 @@
+$icon-font-path: "/static/light/fonts/";
+
+@import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
+@import "src/components/landingpage/styles/base.scss";
+
+@import 'bustle';
+
+/* overrides for this theme */
+
+@font-face {
+    font-family: 'ff-super-grotesk-web';
+    src: url('/static/light/nastygal/landingpage/default/fonts/SuperGroteskWeb.eot');
+    src: url('/static/light/nastygal/landingpage/default/fonts/SuperGroteskWeb.eot?iefix') format('eot'),
+         url('/static/light/nastygal/landingpage/default/fonts/SuperGroteskWeb.woff') format('woff'),
+         url('/static/light/nastygal/landingpage/default/fonts/SuperGroteskWeb.ttf') format('truetype'),
+         url('/static/light/nastygal/landingpage/default/fonts/SuperGroteskWeb.svg#ff-super-grotesk-web') format('svg');
+    font-weight: normal;
+    font-style: normal
+}
+
+@font-face {
+    font-family: 'ff-super-grotesk-web';
+    src: url('/static/light/nastygal/landingpage/default/fonts/SuperGroteskWeb-Medium.eot');
+    src: url('/static/light/nastygal/landingpage/default/fonts/SuperGroteskWeb-Medium.eot?iefix') format('eot'),
+         url('/static/light/nastygal/landingpage/default/fonts/SuperGroteskWeb-Medium.woff') format('woff'),
+         url('/static/light/nastygal/landingpage/default/fonts/SuperGroteskWeb-Medium.ttf') format('truetype'),
+         url('/static/light/nastygal/landingpage/default/fonts/SuperGroteskWeb-Medium.svg#ff-super-grotesk-web') format('svg');
+    font-weight: bold;
+    font-style: normal
+}
+
+@font-face {
+    font-family: 'baskerville-pro';
+    src: url('/static/light/nastygal/landingpage/default/fonts/BaskervilleOriginalPro.eot');
+    src: url('/static/light/nastygal/landingpage/default/fonts/BaskervilleOriginalPro.eot?iefix') format('eot'),
+         url('/static/light/nastygal/landingpage/default/fonts/BaskervilleOriginalPro.woff') format('woff'),
+         url('/static/light/nastygal/landingpage/default/fonts/BaskervilleOriginalPro.ttf') format('truetype'),
+         url('/static/light/nastygal/landingpage/default/fonts/BaskervilleOriginalPro.svg#baskerville-pro') format('svg');
+    font-weight: normal;
+    font-style: normal
+}
+
+@font-face {
+    font-family: 'baskerville-pro';
+    src: url('/static/light/nastygal/landingpage/default/fonts/BaskervilleOriginalPro-Medium.eot');
+    src: url('/static/light/nastygal/landingpage/default/fonts/BaskervilleOriginalPro-Medium.eot?iefix') format('eot'),
+         url('/static/light/nastygal/landingpage/default/fonts/BaskervilleOriginalPro-Medium.woff') format('woff'),
+         url('/static/light/nastygal/landingpage/default/fonts/BaskervilleOriginalPro-Medium.ttf') format('truetype'),
+         url('/static/light/nastygal/landingpage/default/fonts/BaskervilleOriginalPro-Medium.svg#baskerville-pro') format('svg');
+    font-weight: bold;
+    font-style: normal
+}
+
+@font-face {
+    font-family: 'baskerville-pro';
+    src: url('/static/light/nastygal/landingpage/default/fonts//BaskervilleOriginalPro-Italic.eot');
+    src: url('/static/light/nastygal/landingpage/default/fonts//BaskervilleOriginalPro-Italic.eot?iefix') format('eot'),
+         url('/static/light/nastygal/landingpage/default/fonts//BaskervilleOriginalPro-Italic.woff') format('woff'),
+         url('/static/light/nastygal/landingpage/default/fonts//BaskervilleOriginalPro-Italic.ttf') format('truetype'),
+         url('/static/light/nastygal/landingpage/default/fonts//BaskervilleOriginalPro-Italic.svg#baskerville-pro') format('svg');
+    font-weight: normal;
+    font-style: italic
+}
+
+body > .navbar {
+    z-index: 9;
+    background-color: #000;
+    > div {
+      padding: 0 10px;
+    }
+}
+
+#hero-area .jumbotron {
+  padding: 0;
+  margin: 0;
+}
+
+.tile {
+    color: #000;
+    text-align: center;
+    text-rendering: optimizelegibility;
+    -webkit-font-smoothing: subpixel-antialiased;
+    text-shadow: none;
+    font-family: "brandon-grotesque", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 200;
+}
+
+#preview-area .previewContainer {
+    z-index: 11;
+}
+
+.previewContainer {
+    box-shadow: none;
+    color: #000;
+    text-rendering: optimizelegibility;
+    -webkit-font-smoothing: subpixel-antialiased;
+    text-shadow: none;
+    font-family: "brandon-grotesque", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 200;
+}
+
+#hero-area img {
+    max-height: none;
+}
+
+#preview-area .previewContainer .content {
+    padding-top: 43px;
+    padding-bottom: 10px;
+    box-shadow: 0px 10px 30px 0px #000;
+}
+
+.previewContainer .mask {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.previewContainer .close {
+    left: 0;
+    right: inherit;
+    color: #FFF;
+    background-color: #000;
+    padding: 10px 20px;
+    font-family: "brandon-grotesque", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 200;
+    white-space: nowrap;
+    text-shadow: none;
+}
+
+.previewContainer .gallery,
+.previewContainer .gallery-dots {
+    white-space: nowrap;
+    overflow: auto;
+}
+
+.previewContainer .image-with-tagged-products .cell {
+    padding-top: 4px;
+}
+
+.previewContainer .image-with-tagged-products .cell.info {
+    padding-top: 0;
+}
+
+.previewContainer .image-with-tagged-products .cell.shop {
+    width: 120px;
+}
+
+.previewContainer .info {
+    width: 45%;
+    @media screen and (max-width: 768px) {
+      width: 100%;
+      padding: 0 15px;
+      padding-right: 20px;
+    }
+    text-align: center;
+    padding-left: 40px;
+    padding-right: 20px;
+    overflow: hidden;
+}
+#hero-area .previewContainer .info {
+    text-align: center;
+    padding-right: 20px;
+    overflow: hidden;
+}
+.previewContainer .image-with-tagged-products .info {
+    width: 270px;
+}
+.previewContainer .image-with-tagged-products .info.landscape {
+    max-width: none;
+}
+
+.previewContainer .info .title {
+    margin-top: 50px;
+    font-size: 28px;
+    font-style: italic;
+    line-height: 1.4em;
+    font-family: "baskerville-pro",georgia,times,serif;
+    font-weight: 200;
+    -webkit-font-smoothing: antialiased;
+}
+.previewContainer .image-with-tagged-products .info .title,
+.previewContainer .image-without-tagged-products .info .title {
+    margin-top: 0;
+}
+.previewContainer .image-without-tagged-products .title {
+    margin-bottom: 10px;
+}
+
+.previewContainer .info .price {
+    font-size: 28px;
+    font-style: italic;
+    line-height: 2em;
+    font-family: "baskerville-pro",georgia,times,serif;
+    -webkit-font-smoothing: antialiased;
+}
+.previewContainer .image-with-tagged-products .info .price,
+.previewContainer .image-without-tagged-products .info .price {
+    font-size: 25px;
+}
+
+.previewContainer .buy .button {
+    font-size: 20px;
+    padding: 10px 20px;
+    margin-bottom: 20px;
+}
+.previewContainer .image-with-tagged-products .buy .button,
+.previewContainer .image-without-tagged-products .buy .button {
+    margin-top: 7px;
+    margin-bottom: 7px;
+}
+
+.previewContainer .buy .button div {
+    vertical-align: middle;
+}
+
+.previewContainer .stl-look .stl-item img {
+    width: 72px;
+}
+
+.previewContainer .stl-look .stl-item .name {
+    width: 100px;
+    margin: auto;
+    text-align: center;
+    font-size: 12px;
+    white-space: normal;
+}
+
+#hero-area .image-without-tagged-products .main-image {
+    max-width: 100%;
+}
+
+#hero-area .image-without-tagged-products .cell.info {
+    vertical-align: middle;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left,
+.previewContainer .main-image-container .gallery-swipe-right {
+    width: 35px;
+    height: 116px;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-top: -58px;
+    border: none;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left {
+    background-image: url('/static/light/nastygal/landingpage/default/images/left_arrow_black.png');
+    left: 5px;
+}
+.previewContainer .main-image-container .gallery-swipe-left:hover {
+    background-image: url('/static/light/nastygal/landingpage/default/images/left_arrow_grey.png');
+}
+
+.previewContainer .main-image-container .gallery-swipe-right {
+    background-image: url('/static/light/nastygal/landingpage/default/images/right_arrow_black.png');
+    right: 5px;
+}
+.previewContainer .main-image-container .gallery-swipe-right:hover {
+    background-image: url('/static/light/nastygal/landingpage/default/images/right_arrow_grey.png');
+}
+
+.previewContainer .social-button-container {
+    margin-top: 20px;
+}
+
+.previewContainer .social-buttons .button {
+    margin: 0 5px;
+}
+
+.previewContainer .social-buttons .pinterest {
+    height: 20px;
+}
+
+/* Override facebook button */
+.previewContainer .social-buttons .button.facebook {
+    background-image: url('/static/light/nastygal/landingpage/default/images/facebook.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 25px;
+    cursor: pointer;
+}
+.previewContainer .social-buttons .button.facebook .fb_iframe_widget {
+    width: 25px;
+}
+.previewContainer .social-buttons .button.facebook .fb_iframe_widget span {
+    width: 25px !important;
+}
+.previewContainer .social-buttons .button.facebook iframe {
+    opacity: 0;
+    filter: alpha(opacity=0);
+    width: 25px !important;
+}
+/* End facebook override */
+
+@media screen and (max-width: 768px) {
+    .navbar {
+        display: none;
+    }
+
+    #hero-area .previewContainer .content {
+        padding-top: 24px;
+    }
+
+    .previewContainer .gallery img {
+        display: inline-block;
+    }
+
+    .previewContainer .image-with-tagged-products .info,
+    .previewContainer .image-without-tagged-products .info {
+        max-width: none;
+        width: auto;
+    }
+
+    .previewContainer .info .title {
+        margin-top: 5px;
+    }
+
+    /* Changing hover on mobile doesn't work very well */
+    .previewContainer .main-image-container .gallery-swipe-left:hover {
+        background-image: url('/static/light/nastygal/landingpage/default/images/left_arrow_black.png');
+    }
+    .previewContainer .main-image-container .gallery-swipe-right:hover {
+        background-image: url('/static/light/nastygal/landingpage/default/images/right_arrow_black.png');
+    }
+}

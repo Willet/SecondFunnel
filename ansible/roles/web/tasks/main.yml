@@ -3,6 +3,14 @@
   notify: pgbouncer restart
   sudo: true
 
+- name: Install NPM global dependencies
+  npm: name="{{item}}" state=latest global=yes
+  with_items:
+    - bower
+    - gulp
+    - "coffee-script"
+  sudo: true
+
 - include: deploy.yml
   tags: deploy
 

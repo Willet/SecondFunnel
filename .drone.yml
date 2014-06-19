@@ -1,0 +1,18 @@
+image: bradrydzewski/python:2.7
+script:
+  - psql -h localhost -U postgres -c "CREATE USER sf WITH PASSWORD 'postgres';"
+  - psql -h localhost -U postgres -c "ALTER USER sf CREATEDB;"
+  - psql -h localhost -U postgres -c "CREATE DATABASE sfdb;"
+  - psql -h localhost -U postgres -c 'GRANT ALL PRIVILEGES ON DATABASE "sfdb" to sf;'
+  - pip install virtualenv
+  - sudo chown -R ubuntu:ubuntu /var/cache/drone/venv
+  - virtualenv /var/cache/drone/venv
+  - source /var/cache/drone/venv/bin/activate
+  - pip install -r requirements.txt --use-mirrors
+  - python manage.py syncdb --noinput
+  - python manage.py migrate
+  - python manage.py test
+services:
+  - postgres
+cache:
+  - /var/cache/drone/venv

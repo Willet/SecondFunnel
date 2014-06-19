@@ -6,16 +6,34 @@ into shoppers. Additional information on the project can be found
 
 Installation
 ------------
-Detailed instructions can be found in [the SecondFunnel wiki](https://github.com/Willet/SecondFunnel/wiki/Environment-Setup), but a quick installation can
- be done by doing the following:
 
-1. Download and install [Vagrant](http://www.vagrantup.com/)
-2. Download and install [VirtualBox](https://www.virtualbox.org/)
+1. Download and Install [Vagrant](http://www.vagrantup.com/)
+2. Download and Install [VirtualBox](https://www.virtualbox.org/)
+2. Download and Install [pip](http://pip.readthedocs.org)
+```
+    wget https://bootstrap.pypa.io/get-pip.py
+    python get-pip.py
+```
 3. Download and Install [Ansible](http://docs.ansible.com/intro_installation.html)
+```
+    pip install ansible
+```
+4. Download and Install [Node](http://nodejs.org)
+5. Install various dev utils and libraries
+```
+    npm install -g gulp cult coffee-script bower
+```
+6. Add `export PATH=node_modules/.bin:$PATH` to your `.bashrc/.zshrc`
+7. Build a local vagrant instance (this may take a while to provision, feel free to walk away, have a coffee)
 
     `vagrant up`
+    `honcho start gulp`
 
 And voila! The server should be available [here](http://localhost:8000) ; note you should be redirect to www.secondfunnel.com
+
+An NGINX server (exactly like production) is running inside the vagrant box, and auto-reloading of code should work seamlessly.
+
+gulp runs on your local box and monitors light's assets and recompiles + reloads your browser if necessary.
 
 Structure
 ---------
@@ -27,11 +45,12 @@ The SecondFunnel project is broken into different folders for the application.
 - `apps`: Applications and common code
     - `analytics`: Our analytics framework for tracking users
     - `assets`: Common models and functions used across applications
-    - `pinpoint`: A dynamic landing page
+    - `pinpoint`: (deprecated) Th old landing pages, and feeds
     - `dashboard`: A dashboard to show all analytics gathered to the end user
     - `api`: The base API used by various of our front-end services
     - `intentrank`: A system used for ordering content in feeds for our components
     - `scrapy`: A scraper framework that we use to grab product & content from websites
+    - `light`: A replacement for pinpoint, and future components
 
 Documentation
 -------------
@@ -47,12 +66,18 @@ The SecondFunnel project has a few primary components:
 #### <a id="API"></a>API
 The SecondFunnel API is a tastypie list of resources for internal use only.
 
+
 #### <a id="IntentRank"></a>IntentRank
-[Read more here.](https://github.com/Willet/IntentRank)
+IntentRank is the main recommendation system, and controls the output of the feed (ordering, and what tiles (content/products) are shown).
+It will become the foundation of analyzing users and determining what the user is most interested in based on various parameters.
 
 
 #### <a id="Pages"></a> Pages
-Pages is the front-end javascript of the SecondFunnel project that manages how content is displayed on the Pinpoint pages.  In addition, it manages how users are able to interact with those pages; by clicking, scrolling, social media, etc.  It services API calls to IntentRank to fetch content based on a myriad of factors dependent on how the user is currently interacting with the page.  It makes use of the popular [Masonry Library](https://github.com/desandro/masonry) to render content in a cascading infinite scroll grid.  As users interact with the page, it also records analytic data.
+Pages is the front-end javascript of the SecondFunnel project that manages how content is displayed on the Light pages.
+In addition, it manages how users are able to interact with those pages; by clicking, scrolling, social media, etc.
+It API calls out to IntentRank to fetch tiles based on a myriad of factors dependent on how the user is currently interacting with the page.
+It makes use of the popular [Masonry Library](https://github.com/desandro/masonry) to render content in a cascading infinite scroll grid.
+As users interact with the page, it also records analytic data.
 
 
 #### <a id="Analytics"></a> Analytics
