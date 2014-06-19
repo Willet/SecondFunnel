@@ -192,17 +192,16 @@ class ClickmeterQuery(Query):
 
     def get_response(self, data_ids, start_date, end_date):
         query = self.get_query(data_ids, start_date, end_date)
-        response = {'error': 'Failed to retrieve data'}
+        response = json.dumps({'error': 'Failed to retrieve data'})
 
         try:
             response = requests.get(query['url'], headers=query['header'], params=query['payload'])
         except HttpError as error:
             print "Querying Clickmeter failed with: ", error
-            response = dict(response.items() + self.cached_response.items())
 
         #TODO fix code for saving... is this even necessary?
         if False:#not 'error' in response:
-            self.cached_response = json.dumps(response)
+            self.cached_response = response
             self.save()
         return response
 
