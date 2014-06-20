@@ -761,7 +761,8 @@ App.module('core', function (module, App) {
             title: '.title',
             buy: '.buy',
             description: '.description',
-            galleryMainImage: '.gallery-main-image'
+            galleryMainImage: '.gallery-main-image',
+            gallery: '.gallery'
         },
 
         'onBeforeRender': function () {
@@ -807,8 +808,6 @@ App.module('core', function (module, App) {
                 }));
             }, this);
 
-            // TODO: turn gallery into a view
-            $('.gallery', this.$el).empty();
             App.utils.runWidgets(this);
 
             this.resizeContainer();

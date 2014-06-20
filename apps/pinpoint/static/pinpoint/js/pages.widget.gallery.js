@@ -98,8 +98,7 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
             len = focus.children().length - 1;
 
         // Determine the selected image
-        $gallery
-            .children()
+        $('.item', $gallery)
             .removeClass(options.selectedClass)
             .eq(focusCurrent)
             .addClass(options.selectedClass);
@@ -124,6 +123,7 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
     this.initialize = function () {
         // Assign options and select arrows; attach swipe
         // handlers
+        var self = this;
         options = _.extend(defaults, options);
         options.leftArrow = view
             .$(options.leftArrow)
@@ -141,6 +141,12 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
             triggerOnTouchEnd: true,
             swipeStatus: _.bind(self.swipeStatus, self),
             allowPageScroll: "vertical"
+        });
+
+        $('.item', $gallery).on('click', function () {
+            focusCurrent = $(this).index();
+            self.selectImage();
+            self.swipeStatus(null, "cancel");
         });
 
         this.selectImage();
