@@ -4,7 +4,7 @@
 # http://doc.scrapy.org/en/latest/topics/items.html
 from scrapy.contrib.djangoitem import DjangoItem
 from scrapy.item import Field
-from apps.assets.models import Product, Content, Image
+from apps.assets.models import Product, Content, Image, Video
 from apps.scrapy.utils.serializers import store_serializer
 
 # Fields that are not part of a Django model
@@ -29,3 +29,7 @@ class ScraperContent(DjangoItem):
 
 class ScraperImage(ScraperContent):
     django_model = Image
+
+
+class ScraperVideo(ScraperContent):
+    django_model = Video
