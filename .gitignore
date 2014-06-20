@@ -5,6 +5,7 @@ aws_credential_file
 *.orig
 *.dot
 *.db
+*.dump
 *.sqlite
 *.DS_Store
 *.sass-cache/
