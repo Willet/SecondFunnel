@@ -121,7 +121,8 @@ body {
     text-decoration: none;
 }
 
-.previewContainer .gallery {
+.previewContainer .gallery,
+.previewContainer .gallery-dots {
     text-align: center;
 }
 

@@ -762,7 +762,8 @@ App.module('core', function (module, App) {
             buy: '.buy',
             description: '.description',
             galleryMainImage: '.gallery-main-image',
-            gallery: '.gallery'
+            gallery: '.gallery',
+            galleryDots: '.gallery-dots'
         },
 
         'onBeforeRender': function () {
@@ -901,9 +902,9 @@ App.module('core', function (module, App) {
                     App.options['galleryIndex'] = index;
 
                     if (product.images.length === 1) {
-                        $('.gallery', self.$el).addClass('hide');
+                        $('.gallery, .gallery-dots', self.$el).addClass('hide');
                     } else {
-                        $('.gallery', self.$el).removeClass('hide');
+                        $('.gallery, .gallery-dots', self.$el).removeClass('hide');
                     }
 
                     if (socialButtons.length >= 1) {

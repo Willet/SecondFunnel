@@ -12,14 +12,14 @@
  * @param options {Object}  Specific options
  * @return this
  */
-App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
+App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $el, options) {
     var images,
         focusWidth,
         arrows,
         windowWidth = $(window).width(),
         focusCurrent = 0,
         speed = 250, // transition speed for mobile
-        $gallery = view.$('.gallery'), // reference to gallery
+        $gallery = view.$('.gallery, .gallery-dots'), // reference to gallery
         self = this, // self is widget gallery
         focus = view.$(view.$('.main-image').length ? '.main-image' : '.image img'),
         defaults = {
