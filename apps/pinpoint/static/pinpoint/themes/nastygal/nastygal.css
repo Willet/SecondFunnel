@@ -79,7 +79,9 @@
 }
 
 .previewContainer .gallery,
-#hero-area .gallery {
+#hero-area .gallery,
+.previewContainer .gallery-dots,
+#hero-area .gallery-dots {
     text-align: center;
     overflow-y: auto;
     overflow-x: hidden;
@@ -88,7 +90,9 @@
 }
 
 .previewContainer .gallery.hidden,
-#hero-area .gallery.hidden {
+#hero-area .gallery.hidden,
+.previewContainer .gallery-dots.hidden,
+#hero-area .gallery-dots.hidden {
     display: none;
 }
 

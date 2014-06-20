@@ -58,7 +58,8 @@
     padding: 10px;
 }
 
-.previewContainer .gallery {
+.previewContainer .gallery,
+.previewContainer .gallery-dots {
     text-align: center;
 }
 

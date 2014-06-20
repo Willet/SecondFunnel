@@ -216,6 +216,18 @@
             </div>
         </script>
 
+        <script type="text/template" id="product_gallery_template">
+            <% for (var i = 0; i < obj.images.length; i++) { %>
+                <img class="item" src="<%- obj.images[i].url %>" />
+            <% } %>
+        </script>
+
+        <script type="text/template" id="product_galleryDots_template">
+            <% for (var i = 0; i < obj.images.length; i++) { %>
+                <div class="item"></div>
+            <% } %>
+        </script>
+
         <script type="text/template" id="product_preview_template">
             <div class="table">
                 <div class='content-wrapper row'>
@@ -232,7 +244,7 @@
                     </div>
                     <% if (obj.images.length > 1 && App.support.mobile()) { %>
                         <div class='cell'>
-                            <div class='gallery dots'></div>
+                            <div class='gallery-dots'></div>
                         </div>
                     <% } %>
                     <% if (!App.support.mobile()) { %>
@@ -279,7 +291,7 @@
                                 <div class='buy'></div>
                                 <div class="gallery-main-image"></div>
                                 <div class='description'></div>
-                                <div class='gallery<% if (App.support.mobile()) { %> dots<% } %><% if (obj.images.length < 2) { %> hide<% } %>'></div>
+                                <div class='gallery<% if (App.support.mobile()) { %>-dots<% } %><% if (obj.images.length < 2) { %> hide<% } %>'></div>
                             </div>
                             <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
                                 <div class="more-info">
