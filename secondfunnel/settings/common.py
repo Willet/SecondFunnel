@@ -72,16 +72,32 @@ def from_project_root(path):
     """returns the path prepended by the project root."""
     return os.path.join(PROJECT_ROOT, path)
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'sfdb',
-        'USER': 'sf',
-        'PASSWORD': 'postgres',
-        'HOST': '127.0.0.1',
-        'PORT': '',
+if 'RDS_DB_NAME' in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': os.environ['RDS_DB_NAME'],
+            'USER': os.environ['RDS_USERNAME'],
+            'PASSWORD': os.environ['RDS_PASSWORD'],
+            'HOST': os.environ['RDS_HOSTNAME'],
+            'PORT': os.environ['RDS_PORT'],
+            }
     }
-}
+
+    # default to never time out from django's side;
+    # RDS is its own value set
+    CONN_MAX_AGE = 0
+else:  # defaults (dev) for letting bare django run -- do not modify
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'sfdb',
+            'USER': 'sf',
+            'PASSWORD': 'postgres',
+            'HOST': '127.0.0.1',
+            'PORT': '',
+        }
+    }
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
