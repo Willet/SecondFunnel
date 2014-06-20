@@ -477,8 +477,9 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if request and request.GET.get('reqNum', '0') in ['0']:  # only at start, this allows for 10 tiles
         prioritized_content = ir_priority_pageview(tiles=contents_temp, results=results,
                                                    exclude_set=exclude_set, allowed_set=allowed_set)
+        length = len(prioritized_content)
         contents = list(prioritized_content) + \
-                   list(contents_temp.order_by('-clicks')[:num_content - len(prioritized_content)])
+                   list(contents_temp.order_by('-clicks')[:(num_content - length) if num_content > length else num_content])
     else:
         contents = list(contents_temp.order_by('-clicks')[:num_content])
 
