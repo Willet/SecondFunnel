@@ -206,6 +206,47 @@ class ClickmeterQuery(Query):
         return json.dumps(response.json())
 
 
+class KeenIOMetricsQuery(Query):
+    metric_name = models.CharField(max_length=128)
+
+    event_collection = models.CharField(max_length=128)
+    target_property = models.CharField(max_length=128)
+    filters = jsonfield.JSONField(default=[])
+    use_timeframe = models.BooleanField(default=False)
+    interval = models.CharField(max_length=16, choices=[
+        ('', 'No Interval'),
+        ('minutely', 'Every Minute'),
+        ('hourly', 'Every Hour'),
+        ('daily', 'Each Day'),
+        ('weekly', 'Each Week'),
+        ('monthly', 'By Month'),
+        ('yearly', 'By Year')
+    ], default='')
+    group_by = jsonfield.JSONField(default=[])
+
+    def get_query(self, data_ids, start_date, end_date):
+        header = {"Authorization": settings.KEEN_CONFIG['readKey']}
+        base_url = 'https://api.keen.io/3.0/projects/{project_id}/queries/{metric_name}'
+        url = base_url.format(project_id=settings.KEEN_CONFIG['projectId'], metric_name=self.metric_name)
+        request_data = {
+            'event_collection': self.event_collection,
+            'target_property': self.target_property,
+        }
+        if self.filters is not []:
+            request_data.update({'filters': self.filters})
+        if self.use_timeframe:
+            #TODO make this work
+            request_data.update({'timeframe': 'somestuff',
+                                 'interval': self.interval})
+        if self.group_by is not []:
+            request_data.update({'group_by': self.group_by})
+
+
+
+    def get_response(self, data_ids, start_date, end_date):
+        pass
+
+
 class Campaign(models.Model):
     title = models.CharField(max_length=128)
     identifier = models.CharField(max_length=128, unique=True)

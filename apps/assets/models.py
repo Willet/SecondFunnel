@@ -10,6 +10,7 @@ from django.db import models
 from django_extensions.db.fields import CreationDateTimeField
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
+from apps.dashboard.models import Campaign
 
 from apps.utils import returns_unicode
 import apps.api.serializers as cg_serializers
@@ -695,6 +696,9 @@ class Page(BaseModel):
         ('enable_tracking', "true"), ('ir_base_url', ''), ('ga_account_number', ''),
         ('conditional_social_buttons', {}),
     ]
+
+    # dashboard_settings = JSONField()
+    # campaign = models.ForeignKey(Campaign)
 
     description = models.TextField(blank=True, null=True)
     url_slug = models.CharField(max_length=128)  # e.g. livedin
