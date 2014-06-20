@@ -20,7 +20,9 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     store_slug = name
 
+    root_url = 'http://www.gap.com'
     category_url = 'http://www.gap.com/browse/category.do?cid={}'
+    product_data_url = 'http://www.gap.com/browse/productData.do?pid={}'
     visited = []
 
     def __init__(self, *args, **kwargs):
@@ -109,9 +111,7 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         attributes['categories'].append((category_name, category_url))
         l.add_value('attributes', attributes)
 
-        data_url = 'http://www.gap.com/browse/productData.do?pid={}'.format(
-            l.get_output_value('sku')
-        )
+        data_url = self.product_data_url.format(l.get_output_value('sku'))
         item = l.load_item()
         request = WebdriverRequest(data_url, callback=self.parse_images)
 
@@ -127,7 +127,7 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         relative_urls = sel.css('body::text').re("'Z': '(.*?)'")
         image_urls = [
-            'http://www.gap.com' + url
+            self.root_url + url
             for url in relative_urls
         ]
 
