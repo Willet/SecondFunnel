@@ -30,7 +30,7 @@ class VoyagePriveScraper(XMLFeedSpider):
         'symbol': u'\u20AC',  # Euro symbol
         'position-at-end': True
     }
-    NAME_REGEX = re.compile(r"""(.+),?         # Name of product
+    NAME_REGEX = re.compile(r"""(.+),?          # Name of product
                                  \s*            # Followed by 0 or more spaces
                                  (-\s*\d+%)     # Percentage of product off
                               """, re.VERBOSE)

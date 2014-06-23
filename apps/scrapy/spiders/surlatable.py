@@ -1,9 +1,11 @@
+from urlparse import urlparse
+
 import re
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
-from urlparse import urlparse
+
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider,\
     SecondFunnelCrawlScraper
@@ -31,6 +33,7 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         This method is misleading as it actually cascades...
         """
+        # scrape individual products.
         if self.is_product_page(response):
             self.rules = ()
             self._rules = []
@@ -56,13 +59,14 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         for page in page_iter:
             page_url = hostname + page
             self.visited.append(page_url)
-            urls.append(WebdriverRequest(page_url))
+            request = WebdriverRequest(page_url)
+            urls.append(request)
 
         return urls
 
     def is_product_page(self, response):
         is_product_page = re.search('.*product/PRO-.*', response.url)
-        return is_product_page
+        return bool(is_product_page)
 
     def parse_product(self, response):
         """
@@ -75,6 +79,8 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         """
 
         url = response.url
+        referer = response.request.headers.get('Referer')
+
         hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
 
         sel = Selector(response)
@@ -93,6 +99,11 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             l.add_css('price', 'li.regular::text', re='(\$\d+\.\d+)')
         else:
             l.add_css('price', 'li.price::text', re='(\$\d+\.\d+)')
+
+        if referer:
+            attributes['categories'] = {
+                'name': referer,
+            }
 
         l.add_value('attributes', attributes)
 

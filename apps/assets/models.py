@@ -361,7 +361,7 @@ class ProductImage(BaseModel):
 class Category(BaseModel):
     products = models.ManyToManyField(Product, related_name='categories')
 
-    store = models.ForeignKey(Store)
+    store = models.ForeignKey(Store, related_name='categories')
     name = models.CharField(max_length=255)
 
     url = models.TextField(blank=True, null=True)

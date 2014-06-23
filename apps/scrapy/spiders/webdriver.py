@@ -94,7 +94,11 @@ class WebdriverCrawlSpider(Spider):
                 yield request_or_item
 
     def make_requests_from_url(self, url):
-        return self.request_cls(url, dont_filter=True)
+        """Add start_url to child crawlers by default
+
+        http://stackoverflow.com/a/10605941/1558430
+        """
+        return self.request_cls(url, dont_filter=True, meta={'start_url': url})
 
     # --------------------------------------------------------------------------
     #   Everything below this line is duplicated verbatim
