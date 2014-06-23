@@ -51,13 +51,17 @@
 	margin-bottom: -1px;
 	color: rgb(238, 38, 85);
 	position: relative;
+	visibility: hidden;
+}
+html.lt-ie9 .hero-message-container .text .big {
+	visibility: visible;
 }
 
 .hero-message-container .text .big svg {
+	visibility: visible;
 	width: 100%;
 	position: absolute;
 	left: 0;
-	background-color: white;
 }
 
 .hero-message-container .text .big svg text {
