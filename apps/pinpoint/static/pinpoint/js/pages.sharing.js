@@ -29,18 +29,18 @@ App.module("sharing", function (sharing, App) {
          */
         sources = _.extend({}, {
             // Main ones (e.g. Facebook, Twitter, Tumblr, etc.)
-            'facebook': "//facebook.com/sharer/sharer.php?u=<%= url %>",
-            'twitter': "//twitter.com/share?url=<%= url %>",
-            'tumblr': "//tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= landing %>",
-            'pinterest': "//pinterest.com/pin/create/button/?url=<%= url %>",
+            'facebook': '//facebook.com/sharer/sharer.php?u=<%= url %>',
+            'twitter': '//twitter.com/share?url=<%= url %>',
+            'tumblr': '//tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= landing %>',
+            'pinterest': '//pinterest.com/pin/create/button/?url=<%= url %>',
 
             // Auxiliary ones
-            'google+': "//plus.google.com/share?url=<%= url %>",
-            'reddit': "//reddit.com/submit?url=<%= url %>",
-            'email': "mailto: ?subject=<%= title %>&body=<%= caption %>%20<%= url %>",
-            'digg': "//digg.com/submit?url=<%= url %>",
-            'blogger': "//blogger.com/blog-this.g?t=<%= caption %>&u=<%= url %>&n=<%= title %>",
-            'stumbleupon': "//stumbleupon.com/submit?url=<%= url %>"
+            'google+': '//plus.google.com/share?url=<%= url %>',
+            'reddit': '//reddit.com/submit?url=<%= url %>',
+            'email': 'mailto: ?subject=<%= title %>&body=<%= caption %>%20<%= url %>',
+            'digg': '//digg.com/submit?url=<%= url %>',
+            'blogger': '//blogger.com/blog-this.g?t=<%= caption %>&u=<%= url %>&n=<%= title %>',
+            'stumbleupon': '//stumbleupon.com/submit?url=<%= url %>'
         }, App.option('shareSources'));
 
     /**
@@ -64,15 +64,15 @@ App.module("sharing", function (sharing, App) {
 
         'loadSocial': _.once(function (callback) {
             $.getScripts([
-                "//www.youtube.com/iframe_api",
-                "//assets.pinterest.com/js/pinit.js",
-                "//platform.twitter.com/widgets.js"
+                '//www.youtube.com/iframe_api',
+                '//assets.pinterest.com/js/pinit.js',
+                '//platform.twitter.com/widgets.js'
             ], callback);
         }),
         'initSocial': function () {
             // Only initialize the social aspects once; this load the FB script
             // and twitter handlers.
-            if (window.FB && _.contains(this.buttonTypes, "facebook")) {
+            if (window.FB && _.contains(this.buttonTypes, 'facebook')) {
                 window.FB.init({
                     'cookie': true,
                     'status': false, // No AppID
@@ -82,7 +82,7 @@ App.module("sharing", function (sharing, App) {
             }
 
             if (window.twttr && window.twttr.widgets &&
-                _.contains(this.buttonTypes, "twitter")) {
+                _.contains(this.buttonTypes, 'twitter')) {
                 App.vent.trigger('tracking:registerTwitterListeners');
                 window.twttr.widgets.load();
             }
@@ -105,7 +105,7 @@ App.module("sharing", function (sharing, App) {
             _.each(_.compact(self.buttonTypes), function (type) {
                 var count = options.showCount || true,
                     ButtonClass,
-                    template = "#" + type.toLowerCase() + "_social_button_template";
+                    template = '#' + type.toLowerCase() + '_social_button_template';
                 ButtonClass = getButton(type);
                 self.views.push(new ButtonClass({
                     'model': options.model,
@@ -177,7 +177,7 @@ App.module("sharing", function (sharing, App) {
             data.image = data.image ? data.image : {};
             image = page['stl-image'] || page['featured-image'] || data.thumbnail || data.image.url || data.url;
 
-            if (data['source'] == "youtube") {
+            if (data.source === 'youtube') {
                 helpers.url = encodeURIComponent(data['original-url'] || product.url || image);
             } else {
                 helpers.url = encodeURIComponent(related.url || product.url || data.url || image);
@@ -203,7 +203,7 @@ App.module("sharing", function (sharing, App) {
             }
         },
 
-        // 'triggers': { "click .facebook": "event1 event2" },
+        // 'triggers': { 'click .facebook': 'event1 event2' },
         // 'onBeforeRender': $.noop,
         'onRender': function () {
             // Hide this element when it's rendered.
@@ -255,8 +255,8 @@ App.module("sharing", function (sharing, App) {
         'onTemplateHelpers': function (helpers) {
             // Additional attributes to add to our template data.
             var url = (helpers.product.url || helpers.product.image);
-            if (url && url.indexOf("facebook") > -1) {
-                url = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(url)[1];
+            if (url && url.indexOf('facebook') > -1) {
+                url = 'http://www.facebook.com/' + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(url)[1];
             }
             helpers.url = url;
             return helpers;
@@ -284,7 +284,7 @@ App.module("sharing", function (sharing, App) {
     });
 
     /**
-     * The "share this" button that opens a "share this" popup
+     * The 'share this' button that opens a 'share this' popup
      *
      * @constructor
      * @alias sharing.ShareSocialButton
@@ -321,9 +321,9 @@ App.module("sharing", function (sharing, App) {
      * @type {ItemView}
      */
     this.SharePopup = Marionette.ItemView.extend({
-        'tagName': "div",
-        'className': "shareContainer previewContainer",
-        'template': "#share_popup_template",
+        'tagName': 'div',
+        'className': 'shareContainer previewContainer',
+        'template': '#share_popup_template',
         'buttons': App.option('shareSocialButtons'),
 
         'events': {
@@ -337,10 +337,10 @@ App.module("sharing", function (sharing, App) {
         'onRender': function () {
             var self = this;
 
-            this.$el.css({'display': "table"});
+            this.$el.css({'display': 'table'});
             $('body').append(this.$el.cssFadeIn(100));
 
-            // this.buttons = ["facebook", "twitter", "tumblr", ...]
+            // this.buttons = ['facebook', 'twitter', 'tumblr', ...]
             if (!(this.buttons && this.buttons.length)) {
                 this.buttons = _.map(sources, function (obj, key) {
                     return key;
@@ -368,12 +368,12 @@ App.module("sharing", function (sharing, App) {
      * @type {ItemView}
      */
     this.ShareOption = Marionette.ItemView.extend({
-        'tagName': "div",
-        'className': "button",
+        'tagName': 'div',
+        'className': 'button',
         'templates': [
             '#<%= data.type %>_share_popup_option_template'
         ],
-        'template': "#share_popup_option_template",
+        'template': '#share_popup_option_template',
 
         'templateHelpers': function () {
             var uri = App.sharing.get(this.options.type),
@@ -392,8 +392,8 @@ App.module("sharing", function (sharing, App) {
         },
 
         'onRender': function () {
-            this.$el.addClass((this.options.type + "_share").replace(/[+\-]/g,
-                ""));
+            this.$el.addClass((this.options.type + '_share').replace(/[+\-]/g,
+                ''));
             return this;
         }
     });

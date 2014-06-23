@@ -51,9 +51,9 @@ App.module('core', function (module, App) {
         'className': App.option('itemSelector', '').substring(1),
 
         'events': {
-            'click': "onClick",
-            'mouseenter': "onHover",
-            'mouseleave': "onHover"
+            'click': 'onClick',
+            'mouseenter': 'onHover',
+            'mouseleave': 'onHover'
         },
 
         'regions': {  // if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
@@ -77,12 +77,12 @@ App.module('core', function (module, App) {
             if (data.type) {
                 _.each(data.type.toLowerCase().split(),
                     function (cName) {
-                        self.className += " " + cName;
+                        self.className += ' ' + cName;
                     });
             }
 
             if (data.template) {
-                self.className += " " + data.template;
+                self.className += ' ' + data.template;
             }
 
             // expose model reference in form of id
@@ -273,7 +273,7 @@ App.module('core', function (module, App) {
             // this is the 'image 404' event
             if ($tileImg && $tileImg.length >= 1) {
                 $tileImg[0].onerror = function () {
-                    console.warn("Image error, closing views: " + arguments);
+                    console.warn('Image error, closing views: ' + arguments);
                     self.close();
                 };
             }
@@ -294,6 +294,7 @@ App.module('core', function (module, App) {
 
             $tileImg.load(allocateTile);
         }
+
     });
 
     /**
@@ -301,12 +302,12 @@ App.module('core', function (module, App) {
      * @type {*}
      */
     this.ProductTileView = this.TileView.extend({
-        'template': "#product_tile_template",
+        'template': '#product_tile_template',
         'model': module.Tile
     });
 
     this.ImageTileView = this.TileView.extend({
-        'template': "#image_tile_template",
+        'template': '#image_tile_template',
         'model': module.ImageTile
     });
 
@@ -336,7 +337,7 @@ App.module('core', function (module, App) {
         },
 
         'onPlaybackEnd': function (ev) {
-            App.vent.trigger("videoEnded", ev, this);
+            App.vent.trigger('videoEnded', ev, this);
         }
     });
 
@@ -347,7 +348,7 @@ App.module('core', function (module, App) {
         'onInitialize': function () {
             // Add here additional things to do when loading a YoutubeTile
             this.$el.addClass('wide');
-            this.model.set("thumbnail", 'http://i.ytimg.com/vi/' +
+            this.model.set('thumbnail', 'http://i.ytimg.com/vi/' +
                             this.model.get('original-id') +
                             '/hqdefault.jpg');
         },
@@ -496,13 +497,14 @@ App.module('core', function (module, App) {
 
             // unbind window.scroll and resize before init binds them again.
             (function (globals) {
+
                 globals.scrollHandler = _.debounce(self.pageScroll, 500);
                 globals.resizeHandler = _.debounce(function () {
                     $('.resizable', document).trigger('resize');
                     App.vent.trigger('windowResize');
                 }, 300);
                 globals.orientationChangeHandler = function () {
-                    App.vent.trigger("rotate");
+                    App.vent.trigger('rotate');
                 };
 
                 $window
@@ -528,11 +530,11 @@ App.module('core', function (module, App) {
             }
 
             // Vent Listeners
-            App.vent.on("click:tile", this.updateContentStream, this);
+            App.vent.on('click:tile', this.updateContentStream, this);
             App.vent.on('change:category', this.categoryChanged, this);
 
-            App.vent.on("feedEnded", function () {
-                console.debug("feed ended");
+            App.vent.on('feedEnded', function () {
+                console.debug('feed ended');
                 App.discovery.ended = true;
             });
 
@@ -557,14 +559,14 @@ App.module('core', function (module, App) {
                     .unbind('resize', globals.resizeHandler);
 
                 if (window.removeEventListener) {
-                    window.removeEventListener("orientationchange",
+                    window.removeEventListener('orientationchange',
                         globals.orientationChangeHandler, false);
                 }
             }(App._globals));
 
-            App.vent.off("click:tile");
+            App.vent.off('click:tile');
             App.vent.off('change:category');
-            App.vent.off("finished");
+            App.vent.off('finished');
 
             App.vent.off('windowResize');  // in layoutEngine
 
@@ -596,7 +598,7 @@ App.module('core', function (module, App) {
                 // feed ended / IR busted
                 if (tileInfo && tileInfo.length === 0) {
                     self.toggleLoading(false);
-                    App.vent.trigger("feedEnded", this);
+                    App.vent.trigger('feedEnded', this);
                 }
             });
 
@@ -604,6 +606,7 @@ App.module('core', function (module, App) {
         },
 
         'render': _.throttle(function () {
+            // TODO: investigate why this would ever render more than once.
             // limit how many times the feed can re-render.
             Marionette.CollectionView.prototype.render.apply(this, arguments);
         }, 500),
@@ -643,7 +646,7 @@ App.module('core', function (module, App) {
                     'I don\'t think it is supposed to happen.');
             }
             this.getTiles({
-                'type': "content",
+                'type': 'content',
                 'id': id
             }, tile);
         },
@@ -654,7 +657,7 @@ App.module('core', function (module, App) {
             var self = this;
             App.tracker.changeCategory(category);
             if (this.loading) {
-                console.debug("changing category on edge");
+                console.debug('changing category on edge');
                 this.on('loadingFinished', _.once(function () {
                     App.layoutEngine.empty(self);
                     self.ended = false;
@@ -899,7 +902,7 @@ App.module('core', function (module, App) {
                         productModel = new App.core.Product(product);
 
                     $this.addClass('selected').siblings().removeClass('selected');
-                    App.options['galleryIndex'] = index;
+                    App.options.galleryIndex = index;
 
                     if (product.images.length === 1) {
                         $('.gallery, .gallery-dots', self.$el).addClass('hide');
@@ -922,6 +925,7 @@ App.module('core', function (module, App) {
                 });
             }
         },
+
         // Disable scrolling body when preview is shown
         'onShow': function () {
             var product;
@@ -1062,9 +1066,9 @@ App.module('core', function (module, App) {
      * @type {Layout}
      */
     this.PreviewWindow = Marionette.Layout.extend({
-        'tagName': "div",
-        'className': "previewContainer",
-        'template': "#preview_container_template",
+        'tagName': 'div',
+        'className': 'previewContainer',
+        'template': '#preview_container_template',
         'templates': function () {
             var templateRules = [
                 // supported contexts: options, data
@@ -1133,9 +1137,9 @@ App.module('core', function (module, App) {
             // cannot declare display:table in marionette class.
             heightMultiplier = App.utils.portrait() ? 1 : 2;
             this.$el.css({
-                'display': "table",
+                'display': 'table',
                 'height': App.support.mobile() ?
-                    heightMultiplier * $window.height() : ""
+                    heightMultiplier * $window.height() : ''
             });
 
             var ContentClass,
@@ -1165,7 +1169,7 @@ App.module('core', function (module, App) {
                 heightMultiplier = App.utils.portrait() ? 1 : 2;
                 self.$el.css({
                     'height': App.support.mobile() ?
-                        heightMultiplier * $window.height() : ""
+                        heightMultiplier * $window.height() : ''
                 });
                 self.content.show(new ContentClass(contentOpts));
             });
@@ -1174,17 +1178,17 @@ App.module('core', function (module, App) {
         'onShow': function () {
             var positionWindow = (function (previewWindow) {
                 return function () {
-                    var window_middle = $window.scrollTop() + $window.height() / 2;
+                    var windowMiddle = $window.scrollTop() + $window.height() / 2;
 
-                    if (App.window_middle) {
-                        window_middle = App.window_middle;
+                    if (App.windowMiddle) {
+                        windowMiddle = App.windowMiddle;
                     }
 
                     if (App.windowHeight && App.support.mobile()) {
                         previewWindow.$el.css('height', App.windowHeight);
                     }
 
-                    previewWindow.$el.css('top', Math.max(window_middle - (previewWindow.$el.height() / 2), 0));
+                    previewWindow.$el.css('top', Math.max(windowMiddle - (previewWindow.$el.height() / 2), 0));
                 };
             }(this));
 
@@ -1217,15 +1221,15 @@ App.module('core', function (module, App) {
      * @type {ItemView}
      */
     this.CategoryView = Marionette.ItemView.extend({
-        'tagName': "div",
+        'tagName': 'div',
         'className': 'category',
-        'template': "#category_template",
+        'template': '#category_template',
         'templates': function () {
             var templateRules = [
-                "#<%= options.store.slug %>_mobile_category_template",
-                "#<%= options.store.slug %>_category_template",
-                "#mobile_category_template",
-                "#category_template"
+                '#<%= options.store.slug %>_mobile_category_template',
+                '#<%= options.store.slug %>_category_template',
+                '#mobile_category_template',
+                '#category_template'
             ];
 
             if (!App.support.mobile()) {
@@ -1238,7 +1242,7 @@ App.module('core', function (module, App) {
         },
 
         'events': {
-            'click': "onClick"
+            'click': 'onClick'
         },
 
         'onClick': function (ev) {
@@ -1253,8 +1257,8 @@ App.module('core', function (module, App) {
      * @type {CollectionView}
      */
     this.CategoryCollectionView = Marionette.CollectionView.extend({
-        'tagName': "div",
-        'className': "category-area",
+        'tagName': 'div',
+        'className': 'category-area',
         'itemView': this.CategoryView,
         'collection': null,
 
@@ -1270,7 +1274,7 @@ App.module('core', function (module, App) {
                 if (App.option('categoryHome').length) {
                     home = App.option('categoryHome');
                 } else {
-                    home = "home";
+                    home = 'home';
                 }
                 categories.unshift(home);
                 this.nofilter = true;
@@ -1279,8 +1283,8 @@ App.module('core', function (module, App) {
             // Initialize by adding all the categories to this view
             _.each(categories, function (category) {
                 category = new App.core.Category({
-                  'name': category,
-                  'nofilter': (category === home)
+                    'name': category,
+                    'nofilter': (category === home)
                 });
                 self.collection.add(category);
             });

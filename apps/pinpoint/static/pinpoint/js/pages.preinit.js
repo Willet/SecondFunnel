@@ -79,8 +79,8 @@ App.options.urlParams = window.location.search;
             urlParams = App.options.urlParams;
         if (urlParams.length > 0) {
             var href = $target.attr('href');
-            if (href && href.indexOf('#') == -1 &&
-                    href.indexOf(urlParams.substring(1)) == -1) {
+            if (href && href.indexOf('#') === -1 &&
+                    href.indexOf(urlParams.substring(1)) === -1) {
                 href += href.indexOf('?') > -1 ? urlParams.replace('?', '&') : urlParams;
                 $target.attr('href', href);
             }
@@ -96,7 +96,7 @@ App.options.urlParams = window.location.search;
 
     // feature, not a bug
     if (window.console && console.log) {
-        console.log("%cSecondFunnel", "font-family:sans-serif; font-weight:bold; font-size:12pt;");
+        console.log('%cSecondFunnel', 'font-family:sans-serif; font-weight:bold; font-size:12pt;');
         console.log('Published ' + pubDate);
     }
 }(App.options));
@@ -164,7 +164,7 @@ App.options.urlParams = window.location.search;
         debugLevel = App.options.debug = hash[hashIdx + 6];
         hashIdx = urlParams.indexOf('debug='); // In case there was a hash present
         urlParams = urlParams.replace(urlParams.substr(hashIdx - 1, hashIdx + 7), '');
-        if (urlParams.indexOf('?') == -1) {
+        if (urlParams.indexOf('?') === -1) {
             App.options.urlParams = '?' + urlParams.substring(1);
         } else {
             App.options.urlParams = urlParams;
@@ -287,7 +287,7 @@ $.fn.getClasses = $.fn.getClasses || function () {
     if (_.has(window, "onorientationchange")) {
         listener = "orientationchange";
     } else {
-        listener = "resize";
+        listener = 'resize';
     }
 
     $window.on(listener, function () {
@@ -340,11 +340,11 @@ $.getScripts = function (urls, callback, options) {
     // its own tag existing on the page (e.g. firebug, facebook jssdk)
     var calls = _.map(urls, function (url) {
         var options = $.extend(options || {}, {
-            'dataType': 'script',
-            'crossDomain': true,
-            'cache': true,
-            'url': url
-        });
+                'dataType': 'script',
+                'crossDomain': true,
+                'cache': true,
+                'url': url
+            });
         return $.ajax(options);
     });
     $.when.apply($, calls).done(callback, function () {
@@ -375,7 +375,7 @@ _.mixin({
     },
     'capitalize': function (string) {
         // underscore's fancy pants capitalize()
-        var str = string || "";
+        var str = string || '';
         return str.charAt(0).toUpperCase() + str.substring(1);
     },
     'get': function (obj, key, defaultValue) {
@@ -410,7 +410,7 @@ _.mixin({
             throw error;
         }
         if (!$(this.template).length) {
-            throwError(this.template, "NoTemplateError");
+            throwError(this.template, 'NoTemplateError');
         }
 
         // default functionality: $.noop()
@@ -432,15 +432,15 @@ _.mixin({
                 App.vent.trigger('viewRenderError', err, this);
 
                 // If template not found signal error in rendering view.
-                if (err.name &&  err.name === "NoTemplateError") {
-                    console.warn("Could not find template " +
-                                 this.template + ". View did not render.");
+                if (err.name &&  err.name === 'NoTemplateError') {
+                    console.warn('Could not find template ' +
+                            this.template + '. View did not render.');
                     // Trigger methods
                     this.isClosed = true;
                     // .triggerMethod only triggers methods defined in prototype
-                    this.triggerMethod("missing:template");
+                    this.triggerMethod('missing:template');
                 } else {
-                    this.triggerMethod("render:error", err);
+                    this.triggerMethod('render:error', err);
                 }
 
                 this.close();
