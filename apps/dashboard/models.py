@@ -1,3 +1,4 @@
+from datetime import timedelta
 import httplib2
 import requests
 import json
@@ -29,13 +30,13 @@ class Query(models.Model):
     # The manager that makes it so that queries will return children if possible
     objects = InheritanceManager()
 
-    def get_query(self, data_ids, start_date, end_date):
+    def get_query(self, page):
         """
         Returns a query object for use by get_response (or other things)
         """
         raise NotImplementedError("This is an abstract method and must be overridden")
 
-    def get_response(self, data_ids, start_date, end_date):
+    def get_response(self, page):
         """
         Returns a JSON string with the data from an api query
         """
@@ -56,11 +57,19 @@ class AnalyticsQuery(Query):
     dimensions = models.CharField(max_length=256,
                                   help_text='See https://developers.google.com/analytics/devguides/reporting/core/dimsmets')
 
-    def get_dates(self, start, end):
+    def get_dates(self, campaign):
+        try:
+            end = campaign.end_date
+            start = campaign.start_date
+        except:
+            end = now()
+            start = end - timedelta(30)
+
         end_date = 'today' if end.date() >= now().date() else end.strftime('%Y-%m-%d')
         start_date = 'today' if start >= now() or self.is_today else start.strftime('%Y-%m-%d')
         if end_date is not 'today':
             start_date = end_date
+
         return {'start': start_date, 'end': end_date}
 
     @staticmethod
@@ -81,20 +90,26 @@ class AnalyticsQuery(Query):
 
         return build('analytics', 'v3', http=http)
 
-    def get_query(self, data_ids, start_date, end_date, campaign='all'):
+    def get_query(self, page):
         """
         Gets the query object for this query with the given table id.
         Returns a analytics query object that has an execute method,
             calling analyticsQuery.get_query().execute() will return
             a response (in JSON)
         """
-        if 'google_analytics' in data_ids:
-            table_id = 'ga:' + str(data_ids['google_analytics'])
+        if 'google_analytics' in page.dashboard_settings:
+            table_id = 'ga:' + str(page.dashboard_settings['google_analytics'])
         else:
-            return {'error': "please define 'google_analytics' in dashboard data_ids"}
+            return {'error': "please define 'google_analytics' in dashboard page"}
 
-        date = self.get_dates(start_date, end_date)
-        ga_filter = 'ga:sessions>=0' if (campaign == 'all') else ('ga:campaign==' + campaign)
+        date = self.get_dates(page.campaign)
+        try:
+            campaign_id = page.campaign.identifier
+        except:
+            campaign_id = ''
+
+        # TODO add this in again
+        ga_filter = 'ga:sessions>=0' if (campaign_id == '') else ('ga:campaign==' + campaign_id)
         service = AnalyticsQuery.build_analytics()
         data = service.data().ga().get(ids=table_id,
                                        start_date=date['start'],
@@ -104,10 +119,10 @@ class AnalyticsQuery(Query):
                                        output='dataTable')
         return data
 
-    def get_response(self, data_ids, start_date, end_date, campaign='all'):
+    def get_response(self, page):
         response = {'error': 'Failed to retrieve data'}
         try:
-            data = self.get_query(data_ids, start_date, end_date, campaign=campaign)
+            data = self.get_query(page)
             response = data.execute()
         except HttpError as error:
             print "Querying Google Analytics failed with: ", error
@@ -157,26 +172,29 @@ class ClickmeterQuery(Query):
     id_number = models.IntegerField(default=0,
                                     verbose_name='The index number of the clickmeter_id that this query uses')
 
-    # DEFER name this better
-    @staticmethod
-    def get_end_date(date):
-        end_date = date.strftime('%Y%m%d%H%M')
-        return end_date
+    def get_dates(self, campaign):
+        try:
+            end = campaign.end_date
+            start = campaign.start_date
+        except:
+            end = now()
+            start = end - timedelta(30)
 
-    @staticmethod
-    def get_start_date(date):
-        start_date = date.strftime('%Y%m%d%H%M')
-        return start_date
+        # TODO add logic for is_today here
+        end_date = end.strftime('%Y%m%d%H%M')
+        start_date = start.strftime('%Y%m%d%H%M')
 
-    def get_query(self, data_ids, start_date, end_date):
+        return {'start': start_date, 'end': end_date}
+
+    def get_query(self, page):
         """
         Do authentication and then prepare a request. This allows for making requests to any
             Clickmeter endpoint that requires an id, dates, and groupBy.
         """
         # determine if we can get an id. if not return (cause we need one for most requests)
-        if 'clickmeter' in data_ids:
+        if 'clickmeter' in page.dashboard_settings:
             try:
-                clickmeter_id = data_ids['clickmeter'][self.id_number]
+                clickmeter_id = page.dashboard_settings['clickmeter'][self.id_number]
             except:
                 print 'clickmeter id cannot be found, array is likely out of bounds'
                 return {'error': 'id cannot be found'}
@@ -185,20 +203,21 @@ class ClickmeterQuery(Query):
 
         url = 'http://apiv2.clickmeter.com' + str(self.endpoint).format(id=clickmeter_id)
         auth_header = {"X-Clickmeter-Authkey": settings.CLICKMETER_API_KEY}
+        dates = self.get_dates(page.campaign)
         data = {'timeframe': 'custom',
-                'fromDay': self.get_start_date(start_date),
-                'toDay': self.get_end_date(end_date)}
+                'fromDay': dates['start'],
+                'toDay': dates['end']}
         return {'url':  url, 'header': auth_header, 'payload': data}
 
-    def get_response(self, data_ids, start_date, end_date):
-        query = self.get_query(data_ids, start_date, end_date)
+    def get_response(self, page):
+        query = self.get_query(page)
         response = json.dumps({'error': 'Failed to retrieve data'})
 
         try:
             response = requests.get(query['url'], headers=query['header'], params=query['payload'])
         except HttpError as error:
             print "Querying Clickmeter failed with: ", error
-
+        print response.json()
         #TODO fix code for saving... is this even necessary?
         if False:#not 'error' in response:
             self.cached_response = response
@@ -207,6 +226,10 @@ class ClickmeterQuery(Query):
 
 
 class KeenIOMetricsQuery(Query):
+    """
+    Apparently we track these in our database with more accuracy so this might be unused
+    depending on whether we start using Keen or not
+    """
     metric_name = models.CharField(max_length=128)
 
     event_collection = models.CharField(max_length=128)
@@ -224,7 +247,22 @@ class KeenIOMetricsQuery(Query):
     ], default='')
     group_by = jsonfield.JSONField(default=[])
 
-    def get_query(self, data_ids, start_date, end_date):
+    def get_dates(self, campaign):
+        try:
+            end = campaign.end_date
+            start = campaign.start_date
+        except:
+            end = now()
+            start = end - timedelta(30)
+
+        end_date = 'today' if end.date() >= now().date() else end.strftime('%Y-%m-%dT%H%MZ')
+        start_date = 'today' if start >= now() or self.is_today else start.strftime('%Y-%m-%dT%H%MZ')
+        if end_date is not 'today':
+            start_date = end_date
+
+        return {'start': start_date, 'end': end_date}
+
+    def get_query(self, page):
         header = {"Authorization": settings.KEEN_CONFIG['readKey']}
         base_url = 'https://api.keen.io/3.0/projects/{project_id}/queries/{metric_name}'
         url = base_url.format(project_id=settings.KEEN_CONFIG['projectId'], metric_name=self.metric_name)
@@ -235,16 +273,27 @@ class KeenIOMetricsQuery(Query):
         if self.filters is not []:
             request_data.update({'filters': self.filters})
         if self.use_timeframe:
-            #TODO make this work
-            request_data.update({'timeframe': 'somestuff',
+            request_data.update({'timeframe': self.get_dates(page.campaign),
                                  'interval': self.interval})
         if self.group_by is not []:
             request_data.update({'group_by': self.group_by})
 
+        return {'url':  url, 'header': header, 'payload': request_data}
 
+    def get_response(self, page):
+        query = self.get_query(page)
+        response = json.dumps({'error': 'Failed to retrieve data'})
 
-    def get_response(self, data_ids, start_date, end_date):
-        pass
+        try:
+            response = requests.get(query['url'], headers=query['header'], params=query['payload'])
+        except HttpError as error:
+            print "Querying Keen.io failed with: ", error
+
+        #TODO fix code for saving... is this even necessary?
+        if False:#not 'error' in response:
+            self.cached_response = response
+            self.save()
+        return json.dumps(response.json())
 
 
 class Campaign(models.Model):
@@ -271,11 +320,9 @@ class DashBoard(models.Model):
     """
     # human name for the site that these statistics correspond to
     site_name = models.CharField(max_length=128)
-    # prepend with 'ga:' this is the table id that GA uses to refer to the site
-    data_ids = jsonfield.JSONField()
+    page = models.ForeignKey('assets.Page', blank=False, null=True)
 
     queries = models.ManyToManyField(Query)
-    campaigns = models.ManyToManyField(Campaign, blank=True)
 
     def __unicode__(self):
         name = 'null'

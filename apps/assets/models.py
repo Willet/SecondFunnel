@@ -10,7 +10,6 @@ from django.db import models
 from django_extensions.db.fields import CreationDateTimeField
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
-from apps.dashboard.models import Campaign
 
 from apps.utils import returns_unicode
 import apps.api.serializers as cg_serializers
@@ -697,8 +696,8 @@ class Page(BaseModel):
         ('conditional_social_buttons', {}),
     ]
 
-    # dashboard_settings = JSONField()
-    # campaign = models.ForeignKey(Campaign)
+    dashboard_settings = JSONField(default={})
+    campaign = models.ForeignKey('dashboard.Campaign', null=True, blank=True)
 
     description = models.TextField(blank=True, null=True)
     url_slug = models.CharField(max_length=128)  # e.g. livedin
