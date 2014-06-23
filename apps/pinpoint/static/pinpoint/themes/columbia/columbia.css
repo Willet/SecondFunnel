@@ -58,7 +58,8 @@
     padding: 10px;
 }
 
-.previewContainer .gallery {
+.previewContainer .gallery,
+.previewContainer .gallery-dots {
     text-align: center;
 }
 
@@ -182,11 +183,6 @@
     text-align: center;
     font-size: 12px;
     white-space: normal;
-}
-
-.previewContainer .main-image-container {
-    position: relative;
-    text-align: center;
 }
 
 .previewContainer .main-image-container .gallery-swipe-left,

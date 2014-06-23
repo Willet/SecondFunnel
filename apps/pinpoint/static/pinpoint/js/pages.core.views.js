@@ -761,7 +761,9 @@ App.module('core', function (module, App) {
             title: '.title',
             buy: '.buy',
             description: '.description',
-            galleryMainImage: '.gallery-main-image'
+            galleryMainImage: '.gallery-main-image',
+            gallery: '.gallery',
+            galleryDots: '.gallery-dots'
         },
 
         'onBeforeRender': function () {
@@ -807,8 +809,6 @@ App.module('core', function (module, App) {
                 }));
             }, this);
 
-            // TODO: turn gallery into a view
-            $('.gallery', this.$el).empty();
             App.utils.runWidgets(this);
 
             this.resizeContainer();
@@ -902,9 +902,9 @@ App.module('core', function (module, App) {
                     App.options['galleryIndex'] = index;
 
                     if (product.images.length === 1) {
-                        $('.gallery', self.$el).addClass('hide');
+                        $('.gallery, .gallery-dots', self.$el).addClass('hide');
                     } else {
-                        $('.gallery', self.$el).removeClass('hide');
+                        $('.gallery, .gallery-dots', self.$el).removeClass('hide');
                     }
 
                     if (socialButtons.length >= 1) {

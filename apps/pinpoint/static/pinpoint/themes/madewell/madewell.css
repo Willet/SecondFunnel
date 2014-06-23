@@ -390,7 +390,8 @@ div.header {
 }
 
 @media screen and (min-width: 769px) {
-    .previewContainer .gallery {
+    .previewContainer .gallery,
+    .previewContainer .gallery-dots {
         margin-top: 12px;
         height: 67px;
         white-space: nowrap;
@@ -414,7 +415,8 @@ div.header {
 }
 
 @media screen and (max-width: 768px) {
-    .previewContainer .gallery {
+    .previewContainer .gallery
+    .previewContainer .gallery-dots {
         height: 50px;
         margin-bottom: 7px;
         overflow-y: hidden;
@@ -584,7 +586,8 @@ div.header {
         background-attachment: scroll;
     }
 
-    .previewContainer .gallery {
+    .previewContainer .gallery,
+    .previewContainer .gallery-dots {
         margin: 0 auto;
         padding: 3px;
         height: auto;
@@ -635,7 +638,8 @@ div.header {
     font-size: 13px;
 }
 
-.previewContainer .gallery {
+.previewContainer .gallery,
+.previewContainer .gallery-dots {
     text-align: center;
     overflow-x: auto;
 }
@@ -650,7 +654,7 @@ div.header {
     border: 1px solid black;
 }
 
-.previewContainer .gallery.dots div {
+.previewContainer .gallery-dots .item {
     border-radius: 50%;
     width: 5px;
     height: 5px;
@@ -659,7 +663,7 @@ div.header {
     margin-right: 10px;
 }
 
-.previewContainer .gallery.dots div.selected {
+.previewContainer .gallery-dots .item.selected {
     background: #000;
 }
 
@@ -807,11 +811,12 @@ div.header {
         overflow: hidden;
     }
 
-    .previewContainer .image-with-tagged-products .row .gallery.dots {
+    .previewContainer .image-with-tagged-products .row .gallery-dots {
         height: 15px;
     }
 
-    .previewContainer .image-with-tagged-products .row .gallery {
+    .previewContainer .image-with-tagged-products .row .gallery,
+    .previewContainer .image-with-tagged-products .row .gallery-dots {
         /*max-width: 192px;*/
         height: 71px;
         overflow-x: auto;

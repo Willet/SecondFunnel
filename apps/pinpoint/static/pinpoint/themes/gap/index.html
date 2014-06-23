@@ -464,22 +464,28 @@
         </script>
 
         <script type="text/template" id="product_galleryMainImage_template">
-            <% if (obj.images.length > 1) { %>
-                <div class="gallery-swipe-left"></div>
-                <div class="gallery-swipe-right"></div>
+            <div class="main-image-container">
+                <% if (obj.images.length > 1) { %>
+                    <div class="gallery-swipe-left"></div>
+                    <div class="gallery-swipe-right"></div>
+                <% } %>
+                <div class="main-image">
+                    <% for (var i = 0; i < obj.images.length; i++) { %>
+                        <img class="image" src="<%- obj.images[i].url %>" />
+                    <% } %>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="product_gallery_template">
+            <% for (var i = 0; i < obj.images.length; i++) { %>
+                <img class="item" src="<%- obj.images[i].url %>" />
             <% } %>
-            <% if (!App.support.mobile()) { %>
-                <% if (obj.image) { %>
-                    <img class="main-image" src='<%= obj.image.url %>'/>
-                <% } else { %>
-                    <img class="main-image" src='<%= obj.images[0].url %>'/>
-                <% } %>
-            <% } else { %>
-                <% if (obj.image) { %>
-                    <div class="main-image" src='<%= obj.image.url %>'/>
-                <% } else { %>
-                    <div class="main-image" src='<%= obj.images[0].url %>'/>
-                <% } %>
+        </script>
+
+        <script type="text/template" id="product_galleryDots_template">
+            <% for (var i = 0; i < obj.images.length; i++) { %>
+                <div class="item"></div>
             <% } %>
         </script>
 
@@ -516,7 +522,7 @@
             <div class="info">
                 <div class="title"></div>
                 <div class="center">
-                    <div class='gallery<% if (obj.images.length === 1) { %> hide<% } %>'></div>
+                    <div class='gallery-dots<% if (obj.images.length === 1) { %> hide<% } %>'></div>
                 </div>
             </div>
             <div class="price"></div>
@@ -548,7 +554,7 @@
                 <div class="info">
                     <div class="title"></div>
                     <div class="center">
-                        <div class='gallery<% if (products.length === 0) { %> hide<% } %>'></div>
+                        <div class='gallery-dots<% if (products.length === 0) { %> hide<% } %>'></div>
                     </div>
                 </div>
                 <div class="price"></div>

@@ -218,12 +218,24 @@
                     <div class="gallery-swipe-left"></div>
                     <div class="gallery-swipe-right"></div>
                 <% } %>
-                <% if (obj.image) { %>
-                    <img class="main-image" src='<%= obj.image.url %>'/>
-                <% } else { %>
-                    <img class="main-image" src='<%= obj.images[0].url %>'/>
-                <% } %>
+                <div class="main-image">
+                    <% for (var i = 0; i < obj.images.length; i++) { %>
+                        <img class="image" src="<%- obj.images[i].url %>" />
+                    <% } %>
+                </div>
             </div>
+        </script>
+
+        <script type="text/template" id="product_gallery_template">
+            <% for (var i = 0; i < obj.images.length; i++) { %>
+                <img class="item" src="<%- obj.images[i].url %>" />
+            <% } %>
+        </script>
+
+        <script type="text/template" id="product_galleryDots_template">
+            <% for (var i = 0; i < obj.images.length; i++) { %>
+                <div class="item"></div>
+            <% } %>
         </script>
 
         <script type="text/template" id="product_preview_template">
@@ -241,7 +253,7 @@
                     </div>
                     <% if (obj.images.length > 1 && App.support.mobile()) { %>
                         <div class='cell'>
-                            <div class='gallery dots'></div>
+                            <div class='gallery-dots'></div>
                         </div>
                     <% } %>
                     <% if (!App.support.mobile()) { %>
@@ -304,7 +316,7 @@
                                     <div class='buy'></div>
                                 <% } %>
                                 <div class="gallery-main-image"></div>
-                                <div class='gallery dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
                                 <% if (!App.support.mobile()) { %>
                                     <div class='buy'></div>
                                 <% } %>

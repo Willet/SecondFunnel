@@ -255,22 +255,28 @@
         </script>
 
         <script type="text/template" id="product_galleryMainImage_template">
-            <% if (obj.images.length > 1) { %>
-                <div class="gallery-swipe-left"></div>
-                <div class="gallery-swipe-right"></div>
+            <div class="main-image-container">
+                <% if (obj.images.length > 1) { %>
+                    <div class="gallery-swipe-left"></div>
+                    <div class="gallery-swipe-right"></div>
+                <% } %>
+                <div class="main-image">
+                    <% for (var i = 0; i < obj.images.length; i++) { %>
+                        <img class="image" src="<%- obj.images[i].url %>" />
+                    <% } %>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="product_gallery_template">
+            <% for (var i = 0; i < obj.images.length; i++) { %>
+                <img class="item" src="<%- obj.images[i].url %>" />
             <% } %>
-            <% if (!App.support.mobile()) { %>
-                <% if (obj.image) { %>
-                    <img class="main-image" src='<%= obj.image.url %>'/>
-                <% } else { %>
-                    <img class="main-image" src='<%= obj.images[0].url %>'/>
-                <% } %>
-            <% } else { %>
-                <% if (obj.image) { %>
-                    <div class="main-image" src='<%= obj.image.url %>'/>
-                <% } else { %>
-                    <div class="main-image" src='<%= obj.images[0].url %>'/>
-                <% } %>
+        </script>
+
+        <script type="text/template" id="product_galleryDots_template">
+            <% for (var i = 0; i < obj.images.length; i++) { %>
+                <div class="item"></div>
             <% } %>
         </script>
 
@@ -284,7 +290,7 @@
                         <div class="gallery-main-image"></div>
                     </div>
                     <% if (obj.images.length > 1) { %>
-                    <div class='gallery dots'></div>
+                    <div class='gallery-dots'></div>
                     <% } %>
                 </div>
                 <div class='cell info col-sm-6 col-md-6'>
@@ -362,7 +368,7 @@
                             <div class="cell middle col-sm-6 col-md-6"> <!-- image-div -->
                                 <div class="gallery-main-image"></div>
                                 <% if (product.images.length > 1) { %>
-                                    <div class='gallery dots'></div>
+                                    <div class='gallery-dots'></div>
                                 <% } %>
                             </div>
                             <div class="cell col-sm-6 col-md-6"> <!-- info -->

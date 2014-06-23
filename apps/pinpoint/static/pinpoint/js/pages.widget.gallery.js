@@ -12,14 +12,14 @@
  * @param options {Object}  Specific options
  * @return this
  */
-App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
+App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $el, options) {
     var images,
         focusWidth,
         arrows,
         windowWidth = $(window).width(),
         focusCurrent = 0,
         speed = 250, // transition speed for mobile
-        $gallery = view.$('.gallery'), // reference to gallery
+        $gallery = view.$('.gallery, .gallery-dots'), // reference to gallery
         self = this, // self is widget gallery
         focus = view.$(view.$('.main-image').length ? '.main-image' : '.image img'),
         defaults = {
@@ -28,11 +28,6 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
             disabledClass: 'grey',
             selectedClass: 'selected'
         };
-
-    // Check for children as may have already appended
-    if ($el && $el.children().length > 0) {
-        return;
-    }
 
     /**
      * Manually updates the position of images in the gallery.
@@ -99,17 +94,11 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
      * @return this
      */
     this.selectImage = function () {
-        var hash, arrows, len;
-
-        if (App.support.mobile() && !App.option('disableMegaTiles')) {
+        var hash, arrows,
             len = focus.children().length - 1;
-        } else {
-            len = $gallery.children().length - 1;
-        }
 
         // Determine the selected image
-        $gallery
-            .children()
+        $('.item', $gallery)
             .removeClass(options.selectedClass)
             .eq(focusCurrent)
             .addClass(options.selectedClass);
@@ -128,70 +117,13 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
         return this;
     };
 
-    this.onClick = function(ev) {
-        if (App.support.mobile() && !App.option('disableMegaTiles')) return; // mobile does nothing
-        var hash,
-            $selected = $(ev.currentTarget),
-            newURL = $selected.attr('src');
-
-        focus.attr('src', newURL); // change image
-        $gallery.animate({ // animate gallery on click
-            scrollLeft: $selected.offset().left - $gallery.offset().left
-        }, 700);
-
-        focusCurrent = $selected.index();
-
-        self.selectImage();
-    };
-
     /**
-     * Initializes the regular version of the gallery.
+     * Initializes the gallery. Attach the swipe handler.
      */
     this.initialize = function () {
-        // Desktop is nice, doesn't need anything
-        options = _.extend(defaults, options);
-
-        // Unbind any previous events
-        view.$(options.leftArrow).off('click');
-        view.$(options.rightArrow).off('click');
-
-        options.leftArrow = view
-            .$(options.leftArrow)
-            .click(function(ev) {
-                var $prev = $gallery.find('.selected').prev();
-                if ($prev.length) {
-                    self.onClick({'currentTarget': $prev});
-                }
-            });
-
-        options.rightArrow = view
-            .$(options.rightArrow)
-            .click(function(ev) {
-                var $next = $gallery.find('.selected').next();
-                if ($next.length) {
-                    self.onClick({'currentTarget': $next});
-                }
-            });
-
-        // Need to reboot the selected image properly
-        this.onClick({'currentTarget': $gallery.children().eq(0)});
-        console.debug("initialized desktop gallery.");
-    };
-
-    /**
-     * Initializes the mobile version of the gallery.  Attach
-     * the swipe handler.
-     */
-    this.initializeMobile = function () {
-        var width = $(window).width();
-
-        // Need fixed width for swipe to work
-        focus.children().css('width', width);
-        width = width * focus.children().length;
-        focus.width(width);
-
         // Assign options and select arrows; attach swipe
         // handlers
+        var self = this;
         options = _.extend(defaults, options);
         options.leftArrow = view
             .$(options.leftArrow)
@@ -211,50 +143,18 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
             allowPageScroll: "vertical"
         });
 
+        $('.item', $gallery).on('click', function () {
+            focusCurrent = $(this).index();
+            self.selectImage();
+            self.swipeStatus(null, "cancel");
+        });
+
         this.selectImage();
         console.debug("initialized mobile gallery.");
     };
 
-    /* Find the images to use in the gallery. */
-    images = view.model.get('tagged-products');
-    if (images && images.length) { // ensure related images exist
-        images = images[options('galleryIndex', 0)].images.slice(0);
-
-        if (App.support.mobile() && !App.option('disableMegaTiles')) {
-            images.splice(0, 0, view.model.get('defaultImage'));
-        }
-    } else {
-        images = view.model.get('images');
-    }
-
-    _.each(images, function(image) { // iterate over images to create gallery
-        var $img, $wrapper;
-
-        if (App.support.mobile() && !App.option('disableMegaTiles')) {
-            $img = $('<div></div>').css('background-image', 'url(' + image.width(windowWidth * 1.5) + ')');
-        } else {
-            if ($gallery.hasClass('dots')) {
-                $img = $('<div>');
-            } else {
-                $img = $('<img />');
-            }
-
-            $img.attr('src', image.height(App.utils.getViewportSized(true)));
-        }
-
-        $img.addClass('img').click(this.onClick);
-
-        if (App.support.mobile() && !App.option('disableMegaTiles')/* TODO: do this less lazy */) { // append to display area and create tile for gallery
-            focus.append($img);
-            $el.append($('<div />').addClass('img'));
-        } else { // otherwise append to gallery
-            $el.append($img);
-        }
-    });
-
     /* Initialize the gallery and bind event handlers to the widget
        gallery instance. */
     _.bindAll(this, 'swipeStatus', 'scrollImages');
-    if (App.support.mobile() && !App.option('disableMegaTiles')) this.initializeMobile();
-    else this.initialize();
+    this.initialize();
 });

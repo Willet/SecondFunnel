@@ -544,15 +544,38 @@ div.loading {
     clear: both;
 }
 
+.previewContainer .main-image-container,
+#hero-area .main-image-container {
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+}
+
+.previewContainer .main-image-container .main-image,
+#hero-area .main-image-container .main-image {
+    white-space: nowrap;
+    font-size: 0;
+}
+
+.previewContainer .main-image-container .main-image img,
+#hero-area .main-image-container .main-image img {
+    width: 100%;
+    display: inline-block;
+}
+
 .previewContainer .gallery img,
 #hero-area .gallery img {
     height: auto;
     width: auto;
 }
 
-.previewContainer .gallery.dots div,
-#hero-area .gallery.dots div {
+.previewContainer .gallery-dots div,
+#hero-area .gallery-dots div {
     display: inline-block;
+}
+
+.previewContainer .gallery-dots .item,
+#hero-area .gallery-dots .item {
     border-radius: 50%;
     width: 8px;
     height: 8px;
@@ -561,8 +584,8 @@ div.loading {
     cursor: pointer;
 }
 
-.previewContainer .gallery.dots div.selected,
-#hero-area .gallery.dots div.selected {
+.previewContainer .gallery-dots .item.selected,
+#hero-area .gallery-dots .item.selected {
     background-color: #969696;
     cursor: default;
 }
