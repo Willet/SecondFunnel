@@ -1,0 +1,14 @@
+
+.navbar {
+    background-color: rgb(0, 67, 110);
+    height: 84px;
+    line-height: 84px;
+    max-width: 1024px;
+    margin: auto;
+}
+
+.navbar .logo {
+	margin-left: 85px;
+	height: 68px;
+	vertical-align: middle;
+}
