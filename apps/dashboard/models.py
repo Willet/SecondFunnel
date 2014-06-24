@@ -157,7 +157,7 @@ class AnalyticsQuery(Query):
                 for row in response['dataTable']['rows']:
                     row['c'][0]['v'] = capitalize(row['c'][0]['v'])
         #TODO fix code for saving... is this even necessary?
-        if False:#not 'error' in response:
+        if False:  #not 'error' in response:
             self.cached_response = json.dumps(response)
             self.save()
         return json.dumps(response)
@@ -207,7 +207,7 @@ class ClickmeterQuery(Query):
         data = {'timeframe': 'custom',
                 'fromDay': dates['start'],
                 'toDay': dates['end']}
-        return {'url':  url, 'header': auth_header, 'payload': data}
+        return {'url': url, 'header': auth_header, 'payload': data}
 
     def get_response(self, page):
         query = self.get_query(page)
@@ -218,7 +218,7 @@ class ClickmeterQuery(Query):
         except HttpError as error:
             print "Querying Clickmeter failed with: ", error
         #TODO fix code for saving... is this even necessary?
-        if False:#not 'error' in response:
+        if False:  #not 'error' in response:
             self.cached_response = response
             self.save()
         return json.dumps(response.json())
@@ -269,15 +269,27 @@ class KeenIOMetricsQuery(Query):
             'event_collection': self.event_collection,
             'target_property': self.target_property,
         }
-        if self.filters is not []:
-            request_data.update({'filters': json.dumps(self.filters)})
+        filters = [
+            {
+                "operator": "eq",
+                "property_name": "page.id",
+                "property_value": page.id
+            },
+            {
+                "operator": "contains",
+                "property_name": "page.url",
+                "property_value": page.url_slug
+            }
+        ]
+        filters += self.filters
+        request_data.update({'filters': json.dumps(filters)})
         if self.use_timeframe:
             request_data.update({'timeframe': self.get_dates(page.campaign),
                                  'interval': self.interval})
         if self.group_by is not []:
             request_data.update({'group_by': json.dumps(self.group_by)})
 
-        return {'url':  url, 'header': header, 'payload': request_data}
+        return {'url': url, 'header': header, 'payload': request_data}
 
     def get_response(self, page):
         query = self.get_query(page)
@@ -290,7 +302,7 @@ class KeenIOMetricsQuery(Query):
             print "Querying Keen.io failed with: ", error
 
         #TODO fix code for saving... is this even necessary?
-        if False:#not 'error' in response:
+        if False:  #not 'error' in response:
             self.cached_response = response
             self.save()
         return json.dumps(response.json())
