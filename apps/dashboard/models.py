@@ -217,7 +217,6 @@ class ClickmeterQuery(Query):
             response = requests.get(query['url'], headers=query['header'], params=query['payload'])
         except HttpError as error:
             print "Querying Clickmeter failed with: ", error
-        print response.json()
         #TODO fix code for saving... is this even necessary?
         if False:#not 'error' in response:
             self.cached_response = response
@@ -234,7 +233,7 @@ class KeenIOMetricsQuery(Query):
 
     event_collection = models.CharField(max_length=128)
     target_property = models.CharField(max_length=128)
-    filters = jsonfield.JSONField(default=[])
+    filters = jsonfield.JSONField(default=[], blank=True)
     use_timeframe = models.BooleanField(default=False)
     interval = models.CharField(max_length=16, choices=[
         ('', 'No Interval'),
@@ -244,8 +243,8 @@ class KeenIOMetricsQuery(Query):
         ('weekly', 'Each Week'),
         ('monthly', 'By Month'),
         ('yearly', 'By Year')
-    ], default='')
-    group_by = jsonfield.JSONField(default=[])
+    ], default='', blank=True)
+    group_by = jsonfield.JSONField(default=[], blank=True)
 
     def get_dates(self, campaign):
         try:
@@ -271,12 +270,12 @@ class KeenIOMetricsQuery(Query):
             'target_property': self.target_property,
         }
         if self.filters is not []:
-            request_data.update({'filters': self.filters})
+            request_data.update({'filters': json.dumps(self.filters)})
         if self.use_timeframe:
             request_data.update({'timeframe': self.get_dates(page.campaign),
                                  'interval': self.interval})
         if self.group_by is not []:
-            request_data.update({'group_by': self.group_by})
+            request_data.update({'group_by': json.dumps(self.group_by)})
 
         return {'url':  url, 'header': header, 'payload': request_data}
 
@@ -286,6 +285,7 @@ class KeenIOMetricsQuery(Query):
 
         try:
             response = requests.get(query['url'], headers=query['header'], params=query['payload'])
+            print response.request.url
         except HttpError as error:
             print "Querying Keen.io failed with: ", error
 
