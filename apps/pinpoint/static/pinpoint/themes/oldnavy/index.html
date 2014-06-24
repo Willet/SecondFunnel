@@ -180,7 +180,14 @@
         </script>
 
         <script type="text/template" id="product_price_template">
-            <%- obj.price %>
+            <% if (obj.sale_price) { %>
+                <div class="strike inline">
+                    <%- obj.price %>
+                </div>
+                <%- obj.sale_price %>
+            <% } else { %>
+                <%- obj.price %>
+            <% } %>
         </script>
 
         <script type="text/template" id="product_title_template">
@@ -189,7 +196,7 @@
 
         <script type="text/template" id="product_buy_template">
             <a class='button' href='<%= obj.url %>' target='_blank'>
-                Shop Now
+                <span class="bold">Shop</span>Now
             </a>
         </script>
 
