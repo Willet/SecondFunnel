@@ -88,11 +88,6 @@ def dashboard(request, dashboard_id):
             return HttpResponseRedirect('/dashboard/')
         context_dict['dashboard_id'] = cur_dashboard.pk
         context_dict['siteName'] = cur_dashboard.site_name
-        # TODO add this to model
-        context_dict['campaigns'] = [{'name': 'Lived In', 'value': 'livedin'},
-                                     {'name': 'Summer Loves', 'value': 'summerloves'},
-                                     {'name': 'Paddington Bear', 'value': 'paddington'},
-                                     {'name': 'President', 'value': 'president'}]
 
         return render(request, 'dashboard.html', context_dict)
 

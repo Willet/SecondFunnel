@@ -12,23 +12,9 @@
     <div id="main-content">
     <div class="page-content">
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-12">
             <h2><i class="fa fa-dashboard"></i> {{ siteName }} Dashboard</h2>
         </div>
-        <!--  /col-md-8  -->
-        <div class="col-md-4">
-            <label class="col-sm-3 content-header">Campaign:</label>
-
-            <div class="col-md-9">
-                <select id="campaign" class="form-control" name="campaign">
-                    <option value="all">All</option>
-                    {% for campaign in campaigns %}
-                        <option value="{{ campaign.value }}">{{ campaign.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-        <!-- /col-md-4 -->
     </div>
     <!--  /row  -->
 
