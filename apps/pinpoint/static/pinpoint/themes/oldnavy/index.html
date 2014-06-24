@@ -153,12 +153,7 @@
         <script type="text/template" id="preview_container_template">
             <div class="fullscreen">
                 <div class="content">
-                    <span class="close">Back to browsing</span>
-                    <span class="close small-close">X</span>
-                    <div class="roots-logo">
-                        <div class="line"></div>
-                        <img src="{% static 'pinpoint/themes/roots/images/logo.gif' %}" />
-                    </div>
+                    <span class="close">X</span>
                     <div class="scrollable">
                         <div class="template target"></div>
                     </div>
@@ -366,15 +361,6 @@
 
         <!-- custom templates -->
         <script type="text/template" id="hero_template">
-            <div class="hero-image-wrapper">
-                <div class="visible-xs jumbotron">
-                    <img src="{{ mobile_hero_image }}" alt="Hero" />
-                </div>
-                <div class="visible-sm jumbotron">
-                    <img src="{{ desktop_hero_image }}" alt="Hero" />
-                </div>
-                <div class="visible-md visible-lg jumbotron"></div>
-            </div>
             {% if legal_copy %}
                 <div class="legal us">
                     {{ legal_copy }}
