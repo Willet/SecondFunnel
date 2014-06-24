@@ -65,7 +65,21 @@ html.lt-ie9 .hero-message-container .text .big {
 }
 
 .hero-message-container .text .big svg text {
-	fill: white;
+	fill: transparent;
 	stroke: rgb(238, 38, 85);
 	stroke-width: 3px;
+}
+
+#discovery-area {
+    width: 1024px;
+}
+
+.tile {
+    color: #000;
+    text-align: center;
+    width: 256px;
+    padding: 10px;
+}
+.tile.wide {
+    width: 512px;
 }
