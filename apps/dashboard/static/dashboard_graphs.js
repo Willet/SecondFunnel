@@ -115,6 +115,60 @@ $(document).ready(function () {
     };
 
     /**
+     * This is a chartType, like google.visualization.LineChart
+     * For this chart, location is defined as an Array
+     * TODO make all charts take location as an Array, extend google objects to make this happen
+     * @param location {object} - a JQuery selector of where the label should be placed
+     * @returns {{location: object, draw: draw}}
+     * @constructor
+     */
+    var Tile = function (location) {
+        this.location = location;
+        /**
+         * Draws the chart (ie labels)
+         * @param data {object} - an object gotten from the response.
+         *      MUST CONTAIN THE FOLLOWING FIELDS: (either an array of items with these fields, or
+         *          one instance of these fields
+         *      obj.result,
+         *      obj['tile.url'],
+         *      obj['product.name'],
+         *      obj['tile.id'],
+         *      obj['page.url']
+         * @param options - unused, used to maintain compliance with standard
+         */
+        this.draw = function (data, options) {
+            this.location.html("");
+            var draw_tile = function(data){
+                var tile = "" +
+                        "<div class='tile'>" +
+                        "<div class='count'>" +
+                        data['result'] +
+                        "</div>" +
+                        "<img src=" + data['tile.url'] + ">" +
+                        "<div class='data'>" +
+                        "<span class='product'>" +
+                        data['product.name'] +
+                        "</span>" +
+                        "<span class='id'>" +
+                        "(<a href='"+ data['page.url'] + "#" + data['tile.id'] + "'>" +
+                        data['tile.id'] +
+                        "</a>) " +
+                        "</span>" +
+                        "</div>" +
+                        "</div>";
+                return tile;
+            };
+            if (data instanceof Array){
+                for (var i = 0; i < data.length; i++){
+                    this.location.append(draw_tile(data[i]));
+                }
+            } else {
+                this.location.html(draw_tile(data));
+            }
+        };
+    };
+
+    /**
      * Creates an 'analytics group', that is a group of charts that occupy a similar space and
      *  share properties, and may be drawn/changed all at once.
      *  Elements must be a part of a group to be drawn.
@@ -534,6 +588,15 @@ $(document).ready(function () {
             }, CHART_OPTIONS.columnChart);
         goal3.addSelection('GA_goals_scrollRate');
         createAnalyticsGroup('GOALS', [goal1, goal2, goal3], refreshRate);
+
+        var tileStatistics = new DashboardElement($('#tile-statistics'),
+            Tile, function (response) {
+                window.console.log('tile data function ran');
+                window.console.log(response.result);
+                return response.result;
+            }, {});
+        tileStatistics.addSelection('KN_test');
+        createAnalyticsGroup('TILESTATS', [tileStatistics], refreshRate);
 
         // Get the data and draw all these graphs
         update_all();
