@@ -1,0 +1,71 @@
+
+.navbar {
+    background-color: rgb(0, 67, 110);
+    height: 84px;
+    line-height: 84px;
+    max-width: 1024px;
+    margin: auto;
+}
+
+.navbar .logo {
+	margin-left: 85px;
+	height: 68px;
+	vertical-align: middle;
+}
+
+.hero-message-container {
+	white-space: nowrap;
+	overflow: hidden;
+	position: relative;
+	text-align: center;
+	height: 110px;
+	line-height: 60px;
+	border-bottom: 50px solid rgb(130, 207, 202);
+	font-size: 30px;
+}
+
+.hero-message-container div {
+	line-height: normal;
+}
+
+.hero-message-container .colons {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	z-index: -1;
+	color: rgb(130, 207, 202);
+	letter-spacing: 8px;
+	font-weight: bold;
+}
+
+.hero-message-container .text {
+	display: inline-block;
+	vertical-align: bottom;
+	background-color: white;
+	padding: 0 20px;
+	text-transform: uppercase;
+}
+
+.hero-message-container .text .big {
+	font-size: 55px;
+	margin-bottom: -1px;
+	color: rgb(238, 38, 85);
+	position: relative;
+	visibility: hidden;
+}
+html.lt-ie9 .hero-message-container .text .big {
+	visibility: visible;
+}
+
+.hero-message-container .text .big svg {
+	visibility: visible;
+	width: 100%;
+	position: absolute;
+	left: 0;
+}
+
+.hero-message-container .text .big svg text {
+	fill: white;
+	stroke: rgb(238, 38, 85);
+	stroke-width: 3px;
+}
