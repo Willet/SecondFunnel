@@ -10,7 +10,7 @@ from apps.scrapy.items import ScraperImage
 class PinterestSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'pinterest'
     allowed_domains = ['pinterest.com']
-    start_urls = ['http://www.pinterest.com/lecreuset/recettes/']
+    start_urls = []
 
     # TODO: Handle 'styles'
     visited = []
@@ -41,16 +41,6 @@ class PinterestSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         new_response = WebdriverResponse(response.url, response.webdriver)
         return super(PinterestSpider, self).parse(new_response)
 
-
-class SurlatablePinterestSpider(PinterestSpider):
-    name = 'surlatable_pinterest'
-    allowed_domains = ['pinterest.com']
-    start_urls = ['http://www.pinterest.com/lecreuset/recettes/']
-    rules = []
-
-    store_slug = 'surlatable'
-    visited = []
-
     def parse_start_url(self, response):
         return self.parse_content(response)
 
@@ -68,3 +58,13 @@ class SurlatablePinterestSpider(PinterestSpider):
             l.add_value('source_url', image_url)
             item = l.load_item()
             yield item
+
+
+class SurlatablePinterestSpider(PinterestSpider):
+    name = 'surlatable_pinterest'
+    allowed_domains = ['pinterest.com']
+    start_urls = ['http://www.pinterest.com/lecreuset/recettes/']
+    rules = []
+
+    store_slug = 'surlatable'
+    visited = []
