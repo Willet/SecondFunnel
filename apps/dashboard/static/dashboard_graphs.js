@@ -1,4 +1,4 @@
-/*globals google, dashboard*/
+/*globals google, dashboard, _*/
 /**
  * Created by tristanpotter on 2014-05-22.
  * JavaScript that constructs and populates the dashboard with data.
@@ -159,8 +159,13 @@ $(document).ready(function () {
                 return tile;
             };
             if (data instanceof Array){
-                for (var i = 0; i < data.length; i++){
-                    this.location.append(draw_tile(data[i]));
+                var sortedTiles = _.sortBy(_.values(data),
+                        function(item) {
+                    return -1 * item.result;
+                });
+
+                for (var i = 0; i < sortedTiles.length; i++){
+                    this.location.append(draw_tile(sortedTiles[i]));
                 }
             } else {
                 this.location.html(draw_tile(data));

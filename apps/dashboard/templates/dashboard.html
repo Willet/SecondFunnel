@@ -6,6 +6,7 @@
         dashboard = {{ dashboard_id }}
     </script>
     <script type="text/javascript" src="{% static "dashboard_graphs.js" %}"></script>
+    <script type='text/javascript' src='{% static 'js/underscore.js' %}'></script>
 {% endblock %}
 
 {% block main %}
@@ -438,8 +439,8 @@
     <div class="row">
         <div class="col-md-12">
             <div class="block-web graph-container">
-                <h3 class="content-header"> Tiles</h3>
-                <div class="graph" id="tile-statistics">
+                <h3 class="content-header">Tiles by preview</h3>
+                <div class="graph" id="tile-statistics" style="overflow: scroll;">
                     Currently loading data... Thank you for your patience
                 </div>
                 <!--  /custom-bar-chart  -->
