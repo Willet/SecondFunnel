@@ -439,7 +439,29 @@
     <div class="row">
         <div class="col-md-12">
             <div class="block-web graph-container">
-                <h3 class="content-header">Tiles by preview</h3>
+                <h3 class="content-header">Tiles by:
+                    <div class="button-group pull-right" data-toggle="buttons">
+                        <a href="javascript:;" class="btn active small border-gray right-margin" id="tiles-rate">
+                            <span class="button-content">
+                                <input type="radio" name="tiles">
+                                Preview Rate
+                            </span>
+                        </a>
+                        <a href="javascript:;" class="btn small border-gray right-margin" id="tiles-preview">
+                            <span class="button-content">
+                                <input type="radio" name="tiles">
+                                Previews
+                            </span>
+                        </a>
+                        <a href="javascript:;" class="btn small border-gray" id="tiles-impression">
+                            <span class="button-content">
+                                <input type="radio" name="tiles">
+                                Impressions
+                            </span>
+                        </a>
+                    </div>
+                    <!--   /button-group   -->
+                </h3>
                 <div class="graph" id="tile-statistics" style="overflow: scroll;">
                     Currently loading data... Thank you for your patience
                 </div>

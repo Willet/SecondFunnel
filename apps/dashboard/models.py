@@ -297,7 +297,6 @@ class KeenIOMetricsQuery(Query):
 
         try:
             response = requests.get(query['url'], headers=query['header'], params=query['payload'])
-            print response.request.url
         except HttpError as error:
             print "Querying Keen.io failed with: ", error
 

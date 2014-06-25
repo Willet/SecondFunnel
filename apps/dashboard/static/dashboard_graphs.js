@@ -138,33 +138,33 @@ $(document).ready(function () {
          */
         this.draw = function (data, options) {
             this.location.html("");
-            var draw_tile = function(data){
+            var draw_tile = function (data) {
                 var tile = "" +
-                        "<div class='tile'>" +
-                        "<div class='count'>" +
-                        data['result'] +
-                        "</div>" +
-                        "<img src=" + data['tile.url'] + ">" +
-                        "<div class='data'>" +
-                        "<span class='product'>" +
-                        data['product.name'] +
-                        "</span>" +
-                        "<span class='id'>" +
-                        "(<a href='"+ data['page.url'] + "#" + data['tile.id'] + "'>" +
-                        data['tile.id'] +
-                        "</a>) " +
-                        "</span>" +
-                        "</div>" +
-                        "</div>";
+                    "<div class='tile'>" +
+                    "<div class='count'>" +
+                    data['result'] +
+                    "</div>" +
+                    "<img src=" + data['tile.url'] + ">" +
+                    "<div class='data'>" +
+                    "<span class='product'>" +
+                    data['product.name'] +
+                    "</span>" +
+                    "<span class='id'>" +
+                    "(<a href='" + data['page.url'] + "#" + data['tile.id'] + "'>" +
+                    data['tile.id'] +
+                    "</a>) " +
+                    "</span>" +
+                    "</div>" +
+                    "</div>";
                 return tile;
             };
-            if (data instanceof Array){
+            if (data instanceof Array) {
                 var sortedTiles = _.sortBy(_.values(data),
-                        function(item) {
-                    return -1 * item.result;
-                });
+                    function (item) {
+                        return -1 * item.result;
+                    });
 
-                for (var i = 0; i < sortedTiles.length; i++){
+                for (var i = 0; i < sortedTiles.length; i++) {
                     this.location.append(draw_tile(sortedTiles[i]));
                 }
             } else {
@@ -261,17 +261,58 @@ $(document).ready(function () {
      */
     var datify = function (groupNumber) {
         /* Dimensions are nthHour for total, nthMinute for today*/
+        var total_response = [];
         var chartStorage = pageOptions.charts[groupNumber].members,
-            ajax_response = function (chartNumber, numSelection) {
+            ajax_response = function (chartNumber, numSelection, type, last) {
                 return function (response) {
-                    chartStorage[chartNumber].selections[numSelection].response = response;
-                    drawChart(groupNumber);
+                    if (type === 'ratio') {
+                        total_response.push(response);
+                        if (last) {
+                            var q0s = total_response[0]; // impressions in campaign_stats
+                            var q1s = total_response[1]; // previews in campaign_stats
+                            // Merge two sets...
+                            var keys = _.intersection(
+                                _.keys(q1s),
+                                _.keys(q0s)
+                            );
+
+                            var finalResponse = [];
+
+                            $.each(keys, function (idx, key) {
+                                var q0, q1, ratioTile;
+                                key = parseInt(key, 10);
+
+                                q0 = q0s[key];
+                                q1 = q1s[key];
+
+                                ratioTile = _.extend({}, q0);
+                                ratioTile.result = q1.result / q0.result;
+
+                                finalResponse.push(ratioTile);
+                            });
+
+                            chartStorage[chartNumber].selections[numSelection].response = finalResponse;
+                            drawChart(groupNumber);
+                        }
+                    } else if (type === 'regular') {
+                        chartStorage[chartNumber].selections[numSelection].response = response;
+                        drawChart(groupNumber);
+                    }
                 };
             };
         for (var chartNumber = 0; chartNumber < chartStorage.length; chartNumber++) {
             // populate data
             for (var i = 0; i < chartStorage[chartNumber].selections.length; i++) {
-                retrieveData(campaign, chartStorage[chartNumber].selections[i].queryName, ajax_response(chartNumber, i));
+                var query = chartStorage[chartNumber].selections[i].queryName;
+                var queryArray = query.split(':');
+                if (queryArray[0] === 'ratio') {
+                    var queries = queryArray[1].split(',');
+                    for (var j = 0; j < queries.length; j++) {
+                        retrieveData(campaign, queries[j], ajax_response(chartNumber, i, 'ratio', (j === (queries.length - 1))));
+                    }
+                } else {
+                    retrieveData(campaign, query, ajax_response(chartNumber, i, 'regular'));
+                }
             }
         }
     };
@@ -421,7 +462,7 @@ $(document).ready(function () {
         var buttonPurchaseRate = new DashboardElement($('#purchaseRate'), QuickLabel, function (response) {
             //TODO add to button group
             var data = parseInt(response.convertedClicks, 10);
-            return Math.round((((data / sessions) * 100)+ 0.00001) * 100) / 100 + '%';
+            return Math.round((((data / sessions) * 100) + 0.00001) * 100) / 100 + '%';
         }, {});
         buttonPurchaseRate.addSelection('CM_purchaseRate');
 
@@ -526,9 +567,9 @@ $(document).ready(function () {
 
                 // format time
                 var column = 3;
-                for(var i = 0; i < data.getNumberOfRows(); i++){
-                    var minutes = Math.floor(data.getValue(i,column) / 60) + 'm',
-                        seconds = Math.round(data.getValue(i,column) % 60) + 's';
+                for (var i = 0; i < data.getNumberOfRows(); i++) {
+                    var minutes = Math.floor(data.getValue(i, column) / 60) + 'm',
+                        seconds = Math.round(data.getValue(i, column) % 60) + 's';
 
                     if (minutes === '0m') {
                         minutes = '';
@@ -596,11 +637,11 @@ $(document).ready(function () {
 
         var tileStatistics = new DashboardElement($('#tile-statistics'),
             Tile, function (response) {
-                window.console.log('tile data function ran');
-                window.console.log(response.result);
                 return response.result;
             }, {});
-        tileStatistics.addSelection('KN_test');
+        tileStatistics.addSelection('ratio:KN_tilePreview,KN_tileImpression');
+        tileStatistics.addSelection('KN_tilePreview');
+        tileStatistics.addSelection('KN_tileImpression');
         createAnalyticsGroup('TILESTATS', [tileStatistics], refreshRate);
 
         // Get the data and draw all these graphs
@@ -613,7 +654,7 @@ $(document).ready(function () {
     // Start everything up
     google.load('visualization', '1.0', {'packages': ['table', 'corechart'], callback: drawElements});
 
-    $('#campaign').change(function() {
+    $('#campaign').change(function () {
         campaign = $(this).val();
         update_all();
     }).change();
@@ -682,6 +723,25 @@ $(document).ready(function () {
         // integer that references the table-goal grouping of charts
         var TABLE = CHARTS.indexOf('GOALTABLE');
         pageOptions.charts[TABLE].setSelection(1); // 1 represents the table that shows data for a day
+        drawChart(TABLE);
+    });
+
+    $('#tiles-rate').on('click', function () {
+        // integer that references the tile grouping of charts
+        var TABLE = CHARTS.indexOf('TILESTATS');
+        pageOptions.charts[TABLE].setSelection(0); // 0 represents the table that shows data for a month
+        drawChart(TABLE);
+    });
+    $('#tiles-preview').on('click', function () {
+        // integer that references the tile grouping of charts
+        var TABLE = CHARTS.indexOf('TILESTATS');
+        pageOptions.charts[TABLE].setSelection(1); // 0 represents the table that shows data for a month
+        drawChart(TABLE);
+    });
+    $('#tiles-impression').on('click', function () {
+        // integer that references the tile grouping of charts
+        var TABLE = CHARTS.indexOf('TILESTATS');
+        pageOptions.charts[TABLE].setSelection(2); // 0 represents the table that shows data for a month
         drawChart(TABLE);
     });
 
