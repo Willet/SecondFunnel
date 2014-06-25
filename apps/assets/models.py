@@ -884,3 +884,16 @@ class Tile(BaseModel):
         """(read-only) representation of the tile as its content graph
         tileconfig."""
         return cg_serializers.TileConfigSerializer.dump(self)
+
+    @property
+    def product(self):
+        """Returns the tile's first product, or the first tagged product from
+        the tile's first piece of content that has tagged products.
+        """
+        if self.products.count():
+            return self.products.all()[0]
+        for content in self.content.all():
+            if content.tagged_products.count():
+                return content.tagged_products.all()[0]
+
+        return None

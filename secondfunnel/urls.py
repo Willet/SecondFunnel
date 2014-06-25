@@ -41,7 +41,7 @@ urlpatterns = patterns('',
         'apps.intentrank.views.get_rss_feed', name='get-feed'),
     # shop-the-look slugs e.g. livedin/id/123
     url(r'^(?P<page_slug>[^/\.]+)'
-        r'/(?P<product_identifier>(id|sku))'
+        r'/(?P<identifier>(id|sku|tile))'
         r'/(?P<identifier_value>\w+)/?$',
         'apps.pinpoint.views.campaign_by_slug'),
 

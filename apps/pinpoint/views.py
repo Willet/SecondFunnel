@@ -13,7 +13,7 @@ from django.template import Context, loader
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
 
-from apps.assets.models import Page, Product
+from apps.assets.models import Page, Product, Tile
 from apps.pinpoint.utils import render_campaign, get_store_from_request, read_a_file
 
 
@@ -47,16 +47,16 @@ def campaign(request, store_id, page_id, product=None):
     return HttpResponse(rendered_content)
 
 
-def campaign_by_slug(request, page_slug, product_identifier='id',
+def campaign_by_slug(request, page_slug, identifier='id',
                      identifier_value=''):
     """Used to render a page using only its name.
 
     If two pages have the same name (which was possible in CG), then django
     decides which page to render.
 
-    :param product_identifier: selects the featured product.
-           allowed values: 'id' or 'sku' (whitelisted to prevent abuse)
-    :param identifier_value: the product's id or sku, respectively
+    :param identifier: selects the featured product.
+           allowed values: 'id', 'sku', or 'tile' (whitelisted to prevent abuse)
+    :param identifier_value: the product or tile's id or sku, respectively
     """
     page_kwargs = {
         'url_slug': page_slug
@@ -79,12 +79,13 @@ def campaign_by_slug(request, page_slug, product_identifier='id',
 
     # if necessary, get product
     # livedin/sku/123
-    lookup_map = {product_identifier: identifier_value}
+    lookup_map = {identifier: identifier_value}
     if request.GET.get('product_id'):  # livedin?product_id=123
         lookup_map = {'id': request.GET.get('product_id')}
     lookup_map['store'] = store
 
-    if product_identifier in ['id', 'sku']:
+    product = None
+    if identifier in ['id', 'sku']:
         try:
             # if a store has two or more products with the same sku,
             # assume the one the user wanted is the one with
@@ -98,8 +99,10 @@ def campaign_by_slug(request, page_slug, product_identifier='id',
                 product = None
         except (Product.DoesNotExist, IndexError, ValueError):
             product = None
-    else:
-        product = None
+    elif identifier == 'tile':
+        tiles = Tile.objects.filter(id=identifier_value)
+        if len(tiles) and tiles[0].product:
+            product = tiles[0].product
 
     return campaign(request, store_id=store_id, page_id=page.id,
                     product=product)

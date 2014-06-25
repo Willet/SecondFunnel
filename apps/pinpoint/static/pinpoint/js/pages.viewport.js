@@ -53,7 +53,8 @@ App.module('viewport', function (viewport, App) {
         // We should probably do this differently.
         if (!App.support.isAniPad() &&
             (!window.devicePixelRatio || window.devicePixelRatio <= 1)) {
-            console.warn('viewport agent called on device with unsupported ppi.');
+            // TODO: this triggers on chrome, is annoying
+            // console.warn('viewport agent called on device with unsupported ppi.');
             return [false, undefined, undefined, 'unsupported ppi'];
         }
 
@@ -93,11 +94,11 @@ App.module('viewport', function (viewport, App) {
             10,  // viewport scale > 10 is not allowed.
             ($window.width() / desiredWidth).toFixed(2)
         ) * 100) / 100).toFixed(2);
-        proposedMeta = "user-scalable=no," +
-                       "width=" + desiredWidth + "," +
-                       "initial-scale=" + adjustedScale + "," +
-                       "minimum-scale=" + adjustedScale + "," +
-                       "maximum-scale=" + adjustedScale;
+        proposedMeta = 'user-scalable=no,' +
+                       'width=' + desiredWidth + ',' +
+                       'initial-scale=' + adjustedScale + ',' +
+                       'minimum-scale=' + adjustedScale + ',' +
+                       'maximum-scale=' + adjustedScale;
 
         // it's enabled
         return [true, desiredWidth, adjustedScale, proposedMeta];

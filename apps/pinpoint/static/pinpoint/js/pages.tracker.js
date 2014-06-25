@@ -21,13 +21,13 @@ App.module("tracker", function (tracker, App) {
             // (c) Steven Levithan <stevenlevithan.com>
             // MIT License
             var o = parseUri.options,
-                m = o.parser[o.strictMode ? "strict"
-                    : "loose"].exec(str),
+                m = o.parser[o.strictMode ? 'strict'
+                    : 'loose'].exec(str),
                 uri = {},
                 i = 14;
 
             while (i--) {
-                uri[o.key[i]] = m[i] || "";
+                uri[o.key[i]] = m[i] || '';
             }
 
             uri[o.q.name] = {};
@@ -43,17 +43,17 @@ App.module("tracker", function (tracker, App) {
         referrerName = function () {
             var host;
 
-            if (document.referrer === "") {
-                return "noref";
+            if (document.referrer === '') {
+                return 'noref';
             }
 
             host = parseUri(document.referrer).host;
             // want top level domain name (i.e. tumblr.com, not site.tumblr.com)
-            host = host.split(".").slice(host.split(".").length - 2,
-                host.split(".").length).join(".");
+            host = host.split('.').slice(host.split('.').length - 2,
+                host.split('.').length).join('.');
 
-            if (host === "") {
-                return "noref";
+            if (host === '') {
+                return 'noref';
             }
 
             return host;
@@ -99,8 +99,8 @@ App.module("tracker", function (tracker, App) {
                 return $.Deferred().promise();
             }
             return $.ajax({
-                'url': App.option('IRSource') + "/page/" +
-                       App.option('page:id') + "/tile/" + interactionType,
+                'url': App.option('IRSource') + '/page/' +
+                       App.option('page:id') + '/tile/' + interactionType,
                 'type': 'POST',
                 'data': {
                     'tile-ids': tileIds.join(',')
@@ -159,17 +159,17 @@ App.module("tracker", function (tracker, App) {
                 ['id', 'name', 'pubDate']
             );
 
-            analyticsPage['url'] = window.location.protocol
-                + '//'
-                + window.location.hostname
-                + window.location.pathname;
+            analyticsPage.url = window.location.protocol +
+                '//' +
+                window.location.hostname +
+                window.location.pathname;
 
             return {
                 'store': App.options.store,
                 'tile': analyticsTile,
                 'product': analyticsProduct,
                 'page': analyticsPage
-            }
+            };
         },
 
         setCustomVar = function (o) {
@@ -178,7 +178,7 @@ App.module("tracker", function (tracker, App) {
                 value = o.value;
 
             if (!(index && value && type)) {
-                console.warn("Missing one or more of: index, type, value");
+                console.warn('Missing one or more of: index, type, value');
                 return;
             }
 
@@ -270,7 +270,7 @@ App.module("tracker", function (tracker, App) {
             isPreview = $previewContainer.length > 0;
 
             if (isPreview) {
-                modelId = $previewContainer.attr('id') || "";
+                modelId = $previewContainer.attr('id') || '';
                 modelId = modelId.replace('preview-', ''); // Remove prefix, if present
             } else {
                 modelId = $(this).parents('.tile').attr('id');
@@ -309,7 +309,7 @@ App.module("tracker", function (tracker, App) {
                 isPreview = $previewContainer.length > 0;
 
                 if (isPreview) {
-                    modelId = $previewContainer.attr('id') || "";
+                    modelId = $previewContainer.attr('id') || '';
                     modelId = modelId.replace('preview-', ''); // Remove prefix, if present
                 } else {
                     modelId = $(this).parents('.tile').attr('id');
@@ -396,18 +396,18 @@ App.module("tracker", function (tracker, App) {
                         App.discovery.collection._byId[modelId],
                 trackingInfo = getTrackingInformation(model),
                 tileId = model.get('tile-id') || 0,
-                label = trackingInfo.label || "",
+                label = trackingInfo.label || '',
                 hash;
 
             if (!label) {
-                console.warn("Not tracking event with no label");
+                console.warn('Not tracking event with no label');
                 return;
             }
 
             // for distinguishing product or (mostly content) tiles that
             // have different ids
             if (tileId) {
-                label += " (Tile " + tileId + ")";
+                label += ' (Tile ' + tileId + ')';
 
                 // add click to our database
                 App.vent.trigger('tracking:trackTileClick', tileId);
@@ -431,13 +431,13 @@ App.module("tracker", function (tracker, App) {
         //
         // Note:    FB and Twitter tracking are handled separately because we
         //          can't actually capture those events)
-        "click .social-buttons .button": function (e) {
+        'click .social-buttons .button': function (e) {
             var modelId, model, trackingInfo, network, classes, $previewContainer;
 
             // A bit fragile, but should do
             $previewContainer = $(this).parents('.template.target > div');
             if ($previewContainer) {
-                modelId = $previewContainer.attr('id') || "";
+                modelId = $previewContainer.attr('id') || '';
                 modelId = modelId.replace('preview-', ''); // Remove prefix, if present
             } else {
                 modelId = $(this).parents('.tile').attr('id');
@@ -461,7 +461,7 @@ App.module("tracker", function (tracker, App) {
 
         // Purchase Actions (Buy / Find in Store)
         // buy now event
-        "click .buy a": function () {
+        'click a.buy': function () {
             var modelId, model, trackingInfo, $previewContainer, isPreview;
 
             App.vent.trigger('buyClick');
@@ -471,7 +471,7 @@ App.module("tracker", function (tracker, App) {
             isPreview = $previewContainer.length > 0;
 
             if (isPreview) {
-                modelId = $previewContainer.attr('id') || "";
+                modelId = $previewContainer.attr('id') || '';
                 modelId = modelId.replace('preview-', ''); // Remove prefix, if present
             } else {
                 modelId = $(this).parents('.tile').attr('id');
@@ -488,7 +488,7 @@ App.module("tracker", function (tracker, App) {
         },
 
         // TODO: Fragile selector
-        "click .find-store, .in-store": function (e) {
+        'click .find-store, .in-store': function (e) {
             var modelId, model, trackingInfo, $previewContainer, action,
                 $button = $(e.currentTarget),
                 isFindStore = $button.hasClass('find-store'),
@@ -523,7 +523,7 @@ App.module("tracker", function (tracker, App) {
         // Product Impressions
 
         // Exit
-        "click header a": function (ev) {
+        'click header a': function (ev) {
             var link = $(this).attr('href');
             trackEvent({
                 'category': 'Header',
@@ -532,7 +532,7 @@ App.module("tracker", function (tracker, App) {
             });
         },
 
-        "click #hero-area a": function (ev) {
+        'click #hero-area a': function (ev) {
             var link = $(this).attr('href');
             trackEvent({
                 'category': 'Hero Area',
@@ -545,21 +545,21 @@ App.module("tracker", function (tracker, App) {
 
         // TODO: Any event below this is likely subject to deletion
         // reset tracking scope: hover into featured product area
-        "hover .featured": function () {
+        'hover .featured': function () {
             // this = window because that's what $el is
             App.vent.trigger('featuredHover');
         },
 
-        "hover .tile": function (ev) {
+        'hover .tile': function (ev) {
             // this = window because that's what $el is
             App.vent.trigger('tileHover', ev.currentTarget);
         },
 
-        "click .previewContainer .close": function () {
+        'click .previewContainer .close': function () {
             App.vent.trigger('popupClosed');
         },
 
-        "hover .social-buttons .button": function (e) {
+        'hover .social-buttons .button': function (e) {
             var $button = $(e.currentTarget);
             App.vent.trigger('socialButtonHover', $button);
         }
@@ -572,10 +572,11 @@ App.module("tracker", function (tracker, App) {
     parseUri.options = {
         'strictMode': false,
         'key': [
-            "source", "protocol", "authority", "userInfo", "user", "password",
-            "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
+            'source', 'protocol', 'authority', 'userInfo', 'user', 'password',
+            'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'anchor'
+        ],
         'q': {
-            'name': "queryKey",
+            'name': 'queryKey',
             'parser': /(?:^|&)([^&=]*)=?([^&]*)/g
         },
         'parser': {
@@ -591,10 +592,12 @@ App.module("tracker", function (tracker, App) {
      */
     this.addInitializer(function () {
         // this (verbatim) code creates window.ga
+        /* jshint ignore:start */
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
         (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
         m=s.getElementsByTagName(o)[0];a.async=0;a.src=g;m.parentNode.insertBefore(a,m)
         })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        /* jshint ignore:end */
     });
 
     /**
@@ -605,19 +608,27 @@ App.module("tracker", function (tracker, App) {
     this.addInitializer(function() {
         var Keen = window.Keen = Keen || {
             configure: function (e) {
-                this._cf = e
-            }, addEvent: function (e, t, n, i) {
-                this._eq = this._eq || [], this._eq.push([e, t, n, i])
-            }, setGlobalProperties: function (e) {
-                this._gp = e
-            }, onChartsReady: function (e) {
-                this._ocrq = this._ocrq || [], this._ocrq.push(e)
-            }};
+                this._cf = e;
+            },
+            addEvent: function (e, t, n, i) {
+                this._eq = this._eq || [];
+                this._eq.push([e, t, n, i]);
+            },
+            setGlobalProperties: function (e) {
+                this._gp = e;
+            },
+            onChartsReady: function (e) {
+                this._ocrq = this._ocrq || [];
+                this._ocrq.push(e);
+            }
+        };
         (function () {
-            var e = document.createElement("script");
-            e.type = "text/javascript", e.async = !0, e.src = ("https:" == document.location.protocol ? "https://" : "http://") + "dc8na2hxrj29i.cloudfront.net/code/keen-2.1.0-min.js";
-            var t = document.getElementsByTagName("script")[0];
-            t.parentNode.insertBefore(e, t)
+            var e = document.createElement('script');
+            e.type = 'text/javascript';
+            e.async = !0;
+            e.src = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'dc8na2hxrj29i.cloudfront.net/code/keen-2.1.0-min.js';
+            var t = document.getElementsByTagName('script')[0];
+            t.parentNode.insertBefore(e, t);
         })();
 
         // Configure the Keen object with your Project ID and (optional) access keys.
