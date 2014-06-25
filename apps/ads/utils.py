@@ -52,7 +52,7 @@ def render_banner(page, request):
         "url": page.get('url', ''),
         "algorithm": algorithm,
         "environment": settings.ENVIRONMENT,
-        "tests": tests
+        "tests": tests,
     }
 
     context = RequestContext(request, attributes)
