@@ -141,6 +141,7 @@ def render_campaign(page_id, request, store_id=0, product=None):
         "columns": range(4),
         "preview": False,  # TODO: was this need to fix: not page.live,
         "product": product_repr,
+        "open_tile_in_popup": "true" if page.get("open_tile_in_popup") else "false",
         "initial_results": [],  # JS now fetches its own initial results
         "backup_results": [],
         "social_buttons": page.social_buttons or store.get('social-buttons', ''),

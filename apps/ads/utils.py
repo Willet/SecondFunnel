@@ -37,6 +37,7 @@ def render_banner(page, request):
         "store": store,
         "columns": range(4),
         "product": "undefined",
+        "open_tile_in_popup": "true",
         "initial_results": json.dumps(initial_results),
         "backup_results": [],
         "social_buttons": '',
