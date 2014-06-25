@@ -39,11 +39,13 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
     this.scrollImages = function (distance, duration) {
         duration = duration ? duration : speed;
         distance = distance * -1;
-        focus.css('-webkit-transition-duration', (duration / 1000).toFixed(1) + 's')
-             .css('transition-duration', (duration / 1000).toFixed(1) + 's')
-             .css('-webkit-transform', 'translate3d(' + distance + 'px, 0px, 0px)')
-             .css('-ms-transform', 'translateX(' + distance + 'px)')
-             .css('transform', 'translate3d(' + distance + 'px, 0px, 0px)');
+        focus.css({
+            '-webkit-transition-duration': (duration / 1000).toFixed(1) + 's',
+            'transition-duration': (duration / 1000).toFixed(1) + 's',
+            '-webkit-transform': 'translate3d(' + distance + 'px, 0px, 0px)',
+            '-ms-transform': 'translateX(' + distance + 'px)',
+            'transform': 'translate3d(' + distance + 'px, 0px, 0px)'
+        });
 
         return this;
     };
