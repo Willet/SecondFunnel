@@ -69,6 +69,16 @@ App.module("support", function (module, App) {
     };
 
     /**
+     * True if the browser is Internet Explorer version less than 9
+     *
+     * @type {Function}
+     * @returns {Boolean}
+     */
+    this.isLessThanIe9 = function () {
+        return $('html').hasClass('lt-ie9');
+    };
+
+    /**
      * The absolutely-no-errors-must-leave-this-function 'decorator'.
      * arguments after context will be passed to func.
      *
