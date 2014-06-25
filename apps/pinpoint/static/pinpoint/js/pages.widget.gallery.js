@@ -39,13 +39,21 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
     this.scrollImages = function (distance, duration) {
         duration = duration ? duration : speed;
         distance = distance * -1;
-        focus.css({
-            '-webkit-transition-duration': (duration / 1000).toFixed(1) + 's',
-            'transition-duration': (duration / 1000).toFixed(1) + 's',
-            '-webkit-transform': 'translate3d(' + distance + 'px, 0px, 0px)',
-            '-ms-transform': 'translateX(' + distance + 'px)',
-            'transform': 'translate3d(' + distance + 'px, 0px, 0px)'
-        });
+
+        if (App.support.isLessThanIe9()) {
+            focus.css({
+                'position': 'relative',
+                'left': distance + 'px'
+            });
+        } else {
+            focus.css({
+                '-webkit-transition-duration': (duration / 1000).toFixed(1) + 's',
+                'transition-duration': (duration / 1000).toFixed(1) + 's',
+                '-webkit-transform': 'translate3d(' + distance + 'px, 0px, 0px)',
+                '-ms-transform': 'translateX(' + distance + 'px)',
+                'transform': 'translate3d(' + distance + 'px, 0px, 0px)'
+            });
+        }
 
         return this;
     };
