@@ -126,7 +126,7 @@ def get_arguments():
 
     return {
         'password': password,
-        'arguments': arguments
+        'arguments': arguments,
     }
 
 

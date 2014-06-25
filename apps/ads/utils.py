@@ -27,7 +27,7 @@ def render_banner(page, request):
         # isolated from this logic, when need be
         initial_results = get_results(feed=page.feed, products_only=True)
     else:
-        initial_results = get_results(feed=page.feed)
+        initial_results = get_results(feed=page.feed, content_only=True)
 
     initial_results = [x.to_json() for x in initial_results]
 
