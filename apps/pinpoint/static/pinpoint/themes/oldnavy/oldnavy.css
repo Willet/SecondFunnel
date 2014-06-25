@@ -8,66 +8,66 @@
 }
 
 .navbar .logo {
-	margin-left: 85px;
-	height: 68px;
-	vertical-align: middle;
+    margin-left: 85px;
+    height: 68px;
+    vertical-align: middle;
 }
 
 .hero-message-container {
-	white-space: nowrap;
-	overflow: hidden;
-	position: relative;
-	text-align: center;
-	height: 110px;
-	line-height: 60px;
-	border-bottom: 50px solid rgb(130, 207, 202);
-	font-size: 30px;
+    white-space: nowrap;
+    overflow: hidden;
+    position: relative;
+    text-align: center;
+    height: 110px;
+    line-height: 60px;
+    border-bottom: 50px solid rgb(130, 207, 202);
+    font-size: 30px;
 }
 
 .hero-message-container div {
-	line-height: normal;
+    line-height: normal;
 }
 
 .hero-message-container .colons {
-	position: absolute;
-	left: 0;
-	bottom: 0;
-	z-index: -1;
-	color: rgb(130, 207, 202);
-	letter-spacing: 8px;
-	font-weight: bold;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: -1;
+    color: rgb(130, 207, 202);
+    letter-spacing: 8px;
+    font-weight: bold;
 }
 
 .hero-message-container .text {
-	display: inline-block;
-	vertical-align: bottom;
-	background-color: white;
-	padding: 0 20px;
-	text-transform: uppercase;
+    display: inline-block;
+    vertical-align: bottom;
+    background-color: white;
+    padding: 0 20px;
+    text-transform: uppercase;
 }
 
 .hero-message-container .text .big {
-	font-size: 55px;
-	margin-bottom: -1px;
-	color: rgb(238, 38, 85);
-	position: relative;
-	visibility: hidden;
+    font-size: 55px;
+    margin-bottom: -1px;
+    color: rgb(238, 38, 85);
+    position: relative;
+    visibility: hidden;
 }
 html.lt-ie9 .hero-message-container .text .big {
-	visibility: visible;
+    visibility: visible;
 }
 
 .hero-message-container .text .big svg {
-	visibility: visible;
-	width: 100%;
-	position: absolute;
-	left: 0;
+    visibility: visible;
+    width: 100%;
+    position: absolute;
+    left: 0;
 }
 
 .hero-message-container .text .big svg text {
-	fill: transparent;
-	stroke: rgb(238, 38, 85);
-	stroke-width: 3px;
+    fill: transparent;
+    stroke: rgb(238, 38, 85);
+    stroke-width: 3px;
 }
 
 #discovery-area {
@@ -143,6 +143,11 @@ html.lt-ie9 .hero-message-container .text .big {
     overflow: hidden;
     width: 320px;
 }
+.previewContainer .image-without-tagged-products .info {
+    text-align: center;
+    width: auto;
+    vertical-align: middle;
+}
 .previewContainer .info.image {
     max-width: 320px;
 }
@@ -160,9 +165,9 @@ html.lt-ie9 .hero-message-container .text .big {
     font-size: 18px;
 }
 .previewContainer .info .price .strike {
-	font-weight: normal;
-	color: #CCC;
-	margin-right: 10px;
+    font-weight: normal;
+    color: #CCC;
+    margin-right: 10px;
 }
 
 .previewContainer .info .buy {
@@ -186,6 +191,66 @@ html.lt-ie9 .hero-message-container .text .big {
 
 .previewContainer .info .buy .button:hover {
     text-decoration: none;
+}
+
+.previewContainer .stl-title {
+    text-align: center;
+    font-size: 18px;
+}
+
+.previewContainer .stl-look {
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: none;
+    white-space: normal;
+    padding-bottom: 0;
+    width: 120px;
+    display: block;
+    margin: auto;
+}
+
+.previewContainer .stl-look .stl-item {
+    margin-bottom: 20px;
+}
+
+.previewContainer .stl-look .stl-item img {
+    display: block;
+    width: 100px;
+    max-width: none;
+    max-height: none;
+    height: auto;
+    margin: 5px auto;
+    opacity: 0.4;
+    filter: alpha(opacity=40);
+    cursor: pointer;
+}
+
+.previewContainer .stl-look .stl-item.selected img {
+    opacity: 1;
+    filter: alpha(opacity=100);
+    cursor: default;
+}
+
+.previewContainer .landscape .stl-title {
+    margin-top: 10px;
+    color: #777;
+}
+
+.previewContainer .landscape .stl-look {
+    margin: auto;
+    white-space: nowrap;
+    width: auto;
+    text-align: center;
+    max-width: 723px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.previewContainer .landscape .stl-look .stl-item {
+    display: inline-block;
+    width: 150px;
+    vertical-align: top;
+    margin-bottom: 0;
 }
 
 .previewContainer .main-image-container .gallery-swipe-left,
@@ -221,4 +286,121 @@ html.lt-ie9 .hero-message-container .text .big {
 }
 .previewContainer .main-image-container .gallery-swipe-right:hover {
     border-left-color: #AAA;
+}
+
+.previewContainer .image-with-tagged-products .cell.shop {
+    width: 145px;
+    padding-right: 25px;
+}
+
+@media screen and (max-width: 768px) {
+    .navbar {
+        display: none;
+    }
+
+    .jumbotron {
+        margin-top: 0;
+        border-bottom: none;
+    }
+
+    .hero-message-container {
+        display: none;
+    }
+
+    .previewContainer .content {
+        padding: 0;
+        padding-top: 53px;
+        height: 100%;
+    }
+
+    .previewContainer .close.small-close {
+        display: none;
+    }
+
+    .previewContainer .row {
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .previewContainer .cell {
+        display: block;
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .previewContainer .gallery img {
+        display: inline-block;
+    }
+
+    .previewContainer .info {
+        text-align: left;
+        max-width: none;
+        width: auto;
+        padding-left: 0;
+    }
+
+    .previewContainer .info.image {
+        max-width: none;
+    }
+
+    .previewContainer .info .title {
+        margin-top: 5px;
+        padding-left: 25px;
+    }
+
+    .previewContainer .info .price {
+        padding-left: 25px;
+    }
+
+    .previewContainer .info .buy {
+        text-align: center;
+    }
+
+    .previewContainer .info .buy .button {
+        display: inline-block;
+        min-width: 280px;
+    }
+
+    .previewContainer .stl-look,
+    .previewContainer .landscape .stl-look {
+        white-space: normal;
+        width: 100%;
+        margin: auto;
+        text-align: center;
+    }
+
+    .previewContainer .stl-title,
+    .previewContainer .landscape .stl-title {
+        margin-top: 5px;
+    }
+
+    .previewContainer .stl-look .stl-item,
+    .previewContainer .landscape .stl-look .stl-item {
+        display: inline-block;
+        width: 135px;
+        vertical-align: top;
+    }
+
+    /* Changing hover on mobile doesn't work very well */
+    .previewContainer .main-image-container .gallery-swipe-left:hover {
+        border-right-color: #777;
+    }
+    .previewContainer .main-image-container .gallery-swipe-right:hover {
+        border-left-color: #777;
+    }
+
+    .previewContainer .image-with-tagged-products .cell.shop {
+        width: auto;
+    }
+
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+@media screen and (min-width: 769px) {
+    .mobile-only {
+        display: none !important;
+    }
 }

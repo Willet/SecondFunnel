@@ -268,15 +268,12 @@
                         <div class="row">
                             <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
                                 <div class="cell desktop-only shop">
-                                    <div class="stl-title">Shop the look</div>
+                                    <div class="stl-title">shop the look</div>
                                     <div class="stl-look">
                                         <% var  related = obj['tagged-products'] %>
                                         <% for (var i = 0; i < related.length; i++) { %>
                                             <div class="stl-item" data-index="<%- i %>">
                                                 <img src="<%- related[i].images[0].url %>" />
-                                                <div class="name">
-                                                    <%- related[i].title || related[i].name %>
-                                                </div>
                                             </div>
                                         <% } %>
                                     </div>
@@ -286,15 +283,12 @@
                                 <img src="<%= obj.image.url %>" alt="image" class="image"/>
                                     <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                                     <div class="landscape">
-                                        <div class="stl-title">Shop the look</div>
+                                        <div class="stl-title">shop the look</div>
                                         <div class="stl-look">
                                             <% var  related = obj['tagged-products'] %>
                                             <% for (var i = 0; i < related.length; i++) { %>
                                                 <div class="stl-item" data-index="<%- i %>">
                                                     <img src="<%- related[i].images[0].url %>" />
-                                                    <div class="name">
-                                                        <%- related[i].title || related[i].name %>
-                                                    </div>
                                                 </div>
                                             <% } %>
                                         </div>
@@ -304,14 +298,9 @@
                             <div class="cell info">
                                 <div class='title'></div>
                                 <div class='price'></div>
-                                <% if (App.support.mobile()) { %>
-                                    <div class='buy'></div>
-                                <% } %>
+                                <div class='buy'></div>
                                 <div class="gallery-main-image"></div>
                                 <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                                <% if (!App.support.mobile()) { %>
-                                    <div class='buy'></div>
-                                <% } %>
                             </div>
                             <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
                                 <div class="more-info">
@@ -348,16 +337,14 @@
                             <div class="cell capped-width">
                                 <img src="<%= obj.image.url %>" alt="image" class="main-image" />
                             </div>
-                            <div class="cell">
-                                <div class="info">
-                                    <div class="title">
-                                        Coming soon to Roots!
-                                    </div>
-                                    <div class="buy">
-                                        <a class='button' href='http://www.oldnavy.com/' target='_blank'>
-                                            Shop On Roots
-                                        </a>
-                                    </div>
+                            <div class="cell info">
+                                <div class="title">
+                                    Coming soon to Old Navy!
+                                </div>
+                                <div class="buy">
+                                    <a class='button' href='http://www.oldnavy.com/' target='_blank'>
+                                        Shop On Old Navy
+                                    </a>
                                 </div>
                             </div>
                         </div>
