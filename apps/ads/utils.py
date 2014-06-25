@@ -22,9 +22,13 @@ def render_banner(page, request):
     if page.get('tests'):
         tests = json.dumps(page.get('tests'))
 
-    # products_only=True is a nastygal-only copyright thing that ought to be
-    # isolated from this logic, when need be
-    initial_results = get_results(feed=page.feed, products_only=True)
+    if page.url_slug == 'swim-banner':
+        # products_only=True is a nastygal-only copyright thing that ought to be
+        # isolated from this logic, when need be
+        initial_results = get_results(feed=page.feed, products_only=True)
+    else:
+        initial_results = get_results(feed=page.feed)
+
     initial_results = [x.to_json() for x in initial_results]
 
     attributes = {
