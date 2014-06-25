@@ -90,6 +90,13 @@ def returns_qs(fn):
         if not isinstance(tiles, QuerySet):
             tiles = qs_for(tiles)
 
+        content_only = kwargs.get('content_only', False)
+        products_only = kwargs.get('products_only', False)
+        if products_only:
+            tiles = tiles.filter(template='product')
+        if content_only:
+            tiles = tiles.exclude(template='product')
+
         return tiles
 
     return wrapped_fn

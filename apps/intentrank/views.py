@@ -219,9 +219,17 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         allowed_set = None
 
     tiles = ir_base(feed=feed, allowed_set=allowed_set)
-    return algorithm(tiles=tiles, results=results,
-                     exclude_set=exclude_set, allowed_set=allowed_set,
-                     request=request, offset=offset, tile_id=tile_id, feed=feed)
+    args = dict(
+        tiles=tiles, results=results,
+        exclude_set=exclude_set, allowed_set=allowed_set,
+        request=request, offset=offset, tile_id=tile_id, feed=feed)
+
+    if 'products_only' in kwargs:
+        args['products_only'] = kwargs.get('products_only')
+    if 'content_only' in kwargs:
+        args['content_only'] = kwargs.get('content_only')
+
+    return algorithm(**args)
 
 
 @never_cache
