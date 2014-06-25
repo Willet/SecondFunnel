@@ -17,7 +17,7 @@ App.module("utils", function (utils, App) {
      * @param {undefined} opts
      * @returns {string}
      */
-    this.safeString = function (str, opts) {
+    this.safeString = function (str) {
         var regex = /^(None|undefined|[Ff]alse|0)$/,
             trimmed = $.trim(str);
         if (regex.test(trimmed)) {
@@ -54,7 +54,7 @@ App.module("utils", function (utils, App) {
             };
             loadUntilHeight(data.height);
         } else if (data.type === 'window_location') {
-            App.window_middle = data.window_middle;
+            App.windowMiddle = data.window_middle;
             App.windowHeight = data.window_height;
 
             if (App.previewArea.currentView) {
@@ -77,7 +77,7 @@ App.module("utils", function (utils, App) {
      * @returns true     if the page is in an iframe.
      */
     this.isIframe = function () {
-        if (typeof top === "undefined") {
+        if (typeof top === 'undefined') {
             return false;
         }
         return (window !== top);
@@ -212,10 +212,10 @@ App.module("utils", function (utils, App) {
      * http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
      */
     this.getQuery = function (name) {
-        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)'),
             results = regex.exec(location.search);
-        return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     };
 
     /**
@@ -271,10 +271,10 @@ App.module("utils", function (utils, App) {
         if (url.indexOf('c_fit') > -1) {
             // Transformation has been applied to this url, Cloudinary is not smart
             // with these, so lets be instead.
-            url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, "/");
+            url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, '/');
         }
 
-        url = url.replace(App.CLOUDINARY_DOMAIN, ""); // remove absolute uri
+        url = url.replace(App.CLOUDINARY_DOMAIN, ''); // remove absolute uri
         url = $.cloudinary.url(url, options);
 
         return url;

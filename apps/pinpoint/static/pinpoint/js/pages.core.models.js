@@ -23,7 +23,7 @@ App.module('core', function (core, App) {
         },
         'initialize': function (data) {
             if (!data.slug) {
-                throw "Missing store slug";
+                throw 'Missing store slug';
             }
             if (!data.displayName) {
                 this.set('displayName', this.get('name'));
@@ -44,13 +44,13 @@ App.module('core', function (core, App) {
         'defaults': {
             // Default product tile settings, some tiles don't
             // come specifying a type or caption
-            'caption': "",
+            'caption': '',
             'description': '',
             'tile-id': 0,
             // 'tile-class': 'tile',  // what used tile-class?
             // 'content-type': ''  // where did content-type go?
             'tagged-products': [],
-            'dominant-color': "transparent"
+            'dominant-color': 'transparent'
         },
 
         'parse': function (resp, options) {
@@ -369,7 +369,7 @@ App.module('core', function (core, App) {
                 // issue a warning but display anyway
                 if (App.option('IRAlgo', 'generic').indexOf('finite') > -1) {
                     if (tileIds.indexOf(tileId) > -1) {
-                        console.warn("Tile "  + tileId + " is already on the page!");
+                        console.warn('Tile '  + tileId + ' is already on the page!');
                         if (!App.option('allowTileRepeats', false)) {
                             continue;
                         }
@@ -409,7 +409,7 @@ App.module('core', function (core, App) {
             );
 
             if (category) {
-                return url + "&category=" + encodeURIComponent(category);
+                return url + '&category=' + encodeURIComponent(category);
             }
 
             return url;

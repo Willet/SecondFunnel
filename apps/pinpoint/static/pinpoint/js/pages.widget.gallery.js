@@ -40,7 +40,7 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
         duration = duration ? duration : speed;
         distance = distance * -1;
         focus.css('-webkit-transition-duration', (duration / 1000).toFixed(1) + 's')
-             .css('-webkit-transform', "translate3d(" + distance + "px, 0px, 0px)");
+             .css('-webkit-transform', 'translate3d(' + distance + 'px, 0px, 0px)');
 
         return this;
     };
@@ -64,23 +64,23 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
 
         /* Determine the event from the phase and the direction
            of the touch event that took place */
-        if (phase === "move") {
+        if (phase === 'move') {
             // div is being dragged, determine direction
-            if (direction === "left") {
+            if (direction === 'left') {
                 this.scrollImages(distance + offset);
-            } else if (direction === "right") {
+            } else if (direction === 'right') {
                 this.scrollImages(offset - distance);
             }
-        } else if (phase === "end") {
+        } else if (phase === 'end') {
             // animate to the next image based on direction
-            if (direction === "right") {
+            if (direction === 'right') {
                 focusCurrent = Math.max(focusCurrent - 1, 0);
-            } else if (direction === "left") {
+            } else if (direction === 'left') {
                 focusCurrent = Math.min(focusCurrent + 1, focus.children().length - 1);
             }
             this.scrollImages(focusCurrent * focusWidth);
             this.selectImage(); // mark selected
-        } else if (phase === "cancel") {
+        } else if (phase === 'cancel') {
             // animate back as dragging has been cancelled
             this.scrollImages(focusWidth * focusCurrent);
         }
@@ -140,7 +140,7 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
         focus.swipe({ // attach swipe handler
             triggerOnTouchEnd: true,
             swipeStatus: _.bind(self.swipeStatus, self),
-            allowPageScroll: "vertical"
+            allowPageScroll: 'vertical'
         });
 
         $('.item', $gallery).on('click', function () {
@@ -150,7 +150,7 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
         });
 
         this.selectImage();
-        console.debug("initialized mobile gallery.");
+        console.debug('initialized mobile gallery.');
     };
 
     /* Initialize the gallery and bind event handlers to the widget

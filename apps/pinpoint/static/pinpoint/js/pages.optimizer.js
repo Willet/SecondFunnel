@@ -76,9 +76,9 @@ App.module('optimizer', function (optimizer, App) {
         var expires, ms, d = new Date();
         ms = days ? days * MILLISECONDS_PER_DAY : 30 * 60 * 1000; // Defaults to 30 minutes, convert to milliseconds
         d.setTime(d.getTime() + ms);
-        expires = "expires=" + d.toGMTString();
-        console.debug(cname + "=" + value + "; " + expires);
-        document.cookie = cname + "=" + value + "; " + expires;
+        expires = 'expires=' + d.toGMTString();
+        console.debug(cname + '=' + value + '; ' + expires);
+        document.cookie = cname + '=' + value + '; ' + expires;
     };
 
     /**
@@ -89,9 +89,9 @@ App.module('optimizer', function (optimizer, App) {
     this.clearCookie = function (cname) {
         var expires = new Date();
         expires.setTime(0);
-        expires = "expires=" + expires.toGMTString();
-        console.debug("Clearing cookie ", cname);
-        document.cookie = cname + "=dummy; " + expires;
+        expires = 'expires=' + expires.toGMTString();
+        console.debug('Clearing cookie ', cname);
+        document.cookie = cname + '=dummy; ' + expires;
     };
 
     /**
@@ -102,13 +102,14 @@ App.module('optimizer', function (optimizer, App) {
     this.getCookieValue = function (cname) {
         var cookies = document.cookie.split(';'),
             c;
-        cname += "=";
+        cname += '=';
         for (var i = 0; i < cookies.length; ++i) {
             c = $.trim(cookies[i]);
-            if (c.indexOf(cname) === 0)
+            if (c.indexOf(cname) === 0) {
                 return c.substring(cname.length, c.length);
+            }
         }
-        return "";
+        return '';
     };
 
     /**
@@ -176,7 +177,7 @@ App.module('optimizer', function (optimizer, App) {
                 result = this.testStyle(kwargs.selector, kwargs.probabilities);
                 break;
             default:
-                // result is sometimes the cookie value (e.g. "A", "B", "C", ...)
+                // result is sometimes the cookie value (e.g. 'A', 'B', 'C', ...)
                 result = kwargs.custom(result);
         }
 
@@ -200,19 +201,19 @@ App.module('optimizer', function (optimizer, App) {
             $style,
             pathname;
         if (styles.length < probabilities.length) {
-            styles.unshift("");
+            styles.unshift('');
         }
 
         style = this.multivariate(styles, probabilities);
         pathname = style.match(/(https?|www)/);
         if (pathname && style.indexOf(pathname[0]) === 0) {
             $style = $('<link />');
-            $style.attr('rel', "stylesheet")
+            $style.attr('rel', 'stylesheet')
                   .attr('href', style);
             $('head').append($style);
         } else if (style.length > 0) {
             $style = $('<style />');
-            $style.attr('type', "text/css")
+            $style.attr('type', 'text/css')
                   .text(style);
             $('head').append($style);
         }

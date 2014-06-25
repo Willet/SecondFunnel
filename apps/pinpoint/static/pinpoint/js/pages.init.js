@@ -47,13 +47,6 @@ function reinitialize(app) {
     });
 
     app.addInitializer(function () {
-        var fa = new app.core.HeroAreaView();
-        app.heroArea.show(fa);
-
-        app.vent.trigger('heroAreaRendered', fa);
-    });
-
-    app.addInitializer(function () {
         // there isn't an "view.isOpen", so this checks if the feed element
         // exists, and if it does, close the view.
         if(app.discovery && app.discovery.$el) {
@@ -68,8 +61,8 @@ function reinitialize(app) {
         // Add our initializer, this allows us to pass a series of tiles
         // to be displayed immediately (and first) on the landing page.
 
-        $('.brand-label').text(app.option("store:displayName") ||
-                               _.capitalize(app.option("store:name")) ||
+        $('.brand-label').text(app.option('store:displayName') ||
+                               _.capitalize(app.option('store:name')) ||
                                'Brand Name');
 
         $(document).ajaxError(function (event, request, settings) {
@@ -94,8 +87,8 @@ function reinitialize(app) {
             //http://stackoverflow.com/a/5298684
             var loc = window.location;
             if (loc.href.indexOf('#') !== -1) {
-                if ("replaceState" in window.history) {
-                    window.history.replaceState("", document.title, loc.pathname + loc.search);
+                if ('replaceState' in window.history) {
+                    window.history.replaceState('', document.title, loc.pathname + loc.search);
                 } else {
                     //Fallback for IE 8 & 9
                     window.location = loc.href.split('#')[0];
@@ -134,7 +127,7 @@ function reinitialize(app) {
                 return;
             }
 
-            console.debug("tile not found, fetching from IR.");
+            console.debug('tile not found, fetching from IR.');
 
             tile = new app.core.Tile({
                 'tile-id': tileId
@@ -164,10 +157,10 @@ function reinitialize(app) {
         app.initialPage = window.location.hash;
         if (app.initialPage !== '' && app.support.mobile()) {
             // if on mobile push the state to the history stack
-            if ("replaceState" in window.history) {
+            if ('replaceState' in window.history) {
                 // back button closes the popup
-                window.history.replaceState("", document.title, loc.split('#')[0]);
-                window.history.pushState({}, "", loc);
+                window.history.replaceState('', document.title, loc.split('#')[0]);
+                window.history.pushState({}, '', loc);
             }
         }
     });
@@ -187,6 +180,13 @@ function reinitialize(app) {
         app.discoveryArea.show(app.discovery);
 
         app.vent.trigger('finished', app.options, app);
+    });
+
+    app.addInitializer(function () {
+        var fa = new app.core.HeroAreaView();
+        app.heroArea.show(fa);
+
+        app.vent.trigger('heroAreaRendered', fa);
     });
 
     app.vent.on('finished', function (data) {

@@ -12,10 +12,10 @@ App.module("intentRank", function (intentRank, App) {
         urlTemplate;
 
     this.options = {
-        'baseUrl': "/intentrank",  // or an absolute base url, e.g. http://tng-test.secondfunnel.com/intentrank
+        'baseUrl': '/intentrank',  // or an absolute base url, e.g. http://tng-test.secondfunnel.com/intentrank
         'urlTemplates': {
-            'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>",
-            'category': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>&category=<%=category%>"
+            'campaign': '<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>',
+            'category': '<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>&category=<%=category%>'
         },
         'add': true,
         'merge': true,
@@ -142,7 +142,7 @@ App.module("intentRank", function (intentRank, App) {
             prepopulatedResults = cachedResults.splice(0, len);
 
             if (fetching) { // return fetching object if we're fetching
-                console.debug("Holding off for IR to finish.");
+                console.debug('Holding off for IR to finish.');
                 return fetching.done(function (results) {
                     collection[method](results, opts);
                     collection.trigger('sync', collection, results, opts);
@@ -314,7 +314,7 @@ App.module("intentRank", function (intentRank, App) {
 
         if (!category) { // clear the category
             urlTemplate = intentRank.options.urlTemplates.campaign;
-            console.debug("No category passed, clearing.");
+            console.debug('No category passed, clearing.');
             delete intentRank.options.category;
         } else { // Swap default url
             urlTemplate = intentRank.options.urlTemplates.category;
