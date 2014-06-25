@@ -382,6 +382,15 @@ html.lt-ie9 .hero-message-container .text .big {
         vertical-align: top;
     }
 
+    .previewContainer .gallery-main-image {
+        margin-bottom: 10px;
+    }
+
+    .previewContainer .gallery,
+    .previewContainer .gallery-dots {
+        margin-bottom: 10px;
+    }
+
     /* Changing hover on mobile doesn't work very well */
     .previewContainer .main-image-container .gallery-swipe-left:hover {
         border-right-color: #777;
