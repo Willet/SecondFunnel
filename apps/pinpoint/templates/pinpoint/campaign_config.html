@@ -70,7 +70,7 @@
             'minDesktopColumns': {{ campaign.minDesktopColumns|default:2 }}, // minimum number of columns on desktop for masonry
             'minMobileColumns': {{ campaign.minMobileColumns|default:2 }} // minimum number of columns to show on mobile for masonry
         }
-        , 'featured': {{ tile|safe }}  // default: undefined
+        , 'featured': {{ tile|safe|default:"undefined" }}  // default: undefined
         // stuff that loads when page loads, even if IR is available
         , 'IRResultsCount': 10
         , 'IRTimeout': 5000
