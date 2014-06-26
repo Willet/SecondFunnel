@@ -68,7 +68,7 @@
             }, 1000);
         </script>
     {% endif %}
-    <title>{{ page.name|default:"Roots" }}</title>
+    <title>{{ page.name|default:"Sur la Table" }}</title>
     <style type="text/css">
         /* out of necessity */
         .visible-xs.jumbotron { /* mobile hero */
@@ -232,25 +232,37 @@
                     <div class="gallery-swipe-left"></div>
                     <div class="gallery-swipe-right"></div>
                 <% } %>
-                <% if (obj.image) { %>
-                    <img class="main-image" src='<%= obj.image.url %>'/>
-                <% } else { %>
-                    <img class="main-image" src='<%= obj.images[0].url %>'/>
-                <% } %>
+                <div class="main-image">
+                    <% for (var i = 0; i < obj.images.length; i++) { %>
+                        <img class="image" src="<%- obj.images[i].url %>" />
+                    <% } %>
+                </div>
             </div>
         </script>
 
+        <script type="text/template" id="product_gallery_template">
+            <% for (var i = 0; i < obj.images.length; i++) { %>
+                <img class="item" src="<%- obj.images[i].url %>" />
+            <% } %>
+        </script>
+
+        <script type="text/template" id="product_galleryDots_template">
+            <% for (var i = 0; i < obj.images.length; i++) { %>
+                <div class="item"></div>
+            <% } %>
+        </script>
+
         <script type="text/template" id="product_preview_template">
-            <div>
-                <div class='content-wrapper'>
-                    <div>
+            <div class="table">
+                <div class='content-wrapper row'>
+                    <div class='cell'>
                         <div class="gallery-main-image"></div>
                     </div>
-                    <div class='info'>
-                        <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
+                    <div class='cell info'>
                         <div class='title'></div>
                         <div class='price'></div>
                         <div class='buy'></div>
+                        <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
                     </div>
                 </div>
             </div>
@@ -261,21 +273,21 @@
                 <% var product = obj['tagged-products'][0]; %>
                 <div class="image-with-tagged-products">
                     <div class="table">
-                        <div>
+                        <div class="row">
                             <div class="cell desktop-only">
                                 <img src="<%= obj.image.url %>" alt="image" class="image"/>
                             </div>
                             <div class="cell info">
-                                <div class="gallery-main-image"></div>
-                                <div class='gallery<% if (product.images.length < 2) { %> hide<% } %>'></div>
                                 <div class='title'></div>
                                 <div class='price'></div>
                                 <div class='buy'></div>
+                                <div class="gallery-main-image"></div>
+                                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
                             </div>
 
                             <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
                                 <div class="more-info">
-                                    Companion Products
+                                    Related Products
                                     <div class="down-arrow"></div>
                                 </div>
                             <% } %>
@@ -289,7 +301,7 @@
                             <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                                 <div class="cell desktop-only">
                                     <div class="landscape">
-                                        <div class="stl-title">Companion Products</div>
+                                        <div class="stl-title">Related Products</div>
                                         <div class="stl-look">
                                             <% var  related = obj['tagged-products'] %>
                                             <% for (var i = 0; i < related.length; i++) { %>
@@ -307,7 +319,7 @@
 
                             <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
                                 <div class="cell desktop-only shop">
-                                    <div class="stl-title">Companion Products</div>
+                                    <div class="stl-title">Related Products</div>
                                     <div class="stl-look">
                                         <% var  related = obj['tagged-products'] %>
                                         <% for (var i = 0; i < related.length; i++) { %>
