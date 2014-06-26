@@ -33,6 +33,10 @@
     font-weight: 200;
 }
 
+#hero-area img {
+    max-height: none;
+}
+
 .previewContainer .table {
     display: table;
     table-layout: fixed;
@@ -49,13 +53,16 @@
     content: none;
 }
 
-.previewContainer .content,
-#hero-area .content {
+#preview-area .previewContainer .content {
     padding-top: 43px;
     padding-bottom: 10px;
     box-shadow: 0px 10px 30px 0px #000;
     border: none;
     max-width: 900px;
+}
+#hero-area .previewContainer .content>div {
+    width: 768px;
+    margin: auto;
 }
 
 .previewContainer .mask {

@@ -1061,9 +1061,7 @@ App.module('core', function (module, App) {
             });
         },
         onRender: function () {
-            var self = this,
-                template = this.model.get('template'),
-                contentOpts = {
+            var contentOpts = {
                     'model': this.model
                 },
                 contentInstance;
