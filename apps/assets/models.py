@@ -696,6 +696,9 @@ class Page(BaseModel):
         ('conditional_social_buttons', {}),
     ]
 
+    dashboard_settings = JSONField(default={})
+    campaign = models.ForeignKey('dashboard.Campaign', null=True, blank=True)
+
     description = models.TextField(blank=True, null=True)
     url_slug = models.CharField(max_length=128)  # e.g. livedin
     legal_copy = models.TextField(blank=True, null=True)
