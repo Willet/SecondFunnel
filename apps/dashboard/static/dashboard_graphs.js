@@ -70,8 +70,8 @@ $(document).ready(function () {
         sessions = 1;
 
     var addTiles = function (response, dict) {
-        var data = response.result;
-        var tiles = {};
+        var data = response.result,
+            tiles = {};
 
         $.each(data, function (idx, obj) {
             var tile = {
@@ -288,15 +288,15 @@ $(document).ready(function () {
      */
     var datify = function (groupNumber) {
         /* Dimensions are nthHour for total, nthMinute for today*/
-        var total_response = [];
-        var chartStorage = pageOptions.charts[groupNumber].members,
+        var total_response = [],
+            chartStorage = pageOptions.charts[groupNumber].members,
             ajax_response = function (chartNumber, numSelection, type, last) {
                 return function (response) {
                     if (type === 'ratio') {
                         total_response.push(response);
                         if (last) {
-                            var q0s = addTiles(total_response[0], true); // previews in campaign_stats
-                            var q1s = addTiles(total_response[1], true); // impressions in campaign_stats
+                            var q0s = addTiles(total_response[0], true), // previews in campaign_stats
+                                q1s = addTiles(total_response[1], true); // impressions in campaign_stats
 
                             // Merge two sets...
                             var keys = _.intersection(
