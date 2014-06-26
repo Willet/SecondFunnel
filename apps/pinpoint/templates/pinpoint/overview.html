@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>Overview</h1>
+    {% for store in stores %}
+        <h3>
+            <a name="{{ store.slug }}" href="#{{ store.slug }}">
+                {{ store.name }}
+            </a>
+        </h3>
+        <ul>
+        {% for page in store.pages.all %}
+            <li>
+                <a name="{{ page.url_slug }}" href="/{{ page.url_slug }}">
+                    {{ domain }}/{{ page.url_slug }}
+                </a>
+            </li>
+        {% endfor %}
+        </ul>
+    {% endfor %}
+</body>
+</html>
