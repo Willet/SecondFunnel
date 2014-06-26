@@ -1,9 +1,12 @@
 
+body {
+	background: none;
+}
+
 .navbar {
     background-color: rgb(0, 67, 110);
     height: 84px;
     line-height: 84px;
-    max-width: 1024px;
     margin: auto;
 }
 
@@ -141,15 +144,11 @@ html.lt-ie9 .hero-message-container .text .big {
     padding-left: 25px;
     padding-right: 10px;
     overflow: hidden;
-    width: 320px;
 }
 .previewContainer .image-without-tagged-products .info {
     text-align: center;
     width: auto;
     vertical-align: middle;
-}
-.previewContainer .info.image {
-    max-width: 320px;
 }
 
 .previewContainer .info .title {
