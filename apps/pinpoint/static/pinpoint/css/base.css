@@ -499,9 +499,12 @@ div.loading {
     vertical-align: top;
 }
 
-.previewContainer img,
-#hero-area img {
+#preview-area .previewContainer img, #hero-area img {
     max-width: 100%;
+}
+
+#hero-area img {
+    max-height: 300px;
 }
 
 .previewContainer .mask {

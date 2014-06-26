@@ -103,7 +103,7 @@ html.lt-ie9 .hero-message-container .text .big {
     content: none;
 }
 
-.previewContainer .content {
+#preview-area .previewContainer .content {
     padding-top: 50px;
     padding-bottom: 20px;
     border: none;
@@ -320,6 +320,10 @@ html.lt-ie9 .hero-message-container .text .big {
         max-width: 100%;
         margin-left: 0;
         margin-right: 0;
+    }
+
+    .previewContainer .row .cell.capped-width {
+        width: 33%;
     }
 
     .previewContainer .cell {
