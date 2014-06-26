@@ -1,4 +1,4 @@
-/*globals google, dashboard*/
+/*globals google, dashboard, _*/
 /**
  * Created by tristanpotter on 2014-05-22.
  * JavaScript that constructs and populates the dashboard with data.
@@ -69,6 +69,38 @@ $(document).ready(function () {
     // The total sessions that have come to the property
         sessions = 1;
 
+    var addTiles = function (response, dict) {
+        var data = response.result,
+            tiles = {};
+
+        $.each(data, function (idx, obj) {
+            var tile = {
+                    'count': obj.result,
+                    'imageUrl': obj['tile.url'],
+                    'product': obj['product.name'],
+                    'tileId': obj['tile.id'],
+                    'url': obj['page.url'] + '#' + obj['tile.id']
+                },
+                tileId = obj['tile.id'],
+                prevTile = tiles[tileId];
+
+
+            if (prevTile) { // Merge
+                tile.count += prevTile.count;
+            }
+
+            tiles[tileId] = tile;
+        });
+
+        return (dict)? tiles : $.map(tiles, function(value, index){return [value];});
+    };
+
+    var sortTiles = function (tiles) {
+        return _.sortBy(_.values(tiles),
+            function (item) {
+                return -1 * item.count;
+            });
+    };
 
     /**
      * DashboardElement is a chart on the dashboard, an entity that shows information.
@@ -111,6 +143,60 @@ $(document).ready(function () {
          */
         this.draw = function (data, options) {
             this.location.text(data);
+        };
+    };
+
+    /**
+     * This is a chartType, like google.visualization.LineChart
+     * For this chart, location is defined as an Array
+     * TODO make all charts take location as an Array, extend google objects to make this happen
+     * @param location {object} - a JQuery selector of where the label should be placed
+     * @returns {{location: object, draw: draw}}
+     * @constructor
+     */
+    var Tile = function (location) {
+        this.location = location;
+        /**
+         * Draws the chart (ie labels)
+         * @param data {object} - an object gotten from the response.
+         *      MUST CONTAIN THE FOLLOWING FIELDS: (either an array of items with these fields, or
+         *          one instance of these fields
+         *      obj.result,
+         *      obj['tile.url'],
+         *      obj['product.name'],
+         *      obj['tile.id'],
+         *      obj['page.url']
+         * @param options - unused, used to maintain compliance with standard
+         */
+        this.draw = function (data, options) {
+            this.location.html("");
+            var draw_tile = function (data) {
+                return "" +
+                    "<div class='tile'>" +
+                    "<div class='count'>" +
+                    data.count +
+                    "</div>" +
+                    "<img src=" + data.imageUrl + ">" +
+                    "<div class='data'>" +
+                    "<span class='product'>" +
+                    data.product +
+                    "</span>" +
+                    "<span class='id'>" +
+                    "(<a href='" + data.url + "'>" +
+                    data.tileId +
+                    "</a>) " +
+                    "</span>" +
+                    "</div>" +
+                    "</div>";
+            };
+
+            data = data.slice(0, 10);
+
+            for (var i = 0; i < data.length; i++) {
+                if (data[i]) {
+                    this.location.append(draw_tile(data[i]));
+                }
+            }
         };
     };
 
@@ -202,17 +288,62 @@ $(document).ready(function () {
      */
     var datify = function (groupNumber) {
         /* Dimensions are nthHour for total, nthMinute for today*/
-        var chartStorage = pageOptions.charts[groupNumber].members,
-            ajax_response = function (chartNumber, numSelection) {
+        var total_response = [],
+            chartStorage = pageOptions.charts[groupNumber].members,
+            ajax_response = function (chartNumber, numSelection, type, last) {
                 return function (response) {
-                    chartStorage[chartNumber].selections[numSelection].response = response;
-                    drawChart(groupNumber);
+                    if (type === 'ratio') {
+                        total_response.push(response);
+                        if (last) {
+                            var q0s = addTiles(total_response[0], true), // previews in campaign_stats
+                                q1s = addTiles(total_response[1], true); // impressions in campaign_stats
+
+                            // Merge two sets...
+                            var keys = _.intersection(
+                                _.keys(q1s),
+                                _.keys(q0s)
+                            );
+
+                            var finalResponse = [];
+
+                            $.each(keys, function (idx, key) {
+                                var q0, q1, ratioTile;
+                                key = parseInt(key, 10);
+
+                                q0 = q0s[key];
+                                q1 = q1s[key];
+
+                                ratioTile = _.extend({}, q0);
+                                ratioTile.count = q0.count / q1.count;
+
+                                finalResponse.push(ratioTile);
+                            });
+
+                            //finalResponse = sortTiles(finalResponse);
+
+                            chartStorage[chartNumber].selections[numSelection].response = finalResponse;
+                            drawChart(groupNumber);
+                        }
+                    } else if (type === 'regular') {
+                        chartStorage[chartNumber].selections[numSelection].response = response;
+                        drawChart(groupNumber);
+                    }
                 };
             };
         for (var chartNumber = 0; chartNumber < chartStorage.length; chartNumber++) {
             // populate data
             for (var i = 0; i < chartStorage[chartNumber].selections.length; i++) {
-                retrieveData(campaign, chartStorage[chartNumber].selections[i].queryName, ajax_response(chartNumber, i));
+                var query = chartStorage[chartNumber].selections[i].queryName;
+                var queryArray = query.split(':');
+                if (queryArray[0] === 'ratio') {
+                    var queries = queryArray[1].split(',');
+                    total_response = [];
+                    for (var j = 0; j < queries.length; j++) {
+                        retrieveData(campaign, queries[j], ajax_response(chartNumber, i, 'ratio', (j === (queries.length - 1))));
+                    }
+                } else {
+                    retrieveData(campaign, query, ajax_response(chartNumber, i, 'regular'));
+                }
             }
         }
     };
@@ -362,7 +493,7 @@ $(document).ready(function () {
         var buttonPurchaseRate = new DashboardElement($('#purchaseRate'), QuickLabel, function (response) {
             //TODO add to button group
             var data = parseInt(response.convertedClicks, 10);
-            return Math.round((((data / sessions) * 100)+ 0.00001) * 100) / 100 + '%';
+            return Math.round((((data / sessions) * 100) + 0.00001) * 100) / 100 + '%';
         }, {});
         buttonPurchaseRate.addSelection('CM_purchaseRate');
 
@@ -467,9 +598,9 @@ $(document).ready(function () {
 
                 // format time
                 var column = 3;
-                for(var i = 0; i < data.getNumberOfRows(); i++){
-                    var minutes = Math.floor(data.getValue(i,column) / 60) + 'm',
-                        seconds = Math.round(data.getValue(i,column) % 60) + 's';
+                for (var i = 0; i < data.getNumberOfRows(); i++) {
+                    var minutes = Math.floor(data.getValue(i, column) / 60) + 'm',
+                        seconds = Math.round(data.getValue(i, column) % 60) + 's';
 
                     if (minutes === '0m') {
                         minutes = '';
@@ -535,6 +666,19 @@ $(document).ready(function () {
         goal3.addSelection('GA_goals_scrollRate');
         createAnalyticsGroup('GOALS', [goal1, goal2, goal3], refreshRate);
 
+        var tileStatistics = new DashboardElement($('#tile-statistics'),
+            Tile, function (response) {
+                if (response['result'] === undefined) {
+                    return sortTiles(response);
+                } else {
+                    return sortTiles(addTiles(response, false));
+                }
+            }, {});
+        tileStatistics.addSelection('ratio:KN_tilePreview,KN_tileImpression');
+        tileStatistics.addSelection('KN_tilePreview');
+        tileStatistics.addSelection('KN_tileImpression');
+        createAnalyticsGroup('TILESTATS', [tileStatistics], refreshRate);
+
         // Get the data and draw all these graphs
         update_all();
     };
@@ -545,7 +689,7 @@ $(document).ready(function () {
     // Start everything up
     google.load('visualization', '1.0', {'packages': ['table', 'corechart'], callback: drawElements});
 
-    $('#campaign').change(function() {
+    $('#campaign').change(function () {
         campaign = $(this).val();
         update_all();
     }).change();
@@ -614,6 +758,25 @@ $(document).ready(function () {
         // integer that references the table-goal grouping of charts
         var TABLE = CHARTS.indexOf('GOALTABLE');
         pageOptions.charts[TABLE].setSelection(1); // 1 represents the table that shows data for a day
+        drawChart(TABLE);
+    });
+
+    $('#tiles-rate').on('click', function () {
+        // integer that references the tile grouping of charts
+        var TABLE = CHARTS.indexOf('TILESTATS');
+        pageOptions.charts[TABLE].setSelection(0); // 0 represents the table that shows data for a month
+        drawChart(TABLE);
+    });
+    $('#tiles-preview').on('click', function () {
+        // integer that references the tile grouping of charts
+        var TABLE = CHARTS.indexOf('TILESTATS');
+        pageOptions.charts[TABLE].setSelection(1); // 0 represents the table that shows data for a month
+        drawChart(TABLE);
+    });
+    $('#tiles-impression').on('click', function () {
+        // integer that references the tile grouping of charts
+        var TABLE = CHARTS.indexOf('TILESTATS');
+        pageOptions.charts[TABLE].setSelection(2); // 0 represents the table that shows data for a month
         drawChart(TABLE);
     });
 

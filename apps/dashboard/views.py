@@ -13,7 +13,7 @@ from django.utils.timezone import now
 from datetime import timedelta
 
 from django.contrib.auth.models import User
-from apps.dashboard.models import DashBoard, UserProfile, Campaign, Query
+from apps.dashboard.models import DashBoard, UserProfile, Query
 
 LOGIN_URL = '/dashboard/login'
 
@@ -46,19 +46,6 @@ def get_data(request):
             print "User: " + user.username + "cannot view dashboard: " + dashboard_id
             return HttpResponse(response, content_type='application/json')
         if ('query_name' in request_get) and ('campaign' in request_get):
-            # get data from ga based on queryName
-            campaign_id = request_get['campaign']
-            start_date = now() - timedelta(days=90)
-            end_date = now()
-            if not campaign_id == 'all':
-                try:
-                    campaign = Campaign.objects.get(identifier=campaign_id)
-                except Campaign.MultipleObjectsReturned, Campaign.DoesNotExist:
-                    print 'Multiple campaign or campaign dne'
-                    return HttpResponse(response, content_type='application/json')
-                start_date = campaign.start_date
-                end_date = campaign.end_date
-
             query_name = request_get['query_name']
             try:
                 query = Query.objects.filter(identifier=query_name).select_subclasses()
@@ -67,7 +54,7 @@ def get_data(request):
                 print 'error, multiple queries or query does not exist'
                 return HttpResponse(response, content_type='application/json')
             # set response
-            response = query.get_response(cur_dashboard.data_ids, start_date, end_date)
+            response = query.get_response(cur_dashboard.page)
     return HttpResponse(response, content_type='application/json')
 
 
@@ -101,11 +88,6 @@ def dashboard(request, dashboard_id):
             return HttpResponseRedirect('/dashboard/')
         context_dict['dashboard_id'] = cur_dashboard.pk
         context_dict['siteName'] = cur_dashboard.site_name
-        # TODO add this to model
-        context_dict['campaigns'] = [{'name': 'Lived In', 'value': 'livedin'},
-                                     {'name': 'Summer Loves', 'value': 'summerloves'},
-                                     {'name': 'Paddington Bear', 'value': 'paddington'},
-                                     {'name': 'President', 'value': 'president'}]
 
         return render(request, 'dashboard.html', context_dict)
 

@@ -6,29 +6,16 @@
         dashboard = {{ dashboard_id }}
     </script>
     <script type="text/javascript" src="{% static "dashboard_graphs.js" %}"></script>
+    <script type='text/javascript' src='{% static 'js/underscore.js' %}'></script>
 {% endblock %}
 
 {% block main %}
     <div id="main-content">
     <div class="page-content">
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-12">
             <h2><i class="fa fa-dashboard"></i> {{ siteName }} Dashboard</h2>
         </div>
-        <!--  /col-md-8  -->
-        <div class="col-md-4">
-            <label class="col-sm-3 content-header">Campaign:</label>
-
-            <div class="col-md-9">
-                <select id="campaign" class="form-control" name="campaign">
-                    <option value="all">All</option>
-                    {% for campaign in campaigns %}
-                        <option value="{{ campaign.value }}">{{ campaign.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-        <!-- /col-md-4 -->
     </div>
     <!--  /row  -->
 
@@ -274,7 +261,7 @@
                     </div>
                     <!--  /button-group  -->
                 </h3>
-                <div class="graph" id="sortview-graph" >
+                <div class="graph" id="sortview-graph">
                     Currently loading data... Thank you for your patience
                 </div>
             </div>
@@ -346,13 +333,14 @@
         <!--   /col-md-6  -->
     </div>
     <!--   /row end  -->
-    
+
     <div class="row">
         <div class="col-md-12">
             <div class="block-web">
                 <h3 class="content-header">
                     Total Conversions
                 </h3>
+
                 <div class="row graph-container">
                     <div class="col-xs-4 graph" id="total-conversions-mobile-graph">
                         Loading graph...
@@ -440,6 +428,45 @@
                 </h3>
                 <div class="graph" id="metrics-graph">
                     Currently loading data... Thank you for your patience
+                </div>
+                <!--  /custom-bar-chart  -->
+            </div>
+            <!--   /block-web  -->
+        </div>
+        <!--   /col-md-12  -->
+    </div>
+    <!--   /row end  -->
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="block-web graph-container">
+                <h3 class="content-header">Tiles:
+                    <div class="button-group pull-right" data-toggle="buttons">
+                        <a href="javascript:;" class="btn active small border-gray right-margin" id="tiles-rate">
+                            <span class="button-content">
+                                <input type="radio" name="tiles">
+                                Preview Rate
+                            </span>
+                        </a>
+                        <a href="javascript:;" class="btn small border-gray right-margin" id="tiles-preview">
+                            <span class="button-content">
+                                <input type="radio" name="tiles">
+                                Previews
+                            </span>
+                        </a>
+                        <a href="javascript:;" class="btn small border-gray" id="tiles-impression">
+                            <span class="button-content">
+                                <input type="radio" name="tiles">
+                                Impressions
+                            </span>
+                        </a>
+                    </div>
+                    <!--   /button-group   -->
+                </h3>
+                <div style="overflow: scroll;">
+                    <div class="graph" id="tile-statistics" style="width: 9999px;">
+                        Currently loading data... Thank you for your patience
+                    </div>
                 </div>
                 <!--  /custom-bar-chart  -->
             </div>
