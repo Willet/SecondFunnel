@@ -983,7 +983,7 @@ App.module('core', function (module, App) {
 
             // hide discovery, then show this window as a page.
             if (App.support.mobile()) {
-                App.discoveryArea.$el.parent().swapWith(this.$el); // out of scope
+                this.trigger("swap:feed", this.$el);  // out of scope
                 this.trigger("feed:swapped");
             }
 
@@ -1015,7 +1015,7 @@ App.module('core', function (module, App) {
                 }
                 // if it's a real preview, add no-scroll
                 if (!this.$el.parents('#hero-area').length) {
-                    $(document.body).addClass('no-scroll');
+                    this.trigger("scroll:disable");
                 }
             }
         }
@@ -1065,18 +1065,13 @@ App.module('core', function (module, App) {
         },
         onRender: function () {
             var self = this,
-                ContentClass,
                 template = this.model.get('template'),
-                related = this.model.get('tagged-products') || [],
                 contentOpts = {
                     'model': this.model
                 },
                 contentInstance;
 
-            ContentClass = App.utils.findClass('PreviewContent',
-                template, module.PreviewContent);
-
-            contentInstance = new ContentClass(contentOpts);
+            contentInstance = new module.PreviewContent(contentOpts);
 
             // remember if $.fn.swapWith is called so the feed can be swapped back
             contentInstance.on("feed:swapped", function () {
@@ -1170,22 +1165,23 @@ App.module('core', function (module, App) {
                     heightMultiplier * $window.height() : ''
             });
 
-            var ContentClass,
-                template = this.options.model.get('template'),
-                related = this.options.model.get('tagged-products') || [],
+            var template = this.options.model.get('template'),
                 contentOpts = {
                     'model': this.options.model
                 },
                 contentInstance;
 
-            ContentClass = App.utils.findClass('PreviewContent',
-                template, module.PreviewContent);
-
-            contentInstance = new ContentClass(contentOpts);
+            contentInstance = new module.PreviewContent(contentOpts);
 
             // remember if $.fn.swapWith is called so the feed can be swapped back
             contentInstance.on("feed:swapped", function () {
                 self.triggerMethod("feed:swapped");
+            });
+            contentInstance.on('swap:feed', function ($el) {
+                App.discoveryArea.$el.parent().swapWith($el);
+            });
+            contentInstance.on('scroll:disable', function () {
+                $(document.body).addClass('no-scroll');
             });
 
             this.content.show(contentInstance);
@@ -1199,7 +1195,7 @@ App.module('core', function (module, App) {
                     'height': App.support.mobile() ?
                         heightMultiplier * $window.height() : ''
                 });
-                self.content.show(new ContentClass(contentOpts));
+                self.content.show(new module.PreviewContent(contentOpts));
             });
         },
 
