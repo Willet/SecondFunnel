@@ -1028,7 +1028,7 @@ App.module('core', function (module, App) {
      * @constructor
      * @type {Layout}
      */
-    this.HeroAreaView = this.ExpandedContent.extend({
+    this.HeroAreaView = Marionette.Layout.extend({
         model: module.Tile,
         regions: {
             content: '.content'
@@ -1042,7 +1042,6 @@ App.module('core', function (module, App) {
             }
             return "#hero_template";
         },
-        'superClass': App.core.ExpandedContent,
         /**
          * @param data   normal product data, or, if omitted,
          *               the featured product.
@@ -1054,9 +1053,6 @@ App.module('core', function (module, App) {
                 tile = App.option('featured');
             }
             this.model = new module.Tile(tile);
-
-            // "super"
-            this.superClass.prototype.initialize.call(this, tile);
 
             this.listenTo(App.vent, 'windowResize', function () {
                 // self.render();
@@ -1072,12 +1068,6 @@ App.module('core', function (module, App) {
                 contentInstance;
 
             contentInstance = new module.PreviewContent(contentOpts);
-
-            // remember if $.fn.swapWith is called so the feed can be swapped back
-            contentInstance.on("feed:swapped", function () {
-                self.triggerMethod("feed:swapped");
-            });
-
             this.content.show(contentInstance);
         }
     });
