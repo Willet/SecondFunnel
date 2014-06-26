@@ -125,7 +125,7 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         item = response.meta.get('item', ScraperProduct())
         l = ScraperProductLoader(item=item, response=response)
 
-        relative_urls = sel.css('body::text').re("'Z': '(.*?)'")
+        relative_urls = sel.css('body').re(r"Z':\s?'([^']+?)'")
         image_urls = [
             self.root_url + url
             for url in relative_urls
