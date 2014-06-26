@@ -13,7 +13,7 @@ from django.template import Context, loader
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
 
-from apps.assets.models import Page, Product, Tile
+from apps.assets.models import Page, Product, Tile, Store
 from apps.pinpoint.utils import render_campaign, get_store_from_request, read_a_file
 
 
@@ -271,6 +271,18 @@ def page_stats(request, page_slug):
     return render_to_response('pinpoint/campaign_statistics.html', {
         'page': page,
         'keen': settings.KEEN_CONFIG
+    })
+
+
+@login_required
+def get_overview(request):
+    stores = Store.objects.prefetch_related(
+        'pages',
+        'pages__feed'
+    )
+    return render_to_response('pinpoint/overview.html', {
+        'stores': stores,
+        'domain': settings.WEBSITE_BASE_URL,
     })
 
 
