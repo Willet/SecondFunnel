@@ -71,15 +71,15 @@ def get_store_from_request(request):
     return store
 
 
-def render_campaign(page_id, request, store_id=0, product=None):
+def render_campaign(page_id, request, store_id=0, tile=None):
     """Generates the HTML page for a standard pinpoint product page.
 
     Backup products are populated statically only if a request object
     is provided.
 
     :param store_id: optional, legacy, unused
-    :param product: if provided, the theme may attempt to display this
-                    product in the hero area
+    :param tile: if provided, the theme may attempt to display this
+                    tile in the hero area
     """
     def json_postprocessor(product_dict):
         """given a product dict, output a product string that can be printed
@@ -113,11 +113,10 @@ def render_campaign(page_id, request, store_id=0, product=None):
     store = page.store
 
     try:
-        tile = Tile.objects.filter(products__id=product.id).order_by('-template')[0]
-        product_repr = json.dumps(tile.to_json())
+        tile_repr = json.dumps(tile.to_json())
     # TODO: this may well be a generic Exception catcher
     except (Product.DoesNotExist, AttributeError, IndexError, ValueError) as err:
-        product_repr = "undefined"
+        tile_repr = "undefined"
 
     ir_base_url = '/intentrank'
 
@@ -140,7 +139,7 @@ def render_campaign(page_id, request, store_id=0, product=None):
         "store": store,
         "columns": range(4),
         "preview": False,  # TODO: was this need to fix: not page.live,
-        "product": product_repr,
+        "tile": tile_repr,
         "open_tile_in_popup": "true" if page.get("open_tile_in_popup") else "false",
         "initial_results": [],  # JS now fetches its own initial results
         "backup_results": [],

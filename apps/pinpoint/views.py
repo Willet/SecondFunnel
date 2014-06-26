@@ -36,13 +36,13 @@ def social_auth_redirect(request):
 
 @cache_page(60 * 1, key_prefix="pinpoint-")  # a minute
 @vary_on_headers('Accept-Encoding')
-def campaign(request, store_id, page_id, product=None):
+def campaign(request, store_id, page_id, tile=None):
     """Returns a rendered campaign response of the given id.
 
-    :param product: if given, the product is the featured product.
+    :param tile: if given, the tile is shown featured.
     """
     rendered_content = render_campaign(page_id=page_id, request=request,
-                                       store_id=store_id, product=product)
+                                       store_id=store_id, tile=tile)
 
     return HttpResponse(rendered_content)
 
@@ -84,7 +84,7 @@ def campaign_by_slug(request, page_slug, identifier='id',
         lookup_map = {'id': request.GET.get('product_id')}
     lookup_map['store'] = store
 
-    product = None
+    tile = None
     if identifier in ['id', 'sku']:
         try:
             # if a store has two or more products with the same sku,
@@ -96,16 +96,18 @@ def campaign_by_slug(request, page_slug, identifier='id',
                               .filter(num_tiles__gt=0)
                               .order_by('-num_tiles')[0])
             if not product:
-                product = None
+                tile = None
+            else:
+                tile = product.tiles.all()[0]
         except (Product.DoesNotExist, IndexError, ValueError):
-            product = None
+            tile = None
     elif identifier == 'tile':
         tiles = Tile.objects.filter(id=identifier_value)
-        if len(tiles) and tiles[0].product:
-            product = tiles[0].product
+        if len(tiles):
+            tile = tiles[0]
 
     return campaign(request, store_id=store_id, page_id=page.id,
-                    product=product)
+                    tile=tile)
 
 
 # TODO: This could probably just be a serializer on the Page object...

@@ -1062,6 +1062,16 @@ App.module('core', function (module, App) {
         }
     });
 
+    this.HeroAreaContainer = Marionette.Layout.extend({
+        regions: {
+            target: '.target'
+        },
+        onRender: function () {
+            var heroArea = new module.HeroAreaView();
+            this.target.show(heroArea);
+        }
+    });
+
     /**
      * Container view for a PreviewContent object.
      *

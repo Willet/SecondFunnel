@@ -1,9 +1,9 @@
 {% load staticfiles %}
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7{% if product %} stl {% endif %}" lang="en"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8{% if product %} stl {% endif %}" lang="en"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9{% if product %} stl {% endif %}" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js{% if product %} stl {% endif %}" lang="en"> <!--<![endif]-->
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
 <head>
     {% include "pinpoint/campaign_opengraph_tags.html" %}
     {% include "pinpoint/campaign_head.html" %}
@@ -120,7 +120,7 @@
     </style>
     <link rel="stylesheet" href="http://use.typekit.net/c/94f591/brandon-grotesque:n3:n4:n5,ff-tisa-web-pro:i4:n4:n7.Y2j:N:2,Y2l:N:2,Y2n:N:2,Vdl:N:2,Vdk:N:2,Vdp:N:2/d?3bb2a6e53c9684ffdc9a98f4135b2a62d7ad2c805d37e76a8d7c97eb987b54e58d04ed6ab887c8dfa6f3881c7a78798cce60e1f7fe603815063e972cd5ef309daec6daba7f17bf0bb1c6ce10afcb8c5ce12539ac6001934bed2551761a601610c0c378a58bd4a32325394d4e1fb9221b4222c793abc5da2f9d2e73cda923a06da08748eae613662161cf409ac9bc446b0e0e8767c350ffc85a6a758f95301480c4dd70ea0d09d8462ad77d830718925e342f13c8ce4de853981a7a0aa06603418b2c49ee5bb97c830133115a17a03566219f629b7ee837f9d77da030eaadbe257453f3387d">
 </head>
-<body>
+<body class="{% if tile %}stl{% endif %}">
 
     <!-- bustle header begin -->
     <div id="bustle">
