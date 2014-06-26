@@ -525,11 +525,14 @@ div.loading {
     display: inline-block;
 }
 
-#preview-area .previewContainer .content,
-#hero-area .content {
+#preview-area .previewContainer .content {
     /* let the preview scroll, but only if it needs to */
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+#hero-area .content {
+    overflow: hidden;
 }
 
 #preview-area .previewContainer .content .scrollable,
