@@ -150,8 +150,9 @@ class AnalyticsQuery(Query):
                 title = title.replace('Goal 3', 'Scroll')
                 title = title.replace('Conversion', '')
                 header['label'] = title
-            for row in response['dataTable']['rows']:
-                row['c'][0]['v'] = capitalize(row['c'][0]['v'])
+            if 'rows' in response['dataTable']:
+                for row in response['dataTable']['rows']:
+                    row['c'][0]['v'] = capitalize(row['c'][0]['v'])
         else:
             if 'rows' in response:
                 for row in response['dataTable']['rows']:

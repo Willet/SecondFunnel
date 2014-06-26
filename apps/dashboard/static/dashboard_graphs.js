@@ -69,6 +69,38 @@ $(document).ready(function () {
     // The total sessions that have come to the property
         sessions = 1;
 
+    var addTiles = function (response, dict) {
+        var data = response.result;
+        var tiles = {};
+
+        $.each(data, function (idx, obj) {
+            var tile = {
+                    'count': obj.result,
+                    'imageUrl': obj['tile.url'],
+                    'product': obj['product.name'],
+                    'tileId': obj['tile.id'],
+                    'url': obj['page.url'] + '#' + obj['tile.id']
+                },
+                tileId = obj['tile.id'],
+                prevTile = tiles[tileId];
+
+
+            if (prevTile) { // Merge
+                tile.count += prevTile.count;
+            }
+
+            tiles[tileId] = tile;
+        });
+
+        return (dict)? tiles : $.map(tiles, function(value, index){return [value];});
+    };
+
+    var sortTiles = function (tiles) {
+        return _.sortBy(_.values(tiles),
+            function (item) {
+                return -1 * item.count;
+            });
+    };
 
     /**
      * DashboardElement is a chart on the dashboard, an entity that shows information.
@@ -139,36 +171,31 @@ $(document).ready(function () {
         this.draw = function (data, options) {
             this.location.html("");
             var draw_tile = function (data) {
-                var tile = "" +
+                return "" +
                     "<div class='tile'>" +
                     "<div class='count'>" +
-                    data['result'] +
+                    data.count +
                     "</div>" +
-                    "<img src=" + data['tile.url'] + ">" +
+                    "<img src=" + data.imageUrl + ">" +
                     "<div class='data'>" +
                     "<span class='product'>" +
-                    data['product.name'] +
+                    data.product +
                     "</span>" +
                     "<span class='id'>" +
-                    "(<a href='" + data['page.url'] + "#" + data['tile.id'] + "'>" +
-                    data['tile.id'] +
+                    "(<a href='" + data.url + "'>" +
+                    data.tileId +
                     "</a>) " +
                     "</span>" +
                     "</div>" +
                     "</div>";
-                return tile;
             };
-            if (data instanceof Array) {
-                var sortedTiles = _.sortBy(_.values(data),
-                    function (item) {
-                        return -1 * item.result;
-                    });
 
-                for (var i = 0; i < sortedTiles.length; i++) {
-                    this.location.append(draw_tile(sortedTiles[i]));
+            data = data.slice(0, 10);
+
+            for (var i = 0; i < data.length; i++) {
+                if (data[i]) {
+                    this.location.append(draw_tile(data[i]));
                 }
-            } else {
-                this.location.html(draw_tile(data));
             }
         };
     };
@@ -268,8 +295,9 @@ $(document).ready(function () {
                     if (type === 'ratio') {
                         total_response.push(response);
                         if (last) {
-                            var q0s = total_response[0]; // impressions in campaign_stats
-                            var q1s = total_response[1]; // previews in campaign_stats
+                            var q0s = addTiles(total_response[0], true); // previews in campaign_stats
+                            var q1s = addTiles(total_response[1], true); // impressions in campaign_stats
+
                             // Merge two sets...
                             var keys = _.intersection(
                                 _.keys(q1s),
@@ -286,10 +314,12 @@ $(document).ready(function () {
                                 q1 = q1s[key];
 
                                 ratioTile = _.extend({}, q0);
-                                ratioTile.result = q1.result / q0.result;
+                                ratioTile.count = q0.count / q1.count;
 
                                 finalResponse.push(ratioTile);
                             });
+
+                            //finalResponse = sortTiles(finalResponse);
 
                             chartStorage[chartNumber].selections[numSelection].response = finalResponse;
                             drawChart(groupNumber);
@@ -307,6 +337,7 @@ $(document).ready(function () {
                 var queryArray = query.split(':');
                 if (queryArray[0] === 'ratio') {
                     var queries = queryArray[1].split(',');
+                    total_response = [];
                     for (var j = 0; j < queries.length; j++) {
                         retrieveData(campaign, queries[j], ajax_response(chartNumber, i, 'ratio', (j === (queries.length - 1))));
                     }
@@ -637,7 +668,11 @@ $(document).ready(function () {
 
         var tileStatistics = new DashboardElement($('#tile-statistics'),
             Tile, function (response) {
-                return response.result;
+                if (response['result'] === undefined) {
+                    return sortTiles(response);
+                } else {
+                    return sortTiles(addTiles(response, false));
+                }
             }, {});
         tileStatistics.addSelection('ratio:KN_tilePreview,KN_tileImpression');
         tileStatistics.addSelection('KN_tilePreview');
