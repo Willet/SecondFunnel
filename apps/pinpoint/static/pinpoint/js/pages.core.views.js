@@ -1030,6 +1030,7 @@ App.module('core', function (module, App) {
      */
     this.HeroAreaView = Marionette.Layout.extend({
         model: module.Tile,
+        className: 'previewContainer',
         regions: {
             content: '.content'
         },
