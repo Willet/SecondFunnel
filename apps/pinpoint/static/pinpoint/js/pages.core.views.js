@@ -1029,9 +1029,11 @@ App.module('core', function (module, App) {
      * @type {Layout}
      */
     this.HeroAreaView = this.ExpandedContent.extend({
-        'model': module.Tile,
-        'superClass': App.core.ExpandedContent,
-        'getTemplate': function () {
+        model: module.Tile,
+        regions: {
+            content: '.content'
+        },
+        getTemplate: function () {
             // if page config contains a product, render hero area with a
             // template that supports it
             if (App.option('featured') !== undefined &&
@@ -1040,6 +1042,7 @@ App.module('core', function (module, App) {
             }
             return "#hero_template";
         },
+        'superClass': App.core.ExpandedContent,
         /**
          * @param data   normal product data, or, if omitted,
          *               the featured product.
@@ -1059,16 +1062,28 @@ App.module('core', function (module, App) {
                 // self.render();
                 App.heroArea.show(self);
             });
-        }
-    });
-
-    this.HeroAreaContainer = Marionette.Layout.extend({
-        regions: {
-            target: '.target'
         },
         onRender: function () {
-            var heroArea = new module.HeroAreaView();
-            this.target.show(heroArea);
+            var self = this,
+                ContentClass,
+                template = this.model.get('template'),
+                related = this.model.get('tagged-products') || [],
+                contentOpts = {
+                    'model': this.model
+                },
+                contentInstance;
+
+            ContentClass = App.utils.findClass('PreviewContent',
+                template, module.PreviewContent);
+
+            contentInstance = new ContentClass(contentOpts);
+
+            // remember if $.fn.swapWith is called so the feed can be swapped back
+            contentInstance.on("feed:swapped", function () {
+                self.triggerMethod("feed:swapped");
+            });
+
+            this.content.show(contentInstance);
         }
     });
 
