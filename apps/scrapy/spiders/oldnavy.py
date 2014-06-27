@@ -15,6 +15,9 @@ class OldNavySpider(GapSpider):
 
     store_slug = name
 
+    # see documentation for remove_background in apps.imageservice.tasks
+    remove_background = '#FFF'
+
     root_url = 'http://oldnavy.gap.com'
     category_url = root_url + '/browse/category.do?cid={}'
     product_data_url = root_url + '/browse/productData.do?pid={}'
