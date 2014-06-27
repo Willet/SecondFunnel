@@ -491,9 +491,17 @@ $(document).ready(function () {
         buttonBuyNowRate.addSelection('GA_buyNowRate');
 
         var buttonPurchaseRate = new DashboardElement($('#purchaseRate'), QuickLabel, function (response) {
-            //TODO add to button group
-            var data = parseInt(response.convertedClicks, 10);
-            return Math.round((((data / sessions) * 100) + 0.00001) * 100) / 100 + '%';
+            // query failed
+            if(response['entityId'] === undefined){
+                return 'N/A';
+            }
+            // query exists, but convertedClicks === 0 (clickmeter doesn't return no-data)
+            if(response['convertedClicks'] === undefined){
+                return '0%';
+            } else { // there are converted clicks
+                var data = parseInt(response.convertedClicks, 10);
+                return Math.round((((data / sessions) * 100) + 0.00001) * 100) / 100 + '%';
+            }
         }, {});
         buttonPurchaseRate.addSelection('CM_purchaseRate');
 

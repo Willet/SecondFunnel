@@ -23,7 +23,7 @@ class Query(models.Model):
     identifier = models.CharField(max_length=128, help_text='The name of this query.', unique=True)
     cached_response = jsonfield.JSONField(default={}, blank=True)
     is_today = models.BooleanField(default=False)
-    # TODO add the code that uses this in queries
+    # TODO get rid of this. it is useless (but will require a migration)
     timestamp = models.DateTimeField(auto_now=True,
                                      verbose_name="The last time a response was saved")
 
@@ -138,7 +138,6 @@ class AnalyticsQuery(Query):
                 temp_title = re.findall(r'(^[a-z]*)|([0-9A-Z]{1}[0-9a-z]*)', header['label'])
                 # Then take the correct group, make it uppercase, and add them together to form
                 #   the pretty human readable title for the dataTable columns
-                # TODO : replace goal 2 etc with descriptive names
                 title = ''
                 for group in temp_title:
                     if group[0] == u'':
@@ -157,10 +156,6 @@ class AnalyticsQuery(Query):
             if 'rows' in response:
                 for row in response['dataTable']['rows']:
                     row['c'][0]['v'] = capitalize(row['c'][0]['v'])
-        #TODO fix code for saving... is this even necessary?
-        if False:  #not 'error' in response:
-            self.cached_response = json.dumps(response)
-            self.save()
         return json.dumps(response)
 
 
@@ -181,10 +176,14 @@ class ClickmeterQuery(Query):
             end = now()
             start = end - timedelta(30)
 
-        # TODO add logic for is_today here
+        if self.is_today:
+            start = now().date()
+            end = now().date()
+            return {'start': start.strftime('%Y%m%d'),
+                    'end': end.strftime('%Y%m%d')}
+
         end_date = end.strftime('%Y%m%d%H%M')
         start_date = start.strftime('%Y%m%d%H%M')
-
         return {'start': start_date, 'end': end_date}
 
     def get_query(self, page):
@@ -218,10 +217,6 @@ class ClickmeterQuery(Query):
             response = requests.get(query['url'], headers=query['header'], params=query['payload'])
         except HttpError as error:
             print "Querying Clickmeter failed with: ", error
-        #TODO fix code for saving... is this even necessary?
-        if False:  #not 'error' in response:
-            self.cached_response = response
-            self.save()
         return json.dumps(response.json())
 
 
@@ -301,10 +296,6 @@ class KeenIOMetricsQuery(Query):
         except HttpError as error:
             print "Querying Keen.io failed with: ", error
 
-        #TODO fix code for saving... is this even necessary?
-        if False:  #not 'error' in response:
-            self.cached_response = response
-            self.save()
         return json.dumps(response.json())
 
 

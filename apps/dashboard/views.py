@@ -49,7 +49,11 @@ def get_data(request):
             query_name = request_get['query_name']
             try:
                 query = Query.objects.filter(identifier=query_name).select_subclasses()
-                query = query[0]
+                if query:
+                    query = query[0]
+                else:
+                    print 'query {} needs to be defined.'.format(query_name)
+                    return HttpResponse(response, content_type='application/json')
             except Query.MultipleObjectsReturned, Query.DoesNotExist:
                 print 'error, multiple queries or query does not exist'
                 return HttpResponse(response, content_type='application/json')
