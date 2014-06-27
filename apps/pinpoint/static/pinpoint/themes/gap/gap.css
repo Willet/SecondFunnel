@@ -93,6 +93,61 @@ div.header {
     background-position: 0 0;
 }
 
+.sharing {
+    color: #acacac;
+    display: inline-block;
+    position: absolute;
+    line-height: 30px;
+    padding: 10px 10px 10px 0px;
+    text-transform: uppercase;
+}
+
+.sharing ul {
+    display: inline-block;
+    padding-left: 10px;
+}
+
+.sharing .icon, .sharing .icon a {
+    width:  24px;
+    text-decoration: none;
+    height: 30px;
+    display: inline-block;
+}
+
+.sharing .icon {
+    background:  url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/Website-stay-connected-icons.png') top left no-repeat;
+    padding-right: 1px;
+}
+
+.sharing .icon.pinterest {
+    background-position: -3px 0;
+}
+
+.sharing .icon.facebook {
+    background-position: -27px 0;
+}
+
+.sharing .icon.twitter {
+    background-position: -52px 0;
+}
+
+.sharing .icon.instagram {
+    background-position: -76px 0;
+}
+
+.sharing .icon.youtube {
+    background-position: -100px 0;
+}
+
+.sharing .icon.tumblr {
+    background-position: -124px 0;
+}
+
+.shareContainer img {
+    max-width: 50px;
+    max-height: 50px;
+}
+
 .dropdown-menu .facebook,
 .dropdown-menu .twitter,
 .dropdown-menu .pinterest,
