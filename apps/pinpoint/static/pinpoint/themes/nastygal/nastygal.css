@@ -61,8 +61,14 @@
     max-width: 900px;
 }
 #hero-area .previewContainer .content>div {
-    width: 768px;
+    text-align: center;
     margin: auto;
+}
+#hero-area .previewContainer .content>div>div {
+    display: inline-block;
+}
+#hero-area .previewContainer .table, #hero-area .previewContainer .row {
+    width: auto;
 }
 
 .previewContainer .mask {

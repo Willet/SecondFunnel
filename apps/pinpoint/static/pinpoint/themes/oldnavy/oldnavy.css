@@ -296,6 +296,9 @@ html.lt-ie9 .hero-message-container .text .big {
     .navbar {
         display: none;
     }
+    .stl .navbar {
+        display: block;
+    }
 
     .jumbotron {
         margin-top: 0;
