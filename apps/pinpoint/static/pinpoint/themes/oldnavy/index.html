@@ -248,11 +248,6 @@
                     <% } %>
                 </div>
             </div>
-            {% if legal_copy %}
-                <div class="legal us">
-                    {{ legal_copy }}
-                </div>
-            {% endif %}
         </script>
 
         <script type="text/template" id="image_preview_template">
@@ -337,11 +332,6 @@
                     </div>
                 </div>
             <% } %>
-            {% if legal_copy %}
-                <div class="legal us">
-                    {{ legal_copy }}
-                </div>
-            {% endif %}
         </script>
 
     </div>
@@ -369,6 +359,11 @@
                     Looks
                 </div>
             </div>
+            {% if legal_copy %}
+                <div class="legal us">
+                    {{ legal_copy }}
+                </div>
+            {% endif %}
         </div>
         <div id="category-area"></div>
         <div id="discovery-area" class="discovery-area"></div>
