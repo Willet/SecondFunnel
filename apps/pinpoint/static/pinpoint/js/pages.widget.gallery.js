@@ -116,7 +116,7 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
             .eq(focusCurrent)
             .addClass(options.selectedClass);
 
-        // Undisable by default
+        // Un-disable by default
         arrows = $()
             .add(options.leftArrow)
             .add(options.rightArrow)
