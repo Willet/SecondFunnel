@@ -108,7 +108,6 @@ class AnalyticsQuery(Query):
         except:
             campaign_id = ''
 
-        # TODO add this in again
         ga_filter = 'ga:sessions>=0' if (campaign_id == '') else ('ga:campaign==' + campaign_id)
         service = AnalyticsQuery.build_analytics()
         data = service.data().ga().get(ids=table_id,
@@ -116,6 +115,7 @@ class AnalyticsQuery(Query):
                                        end_date=date['end'],
                                        metrics=self.metrics,
                                        dimensions=self.dimensions,
+                                       filters=ga_filter,
                                        output='dataTable')
         return data
 
