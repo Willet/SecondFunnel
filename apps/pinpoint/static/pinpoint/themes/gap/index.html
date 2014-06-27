@@ -11,8 +11,6 @@
          href="http://www.gap.com/favicon.ico" />
     <link rel="stylesheet"
           href="{% static 'pinpoint/themes/gap/gap.css' %}"/>
-    <link rel="stylesheet"
-          href="{% static 'pinpoint/themes/gap/fullscreen.css' %}"/>
     {% include "pinpoint/campaign_respond.html" %}
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
@@ -196,21 +194,6 @@
             <span><%= obj.name %></span>
         </script>
 
-        <script type="text/template" id="disabled_featured_template">
-            <div class='featured product'>
-                <!-- Main Display Area -->
-                <img class='img-responsive pull-left' src='<%= obj.image.url %>' />
-                <div class='pull-right'><%= obj.title || obj.name %></div>
-                    <div class='price'><%= obj.price %></div>
-                    <div>
-                        <a href='<%= obj.url %>' target='_blank'>BUY NOW</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class='spacer'></div>
-        </script>
-
         <script type="text/template" id="product_tile_template">
             <div class="tap-indicator-target"></div>
             <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
@@ -218,20 +201,6 @@
                 <span class="type"><%= obj['content-type'] %></span>
             <% } %>
             <div class="name"><%= obj.title || obj.name %></div>
-        </script>
-
-        <script type="text/template" id="product_mobile_tile_template">
-            <div class="tap-indicator-target"></div>
-            <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
-            <% if (App.option('debug', 0) > 1) { %>
-                <span class="type"><%= obj['content-type'] %></span>
-            <% } %>
-            <% if (obj.name) { %>
-                <div class="caption">
-                    <span><%= obj.name %></span>
-                </div>
-            <% } %>
-            <div class="social-buttons"></div>
         </script>
 
         <script type="text/template" id="image_tile_template">
@@ -281,21 +250,12 @@
         </script>
 
         <script type="text/template" id="preview_container_template">
-            <div class="tablecell">
+            <div class="fullscreen">
                 <div class="content">
-                    <span class="close">&#x00D7;</span>
+                    <span class="close">X</span>
                     <div class="scrollable">
                         <div class="template target"></div>
                     </div>
-                </div>
-            </div>
-            <div class="mask"></div>
-        </script>
-
-        <script type="text/template" id="mobile_preview_container_template">
-            <div class="content">
-                <div class="scrollable">
-                    <div class="template target"></div>
                 </div>
             </div>
             <div class="mask"></div>
@@ -311,24 +271,13 @@
             </ul>
         </script>
 
-        <script type="text/template" id="b_preview_container_template">
-            <div class="full-screen">
-                <div class="content">
-                    <span class="close">&#x00D7;</span>
-                    <div class="scrollable">
-                        <div class="template target"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="mask"></div>
-        </script>
-
         <script type="text/template" id="tap_indicator_template">
             +
             <div>
                 <%= App.option('tapIndicatorText', 'tap to see more') %>
             </div>
         </script>
+
         <script type="text/template" id="facebook_social_button_template">
             <div class='button facebook'>
                 <img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/fb-like-0.png" alt="Like" class="placeholder" />
@@ -490,104 +439,33 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <!-- any (store.name)_(type)_... templates will be used in place
-             of default templates if they exist. -->
-            <div class='content-wrapper row'>
-                <div class='cell middle image-div col-sm-6 col-md-6'>
-                    <div class="gallery-main-image"></div>
-                    <div class='gallery<% if (obj.images.length === 1) { %> hide<% } %>'></div>
-                </div>
-                <div class='cell middle info col-sm-6 col-md-6'>
-                    <div class='title'></div>
-                    <div class='price'></div>
-                    <div class='description'></div>
-                    <div>
-                        <div class="social-buttons"></div>
-                        <div class='spacer'></div>
-                    </div>
-                    <div class='gap-buttons'>
-                        <a class='button find-store'
-                           href='http://www.gap.com/customerService/storeLocator.do'
-                           target='_blank'>
-                            <!-- find-store is magic -->
-                            Find in Store
-                        </a>
-                        <div class="buy inline"></div>
-                    </div>
-                </div>
-            </div>
-        </script>
-
-        <script type="text/template" id="product_mobile_preview_template">
-            <div class="info">
-                <div class="title"></div>
-                <div class="center">
-                    <div class='gallery-dots<% if (obj.images.length === 1) { %> hide<% } %>'></div>
-                </div>
-            </div>
-            <div class="price"></div>
-            <div class="close">
-                Back
-            </div>
-            <% if (obj.images.length === 1) { %>
-            <div class="image-region no-images">
-            <% } else { %>
-            <div class="image-region">
-            <% } %>
-                <div class="gallery-main-image"></div>
-                <div class="gap-buttons">
-                    <div class="buy inline"></div>
-                    <a class="button find-store"
-                       href="http://m.gap.com/storelocator.html"
-                       target="_blank">
-                        Find in Store
-                    </a>
-                </div>
-            </div>
-        </script>
-
-        <script type="text/template" id="image_mobile_preview_template">
-            <% var products = obj['tagged-products'] || []; %>
-            <% var product = products.length? products[0] : {}; %>
-
-            <div class="image-with<% if (products.length === 0) { %>out<% } %>-tagged-products">
-                <div class="info">
-                    <div class="title"></div>
-                    <div class="center">
-                        <div class='gallery-dots<% if (products.length === 0) { %> hide<% } %>'></div>
-                    </div>
-                </div>
-                <div class="price"></div>
-                <div class="close">
-                    Back
-                </div>
-                <div class="image-region">
-                    <% if (products.length > 0) { %>
-                        <div class="gallery-main-image"></div>
-                        <div class="gap-buttons">
-                            <% if (product.url) { %>
-                                <div class="buy inline"></div>
-                                <a class="button find-store"
-                                   href="http://m.gap.com/storelocator.html"
-                                   target="_blank">
-                                    Find in Store
-                                </a>
-                            <% } %>
+            <div class="table">
+                <div class='content-wrapper row'>
+                    <% if (App.support.mobile()) { %>
+                        <div class='cell info'>
+                            <div class='title'></div>
+                            <div class='price'></div>
+                            <div class='buy'></div>
                         </div>
-                    <% } else { %>
-                        <div class="img" style="background-image: url('<%= obj.image.url %>');"></div>
-                        <div class="gap-buttons">
-                            <div class="coming-soon">
-                                Product coming soon.
-                            </div>
-                            <a class="button" href="http://m.gap.com/" target="_blank">
-                                Shop on Gap.com
-                            </a>
-                            <a class="button find-store"
-                               href="http://m.gap.com/storelocator.html"
-                               target="_blank">
-                                Find a Store
-                            </a>
+                    <% } %>
+                    <div class='cell'>
+                        <div class="gallery-main-image"></div>
+                        <% if (!App.support.mobile()) { %>
+                            <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
+                        <% } %>
+                    </div>
+                    <% if (obj.images.length > 1 && App.support.mobile()) { %>
+                        <div class='cell'>
+                            <div class='gallery-dots'></div>
+                        </div>
+                    <% } %>
+                    <% if (!App.support.mobile()) { %>
+                        <div class='cell info'>
+                            <div class='title'></div>
+                            <div class='price'></div>
+                            <div class='description'></div>
+                            <div class='social-buttons'></div>
+                            <div class='buy'></div>
                         </div>
                     <% } %>
                 </div>
@@ -596,74 +474,95 @@
 
         <script type="text/template" id="image_preview_template">
             <% if (obj['tagged-products'].length) { %>
-            <% var product = obj['tagged-products'][0]; %>
+                <% var product = obj['tagged-products'][0]; %>
                 <div class="image-with-tagged-products">
-                    <div class="row">
-                        <div class="image middle cell capped-width">
-                            <img src="<%= obj.image.url %>" alt="image"/>
-                            <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
-                        </div>
-                        <div class="middle cell center">
-                            <div class="gallery-main-image"></div>
-                            <div class='gallery<% if (product.images.length === 1) { %> hide<% } %>'></div>
-                        </div>
-                        <div class="middle cell">
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <div class='description'></div>
-                            <div>
-                                <div class="social-buttons"></div>
-                                <div class='spacer'></div>
+                    <div class="table">
+                        <div class="row">
+                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
+                                <div class="cell desktop-only shop">
+                                    <div class="stl-title">Shop the look</div>
+                                    <div class="stl-look">
+                                        <% var  related = obj['tagged-products'] %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <div class="cell desktop-only">
+                                <img src="<%= obj.image.url %>" alt="image" class="image"/>
+                                    <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                                    <div class="landscape">
+                                        <div class="stl-title">Shop the look</div>
+                                        <div class="stl-look">
+                                            <% var  related = obj['tagged-products'] %>
+                                            <% for (var i = 0; i < related.length; i++) { %>
+                                                <div class="stl-item" data-index="<%- i %>">
+                                                    <img src="<%- related[i].images[0].url %>" />
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% } %>
                             </div>
-                            <div class='gap-buttons'>
-                                <a class='button find-store'
-                                   href='http://www.gap.com/customerService/storeLocator.do'
-                                   target='_blank'>
-                                    Find in Store
-                                </a>
-                                <div class="buy inline"></div>
+                            <div class="cell info">
+                                <div class='title'></div>
+                                <div class='price'></div>
+                                <div class='buy'></div>
+                                <div class="gallery-main-image"></div>
+                                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
                             </div>
+                            <div class="cell mobile-only">
+                                <img src="<%= obj.image.url %>" alt="image"/>
+                            </div>
+                            <% if (obj['tagged-products'].length > 1) { %>
+                                <div class="cell mobile-only">
+                                    <div class="stl-title">Shop the look</div>
+                                    <div class="stl-look">
+                                        <% var related = obj['tagged-products'] %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
                         </div>
                     </div>
                 </div>
-                <% if (obj['tagged-products'].length > 1) { %>
-                    <hr>
-                    <div class="text-centered desc-title">Shop the Look</div>
-                    <div class="stl-look">
-                        <% var related = obj['tagged-products']; %>
-                        <% for (var i = 0; i < related.length; i++) { %>
-                            <img class="stl-item" data-index="<%- i %>" src="<%- related[i].images[0].url %>" />
-                        <% } %>
-                    </div>
-                <% } %>
             <% } else { %>
-            <div class="image-without-tagged-products">
-                <div class="row">
-                    <div class="image middle cell capped-width">
-                        <img src="<%= obj.image.url %>" alt="image"/>
-                    </div>
-                    <div class="middle cell">
-                        <div class="info">
-                            <div class='title'><%= obj.title || obj.name || "Product coming soon." %></div>
-                            <div class="gap-buttons">
-                                <a class="button" href="http://m.gap.com/" target="_blank">
-                                    Shop on Gap.com
-                                </a>
-                                <a class="button find-store"
-                                   href="http://m.gap.com/storelocator.html"
-                                   target="_blank">
-                                    Find a Store
-                                </a>
+                <div class="image-without-tagged-products">
+                    <div class="table">
+                        <div class="row">
+                            <div class="image middle cell capped-width">
+                                <img src="<%= obj.image.url %>" alt="image"/>
                             </div>
-                            <div class='description'>
-                                <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
+                            <div class="middle cell">
+                                <div class="info">
+                                    <div class='title'><%= obj.title || obj.name || "Product coming soon." %></div>
+                                    <div class="gap-buttons">
+                                        <a class="button" href="http://m.gap.com/" target="_blank">
+                                            Shop on Gap.com
+                                        </a>
+                                        <a class="button find-store"
+                                           href="http://m.gap.com/storelocator.html"
+                                           target="_blank">
+                                            Find a Store
+                                        </a>
+                                    </div>
+                                    <div class='description'>
+                                        <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
+                                    </div>
+                                    <div class="social-buttons"></div>
+                                    <div class='spacer'></div>
+                                </div>
                             </div>
-                            <div class="social-buttons"></div>
-                            <div class='spacer'></div>
                         </div>
                     </div>
                 </div>
-            </div>
             <% } %>
         </script>
 
