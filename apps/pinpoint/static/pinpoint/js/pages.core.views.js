@@ -983,7 +983,7 @@ App.module('core', function (module, App) {
 
             // hide discovery, then show this window as a page.
             if (App.support.mobile()) {
-                App.discoveryArea.$el.parent().swapWith(this.$el); // out of scope
+                this.trigger("swap:feed", this.$el);  // out of scope
                 this.trigger("feed:swapped");
             }
 
@@ -1015,7 +1015,7 @@ App.module('core', function (module, App) {
                 }
                 // if it's a real preview, add no-scroll
                 if (!this.$el.parents('#hero-area').length) {
-                    $(document.body).addClass('no-scroll');
+                    this.trigger("scroll:disable");
                 }
             }
         }
@@ -1028,10 +1028,13 @@ App.module('core', function (module, App) {
      * @constructor
      * @type {Layout}
      */
-    this.HeroAreaView = this.ExpandedContent.extend({
-        'model': module.Tile,
-        'superClass': App.core.ExpandedContent,
-        'getTemplate': function () {
+    this.HeroAreaView = Marionette.Layout.extend({
+        model: module.Tile,
+        className: 'previewContainer',
+        regions: {
+            content: '.content'
+        },
+        getTemplate: function () {
             // if page config contains a product, render hero area with a
             // template that supports it
             if (App.option('featured') !== undefined &&
@@ -1052,23 +1055,19 @@ App.module('core', function (module, App) {
             }
             this.model = new module.Tile(tile);
 
-            // "super"
-            this.superClass.prototype.initialize.call(this, tile);
-
             this.listenTo(App.vent, 'windowResize', function () {
                 // self.render();
                 App.heroArea.show(self);
             });
-        }
-    });
-
-    this.HeroAreaContainer = Marionette.Layout.extend({
-        regions: {
-            target: '.target'
         },
         onRender: function () {
-            var heroArea = new module.HeroAreaView();
-            this.target.show(heroArea);
+            var contentOpts = {
+                    'model': this.model
+                },
+                contentInstance;
+
+            contentInstance = new module.PreviewContent(contentOpts);
+            this.content.show(contentInstance);
         }
     });
 
@@ -1155,22 +1154,23 @@ App.module('core', function (module, App) {
                     heightMultiplier * $window.height() : ''
             });
 
-            var ContentClass,
-                template = this.options.model.get('template'),
-                related = this.options.model.get('tagged-products') || [],
+            var template = this.options.model.get('template'),
                 contentOpts = {
                     'model': this.options.model
                 },
                 contentInstance;
 
-            ContentClass = App.utils.findClass('PreviewContent',
-                template, module.PreviewContent);
-
-            contentInstance = new ContentClass(contentOpts);
+            contentInstance = new module.PreviewContent(contentOpts);
 
             // remember if $.fn.swapWith is called so the feed can be swapped back
             contentInstance.on("feed:swapped", function () {
                 self.triggerMethod("feed:swapped");
+            });
+            contentInstance.on('swap:feed', function ($el) {
+                App.discoveryArea.$el.parent().swapWith($el);
+            });
+            contentInstance.on('scroll:disable', function () {
+                $(document.body).addClass('no-scroll');
             });
 
             this.content.show(contentInstance);
@@ -1184,7 +1184,7 @@ App.module('core', function (module, App) {
                     'height': App.support.mobile() ?
                         heightMultiplier * $window.height() : ''
                 });
-                self.content.show(new ContentClass(contentOpts));
+                self.content.show(new module.PreviewContent(contentOpts));
             });
         },
 

@@ -33,6 +33,10 @@
     font-weight: 200;
 }
 
+#hero-area img {
+    max-height: none;
+}
+
 .previewContainer .table {
     display: table;
     table-layout: fixed;
@@ -49,8 +53,7 @@
     content: none;
 }
 
-.previewContainer .content,
-#hero-area .content {
+#preview-area .previewContainer .content {
     padding-top: 43px;
     padding-bottom: 10px;
     box-shadow: 0px 10px 30px 0px #000;
@@ -277,6 +280,10 @@
 #hero-area .main-image {
     max-width: 300px;
     max-height: 400px;
+}
+
+#hero-area .image-without-tagged-products .main-image {
+    max-width: 100%;
 }
 
 .previewContainer .main-image-container .gallery-swipe-left,
