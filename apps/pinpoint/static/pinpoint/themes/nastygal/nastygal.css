@@ -282,6 +282,10 @@
     max-height: 400px;
 }
 
+#hero-area .image-without-tagged-products .main-image {
+    max-width: 100%;
+}
+
 .previewContainer .main-image-container .gallery-swipe-left,
 .previewContainer .main-image-container .gallery-swipe-right,
 #hero-area .main-image-container .gallery-swipe-left,
