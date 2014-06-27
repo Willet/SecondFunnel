@@ -156,15 +156,6 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
             allowPageScroll: 'vertical'
         });
 
-        focus.find('img').load(function () {
-            // prevent "image leak"
-            var imgWidth = focus.find('img').width();
-            if (imgWidth) {
-                focus.data('width-set-by', 'gallery')
-                    .css('width', imgWidth + 'px');
-            }
-        });
-
         $('.item', $gallery).on('click', function () {
             focusCurrent = $(this).index();
             self.selectImage();

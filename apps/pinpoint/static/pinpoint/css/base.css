@@ -506,11 +506,12 @@ div.loading {
 }
 
 #hero-area .image {
-    max-height: 300px;
+    width: 100%;
 }
-#hero-area .image-without-tagged-products .main-image {
-    max-height: 400px;
+#hero-area .cell.image-cell {
+    width: 400px;
 }
+
 
 .previewContainer .mask {
     position: fixed;
@@ -764,7 +765,6 @@ div.loading {
         padding: 20px;
 
         min-height: 240px;
-        max-height: 666px;
 
         background: #fff;
     }
