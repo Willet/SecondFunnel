@@ -57,7 +57,7 @@ $(document).ready(function () {
             }
         },
     // The time between ajax calls to the server in milliseconds
-        refreshRate = 1000 * 60 * 15, // 1 second * 60 * 15 = 15 minutes
+        refreshRate = 1000 * 60 * 5, // 1 second * 60 * 5 = 5 minutes
     // used for determining campaign period
         campaign = 'all',
     // for readability in click code TODO investigate how to remove
