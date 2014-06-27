@@ -27,10 +27,6 @@ body {
     font-size: 30px;
 }
 
-#preview-area .hero-message-container {
-    display: none;
-}
-
 .hero-message-container div {
     line-height: normal;
 }
