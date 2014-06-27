@@ -27,12 +27,6 @@ body {
     font-size: 30px;
 }
 
-#hero-area .hero-message-container {
-    /* beat #hero-area .previewContainer .content>div>div */
-    display: block !important;
-    z-index: 1;
-}
-
 #preview-area .hero-message-container {
     display: none;
 }
