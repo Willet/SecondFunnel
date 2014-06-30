@@ -246,7 +246,10 @@ div.header {
 #hero-area .buttons a:visited {
     text-decoration: none;
 }
-/* End make non-desktop specific*/
+
+#discovery-area {
+    width: 960px;
+}
 
 .tile.product {
     text-align: left;
@@ -358,6 +361,73 @@ div.header {
     background-color: #000d41;
 }
 
+.previewContainer .table {
+    display: table;
+    table-layout: fixed;
+    margin-bottom: 0;
+}
+
+.previewContainer .row {
+    display: table-row;
+    width: 100%;
+    margin: 0;
+}
+.previewContainer .row:before,
+.previewContainer .row:after {
+    content: none;
+}
+
+#preview-area .previewContainer .content {
+    padding-top: 50px;
+    padding-bottom: 20px;
+    border: none;
+    max-width: 900px;
+    width: 100%;
+}
+
+.previewContainer .close {
+    position: absolute;
+    z-index: 1;
+    opacity: 1;
+    filter: alpha(opacity=100);
+    color: #FFF;
+    background-color: #000d41;
+    padding: 10px 13px;
+    font-weight: normal;
+}
+
+.previewContainer .gallery,
+.previewContainer .gallery-dots {
+    text-align: center;
+}
+
+.previewContainer .gallery img {
+    margin: 5px 0;
+    width: 56px;
+    opacity: 0.4;
+    filter: alpha(opacity=40);
+    cursor: pointer;
+}
+.previewContainer .gallery img.selected {
+    opacity: 1;
+    filter: alpha(opacity=100);
+    cursor: default;
+}
+
+.previewContainer .info {
+    text-align: left;
+    padding-left: 25px;
+    padding-right: 10px;
+    overflow: hidden;
+}
+
+.previewContainer .info .title {
+    font-size: 22px;
+    color: #4e5c85;
+    line-height: 22px;
+    margin-bottom: 5px;
+}
+
 .previewContainer .price {
     font-family: "Verdana", proxima-nova-soft, sans-serif;
     font-size: 13px;
@@ -379,6 +449,49 @@ div.header {
     color: #000d41;
     font-family: "Verdana", proxima-nova-soft, sans-serif;
     font-size: 13px;
+}
+
+.previewContainer .description .desc-title {
+    font-weight: bold;
+}
+
+.previewContainer .info .buy .button {
+    font-size: 13px;
+    color: #FFF;
+    background-color: #000d41;
+    text-decoration: none;
+    padding: 5px 30px;
+    display: inline-block;
+    margin-top: 15px;
+    white-space: nowrap;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.previewContainer .info .buy .button:hover {
+    text-decoration: none;
+}
+
+.previewContainer .stl-look {
+    margin: auto;
+    white-space: nowrap;
+    width: auto;
+    text-align: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.previewContainer .stl-look .stl-item {
+    display: inline-block;
+    height: 100%
+    vertical-align: top;
+    margin-bottom: 0;
+}
+
+.previewContainer .stl-look .stl-item.selected img {
+    opacity: 1;
+    filter: alpha(opacity=100);
+    cursor: default;
 }
 
 @media screen and (max-width: 768px) {
@@ -512,10 +625,18 @@ div.header {
     .previewContainer .price .price-wrapper {
         padding: 10px;
     }
+
+    .desktop-only {
+        display: none !important;
+    }
 }
 
 @media (min-width:769px) {
     .navbar>.container .navbar-brand {
         margin-left: 0;
+    }
+
+    .mobile-only {
+        display: none !important;
     }
 }
