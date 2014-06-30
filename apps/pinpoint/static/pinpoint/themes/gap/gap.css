@@ -814,6 +814,10 @@ div.header {
         background: transparent;
     }
 
+    #hero-area .previewContainer .gap-buttons {
+        position: initial;
+    }
+
     .previewContainer .gap-buttons .button {
         width: 47%;
         color: white;
@@ -933,6 +937,10 @@ div.header {
     max-width: 300px;
 }
 
+#hero-area .gallery-dots {
+    display: initial;
+}
+
 #hero-area .cell {
     text-align: initial;
 }
@@ -965,7 +973,7 @@ div.header {
     }
 
     .previewContainer .shop-the-look .image-with-tagged-products .gap-buttons,
-    .previewCotnainer .shop-the-look .image-with-tagged-products .social-buttons {
+    .previewContainer .shop-the-look .image-with-tagged-products .social-buttons {
         margin-bottom: 20px;
     }
 
@@ -1087,6 +1095,15 @@ div.header {
         border-top: 1px solid white;
     }
 
+    #hero-area .previewContainer .content .image-region {
+        position: initial;
+    }
+
+    #hero-area .main-image .image {
+        max-width: 300px;
+        max-height: 300px;
+    }
+
     .previewContainer .content .image-region.no-images {
         top: 35px;
     }
@@ -1114,6 +1131,10 @@ div.header {
         z-index: 1;
         border: 1px solid white;
         font-size: 24px;
+    }
+
+    #hero-area .previewContainer .image-with-tagged-products {
+        position: relative;
     }
 
     .previewContainer .price .price-wrapper {
