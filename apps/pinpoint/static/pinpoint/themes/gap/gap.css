@@ -77,9 +77,6 @@ div.header {
     /* background-position: 0px -127px; */
 }
 
-.navbar .gap a:hover, .navbar .gap a:focus {
-}
-
 .navbar .other-brands {
     margin-left: 66px;
 }
@@ -143,16 +140,10 @@ div.header {
     background-position: -124px 0;
 }
 
-.shareContainer img {
-    max-width: 50px;
-    max-height: 50px;
-}
-
 .dropdown-menu .facebook,
 .dropdown-menu .twitter,
 .dropdown-menu .pinterest,
 .dropdown-menu .instagram,
-.dropdown-menu .youtube,
 .dropdown-menu .tumblr {
     background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/Social+Subscribe+-+Mobile.png') no-repeat top left;
     background-size: 24px auto;
@@ -250,13 +241,6 @@ div.header {
     margin-bottom: 0px;
 }
 
-#hero-area .share-this {
-    text-transform: uppercase;
-    color: #010e3f;
-    text-align: left;
-    margin-left: -15px;
-}
-
 #hero-area .buttons a,
 #hero-area .buttons a:hover,
 #hero-area .buttons a:visited {
@@ -283,12 +267,7 @@ div.header {
     vertical-align: inherit;
 }
 
-.social-buttons .placeholder {
-    position: absolute;
-    left: 0;
-}
-
-.social-buttons button, .social-buttons .button {
+.social-buttons .button {
     margin-right: 10px;
     height: 20px;
     vertical-align: top;
@@ -340,8 +319,7 @@ div.header {
     vertical-align: middle;
 }
 
-.tile.image .overlay .title, .image-with-tagged-products .caption,
-.image-without-tagged-products .caption {
+.tile.image .overlay .title {
     font-family: "Helvetica", "Verdana", sans-serif;
     font-size: 15pt;
     font-weight: bold;
@@ -354,21 +332,6 @@ div.header {
     font-weight: normal;
     color: #010e3f;
     display: block;
-}
-
-.tile.image .overlay .author, .image-with-tagged-products .author,
-.image-without-tagged-products .author {
-    font-family: "HelveticaNeueThin", "HelveticaNeue-Thin", "Helvetica Neue Thin", "HelveticaNeue-UltraLight", "Helvetica Neue UltraLight", "Helvetica Neue", "TeXGyreHerosRegular", Arial, Helvetica, sans-serif;
-    font-weight:200;
-    font-stretch:normal;
-    font-size: 20pt;
-    color: #333;
-}
-
-.tile.image .overlay .author a,
-.tile.image .overlay .author a:hover,
-.tile.image .overlay .author a:visited {
-    text-decoration: none;
 }
 
 .tile.image:hover .overlay {
@@ -402,13 +365,11 @@ div.header {
     margin: 0 0 20px 0;
 }
 
-.previewContainer .price.sale,
 .previewContainer .price .sale {
     color: #f44c43;
     font-weight: bold;
 }
 
-.previewContainer .price.sale .strike,
 .previewContainer .price .sale .strike {
     color: #CCC;
     font-weight: normal;
@@ -512,10 +473,6 @@ div.header {
         background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/gap/emailicon.png');
     }
 
-    .dropdown-xs {
-        display: block;
-    }
-
     .navbar .gap,
     .navbar-fixed-top {
         position: absolute;
@@ -525,14 +482,12 @@ div.header {
         margin-bottom: 5px;
     }
 
-    .previewContainer .price.sale,
     .previewContainer .price .sale {
         color: white;
         font-weight: normal;
         background-color: #f44c43;
     }
 
-    .previewContainer .price.sale .strike,
     .previewContainer .price .sale .strike {
         font-size: 14px;
         text-align: center;
@@ -559,10 +514,7 @@ div.header {
     }
 }
 
-@media (min-width:769px) { /* Larger than tablet */
-    .dropdown-xs {
-        display: none!important;
-    }
+@media (min-width:769px) {
     .navbar>.container .navbar-brand {
         margin-left: 0;
     }
