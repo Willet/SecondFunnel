@@ -941,6 +941,11 @@ div.header {
     display: initial;
 }
 
+#hero-area .text-centered.desc-title {
+    /* beat #hero-area .previewContainer .content>div>div */
+    display: block !important;
+}
+
 #hero-area .cell {
     text-align: initial;
 }
