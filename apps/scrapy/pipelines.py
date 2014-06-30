@@ -221,16 +221,17 @@ class FeedPipeline(object):
 
 class ProductImagePipeline(object):
     def process_item(self, item, spider):
+        remove_background = getattr(spider, 'remove_background', False)
         if isinstance(item, ScraperProduct):
             for image_url in item.get('image_urls', []):
-                self.process_product_image(item, image_url)
+                self.process_product_image(item, image_url, remove_background=remove_background)
         return item
 
-    def process_product_image(self, item, image_url):
+    def process_product_image(self, item, image_url, remove_background=False):
         store = item['store']
         product = item['sku']
         try:
-            ProductScraper.process_image(image_url, product, store)
+            ProductScraper.process_image(image_url, product, store, remove_background=remove_background)
         except Product.MultipleObjectsReturned:
             raise DropItem(
                 'Unclear which product to attach to image. '
