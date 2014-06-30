@@ -925,6 +925,14 @@ div.header {
     text-align: center;
 }
 
+#hero-area .image {
+    width: auto;
+}
+
+#hero-area .image.capped-width img {
+    max-width: 300px;
+}
+
 #hero-area .cell {
     text-align: initial;
 }
