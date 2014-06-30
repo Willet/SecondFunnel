@@ -22,13 +22,15 @@ LOGIN_URL = '/dashboard/login'
 # @login_required(login_url=LOGIN_URL)
 # @never_cache
 def get_data(request):
-    response = json.dumps({'error': 'Retrieving data failed'})
+    response = {'error': 'Retrieving data failed'}
     if request.method == 'GET':
         try:
             user = User.objects.get(pk=request.user.pk)
             profile = UserProfile.objects.get(user=user)
         except ObjectDoesNotExist:
             print 'user profile does not exist'
+            response['error'] = 'user profile DNE'
+            response = json.dumps(response)
             return HttpResponse(response, content_type='application/json')
         request_get = request.GET
 
@@ -39,11 +41,15 @@ def get_data(request):
             cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
         except DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist:
             print "Dashboard error, multiple or none"
+            response['error'] = 'error retrieving dashboard'
+            response = json.dumps(response)
             return HttpResponse(response, content_type='application/json')
 
         if not profile.dashboards.all().filter(pk=dashboard_id):
             # can't view page
             print "User: " + user.username + "cannot view dashboard: " + dashboard_id
+            response['error'] = 'user cannot view dashboard'
+            response = json.dumps(response)
             return HttpResponse(response, content_type='application/json')
         if ('query_name' in request_get) and ('campaign' in request_get):
             query_name = request_get['query_name']
@@ -53,12 +59,18 @@ def get_data(request):
                     query = query[0]
                 else:
                     print 'query {} needs to be defined.'.format(query_name)
+                    response['error'] = 'query {} needs to be defined.'.format(query_name)
+                    response = json.dumps(response)
                     return HttpResponse(response, content_type='application/json')
             except Query.MultipleObjectsReturned, Query.DoesNotExist:
                 print 'error, multiple queries or query does not exist'
+                response['error'] = 'error retrieving query'
+                response = json.dumps(response)
                 return HttpResponse(response, content_type='application/json')
             # set response
             response = query.get_response(cur_dashboard.page)
+        else:
+            response = json.dumps(response)
     return HttpResponse(response, content_type='application/json')
 
 
