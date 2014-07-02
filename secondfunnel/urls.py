@@ -18,6 +18,7 @@ urlpatterns = patterns('',
     # APPS
     url(r'^assets/', include('apps.assets.urls')),
     url(r'^ads/', include('apps.ads.urls')),
+    url(r'^creative/', include('apps.ads.urls')),
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
     url(r'^imageservice/', include('apps.imageservice.urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
