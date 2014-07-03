@@ -1,0 +1,29 @@
+@charset "UTF-8";
+
+#topbar {
+    background: #000;
+    color: #fff;
+    margin: -8px -8px 8px -8px;
+    padding: 16px 16px 8px 16px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 10;
+    left: 0;
+}
+
+#topbar img {
+    max-height: 30px;
+    vertical-align: middle;
+}
+
+#discovery-area {
+    margin-top: 40px;
+}
+
+#discovery-area .tile .caption {
+    background-color: transparent;
+    color: black;
+    position: relative;
+    padding-top: 5px;
+}
