@@ -314,12 +314,44 @@ class DatabaseQuery(Query):
     clicks = models.BooleanField(default=False)
     views = models.BooleanField(default=False)
 
+    interval = models.CharField(max_length=16, choices=[
+        ('/', 'Division'),
+        ('*', 'Multiplication'),
+        ('+', 'Addition'),
+        ('-', 'Difference')
+    ], default='/', blank=True)
+
+    def get_results(self, tile):
+        if self.clicks and self.views:
+            # default behaviour
+            answer = tile.clicks / tile.views
+            if self.interval == '*':
+                answer = tile.clicks * tile.views
+            if self.interval == '+':
+                answer = tile.clicks + tile.views
+            if self.interval == '-':
+                answer = tile.views - tile.clicks
+            return answer
+        elif self.views:
+            return tile.views
+        elif self.clicks:
+            return tile.clicks
+
     def get_query(self, page):
         return page.feed.tiles.all()
 
     def get_response(self, page):
         tiles = self.get_query(page)
-        
+        response = {"result": []}
+        for tile in tiles:
+            r_tile = {
+                "page.url": settings.WEBSITE_BASE_URL + page.url_slug,
+                "product.name": tile.products.all()[0].name,
+                "tile.url": tile.products.all()[0].default_image.url if tile.template == 'product' else tile.content.all()[0].url,
+                "result": self.get_results(tile)
+            }
+            response['result'].append(r_tile)
+        return response
 
 
 class Campaign(models.Model):
