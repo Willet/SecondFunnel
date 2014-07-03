@@ -321,27 +321,25 @@ class DatabaseQuery(Query):
         ('-', 'Difference')
     ], default='/', blank=True)
 
-    def get_results(self, tile):
-        if self.clicks and self.views:
-            # default behaviour
-            answer = 0 if tile.views == 0 else tile.clicks / tile.views
-            if self.operator == '*':
-                answer = tile.clicks * tile.views
-            if self.operator == '+':
-                answer = tile.clicks + tile.views
-            if self.operator == '-':
-                answer = tile.views - tile.clicks
-            return answer
-        elif self.views:
-            return tile.views
-        elif self.clicks:
-            return tile.clicks
-
     def get_query(self, page):
         return page.feed.tiles.all()
 
     def get_response(self, page):
         tiles = self.get_query(page)
+
+        if self.clicks and self.views:
+            tiles = tiles.extra(select={
+                'result': 'cast(clicks + 1 as float) ' + self.operator + ' cast(views + 1 as float)'
+            }).order_by('-result')
+        elif self.views:
+            tiles = tiles.extra(select={
+                'result': 'cast(views + 1 as float)'
+            }).order_by('-result')
+        elif self.clicks:
+            tiles = tiles.extra(select={
+                'result': 'cast(clicks + 1 as float)'
+            }).order_by('-result')
+
         response = {"result": []}
         for tile in tiles:
             if tile.template == 'product':
@@ -359,7 +357,7 @@ class DatabaseQuery(Query):
                 "page.url": settings.WEBSITE_BASE_URL + "/" + page.url_slug,
                 "product.name": name,
                 "tile.url": tile.products.all()[0].default_image.url if tile.template == 'product' else tile.content.all()[0].url,
-                "result": self.get_results(tile)
+                "result": tile.result
             }
             response['result'].append(r_tile)
         return json.dumps(response)
