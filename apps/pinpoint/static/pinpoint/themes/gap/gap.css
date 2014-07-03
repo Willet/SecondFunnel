@@ -467,7 +467,7 @@ div.header {
     font-weight: bold;
 }
 
-.previewContainer .info .buy .button {
+.previewContainer .buy .button {
     font-size: 13px;
     color: #FFF;
     background-color: #000d41;
@@ -481,7 +481,7 @@ div.header {
     text-transform: uppercase;
 }
 
-.previewContainer .info .buy .button:hover {
+.previewContainer .buy .button:hover {
     text-decoration: none;
 }
 
@@ -545,7 +545,13 @@ div.header {
     height: 45px;
     margin-top: -45px;
     position: absolute;
+    cursor: pointer;
     background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
+}
+
+.previewContainer .gallery-swipe-left.grey,
+.previewContainer .gallery-swipe-right.grey {
+    cursor: default;
 }
 
 .previewContainer .gallery-swipe-left {
@@ -633,6 +639,53 @@ div.header {
         position: absolute;
     }
 
+    #preview-area .previewContainer .content {
+        padding: 0;
+        padding-top: 0;
+        height: 100%;
+    }
+
+    .previewContainer .close {
+        left: 10px;
+        top: 72px;
+        right: inherit;
+    }
+
+    .previewContainer .row {
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .previewContainer .cell {
+        display: block;
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .previewContainer .cell.image {
+        padding-left: 0;
+    }
+
+    .previewContainer .info {
+        max-width: none;
+        width: auto;
+        padding-left: 0;
+        background-color: #000d41;
+        color: white;
+        padding-top: 6px;
+    }
+
+    .previewContainer .image-with-tagged-products .info {
+        width: auto;
+    }
+
+    .previewContainer .info .title {
+        color: white;
+        white-space: nowrap;
+        text-align: center;
+    }
+
     .previewContainer .price {
         margin-bottom: 5px;
     }
@@ -666,6 +719,22 @@ div.header {
 
     .previewContainer .price .price-wrapper {
         padding: 10px;
+    }
+
+    .previewContainer .buy .button {
+        padding: 10px 30px;
+        font-size: 15px;
+    }
+
+    .previewContainer .gallery-dots .item {
+        width: 10px;
+        height: 10px;
+        background-color: transparent;
+        border: 2px solid white;
+    }
+
+    .previewContainer .gallery-dots .item.selected {
+        background-color: white;
     }
 
     .desktop-only {

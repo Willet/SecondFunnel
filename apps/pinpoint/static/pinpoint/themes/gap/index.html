@@ -252,7 +252,13 @@
         <script type="text/template" id="preview_container_template">
             <div class="fullscreen">
                 <div class="content">
-                    <span class="close">X</span>
+                    <span class="close">
+                        <% if (!App.support.mobile()) { %>
+                            X
+                        <% } else { %>
+                            Back
+                        <% } %>
+                    </span>
                     <div class="scrollable">
                         <div class="template target"></div>
                     </div>
@@ -448,13 +454,15 @@
                         <div class='cell info'>
                             <div class='title'></div>
                             <div class='price'></div>
-                            <div class='buy'></div>
+                            <% if (obj.images.length > 1 && App.support.mobile()) { %>
+                                <div class='gallery-dots'></div>
+                            <% } %>
                         </div>
                     <% } %>
                     <div class='cell'>
                         <div class="gallery-main-image"></div>
-                        <% if (obj.images.length > 1 && App.support.mobile()) { %>
-                            <div class='gallery-dots'></div>
+                        <% if (App.support.mobile()) { %>
+                            <div class='buy'></div>
                         <% } %>
                     </div>
                     <% if (!App.support.mobile()) { %>
@@ -493,19 +501,45 @@
                                     </div>
                                 <% } %>
                             </div>
+                            <% if (App.support.mobile()) { %>
+                                <div class="cell info">
+                                    <div class='title'></div>
+                                    <div class='price'></div>
+                                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                </div>
+                            <% } %>
                             <div class="cell image">
                                 <div class="gallery-main-image"></div>
-                                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                <% if (!App.support.mobile()) { %>
+                                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                <% } %>
                             </div>
-                            <div class="cell info">
-                                <div class='title'></div>
-                                <div class='price'></div>
-                                <div class='description'></div>
-                                <div class='social-buttons'></div>
+                            <% if (!App.support.mobile()) { %>
+                                <div class="cell info">
+                                    <div class='title'></div>
+                                    <div class='price'></div>
+                                    <div class='description'></div>
+                                    <div class='social-buttons'></div>
+                                    <div class='buy'></div>
+                                </div>
+                            <% } else { %>
                                 <div class='buy'></div>
-                            </div>
+                            <% } %>
                             <div class="cell mobile-only">
                                 <img src="<%= obj.image.url %>" alt="image"/>
+                                <% if (obj['tagged-products'].length > 1) { %>
+                                    <div class="landscape">
+                                        <div class="stl-title">Shop the Look</div>
+                                        <div class="stl-look">
+                                            <% var  related = obj['tagged-products'] %>
+                                            <% for (var i = 0; i < related.length; i++) { %>
+                                                <div class="stl-item" data-index="<%- i %>">
+                                                    <img src="<%- related[i].images[0].url %>" />
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% } %>
                             </div>
                         </div>
                     </div>
@@ -514,28 +548,47 @@
                 <div class="image-without-tagged-products">
                     <div class="table">
                         <div class="row">
-                            <div class="image middle cell capped-width">
-                                <img class="image" src="<%= obj.image.url %>" alt="image"/>
-                            </div>
-                            <div class="middle cell">
+                            <% if (!App.support.mobile()) { %>
+                                <div class="image cell">
+                                    <img class="image" src="<%= obj.image.url %>" alt="image"/>
+                                </div>
+                            <% } %>
+                            <div class="cell">
                                 <div class="info">
                                     <div class='title'><%= obj.title || obj.name || "Product coming soon." %></div>
-                                    <div class="buy">
-                                        <a class="button" href="http://m.gap.com/" target="_blank">
-                                            Shop on Gap.com
-                                        </a>
-                                        <a class="button find-store"
-                                           href="http://m.gap.com/storelocator.html"
-                                           target="_blank">
-                                            Find a Store
-                                        </a>
-                                    </div>
-                                    <div class='description'>
-                                        <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
-                                    </div>
-                                    <div class="social-buttons"></div>
+                                    <% if (!App.support.mobile()) { %>
+                                        <div class="buy">
+                                            <a class="button" href="http://m.gap.com/" target="_blank">
+                                                Shop on Gap.com
+                                            </a>
+                                            <a class="button find-store"
+                                               href="http://m.gap.com/storelocator.html"
+                                               target="_blank">
+                                                Find a Store
+                                            </a>
+                                        </div>
+                                        <div class='description'>
+                                            <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
+                                        </div>
+                                        <div class="social-buttons"></div>
+                                    <% } %>
                                 </div>
                             </div>
+                            <% if (App.support.mobile()) { %>
+                                <div class="image cell">
+                                    <img class="image" src="<%= obj.image.url %>" alt="image"/>
+                                </div>
+                                <div class="buy">
+                                    <a class="button" href="http://m.gap.com/" target="_blank">
+                                        Shop on Gap.com
+                                    </a>
+                                    <a class="button find-store"
+                                       href="http://m.gap.com/storelocator.html"
+                                       target="_blank">
+                                        Find a Store
+                                    </a>
+                                </div>
+                            <% } %>
                         </div>
                     </div>
                 </div>
