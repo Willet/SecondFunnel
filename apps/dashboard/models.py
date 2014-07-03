@@ -314,7 +314,7 @@ class DatabaseQuery(Query):
     clicks = models.BooleanField(default=False)
     views = models.BooleanField(default=False)
 
-    interval = models.CharField(max_length=16, choices=[
+    operator = models.CharField(max_length=16, choices=[
         ('/', 'Division'),
         ('*', 'Multiplication'),
         ('+', 'Addition'),
@@ -324,12 +324,12 @@ class DatabaseQuery(Query):
     def get_results(self, tile):
         if self.clicks and self.views:
             # default behaviour
-            answer = tile.clicks / tile.views
-            if self.interval == '*':
+            answer = 0 if tile.views == 0 else tile.clicks / tile.views
+            if self.operator == '*':
                 answer = tile.clicks * tile.views
-            if self.interval == '+':
+            if self.operator == '+':
                 answer = tile.clicks + tile.views
-            if self.interval == '-':
+            if self.operator == '-':
                 answer = tile.views - tile.clicks
             return answer
         elif self.views:
@@ -344,14 +344,25 @@ class DatabaseQuery(Query):
         tiles = self.get_query(page)
         response = {"result": []}
         for tile in tiles:
+            if tile.template == 'product':
+                name = tile.products.all()[0].name
+            elif tile.template == 'youtube':
+                #TODO maybe there is a way to get the youtube name?
+                name = "Youtube"
+            else:
+                try:
+                    name = tile.content.all()[0].tagged_products.all()[0].name
+                except:
+                    name = tile.content.all()[0].url
+
             r_tile = {
-                "page.url": settings.WEBSITE_BASE_URL + page.url_slug,
-                "product.name": tile.products.all()[0].name,
+                "page.url": settings.WEBSITE_BASE_URL + "/" + page.url_slug,
+                "product.name": name,
                 "tile.url": tile.products.all()[0].default_image.url if tile.template == 'product' else tile.content.all()[0].url,
                 "result": self.get_results(tile)
             }
             response['result'].append(r_tile)
-        return response
+        return json.dumps(response)
 
 
 class Campaign(models.Model):
