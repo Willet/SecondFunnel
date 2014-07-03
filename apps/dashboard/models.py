@@ -305,7 +305,21 @@ class KeenIOMetricsQuery(Query):
 
 
 class DatabaseQuery(Query):
-    pass
+    """
+    Queries the database for data that we keep there. clicks and views on tiles.
+
+    Does not support is_today due to date data not being recorded with clicks or views.
+    """
+
+    clicks = models.BooleanField(default=False)
+    views = models.BooleanField(default=False)
+
+    def get_query(self, page):
+        return page.feed.tiles.all()
+
+    def get_response(self, page):
+        tiles = self.get_query(page)
+        
 
 
 class Campaign(models.Model):
