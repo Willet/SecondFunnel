@@ -21,11 +21,7 @@ from django.utils.timezone import now
 class Query(models.Model):
     # the name the query goes by
     identifier = models.CharField(max_length=128, help_text='The name of this query.', unique=True)
-    cached_response = jsonfield.JSONField(default={}, blank=True)
     is_today = models.BooleanField(default=False)
-    # TODO add the code that uses this in queries
-    timestamp = models.DateTimeField(auto_now=True,
-                                     verbose_name="The last time a response was saved")
 
     # The manager that makes it so that queries will return children if possible
     objects = InheritanceManager()
@@ -306,6 +302,10 @@ class KeenIOMetricsQuery(Query):
             self.cached_response = response
             self.save()
         return json.dumps(response.json())
+
+
+class DatabaseQuery(Query):
+    pass
 
 
 class Campaign(models.Model):
