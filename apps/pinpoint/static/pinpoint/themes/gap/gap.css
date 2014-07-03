@@ -381,6 +381,7 @@ div.header {
     padding-top: 50px;
     padding-bottom: 20px;
     border: none;
+    border-radius: 0;
     max-width: 900px;
     width: 100%;
 }
@@ -416,9 +417,13 @@ div.header {
 
 .previewContainer .info {
     text-align: left;
-    padding-left: 25px;
+    padding-left: 15px;
     padding-right: 10px;
     overflow: hidden;
+}
+
+.previewContainer .image-with-tagged-products .info {
+    width: 315px;
 }
 
 .previewContainer .info .title {
@@ -426,6 +431,10 @@ div.header {
     color: #4e5c85;
     line-height: 22px;
     margin-bottom: 5px;
+}
+
+.previewContainer .cell.image {
+    padding-left: 15px;
 }
 
 .previewContainer .price {
@@ -449,6 +458,9 @@ div.header {
     color: #000d41;
     font-family: "Verdana", proxima-nova-soft, sans-serif;
     font-size: 13px;
+    max-height: 260px;
+    overflow-y: auto;
+    margin-bottom: 4px;
 }
 
 .previewContainer .description .desc-title {
@@ -460,9 +472,10 @@ div.header {
     color: #FFF;
     background-color: #000d41;
     text-decoration: none;
-    padding: 5px 30px;
+    padding: 5px 15px;
     display: inline-block;
-    margin-top: 15px;
+    margin-top: 10px;
+    margin-bottom: 5px;
     white-space: nowrap;
     text-align: center;
     text-transform: uppercase;
@@ -472,20 +485,50 @@ div.header {
     text-decoration: none;
 }
 
-.previewContainer .stl-look {
+.previewContainer .landscape .stl-title {
+    margin-top: 10px;
+    color: #000d41;
+    font-weight: bold;
+}
+
+.previewContainer .landscape .stl-look {
     margin: auto;
     white-space: nowrap;
     width: auto;
     text-align: center;
+    max-width: 723px;
     overflow-x: auto;
     overflow-y: hidden;
 }
 
-.previewContainer .stl-look .stl-item {
+.previewContainer .stl-look {
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: none;
+    white-space: normal;
+    padding-bottom: 0;
+    width: 120px;
+    display: block;
+    margin: auto;
+}
+
+.previewContainer .landscape .stl-look .stl-item {
     display: inline-block;
-    height: 100%
+    width: 88px;
     vertical-align: top;
     margin-bottom: 0;
+}
+
+.previewContainer .stl-look .stl-item img {
+    display: block;
+    width: 72px;
+    max-width: none;
+    max-height: none;
+    height: auto;
+    margin: 5px auto;
+    opacity: 0.4;
+    filter: alpha(opacity=40);
+    cursor: pointer;
 }
 
 .previewContainer .stl-look .stl-item.selected img {
@@ -494,37 +537,36 @@ div.header {
     cursor: default;
 }
 
+.previewContainer .gallery-swipe-left, .previewContainer .gallery-swipe-right {
+    top: 50%;
+    z-index: 2;
+    color: #eee;
+    width: 45px;
+    height: 45px;
+    margin-top: -45px;
+    position: absolute;
+    background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
+}
+
+.previewContainer .gallery-swipe-left {
+    background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-left.png');
+    left: 0px;
+}
+
+.previewContainer .gallery-swipe-left.grey {
+    background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-grey-left.png');
+}
+
+.previewContainer .gallery-swipe-right {
+    background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-right.png');
+    right: 0px;
+}
+
+.previewContainer .gallery-swipe-right.grey {
+    background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-grey-right.png');
+}
+
 @media screen and (max-width: 768px) {
-    /* indicate that the image can be swiped */
-    .previewContainer .gallery-swipe-left, .previewContainer .gallery-swipe-right {
-        top: 50%;
-        z-index: 2;
-        color: #eee;
-        width: 45px;
-        height: 45px;
-        margin-top: -45px;
-        position: absolute;
-        background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
-    }
-
-    .previewContainer .gallery-swipe-left {
-        background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-left.png');
-        left: 8px;
-    }
-
-    .previewContainer .gallery-swipe-left.grey {
-        background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-grey-left.png');
-    }
-
-    .previewContainer .gallery-swipe-right {
-        background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-right.png');
-        right: 8px;
-    }
-
-    .previewContainer .gallery-swipe-right.grey {
-        background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/arrow-grey-right.png');
-    }
-
     .tile.image .overlay:hover {
         opacity: 0;
     }

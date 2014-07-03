@@ -388,15 +388,15 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
+            <a class="button find-store" href="http://m.gap.com/storelocator.html" target="_blank">
+                Find a Store
+            </a>
             <a class='button in-store' href='<%- obj.url %>' target='_blank'>
                 <% if (App.support.mobile()) { %>
                     Shop Now
                 <% } else { %>
                     Shop on Gap.com
                 <% } %>
-            </a>
-            <a class="button find-store" href="http://m.gap.com/storelocator.html" target="_blank">
-                Find a Store
             </a>
         </script>
 
@@ -453,15 +453,10 @@
                     <% } %>
                     <div class='cell'>
                         <div class="gallery-main-image"></div>
-                        <% if (!App.support.mobile()) { %>
-                            <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
+                        <% if (obj.images.length > 1 && App.support.mobile()) { %>
+                            <div class='gallery-dots'></div>
                         <% } %>
                     </div>
-                    <% if (obj.images.length > 1 && App.support.mobile()) { %>
-                        <div class='cell'>
-                            <div class='gallery-dots'></div>
-                        </div>
-                    <% } %>
                     <% if (!App.support.mobile()) { %>
                         <div class='cell info'>
                             <div class='title'></div>
@@ -469,6 +464,7 @@
                             <div class='description'></div>
                             <div class='social-buttons'></div>
                             <div class='buy'></div>
+                            <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
                         </div>
                     <% } %>
                 </div>
@@ -483,10 +479,23 @@
                         <div class="row">
                             <div class="cell desktop-only">
                                 <img src="<%= obj.image.url %>" alt="image" class="image"/>
+                                <% if (obj['tagged-products'].length > 1) { %>
+                                    <div class="landscape">
+                                        <div class="stl-title">Shop the Look</div>
+                                        <div class="stl-look">
+                                            <% var  related = obj['tagged-products'] %>
+                                            <% for (var i = 0; i < related.length; i++) { %>
+                                                <div class="stl-item" data-index="<%- i %>">
+                                                    <img src="<%- related[i].images[0].url %>" />
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% } %>
                             </div>
-                            <div class="cell">
+                            <div class="cell image">
                                 <div class="gallery-main-image"></div>
-                                <div class='gallery<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
                             </div>
                             <div class="cell info">
                                 <div class='title'></div>
@@ -500,29 +509,18 @@
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <div class="stl-title">Shop the look</div>
-                        <div class="stl-look">
-                            <% var  related = obj['tagged-products'] %>
-                            <% for (var i = 0; i < related.length; i++) { %>
-                                <div class="stl-item" data-index="<%- i %>">
-                                    <img src="<%- related[i].images[0].url %>" />
-                                </div>
-                            <% } %>
-                        </div>
-                    </div>
                 </div>
             <% } else { %>
                 <div class="image-without-tagged-products">
                     <div class="table">
                         <div class="row">
                             <div class="image middle cell capped-width">
-                                <img src="<%= obj.image.url %>" alt="image"/>
+                                <img class="image" src="<%= obj.image.url %>" alt="image"/>
                             </div>
                             <div class="middle cell">
                                 <div class="info">
                                     <div class='title'><%= obj.title || obj.name || "Product coming soon." %></div>
-                                    <div class="gap-buttons">
+                                    <div class="buy">
                                         <a class="button" href="http://m.gap.com/" target="_blank">
                                             Shop on Gap.com
                                         </a>
@@ -536,7 +534,6 @@
                                         <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
                                     </div>
                                     <div class="social-buttons"></div>
-                                    <div class='spacer'></div>
                                 </div>
                             </div>
                         </div>
