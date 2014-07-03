@@ -1,21 +1,15 @@
 @charset "UTF-8";
 
 #topbar {
-    background: #fff;
-    color: #000;
-    box-sizing: border-box;
-    margin: -8px 0 8px 0;
-    padding: 16px 8px 8px 8px;
+    background: #000;
+    color: #fff;
+    margin: -8px -8px 8px -8px;
+    padding: 16px 16px 8px 16px;
     position: fixed;
     top: 0;
     width: 100%;
     z-index: 10;
     left: 0;
-}
-
-#topbar .piece {
-    float: right;
-    font-size: 12px;
 }
 
 #topbar img {
@@ -32,8 +26,4 @@
     color: black;
     position: relative;
     padding-top: 5px;
-}
-
-.tile {
-    padding: 3px;
 }
