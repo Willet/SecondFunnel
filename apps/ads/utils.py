@@ -22,12 +22,7 @@ def render_banner(page, request):
     if page.get('tests'):
         tests = json.dumps(page.get('tests'))
 
-    if page.url_slug == 'swim-banner':
-        # products_only=True is a nastygal-only copyright thing that ought to be
-        # isolated from this logic, when need be
-        initial_results = get_results(feed=page.feed, products_only=True)
-    else:
-        initial_results = get_results(feed=page.feed, content_only=True)
+    initial_results = get_results(feed=page.feed, content_only=True)
 
     initial_results = [x.to_json() for x in initial_results]
 
@@ -49,6 +44,7 @@ def render_banner(page, request):
         "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
         "keen_io": settings.KEEN_CONFIG,
+        "tile_set": "content",
         "url": page.get('url', ''),
         "algorithm": algorithm,
         "environment": settings.ENVIRONMENT,
