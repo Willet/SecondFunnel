@@ -633,6 +633,10 @@ class Feed(BaseModel):
                                     template='image',
                                     prioritized=prioritized,
                                     priority=priority)
+
+            if isinstance(content, Video):
+                new_content_tile.template = 'youtube'
+
             new_content_tile.save()
             new_content_tile.content.add(content)
             print "content {0} added to the feed.".format(content.id)

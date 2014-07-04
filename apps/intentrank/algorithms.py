@@ -37,7 +37,7 @@ def filter_tiles(fn):
         if not feed and tiles is None:  # permit [] for tiles
             raise ValueError("Either tiles or feed must be supplied")
 
-        if feed:
+        if not tiles and feed:
             tiles = feed.tiles.all()
 
         if not tiles:  # nothing to give
@@ -83,19 +83,19 @@ def returns_qs(fn):
         if feed:
             tiles = feed.tiles.all()
 
-        kwargs.update({'tiles': tiles})
-
-        tiles = fn(*args, **kwargs)
-
-        if not isinstance(tiles, QuerySet):
-            tiles = qs_for(tiles)
-
         content_only = kwargs.get('content_only', False)
         products_only = kwargs.get('products_only', False)
         if products_only:
             tiles = tiles.filter(template='product')
         if content_only:
             tiles = tiles.exclude(template='product')
+
+        kwargs.update({'tiles': tiles})
+
+        tiles = fn(*args, **kwargs)
+
+        if not isinstance(tiles, QuerySet):
+            tiles = qs_for(tiles)
 
         return tiles
 

@@ -156,6 +156,7 @@ def render_campaign(page_id, request, store_id=0, tile=None):
         "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
         "keen_io": settings.KEEN_CONFIG,
+        "tile_set": "",
         "url": page.get('url', ''),
         "algorithm": algorithm,
         "environment": settings.ENVIRONMENT,
