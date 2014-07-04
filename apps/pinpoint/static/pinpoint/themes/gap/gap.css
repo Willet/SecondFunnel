@@ -717,6 +717,10 @@ div.header {
         font-size: 24px;
     }
 
+    #hero-area .previewContainer .image-with-tagged-products {
+        position: relative;
+    }
+
     .previewContainer .price .price-wrapper {
         padding: 10px;
     }

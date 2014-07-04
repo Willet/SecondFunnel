@@ -497,9 +497,6 @@ div.loading {
     display: table-cell;
     vertical-align: top;
 }
-#hero-area .cell {
-    display: table-cell;
-}
 
 #preview-area .previewContainer img, #hero-area img {
     max-width: 100%;
@@ -710,6 +707,9 @@ div.loading {
         background: #fff;
         border: 0;
         box-shadow: none;
+    }
+    #hero-area .previewContainer .content {
+        padding: 0;
     }
 
     .previewContainer .gallery {
