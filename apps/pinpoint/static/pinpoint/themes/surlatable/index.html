@@ -69,23 +69,6 @@
         </script>
     {% endif %}
     <title>{{ page.name|default:"Sur la Table" }}</title>
-    <style type="text/css">
-        /* out of necessity */
-        .visible-xs.jumbotron { /* mobile hero */
-            {% if mobile_hero_image %}
-                background-image: url('{{ mobile_hero_image }}');
-            {% else %}
-                background-image: url('{{ desktop_hero_image }}');
-            {% endif %}
-        }
-        .visible-md.jumbotron, .visible-lg.jumbotron, .visible-sm.jumbotron { /* desktop hero */
-            {% if desktop_hero_image %}
-                background-image: url('{{ desktop_hero_image }}');
-            {% else %}
-                background-image: url('{{ mobile_hero_image }}');
-            {% endif %}
-        }
-    </style>
 </head>
 <body>
     <div class='navbar'>
@@ -143,14 +126,35 @@
                 <% } else { %>
                     <%- obj.price %>
                 <% } %>
-            </div>
-        </script>
+              </div>
+            </script>
 
-        <script type="text/template" id="image_tile_template">
-            <div class="tap-indicator-target"></div>
-            <div class='relative'>
-                <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
-            </div>
+            <script type="text/template" id="image_tile_template">
+              <div class="tap-indicator-target"></div>
+              <div class='relative'>
+                  <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
+              </div>
+              <div class="overlay">
+                  <div class='align-container'>
+                      <div class='cell'>
+                          <% /* "Shop product" is actually wanted for the tile overlay */ %>
+                          <div class="title">
+                              <% var products = obj['tagged-products'] ? obj['tagged-products'] : []; %>
+                              <% if (obj.title || obj.name || obj.caption) { %>
+                                  <%= (obj.title || obj.name || obj.caption) %>
+                              <% } else if (products.length > 0) { %>
+                                  <span>Shop Product<% if (products.length > 1) { %>s<% } %></span>
+                                  <br/>
+                                  <% _.each(products, function (related) { %>
+                                      <span class='shop-products'><%= related.title || related.name || related.caption %></span>
+                                  <% }); %>
+                              <% } else { %>
+                                  Shop Product
+                              <% } %>
+                          </div>
+                      </div>
+                  </div>
+              </div>
             <% if (App.option("debug", 0) > 1) { %>
                 <span class="type"><%= obj["content-type"] %></span>
             <% } %>
@@ -379,20 +383,6 @@
 
         <!-- custom templates -->
         <script type="text/template" id="hero_template">
-            <div class="hero-image-wrapper">
-                <div class="visible-xs jumbotron">
-                    <img src="{{ mobile_hero_image }}" alt="Hero" />
-                </div>
-                <div class="visible-sm jumbotron">
-                    <img src="{{ desktop_hero_image }}" alt="Hero" />
-                </div>
-                <div class="visible-md visible-lg jumbotron"></div>
-            </div>
-            {% if legal_copy %}
-                <div class="legal us">
-                    {{ legal_copy }}
-                </div>
-            {% endif %}
         </script>
     </div>
 
