@@ -300,11 +300,6 @@ html.lt-ie9 .hero-message-container .text .big {
         display: block;
     }
 
-    .jumbotron {
-        margin-top: 0;
-        border-bottom: none;
-    }
-
     .hero-message-container {
         display: none;
     }
@@ -315,18 +310,10 @@ html.lt-ie9 .hero-message-container .text .big {
         height: 100%;
     }
 
-    .previewContainer .close.small-close {
-        display: none;
-    }
-
     .previewContainer .row {
         max-width: 100%;
         margin-left: 0;
         margin-right: 0;
-    }
-
-    .previewContainer .row .cell.capped-width {
-        width: 33%;
     }
 
     .previewContainer .cell {
@@ -344,10 +331,6 @@ html.lt-ie9 .hero-message-container .text .big {
         max-width: none;
         width: auto;
         padding-left: 0;
-    }
-
-    .previewContainer .info.image {
-        max-width: none;
     }
 
     .previewContainer .info .title {

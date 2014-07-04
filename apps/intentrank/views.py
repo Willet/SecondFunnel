@@ -116,6 +116,9 @@ def get_results_view(request, page_id):
     # results is a list of stringified tiles!
     results = results.values_list('ir_cache', flat=True)
 
+    # makes sure they are all non-falsy tiles
+    results = [r for r in results if r]
+
     # manually construct a json array
     response_text = "[{}]".format(",".join(results))
     if callback:
