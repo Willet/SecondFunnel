@@ -5,7 +5,7 @@ from django.http import HttpResponsePermanentRedirect
 urlpatterns = patterns('apps.website.urls',
     url(
         r'^$',
-        lambda x: HttpResponsePermanentRedirect('http://www.secondfunnel.com'),
+        lambda x: HttpResponsePermanentRedirect('http://secondfunnel.com'),
         name='website-index'
     ),
 )
