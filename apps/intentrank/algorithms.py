@@ -58,9 +58,6 @@ def filter_tiles(fn):
         if content_only:
             tiles = tiles.exclude(template='product')
 
-        # tiles that have neither products nor content are blank tiles.
-        tiles = tiles.exclude(products__isnull=True, content__isnull=True)
-
         kwargs.update({
             'tiles': tiles,
         })
