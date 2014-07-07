@@ -350,6 +350,10 @@ div.header {
     filter: none;
 }
 
+.tile.hypem {
+    width: 480px; /* 470px + 5*2 padding */
+}
+
 #category-area .category {
     color: white;
     border: 1px solid white;
