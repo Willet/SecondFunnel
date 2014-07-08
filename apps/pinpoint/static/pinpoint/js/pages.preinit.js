@@ -71,13 +71,31 @@ App._globals = App._globals || {};
 
 App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
-App.options.urlParams = window.location.search;
+App.options.urlParams = {foo: 'bar'};
 
 (function (document) {
+    "use strict";
+    // relays current page parameters to all outgoing link clicks.
+    // combines PAGES_INFO.urlParams (default to nothing) with the params
+    // in the page url right now.
+    var params = {},
+        search = window.location.search,
+        defaultParams = App.options.urlParams || {};
+
+    if (search && search.length && search[0] === '?') {
+        search = search.substr(1);
+        params = $.deparam(search);
+    }
+
+    // :type object
+    params = $.extend({}, defaultParams, params);
+
+    App.options.urlParams = $.param(params);
+
     $(document).on('click', 'a', function(ev) {
         var $target = $(ev.target),
-            urlParams = App.options.urlParams;
-        if (urlParams.length > 0) {
+            linkParams = {};
+        if (!$.isEmptyObject(params)) {
             var href = $target.attr('href');
             if (href && href.indexOf('#') === -1 &&
                     href.indexOf(urlParams.substring(1)) === -1) {
@@ -86,7 +104,7 @@ App.options.urlParams = window.location.search;
             }
         }
     });
-})(document);
+}(document));
 
 (function (details) {
     var pubDate;
