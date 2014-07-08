@@ -113,12 +113,17 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
         var $target = $(ev.target),
             href = $target.attr('href'),
             parts = urlParse(href),
-            params = $.extend({}, App.options.urlParams, $.deparam(parts.search));
+            params = $.extend({}, App.options.urlParams, $.deparam(parts.search)),
+            paramStr = $.param(params);
+
+        if (paramStr) {
+            paramStr = "?" + paramStr;
+        }
 
         href = parts.protocol +  // http://
                parts.host +      // google.com:80
-               parts.pathname + '?' +  // /foobar?
-               $.param(params) +   // baz=kek
+               parts.pathname +  // /foobar?
+               paramStr +   // baz=kek
                parts.hash;  // #hello
         $target.attr('href', href);
     });
