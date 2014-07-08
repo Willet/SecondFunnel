@@ -185,6 +185,27 @@
     white-space: normal;
 }
 
+.previewContainer .landscape .stl-title {
+    margin-top: 10px;
+}
+
+.previewContainer .landscape .stl-look {
+    margin: auto;
+    white-space: nowrap;
+    width: auto;
+    text-align: center;
+    max-width: 723px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.previewContainer .landscape .stl-look .stl-item {
+    display: inline-block;
+    width: 100px;
+    vertical-align: top;
+    margin-bottom: 0;
+}
+
 .previewContainer .main-image-container .gallery-swipe-left,
 .previewContainer .main-image-container .gallery-swipe-right {
     width: 35px;
