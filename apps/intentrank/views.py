@@ -91,6 +91,8 @@ def get_results_view(request, page_id):
     shown = filter(bool, request.GET.get('shown', "").split(","))
     tile_id = request.GET.get('tile-id', 0)  # for related
     session_reset = True if request.GET.get('session-reset', "").lower() == "true" else False
+    content_only = (request.GET.get('tile-set', '') == 'content')
+    products_only = (request.GET.get('tile-set', '') == 'products')
 
     if session_reset:
         offset = 0  # For deterministic algorithms, we have to reset the offset
@@ -112,7 +114,8 @@ def get_results_view(request, page_id):
     # results is a queryset!
     results = get_results(feed=feed, results=results, algorithm=algorithm,
         request=request, exclude_set=exclude_set, category_name=category,
-        offset=offset, tile_id=tile_id)
+        offset=offset, tile_id=tile_id, content_only=content_only,
+        products_only=products_only)
     # results is a list of stringified tiles!
     results = results.values_list('ir_cache', flat=True)
 
