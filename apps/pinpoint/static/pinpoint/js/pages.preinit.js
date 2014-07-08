@@ -71,22 +71,45 @@ App._globals = App._globals || {};
 
 App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
-App.options.urlParams = window.location.search;
-
 (function (document) {
+    "use strict";
+    // relays current page parameters to all outgoing link clicks.
+    // combines PAGES_INFO.urlParams (default to nothing) with the params
+    // in the page url right now.
+    var params = {},
+        search = window.location.search,
+        defaultParams = App.options.urlParams || {};
+
+    if (search && search.length && search[0] === '?') {
+        search = search.substr(1);
+        params = $.deparam(search);
+    }
+
+    // :type object
+    params = $.extend({}, defaultParams, params);
+
+    App.options.urlParams = '?' + $.param(params);
+
     $(document).on('click', 'a', function(ev) {
         var $target = $(ev.target),
-            urlParams = App.options.urlParams;
-        if (urlParams.length > 0) {
-            var href = $target.attr('href');
-            if (href && href.indexOf('#') === -1 &&
-                    href.indexOf(urlParams.substring(1)) === -1) {
-                href += href.indexOf('?') > -1 ? urlParams.replace('?', '&') : urlParams;
+            urlParams = App.options.urlParams,
+            href;
+        if (!$.isEmptyObject(urlParams)) {
+            href = $target.attr('href');
+            if (href && href.indexOf('#') === -1 &&  // no hashes in the url
+                href.indexOf(urlParams.substring(1)) === -1) {  // params not already in the url
+                if (href.indexOf('?') > -1) {
+                    // extend existing params
+                    href += urlParams.replace('?', '&');
+                } else {
+                    // attach params
+                    href += urlParams;
+                }
                 $target.attr('href', href);
             }
         }
     });
-})(document);
+}(document));
 
 (function (details) {
     var pubDate;
@@ -159,11 +182,12 @@ App.options.urlParams = window.location.search;
     // IE8 has this as undefined
     window.devicePixelRatio = window.devicePixelRatio || 1;
 
+    // removes the 'debug' param from all outgoing urls.
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
         debugLevel = App.options.debug = hash[hashIdx + 6];
         hashIdx = urlParams.indexOf('debug='); // In case there was a hash present
-        urlParams = urlParams.replace(urlParams.substr(hashIdx - 1, hashIdx + 7), '');
+        urlParams = urlParams.replace(urlParams.substr(hashIdx - 1, hashIdx + 8), '');
         if (urlParams.indexOf('?') === -1) {
             App.options.urlParams = '?' + urlParams.substring(1);
         } else {
