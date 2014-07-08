@@ -771,9 +771,6 @@ div.loading {
 
     #preview-area .previewContainer .content {
         z-index: 1002;
-
-        width: 768px;
-
         border: 1px solid #CECECE;
         border-radius: 4px;
         -moz-border-radius: 4px;
