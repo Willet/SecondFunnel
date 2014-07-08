@@ -880,17 +880,15 @@
                 });
             });
 
-            var urlParams = App.options.urlParams;
-            urlParams += urlParams.length ? "&" : "?";
             switch("{{ campaign.url_slug|default:''|escapejs}}") {
                 case "livedin":
-                    App.options.urlParams = urlParams + "tid=gpme000028";
+                    App.options.urlParams.tid = "gpme000028";
                     break;
                 case "paddingtonbear":
-                    App.options.urlParams = urlParams + "tid=gpme000029";
+                    App.options.urlParams.tid = "gpme000029";
                     break;
                 case "presidentsday":
-                    App.options.urlParams = urlParams + "tid=gpme000030";
+                    App.options.urlParams.tid = "gpme000030";
                     break;
             }
         }
