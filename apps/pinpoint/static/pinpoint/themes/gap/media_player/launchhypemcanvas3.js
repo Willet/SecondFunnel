@@ -25,16 +25,16 @@ window.igniteCampaigns.fn.igniteGetScript( prefix + '/utils/merge/?files=' + dep
             '',
             '<link href="http://fonts.googleapis.com/css?family=Open+Sans:800,600,400,700" rel="stylesheet" type="text/css">\
             <style>\
-                #hypemcanvas-container{width:100%; height:942px; background:#fff; color:#000; font-family: \'Open Sans\', sans-serif, arial black; color:#515151; position:relative; }\
+                #hypemcanvas-container{width:100%; background:#fff; color:#000; font-family: \'Open Sans\', sans-serif, arial black; color:#515151; position:relative; }\
                 #hypemcanvas-container .watch{color:#fff !important; }\
-                #hypemcanvas-container img{display:block; border:none; }\
+                #hypemcanvas-container img{display:block; border:none; margin: auto; max-width: 480px; width: 100%; }\
                 #hypemcanvas-container a, #hypemcanvas-container a:hover{text-decoration:none; color:#fff; }\
                 aside.sidebar #hypemcanvas-container a, aside.sidebar #hypemcanvas-container a *{color:#fff; }\
                 #hypemcanvas-container p{margin-top:5px; margin-bottom:5px; }\
                 #hypemcanvas-container .hypemcanvas-container{position:relative; z-index:2; }\
                 #hypemcanvas-container .hypemcanvas-containerpadding{padding:0px 12px; }\
                 #hypemcanvas-container .hypemcanvas-header{overflow:hidden; }\
-                #hypemcanvas-container .hypemcanvas-logo.otr-left{float:left; }\
+                #hypemcanvas-container .hypemcanvas-logo.otr-left{ }\
                 #hypemcanvas-container .hypemcanvas-logo.otr-right{float:right; }\
                 #hypemcanvas-container #hypemcanvas-rsscontainer{list-style:none; max-height:448px; overflow-y:auto; padding:0px; margin:0px; }\
                 #hypemcanvas-container ::-webkit-scrollbar{width:10px; }\
