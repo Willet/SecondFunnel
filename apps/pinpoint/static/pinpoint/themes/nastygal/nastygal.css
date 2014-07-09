@@ -389,9 +389,6 @@
     .navbar {
         display: none;
     }
-    .stl .navbar {
-        display: block;
-    }
 
     .jumbotron {
         margin-top: 0;
