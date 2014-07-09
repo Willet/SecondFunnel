@@ -581,6 +581,10 @@ div.header {
         opacity: 0;
     }
 
+    .tile.hypem {
+        width: 100% !important;
+    }
+
     .jumbotron {
         border-bottom: none;
     }
