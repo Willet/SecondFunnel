@@ -111,8 +111,8 @@ class AnalyticsQuery(Query):
                                        end_date=date['end'],
                                        metrics=self.metrics,
                                        dimensions=self.dimensions,
-                                       output='dataTable',
-                                       filters=ga_filter)
+                                       filters=ga_filter,
+                                       output='dataTable')
         return data
 
     def get_response(self, page):
@@ -173,14 +173,13 @@ class ClickmeterQuery(Query):
             start = end - timedelta(30)
 
         if self.is_today:
-            start  = now().date()
+            start = now().date()
             end = now().date()
             return {'start': start.strftime('%Y%m%d'),
                     'end': end.strftime('%Y%m%d')}
-        
+
         end_date = end.strftime('%Y%m%d%H%M')
         start_date = start.strftime('%Y%m%d%H%M')
-
         return {'start': start_date, 'end': end_date}
 
     def get_query(self, page):
