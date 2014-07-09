@@ -1,21 +1,18 @@
-import os
-import re
-import hashlib
 import cStringIO
+import hashlib
 import mimetypes
+from threading import Semaphore
 
+import os
 import cloudinary.utils
 import cloudinary.uploader
-from threading import Semaphore
 from django.conf import settings
 from PIL import ImageFilter, Image
-from django.core.files.uploadedfile import InMemoryUploadedFile
 
-from apps.pinpoint.utils import read_remote_file
-from apps.imageservice.models import SizeConf, ExtendedImage
-from apps.imageservice.utils import create_image, IMAGE_SIZES, within_color_range
-
+from apps.imageservice.models import SizeConf
+from apps.imageservice.utils import IMAGE_SIZES, within_color_range
 from lib.aws_utils import upload_to_bucket
+
 
 
 # Use a semaphore as image processing is an CPU expensive operation
@@ -137,6 +134,9 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
     """
     Delegates to resize to create the necessary sizes.
 
+    See all Cloudinary options:
+    http://cloudinary.com/documentation/django_image_upload#all_upload_options
+
     @param source: The source file
     @param path: The path to save the object to
     @param sizes: List of sizes to create
@@ -147,70 +147,33 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
         - False - don't trim background
     @return: object
     """
-    if sizes is None:
-        sizes = []
-
-    if not sizes:
-        sizes = (SizeConf(width=width, height=height, name=name)
-                 for (name, width, height) in IMAGE_SIZES)
-
-    master_url, dominant_color, img_format = None, "transparent", None
     data = {'sizes': {}}
 
-    # Get the unique folder where we'll store the image
-    upload = upload_to_local if settings.ENVIRONMENT == 'dev' else \
-        upload_to_s3
+    color = None if remove_background == 'uniform' else remove_background
+    if (remove_background is not False) and ((remove_background == 'auto') or within_color_range(source, color, 4)):
+        print "background removed"
+        # overwrite must be True to retrieve 'colors'
+        image_object = cloudinary.uploader.upload(source, folder=path,
+            colors=True, format='jpg', public_id=generate_public_id(source),
+            overwrite=True, effect='trim')
+    else:
+        image_object = cloudinary.uploader.upload(source, folder=path,
+            colors=True, format='jpg', public_id=generate_public_id(source),
+            overwrite=True)
 
-    if getattr(settings, 'CLOUDINARY', None) is not None:
-        color = None if remove_background == 'uniform' else remove_background
-        if (remove_background is not False) and ((remove_background == 'auto') or within_color_range(source, color, 4)):
-            print "background removed"
-            image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
-                                                      format='jpg', effect='trim')  # trim background
-        else:
-            image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
-                                                      format='jpg')
+    # Grab the dominant colour from cloudinary
+    colors = image_object['colors']
+    colors = sorted(colors, key=lambda c: c[1], reverse=True)
+    dominant_color = colors[0][0]
+    master_url = image_object['url']
+    print master_url
+    img_format = image_object['format']
 
-        # Grab the dominant colour from cloudinary
-        colors = image_object['colors']
-        colors = sorted(colors, key=lambda c: c[1], reverse=True)
-        dominant_color = colors[0][0]
-        master_url = image_object['url']
-        img_format = image_object['format']
-
-        # cloudinary resizes images on their end
-        data['sizes']['master'] = {
-            'width': image_object['width'],
-            'height': image_object['height'],
-        }
-
-    else:  # fall back to default ImageService is Cloudinary is not available
-        if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"
-            img = ExtendedImage.open(source)
-        elif re.match(r'^https?:', source):
-            img, _ = read_remote_file(source)
-            img = create_image(img)
-        else:
-            img = create_image(source)
-
-        folder = hashlib.sha224(img.tobytes()).hexdigest()
-
-        for size in sorted(sizes, key=lambda size: size.width):
-            name, width, height = size.name, size.width, size.height
-            resized = img.resize(width, height, Image.ANTIALIAS)
-            resized = resized.filter(ImageFilter.UnsharpMask)
-
-            try:  # ignore on failure
-                master_url = upload(path, folder, resized, size)
-                data['sizes'][size.name] = {
-                    'width': size.width,
-                    'height': size.height
-                }
-            except (OSError, IOError):  # upload failed, don't add to our json
-                continue
-
-        dominant_color = img.dominant_color
-        img_format = img.format.lower().replace("jpeg", "jpg")
+    # cloudinary resizes images on their end
+    data['sizes']['master'] = {
+        'width': image_object['width'],
+        'height': image_object['height'],
+    }
 
     data.update({
         'url': master_url,
@@ -219,3 +182,22 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
     })
 
     return data
+
+
+def generate_public_id(url, store=None, cloudinary_compatible=True):
+    """Returns a string that is a product of a(n image) url and,
+    optionally, the store from which this image was retrieved.
+
+    if cloudinary_compatible is True, then the hash will be 16 characters long:
+    http://cloudinary.com/documentation/django_image_upload#all_upload_options
+    """
+    if not url:
+        raise ValueError("Cannot hash empty strings or other types")
+
+    if store:
+        url += store.slug + '/'
+
+    url_hash = hashlib.md5(url).hexdigest()
+    if cloudinary_compatible:
+        return url_hash[:16]
+    return url_hash
