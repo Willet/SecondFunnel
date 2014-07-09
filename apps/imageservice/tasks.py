@@ -1,4 +1,5 @@
 import cStringIO
+import hashlib
 import mimetypes
 from threading import Semaphore
 
@@ -133,6 +134,9 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
     """
     Delegates to resize to create the necessary sizes.
 
+    See all Cloudinary options:
+    http://cloudinary.com/documentation/django_image_upload#all_upload_options
+
     @param source: The source file
     @param path: The path to save the object to
     @param sizes: List of sizes to create
@@ -148,17 +152,21 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
     color = None if remove_background == 'uniform' else remove_background
     if (remove_background is not False) and ((remove_background == 'auto') or within_color_range(source, color, 4)):
         print "background removed"
-        image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
-                                                  format='jpg', effect='trim')  # trim background
+        # overwrite must be True to retrieve 'colors'
+        image_object = cloudinary.uploader.upload(source, folder=path,
+            colors=True, format='jpg', public_id=generate_public_id(source),
+            overwrite=True, effect='trim')
     else:
-        image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
-                                                  format='jpg')
+        image_object = cloudinary.uploader.upload(source, folder=path,
+            colors=True, format='jpg', public_id=generate_public_id(source),
+            overwrite=True)
 
     # Grab the dominant colour from cloudinary
     colors = image_object['colors']
     colors = sorted(colors, key=lambda c: c[1], reverse=True)
     dominant_color = colors[0][0]
     master_url = image_object['url']
+    print master_url
     img_format = image_object['format']
 
     # cloudinary resizes images on their end
@@ -174,3 +182,22 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
     })
 
     return data
+
+
+def generate_public_id(url, store=None, cloudinary_compatible=True):
+    """Returns a string that is a product of a(n image) url and,
+    optionally, the store from which this image was retrieved.
+
+    if cloudinary_compatible is True, then the hash will be 16 characters long:
+    http://cloudinary.com/documentation/django_image_upload#all_upload_options
+    """
+    if not url:
+        raise ValueError("Cannot hash empty strings or other types")
+
+    if store:
+        url += store.slug + '/'
+
+    url_hash = hashlib.md5(url).hexdigest()
+    if cloudinary_compatible:
+        return url_hash[:16]
+    return url_hash

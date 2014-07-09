@@ -112,7 +112,7 @@ class ProductScraper(Scraper):
 
         return product
 
-    @staticmethod
+    @staticmethod  # borrowed by scrapy scraper
     def process_image(original_url, product, store, remove_background=False):
         if not isinstance(product, Model):
             product = Product.objects.get(sku=product, store_id=store.id)
@@ -158,7 +158,7 @@ class ProductScraper(Scraper):
         """
 
         return self.process_image(
-            original_url, product, self.store, remove_background, color
+            original_url, product, self.store, color or remove_background
         )
 
     def _add_to_category(self, product, name=None, url=None):
