@@ -14,6 +14,12 @@ from apps.dashboard.models import DashBoard, UserProfile, Query
 LOGIN_URL = '/dashboard/login'
 
 
+def error(error_message):
+    print error_message
+    response = {'error': error_message}
+    return HttpResponse(json.dumps(response), content_type='application/json')
+
+
 # @cache_page(60*60)  # cache page for an hour
 # @login_required(login_url=LOGIN_URL)
 # @never_cache
@@ -24,29 +30,20 @@ def get_data(request):
             user = User.objects.get(pk=request.user.pk)
             profile = UserProfile.objects.get(user=user)
         except ObjectDoesNotExist:
-            print 'user profile does not exist'
-            response['error'] = 'user profile DNE'
-            response = json.dumps(response)
-            return HttpResponse(response, content_type='application/json')
+            return error('User profile does not exist')
         request_get = request.GET
 
         dashboard_id = -1
         if 'dashboard' in request_get:
             dashboard_id = request_get['dashboard']
         try:
-            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
+            cur_dashboard_page = DashBoard.objects.get(pk=dashboard_id).page
         except DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist:
-            print "Dashboard error, multiple or none"
-            response['error'] = 'error retrieving dashboard'
-            response = json.dumps(response)
-            return HttpResponse(response, content_type='application/json')
+            return error("Dashboard error, multiple or no dashboards found")
 
         if not profile.dashboards.all().filter(pk=dashboard_id):
             # can't view page
-            print "User: " + user.username + "cannot view dashboard: " + dashboard_id
-            response['error'] = 'user cannot view dashboard'
-            response = json.dumps(response)
-            return HttpResponse(response, content_type='application/json')
+            return error("User: " + user.username + "cannot view dashboard: " + dashboard_id)
         if ('query_name' in request_get) and ('campaign' in request_get):
             query_name = request_get['query_name']
             try:
@@ -54,17 +51,11 @@ def get_data(request):
                 if query:
                     query = query[0]
                 else:
-                    print 'query {} needs to be defined.'.format(query_name)
-                    response['error'] = 'query {} needs to be defined.'.format(query_name)
-                    response = json.dumps(response)
-                    return HttpResponse(response, content_type='application/json')
+                    return error('Query {} needs to be defined.'.format(query_name))
             except Query.MultipleObjectsReturned, Query.DoesNotExist:
-                print 'error, multiple queries or query does not exist'
-                response['error'] = 'error retrieving query'
-                response = json.dumps(response)
-                return HttpResponse(response, content_type='application/json')
+                return error('Multiple queries found, or query does not exist')
             # set response
-            response = query.get_response(cur_dashboard.page)
+            response = query.get_response(cur_dashboard_page)
         else:
             response = json.dumps(response)
     return HttpResponse(response, content_type='application/json')
