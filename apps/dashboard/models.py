@@ -213,6 +213,9 @@ class ClickmeterQuery(Query):
         query = self.get_query(page)
         response = json.dumps({'error': 'Failed to retrieve data'})
 
+        if 'error' in query:
+            return json.dumps(query)
+
         try:
             response = requests.get(query['url'], headers=query['header'], params=query['payload'])
         except HttpError as error:
