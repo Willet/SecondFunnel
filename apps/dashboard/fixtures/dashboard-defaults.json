@@ -444,27 +444,11 @@
         }
     },
     {
-        "pk": 1,
-        "model": "dashboard.userprofile",
-        "fields": {
-            "user": 6,
-            "dashboards": [1]
-        }
-    },
-    {
         "pk": 2,
         "model": "dashboard.userprofile",
         "fields": {
             "user": 1,
             "dashboards": [1, 2, 3]
-        }
-    },
-    {
-        "pk": 3,
-        "model": "dashboard.userprofile",
-        "fields": {
-            "user": 9,
-            "dashboards": [2, 3]
         }
     }
 ]
