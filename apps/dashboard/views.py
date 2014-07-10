@@ -24,15 +24,23 @@ def error(error_message):
 # @login_required(login_url=LOGIN_URL)
 # @never_cache
 def get_data(request):
+    """ Executes a 'query' to get analytics data from a server and return the data in JSON format.
+
+    Takes a queries id and determines if a user is allowed to make this request. If all checks
+    work out and the query exists then a JSON containing data is returned. Note that different
+    query types return data in different JSON layouts.
+    """
     response = {'error': 'Retrieving data failed'}
     if request.method == 'GET':
-        try:
+
+        try:  # get user data
             user = User.objects.get(pk=request.user.pk)
             profile = UserProfile.objects.get(user=user)
         except ObjectDoesNotExist:
             return error('User profile does not exist')
         request_get = request.GET
 
+        # Get dashboard
         dashboard_id = -1
         if 'dashboard' in request_get:
             dashboard_id = request_get['dashboard']
@@ -41,10 +49,13 @@ def get_data(request):
         except DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist:
             return error("Dashboard error, multiple or no dashboards found")
 
+        # Determine if user can view dashboard
         if not profile.dashboards.all().filter(pk=dashboard_id):
             # can't view page
             return error("User: " + user.username + "cannot view dashboard: " + dashboard_id)
-        if ('query_name' in request_get) and ('campaign' in request_get):
+
+        # Determine if query exists and if so get query and data
+        if 'query_name' in request_get:
             query_name = request_get['query_name']
             try:
                 query = Query.objects.filter(identifier=query_name).select_subclasses()
@@ -54,22 +65,29 @@ def get_data(request):
                     return error('Query {} needs to be defined.'.format(query_name))
             except Query.MultipleObjectsReturned, Query.DoesNotExist:
                 return error('Multiple queries found, or query does not exist')
-            # set response
+            # execute query and set response
+            # success case
             response = query.get_response(cur_dashboard_page)
-        else:
-            response = json.dumps(response)
+            return HttpResponse(response, content_type='application/json')
+        else:  # query id not included in request
+            return error('Query ID was not included in request')
+
+    # last ditch. Unknown error happened which caused success case to not happen
     return HttpResponse(response, content_type='application/json')
 
 
 @login_required(login_url=LOGIN_URL)
 def index(request):
+    """ The main page of the dashboard, shows a list of
+    dashboards that the current user can view.
+    """
     user = User.objects.get(pk=request.user.pk)
     context_dict = {}
     try:
         profile = UserProfile.objects.get(user=user)
         dashboards = profile.dashboards.all()
-        context_dict = {'dashboards': [{'site': dashboard.site_name,
-                                        'pk': dashboard.pk} for dashboard in dashboards]}
+        context_dict = {'dashboards': [{'site': dash.site_name,
+                                        'pk': dash.pk} for dash in dashboards]}
     except UserProfile.DoesNotExist:
         print "user does not exist"
 
@@ -79,6 +97,9 @@ def index(request):
 
 @login_required(login_url=LOGIN_URL)
 def dashboard(request, dashboard_id):
+    """The analytics dashboard.
+    The user must be able to view the dashboard.
+    """
     profile = UserProfile.objects.get(user=request.user)
     if not profile.dashboards.all().filter(pk=dashboard_id):
         # can't view page
@@ -96,6 +117,12 @@ def dashboard(request, dashboard_id):
 
 
 def user_login(request):
+    """
+    Allows the user to log in to our servers.
+
+    This does the same thing as the admin login screen, but looks nicer and will
+    redirect to the dashboard.
+    """
     context = RequestContext(request)
 
     if request.method == 'POST':
