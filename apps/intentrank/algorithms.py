@@ -673,7 +673,9 @@ def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     random_tiles = ir_prioritized(tiles=tiles, prioritized_set='',
                                   results=results, allowed_set=allowed_set)
 
-    random_tiles = random_tiles.order_by('?')
+    # this is causing problems on master with sorting already-sliced querysets
+    # -- can anyone else confirm?
+    # random_tiles = random_tiles.order_by('?')
     tiles += random_tiles
 
     return tiles[:results]
