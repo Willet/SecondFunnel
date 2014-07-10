@@ -27,10 +27,6 @@ body {
     background: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/images/gap/gradient.png') top center repeat-y;
 }
 
-header .container {
-    /* null set */
-}
-
 a, a:hover, a:focus {
     color: inherit;
 }
@@ -49,10 +45,6 @@ a, a:hover, a:focus {
 
 .hide {
     display: none;
-}
-
-.text-centered {
-    text-align: center;
 }
 
 .navbar {
@@ -155,14 +147,6 @@ a, a:hover, a:focus {
     margin-top: 0;
 }
 
-.featured.product {
-    /* featured "template" defaults */
-    height: 341px;
-}
-.featured.product img {
-    max-height: 100%;
-}
-
 #discovery-area {
     max-width: 100%;
     margin: auto;
@@ -215,17 +199,6 @@ div.loading {
     cursor: pointer;
 }
 
-.tile.loading:before {
-    content: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif');
-    display: block;
-    position: absolute;
-    top: 48%;
-    left: 48%;
-    width: 32px;
-    height: 32px;
-    z-index: 99;
-}
-
 .tile img.focus {
     /* the "focus" image (i.e. main image) must be at least some pixels wide. */
     min-width: 100%;
@@ -234,36 +207,9 @@ div.loading {
     margin: auto;
 }
 
-.tile:hover,
-.tile:hover .type,
-.tile:hover .caption {
+.tile:hover {
     cursor: -webkit-zoom-in;
     cursor: -moz-zoom-in;
-}
-
-.tile .caption {
-    position: absolute;
-    background-color: rgba(0,0,0,0.7);
-    color: #fff;
-    left: auto;
-    bottom: 5px;
-    width: 100%;
-    min-height: 50px;
-    padding-bottom: 5px;
-    text-align: center;
-    vertical-align: middle;
-}
-
-.tile .caption span {
-    vertical-align: middle;
-}
-
-.tile .type {
-    position: absolute;
-    left: 5px;
-    top: 5px;
-    color: #FFF;
-    background-color: #2F2f2F;
 }
 
 .tile.wide {
@@ -336,20 +282,10 @@ div.loading {
     line-height: 20px;
 }
 
-.social-buttons button, .social-buttons .button {
+.social-buttons .button {
     display: inline-block;
     margin-left: 1px;
     margin-right: 1px;
-}
-
-.social-buttons .facebook.no-count {
-    width: 50px;
-    overflow: hidden;
-    height: 21px;
-    bottom: -7px; /* create illusion that it is still 14px */
-}
-.social-buttons .facebook.no-count .placeholder {
-    max-width: none;
 }
 
 .social-buttons .pinterest {
@@ -367,12 +303,6 @@ div.loading {
     }
 }
 
-@media (max-width: 600px) {
-    .hidden-xxs {
-        /* supplementary */
-        display: none !important;
-    }
-}
 @media (max-width: 768px) { /* phone and tablet */
     .hidden-xs {
         display: none;
@@ -612,62 +542,6 @@ div.loading {
     cursor: default;
 }
 
-.shareContainer .share .button {
-    display: inline-block;
-    padding: 5px;
-    min-width: 180px;
-    min-height: 50px;
-    position: relative;
-}
-
-.shareContainer .share a {
-    text-decoration: none;
-    text-align: center;
-    position: absolute;
-    top: 10px;
-}
-
-.shareContainer .share a:hover div {
-    opacity: 0.8;
-}
-
-/* share button images, theme designers can override what image to use, by
-   specifiying a different background-image attribute (convention: .type_share) */
-.share .share_text {
-    position: absolute;
-    top: 8px;
-    left: 45px;
-}
-
-.share .share_img {
-    display: inline-block;
-    padding: 5px;
-    width: 39px;
-    height: 39px;
-    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -43px 0;
-}
-
-.pinterest_share .share_img {
-    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -124px 0;
-}
-
-.google_share .share_img {
-    background: url('//ssl.gstatic.com/images/icons/gplus-64.png');
-    background-size: contain;
-}
-
-.twitter_share .share_img {
-    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -83px 0;
-}
-
-.tumblr_share .share_img {
-    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -205px 0;
-}
-
-.facebook_share .share_img {
-    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -163px 0;
-}
-
 /* mobile-grade preview container styles */
 @media screen and (max-width: 768px) {
     .previewContainer {
@@ -686,14 +560,7 @@ div.loading {
         /* since mobile previews are not floating, this class is cancelled */
         display: none;
     }
-    .previewContainer .tablecell,
-    #hero-area .tablecell {
-        /* since mobile previews are not floating, this class is cancelled */
-        display: block;
-        width: auto;
-        height: auto;
-        overflow-y: auto;
-    }
+
     .previewContainer .content {
         display: block;
         position: relative;
@@ -738,12 +605,6 @@ div.loading {
 
 /* desktop-grade preview container styles */
 @media screen and (min-width: 768px) {
-    .previewContainer .tablecell {
-        display: table-cell;
-        vertical-align: middle;
-        position: static;
-    }
-
     .previewContainer .content {
         overflow: auto;
         display: block;
@@ -780,22 +641,6 @@ div.loading {
         box-shadow: 0px 10px 30px 0px #CECECE;
     }
 
-    .template.target .shop-the-look > hr:last-child {
-        margin-bottom: 0px;
-    }
-
-    .stl-target img {
-        width: auto;
-    }
-
-    .shop-the-look > .desc-title {
-        font-weight: normal;
-    }
-
-    .image-with-tagged-products .middle.cell .description {
-        min-height: 195px;
-    }
-
     .stl-look {
         overflow-x: auto;
         max-height: 110px;
@@ -813,72 +658,12 @@ div.loading {
         max-height: 100px;
     }
 
-    .stl-look img.selected {
-        opacity: 1;
-    }
-
     .stl-look img:hover {
         opacity: 1;
     }
 
     .stl-look img:hover {
         cursor: pointer;
-    }
-}
-
-#discovery-area .tap_indicator {
-    /* show only on large (wide) instagram blocks (see below) */
-    display: none;
-}
-
-.touch-enabled #discovery-area .wide .tap_indicator {
-    /* should contain a '+' symbol, and
-       another div with the hint text */
-    display: block;
-    position:absolute;
-    width: 100px;
-    height: 100px;
-    font-family: 'helvetica neue light', 'helvetica', arial, sans-serif;
-    font-size: 70px;
-    font-weight: 100;
-    color: #fff;
-    z-index: 5;
-    left: 50%;
-    top: 50%;
-    margin: -50px 0 0 -50px;
-    background: rgba(0,0,0,0.4);
-    text-align: center;
-    vertical-align: bottom;
-    padding-top: 0px;
-    border-radius: 50px;
-    line-height: 85px;
-}
-
-.touch-enabled #discovery-area .wide .tap_indicator > div {
-    font-size:10px;
-    margin: -54px -1px 0 -1px;
-}
-
-/* iPad */
-@media screen {
-
-    @media (max-width: 768px) {
-        .ipad .previewContainer .content {
-            position: fixed!important;
-            bottom: 16%!important;
-        }
-    }
-
-    .ipad .previewContainer .mask {
-        display: block!important;
-    }
-}
-
-
-/* Mobile */
-@media (max-width: 768px) {
-    .mobile #discovery-area {
-        width: 100% !important;
     }
 }
 
