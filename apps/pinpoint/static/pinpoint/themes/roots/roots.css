@@ -68,29 +68,9 @@ body {
     font-size: 12px;
 }
 
-#discovery-area {
-    width: 1024px;
-}
-
 .previewContainer {
     font-family: 'ITC Souvenir W01 Light', times new roman, sans;
     text-transform: uppercase;
-}
-
-.previewContainer .table {
-    display: table;
-    table-layout: fixed;
-    margin-bottom: 0;
-}
-
-.previewContainer .row {
-    display: table-row;
-    width: 100%;
-    margin: 0;
-}
-.previewContainer .row:before,
-.previewContainer .row:after {
-    content: none;
 }
 
 .previewContainer .content {

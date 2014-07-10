@@ -97,6 +97,12 @@ a, a:hover, a:focus {
     float: right!important;
 }
 
+#discovery-area {
+    width: 1024px;
+    max-width: 100%;
+    margin: auto;
+}
+
 #hero-area .jumbotron {
     border-radius: 0px;
 }
@@ -145,11 +151,6 @@ a, a:hover, a:focus {
     line-height: 7px;
     text-align: justify;
     margin-top: 0;
-}
-
-#discovery-area {
-    max-width: 100%;
-    margin: auto;
 }
 
 div.loading {
@@ -294,51 +295,6 @@ div.loading {
     vertical-align: middle;
 }
 
-@media (max-width: 480px) { /* phone */
-    .tile.wide.youtube div.thumbnail {
-        height: 141px;
-    }
-    .tile.wide.youtube div.thumbnail:before {
-        margin-top: -59.5px;
-    }
-}
-
-@media (max-width: 768px) { /* phone and tablet */
-    .hidden-xs {
-        display: none;
-    }
-}
-@media (min-width: 510px) and (max-width: 768px) { /* tablet */
-    .navbar-nav {
-        margin-right: 0;
-        margin-left: 0;
-    }
-}
-@media (min-width: 768px) and (max-width: 992px) { /* desktop */
-    .container {
-        max-width:768px;
-    }
-    #discovery-area {
-        width: 765px;
-    }
-}
-@media (min-width: 992px) and (max-width: 1024px) { /* bigger desktops */
-    .container {
-        max-width:1000px;
-    }
-    #discovery-area {
-        width: 765px;
-    }
-}
-@media (min-width: 1024px) { /* formal desktops */
-    .container {
-        max-width:1024px;
-    }
-    #discovery-area {
-        width: 1020px;
-    }
-}
-
 .preview-loading {
     top: 0;
     left: 0;
@@ -371,6 +327,28 @@ div.loading {
 #hero-area {
     width: 100%;
     height: auto;
+}
+
+.previewContainer .table {
+    display: table;
+    table-layout: fixed;
+    margin-bottom: 0;
+    width: auto;
+}
+
+.previewContainer .row {
+    display: table-row;
+    width: 100%;
+    margin: 0;
+}
+.previewContainer .row:before,
+.previewContainer .row:after {
+    content: none;
+}
+
+.previewContainer .cell {
+    display: table-cell;
+    vertical-align: top;
 }
 
 @keyframes noop {
@@ -423,11 +401,6 @@ div.loading {
     display: none;
 }
 
-.previewContainer .cell {
-    display: table-cell;
-    vertical-align: top;
-}
-
 #preview-area .previewContainer img, #hero-area img {
     max-width: 100%;
 }
@@ -454,11 +427,6 @@ div.loading {
     cursor: zoom-out;
     display: block;
     z-index: 100;
-}
-
-.previewContainer .row,
-#hero-area .row {
-    display: inline-block;
 }
 
 #preview-area .previewContainer .content {
@@ -517,9 +485,6 @@ div.loading {
 #hero-area .previewContainer .content>div>div {
     display: inline-block;
 }
-#hero-area .previewContainer .table, #hero-area .previewContainer .row {
-    width: auto;
-}
 
 .previewContainer .gallery-dots div,
 #hero-area .gallery-dots div {
@@ -542,129 +507,62 @@ div.loading {
     cursor: default;
 }
 
-/* mobile-grade preview container styles */
-@media screen and (max-width: 768px) {
-    .previewContainer {
-        display: block;
-        overflow: auto;
-        height: auto;
-        position: relative;
-    }
-    #hero-area {
-        display: block;
-        overflow: hidden;
-        height: auto;
-        position: relative;
-    }
-    .previewContainer .mask {
-        /* since mobile previews are not floating, this class is cancelled */
-        display: none;
-    }
-
-    .previewContainer .content {
-        display: block;
-        position: relative;
-        z-index: 0;
-
-        margin: 0;
-        padding: 20px;
-
-        width: 100%;
-
-        background: #fff;
-        border: 0;
-        box-shadow: none;
-    }
-    #hero-area .previewContainer .content {
-        padding: 0;
-    }
-
-    .previewContainer .gallery {
-        height: auto;  /* show all thumbnails in multiple rows */
-    }
-
-    .stl-look {
-        display: none;
-    }
-
-    #discovery-area {
-        width: 100%;
-        overflow-x: hidden;
-    }
-
-    .tile {
-        width: 50% !important;
-    }
-    .tile.wide {
-        min-height: inherit;
-    }
-    .tile.video {
-        width: 480px !important;
-    }
+.previewContainer .content {
+    overflow: auto;
+    display: block;
+    margin: auto;
 }
 
-/* desktop-grade preview container styles */
-@media screen and (min-width: 768px) {
-    .previewContainer .content {
-        overflow: auto;
-        display: block;
-        margin: auto;
-    }
+.previewContainer .content:after {
+    /* clearfix to allow preview to size to content */
+    content: "";
+    display: table;
+    clear: both;
+}
 
-    .previewContainer .content:after {
-        /* clearfix to allow preview to size to content */
-        content: "";
-        display: table;
-        clear: both;
-    }
+.previewContainer .content {
+    display: block;
+    position: relative;
+    margin: auto;
+    padding: 20px;
+    min-height: 240px;
+    background: #fff;
+}
 
-    .previewContainer .content {
-        display: block;
-        position: relative;
+#preview-area .previewContainer .content {
+    z-index: 1002;
+    border: 1px solid #CECECE;
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -ms-border-radius: 4px;
+    -o-border-radius: 4px;
+    box-shadow: 0px 10px 30px 0px #CECECE;
+}
 
-        margin: auto;
-        padding: 20px;
+.stl-look {
+    overflow-x: auto;
+    max-height: 110px;
+    text-align: center;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding-bottom: 10px;
+}
 
-        min-height: 240px;
+.stl-look img {
+    height: 110px;
+    opacity: 0.7;
+    width: inherit;
+    max-width: 99%;
+    max-height: 100px;
+}
 
-        background: #fff;
-    }
+.stl-look img:hover {
+    opacity: 1;
+}
 
-    #preview-area .previewContainer .content {
-        z-index: 1002;
-        border: 1px solid #CECECE;
-        border-radius: 4px;
-        -moz-border-radius: 4px;
-        -webkit-border-radius: 4px;
-        -ms-border-radius: 4px;
-        -o-border-radius: 4px;
-        box-shadow: 0px 10px 30px 0px #CECECE;
-    }
-
-    .stl-look {
-        overflow-x: auto;
-        max-height: 110px;
-        text-align: center;
-        overflow-y: hidden;
-        white-space: nowrap;
-        padding-bottom: 10px;
-    }
-
-    .stl-look img {
-        height: 110px;
-        opacity: 0.7;
-        width: inherit;
-        max-width: 99%;
-        max-height: 100px;
-    }
-
-    .stl-look img:hover {
-        opacity: 1;
-    }
-
-    .stl-look img:hover {
-        cursor: pointer;
-    }
+.stl-look img:hover {
+    cursor: pointer;
 }
 
 #category-area {
@@ -901,5 +799,65 @@ div.spinner div.bar12 {
     }
     to {
         opacity: 0.25;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .previewContainer {
+        display: block;
+        overflow: auto;
+        height: auto;
+        position: relative;
+    }
+    #hero-area {
+        display: block;
+        overflow: hidden;
+        height: auto;
+        position: relative;
+    }
+    .previewContainer .mask {
+        /* since mobile previews are not floating, this class is cancelled */
+        display: none;
+    }
+
+    .previewContainer .content {
+        display: block;
+        position: relative;
+        z-index: 0;
+
+        margin: 0;
+        padding: 20px;
+
+        width: 100%;
+
+        background: #fff;
+        border: 0;
+        box-shadow: none;
+    }
+    #hero-area .previewContainer .content {
+        padding: 0;
+    }
+
+    .previewContainer .gallery {
+        height: auto;  /* show all thumbnails in multiple rows */
+    }
+
+    .stl-look {
+        display: none;
+    }
+
+    #discovery-area {
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    .tile {
+        width: 50% !important;
+    }
+    .tile.wide {
+        min-height: inherit;
+    }
+    .tile.video {
+        width: 480px !important;
     }
 }

@@ -73,10 +73,6 @@ html.lt-ie9 .hero-message-container .text .big {
     stroke-width: 3px;
 }
 
-#discovery-area {
-    width: 1024px;
-}
-
 .tile {
     color: #000;
     text-align: center;
@@ -85,22 +81,6 @@ html.lt-ie9 .hero-message-container .text .big {
 }
 .tile.wide {
     width: 512px;
-}
-
-.previewContainer .table {
-    display: table;
-    table-layout: fixed;
-    margin-bottom: 0;
-}
-
-.previewContainer .row {
-    display: table-row;
-    width: 100%;
-    margin: 0;
-}
-.previewContainer .row:before,
-.previewContainer .row:after {
-    content: none;
 }
 
 #preview-area .previewContainer .content {

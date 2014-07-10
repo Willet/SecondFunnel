@@ -37,22 +37,6 @@
     max-height: none;
 }
 
-.previewContainer .table {
-    display: table;
-    table-layout: fixed;
-    margin-bottom: 0;
-}
-
-.previewContainer .row {
-    display: table-row;
-    width: 100%;
-    margin: 0;
-}
-.previewContainer .row:before,
-.previewContainer .row:after {
-    content: none;
-}
-
 #preview-area .previewContainer .content {
     padding-top: 43px;
     padding-bottom: 10px;
