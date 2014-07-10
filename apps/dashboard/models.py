@@ -19,6 +19,11 @@ from django.utils.timezone import now
 
 
 class Query(models.Model):
+    """
+    This should have been called something else. This IS NOT anything like a database query.
+    A 'query' polls a server for data and will return data as JSON when one calls the 'get_response'
+        method of a query.
+    """
     # the name the query goes by
     identifier = models.CharField(max_length=128, help_text='The name of this query.', unique=True)
     cached_response = jsonfield.JSONField(default={}, blank=True)
@@ -30,6 +35,7 @@ class Query(models.Model):
     # The manager that makes it so that queries will return children if possible
     objects = InheritanceManager()
 
+    # TODO maybe rename this method, as it probably doesn't do what people think it does.
     def get_query(self, page):
         """
         Returns a query object for use by get_response (or other things)
@@ -52,13 +58,18 @@ class Query(models.Model):
 
 
 class AnalyticsQuery(Query):
+    """
+    Gets data from Google Analytics based on given metrics and dimensions, and a table id
+        which is stored on a page basis (so it is in dashboard_settings on the page)
+    """
+
     metrics = models.CharField(max_length=512,
                                help_text='See https://developers.google.com/analytics/devguides/reporting/core/dimsmets')
     dimensions = models.CharField(max_length=256,
                                   help_text='See https://developers.google.com/analytics/devguides/reporting/core/dimsmets')
 
     def get_dates(self, campaign):
-        try:
+        try:  # a campaign should be defined for all pages.. but seeing as how it might not be..
             end = campaign.end_date
             start = campaign.start_date
         except:
@@ -105,7 +116,7 @@ class AnalyticsQuery(Query):
         date = self.get_dates(page.campaign)
         try:
             campaign_id = page.campaign.identifier
-        except:
+        except: # if there is no campaign set.
             campaign_id = ''
 
         ga_filter = 'ga:sessions>=0' if (campaign_id == '') else ('ga:campaign==' + campaign_id)
@@ -120,6 +131,10 @@ class AnalyticsQuery(Query):
         return data
 
     def get_response(self, page):
+        """
+        Gets a JSON response from Google Analytics based on the metrics and dimensions provided.
+        Will also format the data in the response a bit so that the data looks good.
+        """
         response = {'error': 'Failed to retrieve data'}
         try:
             data = self.get_query(page)
@@ -161,6 +176,7 @@ class AnalyticsQuery(Query):
 
 class ClickmeterQuery(Query):
     """
+    Gets data from Clickmeter's API.
     Currently only supports getting conversions and other data that takes similar parameters
     """
     endpoint = models.CharField(max_length=128)
@@ -169,7 +185,7 @@ class ClickmeterQuery(Query):
                                     verbose_name='The index number of the clickmeter_id that this query uses')
 
     def get_dates(self, campaign):
-        try:
+        try:  # a campaign should be defined for all pages.. but seeing as how it might not be..
             end = campaign.end_date
             start = campaign.start_date
         except:
@@ -188,8 +204,9 @@ class ClickmeterQuery(Query):
 
     def get_query(self, page):
         """
-        Do authentication and then prepare a request. This allows for making requests to any
-            Clickmeter endpoint that requires an id, dates, and groupBy.
+        Do authentication and then prepare a dictionary with the data for a request.
+        This creates a dictionary containing all the data to send to Clickmeter to get
+            the data we want.
         """
         # determine if we can get an id. if not return (cause we need one for most requests)
         if 'clickmeter' in page.dashboard_settings:
@@ -210,6 +227,9 @@ class ClickmeterQuery(Query):
         return {'url': url, 'header': auth_header, 'payload': data}
 
     def get_response(self, page):
+        """
+        Use the fields given to get JSON data from the server.
+        """
         query = self.get_query(page)
         response = json.dumps({'error': 'Failed to retrieve data'})
 
@@ -225,8 +245,10 @@ class ClickmeterQuery(Query):
 
 class KeenIOMetricsQuery(Query):
     """
-    Apparently we track these in our database with more accuracy so this might be unused
-    depending on whether we start using Keen or not
+    Constructs a method for making data queries to Keen's server.
+    This may or may not be a good idea to use. Keen apparently has
+        data caps so data may not be completely accurate. However there
+        doesn't seem to be a reasonable alternative.
     """
     metric_name = models.CharField(max_length=128)
 
@@ -246,7 +268,7 @@ class KeenIOMetricsQuery(Query):
     group_by = jsonfield.JSONField(default=[], blank=True)
 
     def get_dates(self, campaign):
-        try:
+        try:  # a campaign should be defined for all pages.. but seeing as how it might not be..
             end = campaign.end_date
             start = campaign.start_date
         except:
@@ -261,6 +283,10 @@ class KeenIOMetricsQuery(Query):
         return {'start': start_date, 'end': end_date}
 
     def get_query(self, page):
+        """
+        Creates a dictionary that contains the data to send to Keen to get the data
+            we want.
+        """
         header = {"Authorization": settings.KEEN_CONFIG['readKey']}
         base_url = 'https://api.keen.io/3.0/projects/{project_id}/queries/{metric_name}'
         url = base_url.format(project_id=settings.KEEN_CONFIG['projectId'], metric_name=self.metric_name)
@@ -291,6 +317,9 @@ class KeenIOMetricsQuery(Query):
         return {'url': url, 'header': header, 'payload': request_data}
 
     def get_response(self, page):
+        """
+        Gets JSON data from the Keen server based on fields.
+        """
         query = self.get_query(page)
         response = json.dumps({'error': 'Failed to retrieve data'})
 
@@ -303,7 +332,13 @@ class KeenIOMetricsQuery(Query):
 
 
 class Campaign(models.Model):
+    """
+    Each page should have a campaign stating its expected start date and end date.
+    This is used to make sure analytics data for a page is shown only for the period of the
+        campaign.
+    """
     title = models.CharField(max_length=128)
+    # the google identifier to filter by. This is unique
     identifier = models.CharField(max_length=128, unique=True)
 
     start_date = models.DateTimeField()
@@ -321,8 +356,7 @@ class Campaign(models.Model):
 class DashBoard(models.Model):
     """
     The analytics information for a given site.
-    Each metric is a JSON file containing the response from a
-    query to the Google Analytics for the given site with respect to certain dimensions
+    Each dashboard is for a single page, which is a single campaign.
     """
     # human name for the site that these statistics correspond to
     site_name = models.CharField(max_length=128)
@@ -340,6 +374,9 @@ class DashBoard(models.Model):
 
 
 class UserProfile(models.Model):
+    """
+    Extends the user model to store information on which dashboards each user can view.
+    """
     user = models.OneToOneField(User)
     dashboards = models.ManyToManyField(DashBoard)
 
