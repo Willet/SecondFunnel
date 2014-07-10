@@ -75,9 +75,6 @@ body {
 
 .previewContainer .content {
     padding-top: 60px;
-    padding-bottom: 20px;
-    border: none;
-    max-width: 900px;
 }
 
 .previewContainer .close {

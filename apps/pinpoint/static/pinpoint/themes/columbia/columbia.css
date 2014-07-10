@@ -19,11 +19,7 @@
 }
 
 .previewContainer .content {
-    padding-top: 20px;
-    padding-bottom: 20px;
-    border-color: #2087cc;
-    border-width: 2px;
-    max-width: 900px;
+    border: 2px solid #2087cc;
 }
 
 .previewContainer .close {
@@ -77,7 +73,6 @@
     padding-left: 15px;
     padding-right: 10px;
     overflow: hidden;
-    max-width: 500px;
 }
 .previewContainer .info.image {
     width: 275px;

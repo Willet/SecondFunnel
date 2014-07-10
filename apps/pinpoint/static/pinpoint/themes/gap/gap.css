@@ -367,10 +367,6 @@ div.header {
 
 #preview-area .previewContainer .content {
     padding-top: 50px;
-    padding-bottom: 20px;
-    border: none;
-    border-radius: 0;
-    max-width: 900px;
     width: 100%;
 }
 

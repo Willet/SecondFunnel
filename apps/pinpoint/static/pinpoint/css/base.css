@@ -376,15 +376,26 @@ div.loading {
     transform: translateZ(0);
 }
 
-.previewContainer .fullscreen .content {
+.previewContainer .content {
     max-height: 100%;
     width: 100%;
-    -moz-border-radius: 0px;
-    -webkit-border-radius: 0px;
-    -ms-border-radius: 0px;
-    -o-border-radius: 0px;
-    border-radius: 0px;
     overflow-y: auto;
+    overflow-x: hidden;
+    margin: auto;
+    position: relative;
+    padding: 20px;
+    min-height: 240px;
+    background: #fff;
+}
+
+#preview-area .previewContainer .content {
+    z-index: 1002;
+    box-shadow: 0px 10px 30px 0px #CECECE;
+    max-width: 900px;
+}
+
+#hero-area .content {
+    overflow: hidden;
 }
 
 .previewContainer .close {
@@ -428,26 +439,6 @@ div.loading {
     z-index: 100;
 }
 
-#preview-area .previewContainer .content {
-    /* let the preview scroll, but only if it needs to */
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-#hero-area .content {
-    overflow: hidden;
-}
-
-.previewContainer .content .scrollable {
-    /* if the theme has one of those defined, it has unrestricted height */
-    max-width: 100%;
-}
-
-.previewContainer .content .social-buttons {
-    display: block;  /* these, however, show by default */
-    clear: both;
-}
-
 .previewContainer .main-image-container {
     position: relative;
     text-align: center;
@@ -473,14 +464,6 @@ div.loading {
     display: none;
 }
 
-#hero-area .previewContainer .content>div {
-    text-align: center;
-    margin: auto;
-}
-#hero-area .previewContainer .content>div>div {
-    display: inline-block;
-}
-
 .previewContainer .gallery-dots div {
     display: inline-block;
 }
@@ -497,39 +480,6 @@ div.loading {
 .previewContainer .gallery-dots .item.selected {
     background-color: #969696;
     cursor: default;
-}
-
-.previewContainer .content {
-    overflow: auto;
-    display: block;
-    margin: auto;
-}
-
-.previewContainer .content:after {
-    /* clearfix to allow preview to size to content */
-    content: "";
-    display: table;
-    clear: both;
-}
-
-.previewContainer .content {
-    display: block;
-    position: relative;
-    margin: auto;
-    padding: 20px;
-    min-height: 240px;
-    background: #fff;
-}
-
-#preview-area .previewContainer .content {
-    z-index: 1002;
-    border: 1px solid #CECECE;
-    border-radius: 4px;
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
-    -ms-border-radius: 4px;
-    -o-border-radius: 4px;
-    box-shadow: 0px 10px 30px 0px #CECECE;
 }
 
 .stl-look {

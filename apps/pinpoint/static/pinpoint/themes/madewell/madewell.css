@@ -87,13 +87,6 @@
     vertical-align: top;
 }
 
-#preview-area .previewContainer .content {
-    padding-top: 20px;
-    padding-bottom: 20px;
-    border: none;
-    max-width: 900px;
-}
-
 .previewContainer .image-with-tagged-products .info {
     width: 205px;
 }
