@@ -223,8 +223,8 @@ App.module('core', function (core, App) {
 
         /**
          *
-         * @param width
-         * @param height
+         * @param width           in px; 0 means no width restrictions
+         * @param height          in px; 0 means no height restrictions
          * @param {boolean} obj   whether the complete object or the url
          *                        will be returned
          * @returns {*}
