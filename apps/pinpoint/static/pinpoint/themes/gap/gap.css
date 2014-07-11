@@ -365,28 +365,8 @@ div.header {
     background-color: #000d41;
 }
 
-.previewContainer .table {
-    display: table;
-    table-layout: fixed;
-    margin-bottom: 0;
-}
-
-.previewContainer .row {
-    display: table-row;
-    width: 100%;
-    margin: 0;
-}
-.previewContainer .row:before,
-.previewContainer .row:after {
-    content: none;
-}
-
 #preview-area .previewContainer .content {
     padding-top: 50px;
-    padding-bottom: 20px;
-    border: none;
-    border-radius: 0;
-    max-width: 900px;
     width: 100%;
 }
 
@@ -579,6 +559,11 @@ div.header {
 @media screen and (max-width: 768px) {
     .tile.image .overlay:hover {
         opacity: 0;
+    }
+
+    .tile.hypem {
+        width: 100% !important;
+        display: none;
     }
 
     .jumbotron {

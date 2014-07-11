@@ -216,7 +216,7 @@ def ir_priority_sorted(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 def ir_random(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
     """get (a numbr of) random tiles, except the ones in exclude_set,
     which is a list of old id integers."""
-    tiles = tiles.order_by('?')[:results]
+    tiles = tiles[:results]
 
     print "{0} tile(s) were randomly added".format(len(tiles))
 
