@@ -173,8 +173,7 @@
         <script type="text/template" id="preview_container_template">
             <div class="fullscreen">
                 <div class="content">
-
-                    <span class="close small-close">Close <img src="{% static 'pinpoint/themes/surlatable/images/close.gif' %}"></span>
+                    <span class="close">Close <img src="{% static 'pinpoint/themes/surlatable/images/close.gif' %}"></span>
                     <div class="scrollable">
                         <div class="template target"></div>
                     </div>
@@ -278,7 +277,7 @@
                 <div class="image-with-tagged-products">
                     <div class="table">
                         <div class="row">
-                            <div class="cell desktop-only">
+                            <div class="cell desktop-only image">
                                 <img src="<%= obj.image.url %>" alt="image" class="image"/>
                             </div>
                             <div class="cell info">
@@ -360,7 +359,7 @@
                 <div class="image-without-tagged-products">
                     <div class="table">
                         <div>
-                            <div class="capped-width">
+                            <div class="image">
                                 <img src="<%= obj.image.url %>" alt="image" class="main-image" />
                             </div>
                             <div>
