@@ -65,10 +65,9 @@
 .previewContainer .gallery,
 .previewContainer .gallery-dots {
     text-align: center;
-    overflow-y: auto;
-    overflow-x: hidden;
-    white-space: nowrap;
     margin: auto;
+    white-space: nowrap;
+    overflow: auto;
 }
 
 .previewContainer .gallery.hidden,

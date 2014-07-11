@@ -333,7 +333,7 @@ div.loading {
     display: table;
     table-layout: fixed;
     margin-bottom: 0;
-    width: auto;
+    width: 100%;
 }
 
 .previewContainer .row {
@@ -411,7 +411,7 @@ div.loading {
     display: none;
 }
 
-#preview-area .previewContainer img, #hero-area img {
+.previewContainer img {
     max-width: 100%;
 }
 
@@ -421,7 +421,6 @@ div.loading {
 #hero-area .cell.image-cell {
     width: 400px;
 }
-
 
 .previewContainer .mask {
     position: fixed;
@@ -458,10 +457,6 @@ div.loading {
 .previewContainer .gallery img {
     height: auto;
     width: auto;
-}
-
-#hero-area .gallery-dots {
-    display: none;
 }
 
 .previewContainer .gallery-dots div {
