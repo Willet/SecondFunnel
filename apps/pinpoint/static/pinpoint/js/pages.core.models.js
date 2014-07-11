@@ -6,8 +6,8 @@ App.module('core', function (core, App) {
     // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
     var $window = $(window),
-        $document = $(document);
-
+        $document = $(document),
+        tempTile;
 
     /**
      * Object store for information about a particular store
@@ -350,6 +350,26 @@ App.module('core', function (core, App) {
                 tileId,
                 tileIds = App.intentRank.getTileIds(),
                 respBuilder = [];  // new resp after filter(s)
+
+            // reorder landscape tiles to only appear after a multiple-of-2
+            // products has appeared, allowing gapless layouts in two-col ads.
+            for (i = 0; i < resp.length; i++) {
+                tileJson = resp[i];
+                if (!tempTile &&  // there isn't already a wide tile waiting
+                    i % 2 !== 0 &&  // tile about to land on second row
+                    App.utils.isIframe() &&
+                    tileJson.orientation !== 'portrait') {  // tile is wide
+                    tempTile = tileJson;
+                } else {
+                    if (tempTile) {
+                        respBuilder.push(tempTile);
+                        tempTile = undefined;
+                    }
+                    respBuilder.push(tileJson);
+                }
+            }
+            resp = respBuilder;
+            respBuilder = [];
 
             for (i = 0; i < resp.length; i++) {
                 tileJson = resp[i];
