@@ -523,15 +523,6 @@ App.module('core', function (module, App) {
                 App.vent.trigger('scrollStopped', self);
             });
 
-            if (App.utils.isIframe()) {
-                $window.scrollStopped(function () {
-                    // deal with tap indicator fade in/outs
-                    self.$('.tile:not(:in-viewport)').css({'visibility': 'hidden'});
-                    // the rest are visible
-                    self.$('.tile:in-viewport').css({'visibility': 'visible'});
-                });
-            }
-
             // Vent Listeners
             App.vent.on('click:tile', this.updateContentStream, this);
             App.vent.on('change:category', this.categoryChanged, this);

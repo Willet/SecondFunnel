@@ -1,5 +1,12 @@
 @charset "UTF-8";
 
+html, body, .container, #discovery-area {
+    /* fixes scrolling on mobile. touchstart and touchmove break taps.
+       whatever works ¯\_(ツ)_/¯ */
+    height: 600px !important;
+    overflow-y: hidden;
+}
+
 #topbar {
     background: #000;
     color: #fff;
