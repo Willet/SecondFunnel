@@ -206,6 +206,7 @@ class FeedPipeline(object):
         return item
 
     def add_to_feed(self, item, feed_id):
+        print 'adding to feed'
         try:
             feed = Feed.objects.get(id=feed_id)
         except Feed.DoesNotExist:
@@ -216,10 +217,12 @@ class FeedPipeline(object):
         except TypeError:
             return
 
+        django_item, _ = get_or_create(item_model)
+
         if isinstance(item_model, Product):
-            feed.add_product(product=item_model)
+            feed.add_product(product=django_item)
         if isinstance(item_model, Content):
-            feed.add_content(content=item_model)
+            feed.add_content(content=django_item)
 
 
 class ProductImagePipeline(object):
