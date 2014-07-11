@@ -267,23 +267,10 @@ App.module("utils", function (utils, App) {
             options.width = App.layoutEngine.width() * ratio;
         }
 
-        if (utils.isIframe()) {
-            options = _.extend({
-                crop: 'fill',
-                gravity: 'faces',
-                quality: 75,
-                sign_url: true
-            }, options);
-
-            if (options.width) {
-                options.height = options.width;
-            }
-        } else {
-            options = _.extend({
-                crop: 'fit',
-                quality: 75
-            }, options);
-        }
+        options = _.extend({
+            crop: 'fit',
+            quality: 75
+        }, options);
 
         if (url.indexOf('c_fit') > -1) {
             // Transformation has been applied to this url, Cloudinary is not smart

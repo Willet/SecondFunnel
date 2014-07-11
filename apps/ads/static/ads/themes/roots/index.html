@@ -36,6 +36,7 @@
         <script src="{% static 'pinpoint/js/pages.optimizer.js' %}"></script><!-- after marionette -->
         <script src="{% static 'pinpoint/js/pages.layoutengine.js' %}"></script><!-- after marionette -->
         <script src="{% static 'pinpoint/js/pages.init.js' %}"></script><!-- after pages -->
+        <script src="{% static 'ads/js/ad.scroller.js' %}"></script>
         {% endcompress js %}
     </head>
 
@@ -49,19 +50,5 @@
 
         {% include "pinpoint/default_templates.html" %}
         <script>App.start();</script>
-        <script>
-            // show new products every so often
-            // (and roll this into core code if requested by any other client)
-            setInterval(function () {
-                $('html, body').scrollTop(
-                    $('.tile:in-viewport:last').offset().top -
-                        $('#topbar').outerHeight()
-                );
-                setTimeout(function () {
-                    // remove noscroll after scroll is set
-                    App.vent.trigger('scrollStopped');
-                }, 100);
-            }, 5000);
-        </script>
     </body>
 </html>
