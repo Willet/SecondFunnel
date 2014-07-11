@@ -43,3 +43,7 @@ html, body, .container, #discovery-area {
     position: relative;
     padding-top: 5px;
 }
+
+.tile.full {
+    width: 100% !important;
+}

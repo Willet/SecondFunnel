@@ -292,6 +292,11 @@ App.module('core', function (module, App) {
                 socialButtons.append(buttons.render().$el);
             }
 
+            this.$el.addClass(this.model.get('orientation') || 'portrait');
+            if (App.utils.isIframe() && this.$el.hasClass('landscape')) {
+                this.$el.addClass('full');
+            }
+
             // add view to our database
             App.vent.trigger('tracking:trackTileView', model.get('tile-id'));
 
