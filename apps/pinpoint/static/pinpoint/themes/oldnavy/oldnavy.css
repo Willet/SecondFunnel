@@ -94,24 +94,6 @@ html.lt-ie9 .hero-message-container .text .big {
     font-weight: normal;
 }
 
-.previewContainer .gallery,
-.previewContainer .gallery-dots {
-    text-align: center;
-}
-
-.previewContainer .gallery img {
-    margin: 5px 0;
-    width: 82px;
-    opacity: 0.4;
-    filter: alpha(opacity=40);
-    cursor: pointer;
-}
-.previewContainer .gallery img.selected {
-    opacity: 1;
-    filter: alpha(opacity=100);
-    cursor: default;
-}
-
 .previewContainer .info {
     text-align: left;
     padding-left: 25px;

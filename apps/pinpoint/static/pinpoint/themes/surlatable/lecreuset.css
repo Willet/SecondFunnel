@@ -174,13 +174,11 @@ body {
 
 .previewContainer .gallery,
 .previewContainer .gallery-dots {
-    text-align: center;
     margin-bottom: 20px;
 }
 
 .previewContainer .gallery img {
     width: 52px;
-    cursor: pointer;
     border: 1px solid #333;
     margin-left: 2px;
     margin-right: 2px;
@@ -192,9 +190,6 @@ body {
 .previewContainer .gallery img.selected {
     border-width: 2px;
     border-color: #F1B747;
-    cursor: default;
-    opacity: 1.0;
-    filter: alpha(opacity=100);
 }
 
 .previewContainer .gallery img:hover {
