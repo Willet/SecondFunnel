@@ -8,8 +8,6 @@ def django_item_values(item):
 
 def item_to_model(item):
     model_class = getattr(item, 'django_model')
-    print 'model: '
-    print model_class
     if not model_class:
         raise TypeError("Item is not a `DjangoItem` or is misconfigured")
 
@@ -29,20 +27,16 @@ def get_or_create(model):
         if isinstance(model, Product):
             # We have no unique identifier at the moment; use the sku / store
             obj = model_class.objects.get(sku=model.sku, store_id=model.store_id)
-            print'duplicate product'
         elif isinstance(model, Content):
             # We have no unique identifier at the moment; use the sku / store
             obj = model_class.objects.get(source_url=model.source_url)
-            print'duplicate content'
         else:
             # TODO: don't always create...
             created = True
             obj = model  # djangoitem created a model for us.
-            print 'created new object'
     except model_class.DoesNotExist:
         created = True
         obj = model  # djangoitem created a model for us.
-        print 'created new object'
 
     return (obj, created)
 

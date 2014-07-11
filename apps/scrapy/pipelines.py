@@ -206,7 +206,6 @@ class FeedPipeline(object):
         return item
 
     def add_to_feed(self, item, feed_id):
-        print 'adding to feed'
         try:
             feed = Feed.objects.get(id=feed_id)
         except Feed.DoesNotExist:
