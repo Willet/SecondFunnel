@@ -30,18 +30,6 @@ App.module("scroller", function (module, App) {
             }
         });
 
-        feed.on('loadingFinished', function () {
-            feed.children.each(function (tile) {
-                i++;
-                if (i < 5) {
-                    tile.close();
-                    feed.children.remove(tile);
-                    tilesToRemove.push(tile);
-                }
-            });
-            App.layoutEngine.layout(feed);
-        });
-
         App.layoutEngine.remove(feed, tilesToRemove);
 
         // um, if there is some chance that there won't be enough tiles

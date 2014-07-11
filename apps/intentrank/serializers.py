@@ -81,7 +81,7 @@ class ProductImageSerializer(IRSerializer):
             "dominant-color": obj.dominant_color or "transparent",
             "url": obj.url,
             "id": obj.id,
-            "orientation": 'landscape' if obj.width > obj.height else 'portrait',
+            "orientation": obj.orientation,
         }
 
         return data
@@ -132,7 +132,7 @@ class ImageSerializer(ContentSerializer):
                 'width': obj.width or '100%',
                 'height': obj.height or '100%',
             }),
-            "orientation": 'landscape' if obj.width > obj.height else 'portrait',
+            "orientation": obj.orientation,
         })
 
         return data
