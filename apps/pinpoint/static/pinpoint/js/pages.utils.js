@@ -80,10 +80,6 @@ App.module("utils", function (utils, App) {
         if (typeof top === 'undefined') {
             return false;
         }
-        if (window.location.href.indexOf('/ads/') > -1) {
-            // this condition is true when testing ads in a root window.
-            return true;
-        }
         return (window !== top);
     };
 

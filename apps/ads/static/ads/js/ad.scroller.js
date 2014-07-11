@@ -11,7 +11,7 @@ App.module("scroller", function (module, App) {
     // every 5 seconds, remove the top few tiles from the feed... creating
     // the illusion that the feed is scrolling.
     this.refreshFeed = function () {
-        var i = 0, feed, tilesToRemove = [];
+        var feed, tilesToRemove = [];
 
         if (!(App.discoveryArea && App.discoveryArea.currentView)) {
             // app hasn't run yet.
@@ -21,9 +21,8 @@ App.module("scroller", function (module, App) {
         feed = App.discoveryArea.currentView;
 
         // remove the first 4 tiles.
-        feed.children.each(function (tile) {
-            i++;
-            if (i < 5) {
+        feed.children.each(function (tile, idx) {
+            if (idx < 5) {
                 tile.close();
                 feed.children.remove(tile);
                 tilesToRemove.push(tile);
@@ -34,7 +33,7 @@ App.module("scroller", function (module, App) {
 
         // um, if there is some chance that there won't be enough tiles
         // in the ad, then get some more.
-        if (i < 10) {
+        if (feed.children.length < 10) {
             feed.getTiles();
         }
 
