@@ -97,6 +97,7 @@ class DuplicatesPipeline(object):
     """
     def __init__(self):
         self.ids_seen = defaultdict(set)
+        self.content_seen = defaultdict(set)
 
     def process_item(self, item, spider):
         if isinstance(item, ScraperProduct):
@@ -112,10 +113,10 @@ class DuplicatesPipeline(object):
             # assuming source_url to be a unique attribute
             source_url = item['source_url']
 
-            if source_url in self.ids_seen[spider_name]:
+            if source_url in self.content_seen[spider_name]:
                 raise DropItem("Duplicate item found: {}".format(item))
 
-            self.ids_seen[spider_name].add(source_url)
+            self.content_seen[spider_name].add(source_url)
         return item
 
 
