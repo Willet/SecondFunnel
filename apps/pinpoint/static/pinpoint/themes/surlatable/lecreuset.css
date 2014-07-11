@@ -262,6 +262,10 @@ body {
     filter: alpha(opacity=80);
 }
 
+.previewContainer .cell.image {
+    vertical-align: middle;
+}
+
 .previewContainer .stl-title {
     font-size: 1.3em;
     text-align: center;
