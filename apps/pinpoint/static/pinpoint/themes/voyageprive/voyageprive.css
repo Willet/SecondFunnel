@@ -381,12 +381,6 @@ body {
     }
 }
 
-.previewContainer .row,
-{
-    display: table;
-    white-space: nowrap;
-}
-
 @media screen and (max-width: 768px) {
     #preview-area {
         top: 0;

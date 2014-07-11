@@ -365,58 +365,20 @@ div.header {
     background-color: #000d41;
 }
 
-.previewContainer .table {
-    display: table;
-    table-layout: fixed;
-    margin-bottom: 0;
-}
-
-.previewContainer .row {
-    display: table-row;
-    width: 100%;
-    margin: 0;
-}
-.previewContainer .row:before,
-.previewContainer .row:after {
-    content: none;
-}
-
 #preview-area .previewContainer .content {
     padding-top: 50px;
-    padding-bottom: 20px;
-    border: none;
-    border-radius: 0;
-    max-width: 900px;
     width: 100%;
 }
 
 .previewContainer .close {
-    position: absolute;
-    z-index: 1;
-    opacity: 1;
-    filter: alpha(opacity=100);
     color: #FFF;
     background-color: #000d41;
     padding: 10px 13px;
     font-weight: normal;
 }
 
-.previewContainer .gallery,
-.previewContainer .gallery-dots {
-    text-align: center;
-}
-
 .previewContainer .gallery img {
-    margin: 5px 0;
     width: 56px;
-    opacity: 0.4;
-    filter: alpha(opacity=40);
-    cursor: pointer;
-}
-.previewContainer .gallery img.selected {
-    opacity: 1;
-    filter: alpha(opacity=100);
-    cursor: default;
 }
 
 .previewContainer .info {
