@@ -350,6 +350,7 @@ div.loading {
 .previewContainer .cell {
     display: table-cell;
     vertical-align: top;
+    text-align: center;
 }
 
 @keyframes noop {
