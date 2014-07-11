@@ -141,6 +141,7 @@ a, a:hover, a:focus {
     /* @override bootstrap 3 */
     padding-right: 0;
     padding-left: 0;
+    max-width: 1024px;
 }
 
 .container .legal {
