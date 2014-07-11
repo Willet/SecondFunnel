@@ -47,12 +47,8 @@
 }
 
 .previewContainer .close {
-    position: absolute;
     left: 0;
     right: inherit;
-    z-index: 1;
-    opacity: 1;
-    filter: alpha(opacity=100);
     color: #FFF;
     background-color: #000;
     padding: 10px 20px;

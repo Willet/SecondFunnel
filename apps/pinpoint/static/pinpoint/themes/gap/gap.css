@@ -371,10 +371,6 @@ div.header {
 }
 
 .previewContainer .close {
-    position: absolute;
-    z-index: 1;
-    opacity: 1;
-    filter: alpha(opacity=100);
     color: #FFF;
     background-color: #000d41;
     padding: 10px 13px;

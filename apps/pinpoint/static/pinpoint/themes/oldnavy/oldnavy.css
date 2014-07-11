@@ -88,10 +88,6 @@ html.lt-ie9 .hero-message-container .text .big {
 }
 
 .previewContainer .close {
-    position: absolute;
-    z-index: 1;
-    opacity: 1;
-    filter: alpha(opacity=100);
     color: #CCC;
     padding: 10px;
     font-size: 30px;

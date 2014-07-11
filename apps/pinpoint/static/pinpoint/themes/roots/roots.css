@@ -78,13 +78,9 @@ body {
 }
 
 .previewContainer .close {
-    position: absolute;
     left: 5px;
     top: 5px;
     right: inherit;
-    z-index: 1;
-    opacity: 1;
-    filter: alpha(opacity=100);
     color: #000;
     background-color: #FFF;
     padding: 10px 20px;
