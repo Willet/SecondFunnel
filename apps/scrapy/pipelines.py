@@ -107,6 +107,15 @@ class DuplicatesPipeline(object):
                 raise DropItem("Duplicate item found: {}".format(item))
 
             self.ids_seen[spider_name].add(sku)
+        if isinstance(item, ScraperContent):
+            spider_name = spider.name
+            # assuming source_url to be a unique attribute
+            source_url = item['source_url']
+
+            if source_url in self.ids_seen[spider_name]:
+                raise DropItem("Duplicate item found: {}".format(item))
+
+            self.ids_seen[spider_name].add(source_url)
         return item
 
 
