@@ -148,27 +148,8 @@ body {
     text-decoration: underline;
 }
 
-.previewContainer .table {
-    display: table;
-    table-layout: fixed;
-    margin-bottom: 0;
-}
-
-.previewContainer .row {
-    display: table-row;
-    width: 100%;
-    margin: 0;
-}
-.previewContainer .row:before,
-.previewContainer .row:after {
-    content: none;
-}
-
 .previewContainer .content {
     padding-top: 30px;
-    padding-bottom: 20px;
-    border: none;
-    max-width: 900px;
 }
 
 .previewContainer .close.small-close {

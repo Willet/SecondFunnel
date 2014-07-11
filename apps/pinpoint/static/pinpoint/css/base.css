@@ -97,6 +97,12 @@ a, a:hover, a:focus {
     float: right!important;
 }
 
+#discovery-area {
+    width: 1024px;
+    max-width: 100%;
+    margin: auto;
+}
+
 #hero-area .jumbotron {
     border-radius: 0px;
 }
@@ -145,11 +151,6 @@ a, a:hover, a:focus {
     line-height: 7px;
     text-align: justify;
     margin-top: 0;
-}
-
-#discovery-area {
-    max-width: 100%;
-    margin: auto;
 }
 
 div.loading {
@@ -294,51 +295,6 @@ div.loading {
     vertical-align: middle;
 }
 
-@media (max-width: 480px) { /* phone */
-    .tile.wide.youtube div.thumbnail {
-        height: 141px;
-    }
-    .tile.wide.youtube div.thumbnail:before {
-        margin-top: -59.5px;
-    }
-}
-
-@media (max-width: 768px) { /* phone and tablet */
-    .hidden-xs {
-        display: none;
-    }
-}
-@media (min-width: 510px) and (max-width: 768px) { /* tablet */
-    .navbar-nav {
-        margin-right: 0;
-        margin-left: 0;
-    }
-}
-@media (min-width: 768px) and (max-width: 992px) { /* desktop */
-    .container {
-        max-width:768px;
-    }
-    #discovery-area {
-        width: 765px;
-    }
-}
-@media (min-width: 992px) and (max-width: 1024px) { /* bigger desktops */
-    .container {
-        max-width:1000px;
-    }
-    #discovery-area {
-        width: 765px;
-    }
-}
-@media (min-width: 1024px) { /* formal desktops */
-    .container {
-        max-width:1024px;
-    }
-    #discovery-area {
-        width: 1020px;
-    }
-}
-
 .preview-loading {
     top: 0;
     left: 0;
@@ -373,6 +329,28 @@ div.loading {
     height: auto;
 }
 
+.previewContainer .table {
+    display: table;
+    table-layout: fixed;
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.previewContainer .row {
+    display: table-row;
+    width: 100%;
+    margin: 0;
+}
+.previewContainer .row:before,
+.previewContainer .row:after {
+    content: none;
+}
+
+.previewContainer .cell {
+    display: table-cell;
+    vertical-align: top;
+}
+
 @keyframes noop {
     0% {
         margin-bottom: 0;
@@ -398,16 +376,26 @@ div.loading {
     transform: translateZ(0);
 }
 
-.previewContainer .fullscreen .content,
-#hero-area .fullscreen .content {
+.previewContainer .content {
     max-height: 100%;
     width: 100%;
-    -moz-border-radius: 0px;
-    -webkit-border-radius: 0px;
-    -ms-border-radius: 0px;
-    -o-border-radius: 0px;
-    border-radius: 0px;
     overflow-y: auto;
+    overflow-x: hidden;
+    margin: auto;
+    position: relative;
+    padding: 20px;
+    min-height: 240px;
+    background: #fff;
+}
+
+#preview-area .previewContainer .content {
+    z-index: 1002;
+    box-shadow: 0px 10px 30px 0px #CECECE;
+    max-width: 900px;
+}
+
+#hero-area .content {
+    overflow: hidden;
 }
 
 .previewContainer .close {
@@ -423,12 +411,7 @@ div.loading {
     display: none;
 }
 
-.previewContainer .cell {
-    display: table-cell;
-    vertical-align: top;
-}
-
-#preview-area .previewContainer img, #hero-area img {
+.previewContainer img {
     max-width: 100%;
 }
 
@@ -438,7 +421,6 @@ div.loading {
 #hero-area .cell.image-cell {
     width: 400px;
 }
-
 
 .previewContainer .mask {
     position: fixed;
@@ -456,42 +438,13 @@ div.loading {
     z-index: 100;
 }
 
-.previewContainer .row,
-#hero-area .row {
-    display: inline-block;
-}
-
-#preview-area .previewContainer .content {
-    /* let the preview scroll, but only if it needs to */
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-#hero-area .content {
-    overflow: hidden;
-}
-
-#preview-area .previewContainer .content .scrollable,
-#hero-area .content .scrollable {
-    /* if the theme has one of those defined, it has unrestricted height */
-    max-width: 100%;
-}
-
-#preview-area .previewContainer .content .social-buttons,
-#hero-area .content .social-buttons {
-    display: block;  /* these, however, show by default */
-    clear: both;
-}
-
-#preview-area .previewContainer .main-image-container,
-#hero-area .main-image-container {
+.previewContainer .main-image-container {
     position: relative;
     text-align: center;
     overflow: hidden;
 }
 
-#preview-area .previewContainer .main-image-container .main-image,
-#hero-area .main-image-container .main-image {
+.previewContainer .main-image-container .main-image {
     white-space: nowrap;
     font-size: 0;
 }
@@ -506,28 +459,11 @@ div.loading {
     width: auto;
 }
 
-#hero-area .gallery-dots {
-    display: none;
-}
-
-#hero-area .previewContainer .content>div {
-    text-align: center;
-    margin: auto;
-}
-#hero-area .previewContainer .content>div>div {
-    display: inline-block;
-}
-#hero-area .previewContainer .table, #hero-area .previewContainer .row {
-    width: auto;
-}
-
-.previewContainer .gallery-dots div,
-#hero-area .gallery-dots div {
+.previewContainer .gallery-dots div {
     display: inline-block;
 }
 
-.previewContainer .gallery-dots .item,
-#hero-area .gallery-dots .item {
+.previewContainer .gallery-dots .item {
     border-radius: 50%;
     width: 8px;
     height: 8px;
@@ -536,135 +472,34 @@ div.loading {
     cursor: pointer;
 }
 
-.previewContainer .gallery-dots .item.selected,
-#hero-area .gallery-dots .item.selected {
+.previewContainer .gallery-dots .item.selected {
     background-color: #969696;
     cursor: default;
 }
 
-/* mobile-grade preview container styles */
-@media screen and (max-width: 768px) {
-    .previewContainer {
-        display: block;
-        overflow: auto;
-        height: auto;
-        position: relative;
-    }
-    #hero-area {
-        display: block;
-        overflow: hidden;
-        height: auto;
-        position: relative;
-    }
-    .previewContainer .mask {
-        /* since mobile previews are not floating, this class is cancelled */
-        display: none;
-    }
-
-    .previewContainer .content {
-        display: block;
-        position: relative;
-        z-index: 0;
-
-        margin: 0;
-        padding: 20px;
-
-        width: 100%;
-
-        background: #fff;
-        border: 0;
-        box-shadow: none;
-    }
-    #hero-area .previewContainer .content {
-        padding: 0;
-    }
-
-    .previewContainer .gallery {
-        height: auto;  /* show all thumbnails in multiple rows */
-    }
-
-    .stl-look {
-        display: none;
-    }
-
-    #discovery-area {
-        width: 100%;
-        overflow-x: hidden;
-    }
-
-    .tile {
-        width: 50% !important;
-    }
-    .tile.wide {
-        min-height: inherit;
-    }
-    .tile.video {
-        width: 480px !important;
-    }
+.stl-look {
+    overflow-x: auto;
+    max-height: 110px;
+    text-align: center;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding-bottom: 10px;
 }
 
-/* desktop-grade preview container styles */
-@media screen and (min-width: 768px) {
-    .previewContainer .content {
-        overflow: auto;
-        display: block;
-        margin: auto;
-    }
+.stl-look img {
+    height: 110px;
+    opacity: 0.7;
+    width: inherit;
+    max-width: 99%;
+    max-height: 100px;
+}
 
-    .previewContainer .content:after {
-        /* clearfix to allow preview to size to content */
-        content: "";
-        display: table;
-        clear: both;
-    }
+.stl-look img:hover {
+    opacity: 1;
+}
 
-    .previewContainer .content {
-        display: block;
-        position: relative;
-
-        margin: auto;
-        padding: 20px;
-
-        min-height: 240px;
-
-        background: #fff;
-    }
-
-    #preview-area .previewContainer .content {
-        z-index: 1002;
-        border: 1px solid #CECECE;
-        border-radius: 4px;
-        -moz-border-radius: 4px;
-        -webkit-border-radius: 4px;
-        -ms-border-radius: 4px;
-        -o-border-radius: 4px;
-        box-shadow: 0px 10px 30px 0px #CECECE;
-    }
-
-    .stl-look {
-        overflow-x: auto;
-        max-height: 110px;
-        text-align: center;
-        overflow-y: hidden;
-        white-space: nowrap;
-        padding-bottom: 10px;
-    }
-
-    .stl-look img {
-        height: 110px;
-        opacity: 0.7;
-        width: inherit;
-        max-width: 99%;
-        max-height: 100px;
-    }
-
-    .stl-look img:hover {
-        opacity: 1;
-    }
-
-    .stl-look img:hover {
-        cursor: pointer;
-    }
+.stl-look img:hover {
+    cursor: pointer;
 }
 
 #category-area {
@@ -901,5 +736,65 @@ div.spinner div.bar12 {
     }
     to {
         opacity: 0.25;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .previewContainer {
+        display: block;
+        overflow: auto;
+        height: auto;
+        position: relative;
+    }
+    #hero-area {
+        display: block;
+        overflow: hidden;
+        height: auto;
+        position: relative;
+    }
+    .previewContainer .mask {
+        /* since mobile previews are not floating, this class is cancelled */
+        display: none;
+    }
+
+    .previewContainer .content {
+        display: block;
+        position: relative;
+        z-index: 0;
+
+        margin: 0;
+        padding: 20px;
+
+        width: 100%;
+
+        background: #fff;
+        border: 0;
+        box-shadow: none;
+    }
+    #hero-area .previewContainer .content {
+        padding: 0;
+    }
+
+    .previewContainer .gallery {
+        height: auto;  /* show all thumbnails in multiple rows */
+    }
+
+    .stl-look {
+        display: none;
+    }
+
+    #discovery-area {
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    .tile {
+        width: 50% !important;
+    }
+    .tile.wide {
+        min-height: inherit;
+    }
+    .tile.video {
+        width: 480px !important;
     }
 }
