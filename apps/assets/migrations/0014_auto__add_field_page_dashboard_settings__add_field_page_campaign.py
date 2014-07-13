@@ -7,6 +7,10 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+        ('dashboard', '0003_auto__add_clickmeterquery__add_analyticsquery__add_query__add_campaign'),
+    )
+
     def forwards(self, orm):
         # Adding field 'Page.dashboard_settings'
         db.add_column(u'assets_page', 'dashboard_settings',
