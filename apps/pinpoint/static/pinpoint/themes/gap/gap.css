@@ -371,32 +371,14 @@ div.header {
 }
 
 .previewContainer .close {
-    position: absolute;
-    z-index: 1;
-    opacity: 1;
-    filter: alpha(opacity=100);
     color: #FFF;
     background-color: #000d41;
     padding: 10px 13px;
     font-weight: normal;
 }
 
-.previewContainer .gallery,
-.previewContainer .gallery-dots {
-    text-align: center;
-}
-
 .previewContainer .gallery img {
-    margin: 5px 0;
     width: 56px;
-    opacity: 0.4;
-    filter: alpha(opacity=40);
-    cursor: pointer;
-}
-.previewContainer .gallery img.selected {
-    opacity: 1;
-    filter: alpha(opacity=100);
-    cursor: default;
 }
 
 .previewContainer .info {

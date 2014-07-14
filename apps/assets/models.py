@@ -333,6 +333,10 @@ class ProductImage(BaseModel):
         if not self.attributes:
             self.attributes = {}
 
+    @property
+    def orientation(self):
+        return ("landscape" if self.width > self.height else "portrait")
+
     def save(self, *args, **kwargs):
         """For whatever reason, ProductImages have separate width and height
         attributes that are never populated by current code.
@@ -451,6 +455,10 @@ class Image(Content):
 
     serializer = ir_serializers.ImageSerializer
     cg_serializer = cg_serializers.ImageSerializer
+
+    @property
+    def orientation(self):
+        return ("landscape" if self.width > self.height else "portrait")
 
     def save(self, *args, **kwargs):
         """For whatever reason, Images have separate width and height

@@ -28,9 +28,9 @@ def get_or_create(model):
             # We have no unique identifier at the moment; use the sku / store
             obj = model_class.objects.get(sku=model.sku, store_id=model.store_id)
         elif isinstance(model, Content):
-            # We have no unique identifier at the moment; use the sku / store
+            # since there is no unique identifier for content, assuming source_url is unique
             obj = model_class.objects.get(source_url=model.source_url)
-        else:
+        else:  # if not a product, its content? this is here just in case
             # TODO: don't always create...
             created = True
             obj = model  # djangoitem created a model for us.

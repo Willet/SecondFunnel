@@ -59,9 +59,14 @@ class ProductSerializer(IRSerializer):
         if hasattr(obj, 'default_image_id') and obj.default_image_id:
             data["default-image"] = str(obj.default_image.id or
                 obj.default_image_id)
+            data["orientation"] = obj.default_image.orientation
         elif len(product_images) > 0:
             # fall back to first image
             data["default-image"] = str(product_images[0].id)
+            data["orientation"] = obj.product_images[0].orientation
+
+        if not "orientation" in data:
+            data["orientation"] = "portrait"
 
         return data
 
@@ -76,7 +81,7 @@ class ProductImageSerializer(IRSerializer):
             "dominant-color": obj.dominant_color or "transparent",
             "url": obj.url,
             "id": obj.id,
-            "orientation": 'landscape' if obj.width > obj.height else 'portrait',
+            "orientation": obj.orientation,
         }
 
         return data
@@ -123,8 +128,11 @@ class ImageSerializer(ContentSerializer):
             "url": obj.url,
             "id": obj.id,
             "status": obj.status,
-            "sizes": obj.attributes.get('sizes', default_master_size),
-            "orientation": 'landscape' if obj.width > obj.height else 'portrait',
+            "sizes": obj.attributes.get('sizes', {
+                'width': obj.width or '100%',
+                'height': obj.height or '100%',
+            }),
+            "orientation": obj.orientation,
         })
 
         return data
