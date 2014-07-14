@@ -292,6 +292,11 @@ App.module('core', function (module, App) {
                 socialButtons.append(buttons.render().$el);
             }
 
+            this.$el.addClass(this.model.get('orientation') || 'portrait');
+            if (App.utils.isIframe() && this.$el.hasClass('landscape')) {
+                this.$el.addClass('full');
+            }
+
             // add view to our database
             App.vent.trigger('tracking:trackTileView', model.get('tile-id'));
 
@@ -522,15 +527,6 @@ App.module('core', function (module, App) {
                 // deal with tap indicator fade in/outs
                 App.vent.trigger('scrollStopped', self);
             });
-
-            if (App.utils.isIframe()) {
-                $window.scrollStopped(function () {
-                    // deal with tap indicator fade in/outs
-                    self.$('.tile:not(:in-viewport)').css({'visibility': 'hidden'});
-                    // the rest are visible
-                    self.$('.tile:in-viewport').css({'visibility': 'visible'});
-                });
-            }
 
             // Vent Listeners
             App.vent.on('click:tile', this.updateContentStream, this);

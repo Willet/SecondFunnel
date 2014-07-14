@@ -129,6 +129,25 @@ App.module("layoutEngine", function (layoutEngine, App) {
     };
 
     /**
+     * Given one or many TileViews, remove the element from the page.
+     * @param view   the discovery area view
+     * @param tiles  array of tileViews.
+     */
+    this.remove = function (view, tiles) {
+        var i, self = this, views = tiles;
+        if (!views instanceof Array) {
+            views = [views];
+        }
+        for (i = 0; i < views.length; i++) {
+            if (views[i].el) {
+                views[i] = views[i].el;
+            }
+        }
+        view.$el.masonry('remove', views);
+        this.layout(view);
+    };
+
+    /**
      * Returns the options with which the layout engine is running.
      * Used mainly for testing.
      *
