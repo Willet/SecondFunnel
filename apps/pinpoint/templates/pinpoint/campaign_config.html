@@ -101,7 +101,7 @@
         , 'initialResults': {{ initial_results|default:"[]"|safe }}
         , 'backupResults': []  // DEPRECATED (IR done on client)
 
-        , 'urlParams': {{ campaign.url_params|default:"{}"|safe }}
+        , 'urlParams': {{ url_params|default:"{}"|safe }}
     };
 
 </script>

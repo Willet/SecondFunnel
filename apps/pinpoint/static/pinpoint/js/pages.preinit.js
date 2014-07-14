@@ -113,7 +113,7 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
         var $target = $(ev.target),
             href = $target.attr('href'),
             parts = urlParse(href),
-            params = $.extend({}, App.options.urlParams, $.deparam(parts.search)),
+            params = $.extend({}, $.deparam(parts.search), App.options.urlParams || {}),
             paramStr = $.param(params);
 
         if (paramStr) {
