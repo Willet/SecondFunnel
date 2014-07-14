@@ -46,6 +46,7 @@ def render_banner(page, request):
         "keen_io": settings.KEEN_CONFIG,
         "tile_set": "content",
         "url": page.get('url', ''),
+        "url_params": json.dumps(page.get("url_params", {})),
         "algorithm": algorithm,
         "environment": settings.ENVIRONMENT,
         "tests": tests,

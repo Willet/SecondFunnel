@@ -158,6 +158,7 @@ def render_campaign(page_id, request, store_id=0, tile=None):
         "keen_io": settings.KEEN_CONFIG,
         "tile_set": "",
         "url": page.get('url', ''),
+        "url_params": json.dumps(page.get("url_params", {})),
         "algorithm": algorithm,
         "environment": settings.ENVIRONMENT,
         "tests": tests
