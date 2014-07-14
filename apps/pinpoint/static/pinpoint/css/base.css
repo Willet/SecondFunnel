@@ -454,7 +454,7 @@ div.loading {
     max-width: 100%;
 }
 
-#hero-area .image {
+#hero-area img.image {
     width: 100%;
 }
 #hero-area .cell.image-cell {
