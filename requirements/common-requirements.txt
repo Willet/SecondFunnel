@@ -1,36 +1,36 @@
 ## Framework
-Django==1.6.2
+Django==1.6.5
 django-ajax-forms[0.3.1,0.3.1.beta]
 django-appconf==0.6
-django-compressor==1.3
+django-compressor==1.4
 https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/packages/django-cors-headers-0.12.1.zip
-django-debug-toolbar==1.0.1
-django-dirtyfields==0.2
-django-extensions==1.3.3
-django-fancy-cache==0.5.0
+django-debug-toolbar==1.2.1
+django-dirtyfields==0.3
+django-extensions==1.3.8
+django-fancy-cache==0.6.0
 django-filter==0.7
-django-htmlmin==0.6.3
-django-model-utils==2.0.2
+django-htmlmin==0.7.0
+django-model-utils==2.0.3
 django-storages==1.1.8
-django-tastypie==0.11.0
+django-tastypie==0.11.1
 git+git://github.com/kux/django-admin-extend.git@7daa4f56
 git+git://github.com/felixleong/django-tastypie-extendedmodelresource.git@0c773b660
-django-jsonfield==0.9.12
+django-jsonfield==0.9.13
 django-snippetscream==0.0.7
-djangorestframework==2.3.13
+djangorestframework==2.3.14
 drf-nested-routers==0.1.3
-drf-extensions==0.2.1
-django-admin-bootstrapped==1.6.4
+drf-extensions==0.2.5
+django-admin-bootstrapped==1.6.5
 django-admin-tools==0.4.0
-django-adminactions==0.4
+django-adminactions==0.5
 newrelic==2.22.1.20
 
 ## Deployment and Task Runner
-argparse==1.1
+argparse==1.2.1
 importlib==1.0.3
-Fabric>=1.6.0
+Fabric>=1.9.0
 # hipchat
-python-simple-hipchat==0.2
+python-simple-hipchat==0.3.2
 
 ## Library Extensions
 python-dateutil==2.2
@@ -38,11 +38,11 @@ python-memcached==1.53
 python-mimeparse==0.1.4
 python-openid==2.2.5
 python-termstyle==0.1.10
-pytz==2013.9
-six==1.5.2 # compatibility extension PY2->PY3
+pytz==2014.4
+six==1.7.3 # compatibility extension PY2->PY3
 
 ## Server
-httplib2==0.8
+httplib2==0.9
 wsgiref==0.1.2
 mock==1.0.1
 
@@ -51,33 +51,33 @@ BeautifulSoup==3.2.1
 cssmin==0.2.0
 
 ## API
-boto==2.25.0
+boto==2.31.1
 hammock==0.2.4
-requests==1.2.2
-requests-oauthlib==0.3.2
+requests==2.3.0
+requests-oauthlib==0.4.1
 
 ## Scraping
-selenium==2.40.0
+selenium==2.42.1
 bleach==1.4
 
 # Image Processing
-Pillow==2.3.0
-cloudinary==1.0.17
-numpy==1.8.0
+Pillow==2.5.1
+cloudinary==1.0.18
+numpy==1.8.1
 
 ## Database Related
-South==0.8.4
-psycopg2==2.5.2
-jsonfield==0.9.20
+South==1.0
+psycopg2==2.5.3
+jsonfield==0.9.22
 
 ## Job Processing (celery)
 amqp==1.4.5
 amqplib>=1.0.2
 anyjson>=0.3.3
-billiard==3.3.0.16
-celery==3.1.9
-django-celery==3.1.9
-kombu==3.0.12
+billiard==3.3.0.18
+celery==3.1.13
+django-celery==3.1.10
+kombu==3.0.21
 
 ## google api libraries
 # This library has a tendency of disappearing...
@@ -89,29 +89,29 @@ oauth2client==1.2
 #python-gflags==2.0
 
 ## Unknown
-lxml==3.3.1
-astroid==1.0.1
+lxml==3.3.5
+astroid==1.1.1
 beautifulsoup4==4.3.2
-ecdsa==0.10
+ecdsa==0.11
 html5lib==0.999
-logilab-common==0.61.0
+logilab-common==0.62.0
 oauth2==1.5.211
-oauthlib==0.6.1
-paramiko==1.12.1
+oauthlib==0.6.3
+paramiko==1.14.0
 pycrypto==2.6.1
 django-nose==1.2
-raven==4.2.0
+raven==5.0.0
 
 # Scrapy
-Scrapy==0.22.2
+Scrapy==0.24.2
 scrapy-sentry==0.6.1
-Twisted==13.2.0
-cffi==0.8.2
-cryptography==0.4
+Twisted==14.0.0
+cffi==0.8.6
+cryptography==0.5.2
 cssselect==0.9.1
 pyOpenSSL==0.14
 pycparser==2.10
 queuelib==1.1.1
-w3lib==1.5
+w3lib==1.6
 zope.interface==4.1.1
 https://github.com/sosign/scrapy-webdriver/archive/master.zip
