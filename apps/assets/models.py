@@ -661,14 +661,9 @@ class Feed(BaseModel):
 
         :raises AttributeError
         """
-        tile_buffer = []
         for tile in self.tiles.all():
-            if product in tile.products.all():
+            if tile.products.filter(id=product.id).exists():
                 tile.delete()
-            else:
-                tile_buffer.append(tile)
-        for tile in tile_buffer:
-            self.tiles.add(tile)
 
     def remove_content(self, content):
         """Removes (if present) tiles with this content from the feed that
@@ -681,14 +676,9 @@ class Feed(BaseModel):
 
         :raises AttributeError
         """
-        tile_buffer = []
         for tile in self.tiles.all():
-            if content in tile.content.all():
+            if tile.content.filter(id=content.id).exists():
                 tile.delete()
-            else:
-                tile_buffer.append(tile)
-        for tile in tile_buffer:
-            self.tiles.add(tile)
 
 
 class Page(BaseModel):
