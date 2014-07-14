@@ -117,27 +117,17 @@ body {
     margin-bottom: 10px;
 }
 
-.previewContainer .info .buy {
+.previewContainer .buy {
     margin-top: 5px;
     text-align: center;
 }
 
-.previewContainer .info .buy .button {
-    font-size: 22px;
-    color: #FFF;
+.previewContainer .buy .button {
     background-color: #696969;
-    text-decoration: none;
     padding: 5px 30px;
-    display: inline-block;
     margin-bottom: 15px;
-    white-space: nowrap;
-    text-align: center;
     font-weight: bold;
     min-width: 250px;
-}
-
-.previewContainer .info .buy .button:hover {
-    text-decoration: none;
 }
 
 .previewContainer .stl-title {

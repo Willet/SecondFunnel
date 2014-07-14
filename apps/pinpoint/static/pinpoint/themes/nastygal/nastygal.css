@@ -117,27 +117,18 @@
     font-size: 25px;
 }
 
-.previewContainer .info a.button {
+.previewContainer .buy .button {
     font-size: 20px;
-    color: #FFF;
-    background-color: black;
-    text-decoration: none;
     padding: 10px 20px;
-    display: inline-block;
     margin-bottom: 20px;
-    white-space: nowrap;
 }
-.previewContainer .image-with-tagged-products .info a.button,
-.previewContainer .image-without-tagged-products .info a.button {
+.previewContainer .image-with-tagged-products .buy .button,
+.previewContainer .image-without-tagged-products .buy .button {
     margin-top: 7px;
     margin-bottom: 7px;
 }
 
-.previewContainer .info a.button:hover {
-    text-decoration: none;
-}
-
-.previewContainer .info a.button div {
+.previewContainer .buy .button div {
     vertical-align: middle;
 }
 

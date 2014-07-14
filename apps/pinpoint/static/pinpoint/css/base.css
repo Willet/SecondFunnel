@@ -477,6 +477,20 @@ div.loading {
     z-index: 100;
 }
 
+.previewContainer .buy .button {
+    font-size: 22px;
+    color: #FFF;
+    background-color: #000;
+    text-decoration: none;
+    display: inline-block;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.previewContainer .buy .button:hover {
+    text-decoration: none;
+}
+
 .previewContainer .main-image-container {
     position: relative;
     text-align: center;

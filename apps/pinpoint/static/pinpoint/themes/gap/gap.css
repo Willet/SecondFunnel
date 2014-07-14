@@ -435,20 +435,11 @@ div.header {
 
 .previewContainer .buy .button {
     font-size: 13px;
-    color: #FFF;
     background-color: #000d41;
-    text-decoration: none;
     padding: 5px 15px;
-    display: inline-block;
     margin-top: 10px;
     margin-bottom: 5px;
-    white-space: nowrap;
-    text-align: center;
     text-transform: uppercase;
-}
-
-.previewContainer .buy .button:hover {
-    text-decoration: none;
 }
 
 .previewContainer .landscape .stl-title {
