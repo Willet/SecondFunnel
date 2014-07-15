@@ -341,7 +341,7 @@ class Campaign(models.Model):
     """
     title = models.CharField(max_length=128)
     # the google identifier to filter by. This is unique
-    identifier = models.CharField(max_length=128, unique=True, blank=True, null=True)
+    identifier = models.CharField(max_length=128, blank=True, default="")
 
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
