@@ -400,24 +400,9 @@ body {
         vertical-align: 0px;
     }
 
-    .previewContainer .stl-look,
-    .previewContainer .landscape .stl-look {
-        white-space: normal;
-        width: 100%;
-        margin: auto;
-        text-align: center;
-    }
-
     .previewContainer .stl-title,
     .previewContainer .landscape .stl-title {
         margin-top: 5px;
-    }
-
-    .previewContainer .stl-look .stl-item,
-    .previewContainer .landscape .stl-look .stl-item {
-        display: inline-block;
-        width: 135px;
-        vertical-align: top;
     }
 
     .previewContainer .main-image-container .gallery-swipe-left:hover {

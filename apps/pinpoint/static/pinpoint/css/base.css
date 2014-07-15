@@ -834,6 +834,21 @@ div.spinner div.bar12 {
         margin-top: 0;
     }
 
+    #discovery-area {
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    .tile {
+        width: 50% !important;
+    }
+    .tile.wide {
+        min-height: inherit;
+    }
+    .tile.video {
+        width: 480px !important;
+    }
+
     .previewContainer {
         display: block;
         overflow: auto;
@@ -874,18 +889,18 @@ div.spinner div.bar12 {
         height: auto;  /* show all thumbnails in multiple rows */
     }
 
-    #discovery-area {
+    .previewContainer .stl-look,
+    .previewContainer .landscape .stl-look {
+        white-space: normal;
         width: 100%;
-        overflow-x: hidden;
+        margin: auto;
+        text-align: center;
     }
 
-    .tile {
-        width: 50% !important;
-    }
-    .tile.wide {
-        min-height: inherit;
-    }
-    .tile.video {
-        width: 480px !important;
+    .previewContainer .stl-look .stl-item,
+    .previewContainer .landscape .stl-look .stl-item {
+        display: inline-block;
+        width: 135px;
+        vertical-align: top;
     }
 }

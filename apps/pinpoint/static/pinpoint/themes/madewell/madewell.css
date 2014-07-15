@@ -268,24 +268,8 @@
         overflow-y: hidden;
     }
 
-    .previewContainer .stl-look,
-    .previewContainer .landscape .stl-look {
-        white-space: normal;
-        width: 100%;
-        margin: auto;
-        text-align: center;
-        display: block;
-    }
-
     .previewContainer .stl-title,
     .previewContainer .landscape .stl-title {
         margin-bottom: 10px;
-    }
-
-    .previewContainer .stl-look .stl-item,
-    .previewContainer .landscape .stl-look .stl-item {
-        display: inline-block;
-        width: 135px;
-        vertical-align: top;
     }
 }
