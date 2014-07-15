@@ -5,7 +5,7 @@ App.module("scroller", function (module, App) {
     this.timer = undefined;
 
     this.initialize = function () {
-        this.timer = setInterval(this.refreshFeed, 1000);
+        this.timer = setInterval(this.refreshFeed, 5000);
     };
 
     // every 5 seconds, remove the top few tiles from the feed... creating
