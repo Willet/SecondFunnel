@@ -225,10 +225,12 @@ class FeedPipeline(object):
         except TypeError:
             return
 
+        django_item, _ = get_or_create(item_model)
+
         if isinstance(item_model, Product):
-            feed.add_product(product=item_model)
+            feed.add_product(product=django_item)
         if isinstance(item_model, Content):
-            feed.add_content(content=item_model)
+            feed.add_content(content=django_item)
 
 
 class ProductImagePipeline(object):
