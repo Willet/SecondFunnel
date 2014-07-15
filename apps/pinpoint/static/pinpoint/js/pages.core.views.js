@@ -704,7 +704,7 @@ App.module('core', function (module, App) {
             }
 
             if (!this.loading && (children.length === 0 || !App.previewArea.currentView) &&
-                    pageBottomPos >= documentBottomPos - viewportHeights) {
+                    (!App.utils.isIframe() && pageBottomPos >= documentBottomPos - viewportHeights)) {
                 // get more tiles to fill the screen.
                 this.getTiles();
             }

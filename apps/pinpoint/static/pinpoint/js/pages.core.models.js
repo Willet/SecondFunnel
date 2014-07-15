@@ -7,7 +7,7 @@ App.module('core', function (core, App) {
     "use strict";
     var $window = $(window),
         $document = $(document),
-        tempTile;
+        tempTiles = [];  // a list of wide tiles
 
     /**
      * Object store for information about a particular store
@@ -346,34 +346,60 @@ App.module('core', function (core, App) {
             // this = the instance
             var self = this,
                 i = 0,
-                tileJson,
+                col = 0,
+                isIframe = App.utils.isIframe(),
+                tile,
                 tileId,
                 tileIds = App.intentRank.getTileIds(),
                 respBuilder = [];  // new resp after filter(s)
 
             // reorder landscape tiles to only appear after a multiple-of-2
             // products has appeared, allowing gapless layouts in two-col ads.
+
+            // wide tile left over from last run
             for (i = 0; i < resp.length; i++) {
-                tileJson = resp[i];
-                if (!tempTile &&  // there isn't already a wide tile waiting
-                    i % 2 !== 0 &&  // tile about to land on second row
-                    App.utils.isIframe() &&
-                    tileJson.orientation !== 'portrait') {  // tile is wide
-                    tempTile = tileJson;
+                tile = resp[i];
+                tileId = tile['tile-id'];
+                if (!tileId) {
+                    continue;  // is this a tile...?
+                }
+
+                // this is NOT an ad, subject to none of these conditions
+                if (!isIframe) {
+                    respBuilder.push(tile);
+                    continue;
+                }
+
+                // keep track of the current column
+                col = col % 2;
+                // unload buffered wide tiles into list
+                // (col# stays 0 because they're wide)
+                if (col === 0) {
+                    respBuilder = respBuilder.concat(tempTiles);
+                    tempTiles = [];
+                }
+
+                if (tile.orientation === 'portrait') {
+                    respBuilder.push(tile);
+                    col++;
                 } else {
-                    if (tempTile) {
-                        respBuilder.push(tempTile);
-                        tempTile = undefined;
+                    // current tile is wide
+                    if (col === 0) {
+                        // push current wide tile
+                        respBuilder.push(tile);
+                        col += 2;  // wide tiles are 2-col
+                    } else {
+                        // unfavourable condition (2nd col, wide tile)
+                        tempTiles.push(tile);
                     }
-                    respBuilder.push(tileJson);
                 }
             }
             resp = respBuilder;
             respBuilder = [];
 
             for (i = 0; i < resp.length; i++) {
-                tileJson = resp[i];
-                tileId = tileJson['tile-id'];
+                tile = resp[i];
+                tileId = tile['tile-id'];
                 if (!tileId) {
                     continue;  // is this a tile...?
                 }
@@ -396,7 +422,7 @@ App.module('core', function (core, App) {
                     }
                 }
 
-                respBuilder.push(tileJson);  // this tile passes
+                respBuilder.push(tile);  // this tile passes
             }
 
             return _.map(respBuilder, function (jsonEntry) {

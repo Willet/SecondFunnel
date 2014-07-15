@@ -5,7 +5,7 @@ App.module("scroller", function (module, App) {
     this.timer = undefined;
 
     this.initialize = function () {
-        this.timer = setInterval(this.refreshFeed, 5000);
+        this.timer = setInterval(this.refreshFeed, 1000);
     };
 
     // every 5 seconds, remove the top few tiles from the feed... creating
@@ -20,9 +20,13 @@ App.module("scroller", function (module, App) {
 
         feed = App.discoveryArea.currentView;
 
-        // remove the first 4 tiles.
+        // remove the first 4 tiles (or 3 tiles, if the last one is a landscape).
         feed.children.each(function (tile, idx) {
-            if (idx < 5) {
+            if (idx < 3 || (
+                    idx === 3 &&
+                    tilesToRemove.length % 2 === 0 &&
+                    tile.model.get('orientation') !== 'landscape'
+                )) {
                 tile.close();
                 feed.children.remove(tile);
                 tilesToRemove.push(tile);
@@ -31,10 +35,10 @@ App.module("scroller", function (module, App) {
 
         App.layoutEngine.remove(feed, tilesToRemove);
 
-        // um, if there is some chance that there won't be enough tiles
+        // if there is some chance that there won't be enough tiles
         // in the ad, then get some more.
         if (feed.children.length < 10) {
-            feed.getTiles();
+            feed.toggleLoading(false).getTiles();
         }
 
         setTimeout(function () {
