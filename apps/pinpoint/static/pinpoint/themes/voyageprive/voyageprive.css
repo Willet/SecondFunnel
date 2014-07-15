@@ -100,12 +100,6 @@ body {
     font-size: 15px;
 }
 
-@media screen and (max-width: 768px) {
-    .jumbotron {
-        border-bottom: none;
-    }
-}
-
 .tile {
     border: 0;
     width: 50%;

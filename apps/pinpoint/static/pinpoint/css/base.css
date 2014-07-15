@@ -450,6 +450,42 @@ div.loading {
     cursor: default;
 }
 
+.previewContainer .main-image-container .gallery-swipe-left,
+.previewContainer .main-image-container .gallery-swipe-right {
+    top: 50%;
+    position: absolute;
+    cursor: pointer;
+    z-index: 1;
+    width: 0px;
+    height: 0px;
+    background-color: transparent;
+    border-top: 15.5px solid transparent;
+    border-bottom: 15.5px solid transparent;
+    margin-top: -15px;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left.grey,
+.previewContainer .main-image-container .gallery-swipe-right.grey {
+    display: none;
+    cursor: default;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left {
+    border-right: 25px solid #000;
+    left: 5px;
+}
+.previewContainer .main-image-container .gallery-swipe-left:hover {
+    border-right-color: #7D7D7D;
+}
+
+.previewContainer .main-image-container .gallery-swipe-right {
+    border-left: 25px solid #000;
+    right: 5px;
+}
+.previewContainer .main-image-container .gallery-swipe-right:hover {
+    border-left-color: #7D7D7D;
+}
+
 .previewContainer img {
     max-width: 100%;
 }
@@ -793,47 +829,9 @@ div.spinner div.bar12 {
 }
 
 @media screen and (max-width: 768px) {
-    .previewContainer {
-        display: block;
-        overflow: auto;
-        height: auto;
-        position: relative;
-    }
-    #hero-area {
-        display: block;
-        overflow: hidden;
-        height: auto;
-        position: relative;
-    }
-    .previewContainer .mask {
-        /* since mobile previews are not floating, this class is cancelled */
-        display: none;
-    }
-
-    .previewContainer .content {
-        display: block;
-        position: relative;
-        z-index: 0;
-
-        margin: 0;
-        padding: 20px;
-
-        width: 100%;
-
-        background: #fff;
-        border: 0;
-        box-shadow: none;
-    }
-    #hero-area .previewContainer .content {
-        padding: 0;
-    }
-
-    .previewContainer .gallery {
-        height: auto;  /* show all thumbnails in multiple rows */
-    }
-
-    .stl-look {
-        display: none;
+    .jumbotron {
+        border-bottom: none;
+        margin-top: 0;
     }
 
     #discovery-area {
@@ -849,5 +847,78 @@ div.spinner div.bar12 {
     }
     .tile.video {
         width: 480px !important;
+    }
+
+    .previewContainer {
+        display: block;
+        overflow: auto;
+        height: auto;
+        position: relative;
+    }
+    .previewContainer .mask {
+        /* since mobile previews are not floating, this class is cancelled */
+        display: none;
+    }
+
+    .previewContainer .content {
+        display: block;
+        position: relative;
+        z-index: 0;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        background: #fff;
+        border: 0;
+        box-shadow: none;
+    }
+
+    .previewContainer .row {
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .previewContainer .cell {
+        display: block;
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .previewContainer .gallery {
+        height: auto;  /* show all thumbnails in multiple rows */
+    }
+
+    .previewContainer .stl-look,
+    .previewContainer .landscape .stl-look {
+        white-space: normal;
+        width: 100%;
+        margin: auto;
+        text-align: center;
+    }
+
+    .previewContainer .stl-look .stl-item,
+    .previewContainer .landscape .stl-look .stl-item {
+        display: inline-block;
+        width: 135px;
+        vertical-align: top;
+    }
+
+    .previewContainer .main-image-container .gallery-swipe-left:hover {
+        border-right-color: #000;
+    }
+
+    .previewContainer .main-image-container .gallery-swipe-right:hover {
+        border-left-color: #000;
+    }
+
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+@media screen and (min-width: 769px) {
+    .mobile-only {
+        display: none !important;
     }
 }

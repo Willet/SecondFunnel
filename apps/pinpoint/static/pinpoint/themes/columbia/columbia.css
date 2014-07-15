@@ -111,40 +111,6 @@
     width: 100px;
 }
 
-.previewContainer .main-image-container .gallery-swipe-left,
-.previewContainer .main-image-container .gallery-swipe-right {
-    width: 35px;
-    height: 116px;
-    background-repeat: no-repeat;
-    background-position: center;
-    cursor: pointer;
-    position: absolute;
-    top: 50%;
-    margin-top: -58px;
-    z-index: 1;
-}
-
-.previewContainer .main-image-container .gallery-swipe-left.grey,
-.previewContainer .main-image-container .gallery-swipe-right.grey {
-    display: none;
-}
-
-.previewContainer .main-image-container .gallery-swipe-left {
-    background-image: url('/static/pinpoint/themes/nastygal/images/left_arrow_black.png');
-    left: 5px;
-}
-.previewContainer .main-image-container .gallery-swipe-left:hover {
-    background-image: url('/static/pinpoint/themes/nastygal/images/left_arrow_grey.png');
-}
-
-.previewContainer .main-image-container .gallery-swipe-right {
-    background-image: url('/static/pinpoint/themes/nastygal/images/right_arrow_black.png');
-    right: 5px;
-}
-.previewContainer .main-image-container .gallery-swipe-right:hover {
-    background-image: url('/static/pinpoint/themes/nastygal/images/right_arrow_grey.png');
-}
-
 .previewContainer .more-info {
     text-align: right;
     padding-right: 20px;
@@ -156,11 +122,6 @@
 @media screen and (max-width: 768px) {
     .navbar {
         display: none;
-    }
-
-    .jumbotron {
-        margin-top: 0;
-        border-bottom: none;
     }
 
     .previewContainer .close {
@@ -176,21 +137,7 @@
     }
 
     .previewContainer .content {
-        padding: 0;
         padding-top: 43px;
-        height: 100%;
-    }
-
-    .previewContainer .row {
-        max-width: 100%;
-        margin-left: 0;
-        margin-right: 0;
-    }
-
-    .previewContainer .cell {
-        display: block;
-        max-width: 100%;
-        text-align: center;
     }
 
     .previewContainer .gallery img {
@@ -217,36 +164,5 @@
     .previewContainer .info .buy .button {
         display: inline-block;
         min-width: 280px;
-    }
-
-    .previewContainer .stl-look {
-        white-space: normal;
-        width: 100%;
-        margin: auto;
-        text-align: center;
-    }
-
-    .previewContainer .stl-look .stl-item {
-        display: inline-block;
-        width: 135px;
-        vertical-align: top;
-    }
-
-    /* Changing hover on mobile doesn't work very well */
-    .previewContainer .main-image-container .gallery-swipe-left:hover {
-        background-image: url('/static/pinpoint/themes/nastygal/images/left_arrow_black.png');
-    }
-    .previewContainer .main-image-container .gallery-swipe-right:hover {
-        background-image: url('/static/pinpoint/themes/nastygal/images/right_arrow_black.png');
-    }
-
-    .desktop-only {
-        display: none !important;
-    }
-}
-
-@media screen and (min-width: 769px) {
-    .mobile-only {
-        display: none !important;
     }
 }
