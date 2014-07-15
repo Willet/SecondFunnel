@@ -120,9 +120,12 @@ class StoreResource(BaseCGResource):
 
 
 class ProductResource(BaseCGResource):
+    # TODO : Is it necessary to also get all the images that link to this product?
     """REST (tastypie) version of a Product."""
     store = fields.ForeignKey('apps.api.resources.StoreResource',
                               'store', full=False, null=True)
+    default_image = fields.ForeignKey('apps.api.resources.ProductImageResource',
+                                      'default_image', full=True)
 
     class Meta(BaseCGResource.Meta):
         """Django's way of defining a model's metadata."""
