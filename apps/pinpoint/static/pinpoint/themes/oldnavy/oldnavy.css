@@ -176,12 +176,6 @@ html.lt-ie9 .hero-message-container .text .big {
         display: none;
     }
 
-    .previewContainer .content {
-        padding: 0;
-        padding-top: 53px;
-        height: 100%;
-    }
-
     .previewContainer .row {
         max-width: 100%;
         margin-left: 0;

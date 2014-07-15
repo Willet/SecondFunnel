@@ -352,8 +352,6 @@ body {
 
     .previewContainer .fullscreen .content {
         padding: 0;
-        max-width: none;
-        border: none;
     }
 
     .previewContainer .main-image-container .main-image {
