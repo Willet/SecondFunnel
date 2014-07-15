@@ -359,7 +359,7 @@
                                     </div>
                                 </div>
                             <% } %>
-                            <div class="middle cell capped-width desktop-only">
+                            <div class="cell desktop-only">
                                 <img src="<%= obj.image.url %>" alt="image" class="image"/>
                                 <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                                 <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
@@ -379,11 +379,11 @@
                                     </div>
                                 <% } %>
                             </div>
-                            <div class="middle cell capped-width mobile-only">
+                            <div class="cell mobile-only">
                                 <img src="<%= obj.image.url %>" alt="image"/>
                                 <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                             </div>
-                            <div class="middle cell info image<% if (obj.orientation === 'landscape') { %> landscape<% } %>">
+                            <div class="cell info image<% if (obj.orientation === 'landscape') { %> landscape<% } %>">
                                 <% if (!App.support.mobile()) { %>
                                     <div class='title'></div>
                                     <div class='price'></div>
@@ -422,22 +422,22 @@
                 <div class="image-without-tagged-products">
                     <div class="table">
                         <div class="row">
-                            <div class="middle cell capped-width">
+                            <div class="cell">
                                 <img src="<%= obj.image.url %>" alt="image" class="main-image" />
                             </div>
-                            <div class="middle cell">
-                                <div class="info">
-                                    <div class="title">
-                                        Coming soon to Nasty Gal!
-                                    </div>
+                            <div class="cell info">
+                                <div class="title">
+                                    Coming soon to Nasty Gal!
+                                </div>
+                                <div class="buy">
                                     <a class='button' href='http://www.nastygal.com/lookbooks-swim-city' target='_blank'>
                                         <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
                                         <div class="inline">
                                             SHOP ON NASTY GAL
                                         </div>
                                     </a>
-                                    <div class="social-buttons"></div>
                                 </div>
+                                <div class="social-buttons"></div>
                             </div>
                         </div>
                     </div>
@@ -467,7 +467,7 @@
                                     </div>
                                 </div>
                             <% } %>
-                            <div class="middle cell capped-width desktop-only">
+                            <div class="cell desktop-only">
                                 <img src="<%= obj.image.url %>" alt="image" class="image"/>
                                 <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                                 <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
@@ -487,7 +487,7 @@
                                     </div>
                                 <% } %>
                             </div>
-                            <div class="middle cell info<% if (obj.orientation === 'landscape') { %> landscape<% } %>">
+                            <div class="cell info<% if (obj.orientation === 'landscape') { %> landscape<% } %>">
                                 <div class='title'></div>
                                 <div class='price'></div>
                                 <div class='buy'></div>
@@ -502,7 +502,7 @@
                                     </div>
                                 <% } %>
                             </div>
-                            <div class="middle cell capped-width mobile-only">
+                            <div class="cell mobile-only">
                                 <img src="<%= obj.image.url %>" alt="image"/>
                                 <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                                 <% if (obj['tagged-products'].length > 1) { %>
@@ -529,22 +529,22 @@
                 <div class="image-without-tagged-products">
                     <div class="table">
                         <div class="row">
-                            <div class="middle cell capped-width">
+                            <div class="cell">
                                 <img src="<%= obj.image.url %>" alt="image" class="main-image" />
                             </div>
-                            <div class="middle cell">
-                                <div class="info">
-                                    <div class="title">
-                                        Coming soon to Nasty Gal!
-                                    </div>
+                            <div class="cell info">
+                                <div class="title">
+                                    Coming soon to Nasty Gal!
+                                </div>
+                                <div class="buy">
                                     <a class='button' href='http://www.nastygal.com/lookbooks-swim-city' target='_blank'>
                                         <img class="shop-icon" src="{% static 'pinpoint/themes/nastygal/images/shoppingbag.png' %}" />
                                         <div class="inline">
                                             SHOP ON NASTY GAL
                                         </div>
                                     </a>
-                                    <div class="social-buttons"></div>
                                 </div>
+                                <div class="social-buttons"></div>
                             </div>
                         </div>
                     </div>

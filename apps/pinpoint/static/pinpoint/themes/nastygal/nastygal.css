@@ -148,6 +148,10 @@
     max-width: 100%;
 }
 
+#hero-area .image-without-tagged-products .cell.info {
+    vertical-align: middle;
+}
+
 .previewContainer .main-image-container .gallery-swipe-left,
 .previewContainer .main-image-container .gallery-swipe-right {
     width: 35px;
