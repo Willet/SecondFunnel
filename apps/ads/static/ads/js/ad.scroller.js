@@ -5,13 +5,13 @@ App.module("scroller", function (module, App) {
     this.timer = undefined;
 
     this.initialize = function () {
-        this.timer = setInterval(this.refreshFeed, 1000);
+        this.timer = setInterval(this.refreshFeed, 5000);
     };
 
     // every 5 seconds, remove the top few tiles from the feed... creating
     // the illusion that the feed is scrolling.
     this.refreshFeed = function () {
-        var feed, tilesToRemove = [];
+        var feed, tilesToRemove = [], cellsRemoved = 0;
 
         if (!(App.discoveryArea && App.discoveryArea.currentView)) {
             // app hasn't run yet.
@@ -20,16 +20,22 @@ App.module("scroller", function (module, App) {
 
         feed = App.discoveryArea.currentView;
 
-        // remove the first 4 tiles (or 3 tiles, if the last one is a landscape).
+        // remove "rows" (two cells worth of tiles)
         feed.children.each(function (tile, idx) {
-            if (idx < 3 || (
-                    idx === 3 &&
-                    tilesToRemove.length % 2 === 0 &&
-                    tile.model.get('orientation') !== 'landscape'
-                )) {
+            if (cellsRemoved >= 4 && cellsRemoved % 2 === 0) {
+                return;
+            }
+            if (tile.model.get('orientation') !== 'landscape') {
                 tile.close();
                 feed.children.remove(tile);
                 tilesToRemove.push(tile);
+                cellsRemoved++;
+            }
+            if (tile.model.get('orientation') === 'landscape') {
+                tile.close();
+                feed.children.remove(tile);
+                tilesToRemove.push(tile);
+                cellsRemoved += 2;
             }
         });
 

@@ -258,9 +258,14 @@ App.module("intentRank", function (intentRank, App) {
      */
     this.getTileIds = function (tiles) {
         if (tiles === undefined) {
-            tiles = _.map(App.discoveryArea.$el.find('.tile'), function (el) {
-                return $(el).tile().model;
-            });
+            try {
+                tiles = _.map(App.discoveryArea.$el.find('.tile'), function (el) {
+                    return $(el).tile().model;
+                });
+            } catch (err) {
+                // there is no feed on the page, so there are no tiles on the page.
+                return [];
+            }
         }
 
         return _.uniq(_.map(_.compact(tiles), function (model) {

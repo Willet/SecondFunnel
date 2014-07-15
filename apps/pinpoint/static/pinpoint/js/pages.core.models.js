@@ -7,7 +7,7 @@ App.module('core', function (core, App) {
     "use strict";
     var $window = $(window),
         $document = $(document),
-        tempTiles = [],  // a list of wide tiles
+        tempTiles = [],  // a list of portrait tiles
         unpairedTile;  // the last tile left behind
 
     /**
@@ -378,76 +378,38 @@ App.module('core', function (core, App) {
                 // limit col to either 0 or 1
                 col = col % 2;
 
-                if (tile.orientation === 'portrait') {
+                // add lone wide tile (if exists)
+                if (unpairedTile && col % 2 === 0) {
+                    respBuilder.push(unpairedTile);
+                    unpairedTile = undefined;
+                    i--; continue;
+                }
+
+                if (tile.orientation === 'landscape') {
                     if (col === 0) {
-                        if (i === resp.length - 1) {
-                            if (unpairedTile) {
-                                // reserved tile + current tile = 1 row
-                                console.error(i + "popping unpaired portrait tile onto col 0");
-                                respBuilder.push(unpairedTile);
-                                unpairedTile = undefined;
-                                console.error(i + "pushing portrait tile onto col 1");
-                                respBuilder.push(tile);
-                                continue;
-                            } else {
-                                // this is the last tile and adding it now will create
-                                // empty column 2s.
-                                console.error(i + "reserving one unpaired tile from col 0.");
-                                unpairedTile = tile;
-                                continue;
-                            }
-                        }
-
-                        // not the last tile
-                        if (unpairedTile) {
-                            // pop off the unpaired one first
-                            console.error(i + "popping unpaired portrait tile onto col 0");
-                            respBuilder.push(unpairedTile);
-                            unpairedTile = undefined;
-                            col++;
-                            continue;
-                        } else {
-                            // add current tile to list
-                            console.error(i + "pushing portrait tile onto col " + col);
-                            respBuilder.push(tile);
-                            col++;
-                            continue;
-                        }
-                    } else if (col === 1) {
-                        if (unpairedTile) {
-                            // push leftover tile to side of the next available slot
-                            console.error(i + "popping one unpaired tile into col 1.");
-                            respBuilder.push(unpairedTile);
-                            unpairedTile = undefined;
-                            // column is full
-                            col++;
-                            continue;
-                        } else {
-                            console.error(i + "pushing portrait tile onto col " + col);
-                            respBuilder.push(tile);
-                            col++;
-                            continue;
-                        }
+                        // wide and col 0 = good
+                        respBuilder.push(tile);
+                    } else {
+                        // wide and col 1 = good
+                        unpairedTile = tile;
+                        i--;
                     }
+                    continue;
                 }
 
-                // given opportunity, unload buffered wide tiles into list
-                // (col# stays 0 because they're wide)
-                if (col === 0 && tempTiles.length) {
-                    console.error(i + "pushing " + tempTiles.length + " wide tiles onto col 0");
-                    respBuilder = respBuilder.concat(tempTiles);
-                    tempTiles = [];
+                // portrait? check if there are portrait tiles queued
+                if (tempTiles.length) {
+                    respBuilder.push(tempTiles.shift());
+                    col++;
                 }
-
-                // current tile is wide
-                if (col === 0) {
-                    // push current wide tile (col remains 0)
-                    console.error(i + "pushing 1 wide tile onto col " + col);
-                    respBuilder.push(tile);
+                // there is now either a tile in col 0 or one in col 1
+                if (col % 2 === 0) {
+                    if (i !== resp.length - 1) {  // unpaired last tile condition
+                        tempTiles.push(tile);
+                    }
                 } else {
-                    // unfavourable condition (2nd col, wide tile)
-                    console.error(i + "reserving 1 wide tile");
-                    tempTiles.push(tile);
+                    respBuilder.push(tile);
+                    col++;
                 }
             }
             resp = respBuilder;
