@@ -139,42 +139,6 @@ body {
     text-transform: none;
 }
 
-.previewContainer .main-image-container .gallery-swipe-left,
-.previewContainer .main-image-container .gallery-swipe-right {
-    width: 0px;
-    height: 0px;
-    background-color: transparent;
-    border-top: 22.5px solid transparent;
-    border-bottom: 22.5px solid transparent;
-    cursor: pointer;
-    position: absolute;
-    top: 50%;
-    margin-top: -22px;
-    z-index: 1;
-}
-
-
-.previewContainer .main-image-container .gallery-swipe-left.grey,
-.previewContainer .main-image-container .gallery-swipe-right.grey {
-    display: none;
-}
-
-.previewContainer .main-image-container .gallery-swipe-left {
-    border-right: 25px solid #000;
-    left: 5px;
-}
-.previewContainer .main-image-container .gallery-swipe-left:hover {
-    border-right-color: #7D7D7D;
-}
-
-.previewContainer .main-image-container .gallery-swipe-right {
-    border-left: 25px solid #000;
-    right: 5px;
-}
-.previewContainer .main-image-container .gallery-swipe-right:hover {
-    border-left-color: #7D7D7D;
-}
-
 .previewContainer .image-with-tagged-products .cell.shop {
     width: 120px;
 }

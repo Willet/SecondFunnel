@@ -450,6 +450,42 @@ div.loading {
     cursor: default;
 }
 
+.previewContainer .main-image-container .gallery-swipe-left,
+.previewContainer .main-image-container .gallery-swipe-right {
+    top: 50%;
+    position: absolute;
+    cursor: pointer;
+    z-index: 1;
+    width: 0px;
+    height: 0px;
+    background-color: transparent;
+    border-top: 15.5px solid transparent;
+    border-bottom: 15.5px solid transparent;
+    margin-top: -15px;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left.grey,
+.previewContainer .main-image-container .gallery-swipe-right.grey {
+    display: none;
+    cursor: default;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left {
+    border-right: 25px solid #000;
+    left: 5px;
+}
+.previewContainer .main-image-container .gallery-swipe-left:hover {
+    border-right-color: #7D7D7D;
+}
+
+.previewContainer .main-image-container .gallery-swipe-right {
+    border-left: 25px solid #000;
+    right: 5px;
+}
+.previewContainer .main-image-container .gallery-swipe-right:hover {
+    border-left-color: #7D7D7D;
+}
+
 .previewContainer img {
     max-width: 100%;
 }

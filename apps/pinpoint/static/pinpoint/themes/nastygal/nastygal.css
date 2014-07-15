@@ -154,21 +154,12 @@
     height: 116px;
     background-repeat: no-repeat;
     background-position: center;
-    cursor: pointer;
-    position: absolute;
-    top: 50%;
     margin-top: -58px;
-    z-index: 1;
-}
-
-.previewContainer .main-image-container .gallery-swipe-left.grey,
-.previewContainer .main-image-container .gallery-swipe-right.grey {
-    display: none;
+    border: none;
 }
 
 .previewContainer .main-image-container .gallery-swipe-left {
     background-image: url('/static/pinpoint/themes/nastygal/images/left_arrow_black.png');
-    left: 5px;
 }
 .previewContainer .main-image-container .gallery-swipe-left:hover {
     background-image: url('/static/pinpoint/themes/nastygal/images/left_arrow_grey.png');
@@ -176,7 +167,6 @@
 
 .previewContainer .main-image-container .gallery-swipe-right {
     background-image: url('/static/pinpoint/themes/nastygal/images/right_arrow_black.png');
-    right: 5px;
 }
 .previewContainer .main-image-container .gallery-swipe-right:hover {
     background-image: url('/static/pinpoint/themes/nastygal/images/right_arrow_grey.png');
