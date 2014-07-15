@@ -263,7 +263,7 @@ App.module("intentRank", function (intentRank, App) {
             });
         }
 
-        return _.uniq(_.map(tiles, function (model) {
+        return _.uniq(_.map(_.compact(tiles), function (model) {
             try {  // Tile
                 return model.get('tile-id');
             } catch (err) {  // object
