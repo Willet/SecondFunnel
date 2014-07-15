@@ -225,11 +225,6 @@
         display: none;
     }
 
-    .jumbotron {
-        margin-top: 0;
-        border-bottom: none;
-    }
-
     #hero-area .previewContainer .content {
         padding-top: 24px;
     }

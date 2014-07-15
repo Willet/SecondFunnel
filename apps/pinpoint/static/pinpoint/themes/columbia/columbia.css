@@ -124,11 +124,6 @@
         display: none;
     }
 
-    .jumbotron {
-        margin-top: 0;
-        border-bottom: none;
-    }
-
     .previewContainer .close {
         left: 0;
         top: 0;

@@ -364,11 +364,6 @@ body {
         margin-left: 20px;
     }
 
-    .jumbotron {
-        margin-top: 0;
-        border-bottom: none;
-    }
-
     .previewContainer .gallery img {
         display: inline-block;
     }

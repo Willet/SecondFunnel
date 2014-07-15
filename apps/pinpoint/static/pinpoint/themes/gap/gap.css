@@ -499,10 +499,6 @@ div.header {
         display: none;
     }
 
-    .jumbotron {
-        border-bottom: none;
-    }
-
     #hero-area .overlay {
         position: static;
         display: block;

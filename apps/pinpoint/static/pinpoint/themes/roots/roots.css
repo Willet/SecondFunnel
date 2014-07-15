@@ -191,11 +191,6 @@ body {
         display: none;
     }
 
-    .jumbotron {
-        margin-top: 0;
-        border-bottom: none;
-    }
-
     .previewContainer .close.small-close {
         display: none;
     }
