@@ -1,7 +1,9 @@
 from django.conf.urls import url, patterns, include
 from tastypie.api import Api
 
-from apps.api.resources import UserResource
+from apps.api.resources import UserResource, StoreResource, ProductResource, ProductImageResource, ReviewResource, \
+    VideoResource, ContentResource, ImageResource, ThemeResource, PageResource, FeedResource, TileResource, \
+    TileConfigResource
 from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageContentCGHandler, ProductCGHandler, StoreProductCGHandler,
     ProductImageItemCGHandler,
@@ -22,19 +24,41 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StoreContentRejectItemCGHandler, StoreContentUndecideItemCGHandler, ProductItemCGHandler)
 from apps.api.views.content import PageContentAllCGHandler
 
-prefix = 'v1'
-
-# tastypie routers
-api = Api(api_name=prefix)
+# tastypie v2 api
+api = Api(api_name='v2')
 api.register(UserResource())
+api.register(StoreResource())
+api.register(ProductResource())
+api.register(ProductImageResource())
+api.register(ContentResource())
+api.register(ImageResource())
+api.register(VideoResource())
+api.register(ReviewResource())
+api.register(ThemeResource())
+api.register(FeedResource())
+api.register(PageResource())
+api.register(TileResource())
+api.register(TileConfigResource())
 
 urlpatterns = api.urls
 
+# api urls v1
+# This stuff can hopefully be removed when the CM is re-written..
+prefix = 'v1'
+
+# this is where i am porting all the stuff that can be ported without changing CM
+apiv1 = Api(api_name=prefix)
+apiv1.register(UserResource())
+apiv1.register(StoreResource())
+apiv1.register(ProductImageResource())
+
+
+urlpatterns += apiv1.urls  # tastypie urls
 urlpatterns += patterns('apps.api.views',
     # primitive handlers
     # store
-    url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreItemCGHandler.as_view()),
+    # url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),
+    # url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreItemCGHandler.as_view()),
 
     url(r'^%s/category/?$' % prefix, CategoryCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/category/?$' % prefix, CategoryCGHandler.as_view()),
@@ -72,12 +96,13 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/deprioritize/?$' % prefix, StorePageProductDeprioritizeItemCGHandler.as_view()),
 
     # product images
-    url(r'^%s/productimage/(?P<id>\d+)/?$' % prefix, ProductImageItemCGHandler.as_view()),
+    # url(r'^%s/productimage/(?P<id>\d+)/?$' % prefix, ProductImageItemCGHandler.as_view()),
 
     # page
     url(r'^%s/page/?$' % prefix, PageCGHandler.as_view()),
     url(r'^%s/page/(?P<page_id>\d+)/?$' % prefix, PageItemCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/page/?$' % prefix, StorePageCGHandler.as_view()),
+    # url(r'^%s/store/(?P<store_id>\d+)/page/?$' % prefix, StorePageCGHandler.as_view()),
+    # the url graph/v2/store/<storeid>/page returns an array of pages. no need to specify in url
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/?$' % prefix, StorePageItemCGHandler.as_view()),
 
     # tileconfig

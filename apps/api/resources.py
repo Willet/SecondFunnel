@@ -142,7 +142,7 @@ class ProductImageResource(BaseCGResource):
     """Returns "a product image"."""
     class Meta(BaseCGResource.Meta):
         queryset = ProductImage.objects.all()
-        resource_name = 'product_image'
+        resource_name = 'productimage'
 
         filtering = {
             'store': ALL,
@@ -291,10 +291,10 @@ class PageResource(BaseCGResource):
 
     def get_contents(self, request, **kwargs):
         """
-        /graph/v1/page/123/content.
+        /graph/v2/page/123/content.
 
-        TODO: /graph/v1/store/38/page/95/content
-        TODO: /graph/v1/store/38/page/95/content/suggested
+        TODO: /graph/v2/store/38/page/95/content
+        TODO: /graph/v2/store/38/page/95/content/suggested
         """
         try:
             page = Page.objects.get(id=kwargs['id'])
@@ -313,9 +313,9 @@ class PageResource(BaseCGResource):
 
     def get_tile_configs(self, request, **kwargs):
         """
-        /graph/v1/page/123/tile-config.
+        /graph/v2/page/123/tile-config.
 
-        TODO: /graph/v1/store/38/page/95/tile-config/1234
+        TODO: /graph/v2/store/38/page/95/tile-config/1234
         """
         try:
             page = Page.objects.get(id=kwargs['id'])
