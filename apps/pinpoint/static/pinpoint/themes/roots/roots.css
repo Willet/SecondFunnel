@@ -139,42 +139,6 @@ body {
     text-transform: none;
 }
 
-.previewContainer .main-image-container .gallery-swipe-left,
-.previewContainer .main-image-container .gallery-swipe-right {
-    width: 0px;
-    height: 0px;
-    background-color: transparent;
-    border-top: 22.5px solid transparent;
-    border-bottom: 22.5px solid transparent;
-    cursor: pointer;
-    position: absolute;
-    top: 50%;
-    margin-top: -22px;
-    z-index: 1;
-}
-
-
-.previewContainer .main-image-container .gallery-swipe-left.grey,
-.previewContainer .main-image-container .gallery-swipe-right.grey {
-    display: none;
-}
-
-.previewContainer .main-image-container .gallery-swipe-left {
-    border-right: 25px solid #000;
-    left: 5px;
-}
-.previewContainer .main-image-container .gallery-swipe-left:hover {
-    border-right-color: #7D7D7D;
-}
-
-.previewContainer .main-image-container .gallery-swipe-right {
-    border-left: 25px solid #000;
-    right: 5px;
-}
-.previewContainer .main-image-container .gallery-swipe-right:hover {
-    border-left-color: #7D7D7D;
-}
-
 .previewContainer .image-with-tagged-products .cell.shop {
     width: 120px;
 }
@@ -227,31 +191,8 @@ body {
         display: none;
     }
 
-    .jumbotron {
-        margin-top: 0;
-        border-bottom: none;
-    }
-
-    .previewContainer .content {
-        padding: 0;
-        padding-top: 53px;
-        height: 100%;
-    }
-
     .previewContainer .close.small-close {
         display: none;
-    }
-
-    .previewContainer .row {
-        max-width: 100%;
-        margin-left: 0;
-        margin-right: 0;
-    }
-
-    .previewContainer .cell {
-        display: block;
-        max-width: 100%;
-        text-align: center;
     }
 
     .previewContainer .gallery img {
@@ -287,32 +228,9 @@ body {
         min-width: 280px;
     }
 
-    .previewContainer .stl-look,
-    .previewContainer .landscape .stl-look {
-        white-space: normal;
-        width: 100%;
-        margin: auto;
-        text-align: center;
-    }
-
     .previewContainer .stl-title,
     .previewContainer .landscape .stl-title {
         margin-top: 5px;
-    }
-
-    .previewContainer .stl-look .stl-item,
-    .previewContainer .landscape .stl-look .stl-item {
-        display: inline-block;
-        width: 135px;
-        vertical-align: top;
-    }
-
-    /* Changing hover on mobile doesn't work very well */
-    .previewContainer .main-image-container .gallery-swipe-left:hover {
-        border-right-color: #000;
-    }
-    .previewContainer .main-image-container .gallery-swipe-right:hover {
-        border-left-color: #000;
     }
 
     .previewContainer .image-with-tagged-products .cell.shop {
@@ -321,15 +239,5 @@ body {
 
     .previewContainer .roots-logo {
         display: none;
-    }
-
-    .desktop-only {
-        display: none !important;
-    }
-}
-
-@media screen and (min-width: 769px) {
-    .mobile-only {
-        display: none !important;
     }
 }

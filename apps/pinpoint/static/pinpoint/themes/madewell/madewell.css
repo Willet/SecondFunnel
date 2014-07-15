@@ -129,47 +129,6 @@
     text-transform: uppercase;
 }
 
-/* indicate that the image can be swiped */
-.previewContainer .gallery-swipe-left, .previewContainer .gallery-swipe-right {
-    top: 50%;
-    z-index: 2;
-    color: #eee;
-    width: 0px;
-    height: 0px;
-    background-color: transparent;
-    border-top: 22.5px solid transparent;
-    border-bottom: 22.5px solid transparent;
-    margin-top: -22px;
-    position: absolute;
-    cursor: pointer;
-}
-
-.previewContainer .gallery-swipe-left {
-    border-right: 25px solid #000;
-    left: 8px;
-}
-
-.previewContainer .gallery-swipe-left.grey {
-    display: none;
-}
-
-.previewContainer .gallery-swipe-left:hover {
-    border-right-color: #7D7D7D;
-}
-
-.previewContainer .gallery-swipe-right {
-    border-left: 25px solid #000;
-    right: 8px;
-}
-
-.previewContainer .gallery-swipe-right.grey {
-    display: none;
-}
-
-.previewContainer .gallery-swipe-right:hover {
-    border-left-color: #7D7D7D;
-}
-
 .previewContainer hr {
     display: block;
     height: 1px;
@@ -245,18 +204,6 @@
         position: absolute;
     }
 
-    .previewContainer .row {
-        max-width: 100%;
-        margin-left: 0;
-        margin-right: 0;
-    }
-
-    .previewContainer .cell {
-        display: block;
-        max-width: 100%;
-        text-align: center;
-    }
-
     .previewContainer .close {
         font-size: 11pt;
         padding: 0px;
@@ -265,13 +212,6 @@
         height: 30px;
         position: relative;
         top: -25px;
-    }
-
-    .previewContainer .content {
-        padding: 0px;
-        margin-bottom: 0;
-        max-height: 100%;
-        width: 100%;
     }
 
     .previewContainer .content .info {
@@ -328,24 +268,8 @@
         overflow-y: hidden;
     }
 
-    .previewContainer .stl-look,
-    .previewContainer .landscape .stl-look {
-        white-space: normal;
-        width: 100%;
-        margin: auto;
-        text-align: center;
-        display: block;
-    }
-
     .previewContainer .stl-title,
     .previewContainer .landscape .stl-title {
         margin-bottom: 10px;
-    }
-
-    .previewContainer .stl-look .stl-item,
-    .previewContainer .landscape .stl-look .stl-item {
-        display: inline-block;
-        width: 135px;
-        vertical-align: top;
     }
 }
