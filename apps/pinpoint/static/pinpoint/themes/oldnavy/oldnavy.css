@@ -219,7 +219,6 @@ html.lt-ie9 .hero-message-container .text .big {
         margin-bottom: 10px;
     }
 
-    /* Changing hover on mobile doesn't work very well */
     .previewContainer .main-image-container .gallery-swipe-left:hover {
         border-right-color: #777;
     }

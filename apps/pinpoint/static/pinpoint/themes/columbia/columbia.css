@@ -166,14 +166,6 @@
         min-width: 280px;
     }
 
-    /* Changing hover on mobile doesn't work very well */
-    .previewContainer .main-image-container .gallery-swipe-left:hover {
-        background-image: url('/static/pinpoint/themes/nastygal/images/left_arrow_black.png');
-    }
-    .previewContainer .main-image-container .gallery-swipe-right:hover {
-        background-image: url('/static/pinpoint/themes/nastygal/images/right_arrow_black.png');
-    }
-
     .desktop-only {
         display: none !important;
     }

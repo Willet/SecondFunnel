@@ -233,14 +233,6 @@ body {
         margin-top: 5px;
     }
 
-    /* Changing hover on mobile doesn't work very well */
-    .previewContainer .main-image-container .gallery-swipe-left:hover {
-        border-right-color: #000;
-    }
-    .previewContainer .main-image-container .gallery-swipe-right:hover {
-        border-left-color: #000;
-    }
-
     .previewContainer .image-with-tagged-products .cell.shop {
         width: auto;
     }

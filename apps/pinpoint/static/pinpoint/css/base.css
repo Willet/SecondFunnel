@@ -903,4 +903,12 @@ div.spinner div.bar12 {
         width: 135px;
         vertical-align: top;
     }
+
+    .previewContainer .main-image-container .gallery-swipe-left:hover {
+        border-right-color: #000;
+    }
+
+    .previewContainer .main-image-container .gallery-swipe-right:hover {
+        border-left-color: #000;
+    }
 }

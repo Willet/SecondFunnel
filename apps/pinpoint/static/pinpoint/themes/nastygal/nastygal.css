@@ -246,7 +246,6 @@
         margin-top: 30px;
     }
 
-    /* Changing hover on mobile doesn't work very well */
     .previewContainer .main-image-container .gallery-swipe-left:hover {
         background-image: url('/static/pinpoint/themes/nastygal/images/left_arrow_black.png');
     }
