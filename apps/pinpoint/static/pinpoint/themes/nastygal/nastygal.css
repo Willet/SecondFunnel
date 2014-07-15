@@ -230,25 +230,8 @@
         border-bottom: none;
     }
 
-    .previewContainer .row {
-        max-width: 100%;
-        margin-left: 0;
-        margin-right: 0;
-    }
-
-    #hero-area .row {
-        max-width: 100%;
-        margin-left: 10px;
-        margin-right: 10px;
-    }
-
-    .previewContainer .cell, .featured.product .cell {
-        display: block;
-        max-width: 100%;
-        text-align: center;
-    }
-    #hero-area .cell {
-        padding: 20px;
+    #hero-area .previewContainer .content {
+        padding-top: 24px;
     }
 
     .previewContainer .gallery img {

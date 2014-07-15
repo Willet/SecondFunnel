@@ -369,18 +369,6 @@ body {
         border-bottom: none;
     }
 
-    .previewContainer .row {
-        max-width: 100%;
-        margin-left: 0;
-        margin-right: 0;
-    }
-
-    .previewContainer .cell {
-        display: inline-block;
-        max-width: 100%;
-        text-align: center;
-    }
-
     .previewContainer .gallery img {
         display: inline-block;
     }
