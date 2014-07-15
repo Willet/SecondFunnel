@@ -911,4 +911,14 @@ div.spinner div.bar12 {
     .previewContainer .main-image-container .gallery-swipe-right:hover {
         border-left-color: #000;
     }
+
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+@media screen and (min-width: 769px) {
+    .mobile-only {
+        display: none !important;
+    }
 }

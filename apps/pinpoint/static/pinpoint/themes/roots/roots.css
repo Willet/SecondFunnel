@@ -240,14 +240,4 @@ body {
     .previewContainer .roots-logo {
         display: none;
     }
-
-    .desktop-only {
-        display: none !important;
-    }
-}
-
-@media screen and (min-width: 769px) {
-    .mobile-only {
-        display: none !important;
-    }
 }

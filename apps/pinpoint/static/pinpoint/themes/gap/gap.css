@@ -644,18 +644,10 @@ div.header {
     .previewContainer .gallery-dots .item.selected {
         background-color: white;
     }
-
-    .desktop-only {
-        display: none !important;
-    }
 }
 
 @media (min-width:769px) {
     .navbar>.container .navbar-brand {
         margin-left: 0;
-    }
-
-    .mobile-only {
-        display: none !important;
     }
 }

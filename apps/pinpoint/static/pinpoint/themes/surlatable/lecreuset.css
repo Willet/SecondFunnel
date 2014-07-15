@@ -334,14 +334,7 @@ body {
     display: inline-block;
 }
 
-@media screen and (min-width: 769px) {
-    .mobile-only {
-        display: none !important;
-    }
-}
-
 @media screen and (max-width: 768px) {
-
     .container {
         padding: 0px 5px;
     }
@@ -412,14 +405,9 @@ body {
     .previewContainer .image-without-tagged-products img {
         margin-top: 35px;
     }
-
-    .desktop-only {
-        display: none !important;
-    }
 }
 
 @media screen and (max-width: 550px) {
-
     .navbar .container a.logo {
         width: 45%;
     }

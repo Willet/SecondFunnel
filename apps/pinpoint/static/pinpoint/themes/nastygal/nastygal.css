@@ -252,14 +252,4 @@
     .previewContainer .main-image-container .gallery-swipe-right:hover {
         background-image: url('/static/pinpoint/themes/nastygal/images/right_arrow_black.png');
     }
-
-    .desktop-only {
-        display: none !important;
-    }
-}
-
-@media screen and (min-width: 769px) {
-    .mobile-only {
-        display: none !important;
-    }
 }

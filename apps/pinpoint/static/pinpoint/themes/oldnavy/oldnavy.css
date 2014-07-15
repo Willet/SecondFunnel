@@ -229,14 +229,4 @@ html.lt-ie9 .hero-message-container .text .big {
     .previewContainer .image-with-tagged-products .cell.shop {
         width: auto;
     }
-
-    .desktop-only {
-        display: none !important;
-    }
-}
-
-@media screen and (min-width: 769px) {
-    .mobile-only {
-        display: none !important;
-    }
 }
