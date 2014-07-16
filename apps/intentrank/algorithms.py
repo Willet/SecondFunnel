@@ -11,7 +11,7 @@ from functools import partial, wraps
 from django.conf import settings
 from django.db.models.query import QuerySet
 from apps.assets.models import Tile
-from apps.utils.functional import result
+from apps.utils.functional import result, sort_helper
 
 
 def ids_of(tiles):  # shorthand (got too annoying)
@@ -28,7 +28,9 @@ def filter_tiles(fn):
     @wraps(fn)
     def wrapped_fn(*args, **kwargs):
         tiles, feed = kwargs.get('tiles'), kwargs.get('feed')
-        allowed_set, exclude_set = kwargs.get('allowed_set'), kwargs.get('exclude_set')
+        allowed_set= kwargs.get('allowed_set')
+        exclude_set = kwargs.get('exclude_set')
+
         offset, results = kwargs.get('offset', None), kwargs.get('results', 10)
 
         content_only = kwargs.get('content_only', False)
@@ -49,10 +51,7 @@ def filter_tiles(fn):
         if not isinstance(tiles, QuerySet):
             tiles = qs_for(tiles)
 
-        if allowed_set:
-            tiles = tiles.filter(id__in=allowed_set)
-        if exclude_set:
-            tiles = tiles.exclude(id__in=exclude_set)
+        tiles = filter_excluded(tiles, allowed_set, exclude_set)
         if products_only:
             tiles = tiles.filter(template='product')
         if content_only:
@@ -99,6 +98,17 @@ def returns_qs(fn):
     return wrapped_fn
 
 
+def filter_excluded(tiles, allowed_set=None, exclude_set=None):
+    """Given a Tile QuerySet, apply allowed_set and/or exclude_set to it
+    if present.
+    """
+    if allowed_set:
+        tiles = tiles.filter(id__in=allowed_set)
+    if exclude_set:
+        tiles = tiles.exclude(id__in=exclude_set)
+    return tiles
+
+
 def qs_for(tiles):
     """Convert a list of tiles to a queryset containing those tiles.
 
@@ -124,6 +134,19 @@ def qs_for(tiles):
         order_by=('ordering', ))
 
     return qs
+
+
+def directional(fn):
+    """Given a dynamic sort algorithm like ir_finite_by_(any), Automatically
+    detect whether its sort is reversed.
+    """
+    @wraps(fn)
+    def wrapped(attribute, reversed_=False):
+        """If the attribute begins with '-', the sort will be reversed."""
+        if attribute[0] == '-':
+            attribute, reversed_ = attribute[1:], True
+        return fn(attribute=attribute, reversed_=reversed_)
+    return wrapped
 
 
 @filter_tiles
@@ -216,7 +239,10 @@ def ir_priority_sorted(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 def ir_random(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
     """get (a numbr of) random tiles, except the ones in exclude_set,
     which is a list of old id integers."""
-    tiles = tiles[:results]
+    if not tiles and kwargs.pop("exclude_set"):
+        tiles = ir_random(**kwargs)
+
+    tiles = tiles.order_by('?')[:results]
 
     print "{0} tile(s) were randomly added".format(len(tiles))
 
@@ -559,14 +585,13 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     return prioritized_content[:results]
 
 
+@directional
 def ir_finite_by(attribute='created_at', reversed_=False):
     """Returns a finite algorithm that orders its tiles based on a field,
     such as 'created_at'.
 
     Adding '-' will reverse the sort.
     """
-    if attribute[0] == '-':
-        attribute, reversed_ = attribute[1:], True
 
     @wraps(ir_finite_by)
     @returns_qs
@@ -575,23 +600,12 @@ def ir_finite_by(attribute='created_at', reversed_=False):
              *args, **kwargs):
         """Outputs tiles, based on tiles' {attribute}, in offset slices."""
 
-        def sort_fn(tile):
-            """Turns a tile into a number"""
-            try:
-                sort_val = result(getattr(tile, attribute), arg=tile)
-            except:
-                sort_val = result(getattr(tile, attribute))
-            return sort_val
-
         if results < 1:
             return []
 
-        if allowed_set:
-            tiles = tiles.filter(id__in=allowed_set)
+        tiles = filter_excluded(tiles, allowed_set, exclude_set)
 
-        if exclude_set:
-            tiles = tiles.exclude(id__in=exclude_set)
-
+        sort_fn = partial(sort_helper, attribute=attribute)
         tiles = sorted(tiles, key=sort_fn, reverse=reversed_)
 
         # generate a verbose id:value map that shows exactly why a tile was
@@ -632,11 +646,11 @@ def ir_auto(tiles, request=None, *args, **kwargs):
     # undesirable situation to be in -- use infinite algorithms instead
     if product_count > content_count:
         if content_count < 5:
-            return ir_ordered(tiles, *args, **kwargs)
+            return ir_ordered(tiles=tiles, *args, **kwargs)
 
         # how large is the sample space?
         if len(tiles) < 100:
-            return ir_generic(tiles, *args, **kwargs)
+            return ir_generic(tiles=tiles, *args, **kwargs)
         return ir_random(tiles=tiles, *args, **kwargs)
 
     # how much engagement can we detect?
@@ -676,9 +690,43 @@ def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # this is causing problems on master with sorting already-sliced querysets
     # -- can anyone else confirm?
     # random_tiles = random_tiles.order_by('?')
-    tiles += random_tiles
+    tiles = list(tiles) + list(random_tiles)
 
     return tiles[:results]
+
+
+@directional
+def ir_ordered_by(attribute='created_at', reversed_=False):
+    """Returns a ordered algorithm that orders its tiles based on a field,
+    such as 'created_at'.
+
+    Adding '-' will reverse the sort.
+    """
+    @wraps(ir_ordered_by)
+    @returns_qs
+    def algo(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+             request=None, offset=0, allowed_set=None, exclude_set=None,
+             *args, **kwargs):
+        """Outputs tiles, based on tiles' {attribute}, in offset slices.
+        If no more tiles are left in the offset, the offset is reset relative
+        to the total size of the tile pool and looped back again to the head.
+        """
+        if results < 1:
+            return []
+
+        tiles = filter_excluded(tiles, allowed_set, exclude_set)
+
+        sort_fn = partial(sort_helper, attribute=attribute)
+        tiles = sorted(tiles, key=sort_fn, reverse=reversed_)
+        tile_count = len(tiles)
+
+        # loop offsets
+        offset = offset % tile_count
+        tiles = tiles[offset:offset + results]
+
+        return tiles
+
+    return algo
 
 
 @filter_tiles
@@ -699,9 +747,13 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         for content in tile.content.all():
             products.extend(list(content.tagged_products.all()))
 
-        max_sale = max([parse_int(product.attributes.get('discount',
-                                                         product.attributes.get('sale_price', 0)))
-                        for product in products])
+        discounts = [parse_int(product.attributes.get('discount',
+                       product.attributes.get('sale_price', 0)))
+                     for product in products]
+        if discounts:
+            max_sale = max(discounts)
+        else:
+            max_sale = 0  # no discount = no sale
         return max_sale
 
     tiles = sorted(tiles, key=sort_fn, reverse=True)

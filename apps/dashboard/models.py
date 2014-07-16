@@ -116,6 +116,8 @@ class AnalyticsQuery(Query):
         date = self.get_dates(page.campaign)
         try:
             campaign_id = page.campaign.identifier
+            if campaign_id is None:
+                campaign_id = ''
         except: # if there is no campaign set.
             campaign_id = ''
 
@@ -339,7 +341,7 @@ class Campaign(models.Model):
     """
     title = models.CharField(max_length=128)
     # the google identifier to filter by. This is unique
-    identifier = models.CharField(max_length=128, unique=True)
+    identifier = models.CharField(max_length=128, blank=True, default="")
 
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()

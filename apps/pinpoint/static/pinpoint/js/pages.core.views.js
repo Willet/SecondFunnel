@@ -901,7 +901,12 @@ App.module('core', function (module, App) {
                         productModel = new App.core.Product(product);
 
                     $this.addClass('selected').siblings().removeClass('selected');
-                    App.options.galleryIndex = index;
+
+                    if (self.$el.parents('#hero-area').length) {
+                        App.options.heroGalleryIndex = index;
+                    } else {
+                        App.options.galleryIndex = index;
+                    }
 
                     if (product.images.length === 1) {
                         $('.gallery, .gallery-dots', self.$el).addClass('hide');
@@ -917,20 +922,24 @@ App.module('core', function (module, App) {
 
                     self.renderSubregions(productModel);
                 });
-
-                // First image is always selected
-                this.$('.stl-look').each(function () {
-                    $(this).find('.stl-item').first().click();
-                });
             }
         },
 
         // Disable scrolling body when preview is shown
         'onShow': function () {
-            var product;
+            var product,
+                index = App.option('galleryIndex', 0);
+
+            if (this.$el.parents('#hero-area').length) {
+                index = App.option('heroGalleryIndex', 0);
+            }
+
+            this.$('.stl-look').each(function () {
+                $(this).find('.stl-item').eq(index).addClass('selected');
+            });
 
             if (this.model.get('tagged-products') && this.model.get('tagged-products').length) {
-                product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
+                product = new App.core.Product(this.model.get('tagged-products')[index]);
                 this.renderSubregions(product);
             } else if (this.model.get('template', '') === 'product') {
                 this.renderSubregions(this.model);
