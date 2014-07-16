@@ -381,6 +381,7 @@ App.module('core', function (core, App) {
                 if (unpairedTile && col % 2 === 0) {
                     respBuilder.push(unpairedTile);
                     unpairedTile = undefined;
+                    // TODO: switch to while loop to avoid this mess
                     i--; continue;
                 }
 
@@ -391,6 +392,7 @@ App.module('core', function (core, App) {
                     } else {
                         // wide and col 1 = good
                         unpairedTile = tile;
+                        // TODO: switch to while loop to avoid this mess
                         i--;
                     }
                     continue;
