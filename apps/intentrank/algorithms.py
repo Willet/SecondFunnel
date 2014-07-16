@@ -219,7 +219,7 @@ def ir_random(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
     if not tiles and kwargs.pop("exclude_set"):
         tiles = ir_random(**kwargs)
 
-    tiles = tiles[:results]
+    tiles = tiles.order_by('?')[:results]
 
     print "{0} tile(s) were randomly added".format(len(tiles))
 
