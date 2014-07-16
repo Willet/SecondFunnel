@@ -216,8 +216,8 @@ def ir_priority_sorted(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 def ir_random(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
     """get (a numbr of) random tiles, except the ones in exclude_set,
     which is a list of old id integers."""
-    if not tiles and 'feed' in kwargs:
-        tiles = kwargs.get('feed').tiles.all()
+    if not tiles and kwargs.pop("exclude_set"):
+        tiles = ir_random(**kwargs)
 
     tiles = tiles[:results]
 
