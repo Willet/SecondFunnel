@@ -86,8 +86,11 @@ class StoreResource(BaseCGResource):
     # TODO is it necessary to display full information, or is a link to the api where this info is located good enough?
     staff = fields.ToManyField('apps.api.resources.UserResource', 'staff', full=True)
     default_theme = fields.ForeignKey('apps.api.resources.ThemeResource', 'default_theme', full=True, null=True)
+    pages = fields.ToManyField('apps.api.resources.PageResource', 'pages')
     # TODO products in the store? is this necessary?
-    # products = fields.ToManyField('apps.api.resources.ProductResource', 'products', null=True)
+    products = fields.ToManyField('apps.api.resources.ProductResource', 'products')
+    content = fields.ToManyField('apps.api.resources.ContentResource', 'content')
+    categories = fields.ToManyField('apps.api.resources.CategoryResource', 'categories')
 
     class Meta(BaseCGResource.Meta):
         queryset = Store.objects.all()
@@ -128,11 +131,13 @@ class StoreResource(BaseCGResource):
 class ProductResource(BaseCGResource):
     """REST (tastypie) version of a Product."""
     store = fields.ForeignKey('apps.api.resources.StoreResource',
-                              'store', full=True, null=True)
+                              'store', null=True)
     default_image = fields.ForeignKey('apps.api.resources.ProductImageResource',
-                                      'default_image', full=True)
+                                      'default_image')
     # TODO should this be full data or just links to the endpoints?
     images = fields.ToManyField('apps.api.resources.ProductImageResource', 'product_images', null=True)
+    categories = fields.ToManyField('apps.api.resources.CategoryResource', 'categories')
+    tagged_on = fields.ToManyField('apps.api.resources.ContentResource', 'content')
 
     class Meta(BaseCGResource.Meta):
         """Django's way of defining a model's metadata."""
@@ -151,6 +156,7 @@ class ProductResource(BaseCGResource):
 class ProductImageResource(BaseCGResource):
     """Returns "a product image"."""
     product = fields.ForeignKey('apps.api.resources.ProductResource', 'product', null=True)
+    used_by = fields.ToManyField('apps.api.resources.ProductResource', 'default_image')
 
     class Meta(BaseCGResource.Meta):
         queryset = ProductImage.objects.all()
@@ -178,7 +184,6 @@ class ContentResource(BaseCGResource):
 
     store = fields.ForeignKey('apps.api.resources.StoreResources', 'store', null=True)
     tagged_products = fields.ToManyField('apps.api.resources.ProductResource', 'tagged_products', null=True)
-
 
     class Meta(BaseCGResource.Meta):
         queryset = Content.objects.all()
@@ -239,6 +244,8 @@ class ReviewResource(ContentResource):
 
 
 class ThemeResource(BaseCGResource):
+    pages = fields.ToManyField('apps.api.resources.PageResource', 'page')
+    stores = fields.ToManyField('apps.api.resources.StoreResource', 'store')
     """Returns a theme"""
     class Meta(BaseCGResource.Meta):
         queryset = Theme.objects.all()
@@ -251,9 +258,10 @@ class ThemeResource(BaseCGResource):
 
 class FeedResource(BaseCGResource):
     """Returns a feed."""
-    pages = fields.ToManyField('apps.api.resources.PageResource',
-                              'page', full=False, null=True)
+    pages = fields.ToManyField('apps.api.resources.PageResource', 'page')
     tiles = fields.ToManyField('apps.api.resources.TileResource', 'tiles')
+    products = fields.ToManyField('apps.api.resources.ProductResource', 'tiles')
+    content = fields.ToManyField('apps.api.resources.ContentResource', 'tiles')
 
     class Meta(BaseCGResource.Meta):
         queryset = Feed.objects.all()
@@ -371,9 +379,9 @@ class TileResource(BaseCGResource):
     """Returns a tile."""
     feed = fields.ForeignKey('apps.api.resources.FeedResource',
                              'feed', full=False, null=True)
-    products = fields.ToManyField('apps.api.resource.ProductResource',
+    products = fields.ToManyField('apps.api.resources.ProductResource',
                                   'products', null=True)
-    content = fields.ToManyField('apps.api.resource.ContentResource',
+    content = fields.ToManyField('apps.api.resources.ContentResource',
                                  'content', null=True)
 
     class Meta(BaseCGResource.Meta):
@@ -416,6 +424,7 @@ class TileConfigResource(BaseCGResource):
 
 # http://stackoverflow.com/questions/11770501/how-can-i-login-to-django-using-tastypie
 class UserResource(ModelResource):
+    stores = fields.ToManyField('apps.api.resources.StoreResource', 'stores')
     class Meta:
         resource_name = 'user'
         queryset = User.objects.all()
