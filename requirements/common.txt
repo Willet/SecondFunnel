@@ -70,6 +70,7 @@ psycopg2==2.5.2
 jsonfield==0.9.20
 
 ## Job Processing (celery)
+amqp==1.4.5
 amqplib>=1.0.2
 anyjson>=0.3.3
 billiard==3.3.0.16
