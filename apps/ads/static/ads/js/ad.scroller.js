@@ -11,7 +11,7 @@ App.module("scroller", function (module, App) {
     // every 5 seconds, remove the top few tiles from the feed... creating
     // the illusion that the feed is scrolling.
     this.refreshFeed = function () {
-        var feed, tilesToRemove = [];
+        var feed, tilesToRemove = [], cellsRemoved = 0;
 
         if (!(App.discoveryArea && App.discoveryArea.currentView)) {
             // app hasn't run yet.
@@ -20,16 +20,22 @@ App.module("scroller", function (module, App) {
 
         feed = App.discoveryArea.currentView;
 
-        // remove the first 4 tiles (or 3 tiles, if the last one is a landscape).
+        // remove "rows" (two cells worth of tiles)
         feed.children.each(function (tile, idx) {
-            if (idx < 3 || (
-                    idx === 3 &&
-                    tilesToRemove.length % 2 === 0 &&
-                    tile.model.get('orientation') !== 'landscape'
-                )) {
-                tile.close();
-                feed.children.remove(tile);
-                tilesToRemove.push(tile);
+            var columnCount = App.option('columnCount', 2),  // how many columns the layout has (currently guaranteed to be 2)
+                removeRows = 2,  // magic number
+                removeCells = removeRows * columnCount;
+            if (cellsRemoved >= removeCells && cellsRemoved % columnCount === 0) {
+                return;
+            }
+            tile.close();
+            feed.children.remove(tile);
+            tilesToRemove.push(tile);
+
+            if (tile.model.get('orientation') !== 'landscape') {
+                cellsRemoved++;
+            } else if (tile.model.get('orientation') === 'landscape') {
+                cellsRemoved += 2;
             }
         });
 
@@ -37,7 +43,7 @@ App.module("scroller", function (module, App) {
 
         // if there is some chance that there won't be enough tiles
         // in the ad, then get some more.
-        if (feed.children.length < 10) {
+        if (feed.children.length < 20) {
             feed.toggleLoading(false).getTiles();
         }
 

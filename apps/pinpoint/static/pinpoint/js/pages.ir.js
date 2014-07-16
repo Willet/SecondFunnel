@@ -257,6 +257,10 @@ App.module("intentRank", function (intentRank, App) {
      * @return {Array} unique list of tile ids
      */
     this.getTileIds = function (tiles) {
+        if (!App.discoveryArea.$el) {
+            // there is no feed on the page, so there are no tiles on the page.
+            return [];
+        }
         if (tiles === undefined) {
             tiles = _.map(App.discoveryArea.$el.find('.tile'), function (el) {
                 return $(el).tile().model;

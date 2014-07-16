@@ -7,7 +7,8 @@ App.module('core', function (core, App) {
     "use strict";
     var $window = $(window),
         $document = $(document),
-        tempTiles = [];  // a list of wide tiles
+        tempTiles = [],  // a list of portrait tiles
+        unpairedTile;  // the last tile left behind
 
     /**
      * Object store for information about a particular store
@@ -335,6 +336,87 @@ App.module('core', function (core, App) {
         'resultsThreshold': App.option('resultsThreshold', {}),
 
         /**
+         * reorder landscape tiles to only appear after a multiple-of-2
+         * products has appeared, allowing gapless layouts in two-col ads.
+         *
+         * this method requires state to be maintained in the tempTiles variable;
+         * it is not idempotent.
+         *
+         * TODO: this belongs to the layout engine.
+         *
+         * @param {object} resp     an array of tile json
+         * @returns {object}        an array of tile json
+         */
+        reorderTiles: function (resp) {
+            var i = 0,
+                col = 0,
+                columnCount = 2,  // magic number (other values don't work)
+                isIframe = App.utils.isIframe(),
+                tile,
+                tileId,
+                respBuilder = [];  // new resp after filter(s)
+
+            // wide tile left over from last run
+            for (i = 0; i < resp.length; i++) {
+                tile = resp[i];
+                tileId = tile['tile-id'];
+                if (!tileId) {
+                    continue;  // is this a tile...?
+                }
+
+                // this is NOT an ad, subject to none of these conditions
+                if (!isIframe) {
+                    respBuilder.push(tile);
+                    continue;
+                }
+
+                if (!tile.orientation) {
+                    tile.orientation = 'portrait';
+                }
+
+                // limit col to either 0 or 1
+                col = col % columnCount;
+
+                // add lone wide tile (if exists)
+                if (unpairedTile && col % 2 === 0) {
+                    respBuilder.push(unpairedTile);
+                    unpairedTile = undefined;
+                    // TODO: switch to while loop to avoid this mess
+                    i--; continue;
+                }
+
+                if (tile.orientation === 'landscape') {
+                    if (col === 0) {
+                        // wide and col 0 = good
+                        respBuilder.push(tile);
+                    } else {
+                        // wide and col 1 = good
+                        unpairedTile = tile;
+                        // TODO: switch to while loop to avoid this mess
+                        i--;
+                    }
+                    continue;
+                }
+
+                // portrait? check if there are portrait tiles queued
+                if (tempTiles.length) {
+                    respBuilder.push(tempTiles.shift());
+                    col++;
+                }
+                // there is now either a tile in col 0 or one in col 1
+                if (col % 2 === 0) {
+                    if (i !== resp.length - 1) {  // unpaired last tile condition
+                        tempTiles.push(tile);
+                    }
+                } else {
+                    respBuilder.push(tile);
+                    col++;
+                }
+            }
+            return respBuilder;
+        },
+
+        /**
          * process common attributes, then delegate the collection's parsing
          * method to their individual tiles.
          *
@@ -355,6 +437,7 @@ App.module('core', function (core, App) {
 
             // reorder landscape tiles to only appear after a multiple-of-2
             // products has appeared, allowing gapless layouts in two-col ads.
+            resp = self.reorderTiles(resp);
 
             // wide tile left over from last run
             for (i = 0; i < resp.length; i++) {
@@ -370,28 +453,45 @@ App.module('core', function (core, App) {
                     continue;
                 }
 
-                // keep track of the current column
-                col = col % 2;
-                // unload buffered wide tiles into list
-                // (col# stays 0 because they're wide)
-                if (col === 0) {
-                    respBuilder = respBuilder.concat(tempTiles);
-                    tempTiles = [];
+                if (!tile.orientation) {
+                    tile.orientation = 'portrait';
                 }
 
-                if (tile.orientation === 'portrait') {
-                    respBuilder.push(tile);
-                    col++;
-                } else {
-                    // current tile is wide
+                // limit col to either 0 or 1
+                col = col % 2;
+
+                // add lone wide tile (if exists)
+                if (unpairedTile && col % 2 === 0) {
+                    respBuilder.push(unpairedTile);
+                    unpairedTile = undefined;
+                    i--; continue;
+                }
+
+                if (tile.orientation === 'landscape') {
                     if (col === 0) {
-                        // push current wide tile
+                        // wide and col 0 = good
                         respBuilder.push(tile);
-                        col += 2;  // wide tiles are 2-col
                     } else {
-                        // unfavourable condition (2nd col, wide tile)
+                        // wide and col 1 = good
+                        unpairedTile = tile;
+                        i--;
+                    }
+                    continue;
+                }
+
+                // portrait? check if there are portrait tiles queued
+                if (tempTiles.length) {
+                    respBuilder.push(tempTiles.shift());
+                    col++;
+                }
+                // there is now either a tile in col 0 or one in col 1
+                if (col % 2 === 0) {
+                    if (i !== resp.length - 1) {  // unpaired last tile condition
                         tempTiles.push(tile);
                     }
+                } else {
+                    respBuilder.push(tile);
+                    col++;
                 }
             }
             resp = respBuilder;

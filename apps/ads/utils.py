@@ -22,7 +22,7 @@ def render_banner(page, request):
     if page.get('tests'):
         tests = json.dumps(page.get('tests'))
 
-    initial_results = get_results(feed=page.feed, content_only=True)
+    initial_results = get_results(feed=page.feed, content_only=True, results=20)
 
     initial_results = [x.to_json() for x in initial_results]
 
