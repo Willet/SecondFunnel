@@ -22,19 +22,19 @@ App.module("scroller", function (module, App) {
 
         // remove "rows" (two cells worth of tiles)
         feed.children.each(function (tile, idx) {
-            if (cellsRemoved >= 4 && cellsRemoved % 2 === 0) {
+            var columnCount = App.option('columnCount', 2),  // how many columns the layout has (currently guaranteed to be 2)
+                removeRows = 2,  // magic number
+                removeCells = removeRows * columnCount;
+            if (cellsRemoved >= removeCells && cellsRemoved % columnCount === 0) {
                 return;
             }
+            tile.close();
+            feed.children.remove(tile);
+            tilesToRemove.push(tile);
+
             if (tile.model.get('orientation') !== 'landscape') {
-                tile.close();
-                feed.children.remove(tile);
-                tilesToRemove.push(tile);
                 cellsRemoved++;
-            }
-            if (tile.model.get('orientation') === 'landscape') {
-                tile.close();
-                feed.children.remove(tile);
-                tilesToRemove.push(tile);
+            } else if (tile.model.get('orientation') === 'landscape') {
                 cellsRemoved += 2;
             }
         });
