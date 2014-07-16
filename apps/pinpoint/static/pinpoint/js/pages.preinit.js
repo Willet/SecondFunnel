@@ -105,7 +105,7 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     }
 
     // :type object
-    pageParams = $.extend({}, campaignParams, pageParams);
+    pageParams = $.extend({}, pageParams, campaignParams);
 
     App.options.urlParams = pageParams;
 
