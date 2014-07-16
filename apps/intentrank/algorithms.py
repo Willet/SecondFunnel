@@ -646,11 +646,11 @@ def ir_auto(tiles, request=None, *args, **kwargs):
     # undesirable situation to be in -- use infinite algorithms instead
     if product_count > content_count:
         if content_count < 5:
-            return ir_ordered(tiles, *args, **kwargs)
+            return ir_ordered(tiles=tiles, *args, **kwargs)
 
         # how large is the sample space?
         if len(tiles) < 100:
-            return ir_generic(tiles, *args, **kwargs)
+            return ir_generic(tiles=tiles, *args, **kwargs)
         return ir_random(tiles=tiles, *args, **kwargs)
 
     # how much engagement can we detect?
@@ -690,7 +690,7 @@ def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # this is causing problems on master with sorting already-sliced querysets
     # -- can anyone else confirm?
     # random_tiles = random_tiles.order_by('?')
-    tiles += random_tiles
+    tiles = list(tiles) + list(random_tiles)
 
     return tiles[:results]
 
@@ -747,9 +747,13 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         for content in tile.content.all():
             products.extend(list(content.tagged_products.all()))
 
-        max_sale = max([parse_int(product.attributes.get('discount',
-                                                         product.attributes.get('sale_price', 0)))
-                        for product in products])
+        discounts = [parse_int(product.attributes.get('discount',
+                       product.attributes.get('sale_price', 0)))
+                     for product in products]
+        if discounts:
+            max_sale = max(discounts)
+        else:
+            max_sale = 0  # no discount = no sale
         return max_sale
 
     tiles = sorted(tiles, key=sort_fn, reverse=True)
