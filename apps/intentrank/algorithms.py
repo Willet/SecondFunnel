@@ -11,7 +11,7 @@ from functools import partial, wraps
 from django.conf import settings
 from django.db.models.query import QuerySet
 from apps.assets.models import Tile
-from apps.utils.functional import result
+from apps.utils.functional import result, sort_helper
 
 
 def ids_of(tiles):  # shorthand (got too annoying)
@@ -124,6 +124,19 @@ def qs_for(tiles):
         order_by=('ordering', ))
 
     return qs
+
+
+def directional(fn):
+    """Given a dynamic sort algorithm like ir_finite_by_(any), Automatically
+    detect whether its sort is reversed.
+    """
+    @wraps(fn)
+    def wrapped(attribute, reversed_=False):
+        """If the attribute begins with '-', the sort will be reversed."""
+        if attribute[0] == '-':
+            attribute, reversed_ = attribute[1:], True
+        return fn(attribute=attribute, reversed_=reversed_)
+    return wrapped
 
 
 @filter_tiles
@@ -562,14 +575,13 @@ def ir_content_first(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     return prioritized_content[:results]
 
 
+@directional
 def ir_finite_by(attribute='created_at', reversed_=False):
     """Returns a finite algorithm that orders its tiles based on a field,
     such as 'created_at'.
 
     Adding '-' will reverse the sort.
     """
-    if attribute[0] == '-':
-        attribute, reversed_ = attribute[1:], True
 
     @wraps(ir_finite_by)
     @returns_qs
@@ -577,14 +589,6 @@ def ir_finite_by(attribute='created_at', reversed_=False):
              request=None, offset=0, allowed_set=None, exclude_set=None,
              *args, **kwargs):
         """Outputs tiles, based on tiles' {attribute}, in offset slices."""
-
-        def sort_fn(tile):
-            """Turns a tile into a number"""
-            try:
-                sort_val = result(getattr(tile, attribute), arg=tile)
-            except:
-                sort_val = result(getattr(tile, attribute))
-            return sort_val
 
         if results < 1:
             return []
@@ -595,6 +599,7 @@ def ir_finite_by(attribute='created_at', reversed_=False):
         if exclude_set:
             tiles = tiles.exclude(id__in=exclude_set)
 
+        sort_fn = partial(sort_helper, attribute=attribute)
         tiles = sorted(tiles, key=sort_fn, reverse=reversed_)
 
         # generate a verbose id:value map that shows exactly why a tile was
@@ -682,6 +687,58 @@ def ir_ordered(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tiles += random_tiles
 
     return tiles[:results]
+
+
+@directional
+def ir_ordered_by(attribute='created_at', reversed_=False):
+    """Returns a ordered algorithm that orders its tiles based on a field,
+    such as 'created_at'.
+
+    Adding '-' will reverse the sort.
+    """
+
+    @wraps(ir_ordered_by)
+    @returns_qs
+    def algo(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+             request=None, offset=0, allowed_set=None, exclude_set=None,
+             *args, **kwargs):
+        """Outputs tiles, based on tiles' {attribute}, in offset slices.
+        If no more tiles are left in the offset, the offset is reset relative
+        to the total size of the tile pool and looped back again to the head.
+        """
+
+        if results < 1:
+            return []
+
+        if allowed_set:
+            tiles = tiles.filter(id__in=allowed_set)
+
+        if exclude_set:
+            tiles = tiles.exclude(id__in=exclude_set)
+
+        sort_fn = partial(sort_helper, attribute=attribute)
+        tiles = sorted(tiles, key=sort_fn, reverse=reversed_)
+        tile_count = len(tiles)
+
+        # generate a verbose id:value map that shows exactly why a tile was
+        # sorted this way
+        tile_dump = "\n".join(
+            ["{0}: {1}".format(tile.id, result(getattr(tile, attribute)))
+             for tile in tiles][:results])
+
+        print "Returning popular tiles, by '{0}', " \
+              "emulating offset {1} ~ {2}\n{3}".format(
+            attribute, offset % tile_count, (offset % tile_count) + results, tile_dump)
+
+        # all edge cases return []
+        if exclude_set or allowed_set:
+            # if exclude set is supplied, then the top 10 results should
+            # already be the results you should show next
+            return tiles[:results]
+        else:
+            return tiles[offset:offset + results]
+
+    return algo
 
 
 @filter_tiles

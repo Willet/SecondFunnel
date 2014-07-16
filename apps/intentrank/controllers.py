@@ -45,6 +45,9 @@ class IntentRank(object):
         if 'finite_by_' in algorithm_name:
             return self.ir_finite_by(algorithm_name[10:])
 
+        if 'ordered_by_' in algorithm_name:
+            return self.ir_ordered_by(algorithm_name[11:])
+
         algorithm = getattr(self, 'ir_' + algorithm_name)
         if algorithm:
             return algorithm
