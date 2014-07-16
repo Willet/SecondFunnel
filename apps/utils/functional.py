@@ -120,7 +120,17 @@ def result(obj, arg=None):
     If not, return the object.
     """
     if hasattr(obj, '__call__'):
-        if arg:  # such a distinction prevents a non-None default to be overridden
-            return obj(arg)
-        return obj()
+        try:
+            # such a distinction prevents a non-None default to be overridden
+            if arg:
+                return obj(arg)
+            return obj()
+        except:
+            # if the function/method cannot be called, return itself
+            pass
     return obj
+
+
+def sort_helper(obj, attribute):
+    """Turns an object into a number, based on an attribute in each."""
+    return result(getattr(obj, attribute), arg=obj)
