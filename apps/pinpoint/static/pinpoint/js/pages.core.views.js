@@ -799,8 +799,6 @@ App.module('core', function (module, App) {
             if (!App.support.isAnAndroid()) {
                 $(document.body).removeClass('no-scroll');
             }
-
-            App.options.galleryIndex = 0;
         },
 
         'renderSubregions': function (product) {
@@ -904,8 +902,10 @@ App.module('core', function (module, App) {
 
                     if (self.$el.parents('#hero-area').length) {
                         App.options.heroGalleryIndex = index;
+                        App.options.heroGalleryIndexPage = 0;
                     } else {
                         App.options.galleryIndex = index;
+                        App.options.galleryIndexPage = 0;
                     }
 
                     if (product.images.length === 1) {
@@ -1218,6 +1218,8 @@ App.module('core', function (module, App) {
         },
 
         'onClose': function () {
+            App.options.galleryIndex = 0;
+            App.options.galleryIndexPage = 0;
             // hide this, then restore discovery.
             if (App.support.mobile() || this.feedSwapped) {
                 this.$el.swapWith(App.discoveryArea.$el.parent());
