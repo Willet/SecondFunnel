@@ -28,7 +28,9 @@ def filter_tiles(fn):
     @wraps(fn)
     def wrapped_fn(*args, **kwargs):
         tiles, feed = kwargs.get('tiles'), kwargs.get('feed')
-        allowed_set, exclude_set = kwargs.get('allowed_set'), kwargs.get('exclude_set')
+        allowed_set= kwargs.get('allowed_set')
+        exclude_set = kwargs.get('exclude_set')
+
         offset, results = kwargs.get('offset', None), kwargs.get('results', 10)
 
         content_only = kwargs.get('content_only', False)
@@ -49,10 +51,7 @@ def filter_tiles(fn):
         if not isinstance(tiles, QuerySet):
             tiles = qs_for(tiles)
 
-        if allowed_set:
-            tiles = tiles.filter(id__in=allowed_set)
-        if exclude_set:
-            tiles = tiles.exclude(id__in=exclude_set)
+        tiles = filter_excluded(tiles, allowed_set, exclude_set)
         if products_only:
             tiles = tiles.filter(template='product')
         if content_only:
@@ -97,6 +96,17 @@ def returns_qs(fn):
         return tiles
 
     return wrapped_fn
+
+
+def filter_excluded(tiles, allowed_set=None, exclude_set=None):
+    """Given a Tile QuerySet, apply allowed_set and/or exclude_set to it
+    if present.
+    """
+    if allowed_set:
+        tiles = tiles.filter(id__in=allowed_set)
+    if exclude_set:
+        tiles = tiles.exclude(id__in=exclude_set)
+    return tiles
 
 
 def qs_for(tiles):
@@ -593,11 +603,7 @@ def ir_finite_by(attribute='created_at', reversed_=False):
         if results < 1:
             return []
 
-        if allowed_set:
-            tiles = tiles.filter(id__in=allowed_set)
-
-        if exclude_set:
-            tiles = tiles.exclude(id__in=exclude_set)
+        tiles = filter_excluded(tiles, allowed_set, exclude_set)
 
         sort_fn = partial(sort_helper, attribute=attribute)
         tiles = sorted(tiles, key=sort_fn, reverse=reversed_)
@@ -696,7 +702,6 @@ def ir_ordered_by(attribute='created_at', reversed_=False):
 
     Adding '-' will reverse the sort.
     """
-
     @wraps(ir_ordered_by)
     @returns_qs
     def algo(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
@@ -706,37 +711,20 @@ def ir_ordered_by(attribute='created_at', reversed_=False):
         If no more tiles are left in the offset, the offset is reset relative
         to the total size of the tile pool and looped back again to the head.
         """
-
         if results < 1:
             return []
 
-        if allowed_set:
-            tiles = tiles.filter(id__in=allowed_set)
-
-        if exclude_set:
-            tiles = tiles.exclude(id__in=exclude_set)
+        tiles = filter_excluded(tiles, allowed_set, exclude_set)
 
         sort_fn = partial(sort_helper, attribute=attribute)
         tiles = sorted(tiles, key=sort_fn, reverse=reversed_)
         tile_count = len(tiles)
 
-        # generate a verbose id:value map that shows exactly why a tile was
-        # sorted this way
-        tile_dump = "\n".join(
-            ["{0}: {1}".format(tile.id, result(getattr(tile, attribute)))
-             for tile in tiles][:results])
+        # loop offsets
+        offset = offset % tile_count
+        tiles = tiles[offset:offset + results]
 
-        print "Returning popular tiles, by '{0}', " \
-              "emulating offset {1} ~ {2}\n{3}".format(
-            attribute, offset % tile_count, (offset % tile_count) + results, tile_dump)
-
-        # all edge cases return []
-        if exclude_set or allowed_set:
-            # if exclude set is supplied, then the top 10 results should
-            # already be the results you should show next
-            return tiles[:results]
-        else:
-            return tiles[offset:offset + results]
+        return tiles
 
     return algo
 
