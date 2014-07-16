@@ -3,7 +3,7 @@ from tastypie.api import Api
 
 from apps.api.resources import UserResource, StoreResource, ProductResource, ProductImageResource, ReviewResource, \
     VideoResource, ContentResource, ImageResource, ThemeResource, PageResource, FeedResource, TileResource, \
-    TileConfigResource
+    TileConfigResource, CampaignResource
 from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageContentCGHandler, ProductCGHandler, StoreProductCGHandler,
     ProductImageItemCGHandler,
@@ -39,6 +39,7 @@ api.register(FeedResource())
 api.register(PageResource())
 api.register(TileResource())
 api.register(TileConfigResource())
+api.register(CampaignResource())
 
 urlpatterns = api.urls
 
@@ -124,10 +125,11 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
 
     # image service graph alias (needed for proxy)
-    url(r'%s/imageservice/' % prefix, include('apps.imageservice.urls')),
-
-    # If all else fails, proxy
-    url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
+    url(r'%s/imageservice/' % prefix, include('apps.imageservice.urls'))
 )
-
 urlpatterns += apiv1.urls  # tastypie urls. down here to prevent conflicts
+
+urlpatterns += patterns('apps.api.views',
+    # If all else fails, proxy
+    url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view')
+)

@@ -23,7 +23,8 @@ from tastypie.utils import trailing_slash
 from apps.api.paginator import ContentGraphPaginator
 from apps.api.utils import UserObjectsReadOnlyAuthorization
 from apps.assets.models import (Product, Store, Page, Feed, Tile, ProductImage, 
-                                Image, Video, Review, Theme, Content)
+                                Image, Video, Review, Theme, Content, Category)
+from apps.dashboard.models import Campaign
 
 
 ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL, headers={'ApiKey': 'secretword'})
@@ -82,6 +83,11 @@ class BaseCGResource(ExtendedModelResource):
 
 class StoreResource(BaseCGResource):
     """REST-style store."""
+    # TODO is it necessary to display full information, or is a link to the api where this info is located good enough?
+    staff = fields.ToManyField('apps.api.resources.UserResource', 'staff', full=True)
+    default_theme = fields.ForeignKey('apps.api.resources.ThemeResource', 'default_theme', full=True, null=True)
+    # TODO products in the store? is this necessary?
+    # products = fields.ToManyField('apps.api.resources.ProductResource', 'products', null=True)
 
     class Meta(BaseCGResource.Meta):
         queryset = Store.objects.all()
@@ -120,12 +126,13 @@ class StoreResource(BaseCGResource):
 
 
 class ProductResource(BaseCGResource):
-    # TODO : Is it necessary to also get all the images that link to this product?
     """REST (tastypie) version of a Product."""
     store = fields.ForeignKey('apps.api.resources.StoreResource',
-                              'store', full=False, null=True)
+                              'store', full=True, null=True)
     default_image = fields.ForeignKey('apps.api.resources.ProductImageResource',
                                       'default_image', full=True)
+    # TODO should this be full data or just links to the endpoints?
+    images = fields.ToManyField('apps.api.resources.ProductImageResource', 'product_images', null=True)
 
     class Meta(BaseCGResource.Meta):
         """Django's way of defining a model's metadata."""
@@ -143,6 +150,8 @@ class ProductResource(BaseCGResource):
 
 class ProductImageResource(BaseCGResource):
     """Returns "a product image"."""
+    product = fields.ForeignKey('apps.api.resources.ProductResource', 'product', null=True)
+
     class Meta(BaseCGResource.Meta):
         queryset = ProductImage.objects.all()
         resource_name = 'productimage'
@@ -152,8 +161,25 @@ class ProductImageResource(BaseCGResource):
         }
 
 
+class CategoryResource(BaseCGResource):
+    """Returns a category"""
+    products = fields.ToManyField('apps.api.resources.ProductResource', 'products', null=True)
+    store = fields.ForeignKey('apps.api.resources.StoreResources', 'store')
+
+    class Meta(BaseCGResource.Meta):
+        queryset = Category.objects.all()
+        resource_name = 'category'
+
+        # TODO does this need filtering?
+
+
 class ContentResource(BaseCGResource):
-    """Returns "a product image"."""
+    """Returns Content."""
+
+    store = fields.ForeignKey('apps.api.resources.StoreResources', 'store', null=True)
+    tagged_products = fields.ToManyField('apps.api.resources.ProductResource', 'tagged_products', null=True)
+
+
     class Meta(BaseCGResource.Meta):
         queryset = Content.objects.all()
         resource_name = 'content'
@@ -167,7 +193,7 @@ class ContentResource(BaseCGResource):
         }
 
     def dehydrate(self, bundle):
-        """Convert JSON fields into top-level attritbutes in the response"""
+        """Convert JSON fields into top-level attributes in the response"""
         # http://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-custom-values
 
         # convert a piece of content to its subclass, then serialize that
@@ -178,7 +204,7 @@ class ContentResource(BaseCGResource):
 
 
 class ImageResource(ContentResource):
-    """Returns "a product image"."""
+    """Returns an image."""
     class Meta(BaseCGResource.Meta):
         queryset = Image.objects.all()
         resource_name = 'image'
@@ -189,7 +215,7 @@ class ImageResource(ContentResource):
 
 
 class VideoResource(ContentResource):
-    """Returns "a product image"."""
+    """Returns a video"""
     class Meta(BaseCGResource.Meta):
         queryset = Video.objects.all()
         resource_name = 'video'
@@ -200,7 +226,9 @@ class VideoResource(ContentResource):
 
 
 class ReviewResource(ContentResource):
-    """Returns "a product image"."""
+    """Returns a review."""
+    product = fields.ForeignKey('apps.api.resources.ProductResource', 'product')
+
     class Meta(BaseCGResource.Meta):
         queryset = Review.objects.all()
         resource_name = 'review'
@@ -211,7 +239,7 @@ class ReviewResource(ContentResource):
 
 
 class ThemeResource(BaseCGResource):
-    """Returns "a product image"."""
+    """Returns a theme"""
     class Meta(BaseCGResource.Meta):
         queryset = Theme.objects.all()
         resource_name = 'theme'
@@ -222,9 +250,10 @@ class ThemeResource(BaseCGResource):
 
 
 class FeedResource(BaseCGResource):
-    """Returns "a page"."""
-    page = fields.RelatedField('apps.api.resources.PageResource',
-                               'page', full=False, null=True)
+    """Returns a feed."""
+    pages = fields.ToManyField('apps.api.resources.PageResource',
+                              'page', full=False, null=True)
+    tiles = fields.ToManyField('apps.api.resources.TileResource', 'tiles')
 
     class Meta(BaseCGResource.Meta):
         queryset = Feed.objects.all()
@@ -241,6 +270,8 @@ class PageResource(BaseCGResource):
                               'store', full=False, null=True)
     feed = fields.ForeignKey('apps.api.resources.FeedResource',
                              'feed', full=False, null=True)
+    campaign = fields.ForeignKey('apps.api.resources.CampaignResource',
+                                 'campaign', full=False, null=True)
 
     class Meta(BaseCGResource.Meta):
         queryset = Page.objects.all()
@@ -337,9 +368,13 @@ class PageResource(BaseCGResource):
 
 
 class TileResource(BaseCGResource):
-    """Returns "a page"."""
+    """Returns a tile."""
     feed = fields.ForeignKey('apps.api.resources.FeedResource',
                              'feed', full=False, null=True)
+    products = fields.ToManyField('apps.api.resource.ProductResource',
+                                  'products', null=True)
+    content = fields.ToManyField('apps.api.resource.ContentResource',
+                                 'content', null=True)
 
     class Meta(BaseCGResource.Meta):
         queryset = Tile.objects.all()
@@ -354,6 +389,7 @@ class TileResource(BaseCGResource):
         }
 
 
+# TODO what is this for?
 class TileConfigResource(BaseCGResource):
     """Returns "a tile config, even though tile configs don't exist"."""
 
@@ -454,3 +490,10 @@ class PageViewSet(viewsets.ModelViewSet):
 
 class FeedViewSet(viewsets.ModelViewSet):
     model = Feed
+
+
+# begin Dashboard Models (only ones that are necessary)
+class CampaignResource(BaseCGResource):
+    class Meta(BaseCGResource.Meta):
+        queryset = Campaign.objects.all()
+        resource_name = 'campaign'
