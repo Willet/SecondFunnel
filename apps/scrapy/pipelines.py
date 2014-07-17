@@ -239,7 +239,7 @@ class ProductImagePipeline(object):
         remove_background = getattr(spider, 'remove_background', False)
         if isinstance(item, ScraperProduct):
             for image_url in item.get('image_urls', []):
-                url = urlparse(image_url, scheme='htt')
+                url = urlparse(image_url, scheme='http')
                 self.process_product_image(item, url.geturl(), remove_background=remove_background)
         return item
 
