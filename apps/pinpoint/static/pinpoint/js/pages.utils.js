@@ -163,7 +163,7 @@ App.module("utils", function (utils, App) {
         _.each(regions, function (selector, name, list) {
             var widgetFunc = regionWidgets[name];
             self.$(selector).each(function (idx, el) {
-                return widgetFunc(self, $(el), App.option);
+                return widgetFunc.call(self, self, $(el), App.option);
             });
         });
 
@@ -173,7 +173,7 @@ App.module("utils", function (utils, App) {
                 widgetFunc = (regionWidgets || {})[name];
             if (isWidget && widgetFunc) {
                 self.$(selector).each(function (idx, el) {
-                    return widgetFunc(self, $(el), App.option);
+                    return widgetFunc.call(self, self, $(el), App.option);
                 });
             }
         });

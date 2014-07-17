@@ -30,6 +30,24 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
         };
 
     /**
+     * Updates the focusCurrent
+     *
+     * @param newCurrent  The new focusCurrent
+     * @return this
+     */
+    this.updateFocusCurrent = function (newCurrent) {
+        focusCurrent = newCurrent;
+
+        if (self.$el.parents('#hero-area').length) {
+            App.options.heroGalleryIndexPage = focusCurrent;
+        } else {
+            App.options.galleryIndexPage = focusCurrent;
+        }
+
+        return this;
+    };
+
+    /**
      * Manually updates the position of images in the gallery.
      *
      * @param distance    Distance to scroll horizontally
@@ -37,7 +55,10 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
      * @return this
      */
     this.scrollImages = function (distance, duration) {
-        duration = duration ? duration : speed;
+        if (duration === undefined) {
+            duration = speed;
+        }
+
         distance = distance * -1;
 
         if (App.support.isLessThanIe9()) {
@@ -70,7 +91,7 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
      * @param fingers {Object}    Finger events such as pinch, tap
      * @return this
      */
-    this.swipeStatus = function (event, phase, direction, distance, fingers) {
+    this.swipeStatus = function (event, phase, direction, distance, fingers, duration) {
         var offset;
         focusWidth = focus.children().eq(0).width();
         offset = focusWidth * focusCurrent;
@@ -80,22 +101,22 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
         if (phase === 'move') {
             // div is being dragged, determine direction
             if (direction === 'left') {
-                this.scrollImages(distance + offset);
+                this.scrollImages(distance + offset, duration);
             } else if (direction === 'right') {
-                this.scrollImages(offset - distance);
+                this.scrollImages(offset - distance, duration);
             }
         } else if (phase === 'end') {
             // animate to the next image based on direction
             if (direction === 'right') {
-                focusCurrent = Math.max(focusCurrent - 1, 0);
+                this.updateFocusCurrent(Math.max(focusCurrent - 1, 0));
             } else if (direction === 'left') {
-                focusCurrent = Math.min(focusCurrent + 1, focus.children().length - 1);
+                this.updateFocusCurrent(Math.min(focusCurrent + 1, focus.children().length - 1));
             }
-            this.scrollImages(focusCurrent * focusWidth);
+            this.scrollImages(focusCurrent * focusWidth, duration);
             this.selectImage(); // mark selected
         } else if (phase === 'cancel') {
             // animate back as dragging has been cancelled
-            this.scrollImages(focusWidth * focusCurrent);
+            this.scrollImages(focusWidth * focusCurrent, duration);
         }
         return this;
     };
@@ -130,6 +151,23 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
         return this;
     };
 
+
+    /**
+     * Updates the gallery to select the image in the
+     * specified index.
+     *
+     * @param index       The index of the image
+     * @param duration    The duration of the transition
+     * @return this
+     */
+    this.selectByIndex = function (index, duration) {
+        this.updateFocusCurrent(index);
+        this.selectImage();
+        this.swipeStatus(null, "cancel", null, null, null, duration);
+
+        return this;
+    };
+
     /**
      * Initializes the gallery. Attach the swipe handler.
      */
@@ -157,13 +195,18 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
         });
 
         $('.item', $gallery).on('click', function () {
-            focusCurrent = $(this).index();
-            self.selectImage();
-            self.swipeStatus(null, "cancel");
+            self.selectByIndex($(this).index());
         });
 
         this.selectImage();
-        console.debug('initialized mobile gallery.');
+
+        if (this.$el.parents('#hero-area').length) {
+            this.selectByIndex(App.option('heroGalleryIndexPage', 0), 0);
+        } else {
+            this.selectByIndex(App.option('galleryIndexPage', 0), 0);
+        }
+
+        console.debug('initialized gallery.');
     };
 
     /* Initialize the gallery and bind event handlers to the widget
