@@ -21,16 +21,10 @@ App.module("layoutEngine", function (layoutEngine, App) {
             'isInitLayout': true,
             'isResizeBound': false,  // we are handling it ourselves
             'visibleStyle': {
-                'opacity': 1,
-                'transform': 'translate3d(0, 0, 0)',
-                '-webkit-transform': 'translate3d(0, 0, 0)',
-                '-moz-transform': 'translate3d(0, 0, 0)'
+                'opacity': 1
             },
             'hiddenStyle': {
-                'opacity': 0,
-                'transform': 'scale(1)',
-                '-webkit-transform': 'scale(1)',
-                '-moz-transform': 'none'
+                'opacity': 0
             },
             'minDesktopColumns': 2, // minimum number of columns (default: 2)
             'minMobileColumns': 2
