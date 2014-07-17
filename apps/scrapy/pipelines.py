@@ -6,6 +6,7 @@ from collections import defaultdict
 from django.core.exceptions import ValidationError
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
+from urlparse import urlparse
 from apps.assets.models import Store, Product, Category, Feed, Content
 from apps.scraper.scrapers import ProductScraper, ContentScraper
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
@@ -238,7 +239,8 @@ class ProductImagePipeline(object):
         remove_background = getattr(spider, 'remove_background', False)
         if isinstance(item, ScraperProduct):
             for image_url in item.get('image_urls', []):
-                self.process_product_image(item, image_url, remove_background=remove_background)
+                url = urlparse(image_url, scheme='http')
+                self.process_product_image(item, url.geturl(), remove_background=remove_background)
         return item
 
     def process_product_image(self, item, image_url, remove_background=False):

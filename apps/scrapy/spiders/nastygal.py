@@ -22,7 +22,7 @@ class NastyGalSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         )
     ]
 
-    store_slug = name
+    store_slug = 'nasty-gal'
 
     def __init__(self, *args, **kwargs):
         super(NastyGalSpider, self).__init__(*args, **kwargs)
