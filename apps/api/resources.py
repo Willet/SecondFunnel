@@ -182,7 +182,7 @@ class CategoryResource(BaseCGResource):
 class ContentResource(BaseCGResource):
     """Returns Content."""
 
-    store = fields.ForeignKey('apps.api.resources.StoreResources', 'store', null=True)
+    store = fields.ForeignKey('apps.api.resources.StoreResource', 'store', null=True)
     tagged_products = fields.ToManyField('apps.api.resources.ProductResource', 'tagged_products', null=True)
 
     class Meta(BaseCGResource.Meta):
@@ -203,7 +203,13 @@ class ContentResource(BaseCGResource):
 
         # convert a piece of content to its subclass, then serialize that
         bundle.obj = Content.objects.filter(pk=bundle.obj.pk).select_subclasses()[0]
-        bundle.data = bundle.obj.to_json()
+        temp = bundle.obj.to_json()
+        temp.update(bundle.data)
+        if 'tagged-products' in temp:
+            del temp['tagged-products']
+        if 'attributes' in temp:
+            del temp['attributes']
+        bundle.data = temp
 
         return bundle
 
