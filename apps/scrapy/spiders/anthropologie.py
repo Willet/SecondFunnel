@@ -51,22 +51,23 @@ class AnthropologieSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        l.add_css('sku', '.product-style::text', re='Style #:(\d+)')
+        l.add_css('sku', '#styleno::text')
         l.add_css('name', 'h1.product-name::text')
-        l.add_css('price', '.current-price::text', re='\$(.*)')
+        l.add_css('price', '.product-info .price::text', re='\$(.*)')
         l.add_value('in_stock', True)
 
-        l.add_css('description', '.product-description')
-        l.add_css('image_urls', '.carousel img::attr(src)')
+        l.add_css('description', '.description-content::text')
+        l.add_css('image_urls', '#imgSlider img::attr(data-zoomsrc)')
 
         # Handle categories
-        breadcrumbs = iter(sel.css('.breadcrumb a'))
+        breadcrumbs = iter(sel.css('.product-breadcrumb'))
         breadcrumb = next(breadcrumbs)  # Skip the first element
 
         categories = []
         for breadcrumb in breadcrumbs:
-            category_name = breadcrumb.css('span::text').extract_first().strip()
-            category_url = breadcrumb.css('::attr(href)').extract_first()
+            if breadcrumb.css('a'):
+                category_name = breadcrumb.css('a::text').extract_first().strip()
+                category_url = breadcrumb.css('a::attr(href)').extract_first()
 
             categories.append((
                 category_name,

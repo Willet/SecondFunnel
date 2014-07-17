@@ -38,7 +38,10 @@ class ProductSerializer(IRSerializer):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
         """
-        product_images = obj.product_images.all()
+        # crazy person decided to mutate the order of product_images
+        # instead of using the default-image attribute.
+        # please blame this commit on Kevin, he said he had a gun to my head
+        product_images = list(obj.product_images.all())
 
         data = {
             "url": obj.url,
@@ -50,7 +53,6 @@ class ProductSerializer(IRSerializer):
             "description": obj.description,
             "details": obj.details,
             "name": obj.name,
-            "images": [image.to_json() for image in product_images],
         }
 
         data.update(obj.attributes)
@@ -60,10 +62,20 @@ class ProductSerializer(IRSerializer):
             data["default-image"] = str(obj.default_image.id or
                 obj.default_image_id)
             data["orientation"] = obj.default_image.orientation
+
+            try:
+                idx = product_images.index(obj.default_image)
+                product_images = [obj.default_image] + \
+                                 product_images[:idx] + \
+                                 product_images[idx+1:]
+            except ValueError:  # that's right default image not in list
+                pass  # bail ordering
         elif len(product_images) > 0:
             # fall back to first image
             data["default-image"] = str(product_images[0].id)
             data["orientation"] = obj.product_images[0].orientation
+
+        data["images"] = [image.to_json() for image in product_images]
 
         if not "orientation" in data:
             data["orientation"] = "portrait"

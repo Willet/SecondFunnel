@@ -108,6 +108,8 @@ def get_results_view(request, page_id):
     feed = page.feed
     ir = IntentRank(feed=feed)
 
+    [t.save() for t in Tile.objects.filter(products__default_image__isnull=False)]
+
     algorithm = ir.get_algorithm(algorithm_name)
     print 'request for [page {}, feed {}] being handled by {}'.format(
         page.id, feed.id, algorithm.__name__)
