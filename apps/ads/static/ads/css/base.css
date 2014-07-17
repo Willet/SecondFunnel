@@ -7,6 +7,10 @@ html, body, .container, #discovery-area {
     overflow-y: hidden;
 }
 
+#discovery-area {
+    margin-top: 47px;
+}
+
 .tile.full {
     width: 100% !important;
 }
