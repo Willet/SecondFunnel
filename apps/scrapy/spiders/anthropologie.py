@@ -17,7 +17,7 @@ class AnthropologieSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "next")]')
         ),
         Rule(
-            SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "product-link")]'),
+            SgmlLinkExtractor(restrict_xpaths='//div[contains(@class, "item-description")]/a[contains(@class, "product-link")]'),
             'parse_product', follow=False
         )
     ]
@@ -30,7 +30,7 @@ class AnthropologieSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     def is_product_page(self, response):
         sel = Selector(response)
 
-        is_product_page = sel.css('.product-style')
+        is_product_page = sel.css('.size-dropdown')
 
         return is_product_page
 
