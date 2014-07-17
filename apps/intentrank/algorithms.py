@@ -724,7 +724,10 @@ def ir_ordered_by(attribute='created_at', reversed_=False):
         tile_count = len(tiles)
 
         # loop offsets
-        offset = offset % tile_count
+        if tile_count:
+            offset = offset % tile_count
+        else:
+            offset = 0
         tiles = tiles[offset:offset + results]
 
         return tiles

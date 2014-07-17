@@ -6,6 +6,7 @@ from django.http.response import Http404, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render_to_response
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
+import re
 
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile, Category, Store
@@ -88,7 +89,7 @@ def get_results_view(request, page_id):
     category = request.GET.get('category', None)
     offset = int(request.GET.get('offset', 0))  # used only by some deterministic algos
     results = int(request.GET.get('results', 10))
-    shown = filter(bool, request.GET.get('shown', "").split(","))
+    shown = filter(bool, re.split('(?:,|%2C)', request.GET.get('shown', "")))
     tile_id = request.GET.get('tile-id', 0)  # for related
     session_reset = True if request.GET.get('session-reset', "").lower() == "true" else False
     content_only = (request.GET.get('tile-set', '') == 'content')
