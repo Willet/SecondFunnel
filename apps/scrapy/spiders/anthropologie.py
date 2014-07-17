@@ -17,12 +17,14 @@ class AnthropologieSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "next")]')
         ),
         Rule(
-            SgmlLinkExtractor(restrict_xpaths='//div[contains(@class, "item-description")]/a[contains(@class, "product-link")]'),
+            SgmlLinkExtractor(allow=[
+                r'/anthro/product/.+'
+            ]),
             'parse_product', follow=False
         )
     ]
 
-    store_slug = 'nasty-gal'
+    store_slug = 'anthropologie'
 
     def __init__(self, *args, **kwargs):
         super(AnthropologieSpider, self).__init__(*args, **kwargs)
@@ -39,7 +41,7 @@ class AnthropologieSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         """
         Parses a product page on Anthropologie.com.
 
-        @url http://www.anthropologie.com/whats-new_clothes/after-party-short-and-sweet-top
+        @url http://www.anthropologie.com/anthro/product/accessories-jewelry/32478539.jsp#/
         @returns items 1 1
         @returns requests 0 0
         @scrapes url sku name price in_stock description image_urls attributes
@@ -53,21 +55,20 @@ class AnthropologieSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_css('sku', '#styleno::text')
         l.add_css('name', 'h1.product-name::text')
-        l.add_css('price', '.product-info .price::text', re='\$(.*)')
+        l.add_css('price', '.product-info .price', re='\$(.*)')
         l.add_value('in_stock', True)
 
-        l.add_css('description', '.description-content::text')
-        l.add_css('image_urls', '#imgSlider img::attr(data-zoomsrc)')
+        l.add_css('description', '.description-content')
+        l.add_css('image_urls', '#imgSlider img::attr(ng-src)')
 
         # Handle categories
-        breadcrumbs = iter(sel.css('.product-breadcrumb'))
+        breadcrumbs = iter(sel.css('.product-breadcrumb a'))
         breadcrumb = next(breadcrumbs)  # Skip the first element
 
         categories = []
         for breadcrumb in breadcrumbs:
-            if breadcrumb.css('a'):
-                category_name = breadcrumb.css('a::text').extract_first().strip()
-                category_url = breadcrumb.css('a::attr(href)').extract_first()
+            category_name = breadcrumb.css('::text').extract_first().strip()
+            category_url = breadcrumb.css('::attr(href)').extract_first()
 
             categories.append((
                 category_name,
