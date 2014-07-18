@@ -82,6 +82,7 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_id>\d+)/?$' % prefix, StoreProductItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_set>\w+)/?$' % prefix, StoreProductCGHandler.as_view()),
     # what is product_set... product/live/# seems useless when you could just do product/#
+    # everything is in the set live..
     url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_set>\w+)/(?P<product_id>\d+)/?$' % prefix, StoreProductItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/?$' % prefix, StorePageProductCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/all/?$' % prefix, PageProductAllCGHandler.as_view()),
@@ -122,5 +123,5 @@ urlpatterns += patterns('apps.api.views',
     url(r'%s/imageservice/' % prefix, include('apps.imageservice.urls')),
 
     # If all else fails, proxy
-    url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view')
+    url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
 )
