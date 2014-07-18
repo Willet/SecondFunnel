@@ -126,5 +126,5 @@ urlpatterns += patterns('apps.api.views',
     url(r'%s/imageservice/' % prefix, include('apps.imageservice.urls')),
 
     # If all else fails, proxy
-    # url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
+    url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
 )
