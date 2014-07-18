@@ -48,17 +48,11 @@ urlpatterns = api.urls
 # This stuff can hopefully be removed when the CM is re-written..
 prefix = 'v1'
 
-# this is where i am porting all the stuff that can be ported without changing CM
-apiv1 = Api(api_name=prefix)
-apiv1.register(UserResource())
-apiv1.register(StoreResource())
-apiv1.register(ProductImageResource())
-
 urlpatterns += patterns('apps.api.views',
     # primitive handlers
     # store
-    # url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),
-    # url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreItemCGHandler.as_view()),
+    url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),  # v2 mimics mostly
+    url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreItemCGHandler.as_view()),  # v2 mimics mostly
 
     url(r'^%s/category/?$' % prefix, CategoryCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/category/?$' % prefix, CategoryCGHandler.as_view()),
@@ -84,7 +78,7 @@ urlpatterns += patterns('apps.api.views',
     # product
     url(r'^%s/product/?$' % prefix, ProductCGHandler.as_view()),
     url(r'^%s/product/(?P<product_id>\d+)/?$' % prefix, ProductItemCGHandler.as_view()),
-    # url(r'^%s/store/(?P<store_id>\d+)/product/?$' % prefix, StoreProductCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/product/?$' % prefix, StoreProductCGHandler.as_view()),  # v2 mimics mostly
     url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_id>\d+)/?$' % prefix, StoreProductItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_set>\w+)/?$' % prefix, StoreProductCGHandler.as_view()),
     # what is product_set... product/live/# seems useless when you could just do product/#
@@ -97,13 +91,12 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/deprioritize/?$' % prefix, StorePageProductDeprioritizeItemCGHandler.as_view()),
 
     # product images
-    # url(r'^%s/productimage/(?P<id>\d+)/?$' % prefix, ProductImageItemCGHandler.as_view()),
+    url(r'^%s/productimage/(?P<id>\d+)/?$' % prefix, ProductImageItemCGHandler.as_view()),  # v2 mimics mostly
 
     # page
     url(r'^%s/page/?$' % prefix, PageCGHandler.as_view()),
     url(r'^%s/page/(?P<page_id>\d+)/?$' % prefix, PageItemCGHandler.as_view()),
-    # url(r'^%s/store/(?P<store_id>\d+)/page/?$' % prefix, StorePageCGHandler.as_view()),
-    # the url graph/v2/store/<storeid>/page returns an array of pages. no need to specify in url
+    url(r'^%s/store/(?P<store_id>\d+)/page/?$' % prefix, StorePageCGHandler.as_view()),  # v2 mimics mostly
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/?$' % prefix, StorePageItemCGHandler.as_view()),
 
     # tileconfig
@@ -126,11 +119,8 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
 
     # image service graph alias (needed for proxy)
-    url(r'%s/imageservice/' % prefix, include('apps.imageservice.urls'))
-)
-urlpatterns += apiv1.urls  # tastypie urls. down here to prevent conflicts
+    url(r'%s/imageservice/' % prefix, include('apps.imageservice.urls')),
 
-urlpatterns += patterns('apps.api.views',
     # If all else fails, proxy
     url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view')
 )
