@@ -50,6 +50,9 @@ prefix = 'v1'
 
 urlpatterns += patterns('apps.api.views',
     # primitive handlers
+    # user
+    url('%s/' % prefix, include(UserResource().urls)),  # v1 api uses UserResource from v2 for some reason..
+
     # store
     url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),  # v2 mimics mostly
     url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreItemCGHandler.as_view()),  # v2 mimics mostly
@@ -123,5 +126,5 @@ urlpatterns += patterns('apps.api.views',
     url(r'%s/imageservice/' % prefix, include('apps.imageservice.urls')),
 
     # If all else fails, proxy
-    url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
+    # url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
 )
