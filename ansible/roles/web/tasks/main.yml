@@ -1,0 +1,11 @@
+- include: app.yml
+  tags: app
+  sudo: yes
+
+- include: deploy.yml
+  tags: deploy
+
+- name: Install nginx + uwsgi config
+  template: src=secondfunnel.nginx.conf dest=/etc/nginx/sites-enabled/secondfunnel.nginx.conf
+  notify: nginx reload
+  sudo: true

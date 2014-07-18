@@ -1,0 +1,7 @@
+---
+- name: Add uwsgi monit config
+  template: src=uwsgi.monit.conf dest="{{uwsgi.monit_config_file}}"
+  notify: monit reload
+
+- name: Reload monit
+  service: name=monit state=reloaded

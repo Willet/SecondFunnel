@@ -1,0 +1,24 @@
+---
+# Global Shared Services
+hipchat:
+  room: 115122  # code room
+  token: 675a844c309ec3227fa9437d022d05
+
+# Shared Host Settings
+common_user: willet # default login user across all boxes
+aws_access_key_id: AKIAIAPXLNH7EQVGDEWA
+aws_secret_key: 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
+aws_region: us-west-2
+aws_base_image: ami-e7b8c0d7 # base image *ubuntu 14.04 LTS*
+aws_sshkey_name: willet-admin-master
+aws_instance_type: m3.medium
+
+# Shared Application Settings
+application_directory: /opt/secondfunnel/app
+secondfunnel_directory: /opt/secondfunnel
+secondfunnel_log_directory: /opt/secondfunnel/log
+secondfunnel_run_directory: /opt/secondfunnel/run
+virtualenv_directory: /opt/secondfunnel/venv
+
+# Shared Application Defaults
+py_autoreload: 0

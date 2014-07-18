@@ -1,0 +1,9 @@
+---
+- name: Check if node is already installed
+  command: node -v
+  register: node_installed
+  ignore_errors: True
+  changed_when: off
+
+- include: install.yml
+  when: node_installed|failed
