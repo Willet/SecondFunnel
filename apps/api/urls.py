@@ -3,7 +3,7 @@ from tastypie.api import Api
 
 from apps.api.resources import UserResource, StoreResource, ProductResource, ProductImageResource, ReviewResource, \
     VideoResource, ContentResource, ImageResource, ThemeResource, PageResource, FeedResource, TileResource, \
-    TileConfigResource, CampaignResource
+    TileConfigResource, CampaignResource, CategoryResource
 from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageContentCGHandler, ProductCGHandler, StoreProductCGHandler,
     ProductImageItemCGHandler,
@@ -30,6 +30,7 @@ api.register(UserResource())
 api.register(StoreResource())
 api.register(ProductResource())
 api.register(ProductImageResource())
+api.register(CategoryResource())
 api.register(ContentResource())
 api.register(ImageResource())
 api.register(VideoResource())

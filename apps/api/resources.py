@@ -158,6 +158,20 @@ class ProductImageResource(BaseCGResource):
     product = fields.ForeignKey('apps.api.resources.ProductResource', 'product', null=True)
     used_by = fields.ToManyField('apps.api.resources.ProductResource', 'default_image')
 
+    def dehydrate(self, bundle):
+        """Convert JSON fields into top-level attributes in the response"""
+        # http://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-custom-values
+
+        bundle.obj = ProductImage.objects.filter(pk=bundle.obj.pk)[0]
+        # make attributes json a json object that can be accessed normally
+        if 'attributes' in bundle.data:
+            temp = json.loads(bundle.data['attributes'].replace("'", '"').replace('u', ''))
+            temp.update(bundle.data)
+            bundle.data = temp
+            del bundle.data['attributes']
+
+        return bundle
+
     class Meta(BaseCGResource.Meta):
         queryset = ProductImage.objects.all()
         resource_name = 'productimage'
@@ -170,7 +184,7 @@ class ProductImageResource(BaseCGResource):
 class CategoryResource(BaseCGResource):
     """Returns a category"""
     products = fields.ToManyField('apps.api.resources.ProductResource', 'products', null=True)
-    store = fields.ForeignKey('apps.api.resources.StoreResources', 'store')
+    store = fields.ForeignKey('apps.api.resources.StoreResource', 'store')
 
     class Meta(BaseCGResource.Meta):
         queryset = Category.objects.all()
@@ -393,6 +407,7 @@ class TileResource(BaseCGResource):
     class Meta(BaseCGResource.Meta):
         queryset = Tile.objects.all()
         resource_name = 'tile'
+        excludes = ['ir_cache']
 
         # changes the model's url (/store/123) to search by this field instead of the pk
         # http://stackoverflow.com/a/12517228/1558430
