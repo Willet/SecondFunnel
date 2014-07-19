@@ -81,10 +81,6 @@ if 'RDS_DB_NAME' in os.environ:
             'PORT': os.environ['RDS_PORT'],
             }
     }
-
-    # default to never time out from django's side;
-    # RDS is its own value set
-    CONN_MAX_AGE = 0
 else:  # defaults (dev) for letting bare django run -- do not modify
     DATABASES = {
         'default': {
@@ -96,6 +92,10 @@ else:  # defaults (dev) for letting bare django run -- do not modify
             'PORT': '',
         }
     }
+
+# Turn on DB Connection Pooling (don't make a new connection every request)
+# DEFER PERF: could use pgbouncer / pgpool
+CONN_MAX_AGE = 120  # seconds
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -250,7 +250,6 @@ MIDDLEWARE_CLASSES = (
     'raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # TODO: was last
     'django.middleware.gzip.GZipMiddleware',  # NOTE: Must be the first in this tuple
-    'htmlmin.middleware.HtmlMinifyMiddleware',  # Enables compression of HTML
     'django.middleware.cache.CacheMiddleware',  # Manages caching
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
