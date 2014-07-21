@@ -413,6 +413,19 @@ div.loading {
     display: none;
 }
 
+#hero-area .previewContainer .stick-bottom {
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    -webkit-transform: translateZ(0);
+    box-shadow: 0 0 30px -1px #000
+}
+
+#hero-area .previewContainer .stick-bottom.stuck {
+    position: static;
+    box-shadow: none;
+}
+
 .previewContainer .gallery,
 .previewContainer .gallery-dots {
     text-align: center;
@@ -546,6 +559,7 @@ div.loading {
 .previewContainer .stl-title {
     text-align: center;
     font-size: 18px;
+    background-color: white;
 }
 
 .previewContainer .stl-look {

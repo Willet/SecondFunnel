@@ -799,6 +799,8 @@ App.module('core', function (module, App) {
             if (!App.support.isAnAndroid()) {
                 $(document.body).removeClass('no-scroll');
             }
+
+            $('.stick-bottom', this.$el).waypoint('destroy');
         },
 
         'renderSubregions': function (product) {
@@ -945,6 +947,12 @@ App.module('core', function (module, App) {
                 this.renderSubregions(this.model);
             } else  {
                 this.resizeContainer();
+            }
+
+            if (this.$el.parents('#hero-area').length) {
+                $('.stick-bottom', this.$el).waypoint('sticky', {
+                    offset: 'bottom-in-view'
+                });
             }
         }
     });
