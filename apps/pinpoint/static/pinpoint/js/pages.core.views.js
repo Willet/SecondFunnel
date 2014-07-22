@@ -950,8 +950,9 @@ App.module('core', function (module, App) {
             }
 
             if (this.$el.parents('#hero-area').length && !Modernizr.csspositionsticky) {
-                $('.stick-bottom', this.$el).waypoint('sticky', {
-                    offset: 'bottom-in-view'
+                $('.stick-bottom', this.$el).addClass('stuck').waypoint('sticky', {
+                    offset: 'bottom-in-view',
+                    direction: 'up'
                 });
             }
         }
