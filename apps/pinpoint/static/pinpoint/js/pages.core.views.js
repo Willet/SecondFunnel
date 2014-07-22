@@ -1074,7 +1074,7 @@ App.module('core', function (module, App) {
                 App.heroArea.show(self);
             });
         },
-        onRender: function () {
+        onShow: function () {
             var contentOpts = {
                     'model': this.model
                 },
