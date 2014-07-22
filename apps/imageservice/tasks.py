@@ -1,16 +1,13 @@
 import cStringIO
-import hashlib
 import mimetypes
 from threading import Semaphore
 
 import os
-import cloudinary.utils
-import cloudinary.uploader
 from django.conf import settings
 from PIL import ImageFilter, Image
 
 from apps.imageservice.models import SizeConf
-from apps.imageservice.utils import IMAGE_SIZES, within_color_range
+from apps.imageservice.utils import IMAGE_SIZES, within_color_range, upload_to_cloudinary, delete_cloudinary_resource
 from lib.aws_utils import upload_to_bucket
 
 
@@ -151,15 +148,28 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
 
     color = None if remove_background == 'uniform' else remove_background
     if (remove_background is not False) and ((remove_background == 'auto') or within_color_range(source, color, 4)):
-        print "background removed"
         # overwrite must be True to retrieve 'colors'
-        image_object = cloudinary.uploader.upload(source, folder=path,
-            colors=True, format='jpg', public_id=generate_public_id(source),
-            overwrite=True, effect='trim')
+        trimmed_image = upload_to_cloudinary(source, path=path, effect='trim')
+        trimmed_ratio = trimmed_image['width'] / trimmed_image['height']
+        if trimmed_ratio < 0.5:  # if height is more than twice the width
+            normal_image = upload_to_cloudinary(source, path=path)
+            normal_ratio = normal_image['width'] / normal_image['height']
+
+            if normal_ratio >= trimmed_ratio:  # if the regular image has a better ratio then the trimmed one
+                print 'trimmed ratio is unacceptable'
+                image_object = normal_image
+                delete_cloudinary_resource(trimmed_image['url'])
+            else:  # the trimmed image is better despite being less than ideal.
+                print 'trimmed ratio is more ideal than not-trimmed'
+                # TODO maybe do some cropping here instead?
+                image_object = trimmed_image
+                delete_cloudinary_resource(normal_image['url'])
+        else:
+            print 'trimmed ratio is ideal. image trimmed'
+            image_object = trimmed_image
+
     else:
-        image_object = cloudinary.uploader.upload(source, folder=path,
-            colors=True, format='jpg', public_id=generate_public_id(source),
-            overwrite=True)
+        image_object = upload_to_cloudinary(source, path=path)
 
     # Grab the dominant colour from cloudinary
     colors = image_object['colors']
@@ -182,22 +192,3 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
     })
 
     return data
-
-
-def generate_public_id(url, store=None, cloudinary_compatible=True):
-    """Returns a string that is a product of a(n image) url and,
-    optionally, the store from which this image was retrieved.
-
-    if cloudinary_compatible is True, then the hash will be 16 characters long:
-    http://cloudinary.com/documentation/django_image_upload#all_upload_options
-    """
-    if not url:
-        raise ValueError("Cannot hash empty strings or other types")
-
-    if store:
-        url += store.slug + '/'
-
-    url_hash = hashlib.md5(url).hexdigest()
-    if cloudinary_compatible:
-        return url_hash[:16]
-    return url_hash

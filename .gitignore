@@ -21,6 +21,7 @@ apps/pinpoint/static/campaigns
 .vagrant
 scripts/flush.sql
 db.sql
+ghostdriver.log
 
 # Testing directories
 apps/testing/resources

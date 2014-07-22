@@ -1,3 +1,4 @@
+import hashlib
 import re
 import os
 import math
@@ -8,6 +9,8 @@ import cStringIO
 from collections import namedtuple
 
 import cloudinary.api
+import cloudinary.utils
+import cloudinary.uploader
 from django.conf import settings
 from django.core.files.storage import default_storage
 
@@ -27,7 +30,6 @@ IMAGE_SIZES = getattr(settings, 'IMAGE_SIZES', (
     ("master", 2048, 2048)
 ))
 
-
 Point = namedtuple('Point', ('coords', 'n', 'ct'))
 Cluster = namedtuple('Cluster', ('points', 'center', 'n'))
 
@@ -44,6 +46,18 @@ def get_public_id(url):
     public_id = ".".join(url.split('.')[:-1])
 
     return public_id
+
+
+def upload_to_cloudinary(source, path='', effect=None):
+    if effect:
+        image = cloudinary.uploader.upload(source, folder=path,
+                                           colors=True, format='jpg', public_id=generate_public_id(source),
+                                           overwrite=True, effect='trim')
+    else:
+        image = cloudinary.uploader.upload(source, folder=path,
+                                   colors=True, format='jpg', public_id=generate_public_id(source),
+                                   overwrite=True)
+    return image
 
 
 def delete_cloudinary_resource(public_id):
@@ -133,8 +147,8 @@ def hex_to_rgb(hex_color):
 
     hex_color = ''.join([x * 2 for x in hex_color]) if len(hex_color) == 3 else hex_color
     hlen = len(hex_color)
-    color_length = hlen/3
-    return tuple(int(hex_color[i:i+color_length], 16) for i in range(0, hlen, color_length))
+    color_length = hlen / 3
+    return tuple(int(hex_color[i:i + color_length], 16) for i in range(0, hlen, color_length))
 
 
 def euclidean_distance(p1, p2):
@@ -187,7 +201,7 @@ def within_color_range(url, color, threshold):
         distance /= 4
     else:
         for corner1 in range(5):
-            for corner2 in range(corner1+1, 4):
+            for corner2 in range(corner1 + 1, 4):
                 distance += euclidean_distance(points[corner1], points[corner2])
         distance /= 6
 
@@ -209,7 +223,7 @@ def get_dominant_color(img, cluster_count=5, minimum_difference=1.0):
     @return: String
     """
     points = []
-    img = img.resize(200, 200) # Resize for efficiency
+    img = img.resize(200, 200)  # Resize for efficiency
 
     for count, color in img.getcolors(img.width * img.height):
         points.append(Point(color, 3, count))
@@ -257,7 +271,7 @@ def kmeans(points, k, min_diff):
     """
     clusters = [Cluster([p], p, p.n) for p in random.sample(points, k)]
 
-    while True: # iterate until convergence
+    while True:  # iterate until convergence
         plists = [[] for i in range(k)]
 
         for p in points:
@@ -283,3 +297,22 @@ def kmeans(points, k, min_diff):
             break
 
     return clusters
+
+
+def generate_public_id(url, store=None, cloudinary_compatible=True):
+    """Returns a string that is a product of a(n image) url and,
+    optionally, the store from which this image was retrieved.
+
+    if cloudinary_compatible is True, then the hash will be 16 characters long:
+    http://cloudinary.com/documentation/django_image_upload#all_upload_options
+    """
+    if not url:
+        raise ValueError("Cannot hash empty strings or other types")
+
+    if store:
+        url += store.slug + '/'
+
+    url_hash = hashlib.md5(url).hexdigest()
+    if cloudinary_compatible:
+        return url_hash[:16]
+    return url_hash
