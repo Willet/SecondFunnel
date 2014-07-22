@@ -2,9 +2,9 @@
 
 #topbar {
     background: #000;
-    color: #fff;
-    margin: -8px -8px 8px -8px;
-    padding: 16px 16px 8px 16px;
+    color: #F47DA7;
+    margin:  0;
+    padding: 0;
     position: fixed;
     top: 0;
     width: 100%;
@@ -13,17 +13,8 @@
 }
 
 #topbar img {
-    max-height: 30px;
+    max-height: 46px;
     vertical-align: middle;
-}
-
-#topbar .nastygal {
-    height: 37px;
-}
-
-#topbar .bustle {
-    height: 25px;
-    margin-left: 4px;
 }
 
 #discovery-area .tile .caption {
