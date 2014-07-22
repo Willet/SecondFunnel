@@ -415,6 +415,11 @@ div.loading {
 
 #hero-area .previewContainer .stick-bottom {
     position: fixed;
+    position: -webkit-sticky;
+    position: -moz-sticky;
+    position: -o-sticky;
+    position: -ms-sticky;
+    position: sticky;
     width: 100%;
     bottom: 0;
     -webkit-transform: translateZ(0);

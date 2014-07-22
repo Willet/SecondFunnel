@@ -949,7 +949,7 @@ App.module('core', function (module, App) {
                 this.resizeContainer();
             }
 
-            if (this.$el.parents('#hero-area').length) {
+            if (this.$el.parents('#hero-area').length && !Modernizr.csspositionsticky) {
                 $('.stick-bottom', this.$el).waypoint('sticky', {
                     offset: 'bottom-in-view'
                 });
