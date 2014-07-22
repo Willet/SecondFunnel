@@ -24,7 +24,7 @@ class AnthropologieSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         )
     ]
 
-    store_slug = 'anthropologie'
+    store_slug = name
 
     def __init__(self, *args, **kwargs):
         super(AnthropologieSpider, self).__init__(*args, **kwargs)
