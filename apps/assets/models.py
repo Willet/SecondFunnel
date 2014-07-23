@@ -575,11 +575,11 @@ class Feed(BaseModel):
     def __unicode__(self):
         try:
             page_names = ', '.join(page.name for page in self.page.all())
-            return 'Feed (#%s), pages: %s' % (self.id, page_names)
+            return u'Feed (#%s), pages: %s' % (self.id, page_names)
         except (ObjectDoesNotExist, MultipleObjectsReturned):
-            return 'Feed (#%s)' % self.id
+            return u'Feed (#%s)' % self.id
         except:
-            return '(Unsaved Feed)'
+            return u'(Unsaved Feed)'
 
     # and other representation specific of the Feed itself
     def to_json(self, skip_cache=False):
