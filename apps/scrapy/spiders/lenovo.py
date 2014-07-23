@@ -73,7 +73,7 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         new_image_urls = []
         for url in image_urls:
             for before, after in magic_subs.iteritems():
-                if url.endswith('jpg'):
+                if url.endswith('jpg') and not 'video' in url:
                     # it just so happens that pngs and gifs are always video
                     # thumbnails that aren't product images
                     new_image_urls.append(url.replace(before, after))
