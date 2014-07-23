@@ -150,10 +150,10 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
     if (remove_background is not False) and ((remove_background == 'auto') or within_color_range(source, color, 4)):
         # overwrite must be True to retrieve 'colors'
         trimmed_image = upload_to_cloudinary(source, path=path, effect='trim')
-        trimmed_ratio = trimmed_image['width'] / trimmed_image['height']
+        trimmed_ratio = float(trimmed_image['width']) / trimmed_image['height']
         if trimmed_ratio < 0.5:  # if height is more than twice the width
             normal_image = upload_to_cloudinary(source, path=path)
-            normal_ratio = normal_image['width'] / normal_image['height']
+            normal_ratio = float(normal_image['width']) / normal_image['height']
 
             if normal_ratio >= trimmed_ratio:  # if the regular image has a better ratio then the trimmed one
                 print 'trimmed ratio is unacceptable'

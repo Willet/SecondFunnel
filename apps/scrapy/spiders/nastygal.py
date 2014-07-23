@@ -22,6 +22,9 @@ class NastyGalSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         )
     ]
 
+    # see documentation for remove_background in apps.imageservice.tasks
+    remove_background = '#FFF'
+
     store_slug = 'nasty-gal'
 
     def __init__(self, *args, **kwargs):

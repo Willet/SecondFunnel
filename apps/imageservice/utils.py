@@ -49,14 +49,17 @@ def get_public_id(url):
 
 
 def upload_to_cloudinary(source, path='', effect=None):
+    kwargs = {'folder': path,
+              'colors': True,
+              'format': 'jpg',
+              'public_id': generate_public_id(source),
+              'overwrite': True
+              }
+
     if effect:
-        image = cloudinary.uploader.upload(source, folder=path,
-                                           colors=True, format='jpg', public_id=generate_public_id(source),
-                                           overwrite=True, effect='trim')
-    else:
-        image = cloudinary.uploader.upload(source, folder=path,
-                                   colors=True, format='jpg', public_id=generate_public_id(source),
-                                   overwrite=True)
+        kwargs.update({'effect': effect})
+    image = cloudinary.uploader.upload(source, **kwargs)
+
     return image
 
 
