@@ -26,11 +26,7 @@ class Query(models.Model):
     """
     # the name the query goes by
     identifier = models.CharField(max_length=128, help_text='The name of this query.', unique=True)
-    cached_response = jsonfield.JSONField(default={}, blank=True)
     is_today = models.BooleanField(default=False)
-    # TODO get rid of this. it is useless (but will require a migration)
-    timestamp = models.DateTimeField(auto_now=True,
-                                     verbose_name="The last time a response was saved")
 
     # The manager that makes it so that queries will return children if possible
     objects = InheritanceManager()
@@ -329,8 +325,66 @@ class KeenIOMetricsQuery(Query):
             response = requests.get(query['url'], headers=query['header'], params=query['payload'])
         except HttpError as error:
             print "Querying Keen.io failed with: ", error
-
         return json.dumps(response.json())
+
+
+class DatabaseQuery(Query):
+    """
+    Queries the database for data that we keep there. clicks and views on tiles.
+
+    Does not support is_today due to date data not being recorded with clicks or views.
+    """
+
+    clicks = models.BooleanField(default=False)
+    views = models.BooleanField(default=False)
+
+    operator = models.CharField(max_length=16, choices=[
+        ('/', 'Division'),
+        ('*', 'Multiplication'),
+        ('+', 'Addition'),
+        ('-', 'Difference')
+    ], default='/', blank=True)
+
+    def get_query(self, page):
+        return page.feed.tiles.all()
+
+    def get_response(self, page):
+        tiles = self.get_query(page)
+
+        if self.clicks and self.views:
+            tiles = tiles.extra(select={
+                'result': 'cast(clicks + 1 as float) ' + self.operator + ' cast(views + 1 as float)'
+            }).order_by('-result')
+        elif self.views:
+            tiles = tiles.extra(select={
+                'result': 'cast(views + 1 as float)'
+            }).order_by('-result')
+        elif self.clicks:
+            tiles = tiles.extra(select={
+                'result': 'cast(clicks + 1 as float)'
+            }).order_by('-result')
+
+        response = {"result": []}
+        for tile in tiles:
+            if tile.template == 'product':
+                name = tile.products.all()[0].name
+            elif tile.template == 'youtube':
+                #TODO maybe there is a way to get the youtube name?
+                name = "Youtube"
+            else:
+                try:
+                    name = tile.content.all()[0].tagged_products.all()[0].name
+                except:
+                    name = tile.content.all()[0].url
+
+            r_tile = {
+                "page.url": settings.WEBSITE_BASE_URL + "/" + page.url_slug,
+                "product.name": name,
+                "tile.url": tile.products.all()[0].default_image.url if tile.template == 'product' else tile.content.all()[0].url,
+                "result": tile.result
+            }
+            response['result'].append(r_tile)
+        return json.dumps(response)
 
 
 class Campaign(models.Model):
