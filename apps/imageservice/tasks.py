@@ -1,4 +1,5 @@
 import cStringIO
+import hashlib
 import mimetypes
 from threading import Semaphore
 
@@ -192,3 +193,22 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
     })
 
     return data
+
+
+def generate_public_id(url, store=None, cloudinary_compatible=True):
+    """Returns a string that is a product of a(n image) url and,
+    optionally, the store from which this image was retrieved.
+
+    if cloudinary_compatible is True, then the hash will be 16 characters long:
+    http://cloudinary.com/documentation/django_image_upload#all_upload_options
+    """
+    if not url:
+        raise ValueError("Cannot hash empty strings or other types")
+
+    if store:
+        url += store.slug + '/'
+
+    url_hash = hashlib.md5(str(url)).hexdigest()
+    if cloudinary_compatible:
+        return url_hash[:16]
+    return url_hash

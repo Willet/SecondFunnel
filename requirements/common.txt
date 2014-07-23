@@ -23,6 +23,7 @@ drf-extensions==0.2.1
 django-admin-bootstrapped==1.6.4
 django-admin-tools==0.4.0
 django-adminactions==0.4
+newrelic==2.22.1.20
 
 ## Deployment and Task Runner
 argparse==1.1
@@ -70,6 +71,7 @@ psycopg2==2.5.2
 jsonfield==0.9.20
 
 ## Job Processing (celery)
+amqp==1.4.5
 amqplib>=1.0.2
 anyjson>=0.3.3
 billiard==3.3.0.16

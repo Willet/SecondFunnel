@@ -8,41 +8,40 @@ from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class NastyGalSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
-    name = 'nastygal'
-    allowed_domains = ['nastygal.com']
-    start_urls = ['http://www.nastygal.com/']
+class AnthropologieSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+    name = 'anthropologie'
+    allowed_domains = ['anthropologie.com']
+    start_urls = ['http://www.anthropologie.com/']
     rules = [
         Rule(
             SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "next")]')
         ),
         Rule(
-            SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "product-link")]'),
+            SgmlLinkExtractor(allow=[
+                r'/anthro/product/.+'
+            ]),
             'parse_product', follow=False
         )
     ]
 
-    # see documentation for remove_background in apps.imageservice.tasks
-    remove_background = '#FFF'
-
     store_slug = name
 
     def __init__(self, *args, **kwargs):
-        super(NastyGalSpider, self).__init__(*args, **kwargs)
+        super(AnthropologieSpider, self).__init__(*args, **kwargs)
 
     def is_product_page(self, response):
         sel = Selector(response)
 
-        is_product_page = sel.css('.product-style')
+        is_product_page = sel.css('.size-dropdown')
 
         return is_product_page
 
 
     def parse_product(self, response):
         """
-        Parses a product page on NastyGal.com.
+        Parses a product page on Anthropologie.com.
 
-        @url http://www.nastygal.com/whats-new_clothes/after-party-short-and-sweet-top
+        @url http://www.anthropologie.com/anthro/product/accessories-jewelry/32478539.jsp#/
         @returns items 1 1
         @returns requests 0 0
         @scrapes url sku name price in_stock description image_urls attributes
@@ -54,21 +53,21 @@ class NastyGalSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        l.add_css('sku', '.product-style::text', re='Style #:(\d+)')
+        l.add_css('sku', '#styleno::text')
         l.add_css('name', 'h1.product-name::text')
-        l.add_css('price', '.current-price::text', re='\$(.*)')
+        l.add_css('price', '.product-info .price', re='\$(.*)')
         l.add_value('in_stock', True)
 
-        l.add_css('description', '.product-description')
-        l.add_css('image_urls', '.carousel img::attr(src)')
+        l.add_css('description', '.description-content')
+        l.add_css('image_urls', '#imgSlider img::attr(ng-src)')
 
         # Handle categories
-        breadcrumbs = iter(sel.css('.breadcrumb a'))
+        breadcrumbs = iter(sel.css('.product-breadcrumb a'))
         breadcrumb = next(breadcrumbs)  # Skip the first element
 
         categories = []
         for breadcrumb in breadcrumbs:
-            category_name = breadcrumb.css('span::text').extract_first().strip()
+            category_name = breadcrumb.css('::text').extract_first().strip()
             category_url = breadcrumb.css('::attr(href)').extract_first()
 
             categories.append((

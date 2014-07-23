@@ -302,6 +302,17 @@ class Product(BaseModel):
                 raise ValidationError('Product sale price does not validate')
 
 
+        # guarantee the default image is in the list of product images
+        # (and vice versa)
+        image_urls = [img.url for img in self.product_images.all()]
+        if self.default_image and (self.default_image.url not in image_urls):
+            # there is a default image and it's not in the list of product images
+            self.product_images.add(self.default_image)
+        elif not self.default_image and len(image_urls):
+            # there is no default image
+            self.default_image = self.product_images.all()[0]
+
+
 class ProductImage(BaseModel):
     """An Image-like model class that is explicitly an image depicting
     a product, rather than any other kind.
@@ -564,11 +575,11 @@ class Feed(BaseModel):
     def __unicode__(self):
         try:
             page_names = ', '.join(page.name for page in self.page.all())
-            return 'Feed (#%s), pages: %s' % (self.id, page_names)
+            return u'Feed (#%s), pages: %s' % (self.id, page_names)
         except (ObjectDoesNotExist, MultipleObjectsReturned):
-            return 'Feed (#%s)' % self.id
+            return u'Feed (#%s)' % self.id
         except:
-            return '(Unsaved Feed)'
+            return u'(Unsaved Feed)'
 
     # and other representation specific of the Feed itself
     def to_json(self, skip_cache=False):

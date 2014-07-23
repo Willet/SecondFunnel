@@ -136,15 +136,18 @@ App.module('core', function (module, App) {
             var tile = this.model, sku, tileId, url;
 
             if (App.option('openTileInPopup', false)) {
-                if (tile.get('template') === 'product') {
+                if (App.option('tilePopupUrl')) {
+                    // override for ad units whose tiles point to our pages
+                    url = App.option('tilePopupUrl');
+                } else if (tile.get('template') === 'product') {
                     url = tile.get('url');
                 } else if (tile.get('tagged-products') &&
                            tile.get('tagged-products').length) {
                     url = tile.get('tagged-products')[0].url;
                 }
-                if (App.option('tilePopupUrl')) {
-                    // override for ad units whose tiles point to our pages
-                    url = App.option('tilePopupUrl');
+                if (url.indexOf('http') === -1 && App.store.get('slug')) {  // missing schema
+                    url = 'http://' + App.store.get('slug') +
+                        '.secondfunnel.com' + url;
                 }
                 if (url && url.length) {
                     sku = tile.get('sku');
@@ -799,6 +802,8 @@ App.module('core', function (module, App) {
             if (!App.support.isAnAndroid()) {
                 $(document.body).removeClass('no-scroll');
             }
+
+            $('.stick-bottom', this.$el).waypoint('destroy');
         },
 
         'renderSubregions': function (product) {
@@ -946,6 +951,13 @@ App.module('core', function (module, App) {
             } else  {
                 this.resizeContainer();
             }
+
+            if (this.$el.parents('#hero-area').length && !Modernizr.csspositionsticky) {
+                $('.stick-bottom', this.$el).addClass('stuck').waypoint('sticky', {
+                    offset: 'bottom-in-view',
+                    direction: 'up'
+                });
+            }
         }
     });
 
@@ -1065,7 +1077,7 @@ App.module('core', function (module, App) {
                 App.heroArea.show(self);
             });
         },
-        onRender: function () {
+        onShow: function () {
             var contentOpts = {
                     'model': this.model
                 },

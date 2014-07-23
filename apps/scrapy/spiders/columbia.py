@@ -43,7 +43,7 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        l.add_css('sku', 'span[itemprop="identifier"]', re='#(\d+)')
+        l.add_css('sku', 'span[itemprop="identifier"]', re='#(\w+)')
         l.add_css('name', '.product_title::text')
         l.add_css('price', '.price-index.regprice::text')
         l.add_value('in_stock', True)
@@ -81,7 +81,7 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
             categories.append((category_name, category_url))
 
-        sale_price = sel.css('#member-price').extract_first()
+        sale_price = sel.css('#pdpAddToCartContainer #member-price').extract_first()
         if sale_price:
             attributes['sale_price'] = sel.css('#member-price')\
                 .extract_first().replace('Now ', '')

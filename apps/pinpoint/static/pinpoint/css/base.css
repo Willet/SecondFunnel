@@ -413,6 +413,22 @@ div.loading {
     display: none;
 }
 
+#hero-area .previewContainer .stick-bottom {
+    position: -webkit-sticky;
+    position: -moz-sticky;
+    position: -o-sticky;
+    position: -ms-sticky;
+    position: sticky;
+    width: 100%;
+    bottom: 0;
+    -webkit-transform: translateZ(0);
+}
+
+#hero-area .previewContainer .stick-bottom.stuck {
+    position: fixed;
+    box-shadow: 0 0 30px -1px #000;
+}
+
 .previewContainer .gallery,
 .previewContainer .gallery-dots {
     text-align: center;
@@ -546,6 +562,7 @@ div.loading {
 .previewContainer .stl-title {
     text-align: center;
     font-size: 18px;
+    background-color: white;
 }
 
 .previewContainer .stl-look {

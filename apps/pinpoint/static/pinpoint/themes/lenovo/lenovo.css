@@ -1,0 +1,8 @@
+
+.tile {
+	width: 256px;
+}
+
+.tile.wide {
+	width: 512px;
+}
