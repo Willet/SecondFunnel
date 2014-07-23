@@ -803,7 +803,9 @@ App.module('core', function (module, App) {
                 $(document.body).removeClass('no-scroll');
             }
 
-            $('.stick-bottom', this.$el).waypoint('destroy');
+            if ($.fn.waypoint) {
+                $('.stick-bottom', this.$el).waypoint('destroy');
+            }
         },
 
         'renderSubregions': function (product) {
