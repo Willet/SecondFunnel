@@ -802,6 +802,8 @@ App.module('core', function (module, App) {
             if (!App.support.isAnAndroid()) {
                 $(document.body).removeClass('no-scroll');
             }
+
+            $('.stick-bottom', this.$el).waypoint('destroy');
         },
 
         'renderSubregions': function (product) {
@@ -949,6 +951,13 @@ App.module('core', function (module, App) {
             } else  {
                 this.resizeContainer();
             }
+
+            if (this.$el.parents('#hero-area').length && !Modernizr.csspositionsticky) {
+                $('.stick-bottom', this.$el).addClass('stuck').waypoint('sticky', {
+                    offset: 'bottom-in-view',
+                    direction: 'up'
+                });
+            }
         }
     });
 
@@ -1068,7 +1077,7 @@ App.module('core', function (module, App) {
                 App.heroArea.show(self);
             });
         },
-        onRender: function () {
+        onShow: function () {
             var contentOpts = {
                     'model': this.model
                 },
