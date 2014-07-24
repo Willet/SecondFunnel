@@ -1,8 +1,81 @@
 
+#discovery-area {
+    background-color: #000;
+}
+
 .tile {
-	width: 256px;
+    width: 256px;
+    background-color: #000;
 }
 
 .tile.wide {
-	width: 512px;
+    width: 512px;
+}
+
+.tile.youtube {
+    height: 280px;
+}
+
+.tile.youtube .thumbnail {
+    border: none;
+}
+
+.previewContainer .cell {
+    padding: 0 5px;
+}
+.previewContainer .cell:first-child {
+    padding-left: 0;
+}
+.previewContainer .cell:last-child {
+    padding-right: 0;
+}
+
+.previewContainer .cell > div {
+    margin: 10px 0;
+}
+.previewContainer .cell > div:first-child {
+    margin-top: 0;
+}
+.previewContainer .cell > div:last-child {
+    margin-bottom: 0;
+}
+
+.previewContainer .cell.image-cell {
+    vertical-align: middle;
+}
+
+.previewContainer .info .title {
+    font-size: 26px;
+    text-align: left;
+ }
+
+ .previewContainer .image-without-tagged-products .info .title {
+    text-align: center;
+ }
+
+ .previewContainer .info .price {
+    text-align: left;
+    font-size: 24px;
+    color: red;
+ }
+
+.previewContainer .buy .button {
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.previewContainer .buy .button.lenovo {
+    background-color: #dc291e;
+}
+
+.previewContainer .buy .button.newegg {
+    margin-top: 5px;
+    color: #542F05;
+    background-color: #FFC942;
+    background-image: -webkit-gradient(linear,left top,left bottom,color-stop(.10, #ffc842),color-stop(1, #f48717));
+    background-image: -o-linear-gradient(bottom, #FFC942 10%, #F48517 100%);
+    background-image: -moz-linear-gradient(bottom, #FFC942 10%, #F48517 100%);
+    background-image: -webkit-linear-gradient(bottom, #FFC942 10%, #F48517 100%);
+    background-image: -ms-linear-gradient(bottom, #FFC942 10%, #F48517 100%);
+    background-image: linear-gradient(to bottom, #FFC942 10%, #F48517 100%);
 }

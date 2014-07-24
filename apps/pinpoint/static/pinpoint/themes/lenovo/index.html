@@ -181,9 +181,14 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <a class='button' href='<%= obj.url %>' target='_blank'>
-                Shop Now
+            <a class='button lenovo' href='<%= obj.url %>' target='_blank'>
+                Shop on Lenovo
             </a>
+            <% if (obj.neweggUrl) { %>
+                <a class='button newegg' href='<%= obj.neweggUrl %>' target='_blank'>
+                    Shop on Newegg
+                </a>
+            <% } %>
         </script>
 
         <script type="text/template" id="product_description_template">
@@ -319,7 +324,7 @@
                                     Coming soon to Newegg!
                                 </div>
                                 <div class="buy">
-                                    <a class='button' href='http://www.newegg.com/' target='_blank'>
+                                    <a class='button newegg' href='http://www.newegg.com/' target='_blank'>
                                         Shop On Newegg
                                     </a>
                                 </div>
