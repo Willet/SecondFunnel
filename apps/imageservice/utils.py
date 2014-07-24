@@ -315,7 +315,7 @@ def generate_public_id(url, store=None, cloudinary_compatible=True):
     if store:
         url += store.slug + '/'
 
-    url_hash = hashlib.md5(url).hexdigest()
+    url_hash = hashlib.md5(str(url)).hexdigest()
     if cloudinary_compatible:
         return url_hash[:16]
     return url_hash
