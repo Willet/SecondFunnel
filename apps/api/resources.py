@@ -83,13 +83,9 @@ class BaseCGResource(ExtendedModelResource):
 
 class StoreResource(BaseCGResource):
     """REST-style store."""
-    # TODO is it necessary to display full information, or is a link to the api where this info is located good enough?
     staff = fields.ToManyField('apps.api.resources.UserResource', 'staff', full=True)
     default_theme = fields.ForeignKey('apps.api.resources.ThemeResource', 'default_theme', full=True, null=True)
     pages = fields.ToManyField('apps.api.resources.PageResource', 'pages')
-    # TODO products in the store? is this necessary?
-    products = fields.ToManyField('apps.api.resources.ProductResource', 'products')
-    content = fields.ToManyField('apps.api.resources.ContentResource', 'content')
     categories = fields.ToManyField('apps.api.resources.CategoryResource', 'categories')
 
     class Meta(BaseCGResource.Meta):
@@ -131,13 +127,19 @@ class StoreResource(BaseCGResource):
 class ProductResource(BaseCGResource):
     """REST (tastypie) version of a Product."""
     store = fields.ForeignKey('apps.api.resources.StoreResource',
-                              'store', null=True)
+                              'store', null=True, full=False)
     default_image = fields.ForeignKey('apps.api.resources.ProductImageResource',
-                                      'default_image')
-    # TODO should this be full data or just links to the endpoints?
-    images = fields.ToManyField('apps.api.resources.ProductImageResource', 'product_images', null=True)
-    categories = fields.ToManyField('apps.api.resources.CategoryResource', 'categories')
-    tagged_on = fields.ToManyField('apps.api.resources.ContentResource', 'content')
+                                      'default_image', null=True, full=True, full_list=False)
+    images = fields.ToManyField('apps.api.resources.ProductImageResource', 'product_images',
+                                null=True, full=True, full_list=False)
+    categories = fields.ToManyField('apps.api.resources.CategoryResource', 'categories', full=False, full_list=False)
+    tagged_on = fields.ToManyField('apps.api.resources.ContentResource', 'content', null=True)
+
+    def dehydrate(self, bundle):
+        if 'ir_cache' in bundle.data:
+            del bundle.data['ir_cache']
+
+        return bundle
 
     class Meta(BaseCGResource.Meta):
         """Django's way of defining a model's metadata."""
@@ -162,13 +164,14 @@ class ProductImageResource(BaseCGResource):
         """Convert JSON fields into top-level attributes in the response"""
         # http://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-custom-values
 
-        bundle.obj = ProductImage.objects.filter(pk=bundle.obj.pk)[0]
         # make attributes json a json object that can be accessed normally
         if 'attributes' in bundle.data:
             temp = json.loads(bundle.data['attributes'].replace("'", '"').replace('u', ''))
             temp.update(bundle.data)
             bundle.data = temp
             del bundle.data['attributes']
+        if 'ir_cache' in bundle.data:
+            del bundle.data['ir_cache']
 
         return bundle
 
@@ -197,7 +200,7 @@ class ContentResource(BaseCGResource):
     """Returns Content."""
 
     store = fields.ForeignKey('apps.api.resources.StoreResource', 'store', null=True)
-    tagged_products = fields.ToManyField('apps.api.resources.ProductResource', 'tagged_products', null=True)
+    tagged_products = fields.ToManyField('apps.api.resources.ProductResource', 'tagged_products', null=True, full=True)
 
     class Meta(BaseCGResource.Meta):
         queryset = Content.objects.all()
@@ -445,7 +448,7 @@ class TileConfigResource(BaseCGResource):
 
 # http://stackoverflow.com/questions/11770501/how-can-i-login-to-django-using-tastypie
 class UserResource(ModelResource):
-    stores = fields.ToManyField('apps.api.resources.StoreResource', 'stores')
+    stores = fields.ToManyField('apps.api.resources.StoreResource', 'stores', full=True)
     class Meta:
         resource_name = 'user'
         queryset = User.objects.all()
