@@ -7,6 +7,10 @@
     background-color: #000;
 }
 
+.navbar {
+	background-color: #F5F5E5;
+}
+
 .tile {
     width: 256px;
     background-color: #000;
@@ -82,4 +86,20 @@
     background-image: -webkit-linear-gradient(bottom, #FFC942 10%, #F48517 100%);
     background-image: -ms-linear-gradient(bottom, #FFC942 10%, #F48517 100%);
     background-image: linear-gradient(to bottom, #FFC942 10%, #F48517 100%);
+}
+
+@media screen and (max-width: 768px) {
+	.previewContainer .cell {
+	    padding: 5px 0;
+	}
+	.previewContainer .cell:first-child {
+	    padding-top: 0;
+	}
+	.previewContainer .cell:last-child {
+	    padding-bottom: 0;
+	}
+
+	.previewContainer .content {
+		padding-top: 18px;
+	}
 }

@@ -270,7 +270,7 @@
                                     </div>
                                 </div>
                             <% } %>
-                            <div class="cell desktop-only">
+                            <div class="cell desktop-only image-cell">
                                 <img src="<%= obj.image.url %>" alt="image" class="image"/>
                                     <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                                     <div class="landscape">
@@ -286,15 +286,15 @@
                                     </div>
                                 <% } %>
                             </div>
+                            <div class="cell mobile-only">
+                                <img src="<%= obj.image.url %>" alt="image"/>
+                            </div>
                             <div class="cell info">
                                 <div class='title'></div>
                                 <div class='price'></div>
                                 <div class='buy'></div>
                                 <div class="gallery-main-image"></div>
                                 <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                            </div>
-                            <div class="cell mobile-only">
-                                <img src="<%= obj.image.url %>" alt="image"/>
                             </div>
                             <% if (obj['tagged-products'].length > 1) { %>
                                 <div class="cell mobile-only">
