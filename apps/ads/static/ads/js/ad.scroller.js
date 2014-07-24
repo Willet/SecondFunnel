@@ -28,6 +28,9 @@ App.module("scroller", function (module, App) {
             if (cellsRemoved >= removeCells && cellsRemoved % columnCount === 0) {
                 return;
             }
+            if (!tile.$el.is(':visible')) {
+                return;
+            }
             tile.close();
             feed.children.remove(tile);
             tilesToRemove.push(tile);
