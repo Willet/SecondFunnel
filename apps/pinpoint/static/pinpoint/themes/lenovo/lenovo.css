@@ -19,3 +19,31 @@
 .tile.youtube .thumbnail {
 	border: none;
 }
+
+.previewContainer .cell {
+	padding: 0 5px;
+}
+.previewContainer .cell:first-child {
+	padding-left: 0;
+}
+.previewContainer .cell:last-child {
+	padding-right: 0;
+}
+
+.previewContainer .cell > div {
+	margin: 10px 0;
+}
+.previewContainer .cell > div:first-child {
+	margin-top: 0;
+}
+.previewContainer .cell > div:last-child {
+	margin-bottom: 0;
+}
+
+.previewContainer .cell.image-cell {
+	vertical-align: middle;
+}
+
+.previewContainer .buy .button {
+	padding: 5px 10px;
+}
