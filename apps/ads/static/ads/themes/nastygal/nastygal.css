@@ -1,8 +1,16 @@
 @charset "UTF-8";
 
+html {
+    border: 1px solid #F47DA7;
+    box-sizing: border-box;
+}
+
+.container, #discovery-area {
+    height: 598px!important;
+}
+
 #topbar {
-    background: #000;
-    color: #F47DA7;
+    background: #F47DA7;
     margin:  0;
     padding: 0;
     position: fixed;
