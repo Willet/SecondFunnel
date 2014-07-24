@@ -69,6 +69,7 @@
 }
 
 .previewContainer .buy .button.newegg {
+    margin-top: 5px;
     color: #542F05;
     background-color: #FFC942;
     background-image: -webkit-gradient(linear,left top,left bottom,color-stop(.10, #ffc842),color-stop(1, #f48717));
