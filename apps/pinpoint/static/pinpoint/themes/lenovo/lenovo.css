@@ -1,8 +1,21 @@
 
+#discovery-area {
+	background-color: #000;
+}
+
 .tile {
 	width: 256px;
+	background-color: #000;
 }
 
 .tile.wide {
 	width: 512px;
+}
+
+.tile.youtube {
+	height: 280px;
+}
+
+.tile.youtube .thumbnail {
+	border: none;
 }
