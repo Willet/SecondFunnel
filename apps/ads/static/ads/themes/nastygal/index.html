@@ -21,8 +21,11 @@
 
         {% compress js %}
         {% include "pinpoint/campaign_config.html" %}
+        <script src="{% static 'js/modernizr-2.8.3.min.js' %}"></script>
         <script src="{% static 'js/jquery-1.10.2.min.js' %}"></script>
+        <script src="{% static 'js/jquery-migrate-1.2.1.js' %}"></script>
         <script src="{% static 'js/jquery.viewport.min.js' %}"></script><!-- after browser mobile -->
+        <script src="{% static 'js/jquery.deparam.js' %}"></script><!-- after browser mobile -->
         <script src="{% static 'js/underscore.min.js' %}"></script>
         <script src="{% static 'js/backbone.min.js' %}"></script>
         <script src="{% static 'js/backbone.marionette.min.js' %}"></script><!-- after backbone -->
