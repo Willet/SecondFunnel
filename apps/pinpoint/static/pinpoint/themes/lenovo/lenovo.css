@@ -46,4 +46,20 @@
 
 .previewContainer .buy .button {
 	padding: 5px 10px;
+	border-radius: 4px;
+}
+
+.previewContainer .buy .button.lenovo {
+	background-color: #dc291e;
+}
+
+.previewContainer .buy .button.newegg {
+	color: #542F05;
+	background-color: #FFC942;
+	background-image: -webkit-gradient(linear,left top,left bottom,color-stop(.10, #ffc842),color-stop(1, #f48717));
+	background-image: -o-linear-gradient(bottom, #FFC942 10%, #F48517 100%);
+	background-image: -moz-linear-gradient(bottom, #FFC942 10%, #F48517 100%);
+	background-image: -webkit-linear-gradient(bottom, #FFC942 10%, #F48517 100%);
+	background-image: -ms-linear-gradient(bottom, #FFC942 10%, #F48517 100%);
+	background-image: linear-gradient(to bottom, #FFC942 10%, #F48517 100%);
 }
