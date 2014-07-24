@@ -1,0 +1,62 @@
+- name: Install General Applications
+  yum: name={{item}} state=present
+  when: ansible_os_family == 'RedHat'
+  with_items:
+    - git
+    - python-pip
+    - python-devel
+    - iotop
+  sudo: yes
+
+- apt: name={{item}} state=present update_cache=yes
+  when: ansible_os_family == 'Debian'
+  with_items:
+    - git
+    - python-pip
+    - python-dev
+    - iotop
+    - htop
+    - unzip
+    - realpath
+    - apache2-utils
+    - awscli
+    - zsh
+  sudo: yes
+
+- name: "Create {{common_user}} user"
+  user: name={{common_user}} shell=/bin/bash groups=admin,sudo,www-data append=yes
+  sudo: true
+
+- name: "Set up authorized_keys for all users logging in as {{common_user}}"
+  authorized_key: user="{{common_user}}"
+                  key="{{lookup('file', item)}}"
+  with_fileglob:
+    - public_keys/*.pub
+  sudo: true
+
+- name: "Setup Locales (Ubuntu)"
+  shell: echo 'LC_ALL=en_US.UTF-8\nLANG=en_US.UTF-8\n' >> /etc/environment
+  sudo: true
+  when: ansible_distribution == 'Ubuntu' and ansible_env.LC_ALL | default('') == ''
+
+- include: aws-cli.yml
+  tags: aws
+  when: ansible_distribution != 'Amazon' and ansible_env.EC2_HOME | default('') == ''
+
+- include: zsh.yml
+  tags: oh-my-zsh
+  when: ansible_distribution != 'Amazon'
+  sudo: true
+  sudo_user: "{{common_user}}"
+
+- name: "Setup no-password for sudo group users"
+  template: src=sudoers dest=/etc/sudoers mode=0440
+  sudo: true
+
+- name: "Setup no SSH Timeout"
+  template: src=sshd_config dest=/etc/ssh/sshd_config mode=0644
+  sudo: true
+
+- name: "Install Ansible"
+  pip: name=ansible 
+  sudo: true

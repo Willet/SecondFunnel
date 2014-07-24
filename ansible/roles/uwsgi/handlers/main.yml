@@ -1,0 +1,4 @@
+---
+- name: uwsgi reload
+  shell: "echo r > {{uwsgi.fifo_file}}"
+  sudo: true

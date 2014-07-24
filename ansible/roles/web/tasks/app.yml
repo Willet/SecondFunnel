@@ -1,0 +1,57 @@
+- name: Install Application Dependencies
+  yum: name={{item}} state=present
+  when: ansible_os_family == 'RedHat'
+  with_items:
+    - git
+    - python27-devel
+    - libffi-devel
+    - libyaml
+    - libyaml-devel
+    - libxslt
+    - libxslt-devel
+    - libxml2
+    - libxml2-devel
+    - libjpeg-devel
+    - python-pip
+    - postgresql
+    - postgresql-server
+    - postgresql-devel
+    - postgresql-contrib
+
+- apt: name={{item}} state=present
+  when: ansible_os_family == 'Debian'
+  with_items:
+    - git
+    - python-pip
+    - python-dev
+    - build-essential 
+    - iotop
+    - libffi-dev
+    - libyaml-0-2
+    - libyaml-dev
+    - libxslt1.1
+    - libxslt1-dev
+    - libxml2
+    - libxml2-dev
+    - libjpeg-dev
+    - postgresql-client
+    - libpq-dev
+
+- name: Install VirtualEnv
+  pip: name=virtualenv
+
+- name: Create Directories for Application
+  file: state=directory path={{item}} mode=0777 owner={{common_user}} group={{common_user}}
+  with_items:
+    - "{{secondfunnel_directory}}"
+    - "{{application_directory}}"
+    - "{{secondfunnel_run_directory}}"
+    - "{{secondfunnel_log_directory}}"
+    - "{{secondfunnel_directory}}/node_modules"
+    - "{{secondfunnel_directory}}/bowser_libs"
+
+- name: Setup Environment for Database
+  template: src=rds_environment.sh dest=/etc/profile.d/rds_environment.sh mode=0777
+
+- name: Setup Login for pgbouncer
+  template: src=pgbouncer.userlist.txt.j2 dest=/etc/pgbouncer/userlist.txt mode=0644 owner=postgres group=postgres

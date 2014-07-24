@@ -1,0 +1,4 @@
+---
+node:
+  version: 0.10.29
+  tmp_directory: /tmp

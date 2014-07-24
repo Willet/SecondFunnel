@@ -1,0 +1,56 @@
+- name: Copy deploy key over
+  template: src={{item}} dest={{secondfunnel_directory}}/{{item}} mode=0600
+  with_items:
+    - willet_deploy_key_id_rsa
+    - willet_deploy_key_id_rsa.pub
+  when: app_environment != 'vagrant'
+
+- name: Sync latest version of repository
+  git: repo=ssh://git@github.com/Willet/SecondFunnel.git dest="{{application_directory}}" key_file="{{secondfunnel_directory}}/willet_deploy_key_id_rsa" depth=1 accept_hostkey=yes version="{{git_branch}}"
+  register: git_repo
+  notify: uwsgi reload
+  when: app_environment != 'vagrant'
+
+- name: Install Python Application Requirements
+  pip: requirements={{ application_directory }}/requirements.txt virtualenv={{virtualenv_directory}}
+  when: git_repo|changed or app_environment == 'vagrant'
+  async: 3600
+  poll: 15
+
+- name: django syncdb, migrate, and collect static
+  shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --noinput"
+  args:
+    chdir: "{{application_directory}}"
+  with_items:
+    - syncdb
+    - migrate
+    - collectstatic
+  when: git_repo|changed or app_environment == 'vagrant'
+
+#- name: Link any directories shared between application deployments
+#  file: state=link path="{{application_directory}}/{{item.src}}" src="{{secondfunnel_directory}}/{{item.dest}}"
+#  with_items:
+#    - { src: "apps/light/node_modules", dest: "node_modules" }
+#    - { src: "apps/light/lib", dest: "bower_libs" }
+
+#- name: Build Node Modules (for light)
+#  npm: path="{{application_directory}}/apps/light"
+
+#- name: Install javascript libraries (for light)
+#  command: ./node_modules/.bin/bower install
+#  args:
+#    chdir: "{{application_directory}}/apps/light"
+
+#- name: Run Gulp to build pages (for light)
+#  command: ./node_modules/.bin/gulp build
+#  args:
+#    chdir: "{{application_directory}}/apps/light"
+
+#- name: Check if application server is running (or at least a master-fifo socket)
+#  stat: path="{{secondfunnel_run_directory}}/uwsgi-fifo.sock"
+#  register: master_fifo
+#  when: git_repo|changed or app_environment == 'vagrant'
+
+#- name: Force reload of application
+#  notify: uwsgi reload
+#  when: (app_environment == 'vagrant' or git_repo|changed) and master_fifo.stat.exists

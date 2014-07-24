@@ -1,0 +1,25 @@
+- name: Install Postgres latest
+  apt: name={{item}} state=present update_cache=yes
+  when: ansible_os_family == 'Debian'
+  with_items:
+    - python-psycopg2
+    - postgresql
+    - postgresql-client
+    - postgresql-contrib
+    - libpq-dev
+  sudo: true
+
+- name: Create Database Users
+  postgresql_user: name="{{database.username}}" password="{{database.password}}" role_attr_flags=LOGIN
+  sudo: true
+  sudo_user: postgres
+
+- name: Create Database
+  postgresql_db: name="{{database.db_name}}" owner="{{database.username}}"
+  sudo: true
+  sudo_user: postgres
+
+- name: Grant Permissions for user
+  postgresql_privs: database="{{database.db_name}}" type=database privs=ALL roles="{{database.username}}"
+  sudo: true
+  sudo_user: postgres

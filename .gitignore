@@ -25,3 +25,5 @@ db.sql
 # Testing directories
 apps/testing/resources
 apps/testing/tests/results
+
+vagrant_ansible_inventory_default*

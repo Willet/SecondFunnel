@@ -1,0 +1,16 @@
+[uwsgi]
+master = true
+chdir = {{uwsgi.chdir}}
+uid = {{uwsgi.owner}}
+chmod = 777
+socket = {{uwsgi.socket_file}}
+pidfile = {{uwsgi.pid_file}}
+master-fifo = {{uwsgi.fifo_file}}
+virtualenv = {{uwsgi.virtualenv}}
+module = django.core.handlers.wsgi:WSGIHandler()
+die-on-term = true
+enable-threads = true
+processes = {{uwsgi.processes}}
+workers = {{uwsgi.workers}}
+daemonize = {{uwsgi.log_file}}
+python-autoreload = {{uwsgi.py_autoreload}}
