@@ -33,6 +33,7 @@
         , 'overlayMobileButtonColor': '{{ campaign.overlay_mobile_button_color|default:"" }}'
         , 'disableBannerRedirectOnMobile': {{ campaign.disable_banner_redirect_on_mobile|default:"false" }}
         , 'mobileTabletView': {{ campaign.mobile_table_view|default:"false" }}
+        , 'widableTemplates': {{ campaign.widable_templates|default:'undefined'|safe }}
         , 'socialButtons':
             {% if social_buttons %}
                 {{ social_buttons|safe }}{# social-buttons must be a json array of strings -- see below #}
@@ -41,8 +42,7 @@
                     "facebook",
                     "twitter",
                     "pinterest",
-                    "tumblr",
-                    "share"  // who requested this feature?
+                    "tumblr"
                 ]
             {% endif %}
         , 'socialButtonsEnableCondition': function (button) {
