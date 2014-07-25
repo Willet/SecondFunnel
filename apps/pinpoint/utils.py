@@ -132,6 +132,8 @@ def render_campaign(page_id, request, store_id=0, tile=None):
     tests = []
     if page.get('tests'):
         tests = json.dumps(page.get('tests'))
+    if page.get('widable_templates'):
+        page.widable_templates = json.dumps(page.get('widable_templates'))
 
     attributes = {
         "session_id": request.session.session_key,

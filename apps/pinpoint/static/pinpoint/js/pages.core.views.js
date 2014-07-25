@@ -185,12 +185,11 @@ App.module('core', function (module, App) {
             var columns, wideable, showWide, idealWidth, imageInfo,
                 self = this,
                 normalTileWidth = App.layoutEngine.width(),
-                // TODO: Make the configurable; perhaps a page property?
-                widableTemplates = {
+                widableTemplates = App.option('widableTemplates', {
                     'image': true,
                     'youtube': true,
                     'banner': true
-                }, columnDetails = {
+                }), columnDetails = {
                     '1': '',
                     '2': 'wide',
                     '3': 'three-col',
