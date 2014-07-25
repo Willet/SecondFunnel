@@ -1,11 +1,12 @@
-from django.conf import settings
 from django.conf.urls import patterns, url
 from django.http import HttpResponsePermanentRedirect
 
-urlpatterns = patterns('apps.website.urls',
-    url(
-        r'^$',
-        lambda x: HttpResponsePermanentRedirect('http://www.secondfunnel.com'),
-        name='website-index'
-    ),
-)
+
+def redirect_to_main(request, path):
+    return HttpResponsePermanentRedirect('http://www.secondfunnel.com' + request.path)
+
+urlpatterns = \
+    patterns(
+        'apps.website.urls',
+        url(r'^(.*)$', redirect_to_main, name='website-index'),
+    )
