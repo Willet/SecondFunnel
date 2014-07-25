@@ -182,14 +182,16 @@ ALLOWED_HOSTS = '*'
 # Disable signature/accesskey/expire attrs being appended to s3 links
 AWS_QUERYSTRING_AUTH = False
 
+COMPRESS_OFFLINE = True
+
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
                         'compressor.filters.cssmin.CSSMinFilter']
 
 COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
                        'compressor.filters.jsmin.JSMinFilter']
 
-# Rebuilds compressed files after 30 mins (in seconds)
-COMPRESS_REBUILD_TIMEOUT = REBUILD_TIMEOUT = 30 * 60
+# Rebuilds compressed files after 10 mins (in seconds)
+COMPRESS_REBUILD_TIMEOUT = REBUILD_TIMEOUT = 10 * 60
 
 COMPRESS_STORAGE = STATICFILES_STORAGE
 
@@ -275,6 +277,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    from_project_root('apps/pinpoint/static'),
 )
 
 FRAMEWORK_APPS = (
