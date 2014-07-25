@@ -3,6 +3,7 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from extendedmodelresource import ExtendedModelResource
 import hammock
 import json
+import ast
 
 from django.conf import settings
 from django.conf.urls import url
@@ -139,6 +140,15 @@ class ProductResource(BaseCGResource):
         if 'ir_cache' in bundle.data:
             del bundle.data['ir_cache']
 
+        # make attributes json a json object that can be accessed normally
+        if 'attributes' in bundle.data:
+            attributes = ast.literal_eval(bundle.data['attributes'])
+            print attributes
+            temp = attributes
+            temp.update(bundle.data)
+            bundle.data = temp
+            del bundle.data['attributes']
+
         return bundle
 
     class Meta(BaseCGResource.Meta):
@@ -166,7 +176,7 @@ class ProductImageResource(BaseCGResource):
 
         # make attributes json a json object that can be accessed normally
         if 'attributes' in bundle.data:
-            temp = json.loads(bundle.data['attributes'].replace("'", '"').replace('u', ''))
+            temp = ast.literal_eval(bundle.data['attributes'])
             temp.update(bundle.data)
             bundle.data = temp
             del bundle.data['attributes']
