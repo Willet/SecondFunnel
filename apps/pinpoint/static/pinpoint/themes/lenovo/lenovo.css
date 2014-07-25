@@ -32,6 +32,10 @@ body {
     border: none;
 }
 
+.previewContainer .close {
+	padding: 4px;
+}
+
 .previewContainer .cell {
     padding: 0 5px;
 }
