@@ -190,8 +190,8 @@ COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
 COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
                        'compressor.filters.jsmin.JSMinFilter']
 
-# Rebuilds compressed files after 10 mins (in seconds)
-COMPRESS_REBUILD_TIMEOUT = REBUILD_TIMEOUT = 10 * 60
+# Rebuilds compressed files after ~1 year (aka hopefully never)
+COMPRESS_REBUILD_TIMEOUT = REBUILD_TIMEOUT = 365 * 24 * 60
 
 COMPRESS_STORAGE = STATICFILES_STORAGE
 

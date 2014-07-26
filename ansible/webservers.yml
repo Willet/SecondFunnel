@@ -59,6 +59,11 @@
         ec2_elbs: "secondfunnel-{{app_environment}}-lb"
         region: "us-west-2"
         state: "present"
+  serial: 2
+
+- name: "Post Configuration"
+  hosts: all
+  tasks:
     - name: "Notify hipchat of configuration changes"
       local_action: hipchat
         token="{{ hipchat.token }}"
@@ -67,5 +72,4 @@
         color="green"
         from="Hubert"
       tags: deploy
-      when: (app_environment | default('vagrant') != 'vagrant') and inventory_hostname == play_hosts[0] # change to only-once (in dev of ansible)
-  serial: 2
+      when: (app_environment | default('vagrant') != 'vagrant') and inventory_hostname == play_hosts[0] # change to only once in the future

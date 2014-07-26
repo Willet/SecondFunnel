@@ -5,13 +5,21 @@
     - willet_deploy_key_id_rsa.pub
   when: app_environment != 'vagrant'
 
-- name: Move previous codebase
+- name: "Delete Previous Rollback Codebase"
+  file: state=absent force=yes path="{{application_directory}}-rollback"
+  when: app_environment != 'vagrant'
+
+- name: "Create Rollback of existing codebase"
   stat: path="{{application_directory}}"
   register: codebase
   when: app_environment != 'vagrant'
 
 - command: mv "{{application_directory}}" "{{application_directory}}-rollback"
   when: codebase.stat.exists and app_environment != 'vagrant'
+
+- name: Create Directory for Application
+  file: state=directory path="{{application_directory}}" mode=0777 owner={{common_user}} group={{common_user}}
+  sudo: true
 
 - name: Sync latest version of repository
   git: repo=ssh://git@github.com/Willet/SecondFunnel.git
@@ -30,13 +38,14 @@
   poll: 15
 
 - name: django syncdb, migrate, and collect static
-  shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --noinput"
+  shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
   args:
     chdir: "{{application_directory}}"
   with_items:
-    - syncdb
-    - migrate
-    - collectstatic
+    - "syncdb --noinput"
+    - "migrate --noinput"
+    - "collectstatic --noinput"
+    - "compress --force"
   when: git_repo|changed or app_environment == 'vagrant'
 
 #- name: Link any directories shared between application deployments
@@ -66,7 +75,3 @@
 #- name: Force reload of application
 #  notify: uwsgi reload
 #  when: (app_environment == 'vagrant' or git_repo|changed) and master_fifo.stat.exists
-
-- name: "Delete Rollback Codebase"
-  file: state=absent recurse=yes force=yes path="{{application_directory}}-rollback"
-  when: codebase.stat.exists and app_environment != 'vagrant'
