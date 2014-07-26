@@ -63,6 +63,8 @@
 
 - name: "Post Configuration"
   hosts: all
+  remote_user: "{{common_user}}"
+  gather_facts: False # since we are just notifying hipchat anyways
   tasks:
     - name: "Notify hipchat of configuration changes"
       local_action: hipchat
