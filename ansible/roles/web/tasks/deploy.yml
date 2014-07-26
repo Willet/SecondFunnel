@@ -8,9 +8,10 @@
 - name: Move previous codebase
   stat: path="{{application_directory}}"
   register: codebase
+  when: app_environment != 'vagrant'
 
 - command: mv "{{application_directory}}" "{{application_directory}}-rollback"
-  when: codebase.stat.exists
+  when: codebase.stat.exists and app_environment != 'vagrant'
 
 - name: Sync latest version of repository
   git: repo=ssh://git@github.com/Willet/SecondFunnel.git
@@ -68,4 +69,4 @@
 
 - name: "Delete Rollback Codebase"
   file: state=absent recurse=yes force=yes path="{{application_directory}}-rollback"
-  when: codebase.stat.exists
+  when: codebase.stat.exists and app_environment != 'vagrant'
