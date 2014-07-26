@@ -5,11 +5,11 @@ django_settings_module: secondfunnel.settings.production
 
 
 database:
-  hostname: localhost # pgbouncer -> aae9bptwm2fn7s.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com
+  hostname: localhost # pgbouncer -> production server (see settings below)
   port: 5432
-  db_name: ebdb
-  username: sf
-  password: postgres
+  db_name: sfdb
+  username: willet
+  password: 4rjSR4EpgBcbvSP6
 
 
 pgbouncer:
@@ -17,7 +17,7 @@ pgbouncer:
   group: postgres
 
   config:
-    database_host: aae9bptwm2fn7s.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com
+    database_host: secondfunnel-production-db.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com
     database_port: 5432
 
     listen_addr: localhost

@@ -1,15 +1,15 @@
 ---
 app_environment: "stage"
 git_branch: "dev"
-django_settings_module: secondfunnel.settings.test
+django_settings_module: secondfunnel.settings.stage
 
 
 database:
-  hostname: localhost # pgbouncer -> aa1fq6h81nzaxoc.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com
+  hostname: localhost # pgbouncer -> stage server (see settings below)
   port: 5432
-  db_name: ebdb
-  username: sf
-  password: postgres
+  db_name: sfdb
+  username: willet
+  password: 8tJg66zMcZIRfkTu
 
 
 pgbouncer:
@@ -17,7 +17,7 @@ pgbouncer:
   group: postgres
 
   config:
-    database_host: aa1fq6h81nzaxoc.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com
+    database_host: secondfunnel-stage-db.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com
     database_port: 5432
 
     listen_addr: localhost
