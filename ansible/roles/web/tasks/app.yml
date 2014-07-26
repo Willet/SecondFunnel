@@ -36,6 +36,8 @@
     - libjpeg-dev
     - postgresql-client
     - libpq-dev
+    - python-numpy
+    - python-numpy-dev
 
 - name: Install VirtualEnv
   pip: name=virtualenv

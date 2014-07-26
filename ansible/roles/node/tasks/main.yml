@@ -5,5 +5,5 @@
   ignore_errors: True
   changed_when: off
 
-- include: install.yml
+- include: install-pkg.yml
   when: node_installed|failed

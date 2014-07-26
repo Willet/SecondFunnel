@@ -1,0 +1,6 @@
+---
+- name: Download Node Binaries
+  get_url: url="http://nodejs.org/dist/v{{node.version}}/node-v{{node.version}}-linux-x64.tar.gz" dest="{{node.tmp_directory}}/node.tar.gz"
+
+- name: Extract Into Installation Directory
+  shell: cd /usr/local && tar --strip-components 1 -xzf {{node.tmp_directory}}/node.tar.gz
