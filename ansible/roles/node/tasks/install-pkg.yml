@@ -4,3 +4,4 @@
 
 - name: Extract Into Installation Directory
   shell: cd /usr/local && tar --strip-components 1 -xzf {{node.tmp_directory}}/node.tar.gz
+  sudo: true

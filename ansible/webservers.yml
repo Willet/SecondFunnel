@@ -3,6 +3,7 @@
     - { role: db, dbname: "{{database.db_name}}", dbuser: "{{database.username}}", dbpassword: "{{database.password}}" }
 
 - name: "Bootstrap Servers"
+  serial: 2
   hosts: all
   roles:
     - common
@@ -31,8 +32,17 @@
       register: load_balancer
 
 - name: "Setup Servers"
+  serial: 2
   hosts: all
   remote_user: "{{common_user}}"
+  roles:
+    - { role: newrelic, tags: newrelic, sudo: true }
+    - { role: monit, tags: monit, sudo: true }
+    - { role: nginx, tags: nginx, sudo: true }
+    - { role: node, tags: node }
+    - { role: pgbouncer, tags: pgbouncer, sudo: true }
+    - web
+    - { role: uwsgi, tags: uwsgi }
   pre_tasks:
     - name: "Gathering ec2 facts"
       ec2_facts:
@@ -43,14 +53,6 @@
         ec2_elbs: "secondfunnel-{{app_environment}}-lb"
         region: "us-west-2"
         state: "absent"
-  roles:
-    - { role: newrelic, tags: newrelic, sudo: true }
-    - { role: monit, tags: monit, sudo: true }
-    - { role: nginx, tags: nginx, sudo: true }
-    - { role: node, tags: node }
-    - { role: pgbouncer, tags: pgbouncer, sudo: true }
-    - web
-    - { role: uwsgi, tags: uwsgi }
   post_tasks:
     - name: "Register Instance on LB"
       local_action: ec2_elb
@@ -59,7 +61,6 @@
         ec2_elbs: "secondfunnel-{{app_environment}}-lb"
         region: "us-west-2"
         state: "present"
-  serial: 2
 
 - name: "Post Configuration"
   hosts: all
