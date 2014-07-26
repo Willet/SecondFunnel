@@ -278,6 +278,7 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     from_project_root('apps/pinpoint/static'),
+    from_project_root('apps/ads/static'),
 )
 
 FRAMEWORK_APPS = (
