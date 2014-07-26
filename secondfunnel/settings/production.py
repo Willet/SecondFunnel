@@ -111,3 +111,9 @@ KEEN_CONFIG = {
 }
 
 PREDICTION_IO_API_KEY = "CuBN5rs075a1WfQLy3gyPbWpmBIrHOQ9zQbufFwmSuNPwYf2npznXncLw2j2vTlL"
+
+# Add Raven Middleware (getsentry.com)
+MIDDLEWARE_CLASSES = ('raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware',) + MIDDLEWARE_CLASSES
+
+THIRD_PARTY_APPS += ('raven.contrib.django.raven_compat',)  # logging
+INSTALLED_APPS = FRAMEWORK_APPS + THIRD_PARTY_APPS + LOCAL_APPS
