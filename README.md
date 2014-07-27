@@ -1,8 +1,8 @@
-SecondFunnel
-============
+![image](http://www.secondfunnel.com/wp-content/uploads/2013/03/sf_logo_1x.png)
+
 SecondFunnel is a collection of related applications for converting browser
-into shoppers. Additional information on the project can be found [in the
-wiki](https://github.com/Willet/SecondFunnel/wiki).
+into shoppers. Additional information on the project can be found
+[in the wiki](https://github.com/Willet/SecondFunnel/wiki).
 
 Installation
 ------------
@@ -10,28 +10,28 @@ Detailed instructions can be found in [the SecondFunnel wiki](https://github.com
  be done by doing the following:
 
 1. Download and install [Vagrant](http://www.vagrantup.com/)
-2. Download and install [VirtualBox](https://www.virtualbox.org/) or another VM
-2. Run the server using [the command line](https://github.com/Willet/SecondFunnel/pull/441)
+2. Download and install [VirtualBox](https://www.virtualbox.org/)
+3. Download and Install [Ansible](http://docs.ansible.com/intro_installation.html)
 
-    vagrant up
-    vagrant ssh
-    cd /vagrant
-    python manage.py syncdb
-    python manage.py migrate
-    python manage.py runserver 0.0.0.0:8000
+    `vagrant up`
 
-And voila! Again, full details are available [in the wiki](https://github.com/Willet/SecondFunnel/wiki/Environment-Setup)
+And voila! The server should be available [here](http://localhost:8000) ; note you should be redirect to www.secondfunnel.com
 
 Structure
 ---------
 The SecondFunnel project is broken into different folders for the application.
 
-- `scripts`: Python and Bash scripts for deployment and/or utility
+- `ansible`: Deployment and Provisioning of server code
+- `scripts + fabfile`: Python and Bash scripts for deployment and/or utility
 - `secondfunnel`: Where settings and site-wide URLs are recorded
 - `apps`: Applications and common code
     - `analytics`: Our analytics framework for tracking users
     - `assets`: Common models and functions used across applications
     - `pinpoint`: A dynamic landing page
+    - `dashboard`: A dashboard to show all analytics gathered to the end user
+    - `api`: The base API used by various of our front-end services
+    - `intentrank`: A system used for ordering content in feeds for our components
+    - `scrapy`: A scraper framework that we use to grab product & content from websites
 
 Documentation
 -------------
