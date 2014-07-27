@@ -13,7 +13,7 @@
 - name: "Launch EC2 instance to image"
   hosts: localhost
   connection: local
-  gather_facts: False
+  gather_facts: False # so the groups don't change :)
 
   tasks:
   - name: "Launch EC2 instance"
@@ -44,23 +44,15 @@
     when: groups['launched'] is not defined
 
 - name: "Bootstrap Servers"
-  serial: 2
   hosts: launched
   roles:
     - common
 
 - name: "Setup Servers"
-  serial: 2
   hosts: launched
   remote_user: "{{common_user}}"
   roles:
-    - { role: newrelic, tags: newrelic, sudo: true }
-    - { role: monit, tags: monit, sudo: true }
-    - { role: nginx, tags: nginx, sudo: true }
-    - { role: node, tags: node }
-    - { role: pgbouncer, tags: pgbouncer, sudo: true }
     - web
-    - { role: uwsgi, tags: uwsgi }
 
 - name: "Terminate instances"
   hosts: launched

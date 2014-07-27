@@ -1,0 +1,27 @@
+---
+- name: "Create Load Balancer"
+  hosts: all
+  tasks:
+    - name: "Grab Load Balancer (or create if necessary)"
+      local_action: ec2_elb_lb
+      args:
+        name: "secondfunnel-{{app_environment}}-lb"
+        state: present
+        region: "us-west-2"
+        zones:
+          - "us-west-2a"
+          - "us-west-2b"
+          - "us-west-2c"
+        listeners:
+          - protocol: http
+            load_balancer_port: 80
+            instance_port: 80
+        health_check:
+            ping_protocol: http # options are http, https, ssl, tcp
+            ping_port: 80
+            ping_path: "/healthcheck/" # not required for tcp or ssl
+            response_timeout: 10 # seconds
+            interval: 60 # seconds
+            unhealthy_threshold: 4
+            healthy_threshold: 6
+      register: load_balancer

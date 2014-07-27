@@ -15,7 +15,7 @@
 tag_Name_secondfunnel-production
 
 [stage:children]
-tag_Name_secondfunnel-test
+tag_Name_secondfunnel-stage
 
 #
 # AMI Inventory

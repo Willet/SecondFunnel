@@ -2,50 +2,24 @@
   roles:
     - { role: db, dbname: "{{database.db_name}}", dbuser: "{{database.username}}", dbpassword: "{{database.password}}" }
 
+- include: create_lb.yml
+
 - name: "Bootstrap Servers"
   serial: 2
   hosts: all
   roles:
     - common
-  tasks:
-    - name: "Grab Load Balancer (or create if necessary)"
-      local_action: ec2_elb_lb
-      args:
-        name: "secondfunnel-{{app_environment}}-lb"
-        state: present
-        region: "us-west-2"
-        zones:
-          - "us-west-2a"
-          - "us-west-2b"
-        listeners:
-          - protocol: http
-            load_balancer_port: 80
-            instance_port: 80
-        health_check:
-            ping_protocol: http # options are http, https, ssl, tcp
-            ping_port: 80
-            ping_path: "/healthcheck/" # not required for tcp or ssl
-            response_timeout: 5 # seconds
-            interval: 30 # seconds
-            unhealthy_threshold: 2
-            healthy_threshold: 5
-      register: load_balancer
 
 - name: "Setup Servers"
   serial: 2
   hosts: all
   remote_user: "{{common_user}}"
   roles:
-    - { role: newrelic, tags: newrelic, sudo: true }
-    - { role: monit, tags: monit, sudo: true }
-    - { role: nginx, tags: nginx, sudo: true }
-    - { role: node, tags: node }
-    - { role: pgbouncer, tags: pgbouncer, sudo: true }
     - web
-    - { role: uwsgi, tags: uwsgi }
   pre_tasks:
     - name: "Gathering ec2 facts"
       ec2_facts:
+      tags: deploy
     - name: "De-Register Instance from LB"
       local_action: ec2_elb
       args:
@@ -53,6 +27,7 @@
         ec2_elbs: "secondfunnel-{{app_environment}}-lb"
         region: "us-west-2"
         state: "absent"
+      tags: deploy
   post_tasks:
     - name: "Register Instance on LB"
       local_action: ec2_elb
@@ -61,6 +36,7 @@
         ec2_elbs: "secondfunnel-{{app_environment}}-lb"
         region: "us-west-2"
         state: "present"
+      tags: deploy
 
 - name: "Post Configuration"
   hosts: all
