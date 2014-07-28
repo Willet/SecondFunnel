@@ -124,6 +124,7 @@ class ProductScraper(Scraper):
         except ProductImage.DoesNotExist:
             image = ProductImage(original_url=original_url, product=product)
 
+        # this image needs to be uploaded
         if not (image.url and image.file_type):
             print('\nprocessing image - ' + original_url)
             data = process_image(original_url, create_image_path(store.id),
