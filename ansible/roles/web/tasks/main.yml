@@ -1,6 +1,7 @@
-- include: app.yml
-  tags: app
-  sudo: yes
+- name: Setup Login for pgbouncer (so we can connect to db)
+  template: src=pgbouncer.userlist.txt.j2 dest=/etc/pgbouncer/userlist.txt mode=0644 owner=postgres group=postgres
+  notify: pgbouncer restart
+  sudo: true
 
 - include: deploy.yml
   tags: deploy
