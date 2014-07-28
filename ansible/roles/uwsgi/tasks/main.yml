@@ -7,5 +7,5 @@
   notify: uwsgi reload
 
 - include: monit.yml
-  when: uwsgi.setup_monit
   sudo: true
+  when: uwsgi.setup_monit

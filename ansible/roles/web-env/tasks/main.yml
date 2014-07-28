@@ -1,3 +1,4 @@
+---
 - name: Install Application Dependencies
   yum: name={{item}} state=present
   when: ansible_os_family == 'RedHat'
@@ -24,7 +25,7 @@
     - git
     - python-pip
     - python-dev
-    - build-essential 
+    - build-essential
     - iotop
     - libffi-dev
     - libyaml-0-2
@@ -54,6 +55,3 @@
 
 - name: Setup Environment for Database
   template: src=rds_environment.sh dest=/etc/profile.d/rds_environment.sh mode=0777
-
-- name: Setup Login for pgbouncer
-  template: src=pgbouncer.userlist.txt.j2 dest=/etc/pgbouncer/userlist.txt mode=0644 owner=postgres group=postgres
