@@ -640,16 +640,17 @@ class Feed(BaseModel):
 
                 return tile, product, False
         else:  # there weren't any tiles with this product in them
-            new_product_tile = Tile(feed=self,
-                                    template='product',
-                                    prioritized=prioritized,
-                                    priority=priority)
-            new_product_tile.save()
-            new_product_tile.products.add(product)
-            print "product {0} added to the feed.".format(product.id)
-            self.tiles.add(new_product_tile)
+            new_tile = Tile(feed=self,
+                            template='product',
+                            prioritized=prioritized,
+                            priority=priority)
 
-            return new_product_tile, product, True
+            new_tile.save()
+            new_tile.products.add(product)
+            print "product {0} added to the feed.".format(product.id)
+            self.tiles.add(new_tile)
+
+            return new_tile, product, True
 
     def _add_content(self, content, prioritized=False, priority=0):
         """Adds (if not present) a tile with this content to the feed.
@@ -659,6 +660,7 @@ class Feed(BaseModel):
 
         TODO: can be faster
 
+        :returns tuple (the tile, the content, whether it was newly added)
         :raises AttributeError
         """
         content_tiles = [tile for tile in self.tiles.all()
@@ -666,20 +668,27 @@ class Feed(BaseModel):
         for tile in content_tiles:
             if Tile.objects.filter(content=content).exists():
                 print "content {0} already exists in feed".format(content.id)
-                break
+                return tile, content, False
+
         else:  # there weren't any tiles with this content in them
-            new_content_tile = Tile(feed=self,
-                                    template='image',
-                                    prioritized=prioritized,
-                                    priority=priority)
+            new_tile = Tile(feed=self,
+                            template='image',
+                            prioritized=prioritized,
+                            priority=priority)
 
+            # content template adjustments. should probably be somewhere else
             if isinstance(content, Video):
-                new_content_tile.template = 'youtube'
+                if 'youtube' in content.url:
+                    new_tile.template = 'youtube'
+                else:
+                    new_tile.template = 'video'
 
-            new_content_tile.save()
-            new_content_tile.content.add(content)
+            new_tile.save()
+            new_tile.content.add(content)
             print "content {0} added to the feed.".format(content.id)
-            self.tiles.add(new_content_tile)
+            self.tiles.add(new_tile)
+
+            return new_tile, content, True
 
     def _remove_product(self, product):
         """Removes (if present) tiles with this product from the feed that
