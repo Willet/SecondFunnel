@@ -601,6 +601,26 @@ class Feed(BaseModel):
         return self.tiles.exclude(products__in_stock=False)\
             .exclude(content__tagged_products__in_stock=False)
 
+    def add(self, obj, prioritized=False, priority=0):
+        """TODO: deprecate add_*"""
+        if isinstance(obj, Product):
+            return self.add_product(product=obj, prioritized=prioritized,
+                                    priority=priority)
+        elif isinstance(obj, Content):
+            return self.add_content(content=obj, prioritized=prioritized,
+                                    priority=priority)
+        raise ValueError("add() accepts either Product or Content; "
+                         "got {}".format(obj.__class__))
+
+    def remove(self, obj):
+        """TODO: deprecate remove_*"""
+        if isinstance(obj, Product):
+            return self.remove_product(product=obj)
+        elif isinstance(obj, Content):
+            return self.remove_content(content=obj)
+        raise ValueError("remove() accepts either Product or Content; "
+                         "got {}".format(obj.__class__))
+
     def add_product(self, product, prioritized=False, priority=0):
         """Adds (if not present) a tile with this product to the feed.
 
@@ -777,6 +797,13 @@ class Page(BaseModel):
         for field in json_data:
             setattr(instance, field, json_data[field])
         return instance
+
+    def add(self, obj, prioritized=False, priority=0):
+        return self.feed.add(obj=obj, prioritized=prioritized,
+                             priority=priority)
+
+    def remove(self, obj):
+        return self.feed.remove(obj=obj)
 
     def add_product(self, product, prioritized=False, priority=0):
         """Feed method alias"""
