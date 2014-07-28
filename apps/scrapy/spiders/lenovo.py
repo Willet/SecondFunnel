@@ -51,7 +51,9 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        l.add_css('sku', 'meta[name="SKU"]::attr(content)')
+        skus = (sel.css('meta[name="SKU"]::attr(content)').extract_first().split(','))
+        first_sku = skus[0]
+        l.add_value('sku', first_sku)
 
         product_name = u"{} {} {}".format(
             sel.css('meta[name="ProductName"]::attr(content)').extract_first(),
