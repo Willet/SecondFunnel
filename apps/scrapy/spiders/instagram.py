@@ -43,9 +43,13 @@ class InstagramSpider(SecondFunnelCrawlScraper, Spider):
                 return  # we are done
             if item['type'] == 'image':
                 l = ScraperContentLoader(item=ScraperImage())
-                l.add_value('description', item['caption']['text'])
+                if item['caption']:
+                    l.add_value('description', item['caption']['text'])
+                    l.add_value('author', item['caption']['from']['full_name'])
+                else:
+                    l.add_value('description', u'')
+                    l.add_value('author', u'')
                 l.add_value('original_url', item['link'])
-                l.add_value('author', item['caption']['from']['full_name'])
                 l.add_value('source', 'instagram')
                 l.add_value('source_url', item['images']['standard_resolution']['url'])
                 l.add_value('attributes', {'id': item['id']})
@@ -53,10 +57,14 @@ class InstagramSpider(SecondFunnelCrawlScraper, Spider):
                 yield item
             elif item['type'] == 'video':
                 l = ScraperContentLoader(item=ScraperVideo())
-                l.add_value('description', item['caption']['text'])
+                if item['caption']:
+                    l.add_value('description', item['caption']['text'])
+                    l.add_value('author', item['caption']['from']['full_name'])
+                else:
+                    l.add_value('description', u'')
+                    l.add_value('author', u'')
                 short_id = self.short_id_regex.search(item['link']).groups()[0]
                 l.add_value('original_id', short_id)
-                l.add_value('author', item['caption']['from']['full_name'])
                 l.add_value('source', 'instagram')
                 url = item['link'].replace('http:', '') + "embed/"
                 l.add_value('source_url', url)

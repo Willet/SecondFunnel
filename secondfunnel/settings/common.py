@@ -49,10 +49,9 @@ CLICKMETER_API_KEY = '8306A265-51DC-4D3C-B1E3-79A8FCB2336E'
 
 
 ADMINS = (
-    ('Nick "The Goat" Terwoord', 'nick@willetinc.com'),
     ('Brian "The Elite" Lai', 'brian@willetinc.com'),
     ('Kevin "The Awesome" Simpson', 'kevin@willetinc.com'),
-    ('Alex "The Knight" Black', 'alexb@willetinc.com'),
+    ('Alex "The Robot" Riedler', 'alex@willetinc.com'),
     # ('Your Name', 'your_email@example.com'),
 )
 
@@ -83,10 +82,6 @@ if 'RDS_DB_NAME' in os.environ:
             'PORT': os.environ['RDS_PORT'],
             }
     }
-
-    # default to never time out from django's side;
-    # RDS is its own value set
-    CONN_MAX_AGE = 0
 else:  # defaults (dev) for letting bare django run -- do not modify
     DATABASES = {
         'default': {
@@ -98,6 +93,10 @@ else:  # defaults (dev) for letting bare django run -- do not modify
             'PORT': '',
         }
     }
+
+# Turn on DB Connection Pooling (don't make a new connection every request)
+# DEFER PERF: could use pgbouncer / pgpool
+CONN_MAX_AGE = 120  # seconds
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -184,14 +183,16 @@ ALLOWED_HOSTS = '*'
 # Disable signature/accesskey/expire attrs being appended to s3 links
 AWS_QUERYSTRING_AUTH = False
 
+COMPRESS_OFFLINE = True
+
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
                         'compressor.filters.cssmin.CSSMinFilter']
 
 COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
                        'compressor.filters.jsmin.JSMinFilter']
 
-# Rebuilds compressed files after 30 mins (in seconds)
-COMPRESS_REBUILD_TIMEOUT = REBUILD_TIMEOUT = 30 * 60
+# Rebuilds compressed files after ~1 year (aka hopefully never)
+COMPRESS_REBUILD_TIMEOUT = REBUILD_TIMEOUT = 365 * 24 * 60
 
 COMPRESS_STORAGE = STATICFILES_STORAGE
 
@@ -249,10 +250,8 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
-    'raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # TODO: was last
     'django.middleware.gzip.GZipMiddleware',  # NOTE: Must be the first in this tuple
-    'htmlmin.middleware.HtmlMinifyMiddleware',  # Enables compression of HTML
     'django.middleware.cache.CacheMiddleware',  # Manages caching
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -278,6 +277,8 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    from_project_root('apps/pinpoint/static'),
+    from_project_root('apps/ads/static'),
 )
 
 FRAMEWORK_APPS = (
@@ -306,7 +307,6 @@ THIRD_PARTY_APPS = (
     'ajax_forms',
     'compressor',
     'corsheaders',
-    'raven.contrib.django.raven_compat'  # logging
 )
 
 LOCAL_APPS = (

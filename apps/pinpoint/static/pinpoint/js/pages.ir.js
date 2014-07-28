@@ -24,6 +24,7 @@ App.module("intentRank", function (intentRank, App) {
         'backupResults': [],
         'IRResultsCount': 10,
         'IRAlgo': 'generic',
+        'IRTileSet': '',
         'IRReqNum': 0,
         'IRTimeout': 5000,
         'IROffset': 0,  // specific to some deterministic algorithms
@@ -56,6 +57,7 @@ App.module("intentRank", function (intentRank, App) {
             'IRAlgo': options.IRAlgo || 'generic',
             'IRReqNum': options.IRReqNum || 0,
             'IRTimeout': options.IRTimeout || 5000,
+            'IRTileSet': options.IRTileSet || '',
             'content': options.content || [],
             'filters': options.filters || [],
             // Use this to intelligently guess what our cache calls should
@@ -109,6 +111,7 @@ App.module("intentRank", function (intentRank, App) {
         data.algorithm = intentRank.options.IRAlgo;
         data.reqNum = intentRank.options.IRReqNum;
         data.offset = intentRank.options.IROffset;
+        data['tile-set'] = intentRank.options.IRTileSet;
 
         if (intentRank.options.IRReset) {
             data['session-reset'] = true;
@@ -254,13 +257,17 @@ App.module("intentRank", function (intentRank, App) {
      * @return {Array} unique list of tile ids
      */
     this.getTileIds = function (tiles) {
+        if (!App.discoveryArea.$el) {
+            // there is no feed on the page, so there are no tiles on the page.
+            return [];
+        }
         if (tiles === undefined) {
             tiles = _.map(App.discoveryArea.$el.find('.tile'), function (el) {
                 return $(el).tile().model;
             });
         }
 
-        return _.uniq(_.map(tiles, function (model) {
+        return _.uniq(_.map(_.compact(tiles), function (model) {
             try {  // Tile
                 return model.get('tile-id');
             } catch (err) {  // object

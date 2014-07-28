@@ -1,0 +1,42 @@
+---
+- name: Install requirements for building node
+  yum: name="{{item}}" state=present
+  with_items:
+    - gcc-c++
+    - openssl-devel
+  sudo: true
+  when: ansible_os_family == 'RedHat'
+
+- apt: name="{{item}}" state=present
+  with_items:
+    - build-essential
+    - libssl-dev
+  sudo: true
+  when: ansible_os_family == 'Debian'
+
+- name: Download Node Source
+  get_url: url="http://nodejs.org/dist/v{{node.version}}/node-v{{node.version}}.tar.gz" dest="{{node.tmp_directory}}/node.tar.gz"
+
+- name: Extract Source
+  unarchive: src="{{node.tmp_directory}}/node.tar.gz" dest="{{node.tmp_directory}}/" copy=no
+
+- name: Configure Node Build Environment
+  command: ./configure
+  args:
+    chdir: "{{node.tmp_directory}}/node-v{{node.version}}"
+    creates: "{{node.tmp_directory}}/node_src/out/Release/node"
+
+- name: Build and Install Node
+  command: make install
+  args:
+    chdir: "{{node.tmp_directory}}/node-v{{node.version}}"
+    creates: /usr/local/node
+  sudo: true
+  async: 3600
+  poll: 15
+
+- name: Cleanup Temporary Install Files
+  file: state=absent path="{{item}}"
+  with_items:
+    - "{{node.tmp_directory}}/node-v{{node.version}}"
+  sudo: true

@@ -18,7 +18,7 @@
         window.TRACKING_PIXELS = {
             'A': {
                 'view': 'http://cm.gy/b8p5',
-                'click': 'http:/cm.gy/yoio'
+                'click': 'http://cm.gy/yoio'
             }
         };
         window.ACTIVE_TEST = 'A';
@@ -266,11 +266,11 @@
                 <div class="image-with-tagged-products">
                     <div class="table">
                         <div class="row">
-                            <% if (obj['tagged-products'].length > 1) { %>
+                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
                                 <div class="cell desktop-only shop">
                                     <div class="stl-title">The Look</div>
                                     <div class="stl-look">
-                                        <% var  related = obj['tagged-products'] %>
+                                        <% var related = obj['tagged-products']; %>
                                         <% for (var i = 0; i < related.length; i++) { %>
                                             <div class="stl-item" data-index="<%- i %>">
                                                 <img src="<%- related[i].images[0].url %>" />
@@ -284,6 +284,22 @@
                             <% } %>
                             <div class="cell desktop-only">
                                 <img src="<%= obj.image.url %>" alt="image" class="image"/>
+                                <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                                    <div class="landscape">
+                                        <div class="stl-title">The Look</div>
+                                        <div class="stl-look">
+                                            <% var related = obj['tagged-products']; %>
+                                            <% for (var i = 0; i < related.length; i++) { %>
+                                                <div class="stl-item" data-index="<%- i %>">
+                                                    <img src="<%- related[i].images[0].url %>" />
+                                                    <div class="name">
+                                                        <%- related[i].title || related[i].name %>
+                                                    </div>
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% } %>
                             </div>
                             <div class="cell info">
                                 <div class='title'></div>
@@ -564,20 +580,6 @@
                     }
                 });
             });
-
-            var urlParams = App.options.urlParams;
-            urlParams += urlParams.length ? "&" : "?";
-            switch("{{ url|default:''|escapejs}}") {
-                case "livedin":
-                    App.options.urlParams = urlParams + "tid=gpme000028";
-                    break;
-                case "paddingtonbear":
-                    App.options.urlParams = urlParams + "tid=gpme000029";
-                    break;
-                case "presidentsday":
-                    App.options.urlParams = urlParams + "tid=gpme000030";
-                    break;
-            }
         }
 
         var wait = setInterval(function () {

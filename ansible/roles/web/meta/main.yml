@@ -1,0 +1,8 @@
+---
+dependencies:
+  - { role: newrelic, tags: newrelic, sudo: true }
+  - { role: monit, tags: monit, sudo: true }
+  - { role: nginx, tags: nginx, sudo: true }
+  - { role: node, tags: node }
+  - { role: pgbouncer, tags: pgbouncer, sudo: true }
+  - { role: uwsgi, tags: uwsgi }

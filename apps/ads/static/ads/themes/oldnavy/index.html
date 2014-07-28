@@ -9,6 +9,8 @@
         <link rel="stylesheet"
               href="{% static 'pinpoint/themes/oldnavy/oldnavy.css' %}"/>
         <link rel="stylesheet"
+              href="{% static 'ads/css/base.css' %}"/>
+        <link rel="stylesheet"
               href="{% static 'ads/themes/oldnavy/oldnavy.css' %}"/>
         <style>
             html, .container {
@@ -17,10 +19,13 @@
         </style>
         {% endcompress css %}
 
-        {% compress js %}
         {% include "pinpoint/campaign_config.html" %}
+        {% compress js %}
+        <script src="{% static 'js/modernizr-2.8.3.min.js' %}"></script>
         <script src="{% static 'js/jquery-1.10.2.min.js' %}"></script>
+        <script src="{% static 'js/jquery-migrate-1.2.1.js' %}"></script>
         <script src="{% static 'js/jquery.viewport.min.js' %}"></script><!-- after browser mobile -->
+        <script src="{% static 'js/jquery.deparam.js' %}"></script><!-- after browser mobile -->
         <script src="{% static 'js/underscore.min.js' %}"></script>
         <script src="{% static 'js/backbone.min.js' %}"></script>
         <script src="{% static 'js/backbone.marionette.min.js' %}"></script><!-- after backbone -->
@@ -36,6 +41,7 @@
         <script src="{% static 'pinpoint/js/pages.optimizer.js' %}"></script><!-- after marionette -->
         <script src="{% static 'pinpoint/js/pages.layoutengine.js' %}"></script><!-- after marionette -->
         <script src="{% static 'pinpoint/js/pages.init.js' %}"></script><!-- after pages -->
+        <script src="{% static 'ads/js/ad.scroller.js' %}"></script>
         {% endcompress js %}
     </head>
 
@@ -55,19 +61,5 @@
 
         {% include "pinpoint/default_templates.html" %}
         <script>App.start();</script>
-        <script>
-            // show new products every so often
-            // (and roll this into core code if requested by any other client)
-            setInterval(function () {
-                $('html, body').scrollTop(
-                    $('.tile:in-viewport:last').offset().top -
-                        $('#topbar').outerHeight()
-                );
-                setTimeout(function () {
-                    // remove noscroll after scroll is set
-                    App.vent.trigger('scrollStopped');
-                }, 100);
-            }, 10000);
-        </script>
     </body>
 </html>

@@ -194,6 +194,10 @@
             <span><%= obj.name %></span>
         </script>
 
+        <script type="text/template" id="shopthelook_template">
+            <div class='content'></div>
+        </script>
+
         <script type="text/template" id="product_tile_template">
             <div class="tap-indicator-target"></div>
             <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
@@ -247,6 +251,10 @@
 
         <script type="text/template" id="video_tile_template">
             <iframe src="<%- obj.url %>" width="100%" height="510" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+        </script>
+
+        <script type="text/template" id="hypem_tile_template">
+            <iframe src="/static/pinpoint/themes/gap/media_player/player.html" height="942" width="100%" scrolling="no" style="border:none;"></iframe>
         </script>
 
         <script type="text/template" id="preview_container_template">
@@ -523,7 +531,7 @@
                                     <div class='buy'></div>
                                 </div>
                             <% } else { %>
-                                <div class='buy'></div>
+                                <div class='cell buy'></div>
                             <% } %>
                             <div class="cell mobile-only">
                                 <img src="<%= obj.image.url %>" alt="image"/>
@@ -872,17 +880,15 @@
                 });
             });
 
-            var urlParams = App.options.urlParams;
-            urlParams += urlParams.length ? "&" : "?";
             switch("{{ campaign.url_slug|default:''|escapejs}}") {
                 case "livedin":
-                    App.options.urlParams = urlParams + "tid=gpme000028";
+                    App.options.urlParams.tid = "gpme000028";
                     break;
                 case "paddingtonbear":
-                    App.options.urlParams = urlParams + "tid=gpme000029";
+                    App.options.urlParams.tid = "gpme000029";
                     break;
                 case "presidentsday":
-                    App.options.urlParams = urlParams + "tid=gpme000030";
+                    App.options.urlParams.tid = "gpme000030";
                     break;
             }
         }

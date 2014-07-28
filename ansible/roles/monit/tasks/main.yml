@@ -1,0 +1,16 @@
+---
+- name: Install Monit
+  yum: name={{item}} state=present
+  when: ansible_os_family == 'RedHat'
+  with_items:
+    - monit
+
+- name: Install Monit
+  apt: name={{item}} state=present update_cache=yes
+  when: ansible_os_family == 'Debian'
+  with_items:
+    - monit
+
+- name: Update monitrc
+  template: src=monitrc dest=/etc/monit/monitrc mode=0700
+  notify: monit restart

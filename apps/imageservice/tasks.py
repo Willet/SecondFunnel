@@ -1,21 +1,15 @@
-import os
-import re
-import hashlib
 import cStringIO
 import mimetypes
-
-import cloudinary.utils
-import cloudinary.uploader
 from threading import Semaphore
+import os
 from django.conf import settings
 from PIL import ImageFilter, Image
-from django.core.files.uploadedfile import InMemoryUploadedFile
 
-from apps.pinpoint.utils import read_remote_file
-from apps.imageservice.models import SizeConf, ExtendedImage
-from apps.imageservice.utils import create_image, IMAGE_SIZES, within_color_range
-
+from apps.imageservice.models import SizeConf
+from apps.imageservice.utils import IMAGE_SIZES, within_color_range, upload_to_cloudinary, delete_cloudinary_resource
 from lib.aws_utils import upload_to_bucket
+
+
 
 
 # Use a semaphore as image processing is an CPU expensive operation
@@ -137,6 +131,9 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
     """
     Delegates to resize to create the necessary sizes.
 
+    See all Cloudinary options:
+    http://cloudinary.com/documentation/django_image_upload#all_upload_options
+
     @param source: The source file
     @param path: The path to save the object to
     @param sizes: List of sizes to create
@@ -147,70 +144,46 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
         - False - don't trim background
     @return: object
     """
-    if sizes is None:
-        sizes = []
-
-    if not sizes:
-        sizes = (SizeConf(width=width, height=height, name=name)
-                 for (name, width, height) in IMAGE_SIZES)
-
-    master_url, dominant_color, img_format = None, "transparent", None
     data = {'sizes': {}}
 
-    # Get the unique folder where we'll store the image
-    upload = upload_to_local if settings.ENVIRONMENT == 'dev' else \
-        upload_to_s3
+    color = None if remove_background == 'uniform' else remove_background
+    if (remove_background is not False) and ((remove_background == 'auto') or within_color_range(source, color, 4)):
+        # overwrite must be True to retrieve 'colors'
+        trimmed_image = upload_to_cloudinary(source, path=path, effect='trim')
+        trimmed_ratio = float(trimmed_image['width']) / trimmed_image['height']
+        if trimmed_ratio < 0.5:  # if height is more than twice the width
+            normal_image = upload_to_cloudinary(source, path=path)
+            normal_ratio = float(normal_image['width']) / normal_image['height']
 
-    if getattr(settings, 'CLOUDINARY', None) is not None:
-        color = None if remove_background == 'uniform' else remove_background
-        if (remove_background is not False) and ((remove_background == 'auto') or within_color_range(source, color, 4)):
-            print "background removed"
-            image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
-                                                      format='jpg', effect='trim')  # trim background
+            if normal_ratio >= trimmed_ratio:  # if the regular image has a better ratio then the trimmed one
+                print 'trimmed ratio is unacceptable'
+                image_object = normal_image
+                delete_cloudinary_resource(trimmed_image['url'])
+            else:  # the trimmed image is better despite being less than ideal.
+                print 'trimmed ratio is more ideal than not-trimmed'
+                # TODO maybe do some cropping here instead?
+                image_object = trimmed_image
+                delete_cloudinary_resource(normal_image['url'])
         else:
-            image_object = cloudinary.uploader.upload(source, folder=path, colors=True,
-                                                      format='jpg')
+            print 'trimmed ratio is ideal. image trimmed'
+            image_object = trimmed_image
 
-        # Grab the dominant colour from cloudinary
-        colors = image_object['colors']
-        colors = sorted(colors, key=lambda c: c[1], reverse=True)
-        dominant_color = colors[0][0]
-        master_url = image_object['url']
-        img_format = image_object['format']
+    else:
+        image_object = upload_to_cloudinary(source, path=path)
 
-        # cloudinary resizes images on their end
-        data['sizes']['master'] = {
-            'width': image_object['width'],
-            'height': image_object['height'],
-        }
+    # Grab the dominant colour from cloudinary
+    colors = image_object['colors']
+    colors = sorted(colors, key=lambda c: c[1], reverse=True)
+    dominant_color = colors[0][0]
+    master_url = image_object['url']
+    print master_url
+    img_format = image_object['format']
 
-    else:  # fall back to default ImageService is Cloudinary is not available
-        if isinstance(source, (file, InMemoryUploadedFile)):  # this is a "file"
-            img = ExtendedImage.open(source)
-        elif re.match(r'^https?:', source):
-            img, _ = read_remote_file(source)
-            img = create_image(img)
-        else:
-            img = create_image(source)
-
-        folder = hashlib.sha224(img.tobytes()).hexdigest()
-
-        for size in sorted(sizes, key=lambda size: size.width):
-            name, width, height = size.name, size.width, size.height
-            resized = img.resize(width, height, Image.ANTIALIAS)
-            resized = resized.filter(ImageFilter.UnsharpMask)
-
-            try:  # ignore on failure
-                master_url = upload(path, folder, resized, size)
-                data['sizes'][size.name] = {
-                    'width': size.width,
-                    'height': size.height
-                }
-            except (OSError, IOError):  # upload failed, don't add to our json
-                continue
-
-        dominant_color = img.dominant_color
-        img_format = img.format.lower().replace("jpeg", "jpg")
+    # cloudinary resizes images on their end
+    data['sizes']['master'] = {
+        'width': image_object['width'],
+        'height': image_object['height'],
+    }
 
     data.update({
         'url': master_url,

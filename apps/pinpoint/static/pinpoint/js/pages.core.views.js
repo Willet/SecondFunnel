@@ -136,15 +136,18 @@ App.module('core', function (module, App) {
             var tile = this.model, sku, tileId, url;
 
             if (App.option('openTileInPopup', false)) {
-                if (tile.get('template') === 'product') {
+                if (App.option('tilePopupUrl')) {
+                    // override for ad units whose tiles point to our pages
+                    url = App.option('tilePopupUrl');
+                } else if (tile.get('template') === 'product') {
                     url = tile.get('url');
                 } else if (tile.get('tagged-products') &&
                            tile.get('tagged-products').length) {
                     url = tile.get('tagged-products')[0].url;
                 }
-                if (App.option('tilePopupUrl')) {
-                    // override for ad units whose tiles point to our pages
-                    url = App.option('tilePopupUrl');
+                if (url.indexOf('http') === -1 && App.store.get('slug')) {  // missing schema
+                    url = 'http://' + App.store.get('slug') +
+                        '.secondfunnel.com' + url;
                 }
                 if (url && url.length) {
                     sku = tile.get('sku');
@@ -182,12 +185,11 @@ App.module('core', function (module, App) {
             var columns, wideable, showWide, idealWidth, imageInfo,
                 self = this,
                 normalTileWidth = App.layoutEngine.width(),
-                // TODO: Make the configurable; perhaps a page property?
-                widableTemplates = {
+                widableTemplates = App.option('widableTemplates', {
                     'image': true,
                     'youtube': true,
                     'banner': true
-                }, columnDetails = {
+                }), columnDetails = {
                     '1': '',
                     '2': 'wide',
                     '3': 'three-col',
@@ -290,6 +292,11 @@ App.module('core', function (module, App) {
                     });
 
                 socialButtons.append(buttons.render().$el);
+            }
+
+            this.$el.addClass(this.model.get('orientation') || 'portrait');
+            if (App.utils.isIframe() && this.$el.hasClass('landscape')) {
+                this.$el.addClass('full');
             }
 
             // add view to our database
@@ -479,7 +486,7 @@ App.module('core', function (module, App) {
                 deferred.done(function(data) {
                     options.initialResults = data;
                     App.options.IRResultsReturned = data.length;
-                    self.collection.add(data);
+                    self.collection.add(data, {parse: true});
                     App.intentRank.addResultsShown(data);
                 });
             } else { // if nothing, immediately fetch more from IR
@@ -522,15 +529,6 @@ App.module('core', function (module, App) {
                 // deal with tap indicator fade in/outs
                 App.vent.trigger('scrollStopped', self);
             });
-
-            if (App.utils.isIframe()) {
-                $window.scrollStopped(function () {
-                    // deal with tap indicator fade in/outs
-                    self.$('.tile:not(:in-viewport)').css({'visibility': 'hidden'});
-                    // the rest are visible
-                    self.$('.tile:in-viewport').css({'visibility': 'visible'});
-                });
-            }
 
             // Vent Listeners
             App.vent.on('click:tile', this.updateContentStream, this);
@@ -708,7 +706,7 @@ App.module('core', function (module, App) {
             }
 
             if (!this.loading && (children.length === 0 || !App.previewArea.currentView) &&
-                    pageBottomPos >= documentBottomPos - viewportHeights) {
+                    (!App.utils.isIframe() && pageBottomPos >= documentBottomPos - viewportHeights)) {
                 // get more tiles to fill the screen.
                 this.getTiles();
             }
@@ -804,7 +802,9 @@ App.module('core', function (module, App) {
                 $(document.body).removeClass('no-scroll');
             }
 
-            App.options.galleryIndex = 0;
+            if ($.fn.waypoint) {
+                $('.stick-bottom', this.$el).waypoint('destroy');
+            }
         },
 
         'renderSubregions': function (product) {
@@ -905,7 +905,14 @@ App.module('core', function (module, App) {
                         productModel = new App.core.Product(product);
 
                     $this.addClass('selected').siblings().removeClass('selected');
-                    App.options.galleryIndex = index;
+
+                    if (self.$el.parents('#hero-area').length) {
+                        App.options.heroGalleryIndex = index;
+                        App.options.heroGalleryIndexPage = 0;
+                    } else {
+                        App.options.galleryIndex = index;
+                        App.options.galleryIndexPage = 0;
+                    }
 
                     if (product.images.length === 1) {
                         $('.gallery, .gallery-dots', self.$el).addClass('hide');
@@ -921,25 +928,36 @@ App.module('core', function (module, App) {
 
                     self.renderSubregions(productModel);
                 });
-
-                // First image is always selected
-                this.$('.stl-look').each(function () {
-                    $(this).find('.stl-item').first().click();
-                });
             }
         },
 
         // Disable scrolling body when preview is shown
         'onShow': function () {
-            var product;
+            var product,
+                index = App.option('galleryIndex', 0);
+
+            if (this.$el.parents('#hero-area').length) {
+                index = App.option('heroGalleryIndex', 0);
+            }
+
+            this.$('.stl-look').each(function () {
+                $(this).find('.stl-item').eq(index).addClass('selected');
+            });
 
             if (this.model.get('tagged-products') && this.model.get('tagged-products').length) {
-                product = new App.core.Product(this.model.get('tagged-products')[App.option('galleryIndex', 0)]);
+                product = new App.core.Product(this.model.get('tagged-products')[index]);
                 this.renderSubregions(product);
             } else if (this.model.get('template', '') === 'product') {
                 this.renderSubregions(this.model);
             } else  {
                 this.resizeContainer();
+            }
+
+            if (this.$el.parents('#hero-area').length && !Modernizr.csspositionsticky) {
+                $('.stick-bottom', this.$el).addClass('stuck').waypoint('sticky', {
+                    offset: 'bottom-in-view',
+                    direction: 'up'
+                });
             }
         }
     });
@@ -1060,7 +1078,7 @@ App.module('core', function (module, App) {
                 App.heroArea.show(self);
             });
         },
-        onRender: function () {
+        onShow: function () {
             var contentOpts = {
                     'model': this.model
                 },
@@ -1213,6 +1231,8 @@ App.module('core', function (module, App) {
         },
 
         'onClose': function () {
+            App.options.galleryIndex = 0;
+            App.options.galleryIndexPage = 0;
             // hide this, then restore discovery.
             if (App.support.mobile() || this.feedSwapped) {
                 this.$el.swapWith(App.discoveryArea.$el.parent());

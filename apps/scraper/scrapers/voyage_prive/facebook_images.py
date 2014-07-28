@@ -284,7 +284,7 @@ links = [
 
 def main():
     """UPSERTs the images above"""
-    store = Store.objects.get(slug='voyage-prive')
+    store = Store.objects.get(slug='voyageprive')
 
     for url in links:
         try:

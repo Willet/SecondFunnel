@@ -1,0 +1,2 @@
+- name: Notify hipchat of configuration changes
+  hipchat: token={{ hipchat.token }} room={{ hipchat.room }} msg="Server Configurations Updated" color=purple

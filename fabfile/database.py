@@ -157,7 +157,7 @@ def local_restore(path='db.dump'):
     arguments = args['arguments']
     password = args['password']
 
-    command = 'pg_restore --data-only --format=custom --single-transaction -d {} {}'.format(
+    command = 'pg_restore --data-only --format=custom --single-transaction {} {}'.format(
         arguments, path
     )
     if password:

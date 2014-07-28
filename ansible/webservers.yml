@@ -1,0 +1,53 @@
+- hosts: vagrant
+  roles:
+    - { role: db, dbname: "{{database.db_name}}", dbuser: "{{database.username}}", dbpassword: "{{database.password}}" }
+
+- include: create_lb.yml
+
+- name: "Bootstrap Servers"
+  serial: 2
+  hosts: all
+  roles:
+    - common
+
+- name: "Setup Servers"
+  serial: 2
+  hosts: all
+  remote_user: "{{common_user}}"
+  roles:
+    - web
+  pre_tasks:
+    - name: "Gathering ec2 facts"
+      ec2_facts:
+    - name: "De-Register Instance from LB"
+      local_action: ec2_elb
+      args:
+        instance_id: "{{ansible_ec2_instance_id}}"
+        ec2_elbs: "secondfunnel-{{app_environment}}-lb"
+        region: "us-west-2"
+        state: "absent"
+      ignore_errors: yes
+  post_tasks:
+    - name: "Register Instance on LB"
+      local_action: ec2_elb
+      args:
+        instance_id: "{{ansible_ec2_instance_id}}"
+        ec2_elbs: "secondfunnel-{{app_environment}}-lb"
+        region: "us-west-2"
+        state: "present"
+      ignore_errors: yes
+
+- name: "Post Configuration"
+  hosts: all
+  remote_user: "{{common_user}}"
+  gather_facts: False # since we are just notifying hipchat anyways
+  tasks:
+    - name: "Notify hipchat of configuration changes"
+      local_action: hipchat
+        token="{{ hipchat.token }}"
+        room="{{ hipchat.room }}"
+        msg="(goodnews) {{app_environment|title}} deployment and configuration complete; (doge) WOW! MUCH SPEED SO IMPROVE! (doge) ({{play_hosts}})"
+        color="green"
+        from="Hubert"
+      tags: deploy
+      when: (app_environment | default('vagrant') != 'vagrant') and inventory_hostname == play_hosts[0] # change to only once in the future

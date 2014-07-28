@@ -1,0 +1,11 @@
+---
+- name: Install uwsgi
+  pip: name=uwsgi virtualenv={{uwsgi.virtualenv}}
+
+- name: Copy uwsgi configuration over
+  template: src=uwsgi.ini.j2 dest={{uwsgi.config_file}}
+  notify: uwsgi reload
+
+- include: monit.yml
+  when: uwsgi.setup_monit
+  sudo: true

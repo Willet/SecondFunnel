@@ -71,22 +71,63 @@ App._globals = App._globals || {};
 
 App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
-App.options.urlParams = window.location.search;
-
 (function (document) {
-    $(document).on('click', 'a', function(ev) {
-        var $target = $(ev.target),
-            urlParams = App.options.urlParams;
-        if (urlParams.length > 0) {
-            var href = $target.attr('href');
-            if (href && href.indexOf('#') === -1 &&
-                    href.indexOf(urlParams.substring(1)) === -1) {
-                href += href.indexOf('?') > -1 ? urlParams.replace('?', '&') : urlParams;
-                $target.attr('href', href);
+    "use strict";
+    // relays current page parameters to all outgoing link clicks.
+    // combines PAGES_INFO.urlParams (default to nothing) with the params
+    // in the page url right now.
+    var pageParams = {},
+        search = window.location.search,
+        campaignParams = App.options.urlParams || {},
+        urlParse = function (url) {
+            var a = document.createElement('a'),
+                search = '';
+            a.href = url;
+
+            if (a.search) {
+                search = a.search.substr(1);  // remove '?'
             }
+
+            return {
+                'href': a.href,
+                'host': a.host,
+                'hostname': a.hostname,
+                'pathname': a.pathname,
+                'search': search,
+                'hash': a.hash,
+                'protocol': a.protocol + "//"
+            };
+        };
+
+    if (search && search.length && search[0] === '?') {
+        search = search.substr(1);
+        pageParams = $.deparam(search);
+    }
+
+    // :type object
+    pageParams = $.extend({}, pageParams, campaignParams);
+
+    App.options.urlParams = pageParams;
+
+    $(document).on('click', 'a', function (ev) {
+        var $target = $(ev.target),
+            href = $target.attr('href'),
+            parts = urlParse(href),
+            params = $.extend({}, $.deparam(parts.search), App.options.urlParams || {}),
+            paramStr = $.param(params);
+
+        if (paramStr) {
+            paramStr = "?" + paramStr;
         }
+
+        href = parts.protocol +  // http://
+               parts.host +      // google.com:80
+               parts.pathname +  // /foobar?
+               paramStr +   // baz=kek
+               parts.hash;  // #hello
+        $target.attr('href', href);
     });
-})(document);
+}(document));
 
 (function (details) {
     var pubDate;
@@ -136,8 +177,7 @@ App.options.urlParams = window.location.search;
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 (function (level, hash) {
     var hashIdx,
-        debugLevel = level,
-        urlParams = App.options.urlParams;
+        debugLevel = level;
     // console logging thresholds
     App.QUIET = 0;
     App.ALL = 5;
@@ -159,15 +199,12 @@ App.options.urlParams = window.location.search;
     // IE8 has this as undefined
     window.devicePixelRatio = window.devicePixelRatio || 1;
 
+    // removes the 'debug' param from all outgoing urls.
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
         debugLevel = App.options.debug = hash[hashIdx + 6];
-        hashIdx = urlParams.indexOf('debug='); // In case there was a hash present
-        urlParams = urlParams.replace(urlParams.substr(hashIdx - 1, hashIdx + 7), '');
-        if (urlParams.indexOf('?') === -1) {
-            App.options.urlParams = '?' + urlParams.substring(1);
-        } else {
-            App.options.urlParams = urlParams;
+        if (App.options.urlParams && App.options.urlParams.debug) {
+            delete App.options.urlParams.debug;
         }
     } else {
         debugLevel = 0;

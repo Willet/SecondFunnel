@@ -19,6 +19,10 @@ class SecondFunnelScraper(object):
 
 
 class SecondFunnelCrawlScraper(SecondFunnelScraper):
+
+    # see documentation for remove_background in apps.imageservice.tasks
+    remove_background = '#FFF'
+
     def parse_start_url(self, response):
         if self.is_product_page(response):
             self.rules = ()

@@ -1,0 +1,454 @@
+[
+    {
+        "pk": 1,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:50:59.653Z",
+            "is_today": false,
+            "identifier": "GA_quickview_total",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:51:27.190Z",
+            "is_today": true,
+            "identifier": "GA_quickview_today",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:51:55.187Z",
+            "is_today": false,
+            "identifier": "GA_sessionCount",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:52:28.035Z",
+            "is_today": false,
+            "identifier": "GA_uniqueVisitors",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 5,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:52:50.138Z",
+            "is_today": false,
+            "identifier": "GA_bounceRate",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:53:06.015Z",
+            "is_today": false,
+            "identifier": "GA_sessionDuration",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 7,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:54:38.451Z",
+            "is_today": false,
+            "identifier": "GA_scrollRate",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 8,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:54:33.604Z",
+            "is_today": false,
+            "identifier": "GA_previewRate",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 9,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:55:02.176Z",
+            "is_today": false,
+            "identifier": "GA_buyNowRate",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 10,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:55:34.744Z",
+            "is_today": false,
+            "identifier": "GA_sortview_device",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 11,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:56:02.649Z",
+            "is_today": false,
+            "identifier": "GA_sortview_user",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 12,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:57:45.596Z",
+            "is_today": false,
+            "identifier": "GA_totalConversions",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 13,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:58:32.942Z",
+            "is_today": false,
+            "identifier": "GA_table_total",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 14,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-17T20:58:45.282Z",
+            "is_today": true,
+            "identifier": "GA_table_today",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 15,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-07-04T16:47:13.506Z",
+            "is_today": false,
+            "identifier": "GA_metricsview_traffic",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 16,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-07-04T16:47:04.491Z",
+            "is_today": false,
+            "identifier": "GA_metricsview_sessionDuration",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 17,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-20T15:57:37.064Z",
+            "is_today": false,
+            "identifier": "GA_goals_previewRate",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 18,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-20T15:57:29.929Z",
+            "is_today": false,
+            "identifier": "GA_goals_buyNowRate",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 19,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-06-20T15:57:22.345Z",
+            "is_today": false,
+            "identifier": "GA_goals_scrollRate",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 20,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-07-04T16:06:13.966Z",
+            "is_today": false,
+            "identifier": "CM_purchaseRate",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 21,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-07-04T16:38:45.509Z",
+            "is_today": false,
+            "identifier": "KN_tileImpression",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 22,
+        "model": "dashboard.query",
+        "fields": {
+            "timestamp": "2014-07-04T16:39:09.007Z",
+            "is_today": false,
+            "identifier": "KN_tilePreview",
+            "cached_response": "{}"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:bounceRate",
+            "dimensions": "ga:date"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:bounceRate",
+            "dimensions": "ga:nthHour"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:sessions",
+            "dimensions": "ga:userType"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:users",
+            "dimensions": "ga:userType"
+        }
+    },
+    {
+        "pk": 5,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:bounceRate",
+            "dimensions": "ga:userType"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:avgSessionDuration",
+            "dimensions": "ga:userType"
+        }
+    },
+    {
+        "pk": 7,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:goal3ConversionRate",
+            "dimensions": "ga:userType"
+        }
+    },
+    {
+        "pk": 8,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:goal1ConversionRate",
+            "dimensions": "ga:userType"
+        }
+    },
+    {
+        "pk": 9,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:goal2ConversionRate",
+            "dimensions": "ga:userType"
+        }
+    },
+    {
+        "pk": 10,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:sessions",
+            "dimensions": "ga:deviceCategory"
+        }
+    },
+    {
+        "pk": 11,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:sessions",
+            "dimensions": "ga:userType"
+        }
+    },
+    {
+        "pk": 12,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:goal1Completions,ga:goal2Completions,ga:goal3Completions",
+            "dimensions": "ga:deviceCategory"
+        }
+    },
+    {
+        "pk": 13,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:sessions,ga:newUsers,ga:avgSessionDuration,ga:goal1Completions,ga:goal1ConversionRate,ga:goal2Completions,ga:goal2ConversionRate,ga:goal3Completions,ga:goal3ConversionRate",
+            "dimensions": "ga:source"
+        }
+    },
+    {
+        "pk": 14,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:sessions,ga:newUsers,ga:avgSessionDuration,ga:goal1Completions,ga:goal1ConversionRate,ga:goal2Completions,ga:goal2ConversionRate,ga:goal3Completions,ga:goal3ConversionRate",
+            "dimensions": "ga_source"
+        }
+    },
+    {
+        "pk": 15,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:sessions,ga:bounces",
+            "dimensions": "ga:date"
+        }
+    },
+    {
+        "pk": 16,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:avgSessionDuration",
+            "dimensions": "ga:date"
+        }
+    },
+    {
+        "pk": 17,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:goal1ConversionRate",
+            "dimensions": "ga:date"
+        }
+    },
+    {
+        "pk": 18,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:goal2ConversionRate",
+            "dimensions": "ga:date"
+        }
+    },
+    {
+        "pk": 19,
+        "model": "dashboard.analyticsquery",
+        "fields": {
+            "metrics": "ga:goal3ConversionRate",
+            "dimensions": "ga:date"
+        }
+    },
+    {
+        "pk": 20,
+        "model": "dashboard.clickmeterquery",
+        "fields": {
+            "id_number": 0,
+            "group_by": "day",
+            "endpoint": "/conversions/{id}/aggregated"
+        }
+    },
+    {
+        "pk": 21,
+        "model": "dashboard.keeniometricsquery",
+        "fields": {
+            "target_property": "tile.id",
+            "metric_name": "count",
+            "interval": "",
+            "use_timeframe": false,
+            "group_by": "[\"page.url\",\"tile.url\",\"tile.id\",\"product.name\"]",
+            "filters": "[]",
+            "event_collection": "impression"
+        }
+    },
+    {
+        "pk": 22,
+        "model": "dashboard.keeniometricsquery",
+        "fields": {
+            "target_property": "tile.id",
+            "metric_name": "count",
+            "interval": "",
+            "use_timeframe": false,
+            "group_by": "[\"page.url\",\"tile.url\",\"tile.id\",\"product.name\"]",
+            "filters": "[]",
+            "event_collection": "preview"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "dashboard.campaign",
+        "fields": {
+            "identifier": "summerloves",
+            "start_date": "2014-06-01T05:00:00Z",
+            "end_date": "2014-11-01T04:59:59Z",
+            "title": "Summer Loves"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "dashboard.dashboard",
+        "fields": {
+            "site_name": "Roots United",
+            "page": 14,
+            "queries": [1, 2, 3, 4, 5, 6, 8, 7, 9, 10, 11, 12, 13, 14, 19, 18, 17, 16, 15]
+        }
+    },
+    {
+        "pk": 2,
+        "model": "dashboard.dashboard",
+        "fields": {
+            "site_name": "Gap Summer Loves",
+            "page": 8,
+            "queries": [1, 2, 3, 4, 5, 6, 8, 7, 9, 10, 11, 12, 13, 14, 19, 18, 17, 20, 16, 15]
+        }
+    },
+    {
+        "pk": 3,
+        "model": "dashboard.dashboard",
+        "fields": {
+            "site_name": "Gap Summer Sales",
+            "page": 12,
+            "queries": [1, 2, 3, 4, 5, 6, 8, 7, 9, 10, 11, 12, 13, 14, 19, 18, 17, 20, 16, 15]
+        }
+    },
+    {
+        "pk": 2,
+        "model": "dashboard.userprofile",
+        "fields": {
+            "user": 1,
+            "dashboards": [1, 2, 3]
+        }
+    }
+]

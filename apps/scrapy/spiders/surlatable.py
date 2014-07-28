@@ -134,9 +134,15 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         # There may be cleaner ways to do this but they don't have THIS HAT.
         relative_urls = sel.xpath('//*[@id="TOUCHZOOM"]/../@url').extract()
         image_urls = [
-            '{0}/{1}'.format(path, u.rsplit('/', 1)[1]) \
-            for u in relative_urls
+            '{0}/{1}'.format(path, u.rsplit('/', 1)[1]) for u in relative_urls
         ]
+
+        # we only want to select the main product view's images, which labels its images
+        # with the touchzoom_variation_Default_view_###_1704x1704.jpg
+        image_urls = filter(lambda x: 'touchzoom_variation_Default_view' in x, image_urls)
+
+        # make sure they are unique
+        image_urls = list(set(image_urls))
 
         l.add_value('image_urls', image_urls)
 

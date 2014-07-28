@@ -358,7 +358,7 @@ class StorePageContentDeprioritizeItemCGHandler(StorePageContentItemCGHandler):
         feed = self.page.feed
         tiles_with_this_content = feed.find_tiles(content=self.content)
         for tile in tiles_with_this_content:
-            print "prioritized tile {0} for content {1}".format(
+            print "deprioritized tile {0} for content {1}".format(
                 tile.id, self.content.id)
             tile.prioritized = ""
             tile.save()

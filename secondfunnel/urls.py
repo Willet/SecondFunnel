@@ -15,6 +15,12 @@ urlpatterns = patterns('',
     url(r'^accounts/login/$', 'django.contrib.auth.views.login',
         {"template_name": 'admin/login.html'}),
 
+    # PUBLIC WEBSITE
+    url(r'^showcase/?$', include('apps.website.urls')),
+    url(r'^features/video/?$', include('apps.website.urls')),
+    url(r'^showcase/?$', include('apps.website.urls')),
+    url(r'^contact/?$', include('apps.website.urls')),
+
     # APPS
     url(r'^assets/', include('apps.assets.urls')),
     url(r'^ads/', include('apps.ads.urls')),
@@ -51,7 +57,7 @@ urlpatterns = patterns('',
     url(r'^graph/', include('apps.api.urls')),
 
     # WEBSITE
-    url(r'^$', include('apps.website.urls')),
+    url(r'^(.*)$', include('apps.website.urls')),
 )
 
 if settings.DEBUG:

@@ -302,6 +302,17 @@ class Product(BaseModel):
                 raise ValidationError('Product sale price does not validate')
 
 
+        # guarantee the default image is in the list of product images
+        # (and vice versa)
+        image_urls = [img.url for img in self.product_images.all()]
+        if self.default_image and (self.default_image.url not in image_urls):
+            # there is a default image and it's not in the list of product images
+            self.product_images.add(self.default_image)
+        elif not self.default_image and len(image_urls):
+            # there is no default image
+            self.default_image = self.product_images.all()[0]
+
+
 class ProductImage(BaseModel):
     """An Image-like model class that is explicitly an image depicting
     a product, rather than any other kind.
@@ -332,6 +343,10 @@ class ProductImage(BaseModel):
         super(ProductImage, self).__init__(*args, **kwargs)
         if not self.attributes:
             self.attributes = {}
+
+    @property
+    def orientation(self):
+        return ("landscape" if self.width > self.height else "portrait")
 
     def save(self, *args, **kwargs):
         """For whatever reason, ProductImages have separate width and height
@@ -452,6 +467,10 @@ class Image(Content):
     serializer = ir_serializers.ImageSerializer
     cg_serializer = cg_serializers.ImageSerializer
 
+    @property
+    def orientation(self):
+        return ("landscape" if self.width > self.height else "portrait")
+
     def save(self, *args, **kwargs):
         """For whatever reason, Images have separate width and height
         attributes that are never populated by current code.
@@ -556,11 +575,11 @@ class Feed(BaseModel):
     def __unicode__(self):
         try:
             page_names = ', '.join(page.name for page in self.page.all())
-            return 'Feed (#%s), pages: %s' % (self.id, page_names)
+            return u'Feed (#%s), pages: %s' % (self.id, page_names)
         except (ObjectDoesNotExist, MultipleObjectsReturned):
-            return 'Feed (#%s)' % self.id
+            return u'Feed (#%s)' % self.id
         except:
-            return '(Unsaved Feed)'
+            return u'(Unsaved Feed)'
 
     # and other representation specific of the Feed itself
     def to_json(self, skip_cache=False):
@@ -633,6 +652,10 @@ class Feed(BaseModel):
                                     template='image',
                                     prioritized=prioritized,
                                     priority=priority)
+
+            if isinstance(content, Video):
+                new_content_tile.template = 'youtube'
+
             new_content_tile.save()
             new_content_tile.content.add(content)
             print "content {0} added to the feed.".format(content.id)
@@ -649,14 +672,9 @@ class Feed(BaseModel):
 
         :raises AttributeError
         """
-        tile_buffer = []
         for tile in self.tiles.all():
-            if product in tile.products.all():
+            if tile.products.filter(id=product.id).exists():
                 tile.delete()
-            else:
-                tile_buffer.append(tile)
-        for tile in tile_buffer:
-            self.tiles.add(tile)
 
     def remove_content(self, content):
         """Removes (if present) tiles with this content from the feed that
@@ -669,14 +687,9 @@ class Feed(BaseModel):
 
         :raises AttributeError
         """
-        tile_buffer = []
         for tile in self.tiles.all():
-            if content in tile.content.all():
+            if tile.content.filter(id=content.id).exists():
                 tile.delete()
-            else:
-                tile_buffer.append(tile)
-        for tile in tile_buffer:
-            self.tiles.add(tile)
 
 
 class Page(BaseModel):

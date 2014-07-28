@@ -252,12 +252,17 @@ class TileSerializer(RawSerializer):
         data = {
             "template": obj.template,
             "id": str(obj.id),
-            "page-id": str(obj.feed.page.all()[0].id),  # if this fails, it deserves an exception outright
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
             "json": json.dumps(obj.to_json()),
             "prioritized": "true" if obj.prioritized else "false",
         }
+
+        try:
+            data["page-id"] = str(obj.feed.page.all()[0].id)
+        except IndexError:
+            # the feed doesn't belong to a page (perhaps intentionally).
+            data["page-id"] = "0"
 
         if obj.content.count() > 0:
             data.update({
@@ -278,16 +283,21 @@ class TileSerializer(RawSerializer):
 class TileConfigSerializer(RawSerializer):
     """Tile --> tileconfig json"""
     def get_dump_object(self, obj):
-        data =  {
+        data = {
             "template": obj.template,
             "id": str(obj.id),
-            "page-id": str(obj.feed.page.all()[0].id),  # if this fails, it deserves an exception outright
             "is-content": "false" if obj.template == 'product' else "true",
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
             # backwards compat means any len(string)>0 counts as prioritized from before
             "prioritized": "true" if obj.prioritized else "false",
         }
+
+        try:
+            data["page-id"] = str(obj.feed.page.all()[0].id)
+        except IndexError:
+            # the feed doesn't belong to a page (perhaps intentionally).
+            data["page-id"] = "0"
 
         if obj.content.count() > 0:
             data.update({

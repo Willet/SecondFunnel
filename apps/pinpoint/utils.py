@@ -132,6 +132,8 @@ def render_campaign(page_id, request, store_id=0, tile=None):
     tests = []
     if page.get('tests'):
         tests = json.dumps(page.get('tests'))
+    if page.get('widable_templates'):
+        page.widable_templates = json.dumps(page.get('widable_templates'))
 
     attributes = {
         "session_id": request.session.session_key,
@@ -156,7 +158,9 @@ def render_campaign(page_id, request, store_id=0, tile=None):
         "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
         "keen_io": settings.KEEN_CONFIG,
+        "tile_set": "",
         "url": page.get('url', ''),
+        "url_params": json.dumps(page.get("url_params", {})),
         "algorithm": algorithm,
         "environment": settings.ENVIRONMENT,
         "tests": tests

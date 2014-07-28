@@ -1,0 +1,29 @@
+---
+app_environment: "production"
+git_branch: "master"
+django_settings_module: secondfunnel.settings.production
+
+
+database:
+  hostname: localhost # pgbouncer -> production server (see settings below)
+  port: 5432
+  db_name: sfdb
+  username: willet
+  password: 4rjSR4EpgBcbvSP6
+
+
+pgbouncer:
+  user: postgres
+  group: postgres
+
+  config:
+    database_host: secondfunnel-production-db.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com
+    database_port: 5432
+
+    listen_addr: localhost
+    listen_port: 5432
+
+    user: postgres
+
+    auth_type: md5
+    auth_file: /etc/pgbouncer/userlist.txt

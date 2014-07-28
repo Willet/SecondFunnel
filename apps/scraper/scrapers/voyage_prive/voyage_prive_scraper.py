@@ -1,6 +1,7 @@
 # coding=utf-8
 import re
 
+from django.conf import settings
 from selenium.common.exceptions import NoSuchElementException
 
 from apps.assets.models import Product

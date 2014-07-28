@@ -6,7 +6,8 @@ from collections import defaultdict
 from django.core.exceptions import ValidationError
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
-from apps.assets.models import Store, Product, Category, Feed
+from urlparse import urlparse
+from apps.assets.models import Store, Product, Category, Feed, Content
 from apps.scraper.scrapers import ProductScraper, ContentScraper
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
@@ -97,16 +98,25 @@ class DuplicatesPipeline(object):
     """
     def __init__(self):
         self.ids_seen = defaultdict(set)
+        self.content_seen = defaultdict(set)
 
     def process_item(self, item, spider):
+        spider_name = spider.name
         if isinstance(item, ScraperProduct):
-            spider_name = spider.name
             sku = item['sku']
 
             if sku in self.ids_seen[spider_name]:
                 raise DropItem("Duplicate item found: {}".format(item))
 
             self.ids_seen[spider_name].add(sku)
+        if isinstance(item, ScraperContent):
+            # assuming source_url to be a unique attribute
+            source_url = item['source_url']
+
+            if source_url in self.content_seen[spider_name]:
+                raise DropItem("Duplicate item found: {}".format(item))
+
+            self.content_seen[spider_name].add(source_url)
         return item
 
 
@@ -216,7 +226,12 @@ class FeedPipeline(object):
         except TypeError:
             return
 
-        feed.add_product(product=item_model)
+        django_item, _ = get_or_create(item_model)
+
+        if isinstance(item_model, Product):
+            feed.add_product(product=django_item)
+        if isinstance(item_model, Content):
+            feed.add_content(content=django_item)
 
 
 class ProductImagePipeline(object):
@@ -224,7 +239,8 @@ class ProductImagePipeline(object):
         remove_background = getattr(spider, 'remove_background', False)
         if isinstance(item, ScraperProduct):
             for image_url in item.get('image_urls', []):
-                self.process_product_image(item, image_url, remove_background=remove_background)
+                url = urlparse(image_url, scheme='http')
+                self.process_product_image(item, url.geturl(), remove_background=remove_background)
         return item
 
     def process_product_image(self, item, image_url, remove_background=False):

@@ -1,0 +1,30 @@
+- name: "Download AWS CLI"
+  get_url: url=http://s3.amazonaws.com/ec2-downloads/ec2-api-tools.zip dest=/tmp/ec2-api-tools.zip
+
+- name: "Create installation directory"
+  file: state=directory path=/usr/local/ec2
+  sudo: yes
+
+- name: "Install AWS CLI"
+  unarchive: src=/tmp/ec2-api-tools.zip dest=/usr/local/ec2/ copy=no
+  sudo: yes
+
+- name: Installs Java
+  yum: name=java state=present
+  sudo: yes
+  when: ansible_os_family == 'RedHat'
+
+- name: Installs Java
+  apt: name=openjdk-7-jre state=present update_cache=yes
+  sudo: yes
+  when: ansible_os_family == 'Debian'
+
+- name: "Add JAVA_HOME to Environment"
+  shell: echo JAVA_HOME=`dirname $(dirname $(readlink -f $(which java)))` >> /etc/environment
+  sudo: true
+  when: ansible_env.JAVA_HOME | default('') == ''
+
+- name: "Add EC2_HOME to Environment"
+  shell: echo EC2_HOME=`realpath /usr/local/ec2/ec2-api-tools-*` >> /etc/environment
+  sudo: true
+  when: ansible_env.EC2_HOME | default('') == ''

@@ -1,0 +1,26 @@
+---
+# Global Shared Services
+hipchat:
+  room: 115122  # code room
+  token: 675a844c309ec3227fa9437d022d05
+
+github_ssh_public_key: "github.com,204.232.175.90 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJN    lGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgq    lJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
+
+# Shared Host Settings
+common_user: willet # default login user across all boxes
+aws_access_key_id: AKIAIAPXLNH7EQVGDEWA
+aws_secret_key: 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
+aws_region: us-west-2
+aws_base_image: ami-e7b8c0d7 # base image *ubuntu 14.04 LTS*
+aws_sshkey_name: willet-admin-master
+aws_instance_type: m3.medium
+
+# Shared Application Settings
+application_directory: /opt/secondfunnel/app
+secondfunnel_directory: /opt/secondfunnel
+secondfunnel_log_directory: /opt/secondfunnel/log
+secondfunnel_run_directory: /opt/secondfunnel/run
+virtualenv_directory: /opt/secondfunnel/venv
+
+# Shared Application Defaults
+py_autoreload: 0

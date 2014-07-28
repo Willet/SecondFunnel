@@ -8,7 +8,7 @@ TEMPLATE_DEBUG = DEBUG
 COMPRESS = True
 COMPRESS_VERSION = True
 COMPRESS_ENABLED = True
-COMPRESS_CSS_HASHING_METHOD = 'hash'
+COMPRESS_CSS_HASHING_METHOD = 'content'
 
 AWS_IS_GZIPPED = True # GZip Middleware isn't recognized without this line because http://stackoverflow.com/a/19180415/1558430
 AWS_S3_CUSTOM_DOMAIN = CLOUDFRONT_DOMAIN
@@ -111,3 +111,9 @@ KEEN_CONFIG = {
 }
 
 PREDICTION_IO_API_KEY = "CuBN5rs075a1WfQLy3gyPbWpmBIrHOQ9zQbufFwmSuNPwYf2npznXncLw2j2vTlL"
+
+# Add Raven Middleware (getsentry.com)
+MIDDLEWARE_CLASSES = ('raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware',) + MIDDLEWARE_CLASSES
+
+THIRD_PARTY_APPS += ('raven.contrib.django.raven_compat',)  # logging
+INSTALLED_APPS = FRAMEWORK_APPS + THIRD_PARTY_APPS + LOCAL_APPS
