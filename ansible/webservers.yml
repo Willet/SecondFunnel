@@ -3,6 +3,7 @@
     - { role: db, dbname: "{{database.db_name}}", dbuser: "{{database.username}}", dbpassword: "{{database.password}}" }
 
 - include: create_lb.yml
+  when: app_environment != "vagrant"
 
 - name: "Bootstrap Servers"
   serial: 2
