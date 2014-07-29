@@ -55,7 +55,7 @@ class MadewellProductScraper(ProductDetailScraper):
             product.save()
 
         if self.feed:
-            self.feed.add_product(product=product)
+            self.feed.add(obj=product)
 
         yield {'product': product}
 

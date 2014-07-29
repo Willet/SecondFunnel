@@ -123,14 +123,14 @@ class StorePageProductItemCGHandler(StoreProductItemCGHandler):
 
     def put(self, request, *args, **kwargs):
         """special handler for adding a product to the page"""
-        self.page.add_product(self.product)
+        self.page.add(obj=self.product)
         return ajax_jsonp(self.product.to_cg_json())
 
     def delete(self, request, *args, **kwargs):
         """special handler for deleting a product from the page
         (which means adding a product to a tile to the feed of the page)
         """
-        self.page.remove_product(self.product)
+        self.page.remove(obj=self.product)
         return ajax_jsonp(self.product)
 
 
@@ -167,7 +167,7 @@ class StorePageProductDeprioritizeItemCGHandler(StorePageProductItemCGHandler):
                 tile.prioritized = ""
                 tile.save()
         else:  # tile not in the feed, create a prioritized tile
-            self.page.add_product(product=self.product, prioritized='pageview')
+            self.page.add(obj=self.product, prioritized='pageview')
 
         return ajax_jsonp(self.product.to_cg_json())
 
@@ -196,7 +196,7 @@ class PageProductAllCGHandler(StorePageProductCGHandler):
         product_ids = json.loads(request.body)
         for product_id in product_ids:
             product = get_object_or_404(Product, id=product_id)
-            page.add_product(product)
+            page.add(obj=product)
 
         return HttpResponse()
 

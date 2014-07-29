@@ -215,12 +215,12 @@ class VoyagePriveCategoryScraper(ProductCategoryScraper):
                 if self.feed:
                     # add a tile to the feed
                     if product.in_stock:
-                        tile, p, _ = self.feed.add_product(product)
+                        tile, p, _ = self.feed.add(obj=product)
                         tile.template = 'banner'
                         tile.save()
                     else:
                         # if it's out, remove it; if it's not out,
-                        self.feed.remove_product(product)
+                        self.feed.remove(product)
 
                 yield {'product': product}
 

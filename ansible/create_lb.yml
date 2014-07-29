@@ -1,6 +1,6 @@
 ---
 - name: "Create Load Balancer"
-  hosts: all
+  hosts: all:!vagrant
   tasks:
     - name: "Grab Load Balancer (or create if necessary)"
       local_action: ec2_elb_lb

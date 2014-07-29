@@ -174,14 +174,14 @@ class StorePageContentItemCGHandler(StoreContentItemCGHandler):
 
     def put(self, request, *args, **kwargs):
         """special handler for adding a content to the page"""
-        self.page.add_content(self.content)
+        self.page.add(obj=self.content)
         return ajax_jsonp(self.content.to_cg_json())
 
     def delete(self, request, *args, **kwargs):
         """special handler for deleting a content from the page
         (which means adding a content to a tile to the feed of the page)
         """
-        self.page.remove_content(self.content)
+        self.page.remove(obj=self.content)
         return ajax_jsonp(self.content)
 
 
@@ -340,7 +340,7 @@ class StorePageContentPrioritizeItemCGHandler(StorePageContentItemCGHandler):
                 tile.prioritized = "pageview"
                 tile.save()
         else:  # tile not in the feed, create a prioritized tile
-            self.page.add_content(content=self.content, prioritized='pageview')
+            self.page.add(obj=self.content, prioritized='pageview')
 
         return ajax_jsonp(self.content.to_cg_json())
 
@@ -388,7 +388,7 @@ class PageContentAllCGHandler(StorePageContentCGHandler):
         content_ids = json.loads(request.body)
         contents = Content.objects.filter(id__in=content_ids).select_subclasses()
         for content in contents:
-            page.add_content(content)
+            page.add(obj=content)
 
         return HttpResponse()
 

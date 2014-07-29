@@ -122,6 +122,7 @@ def get_results_view(request, page_id):
 
     # makes sure they are all non-falsy tiles
     results = [r for r in results if r]
+    print 'returning {0} tiles'.format(len(results))
 
     # manually construct a json array
     response_text = "[{}]".format(",".join(results))

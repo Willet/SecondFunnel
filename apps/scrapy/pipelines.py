@@ -228,10 +228,7 @@ class FeedPipeline(object):
 
         django_item, _ = get_or_create(item_model)
 
-        if isinstance(item_model, Product):
-            feed.add_product(product=django_item)
-        if isinstance(item_model, Content):
-            feed.add_content(content=django_item)
+        feed.add(obj=django_item)
 
 
 class ProductImagePipeline(object):

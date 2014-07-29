@@ -51,6 +51,7 @@ def read_remote_file(url, default_value=''):
     except (TypeError, ValueError, urllib2.HTTPError) as err:
         return default_value, False
 
+
 def get_store_from_request(request):
     """
     Returns the store pointed to by the request host if it exists.
@@ -125,9 +126,7 @@ def render_campaign(page_id, request, store_id=0, tile=None):
         # (because you can't test local IR like this)
         setattr(page, 'ir_base_url', '')
 
-    algorithm = request.GET.get('algorithm', page.feed.feed_algorithm or 'generic')
-    if request.GET.get('popular', None) == '':
-        algorithm = 'popular'
+    algorithm = get_algorithm(request=request, page=page)
 
     tests = []
     if page.get('tests'):
@@ -173,3 +172,34 @@ def render_campaign(page_id, request, store_id=0, tile=None):
 
     # Render response
     return page.render(context)
+
+
+def get_algorithm(algorithm=None, request=None, page=None, feed=None):
+    """Given one or more conditions, return the algorithm with the highest
+    precedence.
+
+    Priority:
+    - if you specify one
+    - if request specifies one
+    - if page settings specify one
+    - if feed has one
+    - 'generic'
+
+    :returns str
+    """
+    if algorithm:
+        return algorithm
+
+    if request and request.GET.get('algorithm'):
+        return request.GET.get('algorithm', 'generic')
+
+    if page and page.theme_settings.get('feed_algorithm'):
+        return page.theme_settings.get('feed_algorithm')
+
+    if not feed and page:
+        feed = page.feed
+
+    if feed and feed.feed_algorithm:
+        return feed.feed_algorithm
+
+    return 'generic'

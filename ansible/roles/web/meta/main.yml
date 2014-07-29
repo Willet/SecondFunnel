@@ -1,6 +1,7 @@
 ---
 dependencies:
-  - { role: newrelic, tags: newrelic, sudo: true }
+  - { role: web-env, tags: app, sudo: true }
+  - { role: newrelic, tags: newrelic, sudo: true, when: app_environment != 'vagrant' }
   - { role: monit, tags: monit, sudo: true }
   - { role: nginx, tags: nginx, sudo: true }
   - { role: node, tags: node }

@@ -34,7 +34,7 @@ class StyldByPartnersScraper(ContentCategoryScraper):
             image.save()
 
             if self.feed:
-                self.feed.add_content(content=image)
+                self.feed.add(obj=image)
 
             yield {'content': image}
 
@@ -71,7 +71,7 @@ class StyldByFilterScraper(ContentCategoryScraper):
                     image.save()
 
                     if self.feed:
-                        self.feed.add_content(content=image)
+                        self.feed.add(obj=image)
 
                     yield {'content': image}
             try:
