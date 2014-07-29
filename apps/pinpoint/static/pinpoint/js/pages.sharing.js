@@ -257,7 +257,7 @@ App.module("sharing", function (sharing, App) {
             var url = (helpers.product.url || helpers.product.image);
             if (url && url.indexOf('facebook') > -1) { // fast lookup
                 // regex match it
-                matches = /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(url);
+                var matches = /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(url);
                 if (matches) { // verify we have a match
                     url = 'http://www.facebook.com/' + matches[1];
                 }
