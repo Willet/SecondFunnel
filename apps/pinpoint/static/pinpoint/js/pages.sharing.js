@@ -255,8 +255,12 @@ App.module("sharing", function (sharing, App) {
         'onTemplateHelpers': function (helpers) {
             // Additional attributes to add to our template data.
             var url = (helpers.product.url || helpers.product.image);
-            if (url && url.indexOf('facebook') > -1) {
-                url = 'http://www.facebook.com/' + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(url)[1];
+            if (url && url.indexOf('facebook') > -1) { // fast lookup
+                // regex match it
+                matches = /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(url);
+                if (matches) { // verify we have a match
+                    url = 'http://www.facebook.com/' + matches[1];
+                }
             }
             helpers.url = url;
             return helpers;
