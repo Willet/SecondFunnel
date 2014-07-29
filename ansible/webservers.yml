@@ -1,7 +1,3 @@
-- hosts: vagrant
-  roles:
-    - { role: db, dbname: "{{database.db_name}}", dbuser: "{{database.username}}", dbpassword: "{{database.password}}" }
-
 - include: create_lb.yml
 
 - name: "Bootstrap Servers"
@@ -15,10 +11,12 @@
   hosts: all
   remote_user: "{{common_user}}"
   roles:
+    - { role: db, tags: db, when: app_environment == "vagrant" }
     - web
   pre_tasks:
     - name: "Gathering ec2 facts"
       ec2_facts:
+      when: app_environment != "vagrant"
     - name: "De-Register Instance from LB"
       local_action: ec2_elb
       args:
@@ -27,6 +25,7 @@
         region: "us-west-2"
         state: "absent"
       ignore_errors: yes
+      when: app_environment != "vagrant"
   post_tasks:
     - name: "Register Instance on LB"
       local_action: ec2_elb
@@ -36,6 +35,7 @@
         region: "us-west-2"
         state: "present"
       ignore_errors: yes
+      when: app_environment != "vagrant"
 
 - name: "Post Configuration"
   hosts: all

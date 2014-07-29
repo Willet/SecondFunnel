@@ -5,6 +5,7 @@ from datetime import datetime
 from django.conf import settings
 from django.template import RequestContext, Template
 from apps.intentrank.views import get_results
+from apps.pinpoint.utils import get_algorithm
 
 
 def render_banner(page, request):
@@ -16,7 +17,7 @@ def render_banner(page, request):
 
     ir_base_url = '/intentrank'
 
-    algorithm = request.GET.get('algorithm', page.feed.feed_algorithm or 'generic')
+    algorithm = get_algorithm(request=request, page=page)
 
     tests = []
     if page.get('tests'):

@@ -717,7 +717,9 @@ def ir_ordered_by(attribute='created_at', reversed_=False):
         if results < 1:
             return []
 
-        tiles = filter_excluded(tiles, allowed_set, exclude_set)
+        # "or tiles" forces tiles to reset when
+        # tile pool is very small (think nastygal)
+        tiles = filter_excluded(tiles, allowed_set, exclude_set) or tiles
 
         sort_fn = partial(sort_helper, attribute=attribute)
         tiles = sorted(tiles, key=sort_fn, reverse=reversed_)

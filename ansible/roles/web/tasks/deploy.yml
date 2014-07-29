@@ -15,7 +15,7 @@
   when: app_environment != 'vagrant'
 
 - command: mv "{{application_directory}}" "{{application_directory}}-rollback"
-  when: codebase.stat.exists and app_environment != 'vagrant'
+  when: app_environment != 'vagrant' and codebase.stat.exists
 
 - name: Create Directory for Application
   file: state=directory path="{{application_directory}}" mode=0777 owner={{common_user}} group={{common_user}}
@@ -33,7 +33,7 @@
 
 - name: Install Python Application Requirements
   pip: requirements={{ application_directory }}/requirements.txt virtualenv={{virtualenv_directory}}
-  when: git_repo|changed or app_environment == 'vagrant'
+  when: app_environment == 'vagrant' or git_repo|changed
   async: 3600
   poll: 15
 
@@ -41,12 +41,13 @@
   shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
   args:
     chdir: "{{application_directory}}"
+  notify: uwsgi reload
   with_items:
     - "syncdb --noinput"
     - "migrate --noinput"
     - "collectstatic --noinput"
     - "compress --force"
-  when: git_repo|changed or app_environment == 'vagrant'
+  when: app_environment == 'vagrant' or git_repo|changed
 
 #- name: Link any directories shared between application deployments
 #  file: state=link path="{{application_directory}}/{{item.src}}" src="{{secondfunnel_directory}}/{{item.dest}}"

@@ -601,7 +601,27 @@ class Feed(BaseModel):
         return self.tiles.exclude(products__in_stock=False)\
             .exclude(content__tagged_products__in_stock=False)
 
-    def add_product(self, product, prioritized=False, priority=0):
+    def add(self, obj, prioritized=False, priority=0):
+        """:raises ValueError"""
+        if isinstance(obj, Product):
+            return self._add_product(product=obj, prioritized=prioritized,
+                                    priority=priority)
+        elif isinstance(obj, Content):
+            return self._add_content(content=obj, prioritized=prioritized,
+                                    priority=priority)
+        raise ValueError("add() accepts either Product or Content; "
+                         "got {}".format(obj.__class__))
+
+    def remove(self, obj):
+        """:raises ValueError"""
+        if isinstance(obj, Product):
+            return self._remove_product(product=obj)
+        elif isinstance(obj, Content):
+            return self._remove_content(content=obj)
+        raise ValueError("remove() accepts either Product or Content; "
+                         "got {}".format(obj.__class__))
+
+    def _add_product(self, product, prioritized=False, priority=0):
         """Adds (if not present) a tile with this product to the feed.
 
         This operation is so common and indirect that it is going
@@ -620,18 +640,19 @@ class Feed(BaseModel):
 
                 return tile, product, False
         else:  # there weren't any tiles with this product in them
-            new_product_tile = Tile(feed=self,
-                                    template='product',
-                                    prioritized=prioritized,
-                                    priority=priority)
-            new_product_tile.save()
-            new_product_tile.products.add(product)
+            new_tile = Tile(feed=self,
+                            template='product',
+                            prioritized=prioritized,
+                            priority=priority)
+
+            new_tile.save()
+            new_tile.products.add(product)
             print "product {0} added to the feed.".format(product.id)
-            self.tiles.add(new_product_tile)
+            self.tiles.add(new_tile)
 
-            return new_product_tile, product, True
+            return new_tile, product, True
 
-    def add_content(self, content, prioritized=False, priority=0):
+    def _add_content(self, content, prioritized=False, priority=0):
         """Adds (if not present) a tile with this content to the feed.
 
         This operation is so common and indirect that it is going
@@ -639,6 +660,7 @@ class Feed(BaseModel):
 
         TODO: can be faster
 
+        :returns tuple (the tile, the content, whether it was newly added)
         :raises AttributeError
         """
         content_tiles = [tile for tile in self.tiles.all()
@@ -646,22 +668,29 @@ class Feed(BaseModel):
         for tile in content_tiles:
             if Tile.objects.filter(content=content).exists():
                 print "content {0} already exists in feed".format(content.id)
-                break
+                return tile, content, False
+
         else:  # there weren't any tiles with this content in them
-            new_content_tile = Tile(feed=self,
-                                    template='image',
-                                    prioritized=prioritized,
-                                    priority=priority)
+            new_tile = Tile(feed=self,
+                            template='image',
+                            prioritized=prioritized,
+                            priority=priority)
 
+            # content template adjustments. should probably be somewhere else
             if isinstance(content, Video):
-                new_content_tile.template = 'youtube'
+                if 'youtube' in content.url:
+                    new_tile.template = 'youtube'
+                else:
+                    new_tile.template = 'video'
 
-            new_content_tile.save()
-            new_content_tile.content.add(content)
+            new_tile.save()
+            new_tile.content.add(content)
             print "content {0} added to the feed.".format(content.id)
-            self.tiles.add(new_content_tile)
+            self.tiles.add(new_tile)
 
-    def remove_product(self, product):
+            return new_tile, content, True
+
+    def _remove_product(self, product):
         """Removes (if present) tiles with this product from the feed that
         belongs to this page.
 
@@ -676,7 +705,7 @@ class Feed(BaseModel):
             if tile.products.filter(id=product.id).exists():
                 tile.delete()
 
-    def remove_content(self, content):
+    def _remove_content(self, content):
         """Removes (if present) tiles with this content from the feed that
         belongs to this page.
 
@@ -778,23 +807,12 @@ class Page(BaseModel):
             setattr(instance, field, json_data[field])
         return instance
 
-    def add_product(self, product, prioritized=False, priority=0):
-        """Feed method alias"""
-        return self.feed.add_product(product=product, prioritized=prioritized,
-                                     priority=priority)
+    def add(self, obj, prioritized=False, priority=0):
+        return self.feed.add(obj=obj, prioritized=prioritized,
+                             priority=priority)
 
-    def add_content(self, content, prioritized=False, priority=0):
-        """Feed method alias"""
-        return self.feed.add_content(content=content, prioritized=prioritized,
-                                     priority=priority)
-
-    def remove_product(self, product):
-        """Feed method alias"""
-        return self.feed.remove_product(product=product)
-
-    def remove_content(self, content):
-        """Feed method alias"""
-        return self.feed.remove_content(content=content)
+    def remove(self, obj):
+        return self.feed.remove(obj=obj)
 
 
 class Tile(BaseModel):
