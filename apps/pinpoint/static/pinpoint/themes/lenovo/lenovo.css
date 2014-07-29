@@ -1,21 +1,21 @@
 
 body {
-	background: #F5F5E5;
+    background: #F5F5E5;
 }
 
 #hero-area {
     margin-bottom: -6px;
     margin-top: -10px;
     -webkit-box-shadow: 0px 0px 40px 20px rgba(0,0,0,0.75);
-	-moz-box-shadow: 0px 0px 40px 20px rgba(0,0,0,0.75);
-	box-shadow: 0px 0px 40px 20px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 0px 40px 20px rgba(0,0,0,0.75);
+    box-shadow: 0px 0px 40px 20px rgba(0,0,0,0.75);
 }
 
 #discovery-area {
     background-color: #000;
     -webkit-box-shadow: 0px 40px 40px 20px rgba(0,0,0,0.75);
-	-moz-box-shadow: 0px 40px 40px 20px rgba(0,0,0,0.75);
-	box-shadow: 0px 40px 40px 20px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 40px 40px 20px rgba(0,0,0,0.75);
+    box-shadow: 0px 40px 40px 20px rgba(0,0,0,0.75);
 }
 
 .navbar {
@@ -137,14 +137,14 @@ body {
 }
 
 .tile.image .overlay .table {
-	display: table;
-	width: 100%;
-	height: 100%;
+    display: table;
+    width: 100%;
+    height: 100%;
 }
 
 .tile.image .overlay .table .cell {
-	display: table-cell;
-	vertical-align: middle;
+    display: table-cell;
+    vertical-align: middle;
 }
 
 @media screen and (max-width: 768px) {
