@@ -124,6 +124,20 @@
             <div class="tap-indicator-target"></div>
             <div class='relative'>
                 <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
+                <div class="overlay">
+                    <div class="table">
+                        <div class="cell">
+                            <div class="bold">
+                                Shop product
+                            </div>
+                            <% if (obj['tagged-products'].length) { %>
+                                <div>
+                                    <%- obj['tagged-products'][0].name %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
             </div>
             <% if (App.option("debug", 0) > 1) { %>
                 <span class="type"><%= obj["content-type"] %></span>
