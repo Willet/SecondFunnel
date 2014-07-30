@@ -3,19 +3,19 @@ body {
     background: #F5F5E5;
 }
 
-#hero-area {
-    margin-bottom: -6px;
-    margin-top: -10px;
+body > .container {
     -webkit-box-shadow: 0px 0px 20px 10px rgba(0,0,0,0.75);
     -moz-box-shadow: 0px 0px 20px 10px rgba(0,0,0,0.75);
     box-shadow: 0px 0px 20px 10px rgba(0,0,0,0.75);
 }
 
+#hero-area {
+    margin-bottom: -6px;
+    margin-top: -10px;
+}
+
 #discovery-area {
     background-color: #000;
-    -webkit-box-shadow: 0px 19px 20px 10px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0px 19px 20px 10px rgba(0,0,0,0.75);
-    box-shadow: 0px 19px 20px 10px rgba(0,0,0,0.75);
 }
 
 .navbar {
