@@ -83,7 +83,7 @@ def get_results_view(request, page_id):
 
     :returns HttpResponse/Http404
     """
-    algorithm_name = request.GET.get('algorithm', 'generic').lower()
+    algorithm_name = request.GET.get('algorithm', '').lower()
     callback = request.GET.get('callback', None)
     category = request.GET.get('category', None)
     offset = int(request.GET.get('offset', 0))  # used only by some deterministic algos

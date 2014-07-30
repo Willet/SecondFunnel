@@ -30,9 +30,9 @@ class IntentRank(object):
             raise AttributeError("Must supply one or more of: feed, page")
 
     def _resolve_algorithm(self, algorithm_name):
-        """Look up an algorithm by name, or ir_generic if not found.
+        """Look up an algorithm by name, or None if not found.
 
-        :returns function
+        :returns {function|None}
         """
         if not algorithm_name.startswith('ir_'):  # normalize algo names
             algorithm_name = 'ir_{}'.format(algorithm_name)
@@ -50,10 +50,7 @@ class IntentRank(object):
         except (ImportError, AttributeError) as err:
             pass
 
-        # verbose fallback
-        print "Algorithm '{0}' not found; using ir_generic instead.".format(
-            algorithm_name)
-        return ir_generic
+        return None
 
     @property
     def algorithm(self):
@@ -80,6 +77,15 @@ class IntentRank(object):
         if isinstance(algorithm, basestring):
             algorithm = self._resolve_algorithm(algorithm)
 
+        if not algorithm and self._page and \
+                self._page.theme_settings.get('feed_algorithm'):
+            algorithm = self._resolve_algorithm(
+                self._page.theme_settings.get('feed_algorithm'))
+        if not algorithm and self._feed and \
+                self._feed.feed_algorithm:
+            algorithm = self._resolve_algorithm(
+                self._feed.feed_algorithm)
+
         if not algorithm:
             algorithm = ir_generic
 
@@ -104,7 +110,7 @@ class IntentRank(object):
         feed = self._feed
 
         if not algorithm:
-            algorithm = self._algorithm
+            algorithm = self.algorithm
 
         if not feed.tiles.count():  # short circuit: return empty resultset
             return qs_for([])
