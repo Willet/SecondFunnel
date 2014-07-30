@@ -267,7 +267,7 @@ class Product(BaseModel):
     price = models.CharField(max_length=16)  # DEFER: could make more sense to be an integer (# of cents)
                                              # ... or, maybe a composite field with currency too
 
-    default_image = models.ForeignKey('ProductImage', related_name='primary_product',
+    default_image = models.ForeignKey('ProductImage', related_name='default_image',
                                       blank=True, null=True, on_delete=models.SET_NULL)
 
     last_scraped_at = models.DateTimeField(blank=True, null=True)
