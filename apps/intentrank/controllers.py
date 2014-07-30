@@ -50,30 +50,14 @@ class IntentRank(object):
         except (ImportError, AttributeError) as err:
             pass
 
+        print "Warning: algorithm '{}' not found".format(algorithm_name)
         return None
 
-    @property
-    def algorithm(self):
-        """Returns one algorithm in this order:
+    def _get_algorithm(self, algorithm=None):
+        """:returns function  algorithm with highest specificity."""
+        if algorithm is None and self._algorithm:
+            algorithm = self._algorithm
 
-        - if this IntentRank object has one already determined, then that one
-        - page's algo
-        - feed's algo
-        - ir_generic
-        """
-        if self._algorithm:
-            return self._algorithm
-        if self._page and self._page.theme_settings.get('feed_algorithm'):
-            return self._resolve_algorithm(
-                self._page.theme_settings.get('feed_algorithm'))
-        if self._feed and self._feed.feed_algorithm:
-            return self._resolve_algorithm(
-                self._feed.feed_algorithm)
-
-        return ir_generic
-
-    @algorithm.setter
-    def algorithm(self, algorithm):
         if isinstance(algorithm, basestring):
             algorithm = self._resolve_algorithm(algorithm)
 
@@ -88,8 +72,22 @@ class IntentRank(object):
 
         if not algorithm:
             algorithm = ir_generic
+        return algorithm
 
-        self._algorithm = algorithm
+    @property
+    def algorithm(self):
+        """Returns one algorithm in this order:
+
+        - if this IntentRank object has one already determined, then that one
+        - page's algo
+        - feed's algo
+        - ir_generic
+        """
+        return self._get_algorithm()
+
+    @algorithm.setter
+    def algorithm(self, algorithm):
+        self._algorithm = self._get_algorithm(algorithm)
 
     def get_results(self, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                     algorithm=None, tile_id=0, offset=0, **kwargs):

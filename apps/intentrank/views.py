@@ -104,14 +104,13 @@ def get_results_view(request, page_id):
     exclude_set = map(int, shown)
 
     page = get_object_or_404(Page, id=page_id)
-    feed = page.feed
 
-    ir = IntentRank(feed=feed)
+    ir = IntentRank(page=page)
     ir.algorithm = algorithm_name
 
     algorithm = ir.algorithm
     print 'request for [page {}, feed {}] being handled by {}'.format(
-        page.id, feed.id, algorithm.__name__)
+        page.id, page.feed.id, algorithm.__name__)
 
     # results is a queryset!
     results = ir.get_results(results=results,
@@ -181,7 +180,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
         return HttpResponseNotFound("No feed for page {0}".format(page_id))
 
     # results is a queryset!
-    ir = IntentRank(feed=feed)
+    ir = IntentRank(page=page)
     results = ir.get_results(request=request, algorithm=ir_all)
     # results is a list of stringified tiles!
     results = results.values_list('ir_cache', flat=True)
