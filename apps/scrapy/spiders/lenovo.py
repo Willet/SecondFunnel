@@ -1,17 +1,19 @@
 import re
+import time
+
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from urlparse import urlparse
-import time
+from scrapy.spider import Spider
+
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
-    SecondFunnelCrawlScraper
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 from apps.scrapy.utils.misc import open_in_browser
 
 
-class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class LenovoSpider(SecondFunnelCrawlScraper, Spider):
     name = 'lenovo'
     allowed_domains = ['lenovo.com', 'shop.lenovo.com']
     start_urls = ['http://shop.lenovo.com/us/en/tablets/']
@@ -20,7 +22,7 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "next")]')
         ),
         Rule(
-            SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "button") and contains(@class, "shop") and contains(@class, "full")]'),
+            SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "button") and contains(@class, "shop") and contains(@class, "fluid")]'),
             'parse_product', follow=False
         )
     ]
@@ -30,10 +32,12 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     def is_product_page(self, response):
         sel = Selector(response)
 
-        is_product_page = sel.css('.product-style')
+        is_product_page = sel.css('#multichoices.cf')
 
         return is_product_page
 
+    def parse(self, response):
+        return self.parse_start_url(response)
 
     def parse_product(self, response):
         """
@@ -70,15 +74,17 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         magic_subs = {            # http://www.lenovo.com/images/gallery/1060x596/lenovo-tablet-yoga-8-tilt-mode-6.jpg
             '115x65': '1060x596'  # http://www.lenovo.com/images/gallery/115x65/lenovo-tablet-yoga-8-tilt-mode-6.jpg
         }
-        # galleria errors from lenovo's plugin
-        image_urls = re.findall(r'Could not extract width/height from image: (http://[^\s]+)\. Traced', response.body)
+
+        # parse the gallery with re (like a caveman)
+        image_urls = re.findall('data-original="([^"]+gallery[^"]+)"', response.body)
         new_image_urls = []
         for url in image_urls:
             for before, after in magic_subs.iteritems():
                 if url.endswith('jpg') and not 'video' in url:
                     # it just so happens that pngs and gifs are always video
                     # thumbnails that aren't product images
-                    new_image_urls.append(url.replace(before, after))
+                    url = url.replace(before, after)
+                    new_image_urls.append(urlparse(url, scheme='http').geturl())
 
         l.add_value('image_urls', new_image_urls)
 
