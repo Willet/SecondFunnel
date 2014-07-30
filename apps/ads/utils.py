@@ -4,7 +4,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.template import RequestContext, Template
-from apps.intentrank.views import get_results
+from apps.intentrank.controllers import get_results
 from apps.pinpoint.utils import get_algorithm
 
 

@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import F as Fucking
 from django.http import HttpResponse
@@ -9,9 +8,9 @@ from django.views.decorators.csrf import csrf_exempt
 import re
 
 from apps.api.decorators import request_methods
-from apps.assets.models import Page, Tile, Category, Store
-from apps.intentrank.controllers import IntentRank
-from apps.intentrank.algorithms import ir_generic, ir_all, ir_base, qs_for
+from apps.assets.models import Page, Tile, Store
+from apps.intentrank.controllers import IntentRank, get_results
+from apps.intentrank.algorithms import ir_all
 from apps.intentrank.utils import ajax_jsonp
 from apps.utils import thread_id
 from apps.utils.models import MemcacheSetting
@@ -189,55 +188,6 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     if callback:
         response_text = "{0}({1});".format(callback, response_text)
     return HttpResponse(response_text, content_type='application/json')
-
-
-def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                algorithm=ir_generic, tile_id=0, offset=0, **kwargs):
-    """Converts a feed into a list of <any> using given parameters.
-
-    :param feed        a <Feed>
-    :param results     number of <any> to return
-    :param exclude_set IDs of items in the feed to never consider
-    :param request     (relay)
-    :param algorithm   reference to a <Feed> => [<Tile>] function
-    :param tile_id     for getting related tiles
-
-    :returns           a list of <any>
-    """
-    if not feed.tiles.count():  # short circuit: return empty resultset
-        return qs_for([])
-
-    ir = IntentRank(feed=feed)
-
-    # "everything except these tile ids"
-    exclude_set = kwargs.get('exclude_set', [])
-    request = kwargs.get('request', None)
-    category_name = kwargs.get('category_name', None)
-    if category_name:
-        category = Category.objects.get(name=category_name)
-        products = category.products.all()
-        allowed_set = []
-        for product in products:
-            allowed_set += [t.id for t in product.tiles.all()]
-            contents = product.content.all()
-            for content in contents:
-                allowed_set += [tile.id for tile in content.tiles.all()]
-        allowed_set = list(set(allowed_set))
-    else:
-        allowed_set = None
-
-    tiles = ir_base(feed=feed, allowed_set=allowed_set)
-    args = dict(
-        tiles=tiles, results=results,
-        exclude_set=exclude_set, allowed_set=allowed_set,
-        request=request, offset=offset, tile_id=tile_id, feed=feed)
-
-    if 'products_only' in kwargs:
-        args['products_only'] = kwargs.get('products_only')
-    if 'content_only' in kwargs:
-        args['content_only'] = kwargs.get('content_only')
-
-    return algorithm(**args)
 
 
 @never_cache

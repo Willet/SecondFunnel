@@ -1,8 +1,11 @@
 import importlib
 import json
+from django.conf import settings
 
 from django.core import serializers
 from algorithms import ir_generic
+from apps.assets.models import Category
+from apps.intentrank.algorithms import ir_generic, qs_for, ir_base
 
 
 class IntentRank(object):
@@ -22,6 +25,7 @@ class IntentRank(object):
         """
         :param {Feed} feed   a Feed object with products
         """
+        self._algorithm = None  # pycharm
         self.feed = feed
         if not feed:
             raise ValueError("Feed must exist, and must contain one item")
@@ -58,6 +62,14 @@ class IntentRank(object):
         return self.ir_generic
 
     def set_algorithm(self, algorithm):
+        self._algorithm = algorithm
+
+    @property
+    def algorithm(self):
+        return self._algorithm
+
+    @algorithm.setter
+    def algorithm(self, algorithm):
         self._algorithm = algorithm
 
     def get_results(self, serialize_format='json', *args, **kwargs):
@@ -100,8 +112,54 @@ class IntentRank(object):
             return new_things
         elif serialize_format == 'raw':
             return things
-        elif serialize_format == 'xml':
-            raise NotImplementedError()
-        else:
-            raise ValueError("Could not understand requested "
-                             "serialize_format {0}".format(serialize_format))
+
+        raise ValueError("Unknown format {0}".format(serialize_format))
+
+
+def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+                algorithm=ir_generic, tile_id=0, offset=0, **kwargs):
+    """Converts a feed into a list of <any> using given parameters.
+
+    :param feed        a <Feed>
+    :param results     number of <any> to return
+    :param exclude_set IDs of items in the feed to never consider
+    :param request     (relay)
+    :param algorithm   reference to a <Feed> => [<Tile>] function
+    :param tile_id     for getting related tiles
+
+    :returns           a list of <any>
+    """
+    if not feed.tiles.count():  # short circuit: return empty resultset
+        return qs_for([])
+
+    ir = IntentRank(feed=feed)
+
+    # "everything except these tile ids"
+    exclude_set = kwargs.get('exclude_set', [])
+    request = kwargs.get('request', None)
+    category_name = kwargs.get('category_name', None)
+    if category_name:
+        category = Category.objects.get(name=category_name)
+        products = category.products.all()
+        allowed_set = []
+        for product in products:
+            allowed_set += [t.id for t in product.tiles.all()]
+            contents = product.content.all()
+            for content in contents:
+                allowed_set += [tile.id for tile in content.tiles.all()]
+        allowed_set = list(set(allowed_set))
+    else:
+        allowed_set = None
+
+    tiles = ir_base(feed=feed, allowed_set=allowed_set)
+    args = dict(
+        tiles=tiles, results=results,
+        exclude_set=exclude_set, allowed_set=allowed_set,
+        request=request, offset=offset, tile_id=tile_id, feed=feed)
+
+    if 'products_only' in kwargs:
+        args['products_only'] = kwargs.get('products_only')
+    if 'content_only' in kwargs:
+        args['content_only'] = kwargs.get('content_only')
+
+    return algorithm(**args)
