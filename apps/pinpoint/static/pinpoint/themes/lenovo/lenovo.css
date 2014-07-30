@@ -6,16 +6,16 @@ body {
 #hero-area {
     margin-bottom: -6px;
     margin-top: -10px;
-    -webkit-box-shadow: 0px 0px 40px 20px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0px 0px 40px 20px rgba(0,0,0,0.75);
-    box-shadow: 0px 0px 40px 20px rgba(0,0,0,0.75);
+    -webkit-box-shadow: 0px 0px 20px 10px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 0px 20px 10px rgba(0,0,0,0.75);
+    box-shadow: 0px 0px 20px 10px rgba(0,0,0,0.75);
 }
 
 #discovery-area {
     background-color: #000;
-    -webkit-box-shadow: 0px 40px 40px 20px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0px 40px 40px 20px rgba(0,0,0,0.75);
-    box-shadow: 0px 40px 40px 20px rgba(0,0,0,0.75);
+    -webkit-box-shadow: 0px 19px 20px 10px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 19px 20px 10px rgba(0,0,0,0.75);
+    box-shadow: 0px 19px 20px 10px rgba(0,0,0,0.75);
 }
 
 .navbar {
@@ -25,6 +25,7 @@ body {
 .tile {
     width: 256px;
     background-color: #000;
+    padding: 10px;
 }
 
 .tile.wide {
@@ -93,6 +94,8 @@ body {
 }
 
 .previewContainer .buy .button.newegg {
+    position: relative;
+    padding-right: 30px;
     margin-top: 5px;
     color: #542F05;
     background-color: #FFC942;
@@ -102,6 +105,21 @@ body {
     background-image: -webkit-linear-gradient(bottom, #FFC942 10%, #F48517 100%);
     background-image: -ms-linear-gradient(bottom, #FFC942 10%, #F48517 100%);
     background-image: linear-gradient(to bottom, #FFC942 10%, #F48517 100%);
+}
+
+.previewContainer .buy .button.newegg .arrow {
+    top: 50%;
+    right: 11px;
+    position: absolute;
+    cursor: pointer;
+    z-index: 1;
+    width: 0px;
+    height: 0px;
+    background-color: transparent;
+    border-top: 5.5px solid transparent;
+    border-bottom: 5.5px solid transparent;
+    border-left: 10px solid #542F05;
+    margin-top: -5px;
 }
 
 .tile.image .overlay {
