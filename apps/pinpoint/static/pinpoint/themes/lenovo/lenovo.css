@@ -41,27 +41,7 @@ body > .container {
 }
 
 .previewContainer .close {
-	padding: 4px;
-}
-
-.previewContainer .cell {
-    padding: 0 5px;
-}
-.previewContainer .cell:first-child {
-    padding-left: 0;
-}
-.previewContainer .cell:last-child {
-    padding-right: 0;
-}
-
-.previewContainer .cell > div {
-    margin: 10px 0;
-}
-.previewContainer .cell > div:first-child {
-    margin-top: 0;
-}
-.previewContainer .cell > div:last-child {
-    margin-bottom: 0;
+    padding: 6px;
 }
 
 .previewContainer .cell.image-cell {
@@ -166,16 +146,6 @@ body > .container {
 }
 
 @media screen and (max-width: 768px) {
-    .previewContainer .cell {
-        padding: 5px 0;
-    }
-    .previewContainer .cell:first-child {
-        padding-top: 0;
-    }
-    .previewContainer .cell:last-child {
-        padding-bottom: 0;
-    }
-
     .previewContainer .content {
         padding-top: 18px;
     }
