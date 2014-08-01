@@ -6,7 +6,7 @@ from django.db.models import Count
 from apps.intentrank.algorithms import ir_base
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseServerError, Http404
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.template import Context, loader
@@ -72,7 +72,7 @@ def campaign_by_slug(request, page_slug, identifier='id',
         # for whatever reason), pick the newest one instead of fixing the schema.
         page = Page.objects.filter(**page_kwargs).order_by('-created_at')[0]
     except (Page.DoesNotExist, IndexError):
-        return HttpResponseNotFound()
+        raise Http404
 
     store = page.store
     store_id = store.id
