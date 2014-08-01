@@ -64,8 +64,8 @@ def get_store_slug_from_hostname(hostname):
 
     # necessary because this is supposed to return 'newegg' in 'explore.newegg.com'
     # and 'gap' in 'gap.secondfunnel.com' or 'gap.demo.secondfunnel.com'
-    for part in parts:
-        if not part in ['demo', 'secondfunnel', 'com']:
+    for part in parts[:-1]:  # removes last part (TLD)
+        if not part in ['demo', 'secondfunnel']:
             slug = part
     return slug
 
