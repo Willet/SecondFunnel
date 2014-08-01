@@ -237,8 +237,9 @@ class Store(BaseModel):
     default_theme = models.ForeignKey('Theme', related_name='store', blank=True,
                                       null=True, on_delete=models.SET_NULL)
 
-    public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com",
-                                      blank=True, null=True)
+    public_base_url = models.URLField(
+        help_text="e.g. http://explore.nativeshoes.com, used for store detection",
+        blank=True, null=True)
 
     cg_serializer = cg_serializers.StoreSerializer
 
