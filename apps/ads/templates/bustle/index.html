@@ -734,7 +734,7 @@ published_at":"2014-05-28T13:24:57+00:00","short_url":"http:\/\/bsl.io\/SdGTCS",
                         <iframe id="secondfunnel_ad" width="350" height="600"
                                 scrolling="no" marginwidth="0" marginheight="0"
                                 frameborder="0"
-                                src="http://secondfunnel.com/ads/13"
+                                src="{{ hostname|default:'http://secondfunnel.com' }}{% url "ad_unit" ad_id %}"
                                 style="border: 0px solid transparent; vertical-align: bottom;"></iframe>
                     </div>
                 </div>

@@ -66,7 +66,7 @@ def campaign_by_slug(request, page_slug, identifier='id',
     # special case: show demo pages with ad, not actual landing pages
     hostname = request.get_host()
     if domain_contains_demo(hostname=hostname):
-        return demo_page_by_slug(request, page_slug)
+        return demo_page_by_slug(request, ad_slug=page_slug)
 
     page_kwargs = {
         'url_slug': page_slug
