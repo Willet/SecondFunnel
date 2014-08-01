@@ -3,6 +3,7 @@ from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, tostring
 from django.conf import settings
 from django.db.models import Count
+from apps.ads.views import demo_page_by_slug
 from apps.intentrank.algorithms import ir_base
 
 from django.contrib.auth.decorators import login_required
@@ -47,6 +48,10 @@ def campaign(request, store_id, page_id, tile=None):
     return HttpResponse(rendered_content)
 
 
+def domain_contains_demo(hostname):
+    return 'demo' in hostname
+
+
 def campaign_by_slug(request, page_slug, identifier='id',
                      identifier_value=''):
     """Used to render a page using only its name.
@@ -58,6 +63,11 @@ def campaign_by_slug(request, page_slug, identifier='id',
            allowed values: 'id', 'sku', or 'tile' (whitelisted to prevent abuse)
     :param identifier_value: the product or tile's id or sku, respectively
     """
+    # special case: show demo pages with ad, not actual landing pages
+    hostname = request.get_host()
+    if domain_contains_demo(hostname=hostname):
+        return demo_page_by_slug(request, page_slug)
+
     page_kwargs = {
         'url_slug': page_slug
     }
