@@ -4,7 +4,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.template import RequestContext, Template
-from apps.intentrank.views import get_results
+from apps.intentrank.controllers import IntentRank
 from apps.pinpoint.utils import get_algorithm
 
 
@@ -23,7 +23,8 @@ def render_banner(page, request):
     if page.get('tests'):
         tests = json.dumps(page.get('tests'))
 
-    initial_results = get_results(feed=page.feed, content_only=True, results=20)
+    ir = IntentRank(page=page)
+    initial_results = ir.get_results(content_only=True, results=20)
 
     initial_results = [x.to_json() for x in initial_results]
 

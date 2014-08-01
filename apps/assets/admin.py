@@ -83,9 +83,7 @@ class FeedAdmin(BaseAdmin):
 class ProductAdmin(BaseAdmin):
     ordering = ['name']
     list_display = ['name', '_category_names'] + BaseAdmin.list_display
-    #list_filter = ('categories__name',) #Commenting this line out made it so I could see the product page on my local
     search_fields = ('id', 'name', 'description', 'sku',)
-    list_filter = ('tiles__feed__page',)
 
     def _categories(self, obj):
         return [cat.name for cat in obj.categories.all()]

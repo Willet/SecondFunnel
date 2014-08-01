@@ -74,7 +74,6 @@ div.header {
     width: 69px;
     height: 56px;
     background-color: #fff;
-    /* background-position: 0px -127px; */
 }
 
 .navbar .other-brands {
@@ -383,8 +382,6 @@ div.header {
 
 .previewContainer .info {
     text-align: left;
-    padding-left: 15px;
-    padding-right: 10px;
     overflow: hidden;
 }
 
@@ -396,18 +393,12 @@ div.header {
     font-size: 22px;
     color: #4e5c85;
     line-height: 22px;
-    margin-bottom: 5px;
-}
-
-.previewContainer .cell.image {
-    padding-left: 15px;
 }
 
 .previewContainer .price {
     font-family: "Verdana", proxima-nova-soft, sans-serif;
     font-size: 13px;
     color: #000d41;
-    margin: 0 0 20px 0;
 }
 
 .previewContainer .price .sale {
@@ -426,7 +417,6 @@ div.header {
     font-size: 13px;
     max-height: 260px;
     overflow-y: auto;
-    margin-bottom: 4px;
 }
 
 .previewContainer .description .desc-title {
@@ -437,8 +427,6 @@ div.header {
     font-size: 13px;
     background-color: #000d41;
     padding: 5px 15px;
-    margin-top: 10px;
-    margin-bottom: 5px;
     text-transform: uppercase;
 }
 
@@ -567,17 +555,11 @@ div.header {
         right: inherit;
     }
 
-    .previewContainer .cell.image {
-        padding-left: 0;
-    }
-
     .previewContainer .info {
         max-width: none;
         width: auto;
-        padding-left: 0;
         background-color: #000d41;
         color: white;
-        padding-top: 6px;
     }
 
     .previewContainer .image-with-tagged-products .info {
@@ -588,10 +570,6 @@ div.header {
         color: white;
         white-space: nowrap;
         text-align: center;
-    }
-
-    .previewContainer .price {
-        margin-bottom: 5px;
     }
 
     .previewContainer .price .sale {

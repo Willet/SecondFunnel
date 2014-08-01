@@ -1,7 +1,9 @@
 from django.conf.urls import url, patterns, include
 from tastypie.api import Api
 
-from apps.api.resources import UserResource
+from apps.api.resources import UserResource, StoreResource, ProductResource, ProductImageResource, ReviewResource, \
+    VideoResource, ContentResource, ImageResource, ThemeResource, PageResource, FeedResource, TileResource, \
+    TileConfigResource, CampaignResource, CategoryResource
 from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageContentCGHandler, ProductCGHandler, StoreProductCGHandler,
     ProductImageItemCGHandler,
@@ -22,19 +24,38 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StoreContentRejectItemCGHandler, StoreContentUndecideItemCGHandler, ProductItemCGHandler)
 from apps.api.views.content import PageContentAllCGHandler
 
-prefix = 'v1'
-
-# tastypie routers
-api = Api(api_name=prefix)
+# tastypie v2 api
+api = Api(api_name='v2')
 api.register(UserResource())
+api.register(StoreResource())
+api.register(ProductResource())
+api.register(ProductImageResource())
+api.register(CategoryResource())
+api.register(ContentResource())
+api.register(ImageResource())
+api.register(VideoResource())
+api.register(ReviewResource())
+api.register(ThemeResource())
+api.register(FeedResource())
+api.register(PageResource())
+api.register(TileResource())
+api.register(TileConfigResource())
+api.register(CampaignResource())
 
 urlpatterns = api.urls
 
+# api urls v1
+# This stuff can hopefully be removed when the CM is re-written..
+prefix = 'v1'
+
 urlpatterns += patterns('apps.api.views',
     # primitive handlers
+    # user
+    url('%s/' % prefix, include(UserResource().urls)),  # v1 api uses UserResource from v2 for some reason..
+
     # store
-    url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreItemCGHandler.as_view()),
+    url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),  # v2 mimics mostly
+    url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreItemCGHandler.as_view()),  # v2 mimics mostly
 
     url(r'^%s/category/?$' % prefix, CategoryCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/category/?$' % prefix, CategoryCGHandler.as_view()),
@@ -60,9 +81,11 @@ urlpatterns += patterns('apps.api.views',
     # product
     url(r'^%s/product/?$' % prefix, ProductCGHandler.as_view()),
     url(r'^%s/product/(?P<product_id>\d+)/?$' % prefix, ProductItemCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/product/?$' % prefix, StoreProductCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/product/?$' % prefix, StoreProductCGHandler.as_view()),  # v2 mimics mostly
     url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_id>\d+)/?$' % prefix, StoreProductItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_set>\w+)/?$' % prefix, StoreProductCGHandler.as_view()),
+    # what is product_set... product/live/# seems useless when you could just do product/#
+    # everything is in the set live..
     url(r'^%s/store/(?P<store_id>\d+)/product/(?P<product_set>\w+)/(?P<product_id>\d+)/?$' % prefix, StoreProductItemCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/?$' % prefix, StorePageProductCGHandler.as_view()),
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/all/?$' % prefix, PageProductAllCGHandler.as_view()),
@@ -72,12 +95,12 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/deprioritize/?$' % prefix, StorePageProductDeprioritizeItemCGHandler.as_view()),
 
     # product images
-    url(r'^%s/productimage/(?P<id>\d+)/?$' % prefix, ProductImageItemCGHandler.as_view()),
+    url(r'^%s/productimage/(?P<id>\d+)/?$' % prefix, ProductImageItemCGHandler.as_view()),  # v2 mimics mostly
 
     # page
     url(r'^%s/page/?$' % prefix, PageCGHandler.as_view()),
     url(r'^%s/page/(?P<page_id>\d+)/?$' % prefix, PageItemCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/page/?$' % prefix, StorePageCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/page/?$' % prefix, StorePageCGHandler.as_view()),  # v2 mimics mostly
     url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/?$' % prefix, StorePageItemCGHandler.as_view()),
 
     # tileconfig
