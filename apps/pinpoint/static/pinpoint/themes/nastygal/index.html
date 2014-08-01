@@ -203,13 +203,6 @@
             </ul>
         </script>
 
-        <script type="text/template" id="tap_indicator_template">
-            +
-            <div>
-                <%= App.option('tapIndicatorText', 'tap to see more') %>
-            </div>
-        </script>
-
         <script type="text/template" id="facebook_social_button_template">
             <div class='button facebook'>
                 <fb:like href="<%= url %>" width="25" layout="button"
@@ -292,7 +285,7 @@
         <script type="text/template" id="product_preview_template">
             <div class="table">
                 <div class='content-wrapper row'>
-                    <div class='cell middle'>
+                    <div class='cell'>
                         <div class="gallery-main-image"></div>
                     </div>
                     <% if (obj.images.length > 1 && App.support.mobile()) { %>
@@ -300,7 +293,7 @@
                             <div class='gallery-dots'></div>
                         </div>
                     <% } %>
-                    <div class='cell middle info'>
+                    <div class='cell info'>
                         <div class='title'></div>
                         <div class='price'></div>
                         <div class='buy'></div>

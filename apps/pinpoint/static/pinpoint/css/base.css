@@ -351,6 +351,23 @@ div.loading {
     display: table-cell;
     vertical-align: top;
     text-align: center;
+    padding: 0 5px;
+}
+.previewContainer .cell:first-child {
+    padding-left: 0;
+}
+.previewContainer .cell:last-child {
+    padding-right: 0;
+}
+
+.previewContainer .cell > div {
+    margin: 10px 0;
+}
+.previewContainer .cell > div:first-child {
+    margin-top: 0;
+}
+.previewContainer .cell > div:last-child {
+    margin-bottom: 0;
 }
 
 @keyframes noop {
@@ -900,6 +917,14 @@ div.spinner div.bar12 {
         display: block;
         max-width: 100%;
         text-align: center;
+        padding: 5px 0;
+    }
+
+    .previewContainer .cell:first-child {
+        padding-top: 0;
+    }
+    .previewContainer .cell:last-child {
+        padding-bottom: 0;
     }
 
     .previewContainer .gallery {

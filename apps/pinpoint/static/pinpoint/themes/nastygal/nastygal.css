@@ -64,27 +64,16 @@
     overflow: auto;
 }
 
-.previewContainer .image-with-tagged-products .cell {
-    padding-top: 4px;
-}
-
-.previewContainer .image-with-tagged-products .cell.info {
-    padding-top: 0;
-}
-
 .previewContainer .image-with-tagged-products .cell.shop {
     width: 120px;
 }
 
 .previewContainer .info {
     text-align: center;
-    padding-left: 10px;
-    padding-right: 10px;
     overflow: hidden;
 }
 #hero-area .previewContainer .info {
     text-align: center;
-    padding-right: 20px;
     overflow: hidden;
 }
 .previewContainer .image-with-tagged-products .info {
@@ -97,14 +86,6 @@
 .previewContainer .info .title {
     font-size: 26px;
     line-height: 26px;
-    margin-top: 50px;
-}
-.previewContainer .image-with-tagged-products .info .title,
-.previewContainer .image-without-tagged-products .info .title {
-    margin-top: 0;
-}
-.previewContainer .image-without-tagged-products .title {
-    margin-bottom: 10px;
 }
 
 .previewContainer .info .price {
@@ -120,12 +101,6 @@
 .previewContainer .buy .button {
     font-size: 20px;
     padding: 10px 20px;
-    margin-bottom: 20px;
-}
-.previewContainer .image-with-tagged-products .buy .button,
-.previewContainer .image-without-tagged-products .buy .button {
-    margin-top: 7px;
-    margin-bottom: 7px;
 }
 
 .previewContainer .buy .button div {
@@ -176,10 +151,6 @@
     background-image: url('/static/pinpoint/themes/nastygal/images/right_arrow_grey.png');
 }
 
-.previewContainer .social-button-container {
-    margin-top: 20px;
-}
-
 .previewContainer .social-buttons .button {
     margin: 0 5px;
 }
@@ -209,28 +180,9 @@
 }
 /* End facebook override */
 
-.previewContainer .more-info {
-    text-align: right;
-    padding-right: 20px;
-    font-size: 16px;
-    line-height: 16px;
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-
-.previewContainer .more-info img {
-    width: 14px;
-    vertical-align: top;
-    margin-left: 4px;
-}
-
 @media screen and (max-width: 768px) {
     .navbar {
         display: none;
-    }
-
-    #hero-area .previewContainer .content {
-        padding-top: 24px;
     }
 
     .previewContainer .gallery img {
@@ -243,11 +195,8 @@
         width: auto;
     }
 
-    .previewContainer .info .title {
-        margin-top: 5px;
-    }
     #hero-area {
-        margin-top: 30px;
+        margin-top: 44px;
     }
 
     .previewContainer .main-image-container .gallery-swipe-left:hover {

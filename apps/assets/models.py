@@ -739,7 +739,7 @@ class Page(BaseModel):
         ('conditional_social_buttons', {}),
     ]
 
-    dashboard_settings = JSONField(default={})
+    dashboard_settings = JSONField(default={}, blank=True)
     campaign = models.ForeignKey('dashboard.Campaign', null=True, blank=True)
 
     description = models.TextField(blank=True, null=True)
