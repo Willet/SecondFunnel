@@ -31,12 +31,14 @@ CLOUDFRONT_USER_AGENT = 'Amazon CloudFront'
 
 # Google analytics
 GOOGLE_ANALYTICS_PROFILE = '67271131'
-GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-17'  # dev and test (production has a separate profile, -16)
+GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-15'
 GOOGLE_API_PRIVATE_KEY = \
     os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         'keys/google-service-account-prod.p12'
     )
+
+# TODO why is this different on production?
 SERVICE_ACCOUNT_EMAIL = '231833496051-kf5r0aath3eh96209hdutfggj5dqld9f@developer.gserviceaccount.com'
 SERVICE_ACCOUNT_PKCS12_FILE_PATH = \
     os.path.join(
