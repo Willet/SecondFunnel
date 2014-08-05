@@ -23,13 +23,8 @@ body > .container {
 }
 
 .tile {
-    width: 256px;
     background-color: #000;
     padding: 10px;
-}
-
-.tile.wide {
-    width: 512px;
 }
 
 .tile.youtube {

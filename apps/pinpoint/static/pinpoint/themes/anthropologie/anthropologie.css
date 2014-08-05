@@ -8,14 +8,6 @@
     vertical-align: middle;
 }
 
-.tile {
-    width: 256px;
-}
-
-.tile.wide {
-    width: 512px;
-}
-
 .previewContainer .close {
     padding: 6px;
 }
