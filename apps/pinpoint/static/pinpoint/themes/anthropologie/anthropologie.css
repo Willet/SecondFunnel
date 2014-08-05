@@ -1,0 +1,9 @@
+
+.navbar {
+    text-align: center;
+}
+
+.navbar .logo {
+    height: 28px;
+    vertical-align: middle;
+}
