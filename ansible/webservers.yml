@@ -47,7 +47,7 @@
       local_action: hipchat
         token="{{ hipchat.token }}"
         room="{{ hipchat.room }}"
-        msg="(goodnews) {{app_environment|title}} deployment and configuration complete; (doge) WOW! MUCH SPEED SO IMPROVE! (doge) ({{play_hosts}})"
+        msg="(goodnews)(doge) {{app_environment|title}} deployment and configuration complete. ({{play_hosts|length}} machines were updated)"
         color="green"
         from="Hubert"
       tags: deploy
