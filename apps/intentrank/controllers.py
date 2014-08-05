@@ -161,3 +161,25 @@ class IntentRank(object):
             # if no custom method is found, dumps it directly (will raise)
             new_things.append(json.dumps(thing))
         return new_things
+
+
+class Neo4jWrapper():
+    def __init__(self):
+        from py2neo import neo4j
+        # (don't forget the trailing slash!)
+        self.graph = neo4j.Graph("http://localhost:7474/db/data/")
+
+    def create_db(self):
+        from py2neo import node, rel
+        die_hard = self.graph.create(
+            node(name="Bruce Willis"),
+            node(name="John McClane"),
+            node(name="Alan Rickman"),
+            node(name="Hans Gruber"),
+            node(name="Nakatomi Plaza"),
+            rel(0, "PLAYS", 1),
+            rel(2, "PLAYS", 3),
+            rel(1, "VISITS", 4),
+            rel(3, "STEALS_FROM", 4),
+            rel(1, "KILLS", 3),
+        )
