@@ -1,8 +1,10 @@
 import importlib
 import json
-from django.conf import settings
 
+from django.conf import settings
 from django.core import serializers
+from py2neo import neo4j, node, rel
+
 from apps.assets.models import Category
 from apps.intentrank.algorithms import ir_generic, ir_finite_by, ir_ordered_by, \
     qs_for, ir_base
@@ -163,14 +165,12 @@ class IntentRank(object):
         return new_things
 
 
-class Neo4jWrapper():
+class GraphWrapper():
     def __init__(self):
-        from py2neo import neo4j
         # (don't forget the trailing slash!)
-        self.graph = neo4j.Graph("http://localhost:7474/db/data/")
+        self.graph = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
 
     def create_db(self):
-        from py2neo import node, rel
         die_hard = self.graph.create(
             node(name="Bruce Willis"),
             node(name="John McClane"),
@@ -183,3 +183,6 @@ class Neo4jWrapper():
             rel(3, "STEALS_FROM", 4),
             rel(1, "KILLS", 3),
         )
+
+    def create_node(self):
+        self.graph.create(node({"name": "Alice"}), node({"name": "Bob"}), rel(0, "KNOWS", 1))
