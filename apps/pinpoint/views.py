@@ -11,7 +11,7 @@ from django.http import HttpResponse, HttpResponseServerError, Http404
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.template import Context, loader
-from django.views.decorators.cache import cache_page, never_cache
+from django.views.decorators.cache import cache_page, never_cache, cache_control
 from django.views.decorators.vary import vary_on_headers
 
 from apps.assets.models import Page, Product, Tile, Store
@@ -35,7 +35,8 @@ def social_auth_redirect(request):
         return redirect('admin')
 
 
-@cache_page(60 * 1, key_prefix="pinpoint-")  # a minute
+@cache_control(must_revalidate=True, max_age=(1 * 60))
+@cache_page(60 * 10, key_prefix="pinpoint-")
 @vary_on_headers('Accept-Encoding')
 def campaign(request, store_id, page_id, tile=None):
     """Returns a rendered campaign response of the given id.

@@ -66,7 +66,7 @@ EMAIL_USE_TLS = True
 
 MANAGERS = ADMINS
 
-BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(minutes=30))\
+BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(minutes=1))\
     .strftime("%a, %d %b %Y %H:%M:%S GMT")
 
 
@@ -269,7 +269,7 @@ MIDDLEWARE_CLASSES = (
 
 KEEP_COMMENTS_ON_MINIFYING = True
 
-CACHE_MIDDLEWARE_SECONDS = 30 * 60  # Set the cache to at least 30 mins; will only affect production/test/demo
+CACHE_MIDDLEWARE_SECONDS = 30 * 60  # Set the cache to at least 30 min; will only affect production/test/demo
 
 ROOT_URLCONF = 'secondfunnel.urls'
 
