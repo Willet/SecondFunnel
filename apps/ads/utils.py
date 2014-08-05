@@ -24,7 +24,8 @@ def render_banner(page, request):
         tests = json.dumps(page.get('tests'))
 
     ir = IntentRank(page=page)
-    initial_results = ir.get_results(content_only=True, results=20)
+    initial_results = ir.get_results(content_only=True, results=20,
+                                     request=request)
 
     initial_results = [x.to_json() for x in initial_results]
 

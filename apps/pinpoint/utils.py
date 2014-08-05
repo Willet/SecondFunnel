@@ -4,12 +4,14 @@ import StringIO
 import urllib2
 
 from datetime import datetime
+from django.db.models import Q
 from os import path
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext, Template
 from django.utils.safestring import mark_safe
+import re
 
 from apps.assets.models import Page, Store, Product, Tile
 
@@ -52,6 +54,22 @@ def read_remote_file(url, default_value=''):
         return default_value, False
 
 
+def get_store_slug_from_hostname(hostname):
+    # matches either
+    matches = re.match(r'(?:https?://)?([^:]+)(?::\d+)?', hostname, re.I)
+    slug = ''
+    if not matches:
+        return ''
+    parts = matches.group(1).split('.')
+
+    # necessary because this is supposed to return 'newegg' in 'explore.newegg.com'
+    # and 'gap' in 'gap.secondfunnel.com' or 'gap.demo.secondfunnel.com'
+    for part in parts[:-1]:  # removes last part (TLD)
+        if not part in ['demo', 'secondfunnel']:
+            slug = part
+    return slug
+
+
 def get_store_from_request(request):
     """
     Returns the store pointed to by the request host if it exists.
@@ -65,7 +83,8 @@ def get_store_from_request(request):
         current_url = 'http://%s/' % request.get_host()
 
     try:
-        store = Store.objects.get(public_base_url=current_url)
+        slug = get_store_slug_from_hostname(current_url)
+        store = Store.objects.get(Q(public_base_url=current_url) | Q(slug=slug))
     except Store.DoesNotExist:
         store = None
 

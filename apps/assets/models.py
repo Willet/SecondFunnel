@@ -172,6 +172,7 @@ class BaseModel(models.Model, SerializableMixin):
             return attr
         if hasattr(self, 'attributes'):
             return self.attributes.get(key, default)
+        return default
 
     def update(self, other=None, **kwargs):
         """This is not <dict>.update().
@@ -237,8 +238,9 @@ class Store(BaseModel):
     default_theme = models.ForeignKey('Theme', related_name='store', blank=True,
                                       null=True, on_delete=models.SET_NULL)
 
-    public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com",
-                                      blank=True, null=True)
+    public_base_url = models.URLField(
+        help_text="e.g. http://explore.nativeshoes.com, used for store detection",
+        blank=True, null=True)
 
     cg_serializer = cg_serializers.StoreSerializer
 
@@ -738,7 +740,7 @@ class Page(BaseModel):
         ('conditional_social_buttons', {}),
     ]
 
-    dashboard_settings = JSONField(default={})
+    dashboard_settings = JSONField(default={}, blank=True)
     campaign = models.ForeignKey('dashboard.Campaign', null=True, blank=True)
 
     description = models.TextField(blank=True, null=True)
@@ -794,6 +796,7 @@ class Page(BaseModel):
             return attr
         if hasattr(self, 'theme_settings') and self.theme_settings:
             return self.theme_settings.get(key, default)
+        return default
 
     @classmethod
     def from_json(cls, json_data):
