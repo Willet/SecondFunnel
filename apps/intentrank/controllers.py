@@ -4,6 +4,7 @@ import json
 from django.conf import settings
 from django.core import serializers
 from py2neo import neo4j, node, rel
+from py2neo.neo4j import GraphDatabaseService as Graph
 
 from apps.assets.models import Category
 from apps.intentrank.algorithms import ir_generic, ir_finite_by, ir_ordered_by, \
@@ -165,24 +166,21 @@ class IntentRank(object):
         return new_things
 
 
-class GraphWrapper():
+class GraphWrapper(object):
     def __init__(self):
         # (don't forget the trailing slash!)
-        self.graph = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
+        self.graph = Graph(settings.NEO4J_API_URL)
 
-    def create_db(self):
-        die_hard = self.graph.create(
-            node(name="Bruce Willis"),
-            node(name="John McClane"),
-            node(name="Alan Rickman"),
-            node(name="Hans Gruber"),
-            node(name="Nakatomi Plaza"),
-            rel(0, "PLAYS", 1),
-            rel(2, "PLAYS", 3),
-            rel(1, "VISITS", 4),
-            rel(3, "STEALS_FROM", 4),
-            rel(1, "KILLS", 3),
-        )
+    def create_nodes(self, *nodes_and_rels):
+        return self.graph.create(*nodes_and_rels)
 
-    def create_node(self):
-        self.graph.create(node({"name": "Alice"}), node({"name": "Bob"}), rel(0, "KNOWS", 1))
+    def model_to_dict(self, thing):
+        return {"class_name": thing.__class__.__name__,
+                "model_id": thing.id}
+
+    def relate(self, thing1, thing2, weight=1):
+        # caution: is directional
+        return self.graph.create(
+            node(self.model_to_dict(thing1)),
+            node(self.model_to_dict(thing2)),
+            rel(0, "IS RELATED TO", 1, {"weight": weight}))  # or 'PLAYS', 'LIKES', ...
