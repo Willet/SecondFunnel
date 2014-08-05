@@ -33,7 +33,7 @@ class Command(BaseCommand):
         for image in p:
             delete_cloudinary_resource(get_public_id(image.url))
             data = process_image(image.original_url, create_image_path(5),
-                                 remove_background='#FFF')
+                                 remove_background='auto')
             image.url = data.get('url')
             image.file_type = data.get('format')
             image.dominant_color = data.get('dominant_colour')

@@ -84,7 +84,7 @@ class BaseCGResource(ExtendedModelResource):
 
 class StoreResource(BaseCGResource):
     """REST-style store."""
-    staff = fields.ToManyField('apps.api.resources.UserResource', 'staff', full=True)
+    staff = fields.ToManyField('apps.api.resources.UserResource', 'staff', full=False) # causes recursion with user resource
     default_theme = fields.ForeignKey('apps.api.resources.ThemeResource', 'default_theme', full=True, null=True)
     pages = fields.ToManyField('apps.api.resources.PageResource', 'pages')
     categories = fields.ToManyField('apps.api.resources.CategoryResource', 'categories')
