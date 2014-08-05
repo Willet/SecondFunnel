@@ -172,6 +172,7 @@ class BaseModel(models.Model, SerializableMixin):
             return attr
         if hasattr(self, 'attributes'):
             return self.attributes.get(key, default)
+        return default
 
     def update(self, other=None, **kwargs):
         """This is not <dict>.update().
@@ -795,6 +796,7 @@ class Page(BaseModel):
             return attr
         if hasattr(self, 'theme_settings') and self.theme_settings:
             return self.theme_settings.get(key, default)
+        return default
 
     @classmethod
     def from_json(cls, json_data):
