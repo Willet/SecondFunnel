@@ -4,6 +4,37 @@
 }
 
 .navbar .logo {
-    height: 28px;
+    height: 19px;
     vertical-align: middle;
+}
+
+.tile {
+    width: 256px;
+}
+
+.tile.wide {
+    width: 512px;
+}
+
+.previewContainer .close {
+    padding: 6px;
+}
+
+.previewContainer .info .title {
+    font-size: 26px;
+ }
+
+ .previewContainer .info .price {
+    font-size: 24px;
+ }
+
+.previewContainer .buy .button {
+    padding: 5px 10px;
+    font-size: 19px;
+}
+
+@media screen and (max-width: 768px) {
+    .previewContainer .content {
+        padding-top: 18px;
+    }
 }
