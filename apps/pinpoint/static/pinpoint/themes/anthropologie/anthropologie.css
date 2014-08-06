@@ -1,11 +1,24 @@
 
+body {
+    background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
+}
+
 .navbar {
     text-align: center;
+    background-image: url('/static/pinpoint/themes/anthropologie/images/navbar_background.jpg');
+    background-repeat: no-repeat;
+    background-position: center top;
+    height: 107px;
+    line-height: 107px;
 }
 
 .navbar .logo {
     height: 19px;
     vertical-align: middle;
+}
+
+.tile {
+    background-color: transparent;
 }
 
 .previewContainer .close {
