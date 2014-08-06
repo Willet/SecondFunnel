@@ -167,20 +167,67 @@ class IntentRank(object):
 
 
 class GraphWrapper(object):
+    graph = nodes = relationships = None
+
+    INDEX_NAME = "Nodes"  # you can pick more creative values like "People"
+
     def __init__(self):
-        # (don't forget the trailing slash!)
         self.graph = Graph(settings.NEO4J_API_URL)
+        self.nodes = self.graph.get_or_create_index(  # for lookups
+                                                      neo4j.Node, self.INDEX_NAME)
+        self.relationships = self.graph.get_or_create_index(  # for lookups
+                                                              neo4j.Relationship, self.INDEX_NAME)
+
+        a, b, ab = self.graph.create(node(name="Alice"), node(name="Bob"), rel(0, "KNOWS", 1))
+        c = 1
 
     def create_nodes(self, *nodes_and_rels):
         return self.graph.create(*nodes_and_rels)
 
     def model_to_dict(self, thing):
-        return {"class_name": thing.__class__.__name__,
-                "model_id": thing.id}
+        return {
+            "id": repr(thing),
+            "class_name": thing.__class__.__name__,
+            "model_id": thing.id
+        }
 
-    def relate(self, thing1, thing2, weight=1):
+    def get_nodes(self, node_id):
+        return self.nodes.get('id', node_id)
+
+    def get_or_create_node(self, node_id):
+        return self.graph.get_or_create_indexed_node("nodes", "id", node_id)
+
+    def relate(self, thing1, thing2, relation="IS RELATED TO", weight=1):
         # caution: is directional
         return self.graph.create(
             node(self.model_to_dict(thing1)),
             node(self.model_to_dict(thing2)),
-            rel(0, "IS RELATED TO", 1, {"weight": weight}))  # or 'PLAYS', 'LIKES', ...
+            rel(0, relation, 1, {"weight": weight}))  # relation can be 'PLAYS', 'LIKES', ...
+
+    def unrelate(self, thing1, thing2):
+        pass
+
+
+class BulbWrapper(object):
+    # GREMLIN IS REQUIRED
+    def __init__(self):
+        from bulbs.neo4jserver import Graph, Config
+        config = Config(settings.NEO4J_API_URL)
+        self.graph = Graph(config)
+
+        self.wat()
+
+    def get_edges(self):
+        return self.graph.E
+
+    def wat(self):
+        self.graph.vertices.create(name="Bob")
+
+
+class Neo4JDBWrapper(object):
+    def __init__(self):
+        import neo4j
+        connection = neo4j.connect(settings.NEO4J_API_URL)
+        cursor = connection.cursor()
+        for node in cursor.execute("MATCH (n) RETURN n"):
+            print node

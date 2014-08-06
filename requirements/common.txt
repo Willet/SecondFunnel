@@ -41,6 +41,8 @@ python-termstyle==0.1.10
 pytz==2013.9
 six==1.5.2 # compatibility extension PY2->PY3
 py2neo==1.6.4
+paver==1.2.2
+neo4jdb==0.0.6
 
 ## Server
 httplib2==0.8
