@@ -9,7 +9,8 @@ import re
 
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile, Store, Product
-from apps.intentrank.controllers import IntentRank, GraphWrapper
+from apps.contentgraph.models import GraphWrapper
+from apps.intentrank.controllers import IntentRank
 from apps.intentrank.algorithms import ir_all
 from apps.intentrank.utils import ajax_jsonp
 from apps.utils import thread_id

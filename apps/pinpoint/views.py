@@ -4,6 +4,7 @@ from xml.etree.ElementTree import Element, SubElement, tostring
 from django.conf import settings
 from django.db.models import Count
 from apps.ads.views import demo_page_by_slug
+from apps.contentgraph.models import GraphWrapper
 from apps.intentrank.algorithms import ir_base
 
 from django.contrib.auth.decorators import login_required
@@ -15,7 +16,6 @@ from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
 
 from apps.assets.models import Page, Product, Tile, Store
-from apps.intentrank.controllers import GraphWrapper
 from apps.pinpoint.utils import render_campaign, get_store_from_request, read_a_file
 
 
