@@ -776,6 +776,7 @@ class Page(BaseModel):
             if name == key:
                 theme_settings = self.theme_settings or {}
                 return theme_settings.get(key, default)
+        return super(Page, self).__getattr__(name)
 
     def __setattr__(self, name, value):
         for (key, default) in self.theme_settings_fields:
