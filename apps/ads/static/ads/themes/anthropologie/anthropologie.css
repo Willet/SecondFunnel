@@ -13,6 +13,10 @@ body {
     margin-top: 0;
 }
 
+#topbar img {
+    max-width: 100%;
+}
+
 .container, #discovery-area {
     /* subtract 2 pixels for add units with borders */
     height: 548px!important;
