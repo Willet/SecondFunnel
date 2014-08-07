@@ -149,6 +149,13 @@
         </script>
 
         <script type="text/template" id="shopthelook_template">
+            <% if (App.support.mobile) { %>
+                <div class="hero-image-wrapper">
+                    <div class="visible-xs jumbotron">
+                        <img src="{{ mobile_hero_image }}" alt="Hero" />
+                    </div>
+                </div>
+            <% } %>
             <div class='content'></div>
         </script>
 
