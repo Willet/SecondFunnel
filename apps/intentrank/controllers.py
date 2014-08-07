@@ -6,7 +6,7 @@ from django.core import serializers
 from py2neo import neo4j, node, rel
 from py2neo.neo4j import GraphDatabaseService as Graph
 
-from apps.assets.models import Category
+from apps.assets.models import Category, BaseModel
 from apps.intentrank.algorithms import ir_generic, ir_finite_by, ir_ordered_by, \
     qs_for, ir_base
 
@@ -169,40 +169,42 @@ class IntentRank(object):
 class GraphWrapper(object):
     graph = nodes = relationships = None
 
-    INDEX_NAME = "Nodes"  # you can pick more creative values like "People"
+    INDEX_NAME = "Content"  # just so it spells "Content Graph";
+                            # you can pick more creative values like "People"
 
     def __init__(self):
         self.graph = Graph(settings.NEO4J_API_URL)
         self.nodes = self.graph.get_or_create_index(  # for lookups
-                                                      neo4j.Node, self.INDEX_NAME)
+            neo4j.Node, self.INDEX_NAME)
         self.relationships = self.graph.get_or_create_index(  # for lookups
-                                                              neo4j.Relationship, self.INDEX_NAME)
+            neo4j.Relationship, self.INDEX_NAME)
 
-        a, b, ab = self.graph.create(node(name="Alice"), node(name="Bob"), rel(0, "KNOWS", 1))
-        c = 1
+        rob = self.create_node(key="name", value="Rob")
+        penis = self.create_node(key="name", value="Penis")
+        self.relate(rob, penis, relation="touches")
 
-    def create_nodes(self, *nodes_and_rels):
-        return self.graph.create(*nodes_and_rels)
+    def create_node(self, properties=None, key="id", value=None):
+        """
+        :returns indexed node, with key=value, and other properties.
+
+        If you don't give a value to index by, then the value is properties.id.
+        """
+        if not value:
+            value = getattr(properties, key, "")
+
+        return self.graph.get_or_create_indexed_node(
+            self.INDEX_NAME, key, value)
 
     def model_to_dict(self, thing):
         return {
             "id": repr(thing),
             "class_name": thing.__class__.__name__,
-            "model_id": thing.id
+            "model_id": thing.id,
         }
 
-    def get_nodes(self, node_id):
-        return self.nodes.get('id', node_id)
-
-    def get_or_create_node(self, node_id):
-        return self.graph.get_or_create_indexed_node("nodes", "id", node_id)
-
     def relate(self, thing1, thing2, relation="IS RELATED TO", weight=1):
-        # caution: is directional
-        return self.graph.create(
-            node(self.model_to_dict(thing1)),
-            node(self.model_to_dict(thing2)),
-            rel(0, relation, 1, {"weight": weight}))  # relation can be 'PLAYS', 'LIKES', ...
+        # caution: relationships are a one-way street
+        return self.graph.create((thing1, relation, thing1, {"weight": weight}))
 
     def unrelate(self, thing1, thing2):
         pass
