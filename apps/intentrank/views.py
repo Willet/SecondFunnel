@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 import re
 
 from apps.api.decorators import request_methods
-from apps.assets.models import Page, Tile, Store
+from apps.assets.models import Page, Tile, Store, Product
 from apps.intentrank.controllers import IntentRank, GraphWrapper
 from apps.intentrank.algorithms import ir_all
 from apps.intentrank.utils import ajax_jsonp
@@ -97,8 +97,6 @@ def get_results_view(request, page_id):
     if session_reset:
         offset = 0  # For deterministic algorithms, we have to reset the offset
         print "intentrank session was cleared"
-
-    GraphWrapper()
 
     # keep track of the last (unique) tiles have been shown, then
     # show everything except these tile ids

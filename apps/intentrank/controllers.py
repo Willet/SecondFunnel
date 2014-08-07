@@ -168,20 +168,24 @@ class IntentRank(object):
 
 
 class GraphWrapper(object):
+    """ To create "relationships" between objects, use neo4j nodes to shadow
+    django models, like so:
+
+    >>> graph = GraphWrapper()
+    >>> products = filter(None, [x.product for x in Tile.objects.filter(
+    >>>     id__in=tile_ids)])
+    >>> product, other_ones = products[0], products[1:]
+    >>> for other_one in other_ones:
+    >>>     graph.relate(product, other_one)  # product is now related to these things
+    """
     graph = nodes = relationships = None
 
-    INDEX_NAME = "Content"  # just so it spells "Content Graph";
-                            # you can pick more creative values like "People"
+    # just so it spells "Content Graph";
+    # subclasses/you can pick more creative values like "People"
+    INDEX_NAME = "Content"
 
     def __init__(self):
         self.graph = Graph(settings.NEO4J_API_URL)
-        """
-        self.nodes = self.graph.get_or_create_index(  # for lookups
-            neo4j.Node, self.INDEX_NAME)
-        self.relationships = self.graph.get_or_create_index(  # for lookups
-            neo4j.Relationship, self.INDEX_NAME)
-        self.batch = neo4j.WriteBatch(self.graph)
-        """
 
     def create_node(self, properties=None, key="id", value=None):
         """
@@ -272,6 +276,10 @@ class GraphWrapper(object):
             return relationship.get_properties()['weight']
         except KeyError:
             return 0
+
+    @classmethod
+    def set_weight(cls, relationship, weight):
+        relationship.get_properties({'weight': weight})
 
     @classmethod
     def get_model_key(cls, model):
