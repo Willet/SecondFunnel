@@ -33,3 +33,7 @@
 .tile {
     padding: 3px;
 }
+
+html, .container {
+    overflow: hidden;
+}

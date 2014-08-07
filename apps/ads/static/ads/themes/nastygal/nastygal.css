@@ -31,3 +31,7 @@ html {
     position: relative;
     padding-top: 5px;
 }
+
+html, .container {
+    overflow: hidden;
+}

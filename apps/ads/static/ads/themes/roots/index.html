@@ -12,36 +12,15 @@
               href="{% static 'ads/css/base.css' %}"/>
         <link rel="stylesheet"
               href="{% static 'ads/themes/roots/roots.css' %}"/>
-        <style>
-            html, .container {
-                overflow: hidden;
-            }
-        </style>
         {% endcompress css %}
 
         {% include "pinpoint/campaign_config.html" %}
         {% compress js %}
-        <script src="{% static 'js/modernizr-2.8.3.min.js' %}"></script>
-        <script src="{% static 'js/jquery-1.10.2.min.js' %}"></script>
-        <script src="{% static 'js/jquery-migrate-1.2.1.js' %}"></script>
-        <script src="{% static 'js/jquery.viewport.min.js' %}"></script><!-- after browser mobile -->
-        <script src="{% static 'js/jquery.deparam.js' %}"></script><!-- after browser mobile -->
-        <script src="{% static 'js/underscore.min.js' %}"></script>
-        <script src="{% static 'js/backbone.min.js' %}"></script>
-        <script src="{% static 'js/backbone.marionette.min.js' %}"></script><!-- after backbone -->
-        <script src="{% static 'js/jquery.masonry.pkgd.min.js' %}"></script>
-        <script src="{% static 'js/jquery.cloudinary.js' %}"></script><!-- anywhere before our app -->
-        <script src="{% static 'pinpoint/js/pages.preinit.js' %}"></script><!-- after marionette -->
-        <script src="{% static 'pinpoint/js/pages.core.js' %}"></script><!-- after preinit -->
-        <script src="{% static 'pinpoint/js/pages.ir.js' %}"></script><!-- after marionette -->
-        <script src="{% static 'pinpoint/js/pages.utils.js' %}"></script><!-- before pages -->
-        <script src="{% static 'pinpoint/js/pages.core.models.js' %}"></script><!-- after preinit -->
-        <script src="{% static 'pinpoint/js/pages.core.views.js' %}"></script><!-- after preinit -->
-        <script src="{% static 'pinpoint/js/pages.support.js' %}"></script><!-- after marionette -->
-        <script src="{% static 'pinpoint/js/pages.optimizer.js' %}"></script><!-- after marionette -->
-        <script src="{% static 'pinpoint/js/pages.layoutengine.js' %}"></script><!-- after marionette -->
-        <script src="{% static 'pinpoint/js/pages.init.js' %}"></script><!-- after pages -->
-        <script src="{% static 'ads/js/ad.scroller.js' %}"></script>
+            {% include "pinpoint/campaign_js.html" %}
+        {% endcompress %}
+
+        {% compress js %}
+            <script src="{% static 'ads/js/ad.scroller.js' %}"></script>
         {% endcompress js %}
     </head>
 
