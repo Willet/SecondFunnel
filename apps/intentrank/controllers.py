@@ -175,15 +175,13 @@ class GraphWrapper(object):
 
     def __init__(self):
         self.graph = Graph(settings.NEO4J_API_URL)
+        """
         self.nodes = self.graph.get_or_create_index(  # for lookups
             neo4j.Node, self.INDEX_NAME)
         self.relationships = self.graph.get_or_create_index(  # for lookups
             neo4j.Relationship, self.INDEX_NAME)
         self.batch = neo4j.WriteBatch(self.graph)
-
-        # rob = self.create_node(key="name", value="Rob")
-        # penis = self.create_node(key="name", value="Penis")
-        # self.relate(rob, penis, relation="touches")
+        """
 
     def create_node(self, properties=None, key="id", value=None):
         """
@@ -256,7 +254,7 @@ class GraphWrapper(object):
         model_id = prop_bag['model_id']
         try:
             klass = getattr(importlib.import_module('apps.assets.models'),
-                            class_name)
+                class_name)
             return klass.objects.get(id=model_id)
         except MultipleObjectsReturned:
             return klass.objects.filter(id=model_id)[0]
