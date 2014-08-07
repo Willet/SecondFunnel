@@ -1,3 +1,13 @@
+html {
+    border: 1px solid #1e2338;
+    box-sizing: border-box;
+}
+
+.container, #discovery-area {
+    /* subtract 2 pixels for add units with borders */
+    height: 598px!important;
+}
+
 html, .container {
     overflow: hidden;
 }

@@ -6,6 +6,7 @@ html {
 }
 
 .container, #discovery-area {
+    /* subtract 2 pixels for add units with borders */
     height: 598px!important;
 }
 
