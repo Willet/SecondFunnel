@@ -1,13 +1,23 @@
+@charset "UTF-8";
+
 html {
     border: 1px solid #1e2338;
     box-sizing: border-box;
 }
 
-.container, #discovery-area {
-    /* subtract 2 pixels for add units with borders */
-    height: 598px!important;
+body {
+    margin: 0;
 }
 
-html, .container {
+#discovery-area {
+    margin-top: 0;
+}
+
+.container, #discovery-area {
+    /* subtract 2 pixels for add units with borders */
+    height: 548px!important;
+}
+
+html, body, .container {
     overflow: hidden;
 }
