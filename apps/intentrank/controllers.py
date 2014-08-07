@@ -208,6 +208,11 @@ class GraphWrapper(object):
             db_node.set_properties({key: value})
         return db_node
 
+    def delete_node(self, node):
+        """Apparently just a proxy"""
+        return self.graph.delete(node)
+    delete_relationship = delete_node
+
     def model_to_dict(self, thing):
         return {
             "id": self.get_model_key(thing),
@@ -220,29 +225,46 @@ class GraphWrapper(object):
     def relationship_types(self):
         return self.graph.relationship_types or {}
 
-    def relate(self, thing1, thing2, relation="IS RELATED TO", weight=1):
+    def relate(self, node1, node2, relation="IS RELATED TO", weight=1):
         """
-        :param thing1    either a Node or a BaseModel.
-        :param thing2    either a Node or a BaseModel.
+        :param node1    either a Node or a BaseModel.
+        :param node2    either a Node or a BaseModel.
 
-        :returns the relationship that relates thing1 to thing2, or... the
+        :returns the relationship that relates node1 to node2, or... the
         existing one(s) if it/they exist.
 
         caution: relationships are a one-way street
         """
-        if not isinstance(thing1, neo4j.Node):
-            thing1 = self.create_node(properties=thing1)
-        if not isinstance(thing2, neo4j.Node):
-            thing2 = self.create_node(properties=thing2)
+        if not isinstance(node1, neo4j.Node):
+            node1 = self.create_node(properties=node1)
+        if not isinstance(node2, neo4j.Node):
+            node2 = self.create_node(properties=node2)
 
-        existing_relationships = self.graph.match(start_node=thing1,
-            end_node=thing2, rel_type=relation)
+        # find all nodes like the one you're currently making
+        existing_relationships = self.graph.match(start_node=node1,
+            end_node=node2, rel_type=relation)
 
         try:
             return next(existing_relationships)
         except StopIteration:  # does not exist
-            return self.graph.create(rel(thing1, relation, thing2,
+            return self.graph.create(rel(node1, relation, node2,
                                          {"weight": weight}))[0]
+
+    def unrelate(self, node1, node2, relation="IS RELATED TO"):
+        """
+        :param node1    either a Node or a BaseModel.
+        :param node2    either a Node or a BaseModel.
+
+        Deletes the relationship(s) that point(s) node1 to node2.
+        """
+        if isinstance(node1, BaseModel):
+            node1 = self.get_model_node(node1)
+        if isinstance(node2, BaseModel):
+            node2 = self.get_model_node(node2)
+
+        existing_relationships = self.graph.match(start_node=node1,
+            end_node=node2, rel_type=relation)
+        return self.graph.delete(*list(existing_relationships))
 
     @classmethod
     def get_model(cls, db_node):
@@ -270,6 +292,21 @@ class GraphWrapper(object):
         return self.graph.get_indexed_node(self.INDEX_NAME, 'id',
             self.get_model_key(model))
 
+    def get_related_nodes(self, db_node, rel_type=None, bidirectional=False):
+        """Given db_node, get other nodes...
+        - bidirectional True:
+            ... connected to it.
+        - bidirectional False:
+            ... that it connects to.
+        """
+        kwargs = {
+            "start_node": db_node,
+            "bidirectional": bidirectional,
+        }
+        if rel_type:
+            kwargs["rel_type"] = rel_type
+        return self.graph.match(**kwargs)
+
     @classmethod
     def get_weight(cls, relationship):
         try:
@@ -285,6 +322,3 @@ class GraphWrapper(object):
     def get_model_key(cls, model):
         """<Product #123> -> 'Product:123'"""
         return '{0}:{1}'.format(model.__class__.__name__, model.id)
-
-    def unrelate(self, thing1, thing2):
-        pass
