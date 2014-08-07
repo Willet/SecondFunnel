@@ -1,6 +1,7 @@
 from urlparse import urlparse
 from django.http.response import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render_to_response
+from django.views.decorators.cache import cache_page, never_cache, cache_control
 import re
 from apps.assets.models import Page, Store
 from apps.pinpoint.utils import get_store_from_request, get_store_slug_from_hostname
@@ -15,6 +16,8 @@ from django.http import HttpResponse, HttpResponseNotFound
 from utils import render_banner
 
 
+@cache_control(must_revalidate=True, max_age=(1 * 60))
+@cache_page(60 * 10, key_prefix="ads-")
 def campaign(request, page_id):
     """Returns a rendered campaign response of the given id.
 
@@ -26,6 +29,8 @@ def campaign(request, page_id):
     return HttpResponse(rendered_content)
 
 
+@cache_control(must_revalidate=True, max_age=(1 * 60))
+@cache_page(60 * 10, key_prefix="ads-")
 def demo_page_by_slug(request, ad_slug, template_slug=None):
     """Determines
     - the site to fake
