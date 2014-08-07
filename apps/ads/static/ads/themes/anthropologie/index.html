@@ -7,11 +7,11 @@
         <link rel="stylesheet" type="text/css"
               href="{% static 'pinpoint/css/base.css' %}">
         <link rel="stylesheet"
-              href="{% static 'pinpoint/themes/roots/roots.css' %}"/>
+              href="{% static 'pinpoint/themes/anthropologie/anthropologie.css' %}"/>
         <link rel="stylesheet"
               href="{% static 'ads/css/base.css' %}"/>
         <link rel="stylesheet"
-              href="{% static 'ads/themes/roots/roots.css' %}"/>
+              href="{% static 'ads/themes/anthropologie/anthropologie.css' %}"/>
         {% endcompress css %}
 
         {% include "pinpoint/campaign_config.html" %}
@@ -26,7 +26,9 @@
 
     <body>
         <div id="topbar">
-            Roots
+            <img src="{% static 'ads/themes/anthropologie/anthropologie.png' %}"
+                 alt="Anthropologie"
+                 class="anthropologie" />
         </div>
         <div class="waterfall container">
             <div id="discovery-area"></div>
