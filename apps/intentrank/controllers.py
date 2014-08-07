@@ -3,6 +3,7 @@ import json
 
 from django.conf import settings
 from django.core import serializers
+from django.core.exceptions import MultipleObjectsReturned
 from py2neo import neo4j, node, rel
 from py2neo.neo4j import GraphDatabaseService as Graph
 
@@ -178,10 +179,11 @@ class GraphWrapper(object):
             neo4j.Node, self.INDEX_NAME)
         self.relationships = self.graph.get_or_create_index(  # for lookups
             neo4j.Relationship, self.INDEX_NAME)
+        self.batch = neo4j.WriteBatch(self.graph)
 
-        rob = self.create_node(key="name", value="Rob")
-        penis = self.create_node(key="name", value="Penis")
-        self.relate(rob, penis, relation="touches")
+        # rob = self.create_node(key="name", value="Rob")
+        # penis = self.create_node(key="name", value="Penis")
+        # self.relate(rob, penis, relation="touches")
 
     def create_node(self, properties=None, key="id", value=None):
         """
@@ -189,47 +191,94 @@ class GraphWrapper(object):
 
         If you don't give a value to index by, then the value is properties.id.
         """
-        if not value:
+        if isinstance(properties, BaseModel):
+            # over the special id that is used to denote a model
+            value = self.get_model_key(properties)
+        elif not value:
             value = getattr(properties, key, "")
 
-        return self.graph.get_or_create_indexed_node(
+        db_node = self.graph.get_or_create_indexed_node(
             self.INDEX_NAME, key, value)
+
+        if isinstance(properties, BaseModel):
+            db_node.set_properties(self.model_to_dict(properties))
+        else:
+            db_node.set_properties({key: value})
+        return db_node
 
     def model_to_dict(self, thing):
         return {
-            "id": repr(thing),
+            "id": self.get_model_key(thing),
+            "name": repr(thing),
             "class_name": thing.__class__.__name__,
             "model_id": thing.id,
         }
 
+    @property
+    def relationship_types(self):
+        return self.graph.relationship_types or {}
+
     def relate(self, thing1, thing2, relation="IS RELATED TO", weight=1):
-        # caution: relationships are a one-way street
-        return self.graph.create((thing1, relation, thing1, {"weight": weight}))
+        """
+        :param thing1    either a Node or a BaseModel.
+        :param thing2    either a Node or a BaseModel.
+
+        :returns the relationship that relates thing1 to thing2, or... the
+        existing one(s) if it/they exist.
+
+        caution: relationships are a one-way street
+        """
+        if not isinstance(thing1, neo4j.Node):
+            thing1 = self.create_node(properties=thing1)
+        if not isinstance(thing2, neo4j.Node):
+            thing2 = self.create_node(properties=thing2)
+
+        existing_relationships = self.graph.match(start_node=thing1,
+            end_node=thing2, rel_type=relation)
+
+        try:
+            return next(existing_relationships)
+        except StopIteration:  # does not exist
+            return self.graph.create(rel(thing1, relation, thing2,
+                                         {"weight": weight}))[0]
+
+    @classmethod
+    def get_model(cls, db_node):
+        """Convert a Node to a BaseModel, assuming the node was previously made
+        from a BaseModel.
+        """
+        prop_bag = db_node.get_properties()
+        if not ('class_name' in prop_bag and 'model_id' in prop_bag):
+            raise ValueError("{} is not a model node".format(db_node))
+
+        klass = None
+        class_name = prop_bag['class_name']
+        model_id = prop_bag['model_id']
+        try:
+            klass = getattr(importlib.import_module('apps.assets.models'),
+                            class_name)
+            return klass.objects.get(id=model_id)
+        except MultipleObjectsReturned:
+            return klass.objects.filter(id=model_id)[0]
+        except ImportError:
+            print "failed to create {0}({1})".format(class_name, model_id)
+            raise
+
+    def get_model_node(self, model):
+        return self.graph.get_indexed_node(self.INDEX_NAME, 'id',
+            self.get_model_key(model))
+
+    @classmethod
+    def get_weight(cls, relationship):
+        try:
+            return relationship.get_properties()['weight']
+        except KeyError:
+            return 0
+
+    @classmethod
+    def get_model_key(cls, model):
+        """<Product #123> -> 'Product:123'"""
+        return '{0}:{1}'.format(model.__class__.__name__, model.id)
 
     def unrelate(self, thing1, thing2):
         pass
-
-
-class BulbWrapper(object):
-    # GREMLIN IS REQUIRED
-    def __init__(self):
-        from bulbs.neo4jserver import Graph, Config
-        config = Config(settings.NEO4J_API_URL)
-        self.graph = Graph(config)
-
-        self.wat()
-
-    def get_edges(self):
-        return self.graph.E
-
-    def wat(self):
-        self.graph.vertices.create(name="Bob")
-
-
-class Neo4JDBWrapper(object):
-    def __init__(self):
-        import neo4j
-        connection = neo4j.connect(settings.NEO4J_API_URL)
-        cursor = connection.cursor()
-        for node in cursor.execute("MATCH (n) RETURN n"):
-            print node
