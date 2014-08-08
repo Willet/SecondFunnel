@@ -105,6 +105,11 @@ body {
     background-image: url('/static/pinpoint/themes/anthropologie/images/right_arrow.png');
 }
 
+#hero-area .previewContainer .stick-bottom.stuck {
+    background-color: #FFF;
+    background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
+}
+
 @media screen and (max-width: 768px) {
     .previewContainer .content {
         padding: 0;
