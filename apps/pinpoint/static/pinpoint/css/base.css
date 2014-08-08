@@ -47,6 +47,10 @@ a, a:hover, a:focus {
     display: none;
 }
 
+.relative {
+    position: relative;
+}
+
 .navbar {
     background: white;
     height: 56px;

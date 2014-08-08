@@ -1,6 +1,7 @@
 
 body {
     background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
+    font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
 .navbar {
@@ -23,23 +24,112 @@ body {
 
 .previewContainer .close {
     padding: 6px;
+    color: #5D6075;
+}
+
+.previewContainer .content {
+    padding: 30px;
+}
+
+.previewContainer .cell {
+    padding: 0 10px;
+}
+
+.previewContainer .image-with-tagged-products .cell.shop {
+    width: 135px;
 }
 
 .previewContainer .info .title {
-    font-size: 26px;
+    font-size: 22px;
+    margin-bottom: 0px;
+    color: #143752;
  }
 
  .previewContainer .info .price {
-    font-size: 24px;
+    font-size: 16px;
+    color: rgb(93, 154, 178);
+    margin-top: 0px;
+    margin-bottom: 15px;
  }
 
 .previewContainer .buy .button {
-    padding: 5px 10px;
-    font-size: 19px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #5D6075;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 10px #5D6075;
+}
+
+.previewContainer .cell .stl-title {
+    margin-bottom: 0;
+}
+
+.previewContainer .cell .stl-look {
+    margin-top: 0;
+}
+
+.previewContainer .stl-look .stl-item img {
+    margin: 10px auto;
+}
+
+.previewContainer .gallery-dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 5px;
+}
+
+.previewContainer .gallery-dots .item {
+    background-color: #5D6075;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left,
+.previewContainer .main-image-container .gallery-swipe-right {
+    width: 35px;
+    height: 26px;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-top: -13px;
+    border: none;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left {
+    background-image: url('/static/pinpoint/themes/anthropologie/images/left_arrow.png');
+}
+
+.previewContainer .main-image-container .gallery-swipe-right {
+    background-image: url('/static/pinpoint/themes/anthropologie/images/right_arrow.png');
 }
 
 @media screen and (max-width: 768px) {
     .previewContainer .content {
-        padding-top: 18px;
+        padding: 0;
+    }
+
+    .previewContainer .cell {
+        padding: 5px 0;
+    }
+
+    .previewContainer .info .price {
+        margin-bottom: 5px;
+    }
+
+    .previewContainer .info .relative {
+        margin-top: 5px;
+    }
+
+    .previewContainer .relative .buy {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 5px;
+    }
+
+    .previewContainer .cell .stl-title img {
+        margin-top: 10px;
+    }
+
+    .previewContainer .image-with-tagged-products .gallery-dots {
+        bottom: 50px;
     }
 }
