@@ -12,6 +12,7 @@ from django.conf import settings
 from django.db.models.query import QuerySet
 from apps.assets.models import Tile
 from apps.utils.functional import result, sort_helper
+from secondfunnel.errors import deprecated
 
 
 def ids_of(tiles):  # shorthand (got too annoying)
@@ -166,7 +167,6 @@ def ir_base(tiles=None, feed=None, exclude_set=None, allowed_set=None,
     tiles = (tiles.exclude(products__in_stock=False)
              .exclude(content__tagged_products__in_stock=False))
 
-    # DO NOT call *_related functions after ir_base!
     return tiles
 
 
@@ -737,6 +737,7 @@ def ir_ordered_by(attribute='created_at', reversed_=False):
     return algo
 
 
+@deprecated
 @filter_tiles
 def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                    offset=0, allowed_set=None, exclude_set=None,
@@ -776,3 +777,25 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         return tiles[:results]
     else:
         return tiles[offset:offset + results]
+
+
+@filter_tiles
+def ir_related(tiles, *args, **kwargs):
+    """
+    :returns [<Tile>]   whose products are related to the tiles given.
+    """
+    products = set()  # unique
+
+    for tile in tiles:  # get a set of products related to the tiles to current ones.
+        product = tile.product
+        if not product:
+            continue
+        related_products = product.get_related(bidirectional=True)
+        if related_products:
+            for p in related_products:
+                products.add(p)
+
+    new_tiles = Tile.objects.filter(products__in=[p.id for p in products])
+
+    print "{0} tiles were found related to the current ones".format(len(new_tiles))
+    return new_tiles
