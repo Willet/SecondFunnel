@@ -108,6 +108,7 @@ body {
 #hero-area .previewContainer .stick-bottom.stuck {
     background-color: #FFF;
     background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
+    background-position: center;
 }
 
 @media screen and (max-width: 768px) {
