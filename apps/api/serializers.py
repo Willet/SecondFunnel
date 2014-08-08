@@ -218,8 +218,6 @@ class PageSerializer(RawSerializer):
         data = {
             "id": str(obj.id),
             "heroImageDesktop": obj.desktop_hero_image,
-            "intentrank_id": obj.intentrank_id,
-            "ir_base_url": obj.ir_base_url,
             "last-modified": obj.cg_updated_at,
             "social-buttons": obj.social_buttons,
             "theme": obj.theme.template if obj.theme else None,
@@ -230,7 +228,7 @@ class PageSerializer(RawSerializer):
             "created": obj.cg_created_at,
             "heroImageMobile": obj.mobile_hero_image,
             "name": obj.name,
-            "layout": obj.template,
+            "layout": 'hero',
             "column-width": obj.column_width,
             "store-id": str(obj.store.id),
         }

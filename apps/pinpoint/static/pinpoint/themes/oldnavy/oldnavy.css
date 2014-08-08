@@ -76,11 +76,7 @@ html.lt-ie9 .hero-message-container .text .big {
 .tile {
     color: #000;
     text-align: center;
-    width: 256px;
     padding: 10px;
-}
-.tile.wide {
-    width: 512px;
 }
 
 #preview-area .previewContainer .content {

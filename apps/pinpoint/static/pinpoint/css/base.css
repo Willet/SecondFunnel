@@ -172,7 +172,7 @@ div.loading {
     vertical-align: top;
     position: relative;
 
-    width: 240px;
+    width: 256px;
     max-width: 100%;
 
     font-family: proxima-nova-soft, sans-serif, Helvetica, Arial, sans-serif;
@@ -215,7 +215,7 @@ div.loading {
 }
 
 .tile.wide {
-    width: 480px;
+    width: 512px;
     min-height: 250px;
 }
 

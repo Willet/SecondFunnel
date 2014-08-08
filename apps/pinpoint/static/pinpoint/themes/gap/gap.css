@@ -250,6 +250,14 @@ div.header {
     width: 960px;
 }
 
+.tile {
+    width: 240px;
+}
+
+.tile.wide {
+    width: 480px;
+}
+
 .tile.product {
     text-align: left;
     font-family: "HelveticaNeueThin", "HelveticaNeue-Thin", "Helvetica Neue Thin", 'TeXGyreHerosRegular', "Arial", sans-serif;

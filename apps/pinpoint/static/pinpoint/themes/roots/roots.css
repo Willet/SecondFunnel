@@ -50,11 +50,7 @@ body {
     text-align: center;
     padding: 10px;
     font-family: 'ITC Souvenir W01 Light', times new roman, sans;
-    width: 256px;
     line-height: 16px;
-}
-.tile.wide {
-    width: 512px;
 }
 .tile.youtube {
     height: 291px;
