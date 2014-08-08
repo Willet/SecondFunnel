@@ -697,7 +697,7 @@ App.module('core', function (module, App) {
                 pageHeight = $window.innerHeight(),
                 windowTop = $window.scrollTop(),
                 pageBottomPos = pageHeight + windowTop,
-                documentBottomPos = $document.height(),
+                documentBottomPos = this.$el.height() - this.$el.offset().top,
                 viewportHeights = pageHeight * (App.option('prefetchHeight', 2.5)),
                 st;
 

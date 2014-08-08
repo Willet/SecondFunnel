@@ -6,6 +6,7 @@ html {
 }
 
 .container, #discovery-area {
+    /* subtract 2 pixels for add units with borders */
     height: 598px!important;
 }
 
@@ -30,4 +31,8 @@ html {
     color: black;
     position: relative;
     padding-top: 5px;
+}
+
+html, .container {
+    overflow: hidden;
 }
