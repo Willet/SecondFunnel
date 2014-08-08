@@ -20,6 +20,7 @@ body {
 
 .tile {
     background-color: transparent;
+    font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
 .previewContainer .close {
@@ -29,6 +30,8 @@ body {
 
 .previewContainer .content {
     padding: 30px;
+    background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
+    background-position: center top;
 }
 
 .previewContainer .cell {
@@ -62,6 +65,7 @@ body {
 
 .previewContainer .cell .stl-title {
     margin-bottom: 0;
+    background-color: transparent;
 }
 
 .previewContainer .cell .stl-look {
@@ -85,7 +89,7 @@ body {
 
 .previewContainer .main-image-container .gallery-swipe-left,
 .previewContainer .main-image-container .gallery-swipe-right {
-    width: 35px;
+    width: 18px;
     height: 26px;
     background-repeat: no-repeat;
     background-position: center;
