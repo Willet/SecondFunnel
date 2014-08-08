@@ -27,6 +27,18 @@ body {
     color: #5D6075;
 }
 
+.previewContainer .content {
+    padding: 30px;
+}
+
+.previewContainer .cell {
+    padding: 0 10px;
+}
+
+.previewContainer .image-with-tagged-products .cell.shop {
+    width: 135px;
+}
+
 .previewContainer .info .title {
     font-size: 22px;
     margin-bottom: 0px;
@@ -46,6 +58,25 @@ body {
     background-color: #5D6075;
     text-transform: uppercase;
     box-shadow: 3px 3px 10px #5D6075;
+}
+
+.previewContainer .cell .stl-title {
+    margin-bottom: 0;
+}
+
+.previewContainer .cell .stl-look {
+    margin-top: 0;
+}
+
+.previewContainer .stl-look .stl-item img {
+    margin: 10px auto;
+}
+
+.previewContainer .gallery-dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 5px;
 }
 
 .previewContainer .gallery-dots .item {
@@ -71,14 +102,34 @@ body {
 }
 
 @media screen and (max-width: 768px) {
-    .previewContainer .cell.image-cell {
-        position: relative;
+    .previewContainer .content {
+        padding: 0;
     }
 
-    .previewContainer .gallery-dots {
+    .previewContainer .cell {
+        padding: 5px 0;
+    }
+
+    .previewContainer .info .price {
+        margin-bottom: 5px;
+    }
+
+    .previewContainer .info .relative {
+        margin-top: 5px;
+    }
+
+    .previewContainer .relative .buy {
         position: absolute;
         left: 0;
         right: 0;
-        bottom: 30px;
+        bottom: 5px;
+    }
+
+    .previewContainer .cell .stl-title img {
+        margin-top: 10px;
+    }
+
+    .previewContainer .image-with-tagged-products .gallery-dots {
+        bottom: 50px;
     }
 }
