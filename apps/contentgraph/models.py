@@ -376,12 +376,12 @@ class GraphWrapper(object):
         return self.graph.get_indexed_node(self.INDEX_NAME, 'id',
                                            self._get_model_key(model))
 
-    def _get_related_nodes(self, db_node, rel_type=None, bidirectional=False):
-        """Given db_node, get other nodes...
+    def _get_relationships(self, db_node, rel_type=None, bidirectional=False):
+        """Given db_node, get its relationships...
         - bidirectional True:
-            ... connected to it.
+            ... with that node in either end.
         - bidirectional False:
-            ... that it connects to.
+            ... with that node as start_node.
         """
         kwargs = {
             "start_node": db_node,
@@ -389,7 +389,36 @@ class GraphWrapper(object):
         }
         if rel_type:
             kwargs["rel_type"] = rel_type
-        return self.graph.match(**kwargs)
+
+        relationships = list(self.graph.match(**kwargs))
+        if relationships:
+            return relationships
+        return []
+
+    def _get_related_nodes(self, db_node, rel_type=None, bidirectional=False):
+        """Given db_node, get other nodes...
+        - bidirectional True:
+            ... connected to it.
+        - bidirectional False:
+            ... that it connects to.
+
+        Results are ordered by edge weight. no-weight relationships
+        have 0 weight.
+        """
+        relationships = self._get_relationships(db_node=db_node,
+                                                rel_type=rel_type,
+                                                bidirectional=bidirectional)
+
+        relationships = sorted(relationships, key=self.get_weight,
+                               reverse=True)
+
+        nodes = []
+        for relation in relationships:
+            if relation.start_node == db_node:
+                nodes.append(relation.end_node)
+            else:
+                nodes.append(relation.start_node)
+        return nodes
 
     @staticmethod
     def get_weight(relationship):
