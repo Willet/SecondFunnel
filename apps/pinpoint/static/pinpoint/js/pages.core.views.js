@@ -485,8 +485,8 @@ App.module('core', function (module, App) {
                 // When resolved, layout the results
                 deferred.done(function(data) {
                     options.initialResults = data;
-                    App.options.IRResultsReturned = data.length;
                     self.collection.add(data, {parse: true});
+                    App.options.IRResultsReturned = self.collection.models.length;
                     App.intentRank.addResultsShown(data);
                 });
             } else { // if nothing, immediately fetch more from IR
