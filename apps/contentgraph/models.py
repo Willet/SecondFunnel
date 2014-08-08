@@ -214,11 +214,10 @@ class GraphWrapper(object):
     django models, like so:
 
     >>> graph = GraphWrapper()
-    >>> products = filter(None, [x.product for x in Tile.objects.filter(
-    >>>     id__in=tile_ids)])
-    >>> product, other_ones = products[0], products[1:]
-    >>> for other_one in other_ones:
-    >>>     graph.relate(product, other_one)  # product is now related to these things
+    >>> products = Product.objects.all()
+    >>> product, product2 = products[0], products[1]
+    >>> graph.relate(product, product2)  # product is now related to product2
+    >>> graph.unrelate(product, product2)  # product is now unrelated to product2
     """
     graph = nodes = relationships = _batch = None
 
@@ -226,11 +225,16 @@ class GraphWrapper(object):
     # subclasses/you can pick more creative values like "People"
     INDEX_NAME = "Content"
 
-    def __init__(self):
-        self.graph = Graph(settings.NEO4J_API_URL)
+    def __init__(self, graph=None):
+        self.graph = graph
+        if not graph:
+            self.graph = Graph(settings.NEO4J_API_URL)
 
     def __enter__(self, mode="r"):
-        """In a with statement, the object will be used as a collector."""
+        """In a with statement, the object will be used as a collector.
+
+        If you need to both read and write, avoid using the with statement.
+        """
         if mode == "r":
             self._batch = ReadBatch(self.graph)
             return self._batch
@@ -252,7 +256,7 @@ class GraphWrapper(object):
         """
         if isinstance(properties, BaseModel):
             # over the special id that is used to denote a model
-            value = self.get_model_key(properties)
+            value = self._get_model_key(properties)
         elif not value:
             value = getattr(properties, key, "")
 
@@ -260,7 +264,7 @@ class GraphWrapper(object):
             self.INDEX_NAME, key, value)
 
         if isinstance(properties, BaseModel):
-            db_node.set_properties(self.model_to_dict(properties))
+            db_node.set_properties(self._model_to_dict(properties))
         else:
             db_node.set_properties({key: value})
         return db_node
@@ -270,9 +274,9 @@ class GraphWrapper(object):
         return self.graph.delete(node)
     delete_relationship = delete_node
 
-    def model_to_dict(self, thing):
+    def _model_to_dict(self, thing):
         return {
-            "id": self.get_model_key(thing),
+            "id": self._get_model_key(thing),
             "name": repr(thing),
             "class_name": thing.__class__.__name__,
             "model_id": thing.id,
@@ -298,12 +302,15 @@ class GraphWrapper(object):
             node2 = self.create_node(properties=node2)
 
         # find all nodes like the one you're currently making
-        existing_relationships = self.graph.match(start_node=node1,
-            end_node=node2, rel_type=relation)
+        existing_relationships = list(self.graph.match(start_node=node1,
+            end_node=node2, rel_type=relation))
 
-        try:
+        if len(existing_relationships):
+            existing_relationship = existing_relationships[0]
+            if self.get_weight(existing_relationship) != weight:
+                self.set_weight(existing_relationship, weight=weight)
             return next(existing_relationships)
-        except StopIteration:  # does not exist
+        else:  # does not exist
             return self.graph.create(rel(node1, relation, node2,
                                          {"weight": weight}))[0]
 
@@ -315,13 +322,29 @@ class GraphWrapper(object):
         Deletes the relationship(s) that point(s) node1 to node2.
         """
         if isinstance(node1, BaseModel):
-            node1 = self.get_model_node(node1)
+            node1 = self._get_model_node(node1)
         if isinstance(node2, BaseModel):
-            node2 = self.get_model_node(node2)
+            node2 = self._get_model_node(node2)
+
+        if not (node1 and node2):
+            raise ValueError("One of these nodes are missing: {}, {}".format(
+                node1, node2))
 
         existing_relationships = self.graph.match(start_node=node1,
-            end_node=node2, rel_type=relation)
+                                                  end_node=node2,
+                                                  rel_type=relation)
+
         return self.graph.delete(*list(existing_relationships))
+
+    def get_related_models(self, model, rel_type=None, bidirectional=False):
+        """Given a model, get its related models."""
+        db_node = self._get_model_node(model=model)
+        if not db_node:
+            raise ValueError("Node for {} not found".format(model))
+
+        return [self._get_model(db_node=n) for n in
+                self._get_related_nodes(db_node=db_node, rel_type=rel_type,
+                                        bidirectional=bidirectional)]
 
     @classmethod
     def _get_model(cls, db_node):
@@ -345,11 +368,15 @@ class GraphWrapper(object):
             print "failed to create {0}({1})".format(class_name, model_id)
             raise
 
-    def get_model_node(self, model):
-        return self.graph.get_indexed_node(self.INDEX_NAME, 'id',
-            self.get_model_key(model))
+    def _get_model_node(self, model):
+        """Given a model, get its node.
 
-    def get_related_nodes(self, db_node, rel_type=None, bidirectional=False):
+        Not guaranteed to return anything.
+        """
+        return self.graph.get_indexed_node(self.INDEX_NAME, 'id',
+                                           self._get_model_key(model))
+
+    def _get_related_nodes(self, db_node, rel_type=None, bidirectional=False):
         """Given db_node, get other nodes...
         - bidirectional True:
             ... connected to it.
@@ -364,18 +391,21 @@ class GraphWrapper(object):
             kwargs["rel_type"] = rel_type
         return self.graph.match(**kwargs)
 
-    @classmethod
-    def get_weight(cls, relationship):
+    @staticmethod
+    def get_weight(relationship):
         try:
             return relationship.get_properties()['weight']
         except KeyError:
             return 0
 
-    @classmethod
-    def set_weight(cls, relationship, weight):
-        relationship.get_properties({'weight': weight})
+    @staticmethod
+    def set_weight(relationship, weight):
+        return relationship.set_properties({'weight': weight})
 
-    @classmethod
-    def get_model_key(cls, model):
+    @staticmethod
+    def _get_model_key(model):
         """<Product #123> -> 'Product:123'"""
+        if not isinstance(model, BaseModel):
+            raise ValueError("{} is not a BaseModel".format(model))
+
         return '{0}:{1}'.format(model.__class__.__name__, model.id)
