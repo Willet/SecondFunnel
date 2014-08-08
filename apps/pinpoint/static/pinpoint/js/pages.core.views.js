@@ -486,7 +486,12 @@ App.module('core', function (module, App) {
                 deferred.done(function(data) {
                     options.initialResults = data;
                     App.options.IRResultsReturned = data.length;
+
+                    // "When a model is added to the collection, the collection
+                    // view will render that one model in to the collection of
+                    // item views." - Cool story bro
                     self.collection.add(data, {parse: true});
+                    self.render();
                     App.intentRank.addResultsShown(data);
                 });
             } else { // if nothing, immediately fetch more from IR
