@@ -1,5 +1,5 @@
 ---
-remote_user: vagrant
+bootstrap_user: vagrant
 app_environment: vagrant
 django_settings_module: secondfunnel.settings.dev
 py_autoreload: 1
