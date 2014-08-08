@@ -219,19 +219,17 @@
         <script type="text/template" id="product_preview_template">
             <div class="table">
                 <div class='content-wrapper row'>
+                    <div class='cell image-cell'>
+                        <div class="gallery-main-image"></div>
+                        <% if (obj.images.length > 1 && App.support.mobile()) { %>
+                            <div class='gallery-dots'></div>
+                        <% } %>
+                    </div>
                     <% if (App.support.mobile()) { %>
                         <div class='cell info'>
                             <div class='title'></div>
                             <div class='price'></div>
                             <div class='buy'></div>
-                        </div>
-                    <% } %>
-                    <div class='cell image-cell'>
-                        <div class="gallery-main-image"></div>
-                    </div>
-                    <% if (obj.images.length > 1 && App.support.mobile()) { %>
-                        <div class='cell'>
-                            <div class='gallery-dots'></div>
                         </div>
                     <% } %>
                     <% if (!App.support.mobile()) { %>
