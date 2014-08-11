@@ -76,6 +76,7 @@ body > .container {
 
 .previewContainer .cell .stl-look {
     margin-top: 0;
+    max-height: 575px;
 }
 
 .previewContainer .stl-look .stl-item img {
@@ -124,6 +125,10 @@ body > .container {
 
     .previewContainer .cell {
         padding: 5px 0;
+    }
+
+    .previewContainer .cell .stl-look {
+        max-height: none;
     }
 
     .previewContainer .info .price {
