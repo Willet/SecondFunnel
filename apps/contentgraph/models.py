@@ -309,8 +309,13 @@ class GraphWrapper(object):
             existing_relationship = existing_relationships[0]
             if self.get_weight(existing_relationship) != weight:
                 self.set_weight(existing_relationship, weight=weight)
-            return next(existing_relationships)
+
+            print "{0} [{1}] {2} relationship already exists".format(
+                node1, relation, node2)
+            return existing_relationships[0]
         else:  # does not exist
+            print "Creating {0} [{1}] {2} relationship".format(
+                node1, relation, node2)
             return self.graph.create(rel(node1, relation, node2,
                                          {"weight": weight}))[0]
 
