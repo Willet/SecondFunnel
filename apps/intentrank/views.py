@@ -253,7 +253,8 @@ def track_tiles(request, action, **kwargs):
             for tid in tile_ids:
                 related_product = Tile.objects.get(id=tid).product
                 if related_product:
-                    graph.relate(featured_product, related_product)
+                    graph.relate(featured_product, related_product,
+                                 relation=action)
         except ObjectDoesNotExist:  # tile has no products
             pass
 

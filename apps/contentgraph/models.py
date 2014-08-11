@@ -225,6 +225,9 @@ class GraphWrapper(object):
     # subclasses/you can pick more creative values like "People"
     INDEX_NAME = "Content"
 
+    # alternatives: "view", "click"
+    RELATION_NAME = "IS RELATED TO"
+
     def __init__(self, graph=None):
         self.graph = graph
         if not graph:
@@ -286,13 +289,13 @@ class GraphWrapper(object):
     def relationship_types(self):
         return self.graph.relationship_types or {}
 
-    def relate(self, node1, node2, relation="IS RELATED TO", weight=1):
+    def relate(self, node1, node2, relation=RELATION_NAME, weight=1):
         """
         :param node1    either a Node or a BaseModel.
         :param node2    either a Node or a BaseModel.
 
         :returns the relationship that relates node1 to node2, or... the
-        existing one(s) if it/they exist.
+        existing relation will have its weight incremented by {weight}.
 
         caution: relationships are a one-way street
         """
@@ -307,19 +310,40 @@ class GraphWrapper(object):
 
         if len(existing_relationships):
             existing_relationship = existing_relationships[0]
-            if self.get_weight(existing_relationship) != weight:
-                self.set_weight(existing_relationship, weight=weight)
+            self.set_weight(
+                existing_relationship,
+                weight=self.get_weight(existing_relationship) + weight)
 
-            print "{0} [{1}] {2} relationship already exists".format(
-                node1, relation, node2)
             return existing_relationships[0]
         else:  # does not exist
-            print "Creating {0} [{1}] {2} relationship".format(
-                node1, relation, node2)
             return self.graph.create(rel(node1, relation, node2,
                                          {"weight": weight}))[0]
 
-    def unrelate(self, node1, node2, relation="IS RELATED TO"):
+    def _relate_or_create(self, node1, node2, relation=RELATION_NAME, weight=1):
+        """If a
+        :param node1    either a Node or a BaseModel.
+        :param node2    either a Node or a BaseModel.
+
+        :returns the relationship that relates node1 to node2, or... the
+        existing one(s) if it/they exist.
+        """
+        if not isinstance(node1, neo4j.Node):
+            node1 = self.create_node(properties=node1)
+        if not isinstance(node2, neo4j.Node):
+            node2 = self.create_node(properties=node2)
+
+        # find all nodes like the one you're currently making
+        existing_relationships = list(self.graph.match(start_node=node1,
+            end_node=node2, rel_type=relation))
+
+        if len(existing_relationships):
+            existing_relationship = existing_relationships[0]
+            return existing_relationship
+        else:  # does not exist
+            return self.graph.create(rel(node1, relation, node2,
+                                         {"weight": weight}))[0]
+
+    def unrelate(self, node1, node2, relation=RELATION_NAME):
         """
         :param node1    either a Node or a BaseModel.
         :param node2    either a Node or a BaseModel.
@@ -399,6 +423,23 @@ class GraphWrapper(object):
         if relationships:
             return relationships
         return []
+
+    def _get_relationships_by_type(self, rel_type=RELATION_NAME):
+        """Fast method of retrieving all model relationships of a certain type.
+
+        use of this method is discouraged, because graph internals are exposed.
+
+        :returns set(start_props, end_props, start node, end node)
+                 see _get_model_key for id format.
+        """
+        pairs = []
+        for x in self.graph.match(rel_type=rel_type):
+            start = x.start_node.get_properties()
+            end = x.end_node.get_properties()
+            if 'id' in start and 'id' in end:
+                pairs.append((start, end, x.start_node, x.end_node))
+
+        return pairs
 
     def _get_related_nodes(self, db_node, rel_type=None, bidirectional=False):
         """Given db_node, get other nodes...

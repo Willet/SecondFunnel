@@ -228,10 +228,11 @@ class BaseModel(models.Model, SerializableMixin):
         """(readonly) representation of the content graph timestamp"""
         return unicode(calendar.timegm(self.updated_at.utctimetuple()) * 1000)
 
-    def get_related(self, bidirectional=False):
+    def get_related(self, bidirectional=False, rel_type="click"):
         """Proxy method of the Neo4J Graph GraphWrapper wrapper.
 
         Given the current model, return from the graph
+        :param rel_type             currently "click" or "view"
         :returns BaseModel          of all types
         """
         # import error if global :(
@@ -239,7 +240,8 @@ class BaseModel(models.Model, SerializableMixin):
         graph = GraphWrapper()
 
         try:
-            return graph.get_related_models(self, bidirectional=bidirectional)
+            return graph.get_related_models(self, bidirectional=bidirectional,
+                                            rel_type=rel_type)
         except (SocketError, ValueError):
             # SocketError: server down
             # ValueError: product has no nodes

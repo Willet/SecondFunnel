@@ -4,12 +4,10 @@ from xml.etree.ElementTree import Element, SubElement, tostring
 from django.conf import settings
 from django.db.models import Count
 from apps.ads.views import demo_page_by_slug
-from apps.contentgraph.models import GraphWrapper
 from apps.intentrank.algorithms import ir_base
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseServerError, Http404
-from django.http.response import HttpResponseNotFound
 from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.template import Context, loader
 from django.views.decorators.cache import cache_page, never_cache, cache_control
