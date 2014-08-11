@@ -41,7 +41,7 @@
  
 - name: "Set up authorized_keys for vagrant key"
   authorized_key: user="{{common_user}}"
-                  key="{{lookup('file', '~/.vagrant.d/insecure_public_key')}}"
+                  key="{{vagrant_key.stdout}}"
   when: "'vagrant' in groups"
   sudo: true
 
