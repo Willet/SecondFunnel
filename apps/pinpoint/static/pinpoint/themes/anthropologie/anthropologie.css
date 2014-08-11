@@ -11,6 +11,12 @@ body {
     background-position: center top;
     height: 107px;
     line-height: 107px;
+    position: fixed;
+    width: 100%;
+}
+
+body > .container {
+    padding-top: 107px;
 }
 
 .navbar .logo {
@@ -70,6 +76,7 @@ body {
 
 .previewContainer .cell .stl-look {
     margin-top: 0;
+    max-height: 575px;
 }
 
 .previewContainer .stl-look .stl-item img {
@@ -118,6 +125,10 @@ body {
 
     .previewContainer .cell {
         padding: 5px 0;
+    }
+
+    .previewContainer .cell .stl-look {
+        max-height: none;
     }
 
     .previewContainer .info .price {
