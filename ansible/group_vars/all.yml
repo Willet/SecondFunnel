@@ -1,5 +1,6 @@
 ---
 # Global Shared Services
+bootstrap_user: ubuntu
 hipchat:
   room: 115122  # code room
   token: 675a844c309ec3227fa9437d022d05

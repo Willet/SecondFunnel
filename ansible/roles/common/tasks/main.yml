@@ -34,6 +34,17 @@
     - public_keys/*.pub
   sudo: true
 
+- name: "Grab vagrant's public key"
+  local_action: command ssh-keygen -y -f ~/.vagrant.d/insecure_private_key
+  when: "'vagrant' in groups"
+  register: vagrant_key
+
+- name: "Set up authorized_keys for vagrant key"
+  authorized_key: user="{{common_user}}"
+                  key="{{vagrant_key.stdout}}"
+  when: "'vagrant' in groups"
+  sudo: true
+
 - name: "Setup Locales (Ubuntu)"
   shell: echo 'LC_ALL=en_US.UTF-8\nLANG=en_US.UTF-8\n' >> /etc/environment
   sudo: true

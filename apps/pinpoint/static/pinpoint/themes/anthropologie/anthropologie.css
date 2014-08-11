@@ -11,6 +11,12 @@ body {
     background-position: center top;
     height: 107px;
     line-height: 107px;
+    position: fixed;
+    width: 100%;
+}
+
+body > .container {
+    padding-top: 107px;
 }
 
 .navbar .logo {
@@ -20,6 +26,7 @@ body {
 
 .tile {
     background-color: transparent;
+    font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
 .previewContainer .close {
@@ -29,6 +36,8 @@ body {
 
 .previewContainer .content {
     padding: 30px;
+    background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
+    background-position: center top;
 }
 
 .previewContainer .cell {
@@ -62,10 +71,12 @@ body {
 
 .previewContainer .cell .stl-title {
     margin-bottom: 0;
+    background-color: transparent;
 }
 
 .previewContainer .cell .stl-look {
     margin-top: 0;
+    max-height: 575px;
 }
 
 .previewContainer .stl-look .stl-item img {
@@ -85,7 +96,7 @@ body {
 
 .previewContainer .main-image-container .gallery-swipe-left,
 .previewContainer .main-image-container .gallery-swipe-right {
-    width: 35px;
+    width: 18px;
     height: 26px;
     background-repeat: no-repeat;
     background-position: center;
@@ -101,6 +112,12 @@ body {
     background-image: url('/static/pinpoint/themes/anthropologie/images/right_arrow.png');
 }
 
+#hero-area .previewContainer .stick-bottom.stuck {
+    background-color: #FFF;
+    background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
+    background-position: center;
+}
+
 @media screen and (max-width: 768px) {
     .previewContainer .content {
         padding: 0;
@@ -108,6 +125,10 @@ body {
 
     .previewContainer .cell {
         padding: 5px 0;
+    }
+
+    .previewContainer .cell .stl-look {
+        max-height: none;
     }
 
     .previewContainer .info .price {
