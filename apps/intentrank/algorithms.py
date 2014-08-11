@@ -504,8 +504,19 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             exclude_set.discard(x)
         request.session['shown'] = list(exclude_set)
 
-    products = products.exclude(id__in=exclude_set)
+    products_after_exclude = products.exclude(id__in=exclude_set)
+    if products_after_exclude.count() >= num_product:
+        products = products_after_exclude
+    else:
+        print "Not enough products to justify exclusion"
+        num_content = num_content + (results - products.count())
     contents_temp = contents_temp.exclude(id__in=exclude_set)
+    contents_temp_after_exclude = contents_temp.exclude(id__in=exclude_set)
+    if contents_temp_after_exclude.count() >= num_content:
+        contents_temp = contents_temp_after_exclude
+    else:
+        print "Not enough content to justify exclusion"
+        num_product = num_product + (results - contents_temp.count())
 
     if request and request.GET.get('reqNum', '0') in ['0']:  # only at start, this allows for 10 tiles
         prioritized_content = ir_priority_pageview(tiles=contents_temp, results=results,
