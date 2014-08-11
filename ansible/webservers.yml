@@ -3,6 +3,7 @@
 - name: "Bootstrap Servers"
   serial: 2
   hosts: all
+  remote_user: "{{bootstrap_user}}"
   roles:
     - common
 
