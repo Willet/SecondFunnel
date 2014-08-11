@@ -1,5 +1,9 @@
 @charset "UTF-8";
 
+html, body, .container, #discovery-area {
+    min-height: 100%;
+}
+
 html {
     border: 1px solid #1e2338;
     box-sizing: border-box;
@@ -15,11 +19,6 @@ body {
 
 #topbar img {
     max-width: 100%;
-}
-
-.container, #discovery-area {
-    /* subtract 2 pixels for add units with borders */
-    height: 548px!important;
 }
 
 html, body, .container {
