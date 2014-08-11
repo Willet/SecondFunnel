@@ -96,8 +96,8 @@ body > .container {
 
 .previewContainer .main-image-container .gallery-swipe-left,
 .previewContainer .main-image-container .gallery-swipe-right {
-    width: 18px;
-    height: 26px;
+    width: 36px;
+    height: 52px;
     background-repeat: no-repeat;
     background-position: center;
     margin-top: -13px;
@@ -106,10 +106,12 @@ body > .container {
 
 .previewContainer .main-image-container .gallery-swipe-left {
     background-image: url('/static/pinpoint/themes/anthropologie/images/left_arrow.png');
+    left: -4px;
 }
 
 .previewContainer .main-image-container .gallery-swipe-right {
     background-image: url('/static/pinpoint/themes/anthropologie/images/right_arrow.png');
+    right: -4px;
 }
 
 #hero-area .previewContainer .stick-bottom.stuck {
@@ -121,6 +123,7 @@ body > .container {
 @media screen and (max-width: 768px) {
     .previewContainer .content {
         padding: 0;
+        padding-bottom: 20px;
     }
 
     .previewContainer .cell {
@@ -143,7 +146,7 @@ body > .container {
         position: absolute;
         left: 0;
         right: 0;
-        bottom: 5px;
+        bottom: 10px;
     }
 
     .previewContainer .cell .stl-title img {
@@ -151,6 +154,6 @@ body > .container {
     }
 
     .previewContainer .image-with-tagged-products .gallery-dots {
-        bottom: 50px;
+        bottom: 55px;
     }
 }
