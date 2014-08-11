@@ -38,7 +38,7 @@
   local_action: command ssh-keygen -y -f ~/.vagrant.d/insecure_private_key
   when: "'vagrant' in groups"
   register: vagrant_key
- 
+
 - name: "Set up authorized_keys for vagrant key"
   authorized_key: user="{{common_user}}"
                   key="{{vagrant_key.stdout}}"
