@@ -4,6 +4,10 @@ html, body, .container, #discovery-area {
     min-height: 100%;
 }
 
+body > .container {
+    padding-top: 0;
+}
+
 html {
     border: 1px solid #1e2338;
     box-sizing: border-box;
