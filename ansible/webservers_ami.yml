@@ -23,7 +23,7 @@
         state: present
         region: "{{ aws_region }}"
         key_name: "{{ aws_sshkey_name }}"
-        group: "secondfunnel-{{app_environment}}-building"
+        group: "secondfunnel-{{app_environment}}"
         wait: true
         instance_tags:
           Name: "secondfunnel-{{app_environment}}-building"
