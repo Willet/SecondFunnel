@@ -93,7 +93,7 @@
         instance_type: "{{aws_instance_type}}"
         key_name: "{{aws_server_sshkey_name}}"
         image_id: "{{ami_built.image_id}}"
-      regiser: lc_built
+      register: lc_built
 
     - debug:
         msg: "Registered Launch Configuration: {{lc_built}}"
