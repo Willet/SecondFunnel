@@ -5,7 +5,7 @@
   hosts: all
   remote_user: "{{bootstrap_user}}"
   roles:
-    - common
+    - { role: common, tags: common }
 
 - name: "Setup Servers"
   serial: 2

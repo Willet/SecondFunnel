@@ -1,0 +1,31 @@
+---
+- name: check if installed
+  stat: path=/opt/phantomjs-{{phantomjs_version}}/bin/phantomjs
+  register: phantomjs
+
+- name: install required depedencies
+  apt: pkg={{item}} state=installed
+  with_items:
+    - graphicsmagick
+    - fontconfig
+    - libfreetype6-dev
+  when: not phantomjs.stat.exists
+
+- name: create phantomjs directory
+  file: state=directory path="/opt/phantomjs-{{phantomjs_version}}"
+  when: not phantomjs.stat.exists
+
+- name: fetch phantomjs binary install
+  get_url: url=https://bitbucket.org/ariya/phantomjs/downloads/{{phantomjs_tarball}} dest=/tmp
+  when: not phantomjs.stat.exists
+
+- name: Unpack phantomjs binary tarball.
+  command: tar jxf {{phantomjs_tarball}} --strip-components=1 --no-same-owner -C /opt/phantomjs-{{phantomjs_version}} chdir=/tmp creates=/opt/phantomjs-{{phantomjs_version}}/bin/
+  when: not phantomjs.stat.exists
+
+- name: cleanup download
+  file: state=absent path=/tmp/{{phantomjs_tarball}}
+  when: not phantomjs.stat.exists
+
+- name: symlink the executable
+  file: dest=/usr/bin/phantomjs src=/opt/phantomjs-{{phantomjs_version}}/bin/phantomjs state=link

@@ -6,12 +6,5 @@
   command: git clone git://github.com/robbyrussell/oh-my-zsh.git /home/{{common_user}}/.oh-my-zsh
   when: oh_my_zsh.stat.exists == false
 
-- name: Copy oh-my-zsh default zshrc
-  command: cp /home/{{common_user}}/.oh-my-zsh/templates/zshrc.zsh-template /home/{{common_user}}/.zshrc
-  when: oh_my_zsh.stat.exists == false
-
-- name: Change default shell to zsh
-  shell: "chsh -s `which zsh` {{common_user}}"
-  sudo: true
-  sudo_user: root
-  when: oh_my_zsh.stat.exists == false
+- name: Use templated zshrc as the default for common user
+  template: src="zshrc" dest="/home/{{common_user}}/.zshrc"

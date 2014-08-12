@@ -1,0 +1,3 @@
+---
+phantomjs_version: "1.9.7"
+phantomjs_tarball: "phantomjs-{{phantomjs_version}}-linux-x86_64.tar.bz2"
