@@ -6,7 +6,7 @@
       action: ec2_facts
       tags: ami
     - name: Add existing instance to launched groups
-      local_action: add_host hostname="{{ansible_ec2_public_hostname}}" groups="websevers,{{app_environment}},launched"
+      local_action: add_host hostname="{{ansible_ec2_public_hostname}}" groups="webservers,{{app_environment}},launched"
       register: existing_instance
       tags: ami
 
@@ -44,20 +44,17 @@
 
 - name: "Bootstrap Servers"
   hosts: launched
-  gather_facts: False # so the groups don't change :)
   roles:
     - common
 
 - name: "Setup Servers"
   hosts: launched
-  gather_facts: False # so the groups don't change :)
   remote_user: "{{common_user}}"
   roles:
     - web
 
 - name: "Terminate instances"
   hosts: launched
-  gather_facts: False # so the groups don't change :)
   tasks:
     - name: Gather facts
       action: ec2_facts
