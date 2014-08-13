@@ -103,9 +103,10 @@
         module: ec2_asg
         aws_access_key: "{{aws_access_key_id}}"
         aws_secret_key: "{{aws_secret_key}}"
+        region: "{{aws_region}}"
         name: "secondfunnel-{{app_environment}}-scaling-group"
-        launch_config_name: "{{lc.name}}"
-        load_balancer: "secondfunnel-production-lb"
+        launch_config_name: "{{lc_built.name}}"
+        load_balancers: "secondfunnel-{{app_environment}}-lb"
         availability_zones: "us-west-2c,us-west-2b,us-west-2a"
         health_check_type: "ELB"
         min_size: "{{aws_asg.min_size}}"
@@ -130,7 +131,7 @@
         region: "{{ aws_region }}"
         name: "secondfunnel-{{app_environment}}-scaling-group-High-CPU-Utilization"
         adjustment_type: "ChangeInCapacity"
-        asg_name: "{{ asg_built.name }}"
+        asg_name: "secondfunnel-{{app_environment}}-scaling-group"
         scaling_adjustment: 1
         min_adjustment_step: 1
         cooldown: 120
@@ -150,7 +151,7 @@
         region: "{{ aws_region }}"
         name: "secondfunnel-{{app_environment}}-scaling-group-CPU-Utilization"
         adjustment_type: "ChangeInCapacity"
-        asg_name: "{{ asg_built.name }}"
+        asg_name: "secondfunnel-{{app_environment}}-scaling-group"
         scaling_adjustment: -1
         min_adjustment_step: 1
         cooldown: 120
@@ -172,11 +173,11 @@
         statistic: "Average"
         comparison: ">="
         threshold: 80.0
-        period: 150
+        period: 180
         evaluation_periods: 2
         unit: "Percent"
-        description: "Scale-up if CPU > 80% for 5 minutes"
-        dimensions: {"AutoScalingGroupName":"{{ asg_built.name }}"}
+        description: "Scale-up if CPU > 80% for 6 minutes"
+        dimensions: {"AutoScalingGroupName":"secondfunnel-{{app_environment}}-scaling-group"}
         alarm_actions: ["{{ scale_up_policy.arn }}"]
       when: scale_up_policy.arn is defined
 
@@ -197,6 +198,6 @@
         evaluation_periods: 2
         unit: "Percent"
         description: "Scale-down if CPU < 50% for 10 minutes"
-        dimensions: {"AutoScalingGroupName":"{{ asg_built.name }}"}
+        dimensions: {"AutoScalingGroupName":"secondfunnel-{{app_environment}}-scaling-group"}
         alarm_actions: ["{{ scale_down_policy.arn }}"]
       when: scale_down_policy.arn is defined
