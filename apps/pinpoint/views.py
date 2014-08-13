@@ -308,3 +308,11 @@ def app_exception_handler(request):
     return HttpResponseServerError(loader.get_template('500.html').render(
         Context({'exception': exception,
                  'traceback': '\n'.join(stack)})))
+
+
+def fail(request):
+    """print request to log."""
+    print "Request: \n{0}".format(request)
+    print "META: \n{0}".format(request.META)
+
+    raise ValueError(request)
