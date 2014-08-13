@@ -40,6 +40,7 @@ CACHES = {
 INSTALLED_APPS += (
     'django_nose',  # for testing...? we don't use it, but here it is
     'debug_toolbar',
+    'devserver',
 )
 # add "?prof" to profile the request:
 # http://blueprintforge.com/blog/2012/01/24/measuring-optimising-database-performance-in-django/
@@ -49,6 +50,7 @@ MIDDLEWARE_CLASSES += (
     # oddly enough, this goes *after* debug_toolbar
     'apps.utils.models.NonHtmlDebugToolbarMiddleware',
     'apps.utils.models.ShowHandlerMiddleware',
+    'devserver.middleware.DevServerMiddleware',
 )
 
 # force show toolbar
