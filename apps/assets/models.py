@@ -292,6 +292,8 @@ class Product(BaseModel):
             self.attributes = {}
 
     def clean(self):
+        if not self.attributes:
+            self.attributes = {}
         price_regex = re.compile(ur'C?(?:\$|\u20AC|\u20A3)\ ?(?:\d{1,3}(?:,\d{3})+|\d*)(?:\.\d{1,2})?')
         if self.price:
             match = re.match(price_regex, self.price)

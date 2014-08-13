@@ -1,4 +1,5 @@
 from apps.api.serializers import RawSerializer
+from apps.utils.functional import find_where
 
 
 class IRSerializer(RawSerializer):
@@ -38,9 +39,6 @@ class ProductSerializer(IRSerializer):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
         """
-        # crazy person decided to mutate the order of product_images
-        # instead of using the default-image attribute.
-        # please blame this commit on Kevin, he said he had a gun to my head
         product_images = list(obj.product_images.all())
 
         data = {
@@ -57,8 +55,15 @@ class ProductSerializer(IRSerializer):
 
         data.update(obj.attributes)
 
-        # if default image is missing...
-        if hasattr(obj, 'default_image_id') and obj.default_image_id:
+        if obj.attributes.get('product_images_order'):
+            # if image ordering is explicitly given, use it
+            for i in obj.attributes.get('product_images_order', []):
+                try:
+                    product_images.append(find_where(product_images, i))
+                except ValueError:
+                    pass  # could not find matching product image
+        elif hasattr(obj, 'default_image_id') and obj.default_image_id:
+            # if default image is missing...
             data["default-image"] = str(obj.default_image.id or
                 obj.default_image_id)
             data["orientation"] = obj.default_image.orientation
