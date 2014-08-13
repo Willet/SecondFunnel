@@ -316,16 +316,6 @@ class Product(BaseModel):
             # there is no default image
             self.default_image = self.product_images.all()[0]
 
-        # update product image order when:
-        # - ordering does not exist
-        # - ids in the ordering list does not match the images for this product
-        #   (this allows custom ordering to be preserved, reset when the list
-        #    changes)
-        product_images_order = [int(pi.id) for pi in self.product_images.all()]
-        if sorted(self.attributes.get('product_images_order', [])) != \
-            sorted(product_images_order):
-            self.attributes['product_images_order'] = product_images_order
-
 
 class ProductImage(BaseModel):
     """An Image-like model class that is explicitly an image depicting
