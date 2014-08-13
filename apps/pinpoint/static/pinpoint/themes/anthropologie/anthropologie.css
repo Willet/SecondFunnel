@@ -1,4 +1,10 @@
 
+@font-face {
+    font-family:"ClarendonBT-Light";
+    src:url("/static/pinpoint/themes/anthropologie/fonts/Clarendon-Light.woff") format('woff'),
+        url("/static/pinpoint/themes/anthropologie/fonts/Clarendon-Light.ttf") format('truetype');
+}
+
 body {
     background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
     font-family: Georgia, 'Times New Roman', Times, serif;
@@ -70,25 +76,30 @@ body > .container {
     width: 135px;
 }
 
+.previewContainer .cell.info {
+    text-align: left;
+    font-family: "ClarendonBT-Light", Georgia, serif;
+}
+
 .previewContainer .info .title {
     font-size: 22px;
     margin-bottom: 0px;
     color: #143752;
- }
+}
 
- .previewContainer .info .price {
+.previewContainer .info .price {
     font-size: 16px;
     color: rgb(93, 154, 178);
     margin-top: 0px;
     margin-bottom: 15px;
- }
+}
 
 .previewContainer .buy .button {
     padding: 10px 20px;
     font-size: 16px;
     background-color: #5D6075;
     text-transform: uppercase;
-    box-shadow: 3px 3px 10px #5D6075;
+    box-shadow: 3px 3px 10px rgba(93, 96, 117, 0.5);
 }
 
 .previewContainer .cell .stl-title {
@@ -98,10 +109,10 @@ body > .container {
 
 .previewContainer .cell .stl-look {
     margin-top: 0;
-    max-height: 575px;
+    max-height: 625px;
     text-transform: uppercase;
     color: #666;
-    font-size: 11px;
+    font-size: 10px;
 }
 
 .previewContainer .stl-look .stl-item img {
@@ -159,8 +170,21 @@ body > .container {
         max-height: none;
     }
 
+    .previewContainer .info .title {
+        padding: 0 10px;
+    }
+
     .previewContainer .info .price {
         margin-bottom: 5px;
+        padding: 0 10px;
+    }
+
+    .previewContainer .info .buy {
+        padding: 0 10px;
+    }
+
+    .previewContainer .info .description {
+        padding: 0 10px;
     }
 
     .previewContainer .info .relative {
@@ -172,6 +196,7 @@ body > .container {
         left: 0;
         right: 0;
         bottom: 10px;
+        text-align: center;
     }
 
     .previewContainer .cell .stl-title img {
