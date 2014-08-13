@@ -2,14 +2,14 @@
 
 - name: "Bootstrap Servers"
   serial: 2
-  hosts: all
+  hosts: webservers:!building
   remote_user: "{{bootstrap_user}}"
   roles:
     - { role: common, tags: common }
 
 - name: "Setup Servers"
   serial: 2
-  hosts: all
+  hosts: webservers:!building
   remote_user: "{{common_user}}"
   roles:
     - { role: db, tags: db, when: app_environment == "vagrant" }
@@ -39,7 +39,7 @@
       when: app_environment != "vagrant"
 
 - name: "Post Configuration"
-  hosts: all
+  hosts: webservers:!building
   remote_user: "{{common_user}}"
   gather_facts: False # since we are just notifying hipchat anyways
   tasks:

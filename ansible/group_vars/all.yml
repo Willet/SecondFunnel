@@ -14,6 +14,7 @@ aws_secret_key: Fr0jR4GgQ0Hj7zS3ocSLZfhRtj9t7rKRvxENTRCh
 aws_region: us-west-2
 aws_base_image: ami-e7b8c0d7 # base image *ubuntu 14.04 LTS*
 aws_sshkey_name: willet-admin-master
+aws_server_sshkey_name: willet-admin-master
 aws_instance_type: m3.medium
 
 # Shared Application Settings
