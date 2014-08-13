@@ -39,3 +39,7 @@ fi
 if [[ -d $SF_DIR/app ]]; then
   cd $SF_DIR/app
 fi
+
+if [[ -f /etc/profile.d/rds_environment.sh ]]; then
+  source /etc/profile.d/rds_environment.sh
+fi
