@@ -28,6 +28,13 @@ def check_other_keys_dont_exist(dct, keys):
     return len(list(dct_key_set - key_set)) == 0
 
 
+def find_where(lst, obj_id):
+    for item in lst:
+        if item.id == obj_id:
+            return item
+    raise ValueError("object {id} not in list".format(id=obj_id))
+
+
 def where(lst, **kwargs):
     """Like _.where, returns a list of dicts in the list whose properties
     are the same as the key-val pairs you specify.
