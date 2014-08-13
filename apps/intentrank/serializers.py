@@ -57,8 +57,11 @@ class ProductSerializer(IRSerializer):
 
         if obj.attributes.get('product_images_order'):
             # if image ordering is explicitly given, use it
-            product_images = [find_where(product_images, i) for i in
-                              obj.attributes.get('product_images_order', [])]
+            for i in obj.attributes.get('product_images_order', []):
+                try:
+                    product_images.append(find_where(product_images, i))
+                except ValueError:
+                    pass  # could not find matching product image
         elif hasattr(obj, 'default_image_id') and obj.default_image_id:
             # if default image is missing...
             data["default-image"] = str(obj.default_image.id or
