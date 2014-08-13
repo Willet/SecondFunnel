@@ -23,9 +23,18 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "secondfunnel.settings.productio
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
-# Apply WSGI middleware here.
-# from helloworld.wsgi import HelloWorldApplication
-# application = HelloWorldApplication(application)
+from django.conf import settings
+if settings.DEBUG:
+    print "loading werkzeug debugger for local application on wsgi"
+
+    # disable the normal 500 response debugger
+    from django_extensions.management.technical_response import null_technical_500_response
+    from django.views import debug
+    debug.technical_500_response = null_technical_500_response
+
+    # wrap the wsgi handler in the werkzeug debugger
+    from werkzeug.debug import DebuggedApplication
+    application = DebuggedApplication(application, evalex=True)
 
 # CELERY
 import djcelery
