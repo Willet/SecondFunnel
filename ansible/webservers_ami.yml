@@ -13,7 +13,7 @@
 - name: "Launch EC2 instance to image"
   hosts: localhost
   connection: local
-  gather_facts: False # so the groups don't change :)
+  gather_facts: False # so the groups don't change if existing host was running above
   tasks:
     - name: "Launch EC2 instance"
       action:
@@ -30,17 +30,18 @@
           Environment: "{{app_environment}}"
           Building: "{{app_environment}}-AMI"
       register: ec2
-      when: groups['launched'] is not defined
-
-    - name: Add new instance to host groups
-      local_action: add_host hostname="{{item.public_dns_name}}" groups="webservers,{{app_environment}},launched"
-      with_items: ec2.instances
-      when: groups['launched'] is not defined
+      when: "'launched' not in groups"
 
     - name: Wait for SSH to come up
       local_action: wait_for host="{{item.public_dns_name}}" port=22 delay=20 timeout=320 state=started
       with_items: ec2.instances
-      when: groups['launched'] is not defined
+      when: "'launched' not in groups"
+
+    # NOTE: this must be the last of the tasks, otherwise the when condition will fail (since it adds the host)
+    - name: Add new instance to host groups
+      local_action: add_host hostname="{{item.public_dns_name}}" groups="webservers,{{app_environment}},launched"
+      with_items: ec2.instances
+      when: "'launched' not in groups"
 
 - name: "Bootstrap Servers"
   hosts: launched
