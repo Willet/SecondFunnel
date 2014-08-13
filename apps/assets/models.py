@@ -336,6 +336,9 @@ class ProductImage(BaseModel):
     serializer = ir_serializers.ProductImageSerializer
     cg_serializer = cg_serializers.ProductImageSerializer
 
+    class Meta(BaseModel.Meta):
+        ordering = ('id', )
+
     def image_tag(self):
         return u'<img src="%s" style="width: 400px;"/>' % self.url
 

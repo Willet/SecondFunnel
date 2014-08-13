@@ -3,6 +3,10 @@ app_environment: "stage"
 git_branch: "dev"
 django_settings_module: secondfunnel.settings.stage
 
+aws_asg:
+  min_size: 1
+  max_size: 1
+  desired_capacity: 1
 
 database:
   hostname: localhost # pgbouncer -> stage server (see settings below)

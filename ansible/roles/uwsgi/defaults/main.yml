@@ -7,6 +7,7 @@ uwsgi:
   log_file: "{{secondfunnel_log_directory}}/uwsgi.log"
   pid_file: "{{secondfunnel_run_directory}}/uwsgi.pid"
   socket_file: "{{secondfunnel_run_directory}}/uwsgi.sock"
+  module: "secondfunnel.wsgi:application"
 
   setup_monit: true
   monit_config_file: /etc/monit/conf.d/uwsgi.conf

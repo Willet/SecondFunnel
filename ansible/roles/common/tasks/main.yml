@@ -24,7 +24,7 @@
   sudo: yes
 
 - name: "Create {{common_user}} user"
-  user: name={{common_user}} shell=/bin/bash groups=admin,sudo,www-data append=yes
+  user: name={{common_user}} shell=/usr/bin/zsh groups=admin,sudo,www-data append=yes
   sudo: true
 
 - name: "Set up authorized_keys for all users logging in as {{common_user}}"
