@@ -2,21 +2,22 @@
 body {
     background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
     font-family: Georgia, 'Times New Roman', Times, serif;
+    letter-spacing: 1.1px;
 }
 
 .navbar {
     text-align: center;
     background-image: url('/static/pinpoint/themes/anthropologie/images/navbar_background.jpg');
     background-repeat: no-repeat;
-    background-position: center top;
-    height: 107px;
-    line-height: 107px;
+    background-position: center bottom;
+    height: 70px;
+    line-height: 70px;
     position: fixed;
     width: 100%;
 }
 
 body > .container {
-    padding-top: 107px;
+    padding-top: 70px;
 }
 
 .navbar .logo {
@@ -27,11 +28,32 @@ body > .container {
 .tile {
     background-color: transparent;
     font-family: Georgia, 'Times New Roman', Times, serif;
+    color: #173821;
+}
+.tile:hover {
+    color: #96004a;
+}
+
+.tile .tile-border {
+    background: #fffef9;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-top: none;
+    border-right: none;
+    padding: 10px;
+}
+
+.tile .name {
+    margin-top: 5px;
 }
 
 .previewContainer .close {
     padding: 6px;
-    color: #5D6075;
+    color: rgba(93, 96, 117, 0.5);
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+}
+.previewContainer .close:hover {
+    color: rgba(150, 0, 74, 0.5);
 }
 
 .previewContainer .content {
@@ -77,6 +99,9 @@ body > .container {
 .previewContainer .cell .stl-look {
     margin-top: 0;
     max-height: 575px;
+    text-transform: uppercase;
+    color: #666;
+    font-size: 11px;
 }
 
 .previewContainer .stl-look .stl-item img {
