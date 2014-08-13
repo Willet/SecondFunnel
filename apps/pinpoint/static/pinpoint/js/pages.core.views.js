@@ -485,18 +485,14 @@ App.module('core', function (module, App) {
                 // When resolved, layout the results
                 deferred.done(function(data) {
                     options.initialResults = data;
-                    App.options.IRResultsReturned = data.length;
-
-                    // "When a model is added to the collection, the collection
-                    // view will render that one model in to the collection of
-                    // item views." - Cool story bro
                     self.collection.add(data, {parse: true});
-                    self.render();
+                    App.options.IRResultsReturned = self.collection.models.length;
                     App.intentRank.addResultsShown(data);
                 });
-            } else { // if nothing, immediately fetch more from IR
-                this.toggleLoading(false).getTiles();
             }
+
+            // immediately fetch more from IR
+            this.toggleLoading(false).getTiles();
 
             // most-recent feed is the active feed
             App.discovery = this;
@@ -711,7 +707,7 @@ App.module('core', function (module, App) {
             }
 
             if (!this.loading && (children.length === 0 || !App.previewArea.currentView) &&
-                    (!App.utils.isIframe() && pageBottomPos >= documentBottomPos - viewportHeights)) {
+                    (pageBottomPos >= documentBottomPos - viewportHeights)) {
                 // get more tiles to fill the screen.
                 this.getTiles();
             }

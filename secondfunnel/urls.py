@@ -34,6 +34,8 @@ urlpatterns = patterns('',
     url(r'^dashboard$', lambda x: HttpResponseRedirect('/dashboard/')),
     url(r'^dashboard/', include('apps.dashboard.urls')),
 
+    url(r'^fail/?', 'apps.pinpoint.views.fail'),
+
     # special top-level urls for RSS feeds
     url(r'^(?P<page_slug>[^/\.]+)/?$',
         'apps.pinpoint.views.campaign_by_slug', name='get-page-by-slug'),

@@ -3,6 +3,10 @@ app_environment: "production"
 git_branch: "master"
 django_settings_module: secondfunnel.settings.production
 
+aws_asg:
+  min_size: 3
+  max_size: 8
+  desired_capacity: 3
 
 database:
   hostname: localhost # pgbouncer -> production server (see settings below)

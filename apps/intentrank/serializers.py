@@ -73,7 +73,7 @@ class ProductSerializer(IRSerializer):
         elif len(product_images) > 0:
             # fall back to first image
             data["default-image"] = str(product_images[0].id)
-            data["orientation"] = obj.product_images[0].orientation
+            data["orientation"] = product_images[0].orientation
 
         data["images"] = [image.to_json() for image in product_images]
 

@@ -24,7 +24,7 @@
   sudo: yes
 
 - name: "Create {{common_user}} user"
-  user: name={{common_user}} shell=/bin/bash groups=admin,sudo,www-data append=yes
+  user: name={{common_user}} shell=/usr/bin/zsh groups=admin,sudo,www-data append=yes
   sudo: true
 
 - name: "Set up authorized_keys for all users logging in as {{common_user}}"
@@ -32,6 +32,17 @@
                   key="{{lookup('file', item)}}"
   with_fileglob:
     - public_keys/*.pub
+  sudo: true
+
+- name: "Grab vagrant's public key"
+  local_action: command ssh-keygen -y -f ~/.vagrant.d/insecure_private_key
+  when: "'vagrant' in groups"
+  register: vagrant_key
+
+- name: "Set up authorized_keys for vagrant key"
+  authorized_key: user="{{common_user}}"
+                  key="{{vagrant_key.stdout}}"
+  when: "'vagrant' in groups"
   sudo: true
 
 - name: "Setup Locales (Ubuntu)"

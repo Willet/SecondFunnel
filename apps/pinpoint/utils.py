@@ -55,6 +55,11 @@ def read_remote_file(url, default_value=''):
 
 
 def get_store_slug_from_hostname(hostname):
+    hostpart_blacklist = ['demo', 'secondfunnel']
+    if settings.ENVIRONMENT == 'dev':
+        # 2ndfunnel is just for debugging. sorry
+        hostpart_blacklist.append('2ndfunnel')
+
     # matches either
     matches = re.match(r'(?:https?://)?([^:]+)(?::\d+)?', hostname, re.I)
     slug = ''
@@ -65,7 +70,7 @@ def get_store_slug_from_hostname(hostname):
     # necessary because this is supposed to return 'newegg' in 'explore.newegg.com'
     # and 'gap' in 'gap.secondfunnel.com' or 'gap.demo.secondfunnel.com'
     for part in parts[:-1]:  # removes last part (TLD)
-        if not part in ['demo', 'secondfunnel']:
+        if not part in hostpart_blacklist:
             slug = part
     return slug
 

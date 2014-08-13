@@ -112,12 +112,14 @@
         </script>
 
         <script type="text/template" id="product_tile_template">
-            <div class="tap-indicator-target"></div>
-            <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
-            <% if (App.option('debug', 0) > 1) { %>
-                <span class="type"><%= obj['content-type'] %></span>
-            <% } %>
-            <div class="name"><%= obj.title || obj.name %></div>
+            <div class="tile-border">
+                <div class="tap-indicator-target"></div>
+                <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
+                <% if (App.option('debug', 0) > 1) { %>
+                    <span class="type"><%= obj['content-type'] %></span>
+                <% } %>
+                <div class="name"><%= obj.title || obj.name %></div>
+            </div>
         </script>
 
         <script type="text/template" id="image_tile_template">
@@ -219,19 +221,19 @@
         <script type="text/template" id="product_preview_template">
             <div class="table">
                 <div class='content-wrapper row'>
+                    <div class='cell image-cell'>
+                        <div class='relative'>
+                            <div class="gallery-main-image"></div>
+                            <% if (obj.images.length > 1 && App.support.mobile()) { %>
+                                <div class='gallery-dots'></div>
+                            <% } %>
+                        </div>
+                    </div>
                     <% if (App.support.mobile()) { %>
                         <div class='cell info'>
                             <div class='title'></div>
                             <div class='price'></div>
                             <div class='buy'></div>
-                        </div>
-                    <% } %>
-                    <div class='cell image-cell'>
-                        <div class="gallery-main-image"></div>
-                    </div>
-                    <% if (obj.images.length > 1 && App.support.mobile()) { %>
-                        <div class='cell'>
-                            <div class='gallery-dots'></div>
                         </div>
                     <% } %>
                     <% if (!App.support.mobile()) { %>
@@ -252,29 +254,19 @@
                 <div class="image-with-tagged-products">
                     <div class="table">
                         <div class="row">
-                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
-                                <div class="cell desktop-only shop">
-                                    <div class="stl-title">shop the look</div>
-                                    <div class="stl-look">
-                                        <% var related = obj['tagged-products']; %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            <% } %>
                             <div class="cell desktop-only image-cell">
                                 <img src="<%= obj.image.url %>" alt="image" class="image"/>
                                     <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                                     <div class="landscape">
-                                        <div class="stl-title">shop the look</div>
+                                        <div class="stl-title">
+                                            <img src="{% static 'pinpoint/themes/anthropologie/images/getthelook.png' %}" />
+                                        </div>
                                         <div class="stl-look">
                                             <% var related = obj['tagged-products']; %>
                                             <% for (var i = 0; i < related.length; i++) { %>
                                                 <div class="stl-item" data-index="<%- i %>">
                                                     <img src="<%- related[i].images[0].url %>" />
+                                                    <%- related[i].name %>
                                                 </div>
                                             <% } %>
                                         </div>
@@ -284,21 +276,51 @@
                             <div class="cell mobile-only">
                                 <img src="<%= obj.image.url %>" alt="image"/>
                             </div>
+                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
+                                <div class="cell desktop-only shop">
+                                    <div class="stl-title">
+                                        <img src="{% static 'pinpoint/themes/anthropologie/images/getthelook.png' %}" />
+                                    </div>
+                                    <div class="stl-look">
+                                        <% var related = obj['tagged-products']; %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <%- related[i].name %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
                             <div class="cell info">
-                                <div class='title'></div>
-                                <div class='price'></div>
-                                <div class='buy'></div>
-                                <div class="gallery-main-image"></div>
-                                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                <% if (App.support.mobile()) { %>
+                                    <div class='title'></div>
+                                    <div class='price'></div>
+                                <% } %>
+                                <div class='relative'>
+                                    <div class="gallery-main-image"></div>
+                                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                    <% if (App.support.mobile()) { %>
+                                        <div class='buy'></div>
+                                    <% } %>
+                                </div>
+                                <% if (!App.support.mobile()) { %>
+                                    <div class='title'></div>
+                                    <div class='price'></div>
+                                    <div class='buy'></div>
+                                <% } %>
                             </div>
                             <% if (obj['tagged-products'].length > 1) { %>
                                 <div class="cell mobile-only">
-                                    <div class="stl-title">shop the look</div>
+                                    <div class="stl-title stick-bottom">
+                                        <img src="{% static 'pinpoint/themes/anthropologie/images/getthelook.png' %}" />
+                                    </div>
                                     <div class="stl-look">
                                         <% var related = obj['tagged-products'] %>
                                         <% for (var i = 0; i < related.length; i++) { %>
                                             <div class="stl-item" data-index="<%- i %>">
                                                 <img src="<%- related[i].images[0].url %>" />
+                                                <%- related[i].name %>
                                             </div>
                                         <% } %>
                                     </div>

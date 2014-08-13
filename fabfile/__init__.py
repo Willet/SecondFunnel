@@ -2,12 +2,15 @@ from deploy import deploy
 import celery
 import database
 
+from fabric.operations import open_shell
 from fabric.api import env, task
 from aws.api import get_instances
 
 # set default user to be ec2-user for remote executions
 env.user = 'willet'
 env.environment = 'dev'
+env.shell = "/usr/bin/zsh -l -i -c" # interactive login shell, so .zshrc is loaded
+
 
 @task
 def production():
@@ -17,7 +20,7 @@ def production():
 
 
 @task
-def test():
+def stage():
     """ run on one of the test web servers """
     env.environment = 'stage'
     env.hosts = [i.public_dns_name for i in get_instances('secondfunnel-stage')][-1:]
@@ -29,3 +32,9 @@ def production_all():
     env.environment = 'production'
     env.hosts = [i.public_dns_name for i in get_instances('secondfunnel-production')]
     return env.hosts
+
+
+@task(alias='ssh')
+def shell():
+    """ssh to the selected environment"""
+    open_shell()

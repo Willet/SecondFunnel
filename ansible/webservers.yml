@@ -2,13 +2,14 @@
 
 - name: "Bootstrap Servers"
   serial: 2
-  hosts: all
+  hosts: webservers:!building
+  remote_user: "{{bootstrap_user}}"
   roles:
-    - common
+    - { role: common, tags: common }
 
 - name: "Setup Servers"
   serial: 2
-  hosts: all
+  hosts: webservers:!building
   remote_user: "{{common_user}}"
   roles:
     - { role: db, tags: db, when: app_environment == "vagrant" }
@@ -38,7 +39,7 @@
       when: app_environment != "vagrant"
 
 - name: "Post Configuration"
-  hosts: all
+  hosts: webservers:!building
   remote_user: "{{common_user}}"
   gather_facts: False # since we are just notifying hipchat anyways
   tasks:
@@ -46,7 +47,7 @@
       local_action: hipchat
         token="{{ hipchat.token }}"
         room="{{ hipchat.room }}"
-        msg="(goodnews) {{app_environment|title}} deployment and configuration complete; (doge) WOW! MUCH SPEED SO IMPROVE! (doge) ({{play_hosts}})"
+        msg="(goodnews)(doge) {{app_environment|title}} deployment and configuration complete. ({{play_hosts|length}} machines were updated)"
         color="green"
         from="Hubert"
       tags: deploy

@@ -1,15 +1,23 @@
 
 body {
     background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    letter-spacing: 1.1px;
 }
 
 .navbar {
     text-align: center;
     background-image: url('/static/pinpoint/themes/anthropologie/images/navbar_background.jpg');
     background-repeat: no-repeat;
-    background-position: center top;
-    height: 107px;
-    line-height: 107px;
+    background-position: center bottom;
+    height: 70px;
+    line-height: 70px;
+    position: fixed;
+    width: 100%;
+}
+
+body > .container {
+    padding-top: 70px;
 }
 
 .navbar .logo {
@@ -19,27 +27,158 @@ body {
 
 .tile {
     background-color: transparent;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    color: #173821;
+}
+.tile:hover {
+    color: #96004a;
+}
+
+.tile .tile-border {
+    background: #fffef9;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-top: none;
+    border-right: none;
+    padding: 10px;
+}
+
+.tile .name {
+    margin-top: 5px;
 }
 
 .previewContainer .close {
     padding: 6px;
+    color: rgba(93, 96, 117, 0.5);
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+}
+.previewContainer .close:hover {
+    color: rgba(150, 0, 74, 0.5);
+}
+
+.previewContainer .content {
+    padding: 30px;
+    background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
+    background-position: center top;
+}
+
+.previewContainer .cell {
+    padding: 0 10px;
+}
+
+.previewContainer .image-with-tagged-products .cell.shop {
+    width: 135px;
 }
 
 .previewContainer .info .title {
-    font-size: 26px;
+    font-size: 22px;
+    margin-bottom: 0px;
+    color: #143752;
  }
 
  .previewContainer .info .price {
-    font-size: 24px;
+    font-size: 16px;
+    color: rgb(93, 154, 178);
+    margin-top: 0px;
+    margin-bottom: 15px;
  }
 
 .previewContainer .buy .button {
-    padding: 5px 10px;
-    font-size: 19px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #5D6075;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 10px #5D6075;
+}
+
+.previewContainer .cell .stl-title {
+    margin-bottom: 0;
+    background-color: transparent;
+}
+
+.previewContainer .cell .stl-look {
+    margin-top: 0;
+    max-height: 575px;
+    text-transform: uppercase;
+    color: #666;
+    font-size: 11px;
+}
+
+.previewContainer .stl-look .stl-item img {
+    margin: 10px auto;
+}
+
+.previewContainer .gallery-dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 5px;
+}
+
+.previewContainer .gallery-dots .item {
+    background-color: #5D6075;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left,
+.previewContainer .main-image-container .gallery-swipe-right {
+    width: 36px;
+    height: 52px;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-top: -13px;
+    border: none;
+}
+
+.previewContainer .main-image-container .gallery-swipe-left {
+    background-image: url('/static/pinpoint/themes/anthropologie/images/left_arrow.png');
+    left: -4px;
+}
+
+.previewContainer .main-image-container .gallery-swipe-right {
+    background-image: url('/static/pinpoint/themes/anthropologie/images/right_arrow.png');
+    right: -4px;
+}
+
+#hero-area .previewContainer .stick-bottom.stuck {
+    background-color: #FFF;
+    background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
+    background-position: center;
 }
 
 @media screen and (max-width: 768px) {
     .previewContainer .content {
-        padding-top: 18px;
+        padding: 0;
+        padding-bottom: 20px;
+    }
+
+    .previewContainer .cell {
+        padding: 5px 0;
+    }
+
+    .previewContainer .cell .stl-look {
+        max-height: none;
+    }
+
+    .previewContainer .info .price {
+        margin-bottom: 5px;
+    }
+
+    .previewContainer .info .relative {
+        margin-top: 5px;
+    }
+
+    .previewContainer .relative .buy {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 10px;
+    }
+
+    .previewContainer .cell .stl-title img {
+        margin-top: 10px;
+    }
+
+    .previewContainer .image-with-tagged-products .gallery-dots {
+        bottom: 55px;
     }
 }
