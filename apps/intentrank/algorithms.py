@@ -15,7 +15,7 @@ from apps.utils.functional import result, sort_helper
 
 
 def ids_of(tiles):  # shorthand (got too annoying)
-    return [getattr(tile, 'old_id', getattr(tile, 'id')) for tile in tiles]
+    return [getattr(tile, 'id') for tile in tiles]
 
 
 def filter_tiles(fn):
@@ -485,45 +485,46 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     num_content = int((results * percentage_content) + 0.5)
     num_product = int((results * percentage_product) + 0.5)
 
-    contents_temp = tiles.exclude(template='product')
+    contents = tiles.exclude(template='product')
     products = tiles.filter(template='product')
 
     exclude_set = set(exclude_set)
+    print "exclude set size is {}".format(len(exclude_set))
+
     # if all tiles have been used, reset and start again
-    # reset content
-    if set(ids_of(contents_temp)).issubset(exclude_set):
+    # reset content views when all content ids are present in exclude_set
+    if set(ids_of(contents)).issubset(exclude_set):
         print "Ran out of contents: resetting"
-        for x in ids_of(contents_temp):
-            exclude_set.discard(x)
+        exclude_set = exclude_set - set(ids_of(contents))
         request.session['shown'] = list(exclude_set)
 
-    # reset products
+    # reset product views when all product ids are present in exclude_set
     if set(ids_of(products)).issubset(exclude_set):
-        print "Ran out of products: resetting"
-        for x in ids_of(products):
-            exclude_set.discard(x)
+        # print "Ran out of products: resetting"  # this almost never happens
+        exclude_set = exclude_set - set(ids_of(products))
         request.session['shown'] = list(exclude_set)
 
     products = products.exclude(id__in=exclude_set)
-    contents_temp = contents_temp.exclude(id__in=exclude_set)
+    contents = contents.exclude(id__in=exclude_set)
 
     if request and request.GET.get('reqNum', '0') in ['0']:  # only at start, this allows for 10 tiles
-        prioritized_content = ir_priority_pageview(tiles=contents_temp, results=results,
-                                                   exclude_set=exclude_set, allowed_set=allowed_set)
+        prioritized_content = ir_priority_pageview(tiles=contents, results=results,
+            exclude_set=exclude_set, allowed_set=allowed_set)
         length = len(prioritized_content)
         contents = list(prioritized_content) + \
-                   list(contents_temp.order_by('-clicks')[:(num_content - length) if num_content > length else num_content])
+                   list(contents.order_by('-clicks')[:(num_content - length) if num_content > length else num_content])
     else:
-        contents = list(contents_temp.order_by('-clicks')[:num_content])
+        contents = list(contents.order_by('-clicks')[:num_content])
 
     products = list(products.order_by('-priority')[:num_product])
 
     tiles = contents + products
 
-    print "Mixed {0} product tiles with {1} content tiles".format(len(products[:num_product]),
-                                                                  len(contents[:num_content]))
-    # makes it so that blocks of content then products doesn't occur
+    rnp, rnc = len(products[:num_product]), len(contents[:num_content])
     random.shuffle(tiles)  # shuffles in place, returns None
+
+    print "returning tiles {} ({} product, {} content)".format(
+        ','.join([str(t.id) for t in tiles]), rnp, rnc)
 
     if len(tiles) > results:
         return tiles[:results]
