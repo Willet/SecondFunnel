@@ -5,6 +5,12 @@
         url("/static/pinpoint/themes/anthropologie/fonts/Clarendon-Light.ttf") format('truetype');
 }
 
+@font-face {
+    font-family:"FilosofiaRegularRegular";
+    src:url("/static/pinpoint/themes/anthropologie/fonts/FilosofiaRegular_Regular.woff") format('woff'),
+        url("/static/pinpoint/themes/anthropologie/fonts/FilosofiaRegular_Regular.ttf") format('truetype');
+}
+
 body {
     background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
     font-family: Georgia, 'Times New Roman', Times, serif;
@@ -79,26 +85,28 @@ body > .container {
 .previewContainer .cell.info {
     text-align: left;
     font-family: "ClarendonBT-Light", Georgia, serif;
+    font-weight: 100;
 }
 
 .previewContainer .info .title {
-    font-size: 22px;
+    font-family: "FilosofiaRegularRegular", Georgia, serif;
+    font-size: 21px;
     margin-bottom: 0px;
     color: #143752;
 }
 
 .previewContainer .info .price {
-    font-size: 16px;
+    font-size: 14px;
     color: rgb(93, 154, 178);
     margin-top: 0px;
 }
 
 .previewContainer .buy .button {
-    padding: 23px 40px;
-    font-size: 16px;
+    padding: 15px 27px;
+    font-size: 14px;
     background-color: #5D6075;
     text-transform: uppercase;
-    box-shadow: 3px 3px 10px rgba(93, 96, 117, 0.5);
+    box-shadow: -1px 4px 4px rgba(0, 0, 0, 0.2);
 }
 
 .previewContainer .cell .stl-title {
@@ -132,7 +140,7 @@ body > .container {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 5px;
+    bottom: 0;
 }
 
 .previewContainer .gallery img {
@@ -213,7 +221,7 @@ body > .container {
     }
 
     .previewContainer .buy .button {
-        padding: 16px 13px;
+        padding: 15px 13px;
     }
 
     .previewContainer .info .description {
