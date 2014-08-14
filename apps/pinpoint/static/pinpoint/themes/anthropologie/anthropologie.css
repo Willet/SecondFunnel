@@ -15,6 +15,7 @@ body {
     background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
     font-family: Georgia, 'Times New Roman', Times, serif;
     letter-spacing: 1.1px;
+    -webkit-font-smoothing: antialiased;
 }
 
 .navbar {
@@ -40,6 +41,7 @@ body > .container {
 .tile {
     background-color: transparent;
     font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: 11px;
     color: #173821;
 }
 .tile:hover {
@@ -51,7 +53,7 @@ body > .container {
     border: 1px solid rgba(0, 0, 0, 0.1);
     border-top: none;
     border-right: none;
-    padding: 10px;
+    padding: 8px;
 }
 
 .tile .name {
@@ -99,6 +101,10 @@ body > .container {
     font-size: 14px;
     color: rgb(93, 154, 178);
     margin-top: 0px;
+}
+
+.previewContainer .product .cell .buy {
+    margin: 30px 0;
 }
 
 .previewContainer .buy .button {
@@ -214,6 +220,10 @@ body > .container {
     .previewContainer .info .price {
         margin-bottom: 5px;
         padding: 0 10px;
+    }
+
+    .previewContainer .product .cell .buy {
+        margin: 10px 0;
     }
 
     .previewContainer .info .buy {
