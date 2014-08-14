@@ -28,14 +28,16 @@ def track_tile_view(request, tile_id):
     If tracking fails, fails silently.
     """
     if not hasattr(request, 'session'):
+        print "Warning: session is unavailable; tile views are not being tracked"
         return
 
-    tile_id = int(tile_id)
+    if not isinstance(tile_id, int):
+        tile_id = int(tile_id)
 
     if not request.session.get('shown', []):
-        request.session['shown'] = [tile_id]
-    else:
-        request.session['shown'].append(tile_id)
+        request.session['shown'] = []
+
+    request.session['shown'].append(tile_id)
     request.session['shown'] = list(set(request.session['shown']))  # uniq
 
 
@@ -71,7 +73,6 @@ def limit_showns(request, n=TRACK_SHOWN_TILES_NUM):
 
 @never_cache
 @csrf_exempt
-@thread_id
 @request_methods('GET')
 def get_results_view(request, page_id):
     """Returns random results for a campaign
