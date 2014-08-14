@@ -18,6 +18,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     config.vm.provision "ansible" do |ansible|
         ansible.playbook = "ansible/webservers.yml"
-        ansible.groups = { "vagrant" => ["default"] }
+        ansible.groups = {
+          "vagrant" => ["default"],
+          "webservers" => ["default"]
+        }
     end
 end

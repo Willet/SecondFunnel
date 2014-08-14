@@ -31,9 +31,15 @@
   notify: uwsgi reload
   when: app_environment != 'vagrant'
 
-- name: Install Python Application Requirements
+- name: Install Python Application Requirements (dev)
+  pip: requirements={{ application_directory }}/requirements/dev.txt virtualenv={{virtualenv_directory}}
+  when: app_environment == 'vagrant'
+  async: 3600
+  poll: 15
+
+- name: Install Python Application Requirements (non-dev)
   pip: requirements={{ application_directory }}/requirements.txt virtualenv={{virtualenv_directory}}
-  when: app_environment == 'vagrant' or git_repo|changed
+  when: app_environment != 'vagrant' and git_repo|changed
   async: 3600
   poll: 15
 
