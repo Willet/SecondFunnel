@@ -76,7 +76,7 @@ def read_remote_env():
         with hide('output', 'running', 'warnings'), settings(warn_only=True):
             environment = run("env")
             for line in environment.split('\r\n'):
-                key, val = line.split('=')
+                key, val = line.split('=', 1)
                 ret[key] = val
     else:
         ret = os.environ
