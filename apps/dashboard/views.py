@@ -46,7 +46,7 @@ def get_data(request):
             dashboard_id = request_get['dashboard']
         try:
             cur_dashboard_page = DashBoard.objects.get(pk=dashboard_id).page
-        except DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist:
+        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
             return error("Dashboard error, multiple or no dashboards found")
 
         # Determine if user can view dashboard
@@ -63,7 +63,7 @@ def get_data(request):
                     query = query[0]
                 else:
                     return error('Query {} needs to be defined.'.format(query_name))
-            except Query.MultipleObjectsReturned, Query.DoesNotExist:
+            except (Query.MultipleObjectsReturned, Query.DoesNotExist):
                 return error('Multiple queries found, or query does not exist')
             # execute query and set response
             # success case
@@ -108,7 +108,7 @@ def dashboard(request, dashboard_id):
         context_dict = {}
         try:
             cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
-        except DashBoard.MultipleObjectsReturned or DashBoard.DoesNotExist:
+        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
         context_dict['dashboard_id'] = cur_dashboard.pk
         context_dict['siteName'] = cur_dashboard.site_name

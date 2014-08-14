@@ -1,4 +1,3 @@
-import collections
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
@@ -28,7 +27,6 @@ class PageTileCGHandler(TileCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         page_id = kwargs.get('page_id')
         self.page = get_object_or_404(Page, id=page_id)
 
@@ -47,7 +45,6 @@ class PageTileItemCGHandler(TileItemCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         page_id = kwargs.get('page_id')
         self.page = get_object_or_404(Page, id=page_id)
 

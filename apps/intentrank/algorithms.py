@@ -28,10 +28,10 @@ def filter_tiles(fn):
     @wraps(fn)
     def wrapped_fn(*args, **kwargs):
         tiles, feed = kwargs.get('tiles'), kwargs.get('feed')
-        allowed_set= kwargs.get('allowed_set')
+        allowed_set = kwargs.get('allowed_set')
         exclude_set = kwargs.get('exclude_set')
 
-        offset, results = kwargs.get('offset', None), kwargs.get('results', 10)
+        results = kwargs.get('results', 10)
 
         content_only = kwargs.get('content_only', False)
         products_only = kwargs.get('products_only', False)
@@ -379,7 +379,7 @@ def ir_finite(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     :returns list
     """
     # serve prioritized ones first
-    prioritized_tiles = prioritized_tile_ids = []
+    prioritized_tiles = []
     if not (request and hasattr(request, 'session')):
         raise ValueError("Sessions must be enabled for ir_ordered")
 
@@ -626,8 +626,7 @@ def ir_finite_by(attribute='created_at', reversed_=False):
              for tile in tiles][:results])
 
         print "Returning popular tiles, by '{0}', " \
-              "emulating offset {1} ~ {2}\n{3}".format(
-            attribute, offset, offset + results, tile_dump)
+              "emulating offset {1} ~ {2}\n{3}".format(attribute, offset, offset + results, tile_dump)
 
         # all edge cases return []
         if exclude_set or allowed_set:
@@ -763,9 +762,11 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         for content in tile.content.all():
             products.extend(list(content.tagged_products.all()))
 
-        discounts = [parse_int(product.attributes.get('discount',
-                       product.attributes.get('sale_price', 0)))
-                     for product in products]
+        discounts = [
+            parse_int(
+                product.attributes.get('discount', product.attributes.get('sale_price', 0))
+            ) for product in products
+        ]
         if discounts:
             max_sale = max(discounts)
         else:

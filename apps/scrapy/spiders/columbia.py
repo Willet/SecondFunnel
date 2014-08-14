@@ -43,7 +43,7 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        l.add_css('sku', 'span[itemprop="identifier"]', re='#(\w+)')
+        l.add_css('sku', 'span[itemprop="identifier"]', re=r'#(\w+)')
         l.add_css('name', '.product_title::text')
         l.add_css('price', '.price-index.regprice::text')
         l.add_value('in_stock', True)

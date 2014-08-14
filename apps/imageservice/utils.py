@@ -2,7 +2,6 @@ import hashlib
 import re
 import os
 import math
-import numpy
 import random
 import urlparse
 import cStringIO
@@ -12,7 +11,6 @@ import cloudinary.api
 import cloudinary.utils
 import cloudinary.uploader
 from django.conf import settings
-from django.core.files.storage import default_storage
 
 from apps.imageservice.models import ExtendedImage
 
@@ -49,12 +47,13 @@ def get_public_id(url):
 
 
 def upload_to_cloudinary(source, path='', effect=None):
-    kwargs = {'folder': path,
-              'colors': True,
-              'format': 'jpg',
-              'public_id': generate_public_id(source),
-              'overwrite': True
-              }
+    kwargs = {
+        'folder': path,
+        'colors': True,
+        'format': 'jpg',
+        'public_id': generate_public_id(source),
+        'overwrite': True
+    }
 
     if effect:
         kwargs.update({'effect': effect})

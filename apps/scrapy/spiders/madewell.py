@@ -64,9 +64,9 @@ class MadewellSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        l.add_css('sku', '.item-num::text', re='item (\w+\d+)')
+        l.add_css('sku', '.item-num::text', re=r'item (\w+\d+)')
         l.add_css('name', 'h1::text')
-        l.add_css('price', '.full-price span::text', re='USD (.*)')
+        l.add_css('price', '.full-price span::text', re=r'USD (.*)')
         l.add_value('in_stock', True)
 
         l.add_css('description', '#prodDtlBody')
@@ -77,7 +77,7 @@ class MadewellSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         category_sel = sel.css('.linkOn')
         category_name = category_sel.css('::text').extract_first().strip()
         category_url = category_sel.css('::attr(href)').extract_first()
-        categories.append((category_name,category_url))
+        categories.append((category_name, category_url))
 
         attributes = {}
         attributes['categories'] = categories

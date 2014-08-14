@@ -55,7 +55,7 @@ class AnthropologieSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_css('sku', '#styleno::text')
         l.add_css('name', 'h1.product-name::text')
-        l.add_css('price', '.product-info .price', re='\$(.*)')
+        l.add_css('price', '.product-info .price', re=r'\$(.*)')
         l.add_value('in_stock', True)
 
         l.add_css('description', '.description-content')

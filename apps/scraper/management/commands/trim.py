@@ -26,7 +26,7 @@ class Command(BaseCommand):
 
         try:
             Store.objects.get(Q(id=store_id) | Q(slug=store_id))
-        except (Store.DoesNotExist, MultipleObjectsReturned) as err:
+        except (Store.DoesNotExist, MultipleObjectsReturned):
             raise ValueError("No such store")
 
         p = ProductImage.objects.filter(product__store_id=store_id)

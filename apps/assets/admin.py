@@ -31,10 +31,10 @@ class BaseAdmin(admin.ModelAdmin):
 
 class BaseNamedAdmin(BaseAdmin):
     list_display = [
-                       'name',
-                       'description',
-                       'slug'
-                   ] + BaseAdmin.list_display
+        'name',
+        'description',
+        'slug'
+    ] + BaseAdmin.list_display
 
     search_fields = ['name']
     ordering = ['name']

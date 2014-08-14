@@ -1,4 +1,4 @@
-__doc__ = """Scrapers
+"""Scrapers
 
 # The scraper command
 

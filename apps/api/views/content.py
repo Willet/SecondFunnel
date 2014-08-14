@@ -32,7 +32,6 @@ class StoreContentCGHandler(ContentCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         store_id = kwargs.get('store_id')
         self.store = get_object_or_404(Store, id=store_id)
 
@@ -96,7 +95,6 @@ class StoreContentItemCGHandler(ContentItemCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         store_id = kwargs.get('store_id')
         self.store = get_object_or_404(Store, id=store_id)
         self.content_id = kwargs.get(self.id_attr)
@@ -124,7 +122,6 @@ class StorePageContentCGHandler(StoreContentCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         page_id = kwargs.get('page_id')
         page = get_object_or_404(Page, id=page_id)
         self.feed = page.feed
@@ -148,7 +145,6 @@ class StorePageContentItemCGHandler(StoreContentItemCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         page_id = kwargs.get('page_id')
         content_id = kwargs.get('content_id')
         page = get_object_or_404(Page, id=page_id)
@@ -199,8 +195,7 @@ class StorePageContentSuggestedCGHandler(StorePageContentCGHandler):
                            set(tile_content_ids))
 
         # mass select and initialize these content models
-        not_in_feed = (Content.objects.filter(id__in=not_in_feed)
-                                      .select_subclasses())
+        not_in_feed = (Content.objects.filter(id__in=not_in_feed).select_subclasses())
 
         return not_in_feed
 
@@ -226,7 +221,6 @@ class StorePageContentTagCGHandler(StorePageContentItemCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         content_id = kwargs.get('content_id')
         try:
             self.content = Content.objects.filter(id=content_id).select_subclasses()[0]
@@ -282,7 +276,6 @@ class StoreContentStateItemCGHandler(ContentItemCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         store_id = kwargs.get('store_id')
         self.store = get_object_or_404(Store, id=store_id)
         self.content_id = kwargs.get(self.id_attr)

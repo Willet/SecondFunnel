@@ -1,6 +1,3 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import patterns
 
-urlpatterns = patterns('apps.assets.views',
-    url(r'^importer/(?P<store_id>\d+)/(\w+)/?$', 'import_from_cg',
-        name='import-from-cg'),
-)
+urlpatterns = patterns('apps.assets.views',)

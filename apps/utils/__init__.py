@@ -18,7 +18,7 @@ def returns_unicode(fn, encoding='utf-8'):
             else:
                 #noinspection PyArgumentList
                 return unicode(rtn, encoding)
-        except (TypeError, UnicodeDecodeError) as err:
+        except (TypeError, UnicodeDecodeError):
             # not a string / already unicode
             return rtn
 
@@ -55,7 +55,7 @@ def get_processes():
             except IOError: # proc has already terminated
                 continue
         return processes
-    except (OSError, IOError) as err:
+    except (OSError, IOError):
         return []
 
 

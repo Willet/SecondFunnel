@@ -8,7 +8,7 @@ import ast
 from django.conf import settings
 from django.conf.urls import url
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from django.middleware.csrf import get_token
 from rest_framework import viewsets
 
@@ -19,11 +19,10 @@ from tastypie.resources import ModelResource, ALL
 from tastypie.authentication import Authentication
 from tastypie.authorization import Authorization
 from tastypie.serializers import Serializer
-from tastypie.utils import trailing_slash
 
 from apps.api.paginator import ContentGraphPaginator
 from apps.api.utils import UserObjectsReadOnlyAuthorization
-from apps.assets.models import (Product, Store, Page, Feed, Tile, ProductImage, 
+from apps.assets.models import (Product, Store, Page, Feed, Tile, ProductImage,
                                 Image, Video, Review, Theme, Content, Category)
 from apps.dashboard.models import Campaign
 
@@ -61,7 +60,7 @@ class BaseCGResource(ExtendedModelResource):
 
     Alters the 'objects' and 'meta' keys given by the default paginator.
     """
-    class Meta:
+    class Meta(object):
         serializer = Serializer(formats=['json'])
         paginator_class = ContentGraphPaginator
 
@@ -105,7 +104,7 @@ class StoreResource(BaseCGResource):
             'slug': ALL,
         }
 
-    class Nested:
+    class Nested(object):
         # url name = thing(..., attribute name)
         page = fields.ToManyField('apps.api.resources.PageResource', 'pages')
         content = fields.ToManyField('apps.api.resources.ContentResource', 'content')
@@ -277,9 +276,9 @@ class ReviewResource(ContentResource):
 
 
 class ThemeResource(BaseCGResource):
+    """Returns a theme"""
     pages = fields.ToManyField('apps.api.resources.PageResource', 'page')
     stores = fields.ToManyField('apps.api.resources.StoreResource', 'store')
-    """Returns a theme"""
     class Meta(BaseCGResource.Meta):
         queryset = Theme.objects.all()
         resource_name = 'theme'
@@ -459,7 +458,8 @@ class TileConfigResource(BaseCGResource):
 # http://stackoverflow.com/questions/11770501/how-can-i-login-to-django-using-tastypie
 class UserResource(ModelResource):
     stores = fields.ToManyField('apps.api.resources.StoreResource', 'stores', full=True)
-    class Meta:
+
+    class Meta(object):
         resource_name = 'user'
         queryset = User.objects.all()
         excludes = ['id', 'email', 'password', 'is_staff', 'is_superuser']
@@ -468,20 +468,20 @@ class UserResource(ModelResource):
 
     def prepend_urls(self):
         """Adds URLs for login and logout"""
-        login = url(
+        login_url = url(
             r'^(?P<resource_name>%s)/login/?$' % (
                 self._meta.resource_name),
             self.wrap_view('login'),
             name='api_login'
         )
-        logout = url(
+        logout_url = url(
             r'^(?P<resource_name>%s)/logout/?$' % (
                 self._meta.resource_name),
             self.wrap_view('logout'),
             name='api_logout'
         )
 
-        return [login, logout]
+        return [login_url, logout_url]
 
     def login(self, request, **kwargs):
         self.method_check(request, allowed=['post'])
@@ -503,7 +503,7 @@ class UserResource(ModelResource):
             raise ImmediateHttpResponse(response=http.HttpUnauthorized())
 
         # Add CSRF token. Nick is not a security expert
-        csrf_token = get_token(request)
+        get_token(request)
 
         login(request, user)
 

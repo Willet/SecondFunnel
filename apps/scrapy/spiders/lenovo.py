@@ -10,7 +10,6 @@ from scrapy.spider import Spider
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
-from apps.scrapy.utils.misc import open_in_browser
 
 
 class LenovoSpider(SecondFunnelCrawlScraper, Spider):
@@ -51,7 +50,7 @@ class LenovoSpider(SecondFunnelCrawlScraper, Spider):
         sel = Selector(response)
 
         url = response.url
-        hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
+        # hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
@@ -64,7 +63,7 @@ class LenovoSpider(SecondFunnelCrawlScraper, Spider):
             sel.css('meta[name="ModelName"]::attr(content)').extract_first(),
             sel.css('meta[name="ModelNumber"]::attr(content)').extract_first())
         l.add_value('name', product_name)
-        l.add_css('price', 'dd.aftercoupon.value', re='\$(.*)')
+        l.add_css('price', 'dd.aftercoupon.value', re=r'\$(.*)')
         l.add_value('in_stock', True)
 
         l.add_css('description', '#features>div>div>div.grid_8.alpha')

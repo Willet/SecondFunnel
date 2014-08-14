@@ -24,8 +24,7 @@ def get_contentgraph_data(endpoint_path, headers=None, method="GET",
     headers.update({'ApiKey': 'secretword'})
 
     # same as the ContentGraphClient above, with variable headers
-    contentgraph_client = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL,
-        headers=headers)
+    contentgraph_client = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL, headers=headers)
 
     while True:
         # getattr used to retrieve GET/POST magic methods
@@ -117,7 +116,7 @@ class ContentGraphObject(object):
 
         # send it back to the server
         return call_contentgraph(endpoint_path=self.endpoint_path,
-            method="PATCH", body=json.dumps({key: value}))
+                                 method="PATCH", body=json.dumps({key: value}))
 
     def json(self, serialized=True):
         if serialized:

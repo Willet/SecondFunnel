@@ -40,7 +40,7 @@ def resize_images(sizes, img):
     image_sizes = []
 
     for size in sizes:
-        name, width, height = size.name, size.width, size.height
+        width, height = size.width, size.height
         resized = img.resize(width, height, Image.ANTIALIAS)
         resized = resized.filter(ImageFilter.UnsharpMask)  # Unsharpen image
         image_sizes.append(resized)

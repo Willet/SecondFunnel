@@ -1,7 +1,5 @@
 import base64
-import bleach
 from cloudinary import uploader as uploader
-from functools import wraps
 import os
 import re
 from scrapy.http import HtmlResponse, TextResponse

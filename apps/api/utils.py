@@ -16,7 +16,7 @@ class UserObjectsReadOnlyAuthorization(ReadOnlyAuthorization):
     def read_detail(self, object_list, bundle):
         # Is the requested object owned by the user?
         try:
-            return (bundle.obj.id == bundle.request.user.id)
+            return bundle.obj.id == bundle.request.user.id
         except:
             raise Unauthorized()
 

@@ -65,7 +65,7 @@ class HTMLPasswordResetForm(PasswordResetForm):
                                                   password=auth_password,
                                                   fail_silently=fail_silently)
         msg = EmailMessage(subject, message, from_email, recipient_list,
-                            connection=connection)
+                           connection=connection)
 
         # Our modifications below.
         if content_subtype:
@@ -74,7 +74,7 @@ class HTMLPasswordResetForm(PasswordResetForm):
 
 
 class CategoryForm(ModelForm):
-    class Meta:
+    class Meta(object):
         model = Category
 
     def clean(self):
