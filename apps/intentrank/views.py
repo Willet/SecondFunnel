@@ -101,7 +101,7 @@ def get_results_view(request, page_id):
     # keep track of the last (unique) tiles have been shown, then
     # show everything except these tile ids
     shown = track_tiles_view(request, tile_ids=shown)
-    exclude_set = map(int, shown)
+    exclude_set = [int(x) for x in shown]
 
     page = get_object_or_404(Page, id=page_id)
 
@@ -113,7 +113,8 @@ def get_results_view(request, page_id):
         page.id, page.feed.id, algorithm.__name__)
 
     # results is a queryset!
-    results = ir.get_results(results=results,
+    results = ir.get_results(
+        results=results,
         request=request, exclude_set=exclude_set, category_name=category,
         offset=offset, tile_id=tile_id, content_only=content_only,
         products_only=products_only)
@@ -214,17 +215,17 @@ def update_tiles(tile_ids, action='views'):
     if not tile_ids:
         return
 
-    track_tiles = MemcacheSetting.get('track_tiles', True)
-    if not track_tiles:
+    tracked_tiles = MemcacheSetting.get('track_tiles', True)
+    if not tracked_tiles:
         print "Tile tracking disabled by memory-bound setting"
         return
 
-    MemcacheSetting.set('track_tiles', track_tiles)  # extend memcache
+    MemcacheSetting.set('track_tiles', tracked_tiles)  # extend memcache
     try:
         # kwargs is a {<string>: <Fucking>} dict (needed for dynamic key)
         kwargs = {action: Fucking(action) + 1}
         Tile.objects.filter(id__in=tile_ids).update(**kwargs)
-    except BaseException as err:
+    except BaseException:
         # for whatever reason it failed, pause for a while
         MemcacheSetting.set('track_tiles', False)
 
@@ -237,7 +238,7 @@ def track_tiles(request, action, **kwargs):
     if not tile_ids:
         return HttpResponse(status=204)
 
-    tile_ids = map(int, tile_ids.split(','))
+    tile_ids = [int(x) for x in tile_ids.split(',')]
 
     update_tiles(tile_ids, action=action)
     return HttpResponse(status=204)

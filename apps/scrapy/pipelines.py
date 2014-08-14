@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from urlparse import urlparse
-from apps.assets.models import Store, Product, Category, Feed, Content
+from apps.assets.models import Store, Product, Category, Feed
 from apps.scraper.scrapers import ProductScraper, ContentScraper
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
@@ -162,7 +162,7 @@ class ItemPersistencePipeline(object):
         except TypeError:
             return item
 
-        model, created = get_or_create(item_model)
+        model, _ = get_or_create(item_model)
 
         try:
             update_model(model, item)
@@ -193,7 +193,7 @@ class CategoryPipeline(object):
         if url:
             kwargs['url'] = url
 
-        category, created = Category.objects.get_or_create(**kwargs)
+        category, _ = Category.objects.get_or_create(**kwargs)
         category.save()
 
         try:

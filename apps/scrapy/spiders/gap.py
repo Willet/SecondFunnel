@@ -51,7 +51,7 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             return []
 
         sel = Selector(response)
-        pages = sel.css('.pagePaginatorLabel').re_first('Page \d+ of (\d+)')
+        pages = sel.css('.pagePaginatorLabel').re_first(r'Page \d+ of (\d+)')
 
         if not pages or int(pages) <= 1:
             return []
@@ -69,7 +69,7 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         sel = Selector(response)
 
         is_product_page = sel.css('link[rel="canonical"]::attr(href)')\
-            .re_first('/P(\d+).jsp')
+            .re_first(r'/P(\d+).jsp')
 
         return is_product_page
 
@@ -86,7 +86,7 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_value('url', response.url)
-        l.add_css('sku', 'link[rel="canonical"]::attr(href)', re='/P(\d+).jsp')
+        l.add_css('sku', 'link[rel="canonical"]::attr(href)', re=r'/P(\d+).jsp')
         l.add_css('name', '.productName::text')
 
         # Presence of product name determines product availability

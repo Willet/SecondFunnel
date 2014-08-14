@@ -8,6 +8,5 @@ def environment(request):
 
 def required_dimensions(request):
     # Constants for required media dimensions
-    return { 'MIN_MEDIA_WIDTH': settings.MIN_MEDIA_WIDTH,
-             'MIN_MEDIA_HEIGHT': settings.MIN_MEDIA_HEIGHT
-           }
+    return {'MIN_MEDIA_WIDTH': settings.MIN_MEDIA_WIDTH,
+            'MIN_MEDIA_HEIGHT': settings.MIN_MEDIA_HEIGHT}

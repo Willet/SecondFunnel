@@ -51,9 +51,9 @@ class NastyGalSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        l.add_css('sku', '.product-style::text', re='Style #:(\d+)')
+        l.add_css('sku', '.product-style::text', re=r'Style #:(\d+)')
         l.add_css('name', 'h1.product-name::text')
-        l.add_css('price', '.current-price::text', re='\$(.*)')
+        l.add_css('price', '.current-price::text', re=r'\$(.*)')
         l.add_value('in_stock', True)
 
         l.add_css('description', '.product-description')

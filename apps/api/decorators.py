@@ -52,7 +52,7 @@ def append_headers(fn):
     return wrapped
 
 
-def request_methods(*request_methods):
+def request_methods(*request_method_list):
     """Returns a decorator that returns HTTP 405 if the current request
     was not made with one of the methods specified in request_methods.
 
@@ -61,8 +61,8 @@ def request_methods(*request_methods):
     def wrap(func):
         @functools.wraps(func)
         def wrapped_func(request, *args, **kwargs):
-            if not request.method in request_methods:
-                return HttpResponseNotAllowed(request_methods)
+            if not request.method in request_method_list:
+                return HttpResponseNotAllowed(request_method_list)
             return func(request, *args, **kwargs)
         # this is returning the decorated function
         return wrapped_func
@@ -83,8 +83,8 @@ def validate_json_deserializable(fn):
 
         try:
             # each message is a page id
-            message = json.loads(msg)
-        except (TypeError, ValueError) as err:
+            json.loads(msg)
+        except (TypeError, ValueError):
             # give it a name
             raise ValueError("JSON was not deserializable")
 

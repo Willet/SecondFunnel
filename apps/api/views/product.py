@@ -36,7 +36,6 @@ class StoreProductCGHandler(ProductCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         store_id = kwargs.get('store_id')
         store = get_object_or_404(Store, id=store_id)
         self.store_id = store.id
@@ -69,7 +68,6 @@ class StoreProductItemCGHandler(ProductItemCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         store_id = kwargs.get('store_id')
         store = get_object_or_404(Store, id=store_id)
         self.store_id = store.id
@@ -91,7 +89,6 @@ class StorePageProductCGHandler(StoreProductCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         page_id = kwargs.get('page_id')
         page = get_object_or_404(Page, id=page_id)
         self.feed = page.feed
@@ -107,11 +104,11 @@ class StorePageProductCGHandler(StoreProductCGHandler):
 
 
 class StorePageProductItemCGHandler(StoreProductItemCGHandler):
+
     @method_decorator(login_required)
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         page_id = kwargs.get('page_id')
         product_id = kwargs.get('product_id')
         page = get_object_or_404(Page, id=page_id)

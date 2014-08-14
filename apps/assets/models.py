@@ -50,7 +50,8 @@ class SerializableMixin(object):
 
 
 class BaseModel(models.Model, SerializableMixin):
-    created_at = CreationDateTimeField(); created_at.editable = True
+    created_at = CreationDateTimeField()
+    created_at.editable = True
 
     # To change this value, use model.save(skip_updated_at=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -65,7 +66,7 @@ class BaseModel(models.Model, SerializableMixin):
         ('last-modified', 'updated_at'),
     )
 
-    class Meta:
+    class Meta(object):
         abstract = True
 
     def __getitem__(self, key):
@@ -353,7 +354,7 @@ class ProductImage(BaseModel):
 
     @property
     def orientation(self):
-        return ("landscape" if self.width > self.height else "portrait")
+        return "landscape" if self.width > self.height else "portrait"
 
     def save(self, *args, **kwargs):
         """For whatever reason, ProductImages have separate width and height
@@ -362,9 +363,9 @@ class ProductImage(BaseModel):
         master_size = default_master_size
         try:
             master_size = self.attributes['sizes']['master']
-        except KeyError as no_sizes:
+        except KeyError:
             pass
-        except TypeError as wrong_sizes_type:
+        except TypeError:
             if isinstance(self.attributes, list):
                 self.attributes = {"sizes": default_master_size}
 
@@ -391,7 +392,7 @@ class Category(BaseModel):
 
 class Content(BaseModel):
     def _validate_status(status):
-        allowed =["approved", "rejected", "needs-review"]
+        allowed = ["approved", "rejected", "needs-review"]
         if status not in allowed:
             raise ValidationError("{0} is not an allowed status; "
                                   "choices are {1}".format(status, allowed))
@@ -438,7 +439,7 @@ class Content(BaseModel):
         if not self.attributes:
             self.attributes = {}
 
-    class Meta:
+    class Meta(object):
         verbose_name_plural = 'Content'
 
     def update(self, other=None, **kwargs):
@@ -476,7 +477,7 @@ class Image(Content):
 
     @property
     def orientation(self):
-        return ("landscape" if self.width > self.height else "portrait")
+        return "landscape" if self.width > self.height else "portrait"
 
     def save(self, *args, **kwargs):
         """For whatever reason, Images have separate width and height
@@ -485,9 +486,9 @@ class Image(Content):
         master_size = default_master_size
         try:
             master_size = self.attributes['sizes']['master']
-        except KeyError as no_sizes:
+        except KeyError:
             pass
-        except TypeError as wrong_sizes_type:
+        except TypeError:
             if isinstance(self.attributes, list):
                 self.attributes = {"sizes": default_master_size}
 
@@ -537,7 +538,8 @@ class Theme(BaseModel):
         "https://static-misc-secondfunnel/themes/campaign_base.html"
     """
     name = models.CharField(max_length=1024, blank=True, null=True)
-    template = models.CharField(max_length=1024,
+    template = models.CharField(
+        max_length=1024,
         # backward compatibility for pages that don't specify themes
         default="apps/pinpoint/templates/pinpoint/campaign_base.html")
 
@@ -575,7 +577,6 @@ class Theme(BaseModel):
 
 
 class Feed(BaseModel):
-    """"""
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
@@ -612,10 +613,10 @@ class Feed(BaseModel):
         """:raises ValueError"""
         if isinstance(obj, Product):
             return self._add_product(product=obj, prioritized=prioritized,
-                                    priority=priority)
+                                     priority=priority)
         elif isinstance(obj, Content):
             return self._add_content(content=obj, prioritized=prioritized,
-                                    priority=priority)
+                                     priority=priority)
         raise ValueError("add() accepts either Product or Content; "
                          "got {}".format(obj.__class__))
 
@@ -784,7 +785,7 @@ class Page(BaseModel):
         return super(Page, self).__getattr__(name)
 
     def __setattr__(self, name, value):
-        for (key, default) in self.theme_settings_fields:
+        for (key, _) in self.theme_settings_fields:
             if name == key:
                 if not self.theme_settings:
                     self.theme_settings = {}
@@ -853,7 +854,8 @@ class Tile(BaseModel):
     # 'custom': run the tile's priority function that returns an int.
     #           the tile will be as prioritized within the feed as the size
     #           of that int. (not implemented)
-    prioritized = models.CharField(max_length=255, default="", blank=True,
+    prioritized = models.CharField(
+        max_length=255, default="", blank=True,
         null=True, validators=[_validate_prioritized])
 
     # if the feed's algorithm is 'generic', then priority is not used.

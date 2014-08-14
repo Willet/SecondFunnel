@@ -13,8 +13,8 @@ def encode(num, alphabet=ALPHABET):
 
     @return: A string encoded with the given alphabet
     """
-    assert(num >= 0)
-    if (num == 0):
+    assert num >= 0
+    if num == 0:
         return alphabet[0]
     arr = []
     base = len(alphabet)

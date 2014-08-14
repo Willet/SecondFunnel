@@ -9,14 +9,13 @@ from django.views.decorators.http import require_http_methods
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 from apps.assets.models import ProductImage, Image, Product, Store
-from apps.intentrank.utils import ajax_jsonp
 
 
 def has_image_key(fn):
     """Decorator that ensures a file or url was passed."""
     def wrapped_function(request, *args, **kwargs):
         """Wrapper that calls the view."""
-        img, data = None, {}
+        data = {}
 
         try:
             if len(request.FILES.keys()) > 0:
@@ -112,7 +111,9 @@ def create_product_image(request, img, store_id, product_id, source):
 
     # Get the last old id to use for this object
     # TODO: This will eventually be phased out
-    image = ProductImage(product=product, original_url=request.POST['url'],
+    image = ProductImage(
+        product=product,
+        original_url=request.POST['url'],
         attributes={"sizes": data['sizes']},
         dominant_color=data['dominant-color'],
         url=data['url'], file_type=data['format'])

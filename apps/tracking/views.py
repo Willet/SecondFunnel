@@ -45,7 +45,8 @@ def conversion(request):
     nastygal_clickmeter_conversion_id = '271C54CB40964B26BD0593C4E24EF1C3'
     clickmeter_conversion_id = request.GET.get('id', nastygal_clickmeter_conversion_id)
 
-    response = render_to_response('tracking/js/conversion.js',
+    response = render_to_response(
+        'tracking/js/conversion.js',
         {
             'clickmeter_conversion_id': clickmeter_conversion_id,
         },
@@ -59,7 +60,8 @@ def conversion_loader(request):
     nastygal_clickmeter_conversion_id = '271C54CB40964B26BD0593C4E24EF1C3'
     clickmeter_conversion_id = request.GET.get('id', nastygal_clickmeter_conversion_id)
 
-    response = render_to_response('tracking/js/conversion-loader.js',
+    response = render_to_response(
+        'tracking/js/conversion-loader.js',
         {
             'clickmeter_conversion_id': clickmeter_conversion_id,
         },
