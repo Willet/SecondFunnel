@@ -23,10 +23,10 @@
         state: present
         region: "{{ aws_region }}"
         key_name: "{{ aws_sshkey_name }}"
-        group: "secondfunnel-{{app_environment}}"
+        group: "{{aws_security_groups}}"
         wait: true
         instance_tags:
-          Name: "secondfunnel-{{app_environment}}-building"
+          Name: "{{aws_name}}-building"
           Environment: "{{app_environment}}"
           Building: "{{app_environment}}-AMI"
       register: ec2
@@ -54,32 +54,34 @@
   roles:
     - web
 
-- name: "Terminate instances"
+- name: "Create AMI, Build Launch Config, and Terminate instances"
   hosts: launched
   tasks:
     - name: Gather facts
       action: ec2_facts
       tags: ami
     - name: "Save the AMI"
-      local_action: ec2_ami 
-        aws_access_key="{{aws_access_key_id}}"
-        aws_secret_key="{{aws_secret_key}}"
-        wait=yes
-        region="{{aws_region}}"
-        name="secondfunnel-{{app_environment}}-web {{ansible_date_time.date}}"
-        description="SecondFunnel {{app_environment|title}} Environment - Web Server"
-        instance_id="{{ansible_ec2_instance_id}}"
+      local_action:
+        module: ec2_ami
+        aws_access_key: "{{aws_access_key_id}}"
+        aws_secret_key: "{{aws_secret_key}}"
+        name: "{{aws_ami.name}}"
+        description: "{{aws_ami.description}}"
+        region: "{{aws_region}}"
+        instance_id: "{{ansible_ec2_instance_id}}"
+        wait: yes
       tags: ami
       register: ami_built
 
     - debug:
-        msg: "Registe AMI: {{ami_built}}"
+        msg: "Register AMI: {{ami_built}}"
 
     - name: "Terminate instances that were previously launched"
-      local_action: ec2
-        state='absent'
-        instance_ids='{{ ansible_ec2_instance_id }}'
-        region='{{aws_region}}'
+      local_action:
+        module: ec2
+        state: "absent"
+        instance_ids: "{{ ansible_ec2_instance_id }}"
+        region: "{{aws_region}}"
       tags: ami
 
     - name: "Create Launch Configuration For AMI"
@@ -88,9 +90,9 @@
         aws_access_key: "{{aws_access_key_id}}"
         aws_secret_key: "{{aws_secret_key}}"
         region: "{{aws_region}}"
-        name: "secondfunnel-{{app_environment}}-web {{ansible_date_time.date}}"
-        user_data: "{{lookup('template', './userdata.sh.j2')}}"
-        security_groups: "secondfunnel-{{app_environment}}"
+        name: "{{aws_lc.name}}
+        user_data: "{{aws_lc.user_data}}"
+        security_groups: "{{aws_security_groups}}"
         instance_type: "{{aws_instance_type}}"
         key_name: "{{aws_server_sshkey_name}}"
         image_id: "{{ami_built.image_id}}"
@@ -99,22 +101,46 @@
     - debug:
         msg: "Registered Launch Configuration: {{lc_built}}"
 
-    - name: "Create Auto Scaling Group for AMI (or modify)"
+- name: "Create Load Balancer"
+  hosts: localhost
+  vars_files:
+    - "group_vars/{{app_environment}}.yml"
+  tasks:
+    - name: "Grab Load Balancer (or create if necessary)"
+      local_action:
+        module: ec2_elb_lb
+        name: "{{aws_lb.name}}"
+        state: present
+        region: "{{aws_region}}"
+        zones: "{{aws_lb.zones}}"
+        listeners:
+          - protocol: http
+            load_balancer_port: 80
+            instance_port: 80
+        health_check: aws_lb.healthcheck
+      register: load_balancer
+
+- name: "Setup auto-scaling group, scaling policies"
+  hosts: localhost
+  vars_files:
+    - "group_vars/{{app_environment}}.yml"
+  tasks:
+    - name: "Create Auto Scaling Group (for AMI just built)"
       local_action:
         module: ec2_asg
         aws_access_key: "{{aws_access_key_id}}"
         aws_secret_key: "{{aws_secret_key}}"
         region: "{{aws_region}}"
-        name: "secondfunnel-{{app_environment}}-scaling-group"
-        launch_config_name: "{{lc_built.name}}"
-        load_balancers: "secondfunnel-{{app_environment}}-lb"
-        availability_zones: "us-west-2c,us-west-2b,us-west-2a"
-        health_check_type: "ELB"
+        name: "{{aws_asg.name}}"
+        launch_config_name: "{{aws_lc.name}}"
+        load_balancers: "{{aws_lb.name}}"
+        availability_zones: "{{aws_availability_zones}}"
+        health_check_type: "{{aws_asg.health_check_type}}"
         min_size: "{{aws_asg.min_size}}"
         max_size: "{{aws_asg.max_size}}"
         desired_capacity: "{{aws_asg.desired_capacity}}"
         tags:
-          - Name: "secondunnel-{{app_environment}}"
+          - Name: "{{aws_name}}"
             Environment: "{{app_environment}}"
             propagate_at_launch: true
 
@@ -129,16 +155,14 @@
         aws_access_key: "{{aws_access_key_id}}"
         aws_secret_key: "{{aws_secret_key}}"
         state: present
-        region: "{{ aws_region }}"
-        name: "secondfunnel-{{app_environment}}-scaling-group-High-CPU-Utilization"
+        region: "{{aws_region}}"
+        name: "{{aws_name}}-scaling-group-High-CPU-Utilization"
         adjustment_type: "ChangeInCapacity"
-        asg_name: "secondfunnel-{{app_environment}}-scaling-group"
+        asg_name: "{{aws_name}}-scaling-group"
         scaling_adjustment: 1
         min_adjustment_step: 1
         cooldown: 120
       register: scale_up_policy
-      tags:
-        - foo
 
     - debug:
         msg: "Registered scale_up_policy: {{ scale_up_policy }}"
@@ -149,10 +173,10 @@
         aws_access_key: "{{aws_access_key_id}}"
         aws_secret_key: "{{aws_secret_key}}"
         state: present
-        region: "{{ aws_region }}"
-        name: "secondfunnel-{{app_environment}}-scaling-group-CPU-Utilization"
+        region: "{{aws_region}}"
+        name: "{{aws_name}}-scaling-group-CPU-Utilization"
         adjustment_type: "ChangeInCapacity"
-        asg_name: "secondfunnel-{{app_environment}}-scaling-group"
+        asg_name: "{{aws_name}}-scaling-group"
         scaling_adjustment: -1
         min_adjustment_step: 1
         cooldown: 120
@@ -168,7 +192,7 @@
         aws_secret_key: "{{aws_secret_key}}"
         state: present
         region: "{{ aws_region }}"
-        name: "secondfunnel-{{app_environment}}-cpu-high"
+        name: "{{aws_name}}-cpu-high"
         metric: "CPUUtilization"
         namespace: "AWS/EC2"
         statistic: "Average"
@@ -178,7 +202,7 @@
         evaluation_periods: 2
         unit: "Percent"
         description: "Scale-up if CPU > 80% for 6 minutes"
-        dimensions: {"AutoScalingGroupName":"secondfunnel-{{app_environment}}-scaling-group"}
+        dimensions: {"AutoScalingGroupName":"{{aws_asg.name}}"}
         alarm_actions: ["{{ scale_up_policy.arn }}"]
       when: scale_up_policy.arn is defined
 
@@ -189,7 +213,7 @@
         aws_secret_key: "{{aws_secret_key}}"
         state: present
         region: "{{ aws_region }}"
-        name: "secondfunnel-{{app_environment}}-cpu-low"
+        name: "{{aws_name}}-cpu-low"
         metric: "CPUUtilization"
         namespace: "AWS/EC2"
         statistic: "Average"
@@ -199,6 +223,6 @@
         evaluation_periods: 2
         unit: "Percent"
         description: "Scale-down if CPU < 50% for 10 minutes"
-        dimensions: {"AutoScalingGroupName":"secondfunnel-{{app_environment}}-scaling-group"}
+        dimensions: {"AutoScalingGroupName":"{{aws_asg.name}}"}
         alarm_actions: ["{{ scale_down_policy.arn }}"]
       when: scale_down_policy.arn is defined

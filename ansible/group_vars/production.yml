@@ -1,13 +1,42 @@
 ---
+#
+# APP SETUP
+#
 app_environment: "production"
 git_branch: "master"
 django_settings_module: secondfunnel.settings.production
 
+#
+# AWS SETUP
+#
+
+aws_name: "secondfunnel-{{app_environment}}"
+
+aws_availability_zones: "us-west-2c,us-west-2b,us-west-2a"
+
+aws_security_groups: "{{aws_name}}"
+
+aws_ami:
+  name: "{{aws_name}}-web {{ansible_date_time.date}} {{ansible_date_time.time}}"
+  description: "SecondFunnel {{app_environment|title}} Environment - Web Server"
+
+aws_lb:
+  name: "secondfunnel-{{app_environment}}-lb"
+
+aws_lc:
+  name: "{{aws_name}}-web-lc {{ansible_date_time.date}}"
+  user_data: "{{lookup('template', 'templates/userdata.sh.j2')}}"
+
 aws_asg:
+  name: "{{aws_name}}-scaling-group"
   min_size: 3
   max_size: 8
   desired_capacity: 3
+  health_check_type: "ELB"
 
+#
+# DATABASE SETUP
+#
 database:
   hostname: localhost # pgbouncer -> production server (see settings below)
   port: 5432
