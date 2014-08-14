@@ -88,17 +88,17 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_value('url', response.url)
         l.add_css('name', 'h1.name::text')
         l.add_css('description', '#description span.boxsides')
-        l.add_value("sku", response.url, re='(\d+)')
+        l.add_value("sku", response.url, re=r'(\d+)')
 
         attributes = {}
 
-        sale_price = sel.css('li.sale::text').re_first('(\$\d+\.\d+)')
+        sale_price = sel.css('li.sale::text').re_first(r'(\$\d+\.\d+)')
 
         if sale_price:
             attributes['sale_price'] = sale_price
-            l.add_css('price', 'li.regular::text', re='(\$\d+\.\d+)')
+            l.add_css('price', 'li.regular::text', re=r'(\$\d+\.\d+)')
         else:
-            l.add_css('price', 'li.price::text', re='(\$\d+\.\d+)')
+            l.add_css('price', 'li.price::text', re=r'(\$\d+\.\d+)')
 
         if referer:
             attributes['categories'] = {

@@ -47,7 +47,7 @@ class IntentRank(object):
             module = importlib.import_module('apps.intentrank.algorithms')
             algorithm = getattr(module, algorithm_name)
             return algorithm
-        except (ImportError, AttributeError) as err:
+        except (ImportError, AttributeError):
             pass
 
         print "Warning: algorithm '{}' not found".format(algorithm_name)
@@ -155,7 +155,7 @@ class IntentRank(object):
             try:
                 new_things.append(serializers.serialize('json', thing))
                 continue
-            except TypeError as err:
+            except TypeError:
                 pass
 
             # if no custom method is found, dumps it directly (will raise)

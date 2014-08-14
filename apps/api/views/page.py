@@ -28,7 +28,6 @@ class StorePageCGHandler(PageCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        #  request = args[0]
         store_id = kwargs.get('store_id')
         store = get_object_or_404(Store, id=store_id)
         self.store = store
@@ -79,7 +78,7 @@ class StorePageItemCGHandler(PageItemCGHandler):
         print "StorePageItemCGHandler handling PATCH {0}".format(request.path)
         page_id = kwargs.get(self.id_attr)
         if not page_id:
-            raise HttpResponse(status=405)  # url didn't capture what to delete
+            return HttpResponse(status=405)  # url didn't capture what to delete
 
         data = json.loads(request.body)
         if 'theme' in data:
@@ -95,7 +94,6 @@ class StorePageItemCGHandler(PageItemCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        #  request = args[0]
 
         page_id = kwargs.get('page_id')
         page = get_object_or_404(Page, id=page_id)

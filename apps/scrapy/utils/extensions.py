@@ -40,12 +40,12 @@ class SentrySignals(Signals):
         else:
             result = self.client.captureMessage(payload, extra=extra)
 
-        id = self.client.get_ident(result)
+        cid = self.client.get_ident(result)
 
         logger = spider.log if spider else log.msg
-        logger("Sentry ID '{}'".format(id), level=log.INFO)
+        logger("Sentry ID '{}'".format(cid), level=log.INFO)
 
-        return id
+        return cid
 
     def spider_error(self, failure, response, spider, signal=None,
                      sender=None, *args, **kwargs):

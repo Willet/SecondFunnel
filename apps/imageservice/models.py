@@ -1,7 +1,6 @@
 import math
 import numpy
-import random
-from PIL import Image, ImageChops, ImageFilter
+from PIL import Image
 
 from django.db import models
 
@@ -55,20 +54,6 @@ class ExtendedImage(object):
             return img
 
         return result
-
-    @classmethod
-    def new(cls, mode, size):
-        """
-        Creates a new ExtendedImage object.
-
-        @param cls: ExtendedImage
-        @param mode: Mode to open object in
-        @param size: Tuple of the (width, height) dimensions
-        @return: ExtendedImage
-        """
-        img = cls()
-        img._image = Image.new(mode, size)
-        return img
 
     @classmethod
     def new(cls, mode, size, color):
@@ -141,7 +126,7 @@ class ExtendedImage(object):
         # Begin by gathering into an array of points
         from apps.imageservice.utils import get_dominant_color
 
-        colour = get_dominant_color(self)
+        colour = get_dominant_color(tmp)
         return colour
 
     def copy(self):

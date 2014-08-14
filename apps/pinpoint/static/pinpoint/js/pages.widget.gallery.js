@@ -93,7 +93,7 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', function (view, $
      */
     this.swipeStatus = function (event, phase, direction, distance, fingers, duration) {
         var offset;
-        focusWidth = focus.children().eq(0).width();
+        focusWidth = focus.children().eq(0).outerWidth();
         offset = focusWidth * focusCurrent;
 
         /* Determine the event from the phase and the direction

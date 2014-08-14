@@ -44,13 +44,13 @@ class RootsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         """
 
         url = response.url
-        hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
+        # hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
 
         sel = Selector(response)
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_value('url', response.url)
-        l.add_css('sku', '#productdetails .key::text', re='(\d+)')
+        l.add_css('sku', '#productdetails .key::text', re=r'(\d+)')
         l.add_css('name', '#productName::text')
         l.add_css('description', '.prodctdesc .description::text')
 

@@ -62,3 +62,5 @@ Analytics is our framework for tracking how users interact with the pinpoint pag
 License
 -------
 Copyright 2012-2014, Willet Inc.
+
+[ ![Codeship Status for Willet/SecondFunnel](https://codeship.io/projects/a2949e90-0588-0132-6e2b-32730fef382b/status)](https://codeship.io/projects/30913)

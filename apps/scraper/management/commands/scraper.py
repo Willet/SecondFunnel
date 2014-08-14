@@ -1,12 +1,11 @@
 import re
 import traceback
 
-from os import listdir
 from os.path import join, dirname
 
 from optparse import make_option
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db.models import Q
 
 from selenium.common.exceptions import WebDriverException
@@ -23,8 +22,6 @@ from apps.scraper.scrapers import STLScraper
 from apps.scraper.scrapers import BurberryCategoryScraper, BurberryProductScraper
 from apps.scraper.scrapers import ColumbiaCategoryScraper, ColumbiaProductScraper
 from apps.scraper.scrapers.scraper import ScraperException
-
-from . import __doc__
 
 
 class Command(BaseCommand):
@@ -198,7 +195,7 @@ class Command(BaseCommand):
                 else:
                     print('bad scraper return, must return either a url or a model for a product or content')
 
-        except WebDriverException as err:
+        except WebDriverException:
             print('There was a problem with the webdriver')
             traceback.print_exc()
 

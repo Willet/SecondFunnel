@@ -1,10 +1,13 @@
 from django.conf.urls import url, patterns, include
 from tastypie.api import Api
 
-from apps.api.resources import UserResource, StoreResource, ProductResource, ProductImageResource, ReviewResource, \
-    VideoResource, ContentResource, ImageResource, ThemeResource, PageResource, FeedResource, TileResource, \
-    TileConfigResource, CampaignResource, CategoryResource
-from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
+from apps.api.resources import (
+    UserResource, StoreResource, ProductResource, ProductImageResource, ReviewResource,
+    VideoResource, ContentResource, ImageResource, ThemeResource, PageResource, FeedResource,
+    TileResource, TileConfigResource, CampaignResource, CategoryResource)
+
+from apps.api.views import (
+    ContentCGHandler, StoreContentCGHandler,
     StorePageContentCGHandler, ProductCGHandler, StoreProductCGHandler,
     ProductImageItemCGHandler,
     StorePageProductCGHandler, StoreCGHandler, StoreItemCGHandler, PageCGHandler,
@@ -22,6 +25,7 @@ from apps.api.views import (ContentCGHandler, StoreContentCGHandler,
     StorePageContentPrioritizeItemCGHandler,
     StorePageContentDeprioritizeItemCGHandler, StoreContentApproveItemCGHandler,
     StoreContentRejectItemCGHandler, StoreContentUndecideItemCGHandler, ProductItemCGHandler)
+
 from apps.api.views.content import PageContentAllCGHandler
 
 # tastypie v2 api
@@ -48,7 +52,8 @@ urlpatterns = api.urls
 # This stuff can hopefully be removed when the CM is re-written..
 prefix = 'v1'
 
-urlpatterns += patterns('apps.api.views',
+urlpatterns += patterns(
+    'apps.api.views',
     # primitive handlers
     # user
     url('%s/' % prefix, include(UserResource().urls)),  # v1 api uses UserResource from v2 for some reason..

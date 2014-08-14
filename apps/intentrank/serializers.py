@@ -64,8 +64,7 @@ class ProductSerializer(IRSerializer):
                     pass  # could not find matching product image
         elif hasattr(obj, 'default_image_id') and obj.default_image_id:
             # if default image is missing...
-            data["default-image"] = str(obj.default_image.id or
-                obj.default_image_id)
+            data["default-image"] = str(obj.default_image.id or obj.default_image_id)
             data["orientation"] = obj.default_image.orientation
 
             try:
@@ -220,7 +219,7 @@ class ProductTileSerializer(TileSerializer):
         try:
             data.update(obj.products.all()[0].to_json())
             data['product-ids'] = [x.id for x in obj.products.all()]
-        except IndexError as err:
+        except IndexError:
             pass  # no products in this tile
         return data
 
@@ -234,7 +233,7 @@ class ContentTileSerializer(TileSerializer):
         try:
             data.update(obj.content.select_subclasses()[0].to_json())
             data['content-ids'] = [x.id for x in obj.content.all()]
-        except IndexError as err:
+        except IndexError:
             pass  # no content in this tile
         return data
 
@@ -259,7 +258,7 @@ class BannerTileSerializer(TileSerializer):
             if not redirect_url:
                 try:
                     redirect_url = obj.content.select_subclasses()[0].source_url
-                except IndexError as err:
+                except IndexError:
                     pass  # tried to find a redirect url, don't have one
         elif obj.products.count(): # We prefer content over products
             product_serializer = ProductTileSerializer()
@@ -268,7 +267,7 @@ class BannerTileSerializer(TileSerializer):
             if not redirect_url:
                 try:
                     redirect_url = obj.products.all()[0].url
-                except IndexError as err:
+                except IndexError:
                     pass  # tried to find a redirect url, don't have one
 
         data.update({'redirect-url': redirect_url})

@@ -38,7 +38,7 @@ class TileConfigCGHandler(BaseCGHandler):
 
         # multiple objects (paginate)
         if isinstance(things, collections.Iterable) and type(things) != dict:
-            paginator, page, queryset, is_paginated = self.paginate_queryset(
+            _, page, _, _ = self.paginate_queryset(
                 things, self.get_paginate_by(things))
 
             result_set = [obj.tile_config for obj in page.object_list]
@@ -67,7 +67,6 @@ class PageTileConfigCGHandler(TileConfigCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         page_id = kwargs.get('page_id')
         self.page = get_object_or_404(Page, id=page_id)
 
@@ -86,7 +85,6 @@ class PageTileConfigItemCGHandler(TileConfigItemCGHandler):
     @method_decorator(csrf_exempt)
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        request = args[0]
         page_id = kwargs.get('page_id')
         self.page = get_object_or_404(Page, id=page_id)
 

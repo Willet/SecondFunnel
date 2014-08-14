@@ -1,5 +1,3 @@
-- include: create_lb.yml
-
 - name: "Bootstrap Servers"
   serial: 2
   hosts: webservers:!building
@@ -11,9 +9,6 @@
   serial: 2
   hosts: webservers:!building
   remote_user: "{{common_user}}"
-  roles:
-    - { role: db, tags: db, when: app_environment == "vagrant" }
-    - web
   pre_tasks:
     - name: "Gathering ec2 facts"
       ec2_facts:
@@ -22,18 +17,21 @@
       local_action: ec2_elb
       args:
         instance_id: "{{ansible_ec2_instance_id}}"
-        ec2_elbs: "secondfunnel-{{app_environment}}-lb"
-        region: "us-west-2"
+        ec2_elbs: "{{aws_lb.name}}"
+        region: "{{aws_region}}"
         state: "absent"
       ignore_errors: yes
       when: app_environment != "vagrant"
+  roles:
+    - { role: db, tags: db, when: app_environment == "vagrant" }
+    - web
   post_tasks:
     - name: "Register Instance on LB"
       local_action: ec2_elb
       args:
         instance_id: "{{ansible_ec2_instance_id}}"
-        ec2_elbs: "secondfunnel-{{app_environment}}-lb"
-        region: "us-west-2"
+        ec2_elbs: "{{aws_lb.name}}"
+        region: "{{aws_region}}"
         state: "present"
       ignore_errors: yes
       when: app_environment != "vagrant"

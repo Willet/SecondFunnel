@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from apps.assets.models import Page
 
 class Command(BaseCommand):
@@ -26,8 +26,8 @@ class Command(BaseCommand):
 
         for tile in tiles:
             key = 'p:%s c:%s' % (
-                ','.join(map(lambda x: str(x['id']), tile.products.all().order_by('id').values('id'))),
-                ','.join(map(lambda x: str(x['id']), tile.content.all().order_by('id').values('id'))),
+                ','.join(str(x['id']) for x in tile.products.all().order_by('id').values('id')),
+                ','.join(str(x['id']) for x in tile.content.all().order_by('id').values('id')),
             )
 
             if key in tiles_dict:

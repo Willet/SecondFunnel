@@ -63,7 +63,7 @@ body > .container {
 }
 
 .previewContainer .content {
-    padding: 30px;
+    padding: 50px 30px;
     background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
     background-position: center top;
 }
@@ -91,11 +91,10 @@ body > .container {
     font-size: 16px;
     color: rgb(93, 154, 178);
     margin-top: 0px;
-    margin-bottom: 15px;
 }
 
 .previewContainer .buy .button {
-    padding: 10px 20px;
+    padding: 23px 40px;
     font-size: 16px;
     background-color: #5D6075;
     text-transform: uppercase;
@@ -119,6 +118,16 @@ body > .container {
     margin: 10px auto;
 }
 
+.previewContainer .gallery,
+.previewContainer .gallery-dots {
+    white-space: nowrap;
+    overflow: auto;
+}
+
+.previewContainer .gallery {
+    text-align: left;
+}
+
 .previewContainer .gallery-dots {
     position: absolute;
     left: 0;
@@ -126,8 +135,20 @@ body > .container {
     bottom: 5px;
 }
 
+.previewContainer .gallery img {
+    width: 64px;
+}
+
 .previewContainer .gallery-dots .item {
     background-color: #5D6075;
+}
+
+.previewContainer .main-image-container .polaroid {
+    display: inline-block;
+    padding: 20px 35px 40px 35px;
+    background-image: url('/static/pinpoint/themes/anthropologie/images/polaroid.png');
+    background-size: cover;
+    background-position: center top;
 }
 
 .previewContainer .main-image-container .gallery-swipe-left,
@@ -157,6 +178,14 @@ body > .container {
 }
 
 @media screen and (max-width: 768px) {
+    body > .container {
+        padding-top: 0;
+    }
+
+    .navbar {
+        position: static;
+    }
+
     .previewContainer .content {
         padding: 0;
         padding-bottom: 20px;
@@ -183,6 +212,10 @@ body > .container {
         padding: 0 10px;
     }
 
+    .previewContainer .buy .button {
+        padding: 16px 13px;
+    }
+
     .previewContainer .info .description {
         padding: 0 10px;
     }
@@ -195,7 +228,7 @@ body > .container {
         position: absolute;
         left: 0;
         right: 0;
-        bottom: 10px;
+        bottom: 50px;
         text-align: center;
     }
 
@@ -204,6 +237,6 @@ body > .container {
     }
 
     .previewContainer .image-with-tagged-products .gallery-dots {
-        bottom: 55px;
+        bottom: 105px;
     }
 }

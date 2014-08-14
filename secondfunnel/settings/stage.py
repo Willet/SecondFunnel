@@ -13,7 +13,7 @@ COMPRESS_CSS_HASHING_METHOD = 'hash'
 AWS_IS_GZIPPED = True # GZip Middleware isn't recognized without this line because http://stackoverflow.com/a/19180415/1558430
 AWS_S3_CUSTOM_DOMAIN = CLOUDFRONT_DOMAIN
 AWS_S3_SECURE_URLS = False
-AWS_HEADERS =  {
+AWS_HEADERS = {
     'Expires': BROWSER_CACHE_EXPIRATION_DATE,
     'Cache-Control': "public, max-age=1800",
     'Vary': 'Accept-Encoding',
