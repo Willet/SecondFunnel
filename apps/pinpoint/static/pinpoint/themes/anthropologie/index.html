@@ -200,7 +200,9 @@
                 <% } %>
                 <div class="main-image">
                     <% for (var i = 0; i < obj.images.length; i++) { %>
-                        <img class="image" src="<%- obj.images[i].url %>" />
+                        <div class="polaroid">
+                            <img class="image" src="<%- obj.images[i].url %>" />
+                        </div>
                     <% } %>
                 </div>
             </div>
@@ -221,6 +223,15 @@
         <script type="text/template" id="product_preview_template">
             <div class="table">
                 <div class='content-wrapper row'>
+                    <% if (!App.support.mobile()) { %>
+                        <div class='cell info'>
+                            <div class='title'></div>
+                            <div class='price'></div>
+                            <div class='description'></div>
+                            <div class='buy'></div>
+                            <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
+                        </div>
+                    <% } %>
                     <div class='cell image-cell'>
                         <div class='relative'>
                             <div class="gallery-main-image"></div>
@@ -233,17 +244,7 @@
                         <div class='cell info'>
                             <div class='title'></div>
                             <div class='price'></div>
-                            <div class='description'></div>
                             <div class='buy'></div>
-                        </div>
-                    <% } %>
-                    <% if (!App.support.mobile()) { %>
-                        <div class='cell info'>
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <div class='description'></div>
-                            <div class='buy'></div>
-                            <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
                         </div>
                     <% } %>
                 </div>
