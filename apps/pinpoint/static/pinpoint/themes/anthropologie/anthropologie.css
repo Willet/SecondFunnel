@@ -73,6 +73,10 @@ body > .container {
     color: rgba(150, 0, 74, 0.5);
 }
 
+#hero-area .previewContainer .content {
+    max-width: 1024px;
+}
+
 .previewContainer .content {
     padding: 50px 30px;
     background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
