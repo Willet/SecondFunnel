@@ -9,6 +9,7 @@ body > .container {
 }
 
 html {
+    border: 1px solid #eee;
     box-sizing: border-box;
 }
 
@@ -18,6 +19,16 @@ body {
 
 #discovery-area {
     margin-top: 0;
+}
+
+#bottom-padding {
+    position: fixed;
+    height: 5px;
+    bottom: 0;
+    z-index: 1;
+    left: 1px;
+    right: 1px;
+    border-bottom: 1px solid #eee;
 }
 
 #topbar img {
