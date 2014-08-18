@@ -459,11 +459,10 @@ App.module('core', function (module, App) {
                 deferred = $.Deferred(),
                 options = opts.options; // someone came up with this idea
 
-            _.bindAll(this, 'pageScroll', 'toggleLoading');
+            _.bindAll(this, 'pageScroll');
 
             this.collection = new App.core.TileCollection();
 
-            this.toggleLoading(true);
             this.attachListeners();
 
             // If the collection has initial values, lay them out
@@ -492,7 +491,7 @@ App.module('core', function (module, App) {
             }
 
             // immediately fetch more from IR
-            this.toggleLoading(false).getTiles();
+            this._getTiles();
 
             // most-recent feed is the active feed
             App.discovery = this;
@@ -581,27 +580,28 @@ App.module('core', function (module, App) {
         },
 
         /**
-         *
-         * @param options
-         * @param tile {TileView}  supply a tile View to have tiles inserted
-         *                         after it. (optional)
-         * @returns deferred
+         * Fetches more tiles if not already fetching. Regardless, it
+         * @returns  A Deferred object
          */
-        'getTiles': function (options, tile) {
-            var self = this, xhr;
+        _getTiles: function (options) {
+            var self = this,
+                xhr;
+
             if (this.loading) {
-                // do nothing
                 return (new $.Deferred()).promise();
             }
 
-            xhr = this.toggleLoading(true).collection.fetch();
+            this._toggleLoading(true);
+            xhr = this.collection.fetch();
 
             xhr.done(function (tileInfo) {
-                // feed ended / IR busted
+                // feed ended
                 if (tileInfo && tileInfo.length === 0) {
-                    self.toggleLoading(false);
                     App.vent.trigger('feedEnded', this);
                 }
+            }).always(function () {
+                // even if IR is busted
+                self._toggleLoading(false);
             });
 
             return xhr;
@@ -620,20 +620,12 @@ App.module('core', function (module, App) {
         },
 
         /**
-         * Called when new content has been appended to the collectionView via
-         * the layoutEngine.  Toggles loading to false, and calls pageScroll.
+         * This is intentionally left here as a reminder NOT to fetch results
+         * everytime an item is appended.
          *
          * @returns this
          */
         'onAfterItemAppended': function (view, el) {
-            var self = this;
-
-            setTimeout(function () {
-                self
-                    .toggleLoading(false)
-                    .pageScroll();
-            }, 500);
-
             return this;
         },
 
@@ -647,7 +639,7 @@ App.module('core', function (module, App) {
                 console.warn('updateContentStream got a null ID. ' +
                     'I don\'t think it is supposed to happen.');
             }
-            this.getTiles({
+            this._getTiles({
                 'type': 'content',
                 'id': id
             }, tile);
@@ -663,18 +655,18 @@ App.module('core', function (module, App) {
                 this.on('loadingFinished', _.once(function () {
                     App.layoutEngine.empty(self);
                     self.ended = false;
-                    self.getTiles();
+                    self._getTiles();
                 }));
             } else {
                 App.layoutEngine.empty(this);
                 this.ended = false;
-                this.getTiles();
+                this._getTiles();
             }
 
             return this;
         },
 
-        'toggleLoading': function (bool) {
+        _toggleLoading: function (bool) {
             if (typeof bool === 'boolean') {
                 this.loading = bool;
             } else {
@@ -709,7 +701,7 @@ App.module('core', function (module, App) {
             if (!this.loading && (children.length === 0 || !App.previewArea.currentView) &&
                     (pageBottomPos >= documentBottomPos - viewportHeights)) {
                 // get more tiles to fill the screen.
-                this.getTiles();
+                this._getTiles();
             }
 
             // Did the user scroll ever?

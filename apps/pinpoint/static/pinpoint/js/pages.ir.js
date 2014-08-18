@@ -141,16 +141,18 @@ App.module("intentRank", function (intentRank, App) {
             }
         }
 
-        // attach respective success and error functions to the options object
-        // use backup list if request fails
-        _.extend(opts, {
-            success: function (results) {
+        // Make the request to Backbone collection and return deferred
+        Backbone.Collection.prototype
+            .sync('read', collection, opts)
+            .done(function (results) {
+                // request SUCCEEDED
                 var method = opts.reset ? 'reset' : 'set';
                 results = prepopulatedResults.concat(results);
                 App.options.IRResultsReturned = results.length;
 
                 // reset fail counter
                 collection.ajaxFailCount = 0;
+
                 collection[method](results, opts);
                 collection.trigger('sync', collection, results, opts);
                 deferred.resolve(results);
@@ -161,19 +163,14 @@ App.module("intentRank", function (intentRank, App) {
                 if (resultsAlreadyRequested.length > intentRank.options.IRResultsCount) {
                     resultsAlreadyRequested = resultsAlreadyRequested.slice(-10);
                 }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                // reset fail counter
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                // request FAILED
                 if (collection.ajaxFailCount) {
                     collection.ajaxFailCount++;
                 } else {
                     collection.ajaxFailCount = 1;
                 }
-            }
-        });
-
-        // Make the request to Backbone collection and return deferred
-        Backbone.Collection.prototype.sync('read', collection, opts);
+            });
         deferred.done(function () {
             App.options.IRReqNum++;
             intentRank.options.IRReqNum++;
