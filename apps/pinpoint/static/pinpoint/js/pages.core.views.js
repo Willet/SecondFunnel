@@ -691,8 +691,7 @@ App.module('core', function (module, App) {
                 windowTop = $window.scrollTop(),
                 pageBottomPos = pageHeight + windowTop,
                 documentBottomPos = this.$el.height() - this.$el.offset().top,
-                viewportHeights = pageHeight * (App.option('prefetchHeight', 2.5)),
-                st;
+                viewportHeights = pageHeight * (App.option('prefetchHeight', 2.5));
 
             if (this.ended) {
                 return this;
@@ -723,15 +722,6 @@ App.module('core', function (module, App) {
 
                 pagesScrolled++;  // user scrolled down once more
             }
-
-            // detect scrolling detection. not used for anything yet.
-            st = $window.scrollTop();
-            if (st > this.lastScrollTop) {
-                App.vent.trigger('scrollDown', this);
-            } else if (st < this.lastScrollTop) {
-                App.vent.trigger('scrollUp', this);
-            }  // if equal, trigger nothing
-            this.lastScrollTop = st;
 
             return this;
         }
