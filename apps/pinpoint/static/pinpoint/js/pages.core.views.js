@@ -602,6 +602,9 @@ App.module('core', function (module, App) {
             }).always(function () {
                 // even if IR is busted
                 self._toggleLoading(false);
+
+                // check if there are enough tiles to cover the page
+                self.pageScroll();
             });
 
             return xhr;
@@ -685,6 +688,11 @@ App.module('core', function (module, App) {
             return this;
         },
 
+        /**
+         * - tracks scrolling events
+         * - checks if more tiles should be displayed / fetched
+         * @returns this
+         */
         'pageScroll': function () {
             var children = this.$el.children(),
                 pageHeight = $window.innerHeight(),

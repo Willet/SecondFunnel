@@ -5,8 +5,7 @@
 App.module("intentRank", function (intentRank, App) {
     "use strict";
 
-    var cachedResults = [],
-        fetching = null,
+    var fetching = null,
         resultsAlreadyRequested = []; // list of product IDs
 
     this.options = {
@@ -84,8 +83,7 @@ App.module("intentRank", function (intentRank, App) {
         var collection = this,
             deferred = new $.Deferred(),
             data = {},
-            opts,
-            prepopulatedResults = [];
+            opts;
 
         if (resultsAlreadyRequested.length) {
             data.shown = resultsAlreadyRequested.sort().join(',');
@@ -98,7 +96,6 @@ App.module("intentRank", function (intentRank, App) {
         if (intentRank.options.IRReset) {
             data['session-reset'] = true;
             intentRank.options.IRReset = false;
-            cachedResults = [];
         }
 
         // normally undefined, unless a category is selected on the page
@@ -125,29 +122,12 @@ App.module("intentRank", function (intentRank, App) {
             return deferred.promise();
         }
 
-        // check if cached results, and options is undefined
-        // don't do this if we are actually the intentRank module
-        if (!options && this !== intentRank) {
-            var len = cachedResults.length,
-                method = opts.reset ? 'reset' : 'set';
-            prepopulatedResults = cachedResults.splice(0, len);
-
-            if (fetching) { // return fetching object if we're fetching
-                console.debug('Holding off for IR to finish.');
-                return fetching.done(function (results) {
-                    collection[method](results, opts);
-                    collection.trigger('sync', collection, results, opts);
-                });
-            }
-        }
-
         // Make the request to Backbone collection and return deferred
         Backbone.Collection.prototype
             .sync('read', collection, opts)
             .done(function (results) {
                 // request SUCCEEDED
                 var method = opts.reset ? 'reset' : 'set';
-                results = prepopulatedResults.concat(results);
                 App.options.IRResultsReturned = results.length;
 
                 // reset fail counter
@@ -163,7 +143,7 @@ App.module("intentRank", function (intentRank, App) {
                 if (resultsAlreadyRequested.length > intentRank.options.IRResultsCount) {
                     resultsAlreadyRequested = resultsAlreadyRequested.slice(-10);
                 }
-            }).fail(function (jqXHR, textStatus, errorThrown) {
+            }).fail(function () {
                 // request FAILED
                 if (collection.ajaxFailCount) {
                     collection.ajaxFailCount++;
@@ -213,19 +193,6 @@ App.module("intentRank", function (intentRank, App) {
     };
 
     /**
-     * A unique list of all tiles shown on the page.
-     * @returns {array}
-     */
-    this.getAllResultsShown = function () {
-        try {
-            return App.discovery.collection.models;
-        } catch (err) {
-            // first call, App.discovery is not a var yet
-            return App.option('initialResults') || [];
-        }
-    };
-
-    /**
      * append a list of json results shown.
      */
     this.addResultsShown = function (results) {
@@ -239,14 +206,15 @@ App.module("intentRank", function (intentRank, App) {
      * @return {Array} unique list of tile ids
      */
     this.getTileIds = function (tiles) {
-        if (!App.discoveryArea.$el) {
-            // there is no feed on the page, so there are no tiles on the page.
-            return [];
-        }
         if (tiles === undefined) {
-            tiles = _.map(App.discoveryArea.$el.find('.tile'), function (el) {
-                return $(el).tile().model;
-            });
+            if (App.discoveryArea && App.discoveryArea.$el) {
+                tiles = _.map(App.discoveryArea.$el.find('.tile'), function (el) {
+                    return $(el).tile().model;
+                });
+            }
+        }
+        if (!tiles) {
+            tiles = [];
         }
 
         return _.uniq(_.map(_.compact(tiles), function (model) {
@@ -263,8 +231,6 @@ App.module("intentRank", function (intentRank, App) {
      * @return this
      */
     this.set = function (results) {
-        // Simply add to our cached results list
-        cachedResults = cachedResults.concat(results);
         return this;
     };
 
@@ -285,8 +251,7 @@ App.module("intentRank", function (intentRank, App) {
      * @return this
      */
     this.changeCategory = function (category) {
-        // Change the category, category is a string passed
-        // to data
+        // Change the category, category is a string passed to data
         intentRank.options.category = category;
         intentRank.options.IRReset = true;
 
