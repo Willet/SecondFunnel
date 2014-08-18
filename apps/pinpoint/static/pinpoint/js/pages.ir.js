@@ -5,14 +5,13 @@
 App.module("intentRank", function (intentRank, App) {
     "use strict";
 
-    var consecutiveFailures = 0,
-        cachedResults = [],
+    var cachedResults = [],
         fetching = null,
         resultsAlreadyRequested = [], // list of product IDs
         urlTemplate;
 
     this.options = {
-        'baseUrl': '/intentrank',  // or an absolute base url, e.g. http://tng-test.secondfunnel.com/intentrank
+        'baseUrl': '/intentrank',
         'urlTemplates': {
             'campaign': '<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>',
             'category': '<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>&category=<%=category%>'
@@ -21,12 +20,10 @@ App.module("intentRank", function (intentRank, App) {
         'merge': true,
         'remove': false,
         'categories': {},
-        'backupResults': [],
         'IRResultsCount': 10,
         'IRAlgo': 'generic',
         'IRTileSet': '',
         'IRReqNum': 0,
-        'IRTimeout': 5000,
         'IROffset': 0,  // specific to some deterministic algorithms
         'store': {},
         'content': []
@@ -52,11 +49,9 @@ App.module("intentRank", function (intentRank, App) {
             'campaign': options.campaign,
             // @deprecated: options.categories will be page.categories
             'categories': page.categories || options.categories || {},
-            'backupResults': options.backupResults || [],
             'IRResultsCount': options.IRResultsCount || 10,
             'IRAlgo': options.IRAlgo || 'generic',
             'IRReqNum': options.IRReqNum || 0,
-            'IRTimeout': options.IRTimeout || 5000,
             'IRTileSet': options.IRTileSet || '',
             'content': options.content || [],
             'filters': options.filters || [],
@@ -95,15 +90,9 @@ App.module("intentRank", function (intentRank, App) {
         // 'this' can be whatever you want it to be
         var collection = this,
             deferred = new $.Deferred(),
-            online = !App.option('page:offline', false),
             data = {},
             opts,
-            prepopulatedResults = [],
-            backupResults = _.chain(intentRank.options.backupResults)
-                .filter(intentRank.filter)
-                .shuffle()
-                .first(intentRank.options.IRResultsCount)
-                .value();
+            prepopulatedResults = [];
 
         if (resultsAlreadyRequested.length) {
             data.shown = resultsAlreadyRequested.sort().join(',');
@@ -132,9 +121,10 @@ App.module("intentRank", function (intentRank, App) {
             'data': data
         }, this.config, intentRank.options, options);
 
-        // if offline, return a backup list
-        if (!online || collection.ajaxFailCount > 5) {
-            return $.when(backupResults);
+        if (collection.ajaxFailCount > 5) {
+            console.error("IR failed " + collection.ajaxFailCount +
+                " times consecutively!");
+            return deferred.promise();
         }
 
         // check if cached results, and options is undefined
@@ -181,9 +171,6 @@ App.module("intentRank", function (intentRank, App) {
                 } else {
                     collection.ajaxFailCount = 1;
                 }
-
-                deferred.resolve(backupResults);
-                resultsAlreadyRequested = intentRank.getTileIds(backupResults);
             }
         });
 
@@ -274,17 +261,6 @@ App.module("intentRank", function (intentRank, App) {
                 return model['tile-id'];
             }
         }));
-    };
-
-    /**
-     * @param {Integer} diff
-     * @return thsi
-     */
-    this.updateCache = function (diff) {
-        // right now it seems as if IR has a hard limit of 20
-        this.options.IRCacheResultCount = Math.min(10,
-            this.options.IRCacheResultCount + diff);
-        return this;
     };
 
     /**

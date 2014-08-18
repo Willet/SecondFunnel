@@ -19,7 +19,6 @@
     - unzip
     - realpath
     - apache2-utils
-    - awscli
     - zsh
   sudo: yes
 
