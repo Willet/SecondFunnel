@@ -249,7 +249,7 @@ describe("SecondFunnel", function () {
             it("It should be possible to define an alternative " +
                 "source URL", function () {
                 // what to test when its existence is optional?
-                expect(app.intentRank.options.baseUrl).toEqual(config.IRSource);
+                expect(app.intentRank.options.IRSource).toEqual(config.IRSource);
             });
         });
 

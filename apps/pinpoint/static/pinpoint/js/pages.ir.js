@@ -7,15 +7,11 @@ App.module("intentRank", function (intentRank, App) {
 
     var cachedResults = [],
         fetching = null,
-        resultsAlreadyRequested = [], // list of product IDs
-        urlTemplate;
+        resultsAlreadyRequested = []; // list of product IDs
 
     this.options = {
-        'baseUrl': '/intentrank',
-        'urlTemplates': {
-            'campaign': '<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>',
-            'category': '<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>&category=<%=category%>'
-        },
+        'IRSource': '/intentrank',
+        'urlTemplate': '<%=IRSource%>/page/<%=campaign%>/getresults',
         'add': true,
         'merge': true,
         'remove': false,
@@ -44,7 +40,7 @@ App.module("intentRank", function (intentRank, App) {
         var page = options.page || {};
 
         _.extend(intentRank.options, {
-            'baseUrl': options.IRSource || this.baseUrl,
+            'IRSource': options.IRSource || this.IRSource,
             'store': options.store || {},
             'campaign': options.campaign,
             // @deprecated: options.categories will be page.categories
@@ -61,9 +57,6 @@ App.module("intentRank", function (intentRank, App) {
             'IROffset': options.IROffset || 0
         });
 
-        // set the base url
-        urlTemplate = intentRank.options.urlTemplates.campaign;
-
         App.vent.trigger('intentRankInitialized', intentRank);
         return this;
     };
@@ -74,7 +67,7 @@ App.module("intentRank", function (intentRank, App) {
      * @returns {String}
      */
     this.url = function () {
-        return _.template(urlTemplate, intentRank.options);
+        return _.template(this.options.urlTemplate, intentRank.options);
     };
 
     /**
@@ -106,6 +99,11 @@ App.module("intentRank", function (intentRank, App) {
             data['session-reset'] = true;
             intentRank.options.IRReset = false;
             cachedResults = [];
+        }
+
+        // normally undefined, unless a category is selected on the page
+        if (intentRank.options.category) {
+            data.catagory = intentRank.options.category;
         }
 
         opts = $.extend({}, {
@@ -294,14 +292,6 @@ App.module("intentRank", function (intentRank, App) {
         // to data
         intentRank.options.category = category;
         intentRank.options.IRReset = true;
-
-        if (!category) { // clear the category
-            urlTemplate = intentRank.options.urlTemplates.campaign;
-            console.debug('No category passed, clearing.');
-            delete intentRank.options.category;
-        } else { // Swap default url
-            urlTemplate = intentRank.options.urlTemplates.category;
-        }
 
         App.vent.trigger('change:category', category, category);
 
