@@ -164,8 +164,8 @@ CLOUDINARY = {
 }
 
 # http://django_compressor.readthedocs.org/en/latest/remote-storages/
-AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
-AWS_SECRET_ACCESS_KEY = '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'
+AWS_ACCESS_KEY_ID = 'AKIAJOVROL7FV33DULAA'
+AWS_SECRET_ACCESS_KEY = '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'
 AWS_SNS_REGION_NAME = 'us-west-2'
 AWS_SQS_REGION_NAME = AWS_SNS_REGION_NAME  # by default, both oregon
 AWS_SNS_TOPIC_NAME = 'page-generator'
