@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import F as Fucking
 from django.http import HttpResponse
 from django.http.response import Http404, HttpResponseNotFound
@@ -8,7 +9,8 @@ from django.views.decorators.csrf import csrf_exempt
 import re
 
 from apps.api.decorators import request_methods
-from apps.assets.models import Page, Tile, Store
+from apps.assets.models import Page, Tile, Store, Product
+from apps.contentgraph.models import GraphWrapper
 from apps.intentrank.controllers import IntentRank
 from apps.intentrank.algorithms import ir_all
 from apps.intentrank.utils import ajax_jsonp
@@ -236,10 +238,26 @@ def update_tiles(tile_ids, action='views'):
 @request_methods('POST')
 def track_tiles(request, action, **kwargs):
     tile_ids = request.GET.get('tile-ids', None) or request.POST.get('tile-ids', None)
+    featured_id = request.GET.get('featured', None) or request.POST.get('featured', None)
     if not tile_ids:
         return HttpResponse(status=204)
 
     tile_ids = [int(x) for x in tile_ids.split(',')]
 
     update_tiles(tile_ids, action=action)
+
+    if featured_id:
+        try:
+            graph = GraphWrapper()
+            tile = Tile.objects.get(id=featured_id)
+            featured_product = tile.product
+
+            for tid in tile_ids:
+                related_product = Tile.objects.get(id=tid).product
+                if related_product:
+                    graph.relate(featured_product, related_product,
+                                 relation=action)
+        except ObjectDoesNotExist:  # tile has no products
+            pass
+
     return HttpResponse(status=204)

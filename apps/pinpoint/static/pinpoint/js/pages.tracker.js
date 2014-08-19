@@ -81,6 +81,8 @@ App.module("tracker", function (tracker, App) {
          * Semi-private function for wrapping trackTileClick and trackTileView
          */
         trackTile = function (interactionType, tileIds) {
+            var data, featured;
+
             if (interactionType === 'view') {
                 for (var i=0; i < tileIds.length; i++) {
                     try {
@@ -92,13 +94,21 @@ App.module("tracker", function (tracker, App) {
                 }
             }
 
+            data = {
+                'tile-ids': tileIds.join(',')
+            };
+
+            // send back to IR if featured tile exists
+            featured = App.option("featured");
+            if (featured && featured['tile-id']) {
+                data.featured = featured['tile-id'];
+            }
+
             return $.ajax({
                 'url': App.option('IRSource') + '/page/' +
                        App.option('page:id') + '/tile/' + interactionType,
                 'type': 'POST',
-                'data': {
-                    'tile-ids': tileIds.join(',')
-                }
+                'data': data
             });
         },
 

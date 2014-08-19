@@ -1,8 +1,9 @@
 import importlib
 import json
-from django.conf import settings
 
+from django.conf import settings
 from django.core import serializers
+
 from apps.assets.models import Category
 from apps.intentrank.algorithms import ir_generic, ir_finite_by, ir_ordered_by, \
     qs_for, ir_base
@@ -161,3 +162,5 @@ class IntentRank(object):
             # if no custom method is found, dumps it directly (will raise)
             new_things.append(json.dumps(thing))
         return new_things
+
+

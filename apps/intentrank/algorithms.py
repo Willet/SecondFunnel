@@ -11,7 +11,9 @@ from functools import partial, wraps
 from django.conf import settings
 from django.db.models.query import QuerySet
 from apps.assets.models import Tile
+from apps.contentgraph.models import GraphWrapper
 from apps.utils.functional import result, sort_helper
+from secondfunnel.errors import deprecated
 
 
 def ids_of(tiles):  # shorthand (got too annoying)
@@ -166,7 +168,6 @@ def ir_base(tiles=None, feed=None, exclude_set=None, allowed_set=None,
     tiles = (tiles.exclude(products__in_stock=False)
              .exclude(content__tagged_products__in_stock=False))
 
-    # DO NOT call *_related functions after ir_base!
     return tiles
 
 
@@ -739,6 +740,7 @@ def ir_ordered_by(attribute='created_at', reversed_=False):
     return algo
 
 
+@deprecated
 @filter_tiles
 def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                    offset=0, allowed_set=None, exclude_set=None,
@@ -780,3 +782,39 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         return tiles[:results]
     else:
         return tiles[offset:offset + results]
+
+
+@filter_tiles
+def ir_related(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+               *args, **kwargs):
+    """
+    :returns [<Tile>]   whose products are related to the tiles given.
+    """
+    from apps.assets.models import Product
+    products = set()  # unique
+
+    graph = GraphWrapper()
+    relations = graph._get_relationships_by_type(rel_type='click')
+
+    for tile in tiles:  # get a set of products related to the tiles to current ones.
+        product = tile.product
+        if not product:
+            continue
+
+        pid = "{}:{}".format(product.__class__.__name__, product.id)
+        for rel in relations:
+            prop1, prop2, node1, node2 = rel
+            if prop1['id'] == pid:
+                products.add(graph._get_model(node2))
+            elif prop2['id'] == pid:
+                products.add(graph._get_model(node1))
+
+    new_tiles = Tile.objects.filter(products__in=[p.id for p in products])
+
+    print "{0} tiles were found related to the current ones".format(len(new_tiles))
+    if new_tiles.count() < results:
+        new_tiles = list(new_tiles) + \
+                    list(ir_auto(tiles=tiles, results=results - len(new_tiles),
+                                 **kwargs))
+
+    return new_tiles

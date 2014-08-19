@@ -107,10 +107,11 @@ KEEN_CONFIG = {
     'readKey': '0cfb3f08011f93aa29e992471f6ae9e5f9e2397045d59dfb07d0663c40ddd63f6300f782d000b0fd24f5776c04d0f22d5d321d90ee57a8e9a120d553527eea0e8aa005344338a1710432ef48174d84acbb84bcb6813701a1d3769dc6adb333a0418ac1e6784cb16c3df55a4a4477235d'
 }
 
-PREDICTION_IO_API_KEY = "CuBN5rs075a1WfQLy3gyPbWpmBIrHOQ9zQbufFwmSuNPwYf2npznXncLw2j2vTlL"
+NEO4J_API_URL = "reply hazy, try again"
 
 # Add Raven Middleware (getsentry.com)
 MIDDLEWARE_CLASSES = ('raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware',) + MIDDLEWARE_CLASSES
 
 THIRD_PARTY_APPS += ('raven.contrib.django.raven_compat',)  # logging
 INSTALLED_APPS = FRAMEWORK_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+

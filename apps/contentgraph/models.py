@@ -1,10 +1,14 @@
-import hammock
+import importlib
 import json
 
+from django.core.exceptions import MultipleObjectsReturned
 from django.conf import settings
+import hammock
+from py2neo import neo4j, rel
+from py2neo.neo4j import GraphDatabaseService as Graph, ReadBatch, WriteBatch
 
+from apps.assets.models import BaseModel
 
-# this is a copy
 ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL,
                                      headers={'ApiKey': 'secretword'})
 
@@ -202,3 +206,280 @@ class TileConfigObject(object):
                     params={'version': tile_config['last-modified']},
                     data={'stale': 'true'})  # yes, a string 'true'
                 # TODO: version/last-modified
+
+
+class GraphWrapper(object):
+    """ To create "relationships" between objects, use neo4j nodes to shadow
+    django models, like so:
+
+    >>> graph = GraphWrapper()
+    >>> products = Product.objects.all()
+    >>> product, product2 = products[0], products[1]
+    >>> graph.relate(product, product2)  # product is now related to product2
+    >>> graph.unrelate(product, product2)  # product is now unrelated to product2
+    """
+    graph = nodes = relationships = _batch = None
+
+    # just so it spells "Content Graph";
+    # subclasses/you can pick more creative values like "People"
+    INDEX_NAME = "Content"
+
+    # alternatives: "view", "click"
+    RELATION_NAME = "IS RELATED TO"
+
+    def __init__(self, graph=None):
+        self.graph = graph
+        if not graph:
+            self.graph = Graph(settings.NEO4J_API_URL)
+
+    def __enter__(self, mode="r"):
+        """In a with statement, the object will be used as a collector.
+
+        If you need to both read and write, avoid using the with statement.
+        """
+        if mode == "r":
+            self._batch = ReadBatch(self.graph)
+            return self._batch
+        elif mode == "w":
+            self._batch = WriteBatch(self.graph)
+            return self._batch
+        raise ValueError("{} is not a Batch mode".format(mode))
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # (run) batch!
+        if self._batch:
+            self._batch.submit()
+
+    def create_node(self, properties=None, key="id", value=None):
+        """
+        :returns indexed node, with key=value, and other properties.
+
+        If you don't give a value to index by, then the value is properties.id.
+        """
+        if isinstance(properties, BaseModel):
+            # over the special id that is used to denote a model
+            value = self._get_model_key(properties)
+        elif not value:
+            value = getattr(properties, key, "")
+
+        db_node = self.graph.get_or_create_indexed_node(
+            self.INDEX_NAME, key, value)
+
+        if isinstance(properties, BaseModel):
+            db_node.set_properties(self._model_to_dict(properties))
+        else:
+            db_node.set_properties({key: value})
+        return db_node
+
+    def delete_node(self, node):
+        """Apparently just a proxy"""
+        return self.graph.delete(node)
+    delete_relationship = delete_node
+
+    def _model_to_dict(self, thing):
+        return {
+            "id": self._get_model_key(thing),
+            "name": repr(thing),
+            "class_name": thing.__class__.__name__,
+            "model_id": thing.id,
+        }
+
+    @property
+    def relationship_types(self):
+        return self.graph.relationship_types or {}
+
+    def relate(self, node1, node2, relation=RELATION_NAME, weight=1):
+        """
+        :param node1    either a Node or a BaseModel.
+        :param node2    either a Node or a BaseModel.
+
+        :returns the relationship that relates node1 to node2, or... the
+        existing relation will have its weight incremented by {weight}.
+
+        caution: relationships are a one-way street
+        """
+        if not isinstance(node1, neo4j.Node):
+            node1 = self.create_node(properties=node1)
+        if not isinstance(node2, neo4j.Node):
+            node2 = self.create_node(properties=node2)
+
+        # find all nodes like the one you're currently making
+        existing_relationships = list(self.graph.match(start_node=node1,
+            end_node=node2, rel_type=relation))
+
+        if len(existing_relationships):
+            existing_relationship = existing_relationships[0]
+            self.set_weight(
+                existing_relationship,
+                weight=self.get_weight(existing_relationship) + weight)
+
+            return existing_relationships[0]
+        else:  # does not exist
+            return self.graph.create(rel(node1, relation, node2,
+                                         {"weight": weight}))[0]
+
+    def _relate_or_create(self, node1, node2, relation=RELATION_NAME, weight=1):
+        """If a
+        :param node1    either a Node or a BaseModel.
+        :param node2    either a Node or a BaseModel.
+
+        :returns the relationship that relates node1 to node2, or... the
+        existing one(s) if it/they exist.
+        """
+        if not isinstance(node1, neo4j.Node):
+            node1 = self.create_node(properties=node1)
+        if not isinstance(node2, neo4j.Node):
+            node2 = self.create_node(properties=node2)
+
+        # find all nodes like the one you're currently making
+        existing_relationships = list(self.graph.match(start_node=node1,
+            end_node=node2, rel_type=relation))
+
+        if len(existing_relationships):
+            existing_relationship = existing_relationships[0]
+            return existing_relationship
+        else:  # does not exist
+            return self.graph.create(rel(node1, relation, node2,
+                                         {"weight": weight}))[0]
+
+    def unrelate(self, node1, node2, relation=RELATION_NAME):
+        """
+        :param node1    either a Node or a BaseModel.
+        :param node2    either a Node or a BaseModel.
+
+        Deletes the relationship(s) that point(s) node1 to node2.
+        """
+        if isinstance(node1, BaseModel):
+            node1 = self._get_model_node(node1)
+        if isinstance(node2, BaseModel):
+            node2 = self._get_model_node(node2)
+
+        if not (node1 and node2):
+            raise ValueError("One of these nodes are missing: {}, {}".format(
+                node1, node2))
+
+        existing_relationships = self.graph.match(start_node=node1,
+                                                  end_node=node2,
+                                                  rel_type=relation)
+
+        return self.graph.delete(*list(existing_relationships))
+
+    def get_related_models(self, model, rel_type=None, bidirectional=False):
+        """Given a model, get its related models."""
+        db_node = self._get_model_node(model=model)
+        if not db_node:
+            raise ValueError("Node for {} not found".format(model))
+
+        return [self._get_model(db_node=n) for n in
+                self._get_related_nodes(db_node=db_node, rel_type=rel_type,
+                                        bidirectional=bidirectional)]
+
+    @classmethod
+    def _get_model(cls, db_node):
+        """Convert a Node to a BaseModel, assuming the node was previously made
+        from a BaseModel.
+        """
+        prop_bag = db_node.get_properties()
+        if not ('class_name' in prop_bag and 'model_id' in prop_bag):
+            raise ValueError("{} is not a model node".format(db_node))
+
+        klass = None
+        class_name = prop_bag['class_name']
+        model_id = prop_bag['model_id']
+        try:
+            klass = getattr(importlib.import_module('apps.assets.models'),
+                class_name)
+            return klass.objects.get(id=model_id)
+        except MultipleObjectsReturned:
+            return klass.objects.filter(id=model_id)[0]
+        except ImportError:
+            print "failed to create {0}({1})".format(class_name, model_id)
+            raise
+
+    def _get_model_node(self, model):
+        """Given a model, get its node.
+
+        Not guaranteed to return anything.
+        """
+        return self.graph.get_indexed_node(self.INDEX_NAME, 'id',
+                                           self._get_model_key(model))
+
+    def _get_relationships(self, db_node, rel_type=None, bidirectional=False):
+        """Given db_node, get its relationships...
+        - bidirectional True:
+            ... with that node in either end.
+        - bidirectional False:
+            ... with that node as start_node.
+        """
+        kwargs = {
+            "start_node": db_node,
+            "bidirectional": bidirectional,
+        }
+        if rel_type:
+            kwargs["rel_type"] = rel_type
+
+        relationships = list(self.graph.match(**kwargs))
+        if relationships:
+            return relationships
+        return []
+
+    def _get_relationships_by_type(self, rel_type=RELATION_NAME):
+        """Fast method of retrieving all model relationships of a certain type.
+
+        use of this method is discouraged, because graph internals are exposed.
+
+        :returns set(start_props, end_props, start node, end node)
+                 see _get_model_key for id format.
+        """
+        pairs = []
+        for x in self.graph.match(rel_type=rel_type):
+            start = x.start_node.get_properties()
+            end = x.end_node.get_properties()
+            if 'id' in start and 'id' in end:
+                pairs.append((start, end, x.start_node, x.end_node))
+
+        return pairs
+
+    def _get_related_nodes(self, db_node, rel_type=None, bidirectional=False):
+        """Given db_node, get other nodes...
+        - bidirectional True:
+            ... connected to it.
+        - bidirectional False:
+            ... that it connects to.
+
+        Results are ordered by edge weight. no-weight relationships
+        have 0 weight.
+        """
+        relationships = self._get_relationships(db_node=db_node,
+                                                rel_type=rel_type,
+                                                bidirectional=bidirectional)
+
+        relationships = sorted(relationships, key=self.get_weight,
+                               reverse=True)
+
+        nodes = []
+        for relation in relationships:
+            if relation.start_node == db_node:
+                nodes.append(relation.end_node)
+            else:
+                nodes.append(relation.start_node)
+        return nodes
+
+    @staticmethod
+    def get_weight(relationship):
+        try:
+            return relationship.get_properties()['weight']
+        except KeyError:
+            return 0
+
+    @staticmethod
+    def set_weight(relationship, weight):
+        return relationship.set_properties({'weight': weight})
+
+    @staticmethod
+    def _get_model_key(model):
+        """<Product #123> -> 'Product:123'"""
+        if not isinstance(model, BaseModel):
+            raise ValueError("{} is not a BaseModel".format(model))
+
+        return '{0}:{1}'.format(model.__class__.__name__, model.id)

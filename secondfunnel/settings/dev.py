@@ -127,4 +127,4 @@ KEEN_CONFIG = {
     'readKey': 'c8ff6b6ec8efb33e85fbcade3d9ecbe102dbb884c586ab4cf7b14e0014effdc911e819b6ba9cb7517c3fbe26a5cf2812ff9cafe29b9d073e8a50928cf27f85b5845c7ba3c304d8b7dc346200dce3eecfe13d541c6bcddbdc3f70c6213a4f18f5c66de9f22ae62b1e107cc27252314db8'
 }
 
-PREDICTION_IO_API_KEY = "6n6hcmCc8IDI0sfOCMdmEp9jig4aIN23dmPAWBl5dBOkiyzBjZTMPHQTJRjO0cdG"
+NEO4J_API_URL = "http://localhost:7474/db/data/"

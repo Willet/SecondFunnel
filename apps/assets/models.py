@@ -1,6 +1,7 @@
 import calendar
 import datetime
 import json
+from py2neo.packages.httpstream.http import SocketError
 import re
 
 from django.conf import settings
@@ -11,10 +12,10 @@ from django_extensions.db.fields import CreationDateTimeField
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
-from apps.utils import returns_unicode
 import apps.api.serializers as cg_serializers
-import apps.intentrank.serializers as ir_serializers
 from apps.imageservice.utils import delete_cloudinary_resource
+import apps.intentrank.serializers as ir_serializers
+from apps.utils import returns_unicode
 from apps.utils.models import MemcacheSetting
 
 
@@ -227,6 +228,25 @@ class BaseModel(models.Model, SerializableMixin):
     def cg_updated_at(self):
         """(readonly) representation of the content graph timestamp"""
         return unicode(calendar.timegm(self.updated_at.utctimetuple()) * 1000)
+
+    def get_related(self, bidirectional=False, rel_type="click"):
+        """Proxy method of the Neo4J Graph GraphWrapper wrapper.
+
+        Given the current model, return from the graph
+        :param rel_type             currently "click" or "view"
+        :returns BaseModel          of all types
+        """
+        # import error if global :(
+        from apps.contentgraph.models import GraphWrapper
+        graph = GraphWrapper()
+
+        try:
+            return graph.get_related_models(self, bidirectional=bidirectional,
+                                            rel_type=rel_type)
+        except (SocketError, ValueError):
+            # SocketError: server down
+            # ValueError: product has no nodes
+            return []
 
 
 class Store(BaseModel):
