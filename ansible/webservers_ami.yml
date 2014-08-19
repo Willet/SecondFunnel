@@ -20,6 +20,8 @@
     - name: "Launch EC2 instance"
       action:
         module: ec2
+        aws_access_key: "{{aws_access_key_id}}"
+        aws_secret_key: "{{aws_secret_key}}"
         image: "{{ aws_base_image }}"
         instance_type: "{{aws_instance_type}}"
         state: present
