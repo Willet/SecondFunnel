@@ -13,6 +13,5 @@ def deftrtobool (val):
     else:
         raise ValueError("invalid truth value %r" % (val,))
 
- def prep_bool_arg(arg):
+def prep_bool_arg(arg):
     return bool(strtobool(str(arg)))
-
