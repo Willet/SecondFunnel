@@ -83,6 +83,8 @@
     - name: "Terminate instances that were previously launched"
       local_action:
         module: ec2
+        aws_access_key: "{{aws_access_key_id}}"
+        aws_secret_key: "{{aws_secret_key}}"
         state: "absent"
         instance_ids: "{{ ansible_ec2_instance_id }}"
         region: "{{aws_region}}"
@@ -113,6 +115,8 @@
     - name: "Grab Load Balancer (or create if necessary)"
       local_action:
         module: ec2_elb_lb
+        aws_access_key: "{{aws_access_key_id}}"
+        aws_secret_key: "{{aws_secret_key}}"
         name: "{{aws_lb.name}}"
         state: present
         region: "{{aws_region}}"
