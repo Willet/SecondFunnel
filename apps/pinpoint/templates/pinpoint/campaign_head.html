@@ -21,48 +21,7 @@
 
 <!-- Begin Javascript -->
 
-<!-- Preload images -->
-<script type="text/javascript">
-    {# Preload images #}
-    {% if desktop_hero_image %}
-        (new Image).src = "{{ desktop_hero_image }}";
-    {% endif %}
-    {% if mobile_hero_image %}
-        (new Image).src = "{{ mobile_hero_image }}";
-    {% endif %}
-</script>
-<!-- End Preload -->
-
 {% include "pinpoint/campaign_config.html" %}
-
-<script type="text/javascript">
-    (function() {
-        // http://stackoverflow.com/questions/8567114/how-to-make-an-ajax-call-without-jquery
-        // Initial call to IR
-        /*
-        if ((!PAGES_INFO.IRReqNum) || (PAGES_INFO.IRReqNum === undefined)) {
-            PAGES_INFO.IRReqNum = 0;
-        }
-
-        if (!(PAGES_INFO.initialResults && PAGES_INFO.initialResults.length)) {
-            // Support for IE6/5 in the event that XMLHttpRequest doesn't exist
-            var xmlhttp, data;
-            xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
-            xmlhttp.open("GET", "{{ campaign.ir_base_url|default:ir_base_url }}/page/{{ campaign.intentrank_id|default:campaign.id }}/getresults?results=10&algorithm={{ algorithm }}&reqNum=0", true);
-            PAGES_INFO.IROffset += 10;
-            PAGES_INFO.IRReqNum++;
-
-            xmlhttp.onload = function () {
-                // Ensures that it's resolved on 200 or 404
-                if (xmlhttp.status === 200) { // success so resolve normally
-                    PAGES_INFO.initialResults = JSON.parse(xmlhttp.response || xmlhttp.responseText);
-                }
-            };
-            PAGES_INFO.initialResults = xmlhttp;
-            xmlhttp.send();
-        }*/
-    })();
-</script>
 
 {% compress js %}
     {% include "pinpoint/campaign_js.html" %}

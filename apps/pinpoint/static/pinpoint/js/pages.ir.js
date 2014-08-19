@@ -141,13 +141,6 @@ App.module("intentRank", function (intentRank, App) {
                 collection[method](results, opts);
                 collection.trigger('sync', collection, results, opts);
 
-                (function (before) {
-                    var after = _.compact(intentRank.getTileIds(results));
-                    if (allArraysAlike([before, after])) {
-                        debugger;
-                    }
-                }(resultsAlreadyRequested));
-
                 resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
 
                 // restrict shown list to last 10 items max
