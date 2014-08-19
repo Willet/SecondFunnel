@@ -90,7 +90,7 @@
         aws_access_key: "{{aws_access_key_id}}"
         aws_secret_key: "{{aws_secret_key}}"
         region: "{{aws_region}}"
-        name: "{{aws_lc.name}}
+        name: "{{aws_lc.name}}"
         user_data: "{{aws_lc.user_data}}"
         security_groups: "{{aws_security_groups}}"
         instance_type: "{{aws_instance_type}}"
