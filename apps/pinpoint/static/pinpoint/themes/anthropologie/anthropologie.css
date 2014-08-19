@@ -12,10 +12,13 @@
 }
 
 body {
-    background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
     font-family: Georgia, 'Times New Roman', Times, serif;
     letter-spacing: 1.1px;
     -webkit-font-smoothing: antialiased;
+}
+
+body, #bottom-padding {
+    background-image: url('/static/pinpoint/themes/anthropologie/images/body_background.png');
 }
 
 .navbar {
@@ -68,6 +71,10 @@ body > .container {
 }
 .previewContainer .close:hover {
     color: rgba(150, 0, 74, 0.5);
+}
+
+#hero-area .previewContainer .content {
+    max-width: 1024px;
 }
 
 .previewContainer .content {

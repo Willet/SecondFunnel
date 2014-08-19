@@ -14,10 +14,14 @@
   hosts: localhost
   connection: local
   gather_facts: False # so the groups don't change if existing host was running above
+  vars_files:
+    - "group_vars/{{app_environment}}.yml"
   tasks:
     - name: "Launch EC2 instance"
       action:
         module: ec2
+        aws_access_key: "{{aws_access_key_id}}"
+        aws_secret_key: "{{aws_secret_key}}"
         image: "{{ aws_base_image }}"
         instance_type: "{{aws_instance_type}}"
         state: present
@@ -79,6 +83,8 @@
     - name: "Terminate instances that were previously launched"
       local_action:
         module: ec2
+        aws_access_key: "{{aws_access_key_id}}"
+        aws_secret_key: "{{aws_secret_key}}"
         state: "absent"
         instance_ids: "{{ ansible_ec2_instance_id }}"
         region: "{{aws_region}}"
@@ -90,7 +96,7 @@
         aws_access_key: "{{aws_access_key_id}}"
         aws_secret_key: "{{aws_secret_key}}"
         region: "{{aws_region}}"
-        name: "{{aws_lc.name}}
+        name: "{{aws_lc.name}}"
         user_data: "{{aws_lc.user_data}}"
         security_groups: "{{aws_security_groups}}"
         instance_type: "{{aws_instance_type}}"
@@ -109,6 +115,8 @@
     - name: "Grab Load Balancer (or create if necessary)"
       local_action:
         module: ec2_elb_lb
+        aws_access_key: "{{aws_access_key_id}}"
+        aws_secret_key: "{{aws_secret_key}}"
         name: "{{aws_lb.name}}"
         state: present
         region: "{{aws_region}}"

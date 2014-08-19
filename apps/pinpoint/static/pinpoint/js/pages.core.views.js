@@ -459,11 +459,10 @@ App.module('core', function (module, App) {
                 deferred = $.Deferred(),
                 options = opts.options; // someone came up with this idea
 
-            _.bindAll(this, 'pageScroll', 'toggleLoading');
+            _.bindAll(this, 'pageScroll');
 
             this.collection = new App.core.TileCollection();
 
-            this.toggleLoading(true);
             this.attachListeners();
 
             // If the collection has initial values, lay them out
@@ -492,7 +491,7 @@ App.module('core', function (module, App) {
             }
 
             // immediately fetch more from IR
-            this.toggleLoading(false).getTiles();
+            this._getTiles();
 
             // most-recent feed is the active feed
             App.discovery = this;
@@ -581,27 +580,31 @@ App.module('core', function (module, App) {
         },
 
         /**
-         *
-         * @param options
-         * @param tile {TileView}  supply a tile View to have tiles inserted
-         *                         after it. (optional)
-         * @returns deferred
+         * Fetches more tiles if not already fetching. Regardless, it
+         * @returns  A Deferred object
          */
-        'getTiles': function (options, tile) {
-            var self = this, xhr;
+        _getTiles: function (options) {
+            var self = this,
+                xhr;
+
             if (this.loading) {
-                // do nothing
                 return (new $.Deferred()).promise();
             }
 
-            xhr = this.toggleLoading(true).collection.fetch();
+            this._toggleLoading(true);
+            xhr = this.collection.fetch();
 
             xhr.done(function (tileInfo) {
-                // feed ended / IR busted
+                // feed ended
                 if (tileInfo && tileInfo.length === 0) {
-                    self.toggleLoading(false);
                     App.vent.trigger('feedEnded', this);
                 }
+            }).always(function () {
+                // even if IR is busted
+                self._toggleLoading(false);
+
+                // check if there are enough tiles to cover the page
+                self.pageScroll();
             });
 
             return xhr;
@@ -620,20 +623,12 @@ App.module('core', function (module, App) {
         },
 
         /**
-         * Called when new content has been appended to the collectionView via
-         * the layoutEngine.  Toggles loading to false, and calls pageScroll.
+         * This is intentionally left here as a reminder NOT to fetch results
+         * everytime an item is appended.
          *
          * @returns this
          */
         'onAfterItemAppended': function (view, el) {
-            var self = this;
-
-            setTimeout(function () {
-                self
-                    .toggleLoading(false)
-                    .pageScroll();
-            }, 500);
-
             return this;
         },
 
@@ -647,7 +642,7 @@ App.module('core', function (module, App) {
                 console.warn('updateContentStream got a null ID. ' +
                     'I don\'t think it is supposed to happen.');
             }
-            this.getTiles({
+            this._getTiles({
                 'type': 'content',
                 'id': id
             }, tile);
@@ -663,18 +658,18 @@ App.module('core', function (module, App) {
                 this.on('loadingFinished', _.once(function () {
                     App.layoutEngine.empty(self);
                     self.ended = false;
-                    self.getTiles();
+                    self._getTiles();
                 }));
             } else {
                 App.layoutEngine.empty(this);
                 this.ended = false;
-                this.getTiles();
+                this._getTiles();
             }
 
             return this;
         },
 
-        'toggleLoading': function (bool) {
+        _toggleLoading: function (bool) {
             if (typeof bool === 'boolean') {
                 this.loading = bool;
             } else {
@@ -693,14 +688,18 @@ App.module('core', function (module, App) {
             return this;
         },
 
+        /**
+         * - tracks scrolling events
+         * - checks if more tiles should be displayed / fetched
+         * @returns this
+         */
         'pageScroll': function () {
             var children = this.$el.children(),
                 pageHeight = $window.innerHeight(),
                 windowTop = $window.scrollTop(),
                 pageBottomPos = pageHeight + windowTop,
                 documentBottomPos = this.$el.height() - this.$el.offset().top,
-                viewportHeights = pageHeight * (App.option('prefetchHeight', 2.5)),
-                st;
+                viewportHeights = pageHeight * (App.option('prefetchHeight', 2.5));
 
             if (this.ended) {
                 return this;
@@ -709,7 +708,7 @@ App.module('core', function (module, App) {
             if (!this.loading && (children.length === 0 || !App.previewArea.currentView) &&
                     (pageBottomPos >= documentBottomPos - viewportHeights)) {
                 // get more tiles to fill the screen.
-                this.getTiles();
+                this._getTiles();
             }
 
             // Did the user scroll ever?
@@ -731,15 +730,6 @@ App.module('core', function (module, App) {
 
                 pagesScrolled++;  // user scrolled down once more
             }
-
-            // detect scrolling detection. not used for anything yet.
-            st = $window.scrollTop();
-            if (st > this.lastScrollTop) {
-                App.vent.trigger('scrollDown', this);
-            } else if (st < this.lastScrollTop) {
-                App.vent.trigger('scrollUp', this);
-            }  // if equal, trigger nothing
-            this.lastScrollTop = st;
 
             return this;
         }

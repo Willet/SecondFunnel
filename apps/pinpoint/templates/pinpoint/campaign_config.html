@@ -14,7 +14,6 @@
         , 'page': {  // required
             'id': '{{ campaign.intentrank_id|default:campaign.id }}'  // required
             , 'pubDate': '{{ pub_date }}'  // for verifying the original upload date of a static campaign. for human use only
-            , 'offline': false  // optional (if true, loads .content immediately)
 
             , 'name': '{{ campaign.name|default:"" }}'  // provided by campaign manager
             , 'slug': '{{ campaign.url_slug|default:"" }}'
@@ -73,7 +72,6 @@
         , 'featured': {{ tile|safe|default:"undefined" }}  // default: undefined
         // stuff that loads when page loads, even if IR is available
         , 'IRResultsCount': 10
-        , 'IRTimeout': 5000
         // , 'IRFailuresAllowed': undefined  // optional. defaults to 5
         , 'IRSource': "{{ campaign.ir_base_url|default:ir_base_url }}"  // optional
         , 'IRAlgo': "{{ algorithm|default:"generic" }}"  // optional
@@ -99,7 +97,6 @@
         , 'resultsThreshold': {{ campaign.results_threshold|default:"undefined"|safe }}  // {[tileId: num,]}
 
         , 'initialResults': {{ initial_results|default:"[]"|safe }}
-        , 'backupResults': []  // DEPRECATED (IR done on client)
 
         , 'urlParams': {{ url_params|default:"{}"|safe }}
     };

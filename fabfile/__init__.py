@@ -10,7 +10,7 @@ from aws.api import get_instances
 env.user = 'willet'
 env.environment = 'dev'
 env.shell = "/usr/bin/zsh -l -i -c" # interactive login shell, so .zshrc is loaded
-
+env.forward_agent = True # cause people don't like having their SSH config setup in the same way as me
 
 @task
 def production():

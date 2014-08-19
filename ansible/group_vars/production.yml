@@ -17,7 +17,7 @@ aws_availability_zones: "us-west-2c,us-west-2b,us-west-2a"
 aws_security_groups: "{{aws_name}}"
 
 aws_ami:
-  name: "{{aws_name}}-web {{ansible_date_time.date}} {{ansible_date_time.time}}"
+  name: "{{aws_name}}-web {{ansible_date_time.date}}"
   description: "SecondFunnel {{app_environment|title}} Environment - Web Server"
 
 aws_lb:

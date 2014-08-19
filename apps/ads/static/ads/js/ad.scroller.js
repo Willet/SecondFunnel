@@ -47,7 +47,7 @@ App.module("scroller", function (module, App) {
         // if there is some chance that there won't be enough tiles
         // in the ad, then get some more.
         if (feed.children.length < 20) {
-            feed.toggleLoading(false).getTiles();
+            feed.pageScroll();
         }
 
         setTimeout(function () {

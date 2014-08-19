@@ -6,12 +6,15 @@ from fabric.operations import get, local, run
 from fabric.api import task, env, hide
 from fabric.contrib import django
 
+from utils import prep_bool_arg
+
 
 @task
-def remote_to_local(native=True):
+def remote_to_local(native=True, file_name='db.dump', data_only=True):
     """
     Copy database to local machine
     """
+    data_only = prep_bool_arg(data_only)
     # We assume that by SSH'ing in, we are in the right environment and path
 
     # More details on Django integration here:
@@ -23,26 +26,27 @@ def remote_to_local(native=True):
     # Dump the remote database
     file_name = 'db.dump'
     file_path = '/tmp/' + file_name
-    dump(file_path)
+    dump(file_path, data_only)
     get(file_path, file_name)
 
-    restore_local_from_file(path=file_name)
+    restore_local_from_file(path=file_name, data_only=data_only)
 
 
 @task
-def restore_local_from_file(path="db.dump"):
+def restore_local_from_file(path="db.dump", data_only=True):
     """ Drops local database, and restores data from file """
+    data_only = prep_bool_arg(data_only)
     # make it look like a local only command
     env.hosts = []
     django.settings_module('secondfunnel.settings.dev')
     from django.conf import settings
     # Dump our local database to backup, then flush it out
     now = datetime.now()
-    local('fab database.dump:path=%s' % (now.strftime('%Y-%m-%dT%H:%M.dump')))
+    local('fab database.dump:path=db_backup-%s' % (now.strftime('%Y-%m-%dT%H:%M.dump')))
     # clear all existing data from database
     flush_local()
     # load downloaded database
-    local_restore(path=path)
+    local_restore(path=path, data_only=data_only)
 
 
 @task
@@ -131,13 +135,18 @@ def get_arguments():
 
 
 @task
-def dump(path='/tmp/db.dump'):
+def dump(path='/tmp/db.dump', data_only=True):
     """ dump database to --path=/tmp/db.dump """
+    data_only = prep_bool_arg(data_only)
     args = get_arguments()
     arguments = args['arguments']
     password = args['password']
 
-    command = 'pg_dump --data-only --format=custom {} -f {}'.format(arguments, path)
+    command = 'pg_dump'
+    if data_only:
+        command += ' --data-only'
+    command += ' --format=custom {} -f {}'.format(arguments, path)
+
     if password:
         command = '{} && '.format(password) + command
 
@@ -149,17 +158,19 @@ def dump(path='/tmp/db.dump'):
 
 
 @task
-def local_restore(path='db.dump'):
+def local_restore(path='db.dump', data_only=True):
     """
-    restore database fump dump (--path=db.dump)
+    restore database from dump (--path=db.dump)
     """
+    data_only = prep_bool_arg(data_only)
     args = get_arguments()
     arguments = args['arguments']
     password = args['password']
 
-    command = 'pg_restore --data-only --format=custom --single-transaction {} {}'.format(
-        arguments, path
-    )
+    command = 'pg_restore'
+    if data_only:
+        command += ' --data-only'
+    command += ' --format=custom --single-transaction {} {}'.format(arguments, path)
     if password:
         command = '{} && '.format(password) + command
 
