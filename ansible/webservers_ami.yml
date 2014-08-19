@@ -14,6 +14,8 @@
   hosts: localhost
   connection: local
   gather_facts: False # so the groups don't change if existing host was running above
+  vars_files:
+    - "group_vars/{{app_environment}}.yml"
   tasks:
     - name: "Launch EC2 instance"
       action:
