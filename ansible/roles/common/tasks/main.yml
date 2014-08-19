@@ -21,6 +21,7 @@
     - apache2-utils
     - awscli
     - zsh
+    - ntp
   sudo: yes
 
 - name: "Create {{common_user}} user"
@@ -69,5 +70,5 @@
   sudo: true
 
 - name: "Install Ansible"
-  pip: name=ansible 
+  pip: name=ansible
   sudo: true

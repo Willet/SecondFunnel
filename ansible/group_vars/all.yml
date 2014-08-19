@@ -9,8 +9,8 @@ github_ssh_public_key: "github.com,204.232.175.90 ssh-rsa AAAAB3NzaC1yc2EAAAABIw
 
 # Shared Host Settings
 common_user: willet # default login user across all boxes
-aws_access_key_id: AKIAIAPXLNH7EQVGDEWA
-aws_secret_key: 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
+aws_access_key_id: AKIAJTAVBL4BWASQVKIQ
+aws_secret_key: 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
 aws_region: us-west-2
 aws_base_image: ami-e7b8c0d7 # base image *ubuntu 14.04 LTS*
 aws_sshkey_name: willet-admin-master
