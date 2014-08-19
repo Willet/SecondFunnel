@@ -43,9 +43,9 @@ def track_tile_view(request, tile_id):
 
 def track_tiles_view(request, tile_ids):
     """Shorthand"""
+    limit_showns(request)  # limit is controlled by TRACK_SHOWN_TILES_NUM
     for tile_id in tile_ids:
         track_tile_view(request=request, tile_id=tile_id)
-    limit_showns(request)  # limit is controlled by TRACK_SHOWN_TILES_NUM
     return request.session.get('shown', [])
 
 

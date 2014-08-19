@@ -4,9 +4,7 @@
  */
 App.module("intentRank", function (intentRank, App) {
     "use strict";
-
-    var fetching = null,
-        resultsAlreadyRequested = []; // list of product IDs
+    var resultsAlreadyRequested = []; // list of product IDs
 
     this.options = {
         'IRSource': '/intentrank',
@@ -127,7 +125,14 @@ App.module("intentRank", function (intentRank, App) {
             .sync('read', collection, opts)
             .done(function (results) {
                 // request SUCCEEDED
-                var method = opts.reset ? 'reset' : 'set';
+                var method = opts.reset ? 'reset' : 'set',
+                    allArraysAlike = function (arrays) {
+                        return _.all(arrays, function (array) {
+                            return array.length === arrays[0].length &&
+                                _.difference(array, arrays[0]).length === 0;
+                        });
+                    };
+
                 App.options.IRResultsReturned = results.length;
 
                 // reset fail counter
@@ -135,14 +140,22 @@ App.module("intentRank", function (intentRank, App) {
 
                 collection[method](results, opts);
                 collection.trigger('sync', collection, results, opts);
-                deferred.resolve(results);
+
+                (function (before) {
+                    var after = _.compact(intentRank.getTileIds(results));
+                    if (allArraysAlike([before, after])) {
+                        debugger;
+                    }
+                }(resultsAlreadyRequested));
+
                 resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
 
                 // restrict shown list to last 10 items max
                 // (it was specified before?)
-                if (resultsAlreadyRequested.length > intentRank.options.IRResultsCount) {
-                    resultsAlreadyRequested = resultsAlreadyRequested.slice(-10);
-                }
+                resultsAlreadyRequested = resultsAlreadyRequested.slice(
+                    -intentRank.options.IRResultsCount);
+
+                deferred.resolve(results);
             }).fail(function () {
                 // request FAILED
                 if (collection.ajaxFailCount) {
@@ -151,11 +164,13 @@ App.module("intentRank", function (intentRank, App) {
                     collection.ajaxFailCount = 1;
                 }
             });
+
         deferred.done(function () {
             App.options.IRReqNum++;
             intentRank.options.IRReqNum++;
             intentRank.options.IROffset += opts.results;
         });
+
         return deferred.promise();
     };
 
