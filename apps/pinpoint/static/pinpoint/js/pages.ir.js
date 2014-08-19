@@ -4,29 +4,19 @@
  */
 App.module("intentRank", function (intentRank, App) {
     "use strict";
-
-    var consecutiveFailures = 0,
-        cachedResults = [],
-        fetching = null,
-        resultsAlreadyRequested = [], // list of product IDs
-        urlTemplate;
+    var resultsAlreadyRequested = []; // list of product IDs
 
     this.options = {
-        'baseUrl': '/intentrank',  // or an absolute base url, e.g. http://tng-test.secondfunnel.com/intentrank
-        'urlTemplates': {
-            'campaign': '<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>',
-            'category': '<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>&category=<%=category%>'
-        },
+        'IRSource': '/intentrank',
+        'urlTemplate': '<%=IRSource%>/page/<%=campaign%>/getresults',
         'add': true,
         'merge': true,
         'remove': false,
         'categories': {},
-        'backupResults': [],
         'IRResultsCount': 10,
         'IRAlgo': 'generic',
         'IRTileSet': '',
         'IRReqNum': 0,
-        'IRTimeout': 5000,
         'IROffset': 0,  // specific to some deterministic algorithms
         'store': {},
         'content': []
@@ -47,16 +37,14 @@ App.module("intentRank", function (intentRank, App) {
         var page = options.page || {};
 
         _.extend(intentRank.options, {
-            'baseUrl': options.IRSource || this.baseUrl,
+            'IRSource': options.IRSource || this.IRSource,
             'store': options.store || {},
             'campaign': options.campaign,
             // @deprecated: options.categories will be page.categories
             'categories': page.categories || options.categories || {},
-            'backupResults': options.backupResults || [],
             'IRResultsCount': options.IRResultsCount || 10,
             'IRAlgo': options.IRAlgo || 'generic',
             'IRReqNum': options.IRReqNum || 0,
-            'IRTimeout': options.IRTimeout || 5000,
             'IRTileSet': options.IRTileSet || '',
             'content': options.content || [],
             'filters': options.filters || [],
@@ -65,9 +53,6 @@ App.module("intentRank", function (intentRank, App) {
             'IRCacheResultCount': options.IRResultsCount || 10,
             'IROffset': options.IROffset || 0
         });
-
-        // set the base url
-        urlTemplate = intentRank.options.urlTemplates.campaign;
 
         App.vent.trigger('intentRankInitialized', intentRank);
         return this;
@@ -79,7 +64,7 @@ App.module("intentRank", function (intentRank, App) {
      * @returns {String}
      */
     this.url = function () {
-        return _.template(urlTemplate, intentRank.options);
+        return _.template(this.options.urlTemplate, intentRank.options);
     };
 
     /**
@@ -95,15 +80,8 @@ App.module("intentRank", function (intentRank, App) {
         // 'this' can be whatever you want it to be
         var collection = this,
             deferred = new $.Deferred(),
-            online = !App.option('page:offline', false),
             data = {},
-            opts,
-            prepopulatedResults = [],
-            backupResults = _.chain(intentRank.options.backupResults)
-                .filter(intentRank.filter)
-                .shuffle()
-                .first(intentRank.options.IRResultsCount)
-                .value();
+            opts;
 
         if (resultsAlreadyRequested.length) {
             data.shown = resultsAlreadyRequested.sort().join(',');
@@ -116,7 +94,11 @@ App.module("intentRank", function (intentRank, App) {
         if (intentRank.options.IRReset) {
             data['session-reset'] = true;
             intentRank.options.IRReset = false;
-            cachedResults = [];
+        }
+
+        // normally undefined, unless a category is selected on the page
+        if (intentRank.options.category) {
+            data.catagory = intentRank.options.category;
         }
 
         opts = $.extend({}, {
@@ -132,68 +114,56 @@ App.module("intentRank", function (intentRank, App) {
             'data': data
         }, this.config, intentRank.options, options);
 
-        // if offline, return a backup list
-        if (!online || collection.ajaxFailCount > 5) {
-            return $.when(backupResults);
+        if (collection.ajaxFailCount > 5) {
+            console.error("IR failed " + collection.ajaxFailCount +
+                " times consecutively!");
+            return deferred.promise();
         }
 
-        // check if cached results, and options is undefined
-        // don't do this if we are actually the intentRank module
-        if (!options && this !== intentRank) {
-            var len = cachedResults.length,
-                method = opts.reset ? 'reset' : 'set';
-            prepopulatedResults = cachedResults.splice(0, len);
+        // Make the request to Backbone collection and return deferred
+        Backbone.Collection.prototype
+            .sync('read', collection, opts)
+            .done(function (results) {
+                // request SUCCEEDED
+                var method = opts.reset ? 'reset' : 'set',
+                    allArraysAlike = function (arrays) {
+                        return _.all(arrays, function (array) {
+                            return array.length === arrays[0].length &&
+                                _.difference(array, arrays[0]).length === 0;
+                        });
+                    };
 
-            if (fetching) { // return fetching object if we're fetching
-                console.debug('Holding off for IR to finish.');
-                return fetching.done(function (results) {
-                    collection[method](results, opts);
-                    collection.trigger('sync', collection, results, opts);
-                });
-            }
-        }
-
-        // attach respective success and error functions to the options object
-        // use backup list if request fails
-        _.extend(opts, {
-            success: function (results) {
-                var method = opts.reset ? 'reset' : 'set';
-                results = prepopulatedResults.concat(results);
                 App.options.IRResultsReturned = results.length;
 
                 // reset fail counter
                 collection.ajaxFailCount = 0;
+
                 collection[method](results, opts);
                 collection.trigger('sync', collection, results, opts);
-                deferred.resolve(results);
+
                 resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
 
                 // restrict shown list to last 10 items max
                 // (it was specified before?)
-                if (resultsAlreadyRequested.length > intentRank.options.IRResultsCount) {
-                    resultsAlreadyRequested = resultsAlreadyRequested.slice(-10);
-                }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                // reset fail counter
+                resultsAlreadyRequested = resultsAlreadyRequested.slice(
+                    -intentRank.options.IRResultsCount);
+
+                deferred.resolve(results);
+            }).fail(function () {
+                // request FAILED
                 if (collection.ajaxFailCount) {
                     collection.ajaxFailCount++;
                 } else {
                     collection.ajaxFailCount = 1;
                 }
+            });
 
-                deferred.resolve(backupResults);
-                resultsAlreadyRequested = intentRank.getTileIds(backupResults);
-            }
-        });
-
-        // Make the request to Backbone collection and return deferred
-        Backbone.Collection.prototype.sync('read', collection, opts);
         deferred.done(function () {
             App.options.IRReqNum++;
             intentRank.options.IRReqNum++;
             intentRank.options.IROffset += opts.results;
         });
+
         return deferred.promise();
     };
 
@@ -231,19 +201,6 @@ App.module("intentRank", function (intentRank, App) {
     };
 
     /**
-     * A unique list of all tiles shown on the page.
-     * @returns {array}
-     */
-    this.getAllResultsShown = function () {
-        try {
-            return App.discovery.collection.models;
-        } catch (err) {
-            // first call, App.discovery is not a var yet
-            return App.option('initialResults') || [];
-        }
-    };
-
-    /**
      * append a list of json results shown.
      */
     this.addResultsShown = function (results) {
@@ -257,14 +214,15 @@ App.module("intentRank", function (intentRank, App) {
      * @return {Array} unique list of tile ids
      */
     this.getTileIds = function (tiles) {
-        if (!App.discoveryArea.$el) {
-            // there is no feed on the page, so there are no tiles on the page.
-            return [];
-        }
         if (tiles === undefined) {
-            tiles = _.map(App.discoveryArea.$el.find('.tile'), function (el) {
-                return $(el).tile().model;
-            });
+            if (App.discoveryArea && App.discoveryArea.$el) {
+                tiles = _.map(App.discoveryArea.$el.find('.tile'), function (el) {
+                    return $(el).tile().model;
+                });
+            }
+        }
+        if (!tiles) {
+            tiles = [];
         }
 
         return _.uniq(_.map(_.compact(tiles), function (model) {
@@ -277,23 +235,10 @@ App.module("intentRank", function (intentRank, App) {
     };
 
     /**
-     * @param {Integer} diff
-     * @return thsi
-     */
-    this.updateCache = function (diff) {
-        // right now it seems as if IR has a hard limit of 20
-        this.options.IRCacheResultCount = Math.min(10,
-            this.options.IRCacheResultCount + diff);
-        return this;
-    };
-
-    /**
      * @param {Array} results
      * @return this
      */
     this.set = function (results) {
-        // Simply add to our cached results list
-        cachedResults = cachedResults.concat(results);
         return this;
     };
 
@@ -314,18 +259,9 @@ App.module("intentRank", function (intentRank, App) {
      * @return this
      */
     this.changeCategory = function (category) {
-        // Change the category, category is a string passed
-        // to data
+        // Change the category, category is a string passed to data
         intentRank.options.category = category;
         intentRank.options.IRReset = true;
-
-        if (!category) { // clear the category
-            urlTemplate = intentRank.options.urlTemplates.campaign;
-            console.debug('No category passed, clearing.');
-            delete intentRank.options.category;
-        } else { // Swap default url
-            urlTemplate = intentRank.options.urlTemplates.category;
-        }
 
         App.vent.trigger('change:category', category, category);
 
