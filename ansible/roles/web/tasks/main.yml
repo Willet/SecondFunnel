@@ -8,5 +8,5 @@
 
 - name: Install nginx + uwsgi config
   template: src=secondfunnel.nginx.conf dest=/etc/nginx/sites-enabled/secondfunnel.nginx.conf
-  notify: nginx reload
+  notify: nginx restart
   sudo: true

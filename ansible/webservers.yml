@@ -1,9 +1,26 @@
+- name: "Remove any (local) known hosts already for the given box"
+  hosts: webservers:&vagrant
+  gather_facts: no
+  tasks:
+    - name: "Remove KNOWN_HOSTS"
+      local_action: command ssh-keygen -R '{{item}}'
+      with_items:
+        - "{{ansible_ssh_host}}"
+        - "[{{ansible_ssh_host}}]:{{ansible_ssh_port}}"
+      tags: vagrant_data_import
+
 - name: "Bootstrap Servers"
   serial: 2
   hosts: webservers:!building
   remote_user: "{{bootstrap_user}}"
   roles:
     - { role: common, tags: common }
+
+- name: "Setup Database (vagrant)"
+  hosts: webservers:&vagrant
+  remote_user: "{{common_user}}"
+  roles:
+    - { role: db, tags: db }
 
 - name: "Setup Servers"
   serial: 2
@@ -23,7 +40,6 @@
       ignore_errors: yes
       when: app_environment != "vagrant"
   roles:
-    - { role: db, tags: db, when: app_environment == "vagrant" }
     - web
   post_tasks:
     - name: "Register Instance on LB"
@@ -35,6 +51,16 @@
         state: "present"
       ignore_errors: yes
       when: app_environment != "vagrant"
+
+- name: "Database Import (vagrant)"
+  hosts: webservers:&vagrant
+  remote_user: "{{common_user}}"
+  tasks:
+      - name: "Import production data"
+        shell: "{{virtualenv_directory}}/bin/fab production 'database.remote_to_local:path=db_production_{{ansible_env['USER']}}.dump'"
+        args:
+          chdir: "{{application_directory}}/"
+        tags: vagrant_data_import
 
 - name: "Post Configuration"
   hosts: webservers:!building
