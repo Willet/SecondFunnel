@@ -41,7 +41,7 @@ def render_banner(page, request):
         "social_buttons": '',
         "conditional_social_buttons": "{}",
         "column_width": page.column_width or 150,  # 150 = 300 / 2
-        "enable_tracking": "false",  # jsbool
+        "enable_tracking": "true",  # jsbool
         "image_tile_wide": page.image_tile_wide,
         "pub_date": datetime.now().isoformat(),
         "ir_base_url": ir_base_url,
