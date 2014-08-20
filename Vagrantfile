@@ -21,6 +21,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
     end
 
+    config.vm.provision "shell" do |shell|
+        shell.privileged = true
+        shell.inline = "perl -p -i -e 's/post-up route del default dev \\$IFACE/post-up  route del default dev \\$IFACE || true/g' /etc/network/interfaces"
+    end
+
     config.vm.provision "ansible" do |ansible|
         ansible.playbook = "ansible/webservers.yml"
         ansible.groups = {
