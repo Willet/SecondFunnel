@@ -37,6 +37,11 @@
         <div id="bottom-padding">&nbsp;</div>
 
         {% include "pinpoint/default_templates.html" %}
-        <script>App.start();</script>
+        <script type="text/javascript">
+            App.start();
+            // trigger goal for anthropologie ad unit (on load)
+            App.vent.trigger('tracking:trackEvent', { 'category': "ad", 'action': "view", });
+        </script>
+
     </body>
 </html>
