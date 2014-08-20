@@ -24,7 +24,6 @@ def remote_to_local(native=True, file_name='db.dump', data_only=True):
         pass  # Error; not implemented
 
     # Dump the remote database
-    file_name = 'db.dump'
     file_path = '/tmp/' + file_name
     dump(file_path, data_only)
     get(file_path, file_name)

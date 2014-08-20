@@ -14,6 +14,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provider "virtualbox" do |v|
       v.memory = 1024
       v.cpus = 2
+      v.customize ["modifyvm", :id, "--natnet1", "192.168/16"] # setup nat networking
+      v.customize ["modifyvm", :id, "--rtcuseutc", "on"] # fix clocks for DHCP
     end
 
     config.vm.provision "ansible" do |ansible|

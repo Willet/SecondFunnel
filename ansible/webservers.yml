@@ -57,8 +57,9 @@
   remote_user: "{{common_user}}"
   tasks:
       - name: "Import production data"
-        shell: "{{virtualenv_directory}}/bin/fab production 'database.remote_to_local:file_name=db_production_{{ansible_env['USER']}}.dump'"
+        shell: "source {{virtualenv_directory}}/bin/activate && fab production 'database.remote_to_local:file_name=db_production_{{ansible_env['USER']}}.dump'"
         args:
+          executable: "/bin/bash"
           chdir: "{{application_directory}}/"
         tags: vagrant_data_import
 
