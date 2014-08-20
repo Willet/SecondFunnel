@@ -52,17 +52,6 @@
       ignore_errors: yes
       when: app_environment != "vagrant"
 
-- name: "Database Import (vagrant)"
-  hosts: webservers:&vagrant
-  remote_user: "{{common_user}}"
-  tasks:
-      - name: "Import production data"
-        shell: "source {{virtualenv_directory}}/bin/activate && fab production 'database.remote_to_local:file_name=db_production_{{ansible_env['USER']}}.dump'"
-        args:
-          executable: "/bin/bash"
-          chdir: "{{application_directory}}/"
-        tags: vagrant_data_import
-
 - name: "Post Configuration"
   hosts: webservers:!building
   remote_user: "{{common_user}}"

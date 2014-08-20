@@ -1,0 +1,12 @@
+- name: "Database Import (vagrant)"
+  serial: 1
+  hosts: webservers:!building
+  remote_user: "{{common_user}}"
+  vars:
+    db_file_name: "db_production_{{ansible_env['USER']}}_{{ansible_date_time.epoch}}.dump"
+  tasks:
+      - name: "Import production data"
+        shell: "source {{virtualenv_directory}}/bin/activate && fab production 'database.remote_to_local:file_name={{db_file_name}}'"
+        args:
+          executable: "/bin/bash"
+          chdir: "{{application_directory}}/"
