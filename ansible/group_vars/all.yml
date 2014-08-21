@@ -26,3 +26,22 @@ virtualenv_directory: /opt/secondfunnel/venv
 
 # Shared Application Defaults
 py_autoreload: 0
+
+uwsgi:
+  virtualenv: "{{virtualenv_directory}}"
+  chdir: "{{application_directory}}"
+  config_file: "{{secondfunnel_directory}}/uwsgi.ini"
+  fifo_file: "{{secondfunnel_run_directory}}/uwsgi-fifo.sock"
+  log_file: "{{secondfunnel_log_directory}}/uwsgi.log"
+  pid_file: "{{secondfunnel_run_directory}}/uwsgi.pid"
+  socket_file: "{{secondfunnel_run_directory}}/uwsgi.sock"
+  module: "secondfunnel.wsgi:application"
+
+  setup_monit: true
+  monit_config_file: /etc/monit/conf.d/uwsgi.conf
+
+  processes: 2
+  workers: 4
+  owner: www-data
+
+  py_autoreload: 0
