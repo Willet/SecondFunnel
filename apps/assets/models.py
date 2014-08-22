@@ -770,6 +770,7 @@ class Page(BaseModel):
         ('shareText', 'description'),  # ordered for cg <- sf
     )
 
+    serializer = ir_serializers.PageSerializer
     cg_serializer = cg_serializers.PageSerializer
 
     def __init__(self, *args, **kwargs):

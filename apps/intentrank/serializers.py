@@ -50,34 +50,8 @@ class StoreSerializer(IRSerializer):
 
 
 class PageSerializer(IRSerializer):
-    """Generates PAGES_INFO.
-
-    The page may require additional bolt-on attributes that are out of scope:
-    - 'request'
-    - 'algorithm'
-    """
-    @property
-    def _is_debug(self):
-        """TODO: decide if this should obey one of:
-
-        - ENVIRONMENT is 'dev'
-        - the actual DEBUG flag
-        """
-        return settings.DEBUG
-
+    """Generates the PAGES_INFO.page key."""
     def get_dump_object(self, obj):
-        store = obj.store.to_json()
-
-        try:
-            tile = obj.tile.to_json()
-        except AttributeError:
-            tile = None
-
-        try:
-            algorithm = obj.algorithm
-        except AttributeError:
-            algorithm = 'generic'
-
         # string representation of [{id: 123, name: 'gap'}, ...]
         # normalize categories list/str into a list
         categories = getattr(obj, 'categories', '[]')
@@ -85,13 +59,7 @@ class PageSerializer(IRSerializer):
             #noinspection PyTypeChecker
             categories = json.loads(categories)
 
-        # output attributes automatically (if the js knows how to use them)
-        if hasattr(obj, 'theme_settings'):
-            data = obj.theme_settings
-        else:
-            data = {}
-
-        page_config = {
+        return {
             'id': getattr(obj, 'intentrank_id', obj.id),
             # for verifying the original upload date of a static campaign.
             # for human use only
@@ -109,52 +77,90 @@ class PageSerializer(IRSerializer):
             'description': obj.description,
 
             # optional (defaults to 240 or 255 pixels)
+            # TODO: undefined
             'columnWidth': getattr(obj, 'column_width',
-                                   obj.store.get('column-width', None)),  # TODO: undefined
+                                   obj.store.get('column-width', None)),
             'maxColumnCount': getattr(obj, 'column_count', 4),
         }
 
-        ir_config = {
-            'results': 10,
-            'url': getattr(obj, 'ir_base_url', '/intentrank'),  # optional
-            'algorithm': algorithm,  # optional
 
-            # "content", "products", or anything else for both content and product
-            'tileSet': obj.get('tile_set', ''),
+class IntentRankSerializer(object):
+    """Generates the PAGES_INFO.intentRank key."""
+    def to_json(self):
+        return {
+            'results': 10,
             'reqNum': 0,  # optional
             'offset': 0,  # TODO: find a way to eliminate this variable
         }
+
+
+class PageConfigSerializer(object):
+    """Generates PAGES_INFO.
+
+    This is not a subclass of Serializer as it accepts different objects
+    as input.
+    """
+    @property
+    def _is_debug(self):
+        """TODO: decide if this should obey one of:
+
+        - ENVIRONMENT is 'dev'
+        - the actual DEBUG flag
+        """
+        return settings.DEBUG
+
+    def to_str(self, request, page, feed=None, store=None, algorithm=None,
+               featured_tile=None, other=None):
+
+        if not store:
+            store = page.store
+
+        if not feed:
+            feed = page.feed
+
+        if not algorithm:
+            algorithm = 'generic'
+
+        # output attributes automatically (if the js knows how to use them)
+        if hasattr(page, 'theme_settings'):
+            data = page.theme_settings
+        else:
+            data = {}
 
         data.update({
             'debug': self._is_debug,
             # no longer a setting (why would we change this?)
             'itemSelector': '.tile',
 
-            'store': store,
-            'page': page_config,
-            'feed': {},
-            'intentRank': ir_config,
+            'store': store.to_json(),
+            'page': page.to_json(),
+            'feed': feed.to_json(),
+            'intentRank': IntentRankSerializer().to_json(),
 
+        })
+
+        data.update({
             # DEPRECATED (use page:id)
-            'campaign': getattr(obj, 'intentrank_id', obj.id),
+            'campaign': getattr(page, 'intentrank_id', page.id),
             # DEPRECATED (use page:columnWidth)
-            'columnWidth': getattr(obj, 'column_width',
-                                   obj.store.get('column-width', None)),  # TODO: undefined
+            'columnWidth': getattr(page, 'column_width',
+                                   page.store.get('column-width', None)),  # TODO: undefined
             # DEPRECATED (use page:maxColumnCount)
-            'maxColumnCount': getattr(obj, 'column_count', 4),
+            'maxColumnCount': getattr(page, 'column_count', 4),
 
-            'overlayButtonColor': getattr(obj, 'overlay_button_color', ''),
-            'overlayMobileButtonColor': getattr(obj, 'overlay_mobile_button_color', ""),
-            'disableBannerRedirectOnMobile': getattr(obj, 'disable_banner_redirect_on_mobile', False),
-            'mobileTabletView': getattr(obj, 'mobile_table_view', False),
-            'widableTemplates': getattr(obj, 'widable_templates', None),  # TODO: undefined
-            'socialButtons': getattr(obj, 'social_buttons',
-                                     obj.store.get('social-buttons',
+            'overlayButtonColor': getattr(page, 'overlay_button_color', ''),
+            'overlayMobileButtonColor': getattr(page, 'overlay_mobile_button_color', ""),
+            'disableBannerRedirectOnMobile': getattr(page, 'disable_banner_redirect_on_mobile', False),
+            'mobileTabletView': getattr(page, 'mobile_table_view', False),
+            'widableTemplates': getattr(page, 'widable_templates', None),  # TODO: undefined
+            'socialButtons': getattr(page, 'social_buttons',
+                                     page.store.get('social-buttons',
                 ["facebook", "twitter", "pinterest", "tumblr"])),
 
-            'conditionalSocialButtons': obj.get('conditional_social_buttons', {}),
-            'openTileInPopup': True if obj.get("open_tile_in_popup") else False,
-            'tilePopupUrl': obj.get('tile_popup_url', ''),
+            'conditionalSocialButtons': page.get('conditional_social_buttons', {}),
+            'openTileInPopup': True if page.get("open_tile_in_popup") else False,
+            'tilePopupUrl': page.get('tile_popup_url', ''),
+            'urlParams': page.get("url_params", {}),
 
             # a string or boolean indicating if there should be a home button /
             # what the home button should be
@@ -162,22 +168,28 @@ class PageSerializer(IRSerializer):
             # optional, for social buttons (default: true)
             'showCount': True,
             # optional; default: true
-            'enableTracking': obj.get('enable_tracking', True),
+            'enableTracking': page.get('enable_tracking', True),
             # optional. controls how often tiles are wide.
-            'imageTileWide': getattr(obj, 'image_tile_wide', 0.0),
-            'minImageWidth': getattr(obj, 'minImageWidth', 450),  # minimum width a Cloudinary image can have  TODO: magic number
-            'minImageHeight': getattr(obj, 'minImageHeight', 100), # minimum height a Cloudinary image can have  TODO: magic number
+            'imageTileWide': getattr(page, 'image_tile_wide', 0.0),
+            # minimum width a Cloudinary image can have  TODO: magic number
+            'minImageWidth': getattr(page, 'minImageWidth', 450),
+            # minimum height a Cloudinary image can have  TODO: magic number
+            'minImageHeight': getattr(page, 'minImageHeight', 100),
             'masonry': {  # passed to masonry
                 'transitionDuration': '0.4s',
-                'minDesktopColumns': getattr(obj, 'minDesktopColumns', 2),  # minimum number of columns on desktop for masonry
-                'minMobileColumns': getattr(obj, 'minMobileColumns', 2),  # minimum number of columns to show on mobile for masonry
+                # minimum number of columns on desktop for masonry
+                'minDesktopColumns': getattr(page, 'minDesktopColumns', 2),
+                # minimum number of columns to show on mobile for masonry
+                'minMobileColumns': getattr(page, 'minMobileColumns', 2),
             },
-            'featured': tile,  # default: undefined
+
+            # default: undefined
+            'featured': featured_tile.to_json() if featured_tile else None,
 
             # DEPRECATED (use intentRank:results)
             'IRResultsCount': 10,
-            # DEPRECATED (use intentRank:source)
-            'source': getattr(obj, 'ir_base_url', '/intentrank'),
+            # DEPRECATED (use intentRank:url)
+            'IRSource': getattr(page, 'ir_base_url', '/intentrank'),
             # DEPRECATED (use intentRank:results)
             'IRAlgo': algorithm,
             # DEPRECATED (use intentRank:tileSet)
@@ -188,7 +200,7 @@ class PageSerializer(IRSerializer):
             'IROffset': 0,
 
             # DEPRECATED (use page:gaAccountNumber)
-            'gaAccountNumber': getattr(obj, 'ga_account_number',
+            'gaAccountNumber': getattr(page, 'ga_account_number',
                                        settings.GOOGLE_ANALYTICS_PROPERTY),
 
             'keen': {
@@ -197,12 +209,18 @@ class PageSerializer(IRSerializer):
             },
 
             # {[tileId: num,]}
-            'resultsThreshold': obj.get('results_threshold', None),
+            'resultsThreshold': page.get('results_threshold', None),
 
             # JS now fetches its own initial results
             'initialResults': [],
+        })
 
-            'urlParams': obj.get("url_params", {}),
+        # fill keys not available to parent serializer
+        data['intentRank'].update({
+            'url': getattr(page, 'ir_base_url', '/intentrank'),  # optional
+            'algorithm': algorithm,  # optional
+            # "content", "products", or anything else for both content and product
+            'tileSet': page.get('tile_set', ''),
         })
 
         return data
