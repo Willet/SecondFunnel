@@ -18,7 +18,7 @@ django then reads this directory as a template folder for static page generation
 2. Setup your environment PATH to include "node\_modules/bin"
 3. Run `npm install`
 4. Run `bower install`
-5. Run `gulp <command>`
+5. Run `gulp --require coffee-script/register <command>`
 
 ## Gulp
 
