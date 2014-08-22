@@ -24,7 +24,7 @@ html, body {
 
 body {
     position: relative;
-    background: url('/static/light/components/landingpage/images/gradient.png') top center repeat-y;
+    background: url('/static/light/landingpage/images/gradient.png') top center repeat-y;
 
     // otherwise we need to detect when the page becomes long enough that it needs scroll-bar
     // as masonry would need to relayout content in thise case.
@@ -257,7 +257,7 @@ div.loading {
     /* standard youtube thumbnail
        @override
     */
-    background-image: url('/static/light/components/landingpage/images/youtube-play-button-small.png');
+    background-image: url('/static/light/landingpage/images/youtube-play-button-small.png');
     content: "";
     width: 71px;
     height: 51px;
@@ -577,7 +577,7 @@ div.loading {
     width: 100%;
     height: 100%;
     /* IE 8 still doesn't support rgba. Here's a semi-transparent png. */
-    background: url('/static/light/components/landingpage/images/white-transparent.png');
+    background: url('/static/light/landingpage/images/white-transparent.png');
     background: rgba(255,255,255,0.7);
     cursor: -webkit-zoom-out;
     cursor: -moz-zoom-out;
