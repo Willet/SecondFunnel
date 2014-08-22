@@ -57,9 +57,6 @@ urlpatterns = patterns('',
     # APIs
     url(r'^contentgraph/', include('apps.contentgraph.urls')),
     url(r'^graph/', include('apps.api.urls')),
-
-    # WEBSITE
-    url(r'^(.*)$', include('apps.website.urls')),
 )
 
 if settings.DEBUG:
@@ -73,5 +70,10 @@ if settings.DEBUG:
     urlpatterns += patterns('',
         url(r'^__debug__/', include(debug_toolbar.urls)),
     )
+
+urlpatterns += patterns('',
+    # WEBSITE
+    url(r'^(.*)$', include('apps.website.urls'))
+)
 
 handler500 = 'apps.pinpoint.views.app_exception_handler'
