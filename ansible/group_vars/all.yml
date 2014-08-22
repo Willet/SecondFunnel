@@ -18,10 +18,11 @@ aws_server_sshkey_name: willet-admin-master
 aws_instance_type: m3.medium
 
 # Shared Application Settings
-application_directory: /opt/secondfunnel/app
 secondfunnel_directory: /opt/secondfunnel
 secondfunnel_log_directory: /opt/secondfunnel/log
 secondfunnel_run_directory: /opt/secondfunnel/run
+secondfunnel_shared_directory: /opt/secondfunnel/shared
+application_directory: /opt/secondfunnel/app
 virtualenv_directory: /opt/secondfunnel/venv
 
 # Shared Application Defaults

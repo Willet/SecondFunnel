@@ -226,11 +226,7 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(
-        os.path.dirname(
-            os.path.dirname(
-                os.path.dirname(
-                    os.path.abspath(__file__)))), 'secondfunnel/static'),
+    from_project_root('secondfunnel/static'),
     )
 
 # List of finder classes that know how to find static files in
@@ -280,8 +276,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    from_project_root('apps/pinpoint/static'),
-    from_project_root('apps/ads/static'),
+    from_project_root('apps/pinpoint/static'), # DEFER: remove this
 )
 
 FRAMEWORK_APPS = (
@@ -314,7 +309,6 @@ THIRD_PARTY_APPS = (
 
 LOCAL_APPS = (
     # our apps
-    'apps.ads',
     'apps.api',
     'apps.assets',
     'apps.pinpoint',
@@ -325,7 +319,8 @@ LOCAL_APPS = (
     'apps.utils',
     'apps.imageservice',
     'apps.scraper',
-    'apps.dashboard'
+    'apps.dashboard',
+    'apps.light',
 )
 
 INSTALLED_APPS = FRAMEWORK_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -335,6 +330,7 @@ CORS_ORIGIN_REGEX_WHITELIST = (
     # for testing local pages using live IR
     r'^(https?://)?(localhost|127.0.0.1):(\d+)$',
     r'^(https?://)?[\w-]+\.secondfunnel\.com$',
+    r'^(https?://)?[\w-]+\.2ndfunnel\.com$',
     r'^(https?://)?[\w-]+\.elasticbeanstalk\.com$',
     r'^(https?://)?[\w-]+\.myshopify\.com$',
     r'^(https?://)?[\w-]+\.amazonaws\.com$',

@@ -22,6 +22,7 @@ aws_ami:
 
 aws_lb:
   name: "secondfunnel-{{app_environment}}-lb"
+  zones: "{{aws_availability_zones}}"
 
 aws_lc:
   name: "{{aws_name}}-web-lc {{ansible_date_time.date}}"

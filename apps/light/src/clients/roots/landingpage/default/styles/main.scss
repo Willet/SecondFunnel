@@ -1,0 +1,217 @@
+$icon-font-path: "/static/light/fonts/";
+
+@import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
+@import "src/components/landingpage/styles/base.scss";
+
+@font-face {
+    font-family:"ITC Souvenir W01 Light";
+    src:url("/static/light/roots/landingpage/default/fonts/ITC Souvenir W01 Light.woff") format('woff'),
+        url("/static/light/roots/landingpage/default/fonts/ITC Souvenir W01 Light.ttf") format('truetype');
+}
+
+body {
+    background-color: #CBC8C1;
+}
+
+.navbar {
+    text-align: center;
+    height: 84px;
+    max-width: 1024px;
+    margin: auto;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.navbar .container {
+    position: relative;
+}
+
+.navbar .container .line {
+    left: 0;
+    right: 0;
+    top: 50%;
+    position: absolute;
+    border-bottom: 1px solid #CCC;
+    z-index: -1;
+}
+
+.navbar .container img {
+    padding: 0 20px;
+    background-color: white;
+}
+
+.price {
+    font-family: arial, verdana, tahoma, sans-serif;
+    color: #666;
+}
+
+.price .strike {
+    margin-right: 4px;
+}
+
+.tile {
+    color: #000;
+    text-align: center;
+    padding: 10px;
+    font-family: 'ITC Souvenir W01 Light', times new roman, sans;
+    line-height: 16px;
+}
+.tile.youtube {
+    height: 291px;
+}
+
+.tile .name {
+    margin-top: 5px;
+}
+
+.tile .price {
+    font-size: 12px;
+}
+
+.previewContainer {
+    font-family: 'ITC Souvenir W01 Light', times new roman, sans;
+    text-transform: uppercase;
+}
+
+.previewContainer .content {
+    padding-top: 60px;
+}
+
+.previewContainer .close {
+    left: 5px;
+    top: 5px;
+    right: inherit;
+    color: #000;
+    background-color: #FFF;
+    padding: 10px 20px;
+    border: 1px solid #DDD;
+    text-decoration: underline;
+}
+
+.previewContainer .close.small-close {
+    right: 5px;
+    left: inherit;
+    text-decoration: none;
+}
+
+.previewContainer .info {
+    text-align: left;
+    overflow: hidden;
+    max-width: 500px;
+    width: 290px;
+}
+.previewContainer .info.image {
+    max-width: 320px;
+}
+
+.previewContainer .info .title {
+    font-size: 22px;
+    line-height: 22px;
+    font-weight: bold;
+}
+
+.previewContainer .buy {
+    text-align: center;
+}
+
+.previewContainer .buy .button {
+    background-color: #696969;
+    padding: 5px 30px;
+    font-weight: bold;
+    min-width: 250px;
+}
+
+.previewContainer .stl-look .stl-item .name {
+    width: 100px;
+    margin: auto;
+    text-align: center;
+    font-size: 12px;
+    white-space: normal;
+    text-transform: none;
+}
+
+.previewContainer .image-with-tagged-products .cell.shop {
+    width: 120px;
+}
+
+.previewContainer .more-info {
+    text-align: right;
+    padding-right: 20px;
+    font-size: 20px;
+    line-height: 20px;
+    font-weight: bold;
+}
+
+.previewContainer .more-info .down-arrow {
+    width: 0px;
+    height: 0px;
+    background-color: transparent;
+    border-left: 10.5px solid transparent;
+    border-right: 10.5px solid transparent;
+    border-top: 15px solid #000;
+    display: inline-block;
+}
+
+.previewContainer .roots-logo {
+    position: absolute;
+    top: 5px;
+    left: 285px;
+    width: 340px;
+    height: 43px;
+}
+
+.previewContainer .roots-logo .line {
+    left: 0;
+    right: 0;
+    top: 50%;
+    position: absolute;
+    border-bottom: 1px solid #CCC;
+    z-index: -1;
+}
+
+.previewContainer .roots-logo img {
+    padding: 0 20px;
+    background-color: white;
+    height: 100%;
+}
+
+@media screen and (max-width: 768px) {
+    .navbar {
+        display: none;
+    }
+
+    .previewContainer .close.small-close {
+        display: none;
+    }
+
+    .previewContainer .gallery img {
+        display: inline-block;
+    }
+
+    .previewContainer .info {
+        text-align: left;
+        max-width: none;
+        width: auto;
+    }
+
+    .previewContainer .info.image {
+        max-width: none;
+    }
+
+    .previewContainer .info .buy {
+        text-align: center;
+    }
+
+    .previewContainer .info .buy .button {
+        display: inline-block;
+        min-width: 280px;
+    }
+
+    .previewContainer .image-with-tagged-products .cell.shop {
+        width: auto;
+    }
+
+    .previewContainer .roots-logo {
+        display: none;
+    }
+}

@@ -40,6 +40,7 @@ python-openid==2.2.5
 python-termstyle==0.1.10
 pytz==2013.9
 six==1.5.2 # compatibility extension PY2->PY3
+simplejson==3.5.2 # for escaping json properly in HTML
 
 ## Server
 httplib2==0.8
