@@ -34,6 +34,7 @@ def landing_page(request, page_slug):
         page = get_object_or_404(Page, store=store, url_slug=page_slug)
     else:
         page = get_object_or_404(Page, url_slug=page_slug)
+        store = page.store
 
     #
     # Lookup Product for Shop-The-Look style pages
