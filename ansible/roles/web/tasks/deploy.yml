@@ -29,31 +29,38 @@
       version="{{git_branch}}"
   register: git_repo
   notify: uwsgi reload
-  when: app_environment != 'vagrant'
+  when: "'vagrant' not in groups"
 
 - name: Install Python Application Requirements (dev)
   pip: requirements={{ application_directory }}/requirements/dev.txt virtualenv={{virtualenv_directory}}
-  when: app_environment == 'vagrant'
+  when: "'vagrant' in groups"
   async: 3600
   poll: 15
 
 - name: Install Python Application Requirements (non-dev)
   pip: requirements={{ application_directory }}/requirements.txt virtualenv={{virtualenv_directory}}
-  when: app_environment != 'vagrant' and git_repo|changed
+  when: "'vagrant' not in groups and git_repo|changed"
   async: 3600
   poll: 15
 
-- name: django syncdb, migrate, and collect static
+- name: Migration of database, etc
   shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
   args:
     chdir: "{{application_directory}}"
-  notify: uwsgi reload
   with_items:
     - "syncdb --noinput"
     - "migrate --noinput"
+  notify: uwsgi reload
+  when: "'vagrant' in groups or git_repo|changed"
+
+- name: Django production static/asset compilation
+  shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
+  args:
+    chdir: "{{application_directory}}"
+  with_items:
     - "collectstatic --noinput"
     - "compress --force"
-  when: app_environment == 'vagrant' or git_repo|changed
+  when: "'vagrant' not in groups and git_repo|changed"
 
 #- name: Link any directories shared between application deployments
 #  file: state=link path="{{application_directory}}/{{item.src}}" src="{{secondfunnel_directory}}/{{item.dest}}"
