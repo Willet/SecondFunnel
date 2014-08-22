@@ -59,7 +59,7 @@ class PageSerializer(IRSerializer):
             #noinspection PyTypeChecker
             categories = json.loads(categories)
 
-        return {
+        data = {
             'id': getattr(obj, 'intentrank_id', obj.id),
             # for verifying the original upload date of a static campaign.
             # for human use only
@@ -71,7 +71,7 @@ class PageSerializer(IRSerializer):
             # provided by campaign manager
             'name': obj.name or '',
             'slug': obj.url_slug or '',
-            'layout': obj.layout or 'hero',
+            'layout': obj.get('layout', 'hero'),
 
             'categories': categories,
             'description': obj.description,
@@ -82,6 +82,8 @@ class PageSerializer(IRSerializer):
                                    obj.store.get('column-width', None)),
             'maxColumnCount': getattr(obj, 'column_count', 4),
         }
+
+        return data
 
 
 class IntentRankSerializer(object):
@@ -100,17 +102,13 @@ class PageConfigSerializer(object):
     This is not a subclass of Serializer as it accepts different objects
     as input.
     """
-    @property
-    def _is_debug(self):
-        """TODO: decide if this should obey one of:
-
-        - ENVIRONMENT is 'dev'
-        - the actual DEBUG flag
-        """
-        return settings.DEBUG
-
-    def to_str(self, request, page, feed=None, store=None, algorithm=None,
+    @staticmethod
+    def to_json(request, page, feed=None, store=None, algorithm=None,
                featured_tile=None, other=None):
+        """
+        keys in other:
+        - tile_set ('product', 'content', '')
+        """
 
         if not store:
             store = page.store
@@ -121,6 +119,12 @@ class PageConfigSerializer(object):
         if not algorithm:
             algorithm = 'generic'
 
+        # custom variables (kwargs)
+        kwargs = {}
+        if not other:
+            other = {}
+        kwargs.update(other)
+
         # output attributes automatically (if the js knows how to use them)
         if hasattr(page, 'theme_settings'):
             data = page.theme_settings
@@ -128,7 +132,7 @@ class PageConfigSerializer(object):
             data = {}
 
         data.update({
-            'debug': self._is_debug,
+            'debug': settings.DEBUG,
             # no longer a setting (why would we change this?)
             'itemSelector': '.tile',
 
@@ -193,7 +197,7 @@ class PageConfigSerializer(object):
             # DEPRECATED (use intentRank:results)
             'IRAlgo': algorithm,
             # DEPRECATED (use intentRank:tileSet)
-            'IRTileSet': "{{ tile_set }}",
+            'IRTileSet': kwargs.get('tile_set', ''),
             # DEPRECATED (use intentRank:reqNum)
             'IRReqNum': 0,
             # DEPRECATED (use intentRank:offset)
@@ -204,8 +208,8 @@ class PageConfigSerializer(object):
                                        settings.GOOGLE_ANALYTICS_PROPERTY),
 
             'keen': {
-                'projectId': settings.KEEN_CONFIG.projectId,
-                'writeKey': settings.KEEN_CONFIG.writeKey,
+                'projectId': settings.KEEN_CONFIG['projectId'],
+                'writeKey': settings.KEEN_CONFIG['writeKey'],
             },
 
             # {[tileId: num,]}
@@ -222,6 +226,11 @@ class PageConfigSerializer(object):
             # "content", "products", or anything else for both content and product
             'tileSet': page.get('tile_set', ''),
         })
+
+        if page.get('tests'):
+            data.update({
+                'tests': page.get('tests'),
+            })
 
         return data
 
