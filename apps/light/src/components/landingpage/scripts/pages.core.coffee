@@ -26,7 +26,8 @@ module.exports = (module, App) ->
 
         # getOption() returns a blank object when it thinks it is accessing
         # a nested option so we have to patch that up
-        return opt    if opt isnt undefined and keyNest.length is 1 and not _.isEmpty(opt)
+        if opt isnt undefined and keyNest.length is 1 and not _.isEmpty(opt)
+            return opt
 
         # marionette sucks, so we'll do extra traversing to get stuff out of
         # our nested objects ourselves
@@ -38,7 +39,8 @@ module.exports = (module, App) ->
                 keyName = keyNest[i]
                 cursor = cursor[keyName]
                 i++
-            return cursor    if cursor isnt undefined
+            if cursor isnt undefined
+                return cursor
         catch KeyError
 
             # requested traversal path does not exist. do the next line
@@ -60,7 +62,8 @@ module.exports = (module, App) ->
     Marionette.TemplateCache._exists = (templateId) ->
         cached = @templateCaches[templateId]
         cachedTemplate = undefined
-        return true    if cached
+        if cached
+            return true
 
         # template exists but was not cached
         cachedTemplate = new Marionette.TemplateCache(templateId)
@@ -70,7 +73,8 @@ module.exports = (module, App) ->
             # Only cache on success
             @templateCaches[templateId] = cachedTemplate
         catch err
-            throw err    unless err.name and err.name is "NoTemplateError"
+            unless err.name and err.name is "NoTemplateError"
+                throw err
         !!@templateCaches[templateId]
 
 
@@ -86,7 +90,8 @@ module.exports = (module, App) ->
         template = @template
 
         # the custom 'templates' variable is not there
-        return template    unless templateIDs
+        unless templateIDs
+            return template
 
         # compose 'data' variable for rendering a tile priority list.
         # needs to be deep copy (for store info)

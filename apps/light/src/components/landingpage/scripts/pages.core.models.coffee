@@ -152,8 +152,10 @@ module.exports = (module, App) ->
             displayName: ""
 
         initialize: (data) ->
-            throw Exception("Missing store slug")    unless data.slug
-            @set "displayName", @get("name")    unless data.displayName
+            unless data.slug
+                throw Exception("Missing store slug")
+            unless data.displayName
+                @set "displayName", @get("name")
             return
 
 
@@ -175,7 +177,8 @@ module.exports = (module, App) ->
             "dominant-color": "transparent"
 
         parse: (resp, options) ->
-            resp.type = resp.template    unless resp.type
+            unless resp.type
+                resp.type = resp.template
             resp.caption = App.utils.safeString(resp.caption or "")
             resp
 
@@ -242,7 +245,8 @@ module.exports = (module, App) ->
             )
             unless defImg
                 try
-                    return @get("images")[0]    if @get("images")[0] instanceof module.Image
+                    if @get("images")[0] instanceof module.Image
+                        return @get("images")[0]
                     return new module.Image(@get("images")[0])
                 catch err
 
@@ -253,7 +257,8 @@ module.exports = (module, App) ->
                     )
             # found default image
             # timing: attributes.images already coverted to Images
-            else return defImg    if defImg instanceof module.Image
+            else if defImg instanceof module.Image
+                return defImg
             new module.Image(defImg)
 
 
@@ -261,7 +266,8 @@ module.exports = (module, App) ->
             try
 
                 # product tiles
-                return @get("default-image")    if @get("default-image")
+                if @get("default-image")
+                    return @get("default-image")
 
                 # product tiles without a default-image attr, guess it
                 if @get("images") and @get("images").length
@@ -273,7 +279,8 @@ module.exports = (module, App) ->
                         @get("images")[0].get("tile-id") or
                         @get("images")[0].id or
                         @get("images")[0].get("id")
-                    return guess    if guess
+                if guess
+                    return guess
 
                 # image tiles (or tiles that are root-level images)
                 # note: might be wrong if product tiles still fall through
@@ -334,11 +341,15 @@ module.exports = (module, App) ->
             resized = undefined
             options = $.extend({}, obj)
             resized = $.extend({}, @defaults, @attributes)
-            options.width = width    if width > 0
-            options.height = height    if height > 0
-            options.width = App.layoutEngine.width()    unless width or height
+            if width > 0
+                options.width = width
+            if height > 0
+                options.height = height
+            unless width or height
+                options.width = App.layoutEngine.width()
             resized.url = App.utils.getResizedImage(@get("url"), options)
-            return resized    if obj
+            if obj
+                return resized
             resized.url
 
         width: (width, obj) ->
@@ -537,7 +548,8 @@ module.exports = (module, App) ->
             url = undefined
             category = App.intentRank.options.category
             url = "#{@config.apiUrl#}/page/#{@config.campaign}/getresults?results=#{@config.results}"
-            return url + "&category=" + encodeURIComponent(category)    if category
+            if category
+                return url + "&category=" + encodeURIComponent(category)
             url
 
         initialize: (arrayOfData, url, campaign, results) ->

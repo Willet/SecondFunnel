@@ -63,7 +63,8 @@ module.exports = (module, App) ->
             if data.type
                 @className = data.type.toLowerCase().split().join(' ')
 
-            @className += " #{data.template}"    if data.template
+            if data.template
+                @className += " #{data.template}"
             @className += " tile"
 
             # expose model reference in form of id
@@ -89,10 +90,12 @@ module.exports = (module, App) ->
 
             # Trigger tile hover event with event and tile
             App.vent.trigger "tileHover", ev, this
-            return this    if App.support.mobile() or App.support.touch() # don't need buttons here
+            if App.support.mobile() or App.support.touch() # don't need buttons here
+                return this
 
             # load buttons for this tile only if it hasn't already been loaded
-            @socialButtons.show new App.sharing.SocialButtons(model: @model)    if not @socialButtons.$el and App.sharing
+            if not @socialButtons.$el and App.sharing
+                @socialButtons.show new App.sharing.SocialButtons(model: @model)
 
             # show/hide buttons only if there are buttons
             if @socialButtons and @socialButtons.$el and @socialButtons.$el.children().length
@@ -106,20 +109,23 @@ module.exports = (module, App) ->
 
             if App.option("openTileInPopup", false)
                 if App.option("tilePopupUrl")
-
                     # override for ad units whose tiles point to our pages
                     url = App.option("tilePopupUrl")
                 else if tile.get("template") is "product"
                     url = tile.get("url")
-                else url = tile.get("tagged-products")[0].url    if tile.get("tagged-products") and tile.get("tagged-products").length
+                else if tile.get("tagged-products") and tile.get("tagged-products").length
+                    url = tile.get("tagged-products")[0].url
                 # missing schema
-                url = "http://" + App.store.get("slug") + ".secondfunnel.com" + url    if url.indexOf("http") is -1 and App.store.get("slug")
+                if url.indexOf("http") is -1 and App.store.get("slug")
+                    url = "http://" + App.store.get("slug") + ".secondfunnel.com" + url
+
                 if url and url.length
                     sku = tile.get("sku")
                     tileId = tile.get("tile-id")
                     if tileId
                         url += "/tile/" + tileId
-                    else url += "/sku/" + sku    if sku
+                    else if sku
+                        url += "/sku/" + sku
                     window.open url, "_blank"
                 return
 
@@ -168,11 +174,11 @@ module.exports = (module, App) ->
                     columns = 1
                 else
                     columns = 2
-            while 0 <= columns
+            for column in columns
                 idealWidth = normalTileWidth * columns
                 imageInfo = @model.get("defaultImage").width(idealWidth, true)
-                break    if imageInfo
-                columns--
+                if imageInfo
+                    break
             @model.set image: imageInfo
             @$el.addClass columnDetails[columns]
 
@@ -218,6 +224,7 @@ module.exports = (module, App) ->
                     console.warn "Image error, closing views: " + arguments
                     @close()
                     return
+
             if App.sharing and App.option("conditionalSocialButtons", {})[model.get("colspan")]
                 socialButtons = $(".socialButtons", @$el)
                 buttons = new App.sharing.SocialButtons(
@@ -226,7 +233,9 @@ module.exports = (module, App) ->
                 )
                 socialButtons.append buttons.render().$el
             @$el.addClass @model.get("orientation") or "portrait"
-            @$el.addClass "full"    if App.utils.isIframe() and @$el.hasClass("landscape")
+
+            if App.utils.isIframe() and @$el.hasClass("landscape")
+                @$el.addClass "full"
 
             # add view to our database
             App.vent.trigger "tracking:trackTileView", model.get("tile-id")
@@ -249,7 +258,8 @@ module.exports = (module, App) ->
             return
 
         onClick: ->
-            window.open @model.get("url")    if @model.get("url")
+            if @model.get("url")
+                window.open @model.get("url")
             return
 
         onPlaybackEnd: (ev) ->
@@ -298,7 +308,8 @@ module.exports = (module, App) ->
 
     class module.ProductInfoView extends Marionette.ItemView
         initialize: (options) ->
-            throw new Error("infoItem is a required property")    unless options.infoItem
+            unless options.infoItem
+                throw new Error("infoItem is a required property")
             @options = options
             return
 
@@ -324,6 +335,7 @@ module.exports = (module, App) ->
                 image.url = image.height($window.height())
             else
                 image = image.height(App.utils.getViewportSized(true), true)
+
             if @model.get("tagged-products") and @model.get("tagged-products").length > 1
                 @model.set "tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
                     -1 * parseFloat((obj.price or "$0").substr(1), 10)
@@ -341,8 +353,11 @@ module.exports = (module, App) ->
         close: ->
 
             # See NOTE in onShow
-            $(document.body).removeClass "no-scroll"    unless App.support.isAnAndroid()
-            $(".stick-bottom", @$el).waypoint "destroy"    if $.fn.waypoint
+            unless App.support.isAnAndroid()
+                $(document.body).removeClass "no-scroll"
+
+            if $.fn.waypoint
+                $(".stick-bottom", @$el).waypoint "destroy"
             return
 
         renderSubregions: (product) ->
@@ -361,10 +376,12 @@ module.exports = (module, App) ->
                 ->
                     container = element.closest(".fullscreen")
                     containedItem = element.closest(".content")
-                    return    if --imageCount isnt 0
+                    if --imageCount isnt 0
+                        return
 
                     # no container to shrink
-                    return    unless container and container.length
+                    unless container and container.length
+                        return
                     container.css
                         top: "0"
                         bottom: "0"
@@ -375,10 +392,12 @@ module.exports = (module, App) ->
                     widthReduction = container.outerWidth()
                     heightReduction -= containedItem.outerHeight()
                     heightReduction /= 2 # Split over top and bottom
-                    heightReduction = "0"    if heightReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                    if heightReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                        heightReduction = "0"
                     widthReduction -= containedItem.outerWidth()
                     widthReduction /= 2
-                    widthReduction = "0"    if widthReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                    if widthReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                        widthReduction = "0"
                     container.css
                         top: heightReduction
                         bottom: heightReduction
@@ -444,7 +463,9 @@ module.exports = (module, App) ->
         onShow: ->
             product = undefined
             index = App.option("galleryIndex", 0)
-            index = App.option("heroGalleryIndex", 0)    if @$el.parents("#hero-area").length
+            if @$el.parents("#hero-area").length
+                index = App.option("heroGalleryIndex", 0)
+
             @$(".stl-look").each ->
                 $(this).find(".stl-item").eq(index).addClass "selected"
                 return
@@ -456,6 +477,7 @@ module.exports = (module, App) ->
                 @renderSubregions @model
             else
                 @resizeContainer()
+
             if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
                 $(".stick-bottom", @$el).addClass("stuck").waypoint "sticky",
                     offset: "bottom-in-view"
@@ -527,10 +549,12 @@ module.exports = (module, App) ->
                 width = Marionette.getOption(this, "width")
                 if width
                     @$(".content").css "width", width + "px"
-                else @$el.width $window.width()    if App.support.mobile() # assign width
+                else if App.support.mobile()
+                    @$el.width $window.width() # assign width
 
                 # if it's a real preview, add no-scroll
-                @trigger "scroll:disable"    unless @$el.parents("#hero-area").length
+                unless @$el.parents("#hero-area").length
+                    @trigger "scroll:disable"
             return
 
     ###
@@ -550,7 +574,8 @@ module.exports = (module, App) ->
 
             # if page config contains a product, render hero area with a
             # template that supports it
-            return "#shopthelook_template"    if App.option("featured") isnt undefined and $("#shopthelook_template").length
+            if App.option("featured") isnt undefined and $("#shopthelook_template").length
+                return "#shopthelook_template"
             "#hero_template"
 
 
@@ -561,7 +586,9 @@ module.exports = (module, App) ->
         initialize: (data) ->
             self = this
             tile = data
-            tile = App.option("featured")    if $.isEmptyObject(data)
+            if $.isEmptyObject(data)
+                tile = App.option("featured")
+
             @model = new module.Tile(tile)
             @listenTo App.vent, "windowResize", ->
 
@@ -690,8 +717,10 @@ module.exports = (module, App) ->
 
         positionWindow: () ->
             windowMiddle = $window.scrollTop() + $window.height() / 2
-            windowMiddle = App.windowMiddle    if App.windowMiddle
-            @$el.css "height", App.windowHeight    if App.windowHeight and App.support.mobile()
+            if App.windowMiddle
+                windowMiddle = App.windowMiddle
+            if App.windowHeight and App.support.mobile()
+                @$el.css "height", App.windowHeight
             @$el.css "top", Math.max(windowMiddle - (@$el.height() / 2), 0)
 
         onShow: ->
@@ -787,7 +816,8 @@ module.exports = (module, App) ->
             return
 
         onRender: ->
-            @$el.children().eq(0).click()    if @nofilter
+            if @nofilter
+                @$el.children().eq(0).click()
             return
 
         onItemviewClick: (view) ->
