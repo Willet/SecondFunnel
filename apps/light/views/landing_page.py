@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext, loader
@@ -8,6 +9,7 @@ from django.views.decorators.cache import cache_page, cache_control
 from django.views.decorators.vary import vary_on_headers
 
 from apps.assets.models import Page, Store, Product, Tile
+from apps.light.utils import get_store_from_request
 
 
 @cache_control(must_revalidate=True, max_age=(1 * 60))
@@ -23,8 +25,16 @@ def landing_page(request, page_slug):
     # get the subdomain which should equal the store's slug
     store_slug = request.get_host().split('.')[0]
 
-    store = get_object_or_404(Store, slug=store_slug)
-    page = get_object_or_404(Page, store=store, url_slug=page_slug)
+    try:
+        store = get_store_from_request(request)
+    except (IndexError, ObjectDoesNotExist):
+        store = None
+
+    if store:
+        page = get_object_or_404(Page, store=store, url_slug=page_slug)
+    else:
+        page = get_object_or_404(Page, url_slug=page_slug)
+        store = page.store
 
     #
     # Lookup Product for Shop-The-Look style pages
