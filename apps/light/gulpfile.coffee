@@ -103,7 +103,7 @@ gulp.task "html", ["rev"], ->
 
     return merge(manifest, pages, pages_no_modify)
         .pipe $.if(config.production, revCollector())
-        .pipe $.filter("!**/rev-manifest.json") # ignore the manifest
+        .pipe $.filter("**/*.html") # ignore the manifest
         .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("all-rev-modified-files"))
         .pipe gulp.dest(template_output_dir)
         .pipe BrowserSync.reload(stream: true, once: true)
