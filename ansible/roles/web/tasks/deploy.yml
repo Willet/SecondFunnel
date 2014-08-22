@@ -43,34 +43,6 @@
   async: 3600
   poll: 15
 
-- name: Migration of database, etc
-  shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
-  args:
-    chdir: "{{application_directory}}"
-  with_items:
-    - "syncdb --noinput"
-    - "migrate --noinput"
-  notify: uwsgi reload
-  when: "'vagrant' in groups or git_repo|changed"
-
-- name: Django production static/asset compilation
-  shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
-  args:
-    chdir: "{{application_directory}}"
-  with_items:
-    - "collectstatic --noinput"
-  when: "'vagrant' in groups or git_repo|changed"
-
-- name: Compress static, and manifest creation
-  shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
-  args:
-    chdir: "{{application_directory}}"
-  with_items:
-    - "compress --force"
-  register: compress_result
-  failed_when: compress_result.rc == 0 or compress_result.stderr.find("No 'compress' template tags found in templates") == -1
-  when: "'vagrant' not in groups and git_repo|changed"
-
 - name: Remove any existing node_modules or bower_libs if they exist
   stat: path="{{application_directory}}/{{item.src}}"
   register: shared_libs_stat
@@ -102,3 +74,31 @@
   command: gulp --require coffee-script/register build
   args:
     chdir: "{{application_directory}}/apps/light"
+
+- name: Migration of database, etc
+  shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
+  args:
+    chdir: "{{application_directory}}"
+  with_items:
+    - "syncdb --noinput"
+    - "migrate --noinput"
+  notify: uwsgi reload
+  when: "'vagrant' in groups or git_repo|changed"
+
+- name: Django production static/asset compilation
+  shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
+  args:
+    chdir: "{{application_directory}}"
+  with_items:
+    - "collectstatic --noinput"
+  when: "'vagrant' in groups or git_repo|changed"
+
+- name: Compress static, and manifest creation
+  shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
+  args:
+    chdir: "{{application_directory}}"
+  with_items:
+    - "compress --force"
+  register: compress_result
+  failed_when: compress_result.rc == 0 or compress_result.stderr.find("No 'compress' template tags found in templates") == -1
+  when: "'vagrant' not in groups and git_repo|changed"
