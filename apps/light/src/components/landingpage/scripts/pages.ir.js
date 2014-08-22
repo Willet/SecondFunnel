@@ -272,4 +272,4 @@ App.module("intentRank", function (intentRank, App) {
 
         return intentRank;
     };
-};
+});
