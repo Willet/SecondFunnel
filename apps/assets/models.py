@@ -798,9 +798,11 @@ class Page(BaseModel):
 
         Also looks into the theme_settings JSONField if present.
         """
-        attr = getattr(self, key, None)
-        if attr:
-            return attr
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            pass
+
         if hasattr(self, 'theme_settings') and self.theme_settings:
             return self.theme_settings.get(key, default)
         return default

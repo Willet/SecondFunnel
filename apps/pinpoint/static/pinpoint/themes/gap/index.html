@@ -23,9 +23,9 @@
                 if (cookie === "B") {
                     if (App.option('campaign') === "6") {
                         App.options.categoryHome = false;
-                        App.options.categories = ["women", "girls", "baby (0-24 mos)"];
+                        App.options.page.categories = ["women", "girls", "baby (0-24 mos)"];
                     } else {
-                        App.options.categories = ["men", "women"];
+                        App.options.page.categories = ["men", "women"];
                     }
                 }
                 return cookie;

@@ -292,7 +292,7 @@ class Ec2Inventory(object):
                     self.add_instance(instance, region)
         
         except boto.exception.BotoServerError, e:
-            if  not self.eucalyptus:
+            if not self.eucalyptus:
                 print "Looks like AWS is down again:"
             print e
             sys.exit(1)

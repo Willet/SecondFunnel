@@ -157,11 +157,6 @@ App.module("sharing", function (sharing, App) {
             return this;
         },
 
-        'showCondition': function () {
-            // @override to false under any condition you don't want buttons to show
-            return App.option('socialButtonsEnableCondition')(this);
-        },
-
         'templateHelpers': function () {  // or {k: v}
             //github.com/marionettejs/Marionette/blob/master/docs/marionette.view.md#viewtemplatehelpers
 
@@ -194,13 +189,6 @@ App.module("sharing", function (sharing, App) {
             return this.onTemplateHelpers ?
                    this.onTemplateHelpers(helpers) :
                    helpers;
-        },
-
-        'onBeforeRender': function () {
-            if (!this.showCondition()) {
-                this.unbind();
-                this.close();
-            }
         },
 
         // 'triggers': { 'click .facebook': 'event1 event2' },

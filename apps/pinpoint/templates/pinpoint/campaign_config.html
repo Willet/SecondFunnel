@@ -3,8 +3,7 @@
 <script type="text/javascript">
     window.PAGES_INFO = {
           'debug': ('{{ debug|default:0 }}' === 'True')  // django built-in
-        , 'discoveryTarget': '{{ discovery_target|default:"#discovery-area" }}'
-        , 'itemSelector': '{{ item_selector|default:".tile" }}'
+        , 'itemSelector': '.tile'
         , 'store': {
             'id': '{{ store.id }}',
             'slug': '{{ store.slug|default:"store" }}',  // required for store-specific themes
@@ -44,14 +43,7 @@
                     "tumblr"
                 ]
             {% endif %}
-        , 'socialButtonsEnableCondition': function (button) {
-            // required.
-            // this function must return true for a social button to show
-            // and return false for a social button not to show
-            return true;
-        }
         , 'conditionalSocialButtons': {{ conditional_social_buttons|safe }}
-        , 'categories': [] // DEPRECATED (use page.categories)
         , 'categoryHome': true // a string or boolean indicating if there should be a home button/what the home button should be
         , 'showCount': true  // optional, for social buttons (default: true)
         , 'enableTracking': {{ enable_tracking|default:"true" }}  // optional; default: true
