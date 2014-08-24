@@ -50,7 +50,7 @@
     - { src: "apps/light/node_modules", dest: "node_modules" }
     - { src: "apps/light/lib", dest: "bower_libs" }
     - { src: "apps/light/static/light", dest: "light_static" }
-    - { src: "apps/static", dest: "static" }
+    - { src: "static", dest: "static" }
 
 - name: Delete node_modules if it isn't the symbolic link, so we can create the link
   file: state=absent path="{{application_directory}}/{{item.item.src}}" force=yes
@@ -63,7 +63,7 @@
     - { src: "apps/light/node_modules", dest: "node_modules" }
     - { src: "apps/light/lib", dest: "bower_libs" }
     - { src: "apps/light/static/light", dest: "light_static" }
-    - { src: "apps/static", dest: "static" }
+    - { src: "static", dest: "static" }
 
 - name: Build Node Modules
   npm: path="{{application_directory}}/apps/light"
