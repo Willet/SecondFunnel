@@ -75,8 +75,9 @@
     chdir: "{{application_directory}}/apps/light"
 
 - name: Run Gulp to build pages and static assets
-  command: gulp --require coffee-script/register build
+  command: gulp build
   args:
+    executable: /usr/bin/zsh
     chdir: "{{application_directory}}/apps/light"
 
 - name: Migration of database, etc
