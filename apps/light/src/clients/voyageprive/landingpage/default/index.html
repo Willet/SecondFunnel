@@ -10,7 +10,7 @@
     <link rel="shortcut icon"
          href="http://www.voyage-prive.com/s/favicon.ico" />
     <link rel="stylesheet"
-          href="/static/light/voyageprive/landingpage/default/main.css"/>
+          href="/static/light/voyageprive/landingpage/default/styles/main.css"/>
     @@include('shared/campaign_respond.html')
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
@@ -227,7 +227,7 @@
         </script>
 
         <script type="text/template" id="banner_tile_template">
-            <img class="focus" src="<%= obj.image.url %>" />
+            <img class="focus" src="<%= obj.images[0].url %>" />
             <% if (obj.discount) { %>
                 <div class="discount">
                     <%- obj.discount %>
@@ -275,7 +275,7 @@
 
         <script type="text/template" id="b_banner_tile_template">
             <!-- price instead of discount -->
-            <img class="focus" src="<%= obj.image.url %>" />
+            <img class="focus" src="<%= obj.images[0].url %>" />
             <% if (obj.price) { %>
                 <div class="discount">
                     <%- obj.price %>
@@ -314,7 +314,7 @@
 
         <script type="text/template" id="c_banner_tile_template">
             <!-- price and discount -->
-            <img class="focus" src="<%= obj.image.url %>" />
+            <img class="focus" src="<%= obj.images[0].url %>" />
             <% if (obj.discount && obj.discount) { %>
                 <div class="discount">
                     <%- obj.price %> (<%- obj.discount %>)
@@ -362,7 +362,7 @@
 
         <script type="text/template" id="d_banner_tile_template">
             <!-- location and price -->
-            <img class="focus" src="<%= obj.image.url %>" />
+            <img class="focus" src="<%= obj.images[0].url %>" />
             <div class="static overlay">
                 <div class="align-container">
                     <div class="title">
@@ -405,7 +405,7 @@
 
         <script type="text/template" id="e_banner_tile_template">
             <!-- absolutely no hover -->
-            <img class="focus" src="<%= obj.image.url %>" />
+            <img class="focus" src="<%= obj.images[0].url %>" />
             <% if (obj.discount) { %>
                 <div class="discount">
                     <%- obj.discount %>
@@ -418,7 +418,7 @@
                 <img src="/static/light/voyageprive/landingpage/default/images/logo.jpg">
             </div>
             <div class='image-region'>
-                <img src="<%= obj.image.url %>"/>
+                <img src="<%= obj.images[0].url %>"/>
             </div>
             <div class="info-wrapper">
                 <div class="name">
@@ -813,5 +813,7 @@
     </script>
     <!-- stop : Eulerian Analytics - officiel-vacances -->
     {% endif %}
+
+    <script type="text/javascript" src="/static/light/voyageprive/landingpage/default/scripts/main.js" async></script>
 </body>
 </html>

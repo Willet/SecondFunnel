@@ -10,7 +10,7 @@
     <link rel="shortcut icon"
          href="http://canada.roots.com/on/demandware.static/Sites-RootsCA-Site/-/default/v1401786139656/images/favicon.ico" />
     <link rel="stylesheet"
-          href="/static/light/roots/landingpage/default/main.css"/>
+          href="/static/light/roots/landingpage/default/styles/main.css"/>
     @@include('shared/campaign_respond.html')
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
@@ -123,7 +123,7 @@
 
         <script type="text/template" id="product_tile_template">
             <div class="tap-indicator-target"></div>
-            <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
+            <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
             <% if (App.option('debug', 0) > 1) { %>
                 <span class="type"><%= obj['content-type'] %></span>
             <% } %>
@@ -143,7 +143,7 @@
         <script type="text/template" id="image_tile_template">
             <div class="tap-indicator-target"></div>
             <div class='relative'>
-                <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
+                <img class="focus" src="<%= obj.images[0].url %>" alt="<%= obj.caption %>" />
             </div>
             <% if (App.option("debug", 0) > 1) { %>
                 <span class="type"><%= obj["content-type"] %></span>
@@ -152,7 +152,7 @@
 
         <script type="text/template" id="youtube_tile_template">
             <div class="img-responsive thumbnail"
-                 style="background-image: url('<%= obj.thumbnail || obj.image.url %>');">
+                 style="background-image: url('<%= obj.thumbnail || obj.images[0].url %>');">
               &nbsp;
               <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
             </div>
@@ -290,7 +290,7 @@
                                 </div>
                             <% } %>
                             <div class="cell desktop-only">
-                                <img src="<%= obj.image.url %>" alt="image" class="image"/>
+                                <img src="<%= obj.images[0].url %>" alt="image" class="image"/>
                                     <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                                     <div class="landscape">
                                         <div class="stl-title">Shop the look</div>
@@ -327,7 +327,7 @@
                                 </div>
                             <% } %>
                             <div class="cell mobile-only">
-                                <img src="<%= obj.image.url %>" alt="image"/>
+                                <img src="<%= obj.images[0].url %>" alt="image"/>
                             </div>
                             <% if (obj['tagged-products'].length > 1) { %>
                                 <div class="cell mobile-only">
@@ -353,7 +353,7 @@
                     <div class="table">
                         <div class="row">
                             <div class="cell capped-width">
-                                <img src="<%= obj.image.url %>" alt="image" class="main-image" />
+                                <img src="<%= obj.images[0].url %>" alt="image" class="main-image" />
                             </div>
                             <div class="cell">
                                 <div class="info">
@@ -372,6 +372,43 @@
                 </div>
             <% } %>
         </script>
+
+        <script type="text/template" id="facebook_social_button_template">
+            <div class='button facebook'>
+                <fb:like href="<%= url %>" width="25" layout="button"
+                         show_faces="false"></fb:like>
+            </div>
+        </script>
+
+        <script type="text/template" id="twitter_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
+            <div class='button twitter'>
+                <a href="//twitter.com/share?url=<%= url %>&text=<%= cleanDesc %>"
+                   target="_blank">
+                    <img src="/static/light/nastygal/landingpage/default/images/twitter.png"/>
+                </a>
+            </div>
+        </script>
+
+        <script type="text/template" id="pinterest_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
+            <div class='button pinterest'>
+                <a data-pin-do="none" href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= cleanDesc %>"
+                   target="_blank"><img src="/static/light/nastygal/landingpage/default/images/pinterest.png"/></a>
+            </div>
+        </script>
+
+        <script type="text/template" id="tumblr_social_button_template">
+            <% var desc = caption || description || name; %>
+            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
+            <div class="button tumblr">
+                <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= cleanDesc %>&click_thru=<%= url %>"
+                     target='_blank'><img src="/static/light/nastygal/landingpage/default/images/tumblr.png"/></a>
+            </div>
+        </script>
+
 
         <!-- custom templates -->
         <script type="text/template" id="hero_template">
@@ -409,5 +446,7 @@
         </noscript>
     </div>
     <img src="{% url 'apps.tracking.views.pixel' %}"/>
+
+    <script type="text/javascript" src="/static/light/roots/landingpage/default/scripts/main.js" async></script>
 </body>
 </html>

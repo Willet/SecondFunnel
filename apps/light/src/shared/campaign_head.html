@@ -5,17 +5,6 @@
 
 <!-- Begin Javascript -->
 
-<!-- Preload images -->
-<script type="text/javascript">
-    {% if desktop_hero_image %}
-        (new Image).src = "{{ desktop_hero_image }}";
-    {% endif %}
-    {% if mobile_hero_image %}
-        (new Image).src = "{{ mobile_hero_image }}";
-    {% endif %}
-</script>
-<!-- End Preload -->
-
 @@include('shared/campaign_config.html')
 
 <script type="text/javascript">

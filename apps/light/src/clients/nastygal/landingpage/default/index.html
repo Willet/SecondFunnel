@@ -10,8 +10,6 @@
     <link rel="shortcut icon"
          href="http://assets.nastygal.com/assets/current/images/favicon/favicon-152.png" />
     <link rel="stylesheet"
-          href="/static/light/nastygal/landingpage/default/styles/main.css"/>
-    <link rel="stylesheet"
           href="static/light/nastygal/landingpage/default/styles/main.css"/>
     @@include('shared/campaign_respond.html')
     <!-- Add Optimizer Tests here -->
@@ -146,7 +144,7 @@
 
         <script type="text/template" id="product_tile_template">
             <div class="tap-indicator-target"></div>
-            <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
+            <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
             <% if (App.option('debug', 0) > 1) { %>
                 <span class="type"><%= obj['content-type'] %></span>
             <% } %>
@@ -156,7 +154,7 @@
         <script type="text/template" id="image_tile_template">
             <div class="tap-indicator-target"></div>
             <div class='relative'>
-                <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
+                <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
             </div>
             <% if (App.option("debug", 0) > 1) { %>
                 <span class="type"><%= obj["content-type"] %></span>
@@ -165,7 +163,7 @@
 
         <script type="text/template" id="youtube_tile_template">
             <div class="img-responsive thumbnail"
-                 style="background-image: url('<%= obj.thumbnail || obj.image.url %>');">
+                 style="background-image: url('<%= obj.thumbnail || obj.images[0].url %>');">
               &nbsp;
               <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
             </div>
@@ -323,7 +321,7 @@
                                 </div>
                             <% } %>
                             <div class="cell desktop-only">
-                                <img src="<%= obj.image.url %>" alt="image" class="image"/>
+                                <img src="<%= obj.images[0].url %>" alt="image" class="image"/>
                                 <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                                 <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                                     <div class="landscape">
@@ -343,7 +341,7 @@
                                 <% } %>
                             </div>
                             <div class="cell mobile-only">
-                                <img src="<%= obj.image.url %>" alt="image"/>
+                                <img src="<%= obj.images[0].url %>" alt="image"/>
                                 <% if (obj['tagged-products'].length > 1) { %>
                                     <div class="stl-title stick-bottom">THE LOOK</div>
                                     <div class="landscape">
@@ -384,7 +382,7 @@
                     <div class="table">
                         <div class="row">
                             <div class="cell">
-                                <img src="<%= obj.image.url %>" alt="image" class="main-image" />
+                                <img src="<%= obj.images[0].url %>" alt="image" class="main-image" />
                             </div>
                             <div class="cell info">
                                 <div class="title">

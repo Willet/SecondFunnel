@@ -219,6 +219,7 @@ module.exports = (module, App) ->
                 )
             @set
                 images: imgInstances
+                image: defaultImage
                 defaultImage: defaultImage
                 "tagged-products": relatedProducts
                 "dominant-color": defaultImage.get("dominant-color")
