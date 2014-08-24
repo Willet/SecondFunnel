@@ -11,6 +11,7 @@ BrowserSync = require("browser-sync")
 browserifyConfig = require("./package.json")
 watchify = require('watchify')
 _ = require('underscore')
+runSequence = require('run-sequence')
 
 # versioning stuff, it is harder than one would think
 rev = require('gulp-rev')
@@ -189,9 +190,14 @@ gulp.task "fonts", ["bower"], ->
     return gulp.src(sources.fonts)
         .pipe gulp.dest(static_output_dir)
 
+gulp.task "rev", (cb) ->
+    if config.production # we need to actually revision the files
+        runSequence "_rev", cb
+    else
+        cb()
+    return
 
-gulp.task "rev", ["images", "fonts", "scripts", "styles"], ->
-    return  unless config.production # we do not need to do anything
+gulp.task "_rev", ["images", "fonts", "scripts", "styles"], ->
     # grab all the assets that don't need modified but should be reved
     reved_suffix = ".rev"
     return gulp.src(

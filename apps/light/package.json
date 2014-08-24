@@ -45,6 +45,7 @@
     "merge-stream": "^0.1.5",
     "minify": "^0.7.1",
     "minifyify": "^4.0.4",
+    "run-sequence": "^0.3.6",
     "through2": "^0.6.1",
     "underscore": "^1.6.0",
     "vinyl-map": "^1.0.1",
