@@ -18,22 +18,22 @@ Installation
 ```
     pip install ansible
 ```
-4. Download and Install [Node](http://nodejs.org)
-5. Install various dev utils and libraries
-```
-    npm install -g gulp cult coffee-script bower
-```
-6. Add `export PATH=node_modules/.bin:$PATH` to your `.bashrc/.zshrc`
-7. Build a local vagrant instance (this may take a while to provision, feel free to walk away, have a coffee)
+4. Add `export PATH=node_modules/.bin:$PATH` to your `.bashrc/.zshrc`
+5. Build a local vagrant instance (this may take a while to provision, feel free to walk away, have a coffee, smoke a cigarette, reddit)
 
     `vagrant up`
-    `honcho start gulp`
+    `ssh willet@127.0.0.1 -p 2222`
+    `honcho start gulp` # this task does not finish, it autoreloads your browser etc, watch it for compilation failures
 
 And voila! The server should be available [here](http://localhost:8000) ; note you should be redirect to www.secondfunnel.com
 
 An NGINX server (exactly like production) is running inside the vagrant box, and auto-reloading of code should work seamlessly.
 
 gulp runs on your local box and monitors light's assets and recompiles + reloads your browser if necessary.
+
+You may also want to import productions data as a seed to your vagrant box, the simplest way to do that is:
+
+    `ansible-playbook -i .vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory ansible/db_data_import.yml -e app_environment=production`
 
 Structure
 ---------
