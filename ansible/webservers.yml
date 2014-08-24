@@ -30,6 +30,7 @@
     - name: "Gathering ec2 facts"
       ec2_facts:
       when: app_environment != "vagrant"
+      tags: deploy
     - name: "De-Register Instance from LB"
       local_action: ec2_elb
       args:
@@ -39,6 +40,7 @@
         state: "absent"
       ignore_errors: yes
       when: app_environment != "vagrant"
+      tags: deploy
   roles:
     - web
   post_tasks:
@@ -51,6 +53,7 @@
         state: "present"
       ignore_errors: yes
       when: app_environment != "vagrant"
+      tags: deploy
 
 - name: "Post Configuration"
   hosts: webservers:!building
