@@ -52,6 +52,10 @@
     - { src: "apps/light/static", dest: "light_static" }
     - { src: "apps/static", dest: "static" }
 
+- name: See what is actually going on
+  debug: var=item
+  with_items: shared_libs_stat.results
+
 - name: Delete node_modules if it isn't the symbolic link, so we can create the link
   file: state=absent path="{{item.invocation.path}}" force=yes
   when: item.stat.exists and not item.stat.islnk
