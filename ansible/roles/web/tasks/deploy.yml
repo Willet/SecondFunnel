@@ -94,7 +94,7 @@
   args:
     chdir: "{{application_directory}}"
   with_items:
-    - "collectstatic --noinput"
+    - "collectstatic --noinput --link"
   when: "'vagrant' in groups or git_repo|changed"
 
 - name: Compress static, and manifest creation
