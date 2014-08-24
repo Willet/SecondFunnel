@@ -34,6 +34,8 @@
     - "{{secondfunnel_shared_directory}}"
     - "{{secondfunnel_shared_directory}}/bower_libs"
     - "{{secondfunnel_shared_directory}}/node_modules"
+    - "{{secondfunnel_shared_directory}}/static"
+    - "{{secondfunnel_shared_directory}}/light_static"
   sudo: true
 
 - name: Setup Environment for Database
