@@ -103,12 +103,15 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             l.add_css('price', '#priceText strike::text')
             attributes['sales_price'] = sale_price
 
-        category_sel = sel.css('li a[class*=selected]')
+        category_sel = sel.css('.subCategorySelected.categoryActive a')
         category_url = category_sel.css('::attr(href)').extract_first()
         category_name = category_sel.css('::text').extract_first()
 
         attributes['categories'] = []
-        attributes['categories'].append((category_name, category_url))
+        if category_name and category_url:
+            if category_url.startswith('/') and not self.root_url in category_url:
+                category_url = "{}{}".format(self.root_url, category_url)
+            attributes['categories'].append((category_name, category_url))
         l.add_value('attributes', attributes)
 
         data_url = self.product_data_url.format(l.get_output_value('sku'))
