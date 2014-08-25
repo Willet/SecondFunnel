@@ -13,6 +13,9 @@ class FeedView extends Marionette.CollectionView
         super arguments
 
     initialize: (options) ->
+        # DEFER: check if anything listens to this
+        #        itemview's events are already delegated...
+        #        by marionette
         @on 'itemview:item:clicked', =>
             @trigger('collection:item:clicked')
         @pagesScrolled = 1
@@ -25,9 +28,9 @@ class FeedView extends Marionette.CollectionView
 
         # DEFER: this has nothing to do with this view...
         #        especially cause IntentRank then calls this thing back
-        if options.initialResults and options.initialResults.length > 0
-            initialResults = options.intitialResults
-            @toggleLoading true
+        initialResults = options.initialResults
+        if initialResults and initialResults.length > 0
+            @isLoading = true
             if $.isArray intitialResults
                 deferred = $.when .initialResults
             else
@@ -42,35 +45,51 @@ class FeedView extends Marionette.CollectionView
                 @collection.add initialResults
                 App.intentRank.addResultsShown initialResults
 
-        # immediately fetch more from IR
-        @toggleLoading false
-        @getTiles()
 
+        @listenTo @collection, 'request', =>
+            @isLoading = true
+
+        @listenTo @collection, 'sync', =>
+            @isLoading = false
+
+        @listenTo @collection, 'error', =>
+            @isLoading = false
+
+        # immediately fetch more from IR
+        @fetchTiles()
+
+        # DEFER: REMOVE THIS (its really not needed)
         App.discovery = @
         @
 
-    getTiles: (options, tile) ->
-        if @loading
+    fetchTiles: (options, tile) ->
+        if @isLoading
             return (new $.Deffered()).promise()
-
-        xhr = @toggleLoading(true).collection.fetch()
+        xhr = @collection.fetch()
         xhr.done (tileInfo) =>
+            @isLoading = false
+            # TODO: this is not really a good identifier for end of feed
             if tileInfo and tileInfo.length is 0
-                @toggleLoading false
+                @ended = true
+                $(".loading").hide() # DEFER: hack
                 App.vent.trigger('feedEnded', @)
         xhr
 
     # TODO: weird location for this function
     categoryChanged: (event, category) ->
         App.tracker.changeCategory(category)
-        if @loading
+        if @isLoading
             @on 'loadingFinished', _.once( =>
                 @empty(@)
                 @ended = false
-                @getTiles()
+                $(".loading").show() # DEFER: hack
+                @fetchTiles()
             )
 
     pageScroll: ->
+        if @ended
+            return @
+
         children = @$el.children()
         pageHeight = $(window).innerHeight()
         windowTop = $(window).scrollTop()
@@ -78,12 +97,9 @@ class FeedView extends Marionette.CollectionView
         documentBottomPos = @$el.height() - @$el.offset().top
         viewportHeights = pageHeight * App.option('prefetchHeight', 2.5)
 
-        if @ended
-            return @
-
-        if not @loading and (children.length is 0 or not App.previewArea.currentView) and
+        if not @isLoading and (children.length is 0 or not App.previewArea.currentView) and
                 pageBottomPos >= documentBottomPos - viewportHeights
-            @getTiles()
+            @fetchTiles()
 
         # TODO: this is global tracking stuff, really does not need to be on this view
         # Did the user scroll ever ?
@@ -120,17 +136,6 @@ class FeedView extends Marionette.CollectionView
             .scroll(globals.scrollHandler)
             .resize(globals.resizeHandler)
 
-        $(window).scrollStopped =>
-            # deal with tap indicator fade in/outs
-            App.vent.trigger 'scrollStopped', @
-
-        if App.utils.isIframe()
-            $(window).scrollStopped =>
-                # deal with tap indicator fade in/outs
-                @$('.tile:not(:in-viewport)').css {'visibility': 'hidden'}
-                # the rest are visible
-                @$('.tile:in-viewport').css {'visibility': 'visible'}
-
     detachListeners: ->
         # detach global listeners
         globals = App._globals
@@ -138,22 +143,13 @@ class FeedView extends Marionette.CollectionView
             .unbind 'scroll', globals.scrollHandler
             .unbind 'resize', globals.resizeHandler
 
-        if window.removeEventListenr
+        if window.removeEventListener
             window.removeEventListener(
                 'orientationchange', globals.orientationChangeHandler, false
             )
 
-    onAfterItemAppended: (view, el) ->
-        setTimeout (=> @toggleLoading(false)), 500
-        @
-
     onClose: ->
         @detachListeners()
-
-    toggleLoading: (bool) ->
-        # TODO: loading indicator
-        @isLoading = bool
-        @
 
     getItemView: (item) ->
         # Lookup the class to use based on the template specified on the item
@@ -201,11 +197,6 @@ class MasonryFeedView extends FeedView
         @masonry = new Masonry @$el[0], @options
         @masonry.bindResize()
         @masonry.layout()
-        masonryLayoutComplete = (=>
-            @toggleLoading false
-        )
-        @masonry.on 'layoutComplete', masonryLayoutComplete
-
 
     width: ->
         @masonry.columnWidth
