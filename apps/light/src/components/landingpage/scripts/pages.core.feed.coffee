@@ -45,6 +45,8 @@ class FeedView extends Marionette.CollectionView
                 @collection.add initialResults
                 App.intentRank.addResultsShown initialResults
 
+        $(window).scrollStopped =>
+            App.vent.trigger 'scrollStopped', @
 
         @listenTo @collection, 'request', =>
             @isLoading = true

@@ -201,10 +201,6 @@ module.exports.reinitialize = function (App) {
 
         $(window).scroll(function () {
             $('body').addClass('disable-hover');
-
-            setTimeout(function () {
-                App.vent.trigger('scrollStopped');
-            }, 100);
         });
 
         App.vent.on('scrollStopped', function () {
