@@ -162,15 +162,13 @@ class MasonryFeedView extends FeedView
 
     default_options:
         isAnimated: Modernizr.csstransforms3d
-        transitionDuration: '1.2s',
+        transitionDuration: '0s',
         isInitLayout: false,
         isResizeBound: false    # we are handling it ourselves
         visibleStyle:
             opacity: 1
-            transform: 'scale(1)'
         hiddenStyle:
             opacity: 0
-            transform: 'scale(0.001)'
 
     initialize: (options) ->
         super(arguments)
