@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext, loader
@@ -15,8 +16,16 @@ from apps.light.utils import get_store_from_request
 @cache_control(must_revalidate=True, max_age=(1 * 60))
 @cache_page(60 * 1, key_prefix="landingpage-")  # a minute
 @vary_on_headers('Accept-Encoding')
-def landing_page(request, page_slug):
+def landing_page(request, page_slug, identifier='id', identifier_value=''):
+    """Used to render a page using only its name.
 
+    If two pages have the same name (which was possible in CG), then django
+    decides which page to render.
+
+    :param identifier: selects the featured product.
+           allowed values: 'id', 'sku', or 'tile' (whitelisted to prevent abuse)
+    :param identifier_value: the product or tile's id or sku, respectively
+    """
     #
     # Verify a page exists with the page slug
     # and the domain it was accessed on
@@ -55,6 +64,34 @@ def landing_page(request, page_slug):
     elif product:
         tile = Tile.objects.filter(feed__id=page.feed_id, products__id=product.id).order_by('-template')[0]
 
+    # if necessary, get tile
+    # livedin/sku/123
+    lookup_map = {identifier: identifier_value}
+    if request.GET.get('product_id'):  # livedin?product_id=123
+        lookup_map = {'id': request.GET.get('product_id')}
+    lookup_map['store'] = store
+
+    if not tile and identifier in ['id', 'sku']:
+        try:
+            # if a store has two or more products with the same sku,
+            # assume the one the user wanted is the one with
+            # - the most tiles
+            # - has at least a tile
+            product = (Product.objects.filter(**lookup_map)
+                              .annotate(num_tiles=Count('tiles'))
+                              .filter(num_tiles__gt=0)
+                              .order_by('-num_tiles')[0])
+            if not product:
+                tile = None
+            else:
+                tile = product.tiles.all()[0]
+        except (Product.DoesNotExist, IndexError, ValueError):
+            tile = None
+    elif not tile and identifier == 'tile':
+        tiles = Tile.objects.filter(id=identifier_value)
+        if len(tiles):
+            tile = tiles[0]
+
     tests = page.get('test')
 
     algorithm = request.GET.get('algorithm', page.feed.feed_algorithm or 'generic')
@@ -68,10 +105,14 @@ def landing_page(request, page_slug):
     render_context = {}
     render_context['store'] = store
     render_context['product'] = product
-    render_context['tile'] = tile
     render_context['test'] = tests
     render_context['algorithm'] = algorithm
     render_context['ir_base_url'] = '/intentrank'
+
+    if tile:
+        render_context['tile'] = tile.to_str()
+    else:
+        render_context['tile'] = 'undefined'
 
     return HttpResponse(render_landing_page(request, page, render_context))
 
