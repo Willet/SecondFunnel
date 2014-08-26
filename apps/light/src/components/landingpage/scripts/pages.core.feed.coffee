@@ -75,18 +75,24 @@ class FeedView extends Marionette.CollectionView
                 @ended = true
                 $(".loading").hide() # DEFER: hack
                 App.vent.trigger('feedEnded', @)
+        @lastRequest = xhr
         xhr
 
     # TODO: weird location for this function
     categoryChanged: (event, category) ->
         App.tracker.changeCategory(category)
         if @isLoading
-            @on 'loadingFinished', _.once( =>
-                @empty(@)
-                @ended = false
-                $(".loading").show() # DEFER: hack
-                @fetchTiles()
-            )
+            # TODO: better ways to handle this case (bacon.js?)
+            @lastRequest.done =>
+                @resetTiles()
+        else
+            @resetTiles()
+
+    resetTiles: () ->
+        @empty()
+        @ended = false
+        $(".loading").show() # DEFER: hack
+        @getTiles()
 
     pageScroll: ->
         if @ended

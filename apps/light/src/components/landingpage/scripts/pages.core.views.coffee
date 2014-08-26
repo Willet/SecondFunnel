@@ -757,6 +757,7 @@ module.exports = (module, App) ->
     class module.CategoryView extends Marionette.ItemView
         tagName: "div"
         className: "category"
+
         template: "#category_template"
         templates: ->
             templateRules = [
@@ -772,11 +773,7 @@ module.exports = (module, App) ->
             templateRules
 
         events:
-            click: "onClick"
-
-        onClick: (ev) ->
-            @trigger "click", this
-            return
+            click: (ev) -> @trigger "click", @
 
     ###
     A collection of Categories to display.
@@ -787,63 +784,38 @@ module.exports = (module, App) ->
     class module.CategoryCollectionView extends Marionette.CollectionView
         tagName: "div"
         className: "category-area"
+
         itemView: module.CategoryView
+
         initialize: (options) ->
-            self = this
-            home = null
-            categories = App.option("page:categories", []).slice(0)
-            @collection = new module.CategoryCollection()
-            if App.option("categoryHome", true) and categories.length
+            categories = _.map(App.option("page:categories", []), (cat) -> {name: cat})
 
-                # This specifies that there should be a home button, by
-                # default, this is true.
-                if App.option("categoryHome").length
-                    home = App.option("categoryHome")
-                else
-                    home = "home"
-                categories.unshift home
-                @nofilter = true
+            # This specifies that there should be a home button, by default, this is true.
+            if App.option("categoryHome").length
+                home = App.option("categoryHome")
+            else
+                home = "home"
+            categories.unshift {name: home}
 
-            # Initialize by adding all the categories to this view
-            _.each categories, (category) ->
-                category = new module.Category(
-                    name: category
-                    nofilter: (category is home)
-                )
-                self.collection.add category
-                return
+            @collection = new module.CategoryCollection(categories, model: module.Category)
 
-            return
+            return this
 
         onRender: ->
-            if @nofilter
-                @$el.children().eq(0).click()
-            return
+            @$el.children().eq(0).addClass "selected"
 
         onItemviewClick: (view) ->
             $el = view.$el
             category = view.model.get("name")
             nofilter = view.model.get("nofilter")
 
-            # Switch the selected category class
-            $el.siblings().removeClass "selected"
-            if $el.hasClass("selected") and not nofilter
-
-                # Reset intentRank by clearing the category, if we have a
-                # nofilter class, click it instead.
-                $el.removeClass "selected"
-                if @nofilter
-                    $el.siblings().eq(0).click()
-                else
-                    App.intentRank.changeCategory()
-            else unless $el.hasClass("selected")
-
-                # On click, pass the new category to intentRank, if the view
-                # is the nofilter view, clear.
+            # switch to the selected category
+            # if it has changed
+            unless $el.hasClass "selected"
+                $el.siblings().removeClass "selected"
                 $el.addClass "selected"
-                if nofilter
-                    App.intentRank.changeCategory()
-                else
-                    App.intentRank.changeCategory category
+
+                App.intentRank.changeCategory category
+
             this
     return

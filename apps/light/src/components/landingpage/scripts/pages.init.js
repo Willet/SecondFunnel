@@ -31,46 +31,6 @@ module.exports.reinitialize = function (App) {
         return Backbone.history.fragment;
     };
 
-    App.addInitializer(function () {
-        // set its width to whatever it began with.
-        App.options.initialWidth = $(window).width();
-        if (App.optimizer) { // TODO: move to optimizer
-            App.optimizer.initialize();
-        }
-        if (App.tracker) { // TODO: move to tracker
-            App.tracker.initialize();
-        }
-    });
-
-    App.addInitializer(function () {
-        var ca = new App.core.CategoryCollectionView();
-        App.categoryArea.show(ca);
-    });
-
-    App.addInitializer(function () {
-        // there isn't an "view.isOpen", so this checks if the feed element
-        // exists, and if it does, close the view.
-        if(App.discovery && App.discovery.$el) {
-            // Why is this necessary?
-            App.discovery.$el.empty();
-            App.discovery.close();
-            delete App.discovery;
-        }
-    });
-
-    App.addInitializer(function () {
-        // Add our initializer, this allows us to pass a series of tiles
-        // to be displayed immediately (and first) on the landing page.
-
-        $('.brand-label').text(App.option('store:displayName') ||
-                               _.capitalize(App.option('store:name')) ||
-                               'Brand Name');
-
-        $(document).ajaxError(function (event, request, settings) {
-            App.vent.trigger('ajaxError', settings.url, App);
-        });
-    });
-
     App.vent.on('initRouter', function () {
         var loc = window.location.href, // reference to current url
             previewLoadingScreen = $('#preview-loading');
@@ -165,6 +125,42 @@ module.exports.reinitialize = function (App) {
             }
         }
     });
+
+
+    App.addInitializer(function () {
+        // set its width to whatever it began with.
+        App.options.initialWidth = $(window).width();
+        if (App.optimizer) { // TODO: move to optimizer
+            App.optimizer.initialize();
+        }
+        if (App.tracker) { // TODO: move to tracker
+            App.tracker.initialize();
+        }
+
+        var ca = new App.core.CategoryCollectionView();
+        App.categoryArea.show(ca);
+
+        // there isn't an "view.isOpen", so this checks if the feed element
+        // exists, and if it does, close the view.
+        if(App.discovery && App.discovery.$el) {
+            // Why is this necessary?
+            App.discovery.$el.empty();
+            App.discovery.close();
+            delete App.discovery;
+        }
+
+        // Add our initializer, this allows us to pass a series of tiles
+        // to be displayed immediately (and first) on the landing page.
+
+        $('.brand-label').text(App.option('store:displayName') ||
+                               _.capitalize(App.option('store:name')) ||
+                               'Brand Name');
+
+        $(document).ajaxError(function (event, request, settings) {
+            App.vent.trigger('ajaxError', settings.url, App);
+        });
+    });
+
 
     // from davidsulc/marionette-gentle-introduction
     App.addInitializer(function () {

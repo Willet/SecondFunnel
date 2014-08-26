@@ -53,6 +53,10 @@ sources =
     browserify: [
         "src/clients/**/main.js"
     ]
+    vendor: [ # all these are taken as is
+        "src/clients/**/media_player/{launchhypemcanvas3.js,player.html}"
+    ]
+
 
 static_output_dir = "static/light"
 static_serve_dir = "static/light"
@@ -72,6 +76,7 @@ gulp.task "build", [
     "scripts"
     "images"
     "fonts"
+    "vendor"
 ]
 
 gulp.task "default", ["clean"], ->
@@ -92,6 +97,9 @@ gulp.task "destroy", ->
 gulp.task "bower", ->
     $.bower().pipe gulp.dest(bower_dir)
 
+gulp.task "vendor", ->
+    gulp.src(sources.vendor)
+        .pipe gulp.dest(static_output_dir)
 
 gulp.task "html", ["rev"], ->
     pages_no_modify = gulp.src(sources.pages_no_modify)
@@ -253,6 +261,7 @@ gulp.task "dev", [
     gulp.watch sources.sass, ["styles"]
     gulp.watch sources.fonts, ["fonts"]
     gulp.watch sources.images, ["images"]
-    $.util.log($.util.colors.blue("beginning to watch all files."))
+    gulp.watch sources.vendor, ["vendor"]
+    $.util.log($.util.colors.blue("ALL FILES ARE BEING WATCHED (BY THE CIA)."))
     return
 
