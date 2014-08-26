@@ -306,7 +306,6 @@ class Product(BaseModel):
             if not match:
                 raise ValidationError('Product sale price does not validate')
 
-
         # guarantee the default image is in the list of product images
         # (and vice versa)
         image_urls = [img.url for img in self.product_images.all()]

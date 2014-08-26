@@ -99,6 +99,9 @@ class NeweggSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         attributes = {}
         attributes['categories'] = [(category_name, category_url)]
+
+        # special "newegg" url; matches "url" if product is scraped from newegg
+        attributes['neweggUrl'] = sel.css('link[rel="canonical"]::attr(href)').extract_first()
         l.add_value('attributes', attributes)
 
         yield l.load_item()
