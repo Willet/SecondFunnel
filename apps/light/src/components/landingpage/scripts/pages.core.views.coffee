@@ -789,15 +789,18 @@ module.exports = (module, App) ->
 
         initialize: (options) ->
             categories = _.map(App.option("page:categories", []), (cat) -> {name: cat})
+            if categories.length > 0
 
-            # This specifies that there should be a home button, by default, this is true.
-            if App.option("categoryHome").length
-                home = App.option("categoryHome")
-            else
-                home = "home"
-            categories.unshift {name: home}
+                # This specifies that there should be a home button, by default, this is true.
+                if App.option("categoryHome").length
+                    home = App.option("categoryHome")
+                else
+                    home = "home"
+                categories.unshift {name: home}
 
-            @collection = new module.CategoryCollection(categories, model: module.Category)
+                @collection = new module.CategoryCollection(categories, model: module.Category)
+            else:
+                @collection = new module.CategoryCollection([], model: module.Category)
 
             return this
 
