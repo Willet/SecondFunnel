@@ -15,9 +15,9 @@ body {
 }
 
 .tile {
-  width: 25%;
+  width: 33%;
   &.wide {
-    width: 50%;
+    width: 33%;
   }
 }
 
@@ -327,7 +327,7 @@ div.header {
 }
 
 .tile.hypem {
-    width: 50%;
+    width: 33%;
 }
 
 #category-area .category {
@@ -496,25 +496,25 @@ div.header {
     }
 
     #hero-area .overlay.mobile-orange .buttons .facebook-button {
-        background-image: url('/static/light/gap/landingpage/defaule/images/facebookicon_orange.png');
+        background-image: url('/static/light/gap/landingpage/default/images/facebookicon_orange.png');
     }
 
     #hero-area .overlay.mobile-orange .buttons .twitter-button {
-        background-image: url('/static/light/gap/landingpage/defaule/images/twittericon_orange.png');
+        background-image: url('/static/light/gap/landingpage/default/images/twittericon_orange.png');
     }
 
     #hero-area .overlay.mobile-orange .buttons .email-button {
-        background-image: url('/static/light/gap/landingpage/defaule/images/emailicon_orange.png');
+        background-image: url('/static/light/gap/landingpage/default/images/emailicon_orange.png');
     }
 
     #hero-area .overlay.mobile-blue .buttons .facebook-button {
-        background-image: url('/static/light/gap/landingpage/defaule/images/facebookicon.png');
+        background-image: url('/static/light/gap/landingpage/default/images/facebookicon.png');
     }
     #hero-area .overlay.mobile-blue .buttons .twitter-button {
-        background-image: url('/static/light/gap/landingpage/defaule/images/twittericon.png');
+        background-image: url('/static/light/gap/landingpage/default/images/twittericon.png');
     }
     #hero-area .overlay.mobile-blue .buttons .email-button {
-        background-image: url('/static/light/gap/landingpage/defaule/images/emailicon.png');
+        background-image: url('/static/light/gap/landingpage/default/images/emailicon.png');
     }
 
     .navbar .gap,
