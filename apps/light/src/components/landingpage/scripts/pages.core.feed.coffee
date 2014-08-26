@@ -92,7 +92,7 @@ class FeedView extends Marionette.CollectionView
         @empty()
         @ended = false
         $(".loading").show() # DEFER: hack
-        @getTiles()
+        @fetchTiles()
 
     pageScroll: ->
         if @ended
