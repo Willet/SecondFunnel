@@ -269,13 +269,8 @@ module.exports = (module, App) ->
     class module.YoutubeTileView extends module.VideoTileView
         template: ->
 
-        onInitialize: ->
-            super(arguments)
-            @model.set "thumbnail", "http://i.ytimg.com/vi/" + @model.get("original-id") + "/hqdefault.jpg"
-            return
-
         onClick: (ev) ->
-            thumbId = "thumb-#{model.cid}"
+            thumbId = "thumb-#{@model.cid}"
             $thumb = @$("div.thumbnail")
             if window.YT is undefined
                 console.warn "YT could not load. Opening link to youtube.com"
@@ -289,7 +284,7 @@ module.exports = (module, App) ->
                 playerVars:
                     wmode: "opaque"
                     autoplay: 1
-                    controls: App.support.mobile()
+                    controls: false
 
                 events:
                     onReady: $.noop
