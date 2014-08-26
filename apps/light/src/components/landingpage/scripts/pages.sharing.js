@@ -184,8 +184,9 @@ module.exports = function (sharing, App) {
             } else {
                 helpers.url = encodeURIComponent(related.url || product.url || data.url || image);
             }
+
             helpers.product = {
-                'url': helpers.url, // product.url is the image url, whereas helpers.url is the product? (jackie)
+                'url': related.url, // product.url is the image url, whereas related.url is the product? (jackie)
                 'image': image
             };
             helpers.showCount = this.showCount;
