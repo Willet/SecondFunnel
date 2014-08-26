@@ -103,7 +103,7 @@ App.module("intentRank", function (intentRank, App) {
 
         // normally undefined, unless a category is selected on the page
         if (intentRank.options.category) {
-            data.catagory = intentRank.options.category;
+            data.category = intentRank.options.category;
         }
 
         opts = $.extend({}, {
