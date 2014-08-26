@@ -37,7 +37,6 @@ class NeweggSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         return is_product_page
 
-
     def parse_product(self, response):
         """
         Parses a product page on Newegg.com.

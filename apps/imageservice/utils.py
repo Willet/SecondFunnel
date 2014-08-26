@@ -128,7 +128,7 @@ def create_image_path(store_id, *args):
     from apps.assets.models import Store
 
     store = Store.objects.get(id=store_id)
-    name = store.name.lower()
+    name = store.name.lower()  # TODO: why not store.slug.lower()?
 
     if settings.ENVIRONMENT == 'dev':
         return os.path.join("store", name, *args)
