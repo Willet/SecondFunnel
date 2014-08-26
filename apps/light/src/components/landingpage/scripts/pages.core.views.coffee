@@ -799,7 +799,7 @@ module.exports = (module, App) ->
                 categories.unshift {name: home}
 
                 @collection = new module.CategoryCollection(categories, model: module.Category)
-            else:
+            else
                 @collection = new module.CategoryCollection([], model: module.Category)
 
             return this
