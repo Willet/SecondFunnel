@@ -436,6 +436,8 @@ div.loading {
     left: 0;
     right: 0;
     z-index: 101;
+    transform: translate3d(0,0,0);
+    backface-visibility: hidden;
     text-align: center;
 }
 
