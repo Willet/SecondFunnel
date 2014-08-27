@@ -1,5 +1,6 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from apps.assets.models import Page
+
 
 class Command(BaseCommand):
     args = '<page_id page_id ...>'
@@ -7,7 +8,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if len(args) == 0:
-            for page in Page.objects.all():
+            for page in Page.objects.order_by('id'):
                 self.remove_duplicate_tiles(page)
         else:
             for page_id in args:
@@ -21,7 +22,7 @@ class Command(BaseCommand):
 
     def remove_duplicate_tiles(self, page):
         self.stdout.write('Removing duplicates for page with id: %s' % page.id)
-        tiles = page.feed.get_tiles()
+        tiles = page.feed.tiles.all()
         tiles_dict = {}
 
         for tile in tiles:
