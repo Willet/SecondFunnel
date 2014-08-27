@@ -293,6 +293,10 @@ div.header {
     vertical-align: top;
 }
 
+.tile.wide {
+    min-height: inherit;
+}
+
 .tile.youtube, .tile.youtube.wide {
     height: 310px;
 }
