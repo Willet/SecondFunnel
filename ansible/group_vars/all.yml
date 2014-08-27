@@ -28,7 +28,7 @@ virtualenv_directory: /opt/secondfunnel/venv
 # Shared Application Defaults
 py_autoreload: 0
 
-link_directories:
+linked_directories:
   - src:  "{{application_directory}}/apps/light/node_modules"
     dest: "{{secondfunnel_shared_directory}}/node_modules"
 
