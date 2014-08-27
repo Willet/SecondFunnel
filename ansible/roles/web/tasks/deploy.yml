@@ -26,7 +26,7 @@
       dest="{{application_directory}}"
       key_file="{{secondfunnel_directory}}/willet_deploy_key_id_rsa"
       depth=1 accept_hostkey=yes
-      version="{{git_branch}}"
+      version="{{deploy_branch}}"
   register: git_repo
   notify: uwsgi reload
   when: "'vagrant' not in groups"

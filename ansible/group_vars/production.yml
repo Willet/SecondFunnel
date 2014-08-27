@@ -4,6 +4,7 @@
 #
 app_environment: "production"
 git_branch: "master"
+deploy_branch: "master"
 django_settings_module: secondfunnel.settings.production
 
 #

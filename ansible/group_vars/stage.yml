@@ -4,6 +4,7 @@
 #
 app_environment: "stage"
 git_branch: "dev"
+deploy_branch: "dev"
 django_settings_module: secondfunnel.settings.stage
 
 #
