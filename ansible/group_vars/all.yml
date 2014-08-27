@@ -18,14 +18,31 @@ aws_server_sshkey_name: willet-admin-master
 aws_instance_type: m3.medium
 
 # Shared Application Settings
-application_directory: /opt/secondfunnel/app
 secondfunnel_directory: /opt/secondfunnel
 secondfunnel_log_directory: /opt/secondfunnel/log
 secondfunnel_run_directory: /opt/secondfunnel/run
+secondfunnel_shared_directory: /opt/secondfunnel/shared
+application_directory: /opt/secondfunnel/app
 virtualenv_directory: /opt/secondfunnel/venv
 
 # Shared Application Defaults
 py_autoreload: 0
+
+linked_directories:
+  - src:  "{{application_directory}}/apps/light/node_modules"
+    dest: "{{secondfunnel_shared_directory}}/node_modules"
+
+  - src:  "{{application_directory}}/apps/light/lib"
+    dest: "{{secondfunnel_shared_directory}}/bower_libs"
+
+  - src:  "{{application_directory}}/apps/light/static/light"
+    dest: "{{secondfunnel_shared_directory}}/light_static"
+
+  - src:  "{{application_directory}}/apps/light/templates/light"
+    dest: "{{secondfunnel_shared_directory}}/light_templates"
+
+  - src:  "{{application_directory}}/static"
+    dest: "{{secondfunnel_shared_directory}}/static"
 
 uwsgi:
   virtualenv: "{{virtualenv_directory}}"

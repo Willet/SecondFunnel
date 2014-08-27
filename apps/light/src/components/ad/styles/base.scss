@@ -1,0 +1,65 @@
+@charset "UTF-8";
+
+html, body, .container, #discovery-area {
+    /* fixes scrolling on mobile. touchstart and touchmove break taps.
+       whatever works ¯\_(ツ)_/¯ */
+    overflow-y: hidden;
+}
+html, .container {
+    overflow: hidden;
+}
+
+// for adding a border around the entire ad unit
+$ad-border-color: #fff !default;
+$ad-border-width: 0px !default;
+.border-box {
+  background: $ad-border-color;
+  position: fixed;
+  &.left, &.right {
+    top: 0;
+    bottom: 0;
+    width: $ad-border-width;
+  }
+  &.top, &.bottom {
+    left: 0; right: 0;
+    height: $ad-border-width;
+  }
+  &.left { left: 0; }
+  &.right { right: 0; }
+  &.top { top: 0; }
+  &.bottom { bottom: 0; }
+}
+
+#discovery-area {
+    margin-top: 47px;
+}
+
+.tile {
+    box-shadow: none;
+    border-radius: 3px;
+    padding: 5px;
+    margin: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    cursor: zoom-in;
+
+    width: 50%;
+
+    &.landscape {
+        width: 100%;
+    }
+
+    img {
+        min-width: 100%;
+        max-width: 100%;
+        min-height: 75px;
+        margin: auto;
+        display: block;
+    }
+}
+
+.tile-sizer {
+  height: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}

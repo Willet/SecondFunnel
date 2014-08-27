@@ -27,4 +27,11 @@ ghostdriver.log
 apps/testing/resources
 apps/testing/tests/results
 
-vagrant_ansible_inventory_default*
+node_modules
+apps/light/node_modules
+apps/light/lib
+apps/light/.sass-cache
+apps/light/static
+apps/light/templates
+
+vagrant_ansible*

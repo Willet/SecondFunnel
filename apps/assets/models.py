@@ -306,7 +306,6 @@ class Product(BaseModel):
             if not match:
                 raise ValidationError('Product sale price does not validate')
 
-
         # guarantee the default image is in the list of product images
         # (and vice versa)
         image_urls = [img.url for img in self.product_images.all()]
@@ -555,7 +554,7 @@ class Theme(BaseModel):
     @returns_unicode
     def load_theme(self):
         """download/open the template as a string."""
-        from apps.pinpoint.utils import read_a_file, read_remote_file
+        from apps.light.utils import read_a_file, read_remote_file
 
         if 'static-misc-secondfunnel/themes/gap.html' in self.template:
             # exception for task "Get all pages on tng-test and tng-master using gap theme as code"

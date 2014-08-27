@@ -1,3 +1,19 @@
+- name: "Pre Configuration"
+  hosts: webservers:!building
+  remote_user: "{{common_user}}"
+  gather_facts: False # since we are just notifying hipchat anyways
+  tasks:
+    - name: "Notify hipchat of configuration changes"
+      local_action: hipchat
+        token="{{ hipchat.token }}"
+        room="{{ hipchat.room }}"
+        msg="(duke) Let's rock! ({{app_environment|title}} deployment, {{play_hosts|length}} machines)"
+        color="gray"
+        from="Duke Nukem"
+        validate_certs=no
+      tags: deploy
+      when: (app_environment | default('vagrant') != 'vagrant') and inventory_hostname == play_hosts[0] # change to only once in the future
+
 - name: "Remove any (local) known hosts already for the given box"
   hosts: webservers:&vagrant
   gather_facts: no
@@ -30,6 +46,7 @@
     - name: "Gathering ec2 facts"
       ec2_facts:
       when: app_environment != "vagrant"
+      tags: deploy
     - name: "De-Register Instance from LB"
       local_action: ec2_elb
       args:
@@ -39,6 +56,7 @@
         state: "absent"
       ignore_errors: yes
       when: app_environment != "vagrant"
+      tags: deploy
   roles:
     - web
   post_tasks:
@@ -51,6 +69,7 @@
         state: "present"
       ignore_errors: yes
       when: app_environment != "vagrant"
+      tags: deploy
 
 - name: "Post Configuration"
   hosts: webservers:!building
@@ -64,5 +83,6 @@
         msg="(goodnews)(doge) {{app_environment|title}} deployment and configuration complete. ({{play_hosts|length}} machines were updated)"
         color="green"
         from="Hubert"
+        validate_certs=no
       tags: deploy
       when: (app_environment | default('vagrant') != 'vagrant') and inventory_hostname == play_hosts[0] # change to only once in the future

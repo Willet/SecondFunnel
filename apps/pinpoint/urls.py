@@ -1,6 +1,8 @@
 from django.conf.urls import patterns, url
 
-urlpatterns = patterns('apps.pinpoint.views',
+urlpatterns = patterns(
+    'apps.pinpoint.views',
+
     url(r'^admin/social-auth/connect/$', 'social_auth_redirect',
         name='social-auth-connect'),
 
@@ -8,8 +10,4 @@ urlpatterns = patterns('apps.pinpoint.views',
         name='social-auth-disconnect'),
 
     url(r'^/?$', 'get_overview'),
-
-    # As suggested in the docs, but how will this affect reverse / url?
-    # https://docs.djangoproject.com/en/dev/topics/http/urls/#notes-on-capturing-text-in-urls
-    url(r'^(?P<store_id>\d+)/(?P<page_id>\d+)/?$', 'campaign', name='campaign'),
 )

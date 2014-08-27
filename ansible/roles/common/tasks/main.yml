@@ -1,15 +1,4 @@
-- name: Install General Applications
-  yum: name={{item}} state=present
-  when: ansible_os_family == 'RedHat'
-  with_items:
-    - git
-    - python-pip
-    - python-devel
-    - iotop
-  sudo: yes
-
 - apt: name={{item}} state=present update_cache=yes
-  when: ansible_os_family == 'Debian'
   with_items:
     - git
     - python-pip

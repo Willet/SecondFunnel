@@ -1,0 +1,345 @@
+{
+  "name": "Light",
+  "version": "1.0.0",
+  "description": "Componentized Projects and Libraries",
+  "dependencies": {
+    "browser-sync": "1.3.6",
+    "browserify": "^5.10.0",
+    "browserify-shim": "^3.7.0",
+    "coffee-script": "^1.7.1",
+    "coffeeify": "^0.7.0",
+    "coffeelint": "^1.5.6",
+    "coffeelint-stylish": "^0.1.0",
+    "glob": "^4.0.5",
+    "gulp": "^3.8.7",
+    "gulp-autoprefixer": "^0.0.8",
+    "gulp-bower": "0.0.6",
+    "gulp-bower-files": "^0.2.7",
+    "gulp-clone": "^1.0.0",
+    "gulp-coffeelint": "^0.3.3",
+    "gulp-csso": "^0.2.9",
+    "gulp-debug": "^1.0.0",
+    "gulp-file-include": "^0.4.1",
+    "gulp-file-includer": "^0.1.0",
+    "gulp-filter": "^1.0.0",
+    "gulp-flatten": "^0.0.2",
+    "gulp-htmlmin": "^0.1.3",
+    "gulp-if": "^1.2.4",
+    "gulp-imagemin": "^1.0.0",
+    "gulp-include": "^1.0.0",
+    "gulp-jshint": "^1.8.4",
+    "gulp-load-plugins": "^0.5.3",
+    "gulp-newer": "^0.3.0",
+    "gulp-plumber": "^0.6.4",
+    "gulp-rename": "^1.2.0",
+    "gulp-rev": "^1.0.0",
+    "gulp-rev-collector": "git://github.com/AlexRiedler/gulp-rev-collector.git#assume-manifest",
+    "gulp-rev-outdated": "0.0.6",
+    "gulp-rimraf": "^0.1.0",
+    "gulp-sass": "^0.7.3",
+    "gulp-size": "^1.0.0",
+    "gulp-uglify": "^0.3.1",
+    "gulp-util": "^3.0.0",
+    "jshint-stylish": "^0.4.0",
+    "main-bower-files": "^1.0.2",
+    "merge-stream": "^0.1.5",
+    "minify": "^0.7.1",
+    "minifyify": "^4.0.4",
+    "run-sequence": "^0.3.6",
+    "through2": "^0.6.1",
+    "underscore": "^1.6.0",
+    "vinyl-map": "^1.0.1",
+    "vinyl-source-stream2": "^0.1.1",
+    "watchify": "^1.0.2",
+    "wiredep": "^1.8.2"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "browserify": {
+    "transform": [
+      "browserify-shim",
+      "coffeeify"
+    ]
+  },
+  "browser": {
+    "landingpage": "./src/components/landingpage/scripts/pages.preinit.js",
+    "pages.init": "./src/components/landingpage/scripts/pages.init.js",
+    "pages.preinit": "./src/components/landingpage/scripts/pages.preinit.js",
+    "pages.core": "./src/components/landingpage/scripts/pages.core.coffee",
+    "pages.core.models": "./src/components/landingpage/scripts/pages.core.models.coffee",
+    "pages.core.views": "./src/components/landingpage/scripts/pages.core.views.coffee",
+    "pages.ir": "./src/components/landingpage/scripts/pages.ir.js",
+    "pages.support": "./src/components/landingpage/scripts/pages.support.js",
+    "pages.core.feed": "./src/components/landingpage/scripts/pages.core.feed.coffee",
+    "pages.optimizer": "./src/components/landingpage/scripts/pages.optimizer.js",
+    "pages.tracker": "./src/components/landingpage/scripts/pages.tracker.js",
+    "pages.sharing": "./src/components/landingpage/scripts/pages.sharing.js",
+    "pages.viewport": "./src/components/landingpage/scripts/pages.viewport.js",
+    "pages.widget.gallery": "./src/components/landingpage/scripts/pages.widget.gallery.js",
+    "pages.utils": "./src/components/landingpage/scripts/pages.utils.js",
+    "ad": "./src/components/ad/scripts/main.js",
+    "modernizr": "./lib/modernizr/modernizr.js",
+    "jquery": "./lib/jquery/dist/jquery.js",
+    "json3": "./lib/json3/lib/json3.js",
+    "underscore": "./lib/underscore/underscore.js",
+    "backbone": "./lib/backbone/backbone.js",
+    "backbone.babysitter": "./lib/backbone.babysitter/lib/backbone.babysitter.js",
+    "backbone.wreqr": "./lib/backbone.wreqr/lib/backbone.wreqr.js",
+    "backbone.marionette": "./lib/backbone.marionette/lib/backbone.marionette.js",
+    "bootstrap.affix": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/affix.js",
+    "bootstrap.alert": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/alert.js",
+    "bootstrap.button": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/button.js",
+    "bootstrap.carousel": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/carousel.js",
+    "bootstrap.collapse": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/collapse.js",
+    "bootstrap.dropdown": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/dropdown.js",
+    "bootstrap.modal": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/modal.js",
+    "bootstrap.popover": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/popover.js",
+    "bootstrap.scrollspy": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/scrollspy.js",
+    "bootstrap.tab": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/tab.js",
+    "bootstrap.tooltip": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/tooltip.js",
+    "bootstrap.transition": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/transition.js",
+    "cloudinary": "./lib/cloudinary_js/js/jquery.cloudinary.js",
+    "masonry": "./lib/masonry/masonry.js",
+    "outlayer": "./lib/outlayer/outlayer.js",
+    "outlayerItem": "./lib/outlayer/item.js",
+    "eventie": "./lib/eventie/eventie.js",
+    "doc-ready": "./lib/doc-ready/doc-ready.js",
+    "eventEmitter": "./lib/eventEmitter/EventEmitter.js",
+    "get-style-property": "./lib/get-style-property/get-style-property.js",
+    "get-size": "./lib/get-size/get-size.js",
+    "matches-selector": "./lib/matches-selector/matches-selector.js",
+    "imagesLoaded": "./lib/imagesloaded/imagesloaded.js",
+    "packery": "./lib/packery/dist/packery.pkgd.js",
+    "classie": "./lib/classie/classie.js",
+    "jquery-touchswipe": "./lib/jquery-touchswipe/jquery.touchSwipe.js",
+    "jquery-deparam": "./lib/jquery-bbq-deparam/jquery-deparam.js",
+    "owl-carousel": "./lib/owl-carousel/owl-carousel/owl.carousel.js"
+  },
+  "browserify-shim": {
+    "modernizr": {
+      "exports": "Modernizr"
+    },
+    "jquery": {
+      "exports": "$"
+    },
+    "json3": {
+      "exports": "JSON3"
+    },
+    "underscore": {
+      "exports": "_"
+    },
+    "backbone": {
+      "exports": "Backbone",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "backbone.babysitter": {
+      "exports": "Backbone.Babysitter",
+      "depends": [
+        "jquery",
+        "backbone:Backbone"
+      ]
+    },
+    "backbone.wreqr": {
+      "exports": "Backbone.Wreqr",
+      "depends": [
+        "jquery",
+        "backbone:Backbone"
+      ]
+    },
+    "backbone.marionette": {
+      "exports": "Marionette",
+      "depends": [
+        "jquery",
+        "backbone:Backbone"
+      ]
+    },
+    "bootstrap.affix": {
+      "exports": "$.fn.afix",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "bootstrap.alert": {
+      "exports": "$.fn.alert",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "bootstrap.button": {
+      "exports": "$.fn.button",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "bootstrap.carousel": {
+      "exports": "$.fn.carousel",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "bootstrap.collapse": {
+      "exports": "$.fn.collapse",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "bootstrap.dropdown": {
+      "exports": "$.fn.dropdown",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "bootstrap.modal": {
+      "exports": "$.fn.modal",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "bootstrap.popover": {
+      "exports": "$.fn.popover",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "bootstrap.scrollspy": {
+      "exports": "$.fn.scrollspy",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "bootstrap.tab": {
+      "exports": "$.fn.tab",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "bootstrap.tooltip": {
+      "exports": "$.fn.tooltip",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "bootstrap.transition": {
+      "exports": "$.fn.transition",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "cloudinary": {
+      "exports": "$.cloudinary",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "masonry": {
+      "exports": "window.Masonry",
+      "depends": [
+        "jquery",
+        "outlayer"
+      ]
+    },
+    "outlayer": {
+      "exports": "Outlayer",
+      "depends": [
+        "eventie",
+        "doc-ready",
+        "eventEmitter",
+        "get-style-property",
+        "get-size",
+        "matches-selector",
+        "outlayerItem"
+      ]
+    },
+    "outlayerItem": {
+      "exports": "Outlayer.Item",
+      "depends": [
+        "eventie",
+        "doc-ready",
+        "eventEmitter",
+        "get-style-property",
+        "get-size",
+        "matches-selector"
+      ]
+    },
+    "eventEmitter": {
+      "exports": "window"
+    },
+    "eventie": {
+      "exports": "window"
+    },
+    "get-style-property": {
+      "exports": "getStyleProperty"
+    },
+    "get-size": {
+      "exports": "getSize",
+      "depends": [
+        "eventie"
+      ]
+    },
+    "doc-ready": {
+      "exports": "window",
+      "depends": [
+        "eventie"
+      ]
+    },
+    "matches-selector": {
+      "exports": "matchesSelector"
+    },
+    "imagesLoaded": {
+      "exports": "imagesLoaded",
+      "depends": [
+        "eventEmitter",
+        "eventie"
+      ]
+    },
+    "packery": {
+      "exports": "Packery",
+      "depends": [
+        "jquery",
+        "eventie",
+        "classie",
+        "outlayer",
+        "get-size"
+      ]
+    },
+    "jquery-touchswipe": {
+      "exports": "$.fn.swipe",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "jquery-deparam": {
+      "exports": "$.deparam",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "owl-carousel2": {
+      "exports": "$.fn.owlCarousel",
+      "depends": [
+        "jquery"
+      ]
+    }
+  },
+  "coffeelintConfig": {
+    "indentation": {
+      "value": 4
+    },
+    "cyclomatic_complexity": {
+      "level": "warn"
+    },
+    "empty_constructor_needs_parens": {
+      "level": "error"
+    },
+    "max_line_length": {
+      "name": "max_line_length",
+      "value": 120,
+      "level": "warn",
+      "limitComments": true
+    }
+  }
+}

@@ -51,6 +51,7 @@ MIDDLEWARE_CLASSES += (
     'apps.utils.models.NonHtmlDebugToolbarMiddleware',
     'apps.utils.models.ShowHandlerMiddleware',
     'devserver.middleware.DevServerMiddleware',
+    'apps.light.middleware.BrowserSyncMiddleware',
 )
 
 # force show toolbar

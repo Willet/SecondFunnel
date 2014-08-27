@@ -5,8 +5,9 @@ from django.http import HttpResponse, HttpResponseRedirect
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
-    url(r'^healthcheck/$', lambda x: HttpResponse('OK', status=200)),
+urlpatterns = patterns(
+    '',
+    url(r'^healthcheck/?$', lambda x: HttpResponse('OK', status=200)),
 
     # INTERNAL ADMIN
     url(r'^admin$', lambda x: HttpResponseRedirect("/admin/")),
@@ -23,8 +24,7 @@ urlpatterns = patterns('',
 
     # APPS
     url(r'^assets/', include('apps.assets.urls')),
-    url(r'^ads/', include('apps.ads.urls')),
-    url(r'^creative/', include('apps.ads.urls')),
+    url(r'^ads/(?P<page_id>\d+)/?$', 'apps.light.views.ad_banner'),
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
     url(r'^imageservice/', include('apps.imageservice.urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
@@ -38,7 +38,8 @@ urlpatterns = patterns('',
 
     # special top-level urls for RSS feeds
     url(r'^(?P<page_slug>[^/\.]+)/?$',
-        'apps.pinpoint.views.campaign_by_slug', name='get-page-by-slug'),
+        'apps.light.views.landing_page'),
+
     url(r'^(?P<page_slug>[^/\.]+)/stats$',
         'apps.pinpoint.views.page_stats', name='page-stats'),
     url(r'^(?P<page_slug>[^/\.]+)/google\.rss$',
@@ -52,26 +53,28 @@ urlpatterns = patterns('',
     url(r'^(?P<page_slug>[^/\.]+)'
         r'/(?P<identifier>(id|sku|tile))'
         r'/(?P<identifier_value>\w+)/?$',
-        'apps.pinpoint.views.campaign_by_slug'),
+        'apps.light.views.landing_page'),
 
     # APIs
     url(r'^contentgraph/', include('apps.contentgraph.urls')),
     url(r'^graph/', include('apps.api.urls')),
-
-    # WEBSITE
-    url(r'^(.*)$', include('apps.website.urls')),
 )
 
 if settings.DEBUG:
     # Used for local development; removes the need to run collectstatic in the
     # dev environment.
-    urlpatterns += patterns('django.contrib.staticfiles.views',
+    urlpatterns += patterns(
+        'django.contrib.staticfiles.views',
         url(r'^static/(?P<path>.*)$', 'serve'),
     )
 
     import debug_toolbar
-    urlpatterns += patterns('',
+    urlpatterns += patterns(
+        '',
         url(r'^__debug__/', include(debug_toolbar.urls)),
     )
 
-handler500 = 'apps.pinpoint.views.app_exception_handler'
+urlpatterns += patterns('',
+    # WEBSITE
+    url(r'^(.*)$', include('apps.website.urls'))
+)

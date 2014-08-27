@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    @@include('shared/campaign_head.html')
+    <link rel="stylesheet"
+          href="/static/light/nastygal/landingpage/default/styles/main.css"/>
+    <style>
+        body, #discovery-area {
+            overflow: hidden;
+        }
+    </style>
+    <!-- Add Optimizer Tests here -->
+    <script type="text/javascript">
+        window.OPTIMIZER_TESTS = [];
+    </script>
+</head>
+<body>
+    @@include('shared/campaign_body.html')
+    <div>
+        <!-- generic templates -->
+        <script type="text/template" id="product_tile_template">
+            <div class="tap-indicator-target"></div>
+            <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
+            <% if (App.option('debug', 0) > 1) { %>
+                <span class="type"><%= obj['content-type'] %></span>
+            <% } %>
+            <div class="name"><%= obj.title || obj.name %></div>
+        </script>
+
+        <script type="text/template" id="image_tile_template">
+            <div class="tap-indicator-target"></div>
+            <div class='relative'>
+                <img class="focus" src="<%= obj.images[0].url %>" alt="<%= obj.caption %>" />
+            </div>
+            <% if (App.option("debug", 0) > 1) { %>
+                <span class="type"><%= obj["content-type"] %></span>
+            <% } %>
+        </script>
+    </div>
+
+    <div class="container">
+        <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
+        <div id="hero-area"></div>
+        <div id="category-area"></div>
+        <div id="discovery-area" class="discovery-area"></div>
+        <div class="no-noscript loading"></div>
+    </div>
+
+    <img src="{% url 'apps.tracking.views.pixel' %}"/>
+</body>
+</html>
