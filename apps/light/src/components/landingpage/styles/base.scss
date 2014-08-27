@@ -164,12 +164,16 @@ a, a:hover, a:focus {
 }
 
 div.loading {
-    background-image: url('/static/light/landingpage/images/ajax-spinner.gif');
+    background-image: url('/static/light/landingpage/images/ajax-spinner.png');
     background-repeat: no-repeat;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     margin: 0 auto;
     margin-bottom: 10px;
+}
+
+.tile-sizer {
+    visibility: hidden;
 }
 
 .tile {

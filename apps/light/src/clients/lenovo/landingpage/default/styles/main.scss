@@ -13,6 +13,7 @@ body {
 
 body > .container {
   box-shadow: 0px 0px 35px 15px rgba(0,0,0,0.75);
+  background-color: #000;
 }
 
 /* enable fluid width */
@@ -24,12 +25,8 @@ body > .container {
 /* end:enable enable fluid width s*/
 
 #hero-area {
-    margin-bottom: -6px;
+    margin-bottom: -5px;
     margin-top: -10px;
-}
-
-#discovery-area {
-    background-color: #000;
 }
 
 .navbar {
@@ -116,4 +113,10 @@ body > .container {
     .previewContainer .content {
         padding-top: 18px;
     }
+}
+
+div.loading {
+    background-image: url('/static/light/landingpage/images/ajax-spinner-white.png');
+    width: 38px;
+    height: 38px;
 }

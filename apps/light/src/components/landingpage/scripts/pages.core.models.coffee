@@ -395,6 +395,12 @@ module.exports = (module, App) ->
         defaults:
             type: "video"
 
+        parse: (json) ->
+            attrs = json
+            if attrs['original-id'] and not attrs["thumbnail"]
+                attrs["thumbnail"] = "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
+            attrs
+
 
     ###
     Our TileCollection manages ALL the tiles on the page.
@@ -527,8 +533,8 @@ module.exports = (module, App) ->
                 respBuilder.push tile # this tile passes
             )
             _.map respBuilder, (jsonEntry) ->
-                TileClass = App.utils.findClass("Tile", jsonEntry.type or jsonEntry.template, module.Tile)
-                new TileClass(jsonEntry)
+                TileClass = App.utils.findClass("Tile", jsonEntry.template or jsonEntry.type, module.Tile)
+                new TileClass(jsonEntry, parse: true)
 
 
 
