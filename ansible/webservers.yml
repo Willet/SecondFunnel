@@ -67,5 +67,6 @@
         msg="(goodnews)(doge) {{app_environment|title}} deployment and configuration complete. ({{play_hosts|length}} machines were updated)"
         color="green"
         from="Hubert"
+        validate_certs=no
       tags: deploy
       when: (app_environment | default('vagrant') != 'vagrant') and inventory_hostname == play_hosts[0] # change to only once in the future

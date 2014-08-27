@@ -32,10 +32,11 @@
     - "{{secondfunnel_run_directory}}"
     - "{{secondfunnel_log_directory}}"
     - "{{secondfunnel_shared_directory}}"
-    - "{{secondfunnel_shared_directory}}/bower_libs"
-    - "{{secondfunnel_shared_directory}}/node_modules"
-    - "{{secondfunnel_shared_directory}}/static"
-    - "{{secondfunnel_shared_directory}}/light_static"
+  sudo: true
+
+- name: Create Linked Directories for Application
+  file: state=directory path={{item.dest}} mode=0777 owner={{common_user}} group={{common_user}}
+  with_items: linked_directories
   sudo: true
 
 - name: Setup Environment for Database

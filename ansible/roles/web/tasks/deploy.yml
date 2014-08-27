@@ -44,26 +44,18 @@
   poll: 15
 
 - name: Remove any existing node_modules or bower_libs if they exist
-  stat: path="{{application_directory}}/{{item.src}}"
+  stat: path="{{item.src}}"
   register: shared_libs_stat
-  with_items:
-    - { src: "apps/light/node_modules", dest: "node_modules" }
-    - { src: "apps/light/lib", dest: "bower_libs" }
-    - { src: "apps/light/static/light", dest: "light_static" }
-    - { src: "static", dest: "static" }
+  with_items: linked_directories
 
 - name: Delete node_modules if it isn't the symbolic link, so we can create the link
-  file: state=absent path="{{application_directory}}/{{item.item.src}}" force=yes
+  file: state=absent path="{{item.item.src}}" force=yes
   when: item.stat.exists and not item.stat.islnk
   with_items: shared_libs_stat.results
 
 - name: Link any directories shared between application deployments
-  file: state=link path="{{application_directory}}/{{item.src}}" src="{{secondfunnel_shared_directory}}/{{item.dest}}" force=yes
-  with_items:
-    - { src: "apps/light/node_modules", dest: "node_modules" }
-    - { src: "apps/light/lib", dest: "bower_libs" }
-    - { src: "apps/light/static/light", dest: "light_static" }
-    - { src: "static", dest: "static" }
+  file: state=link path="{{item.src}}" src="{{item.dest}}" force=yes
+  with_items: linked_directories
 
 - name: Build Node Modules
   npm: path="{{application_directory}}/apps/light"

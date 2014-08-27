@@ -28,6 +28,22 @@ virtualenv_directory: /opt/secondfunnel/venv
 # Shared Application Defaults
 py_autoreload: 0
 
+linked_directories:
+  - src:  "{{application_directory}}/apps/light/node_modules"
+    dest: "{{secondfunnel_shared_directory}}/node_modules"
+
+  - src:  "{{application_directory}}/apps/light/lib"
+    dest: "{{secondfunnel_shared_directory}}/bower_libs"
+
+  - src:  "{{application_directory}}/apps/light/static/light"
+    dest: "{{secondfunnel_shared_directory}}/light_static"
+
+  - src:  "{{application_directory}}/apps/light/templates/light"
+    dest: "{{secondfunnel_shared_directory}}/light_templates"
+
+  - src:  "{{application_directory}}/static"
+    dest: "{{secondfunnel_shared_directory}}/static"
+
 uwsgi:
   virtualenv: "{{virtualenv_directory}}"
   chdir: "{{application_directory}}"
