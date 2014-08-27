@@ -207,7 +207,7 @@ gulp.task "rev", (cb) ->
 
 gulp.task "_rev", ["images", "fonts", "scripts", "styles"], ->
     # grab all the assets that don't need modified but should be reved
-    reved_suffix = ".rev"
+    reved_suffix = ".revv"
     return gulp.src(
         [
             "#{static_output_dir}/**/*.{css,js,jpeg,jpg,svg,gif,png,eot,woff,ttf}",
