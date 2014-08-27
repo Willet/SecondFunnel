@@ -1,3 +1,19 @@
+- name: "Pre Configuration"
+  hosts: webservers:!building
+  remote_user: "{{common_user}}"
+  gather_facts: False # since we are just notifying hipchat anyways
+  tasks:
+    - name: "Notify hipchat of configuration changes"
+      local_action: hipchat
+        token="{{ hipchat.token }}"
+        room="{{ hipchat.room }}"
+        msg="(duke) Let's rock! ({{app_environment|title}} deployment, {{play_hosts|length}} machines)"
+        color="gray"
+        from="Duke Nukem"
+        validate_certs=no
+      tags: deploy
+      when: (app_environment | default('vagrant') != 'vagrant') and inventory_hostname == play_hosts[0] # change to only once in the future
+
 - name: "Remove any (local) known hosts already for the given box"
   hosts: webservers:&vagrant
   gather_facts: no
