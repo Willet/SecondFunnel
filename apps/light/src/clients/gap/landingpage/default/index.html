@@ -383,9 +383,11 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <a class="button find-store" href="http://m.gap.com/storelocator.html" target="_blank">
-                Find a Store
-            </a>
+            <% if (!App.support.mobile()) { %>
+                <a class="button find-store" href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
+            <% } else { %>
+                <a class="button find-store" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
+            <% } %>
             <a class='button in-store' href='<%- obj.url %>' target='_blank'>
                 <% if (App.support.mobile()) { %>
                     Shop Now
@@ -547,11 +549,11 @@
                                     <div class='title'><%= obj.title || obj.name || "Product coming soon." %></div>
                                     <% if (!App.support.mobile()) { %>
                                         <div class="buy">
-                                            <a class="button" href="http://m.gap.com/" target="_blank">
+                                            <a class="button" href="http://gap.com/" target="_blank">
                                                 Shop on Gap.com
                                             </a>
                                             <a class="button find-store"
-                                               href="http://m.gap.com/storelocator.html"
+                                               href="http://www.gap.com/customerService/storeLocator.do"
                                                target="_blank">
                                                 Find a Store
                                             </a>
