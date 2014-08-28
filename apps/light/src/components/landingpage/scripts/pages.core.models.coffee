@@ -152,8 +152,10 @@ module.exports = (module, App) ->
             displayName: ""
 
         initialize: (data) ->
+            unless data
+                throw new Error("Missing data")
             unless data.slug
-                throw Exception("Missing store slug")
+                throw new Error("Missing store slug")
             unless data.displayName
                 @set "displayName", @get("name")
             return
@@ -554,7 +556,7 @@ module.exports = (module, App) ->
         url: ->
             url = undefined
             category = App.intentRank.options.category
-            url = "#{@config.apiUrl#}/page/#{@config.campaign}/getresults?results=#{@config.results}"
+            url = "#{@config.apiUrl}/page/#{@config.campaign}/getresults?results=#{@config.results}"
             if category
                 return url + "&category=" + encodeURIComponent(category)
             url

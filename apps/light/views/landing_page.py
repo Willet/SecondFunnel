@@ -133,40 +133,40 @@ def render_landing_page(request, page, render_context):
         page.widable_templates = json.dumps(page.get('widable_templates'))
 
     algorithm = get_algorithm(request=request, page=page)
-
     PAGES_INFO = PageConfigSerializer.to_json(request=request, page=page,
         feed=page.feed, store=store, algorithm=algorithm, featured_tile=tile)
+
+    initial_results = []  # JS now fetches its own initial results
 
     # TODO: structure this
     #       and escape: simplejson.dumps(s1, cls=simplejson.encoder.JSONEncoderForHTML)
     attributes = {
-        "PAGES_INFO": PAGES_INFO,
-        "session_id": request.session.session_key,
+        "algorithm": algorithm,
         "campaign": page or 'undefined',
-        "store": store,
         "columns": range(4),
-        "preview": False,  # TODO: was this need to fix: not page.live,
-        "tile": tile,
-        "open_tile_in_popup": "true" if page.get("open_tile_in_popup") else "false",
-        "initial_results": [],  # JS now fetches its own initial results
-        "backup_results": [],
-        "social_buttons": page.social_buttons or store.get('social-buttons', ''),
-        "conditional_social_buttons": page.get('conditional_social_buttons', {}),
         "column_width": page.column_width or store.get('column-width', ''),
+        "conditional_social_buttons": page.get('conditional_social_buttons', {}),
+        "desktop_hero_image": page.desktop_hero_image,
         "enable_tracking": page.enable_tracking,  # jsbool
+        "environment": settings.ENVIRONMENT,
+        "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
         "image_tile_wide": page.image_tile_wide,
-        "pub_date": datetime.now().isoformat(),
+        "initial_results": initial_results,
+        "keen_io": settings.KEEN_CONFIG,
         "legal_copy": page.legal_copy or '',
         "mobile_hero_image": page.mobile_hero_image,
-        "desktop_hero_image": page.desktop_hero_image,
-        "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
-        "keen_io": settings.KEEN_CONFIG,
+        "open_tile_in_popup": "true" if page.get("open_tile_in_popup") else "false",
+        "PAGES_INFO": PAGES_INFO,
+        "preview": False,  # TODO: was this need to fix: not page.live,
+        "pub_date": datetime.now().isoformat(),
+        "session_id": request.session.session_key,
+        "social_buttons": page.social_buttons or store.get('social-buttons', ''),
+        "store": store,
+        "tests": tests,
+        "tile": tile,
         "tile_set": "",
         "url": page.get('url', ''),
         "url_params": json.dumps(page.get("url_params", {})),
-        "algorithm": algorithm,
-        "environment": settings.ENVIRONMENT,
-        "tests": tests
     }
     attributes.update(render_context)
 

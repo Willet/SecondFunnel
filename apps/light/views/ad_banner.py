@@ -9,6 +9,7 @@ from django.views.decorators.cache import cache_page, cache_control
 
 from apps.assets.models import Page
 from apps.intentrank.controllers import IntentRank
+from apps.intentrank.serializers import PageConfigSerializer
 from apps.light.utils import get_algorithm
 
 @cache_control(must_revalidate=True, max_age=(1 * 60))
@@ -19,14 +20,17 @@ def ad_banner(request, page_id):
 
     # grab required assets
     store = page.store
-
-    ir_base_url = '/intentrank'
-
-    algorithm = get_algorithm(request=request, page=page)
+    tile = None  # this is fine
 
     tests = []
     if page.get('tests'):
         tests = json.dumps(page.get('tests'))
+
+    ir_base_url = '/intentrank'
+
+    algorithm = get_algorithm(request=request, page=page)
+    PAGES_INFO = PageConfigSerializer.to_json(request=request, page=page,
+        feed=page.feed, store=store, algorithm=algorithm, featured_tile=tile)
 
     ir = IntentRank(page=page)
     initial_results = ir.get_results(request=request, content_only=True, results=20)
@@ -34,29 +38,30 @@ def ad_banner(request, page_id):
     initial_results = [x.to_json() for x in initial_results]
 
     attributes = {
-        "session_id": request.session.session_key,
+        "algorithm": algorithm,
         "campaign": page,
-        "store": store,
         "columns": range(4),
-        "product": "undefined",
-        "open_tile_in_popup": "true",
-        "initial_results": json.dumps(initial_results),
-        "backup_results": [],
-        "social_buttons": '',
-        "conditional_social_buttons": "{}",
         "column_width": page.column_width or 150,  # 150 = 300 / 2
+        "conditional_social_buttons": "{}",
         "enable_tracking": "true" if (page.id == 20) else "false",  # jsbool, TODO: remove hack for page 20
-        "image_tile_wide": page.image_tile_wide,
-        "pub_date": datetime.now().isoformat(),
-        "ir_base_url": ir_base_url,
+        "environment": settings.ENVIRONMENT,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
+        "image_tile_wide": page.image_tile_wide,
+        "initial_results": json.dumps(initial_results),
+        "ir_base_url": ir_base_url,
         "keen_io": settings.KEEN_CONFIG,
+        "open_tile_in_popup": "true",
+        "PAGES_INFO": PAGES_INFO,
+        "product": "undefined",
+        "pub_date": datetime.now().isoformat(),
+        "session_id": request.session.session_key,
+        "social_buttons": '',
+        "store": store,
+        "tests": tests,
+        "tile": tile,
         "tile_set": "content",
         "url": page.get('url', ''),
         "url_params": json.dumps(page.get("url_params", {})),
-        "algorithm": algorithm,
-        "environment": settings.ENVIRONMENT,
-        "tests": tests,
     }
 
     context = RequestContext(request, attributes)
