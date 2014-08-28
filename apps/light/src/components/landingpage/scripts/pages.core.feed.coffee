@@ -30,7 +30,6 @@ class FeedView extends Marionette.CollectionView
         #        especially cause IntentRank then calls this thing back
         initialResults = options.initialResults
         if initialResults and initialResults.length > 0
-            @isLoading = true
             if $.isArray intitialResults
                 deferred = $.when .initialResults
             else
