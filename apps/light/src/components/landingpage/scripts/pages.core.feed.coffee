@@ -30,7 +30,6 @@ class FeedView extends Marionette.CollectionView
         #        especially cause IntentRank then calls this thing back
         initialResults = options.initialResults
         if initialResults and initialResults.length > 0
-            @isLoading = true
             if $.isArray intitialResults
                 deferred = $.when .initialResults
             else
@@ -66,7 +65,7 @@ class FeedView extends Marionette.CollectionView
 
     fetchTiles: (options, tile) ->
         if @isLoading
-            return (new $.Deffered()).promise()
+            return (new $.Deferred()).promise()
         xhr = @collection.fetch()
         xhr.done (tileInfo) =>
             @isLoading = false

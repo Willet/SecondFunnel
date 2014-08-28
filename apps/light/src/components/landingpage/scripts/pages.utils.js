@@ -255,6 +255,11 @@ module.exports = function (utils, App) {
             height = Math.max(options.height || 0, App.option('minImageHeight'));
         options = {};
 
+        // Do NOT transform animated gifs
+        if (url.indexOf('.gif') > -1) {
+            return url;
+        }
+
         // Round to the nearest whole hundred pixel dimension;
         // prevents creating a ridiculous number of images.
         if ((width && !height) || width > height) {
