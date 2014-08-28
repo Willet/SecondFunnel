@@ -66,7 +66,7 @@ class FeedView extends Marionette.CollectionView
 
     fetchTiles: (options, tile) ->
         if @isLoading
-            return (new $.Deffered()).promise()
+            return (new $.Deferred()).promise()
         xhr = @collection.fetch()
         xhr.done (tileInfo) =>
             @isLoading = false
