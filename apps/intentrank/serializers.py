@@ -113,6 +113,19 @@ class PageConfigSerializer(object):
         else:
             data = {}
 
+        # normalize: socialButtons
+        social_buttons = getattr(page, 'social_buttons',
+            page.store.get('social-buttons',
+            ["facebook", "twitter", "pinterest", "tumblr"]))
+        if isinstance(social_buttons, basestring):
+            #noinspection PyTypeChecker
+            social_buttons = json.loads(social_buttons)
+
+        # normalize: enableTracking
+        enable_tracking = page.get('enable_tracking', True)
+        if not isinstance(enable_tracking, bool):
+            enable_tracking = (enable_tracking == 'true')
+
         data.update({
             'debug': settings.DEBUG,
             # no longer a setting (why would we change this?)
@@ -139,9 +152,7 @@ class PageConfigSerializer(object):
             'disableBannerRedirectOnMobile': getattr(page, 'disable_banner_redirect_on_mobile', False),
             'mobileTabletView': getattr(page, 'mobile_table_view', False),
             'widableTemplates': getattr(page, 'widable_templates', None),  # TODO: undefined
-            'socialButtons': getattr(page, 'social_buttons',
-                                     page.store.get('social-buttons',
-                ["facebook", "twitter", "pinterest", "tumblr"])),
+            'socialButtons': social_buttons,
 
             'conditionalSocialButtons': page.get('conditional_social_buttons', {}),
             'openTileInPopup': True if page.get("open_tile_in_popup") else False,
@@ -154,7 +165,7 @@ class PageConfigSerializer(object):
             # optional, for social buttons (default: true)
             'showCount': True,
             # optional; default: true
-            'enableTracking': page.get('enable_tracking', True),
+            'enableTracking': enable_tracking,
             # optional. controls how often tiles are wide.
             'imageTileWide': getattr(page, 'image_tile_wide', 0.0),
             # minimum width a Cloudinary image can have  TODO: magic number
@@ -186,8 +197,8 @@ class PageConfigSerializer(object):
             'IROffset': 0,
 
             # DEPRECATED (use page:gaAccountNumber)
-            'gaAccountNumber': getattr(page, 'ga_account_number',
-                                       settings.GOOGLE_ANALYTICS_PROPERTY),
+            'gaAccountNumber': page.get('ga_account_number',
+                                        settings.GOOGLE_ANALYTICS_PROPERTY),
 
             'keen': {
                 'projectId': settings.KEEN_CONFIG['projectId'],
