@@ -10,10 +10,17 @@ register = Library()
 
 @register.filter(name='jsonify')
 def jsonify(obj):
-    if obj == None:
+    if obj is None:
         # TODO: this should just be 'null' however
         #       our current pages info needs js's undefined right now :(
         return 'undefined'
     if isinstance(obj, QuerySet):
-        return mark_safe(serialize('json', obj))
-    return mark_safe(json.dumps(obj))
+        json_str = mark_safe(serialize('json', obj))
+    else:
+        # like above... replaces all nulls with undefineds.
+        # alternatively, either handle null in target source code, or do
+        # costly nested replacement before dumps-ing.
+        json_str = json.dumps(obj)
+
+    return mark_safe(json_str.replace(': null', ': undefined')
+                             .replace(':null', ':undefined'))

@@ -243,6 +243,7 @@ class Store(BaseModel):
         help_text="e.g. http://explore.nativeshoes.com, used for store detection",
         blank=True, null=True)
 
+    serializer = ir_serializers.StoreSerializer
     cg_serializer = cg_serializers.StoreSerializer
 
     @classmethod

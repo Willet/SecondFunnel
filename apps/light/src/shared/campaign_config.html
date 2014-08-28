@@ -1,7 +1,7 @@
 {% load jsonify %}
 
 <script>
-    window.PAGES_INFO = {
+    window.PAGES_INFO2 = {
           'debug': ('{{ debug|default:0 }}' === 'True')  // django built-in
         , 'itemSelector': '.tile'
         , 'store': {
@@ -93,5 +93,5 @@
         , 'urlParams': {{ url_params|default:"{}"|safe }}
     };
 
-    window.PAGES_INFO2 = {{ PAGES_INFO|jsonify }};
+    window.PAGES_INFO = {{ PAGES_INFO|jsonify }};
 </script>
