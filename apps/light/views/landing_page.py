@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from django.conf import settings
@@ -119,6 +120,12 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
 
 def render_landing_page(request, page, render_context):
 
+    tests = []
+    if page.get('tests'):
+        tests = json.dumps(page.get('tests'))
+    if page.get('widable_templates'):
+        page.widable_templates = json.dumps(page.get('widable_templates'))
+
     # TODO: structure this
     #       and escape: simplejson.dumps(s1, cls=simplejson.encoder.JSONEncoderForHTML)
     attributes = {
@@ -126,6 +133,7 @@ def render_landing_page(request, page, render_context):
         "campaign": page or 'undefined',
         "columns": range(4),
         "preview": False,  # TODO: was this need to fix: not page.live,
+        "open_tile_in_popup": "true" if page.get("open_tile_in_popup") else "false",
         "initial_results": [],  # JS now fetches its own initial results
         "backup_results": [],
         "social_buttons": page.social_buttons or page.store.get('social-buttons', ''),
@@ -139,8 +147,11 @@ def render_landing_page(request, page, render_context):
         "desktop_hero_image": page.desktop_hero_image,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
         "keen_io": settings.KEEN_CONFIG,
+        "tile_set": "",
         "url": page.get('url', ''),
-        "environment": settings.ENVIRONMENT
+        "url_params": json.dumps(page.get("url_params", {})),
+        "environment": settings.ENVIRONMENT,
+        "tests": tests
     }
     attributes.update(render_context)
 
