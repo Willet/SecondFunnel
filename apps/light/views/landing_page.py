@@ -112,9 +112,9 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
     render_context['ir_base_url'] = '/intentrank'
 
     if tile:
-        render_context['tile'] = tile.to_str()
+        render_context['tile'] = tile.to_json()
     else:
-        render_context['tile'] = 'undefined'
+        render_context['tile'] = None
 
     return HttpResponse(render_landing_page(request, page, render_context))
 
@@ -124,7 +124,7 @@ def render_landing_page(request, page, render_context):
     :returns {str|unicode}
     """
     store = page.store
-    tile = None  # TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO.
+    tile = render_context.get('tile', None)
 
     tests = []
     if page.get('tests'):

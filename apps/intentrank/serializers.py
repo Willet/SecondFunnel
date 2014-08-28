@@ -87,7 +87,7 @@ class PageConfigSerializer(object):
     """
     @staticmethod
     def to_json(request, page, feed=None, store=None, algorithm=None,
-               featured_tile=None, other=None):
+                featured_tile=None, other=None):
         """
         keys in other:
         - tile_set ('product', 'content', '')
@@ -182,7 +182,7 @@ class PageConfigSerializer(object):
             },
 
             # default: undefined
-            'featured': featured_tile.to_json() if featured_tile else None,
+            'featured': featured_tile,
 
             # DEPRECATED (use intentRank:results)
             'IRResultsCount': 10,
