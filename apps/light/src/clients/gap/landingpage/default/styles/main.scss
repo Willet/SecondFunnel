@@ -228,6 +228,12 @@ div.header {
     color: white;
 }
 
+#hero-area .overlay.black .find a,
+#hero-area .overlay.black .find a:hover,
+#hero-area .overlay.black .find a:visited {
+    color: black;
+}
+
 #hero-area .overlay .buttons a {
     background-repeat: no-repeat;
     background-size: contain;
@@ -246,14 +252,22 @@ div.header {
     background-image: url('/static/light/gap/landingpage/default/images/emailicon.png');
 }
 
+#hero-area .overlay.black .buttons .facebook-button {
+    background-image: url('/static/light/gap/landingpage/default/images/facebookicon_black.png');
+}
+#hero-area .overlay.black .buttons .twitter-button {
+    background-image: url('/static/light/gap/landingpage/default/images/twittericon_black.png');
+}
+#hero-area .overlay.black .buttons .email-button {
+    background-image: url('/static/light/gap/landingpage/default/images/emailicon_black.png');
+}
+
 #hero-area .overlay.white .buttons .facebook-button {
     background-image: url('/static/light/gap/landingpage/default/images/facebookicon_white.png');
 }
-
 #hero-area .overlay.white .buttons .twitter-button {
     background-image: url('/static/light/gap/landingpage/default/images/twittericon_white.png');
 }
-
 #hero-area .overlay.white .buttons .email-button {
     background-image: url('/static/light/gap/landingpage/default/images/emailicon_white.png');
 }
@@ -484,6 +498,12 @@ div.header {
         color: #f14945;
     }
 
+    #hero-area .overlay.mobile-black .find a,
+    #hero-area .overlay.mobile-black .find a:hover,
+    #hero-area .overlay.mobile-black .find a:visited {
+        color: #000;
+    }
+
     #hero-area .overlay.mobile-blue .find a,
     #hero-area .overlay.mobile-blue .find a:hover,
     #hero-area .overlay.mobile-blue .find a:visited {
@@ -498,13 +518,21 @@ div.header {
     #hero-area .overlay.mobile-orange .buttons .facebook-button {
         background-image: url('/static/light/gap/landingpage/default/images/facebookicon_orange.png');
     }
-
     #hero-area .overlay.mobile-orange .buttons .twitter-button {
         background-image: url('/static/light/gap/landingpage/default/images/twittericon_orange.png');
     }
-
     #hero-area .overlay.mobile-orange .buttons .email-button {
         background-image: url('/static/light/gap/landingpage/default/images/emailicon_orange.png');
+    }
+
+    #hero-area .overlay.mobile-black .buttons .facebook-button {
+        background-image: url('/static/light/gap/landingpage/default/images/facebookicon_black.png');
+    }
+    #hero-area .overlay.mobile-black .buttons .twitter-button {
+        background-image: url('/static/light/gap/landingpage/default/images/twittericon_black.png');
+    }
+    #hero-area .overlay.mobile-black .buttons .email-button {
+        background-image: url('/static/light/gap/landingpage/default/images/emailicon_black.png');
     }
 
     #hero-area .overlay.mobile-blue .buttons .facebook-button {
