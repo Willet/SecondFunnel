@@ -11,30 +11,12 @@ class IRSerializer(RawSerializer):
     MEMCACHE_TIMEOUT = 0  # use db cache
 
 
-class FeedSerializer(RawSerializer):
-    """Turns tiles in a feed (usually, feed.tiles.all()) into a JSON object.
-
-    :attribute _current the current object in the queryset
-    """
-    def __init__(self, tiles=None):
-        if tiles:
-            self.tiles = tiles
-
-    def serialize(self, queryset=None, **options):
-        tiles = queryset
-        if not tiles and self.tiles:
-            tiles = self.tiles
-        if not tiles:
-            raise ValueError("A QuerySet object must be supplied")
-        return super(FeedSerializer, self).serialize(queryset=tiles, **options)
-
-    @property
-    def json(self, **options):
-        return self.serialize(**options)
-
+class FeedSerializer(IRSerializer):
     def get_dump_object(self, obj):
-        data = self._current
-        return data
+        return {
+            'id': str(obj.id),
+            'algorithm': obj.feed_algorithm,
+        }
 
 
 class StoreSerializer(IRSerializer):

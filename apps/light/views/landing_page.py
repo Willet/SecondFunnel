@@ -11,7 +11,8 @@ from django.views.decorators.cache import cache_page, cache_control
 from django.views.decorators.vary import vary_on_headers
 
 from apps.assets.models import Page, Store, Product, Tile
-from apps.light.utils import get_store_from_request
+from apps.intentrank.serializers import PageConfigSerializer
+from apps.light.utils import get_store_from_request, get_algorithm
 
 
 @cache_control(must_revalidate=True, max_age=(1 * 60))
@@ -119,6 +120,11 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
 
 
 def render_landing_page(request, page, render_context):
+    """
+    :returns {str|unicode}
+    """
+    store = page.store
+    tile = None  # TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO. TODO.
 
     tests = []
     if page.get('tests'):
@@ -126,20 +132,28 @@ def render_landing_page(request, page, render_context):
     if page.get('widable_templates'):
         page.widable_templates = json.dumps(page.get('widable_templates'))
 
+    algorithm = get_algorithm(request=request, page=page)
+
+    PAGES_INFO = PageConfigSerializer.to_json(request=request, page=page,
+        feed=page.feed, store=store, algorithm=algorithm, featured_tile=tile)
+
     # TODO: structure this
     #       and escape: simplejson.dumps(s1, cls=simplejson.encoder.JSONEncoderForHTML)
     attributes = {
+        "PAGES_INFO": PAGES_INFO,
         "session_id": request.session.session_key,
         "campaign": page or 'undefined',
+        "store": store,
         "columns": range(4),
         "preview": False,  # TODO: was this need to fix: not page.live,
+        "tile": tile,
         "open_tile_in_popup": "true" if page.get("open_tile_in_popup") else "false",
         "initial_results": [],  # JS now fetches its own initial results
         "backup_results": [],
-        "social_buttons": page.social_buttons or page.store.get('social-buttons', ''),
+        "social_buttons": page.social_buttons or store.get('social-buttons', ''),
         "conditional_social_buttons": page.get('conditional_social_buttons', {}),
+        "column_width": page.column_width or store.get('column-width', ''),
         "enable_tracking": page.enable_tracking,  # jsbool
-        # apparently {{ campaign.image_tile_wide|default:0.5 }} is too confusing for django
         "image_tile_wide": page.image_tile_wide,
         "pub_date": datetime.now().isoformat(),
         "legal_copy": page.legal_copy or '',
@@ -150,6 +164,7 @@ def render_landing_page(request, page, render_context):
         "tile_set": "",
         "url": page.get('url', ''),
         "url_params": json.dumps(page.get("url_params", {})),
+        "algorithm": algorithm,
         "environment": settings.ENVIRONMENT,
         "tests": tests
     }
