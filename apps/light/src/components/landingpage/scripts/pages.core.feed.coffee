@@ -144,6 +144,9 @@ class FeedView extends Marionette.CollectionView
             .scroll(globals.scrollHandler)
             .resize(globals.resizeHandler)
 
+        # serve orientation change event via vent
+        $(window).on 'rotate', globals.orientationChangeHandler
+
     detachListeners: ->
         # detach global listeners
         globals = App._globals
