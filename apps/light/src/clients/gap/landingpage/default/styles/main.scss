@@ -549,17 +549,18 @@ div.header {
     .previewContainer .buy .button {
         padding: 10px 30px;
         font-size: 15px;
+        margin-top: 5px;
     }
 
-    .previewContainer .gallery-dots .item {
-        width: 10px;
-        height: 10px;
-        background-color: transparent;
-        border: 2px solid white;
+    .previewContainer .buy .button:first-child {
+        margin-top: 0;
     }
 
-    .previewContainer .gallery-dots .item.selected {
-        background-color: white;
+    .previewContainer .gallery-dots {
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        right: 0;
     }
 }
 
