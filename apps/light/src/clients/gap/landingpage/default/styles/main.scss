@@ -366,6 +366,10 @@ div.header {
     overflow: hidden;
 }
 
+.previewContainer .cell.shop {
+    width: 120px;
+}
+
 .previewContainer .image-with-tagged-products .info {
     width: 315px;
 }
@@ -411,18 +415,10 @@ div.header {
     text-transform: uppercase;
 }
 
-.previewContainer .landscape .stl-title {
+.previewContainer .stl-title {
     color: #000d41;
     font-weight: bold;
     font-size: 14px;
-}
-
-.previewContainer .landscape .stl-look .stl-item {
-    width: 88px;
-}
-
-.previewContainer .stl-look .stl-item img {
-    width: 72px;
 }
 
 .previewContainer .main-image-container .gallery-swipe-left,
@@ -526,58 +522,20 @@ div.header {
         position: absolute;
     }
 
-    .previewContainer .content {
-        padding-top: 0;
-    }
-
-    .previewContainer .close {
-        left: 10px;
-        top: 72px;
-        right: inherit;
-    }
-
-    .previewContainer .info {
-        max-width: none;
-        width: auto;
-        background-color: #000d41;
-        color: white;
-    }
-
     .previewContainer .image-with-tagged-products .info {
         width: auto;
     }
 
+    .previewContainer .cell.shop {
+        width: auto;
+    }
+
     .previewContainer .info .title {
-        color: white;
-        white-space: nowrap;
-        text-align: center;
-    }
-
-    .previewContainer .price .sale {
-        color: white;
-        font-weight: normal;
-        background-color: #f44c43;
-    }
-
-    .previewContainer .price .sale .strike {
-        font-size: 14px;
-        text-align: center;
-        color: #CCC;
+        padding: 0 10px;
     }
 
     #nav-container .navbar-brand {
         margin-left: 0px;
-    }
-
-    .previewContainer .price {
-        position: absolute;
-        top: 72px;
-        right: 10px;
-        background-color: #555;
-        color: white;
-        z-index: 1;
-        border: 1px solid white;
-        font-size: 24px;
     }
 
     #hero-area .previewContainer .image-with-tagged-products {
@@ -591,17 +549,18 @@ div.header {
     .previewContainer .buy .button {
         padding: 10px 30px;
         font-size: 15px;
+        margin-top: 5px;
     }
 
-    .previewContainer .gallery-dots .item {
-        width: 10px;
-        height: 10px;
-        background-color: transparent;
-        border: 2px solid white;
+    .previewContainer .buy .button:first-child {
+        margin-top: 0;
     }
 
-    .previewContainer .gallery-dots .item.selected {
-        background-color: white;
+    .previewContainer .gallery-dots {
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        right: 0;
     }
 }
 

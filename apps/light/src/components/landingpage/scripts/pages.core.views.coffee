@@ -695,7 +695,6 @@ module.exports = (module, App) ->
             @content.show contentInstance
             previewLoadingScreen.hide()
             @listenTo App.vent, "rotate", (width) ->
-
                 # On change in orientation, we want to rerender our layout
                 # this is automatically unbound on close, so we don't have to clean
                 heightMultiplier = (if App.utils.portrait() then 1 else 2)
