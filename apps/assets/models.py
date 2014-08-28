@@ -172,7 +172,8 @@ class BaseModel(models.Model, SerializableMixin):
         if attr:
             return attr
         if hasattr(self, 'attributes'):
-            return self.attributes.get(key, default)
+            if key in self.attributes:
+                return self.attributes.get(key, default)
         return default
 
     def update(self, other=None, **kwargs):
@@ -803,7 +804,8 @@ class Page(BaseModel):
             pass
 
         if hasattr(self, 'theme_settings') and self.theme_settings:
-            return self.theme_settings.get(key, default)
+            if key in self.theme_settings:
+                return self.theme_settings.get(key, default)
         return default
 
     @classmethod

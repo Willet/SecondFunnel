@@ -134,7 +134,8 @@ def render_landing_page(request, page, render_context):
 
     algorithm = get_algorithm(request=request, page=page)
     PAGES_INFO = PageConfigSerializer.to_json(request=request, page=page,
-        feed=page.feed, store=store, algorithm=algorithm, featured_tile=tile)
+        feed=page.feed, store=store, algorithm=algorithm, featured_tile=tile,
+        other={'tile_set': ''})
 
     initial_results = []  # JS now fetches its own initial results
 
@@ -164,7 +165,6 @@ def render_landing_page(request, page, render_context):
         "store": store,
         "tests": tests,
         "tile": tile,
-        "tile_set": "",
         "url": page.get('url', ''),
         "url_params": json.dumps(page.get("url_params", {})),
     }

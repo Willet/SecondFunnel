@@ -1,3 +1,4 @@
+import ast
 from datetime import datetime
 import json
 from django.conf import settings
@@ -36,10 +37,10 @@ class PageSerializer(IRSerializer):
     def get_dump_object(self, obj):
         # string representation of [{id: 123, name: 'gap'}, ...]
         # normalize categories list/str into a list
-        categories = getattr(obj, 'categories', '[]')
+        categories = obj.get('categories', '[]')
         if isinstance(categories, basestring):
             #noinspection PyTypeChecker
-            categories = json.loads(categories)
+            categories = ast.literal_eval(categories)
 
         data = {
             'id': getattr(obj, 'intentrank_id', obj.id),
@@ -60,9 +61,9 @@ class PageSerializer(IRSerializer):
 
             # optional (defaults to 240 or 255 pixels)
             # TODO: undefined
-            'columnWidth': getattr(obj, 'column_width',
+            'columnWidth': obj.get('column_width',
                                    obj.store.get('column-width', None)),
-            'maxColumnCount': getattr(obj, 'column_count', 4),
+            'maxColumnCount': obj.get('column_count', 4),
         }
 
         return data
@@ -114,9 +115,9 @@ class PageConfigSerializer(object):
             data = {}
 
         # normalize: socialButtons
-        social_buttons = getattr(page, 'social_buttons',
-            page.store.get('social-buttons',
-            ["facebook", "twitter", "pinterest", "tumblr"]))
+        social_buttons = page.get('social_buttons', page.store.get('social-buttons'))\
+            or ["facebook", "twitter", "pinterest", "tumblr"]
+
         if isinstance(social_buttons, basestring):
             #noinspection PyTypeChecker
             social_buttons = json.loads(social_buttons)
@@ -140,24 +141,24 @@ class PageConfigSerializer(object):
 
         data.update({
             # DEPRECATED (use page:id)
-            'campaign': getattr(page, 'intentrank_id', page.id),
+            'campaign': page.get('intentrank_id') or page.id,
             # DEPRECATED (use page:columnWidth)
-            'columnWidth': getattr(page, 'column_width',
-                                   page.store.get('column-width', None)),  # TODO: undefined
+            'columnWidth': page.get('column_width',
+                page.store.get('column-width', None)),  # TODO: undefined
             # DEPRECATED (use page:maxColumnCount)
-            'maxColumnCount': getattr(page, 'column_count', 4),
+            'maxColumnCount': page.get('column_count') or 4,
 
-            'overlayButtonColor': getattr(page, 'overlay_button_color', ''),
-            'overlayMobileButtonColor': getattr(page, 'overlay_mobile_button_color', ""),
-            'disableBannerRedirectOnMobile': getattr(page, 'disable_banner_redirect_on_mobile', False),
-            'mobileTabletView': getattr(page, 'mobile_table_view', False),
-            'widableTemplates': getattr(page, 'widable_templates', None),  # TODO: undefined
+            'overlayButtonColor': page.get('overlay_button_color') or '',
+            'overlayMobileButtonColor': page.get('overlay_mobile_button_color') or '',
+            'disableBannerRedirectOnMobile': page.get('disable_banner_redirect_on_mobile') or False,
+            'mobileTabletView': page.get('mobile_table_view') or False,
+            'widableTemplates': page.get('widable_templates', None),  # TODO: undefined
             'socialButtons': social_buttons,
 
-            'conditionalSocialButtons': page.get('conditional_social_buttons', {}),
+            'conditionalSocialButtons': page.get('conditional_social_buttons') or {},
             'openTileInPopup': True if page.get("open_tile_in_popup") else False,
-            'tilePopupUrl': page.get('tile_popup_url', ''),
-            'urlParams': page.get("url_params", {}),
+            'tilePopupUrl': page.get('tile_popup_url') or '',
+            'urlParams': page.get("url_params") or {},
 
             # a string or boolean indicating if there should be a home button /
             # what the home button should be
@@ -167,17 +168,17 @@ class PageConfigSerializer(object):
             # optional; default: true
             'enableTracking': enable_tracking,
             # optional. controls how often tiles are wide.
-            'imageTileWide': getattr(page, 'image_tile_wide', 0.0),
+            'imageTileWide': page.get('image_tile_wide') or 0.0,
             # minimum width a Cloudinary image can have  TODO: magic number
-            'minImageWidth': getattr(page, 'minImageWidth', 450),
+            'minImageWidth': page.get('minImageWidth') or 450,
             # minimum height a Cloudinary image can have  TODO: magic number
-            'minImageHeight': getattr(page, 'minImageHeight', 100),
+            'minImageHeight': page.get('minImageHeight') or 100,
             'masonry': {  # passed to masonry
                 'transitionDuration': '0.4s',
                 # minimum number of columns on desktop for masonry
-                'minDesktopColumns': getattr(page, 'minDesktopColumns', 2),
+                'minDesktopColumns': page.get('minDesktopColumns') or 2,
                 # minimum number of columns to show on mobile for masonry
-                'minMobileColumns': getattr(page, 'minMobileColumns', 2),
+                'minMobileColumns': page.get('minMobileColumns') or 2,
             },
 
             # default: undefined
@@ -186,7 +187,7 @@ class PageConfigSerializer(object):
             # DEPRECATED (use intentRank:results)
             'IRResultsCount': 10,
             # DEPRECATED (use intentRank:url)
-            'IRSource': getattr(page, 'ir_base_url', '/intentrank'),
+            'IRSource': page.get('ir_base_url') or '/intentrank',
             # DEPRECATED (use intentRank:results)
             'IRAlgo': algorithm,
             # DEPRECATED (use intentRank:tileSet)
@@ -197,8 +198,8 @@ class PageConfigSerializer(object):
             'IROffset': 0,
 
             # DEPRECATED (use page:gaAccountNumber)
-            'gaAccountNumber': page.get('ga_account_number',
-                                        settings.GOOGLE_ANALYTICS_PROPERTY),
+            'gaAccountNumber': page.get('ga_account_number') or
+                               settings.GOOGLE_ANALYTICS_PROPERTY,
 
             'keen': {
                 'projectId': settings.KEEN_CONFIG['projectId'],
@@ -214,10 +215,10 @@ class PageConfigSerializer(object):
 
         # fill keys not available to parent serializer
         data['intentRank'].update({
-            'url': getattr(page, 'ir_base_url', '/intentrank'),  # optional
+            'url': page.get('ir_base_url') or '/intentrank',
             'algorithm': algorithm,  # optional
             # "content", "products", or anything else for both content and product
-            'tileSet': page.get('tile_set', ''),
+            'tileSet': kwargs.get('tile_set', ''),
         })
 
         if page.get('tests'):

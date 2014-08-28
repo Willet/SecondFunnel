@@ -30,7 +30,8 @@ def ad_banner(request, page_id):
 
     algorithm = get_algorithm(request=request, page=page)
     PAGES_INFO = PageConfigSerializer.to_json(request=request, page=page,
-        feed=page.feed, store=store, algorithm=algorithm, featured_tile=tile)
+        feed=page.feed, store=store, algorithm=algorithm, featured_tile=tile,
+        other={'tile_set': 'content'})
 
     ir = IntentRank(page=page)
     initial_results = ir.get_results(request=request, content_only=True, results=20)
@@ -59,7 +60,6 @@ def ad_banner(request, page_id):
         "store": store,
         "tests": tests,
         "tile": tile,
-        "tile_set": "content",
         "url": page.get('url', ''),
         "url_params": json.dumps(page.get("url_params", {})),
     }
