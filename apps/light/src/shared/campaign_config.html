@@ -1,6 +1,11 @@
 {% load jsonify %}
 
-<script type="text/javascript">
+<script>
+    // LOL v1
+    var PAGES_INFO = {{ PAGES_INFO|jsonify }};
+</script>
+
+<!-- script type="text/javascript">
     window.PAGES_INFO = {
           'debug': ('{{ debug|default:0 }}' === 'True')  // django built-in
         , 'itemSelector': '.tile'
@@ -93,4 +98,4 @@
         , 'urlParams': {{ url_params|default:"{}"|safe }}
     };
 
-</script>
+</script -->
