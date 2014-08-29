@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+import random
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -153,6 +154,19 @@ def render_landing_page(request, page, render_context):
         "environment": settings.ENVIRONMENT,
         "tests": tests
     }
+
+    # How many developers does it take to screw in a lightbulb at 5:30pm on a Friday?
+    if page.url_slug.lower() == 'dressnormal':
+        hero_id = random.randint(1, 6)
+        attributes.update({
+            "mobile_hero_image": 'https://s3.amazonaws.com/'
+                                 'elasticbeanstalk-us-east-1-056265713214/'
+                                 'images/{0}mobilehero.png'.format(hero_id),
+            "desktop_hero_image": 'https://s3.amazonaws.com/'
+                                  'elasticbeanstalk-us-east-1-056265713214/'
+                                  'images/{0}desktophero.png'.format(hero_id),
+        })
+
     attributes.update(render_context)
 
     # make all None undefined

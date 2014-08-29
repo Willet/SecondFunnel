@@ -113,9 +113,14 @@ class IntentRank(object):
         if not feed.tiles.count():  # short circuit: return empty resultset
             return qs_for([])
 
-        if category_name:
+        try:
             category = Category.objects.get(name=category_name)
             products = category.products.all()
+        except Category.DoesNotExist:
+            category = None
+            products = []
+
+        if category_name and category:
             allowed_set = []
             for product in products:
                 allowed_set += [t.id for t in product.tiles.all()]
