@@ -609,12 +609,22 @@
 
         <!-- custom templates -->
         <script type="text/template" id="hero_template">
+            <% var heroId = 1 + Math.floor(Math.random() * 5); %>
+            <% var isDressNormal = (App.option('page:slug') === 'dressnormal'); %>
             <div class="hero-image-wrapper">
                 <div class="visible-xs jumbotron">
-                    <img src="{{ mobile_hero_image }}" alt="Hero" />
+                    <% if (isDressNormal) { %>
+                        <img src="https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/<%= heroId %>mobilehero.png" alt="Hero" />
+                    <% } else { %>
+                        <img src="{{ mobile_hero_image }}" alt="Hero" />
+                    <% } %>
                 </div>
                 <div class="visible-sm visible-lg visible-md jumbotron">
-                    <img src="{{ desktop_hero_image }}" alt="Hero" />
+                    <% if (isDressNormal) { %>
+                        <img src="https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/<%= heroId %>desktophero.png" alt="Hero" />
+                    <% } else { %>
+                        <img src="{{ desktop_hero_image }}" alt="Hero" />
+                    <% } %>
                 </div>
                 <div class="overlay <%- App.option('overlayButtonColor') %> <% if ( App.option('overlayMobileButtonColor')) { %>mobile-<%- App.option('overlayMobileButtonColor') %><% } %>">
                     <span class='find'>
