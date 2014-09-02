@@ -63,7 +63,7 @@ class FeedView extends Marionette.CollectionView
         App.discovery = @
         @
 
-    fetchTiles: (options, tile) ->
+    fetchTiles: ->
         if @isLoading
             return (new $.Deferred()).promise()
         xhr = @collection.fetch()
@@ -74,6 +74,8 @@ class FeedView extends Marionette.CollectionView
                 @ended = true
                 $(".loading").hide() # DEFER: hack
                 App.vent.trigger('feedEnded', @)
+
+            @pageScroll()  # not sure if
         @lastRequest = xhr
         xhr
 
