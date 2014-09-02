@@ -554,7 +554,7 @@ module.exports = (module, App) ->
         url: ->
             url = undefined
             category = App.intentRank.options.category
-            url = "#{@config.apiUrl#}/page/#{@config.campaign}/getresults?results=#{@config.results}"
+            url = "#{@config.apiUrl}/page/#{@config.campaign}/getresults?results=#{@config.results}"
             if category
                 return url + "&category=" + encodeURIComponent(category)
             url
