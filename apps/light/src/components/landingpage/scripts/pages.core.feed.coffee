@@ -75,7 +75,7 @@ class FeedView extends Marionette.CollectionView
                 $(".loading").hide() # DEFER: hack
                 App.vent.trigger('feedEnded', @)
 
-            @pageScroll()  # not sure if
+            setTimeout (=> @pageScroll()), 500
         @lastRequest = xhr
         xhr
 
