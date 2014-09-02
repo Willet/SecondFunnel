@@ -26,6 +26,8 @@ class FeedView extends Marionette.CollectionView
 
         @attachListeners()
 
+        _.bindAll(@, 'pageScroll')
+
         # DEFER: this has nothing to do with this view...
         #        especially cause IntentRank then calls this thing back
         initialResults = options.initialResults
@@ -75,7 +77,7 @@ class FeedView extends Marionette.CollectionView
                 $(".loading").hide() # DEFER: hack
                 App.vent.trigger('feedEnded', @)
 
-            setTimeout (=> @pageScroll()), 500
+            _.delay @pageScroll, 500
         @lastRequest = xhr
         xhr
 
