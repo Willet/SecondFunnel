@@ -12,6 +12,7 @@ browserifyConfig = require("./package.json")
 watchify = require('watchify')
 _ = require('underscore')
 runSequence = require('run-sequence')
+minimatch = require('minimatch')
 
 # versioning stuff, it is harder than one would think
 rev = require('gulp-rev')
@@ -133,6 +134,10 @@ gulp.task "styles", ->
 
 
 gulp.task "scripts", ["bower"], ->
+
+    #files = minimatch(sources.browserify)
+    #$.util.log(files)
+
     bundlerTransform = (file, encoding, callback) ->
         self = this
         filename = path.resolve(file.path)
@@ -149,18 +154,21 @@ gulp.task "scripts", ["bower"], ->
             entries: filename
             extensions: [".coffee"] # extensions you do not need to put on a require
         )
+        unless config.production
+            # use watchify for faster builds in development
+            bundler = watchify(bundler)
+
+        bundler.plugin(
+            'minifyify',
+            # where the map file is served from
+            map: "/#{static_serve_dir}/#{filenameRelative}.map"
+            # where the map file is saved to
+            output: "#{static_output_dir}/#{filenameRelative}.map"
+            # conversions to make map paths relative (currently breaks browserify-shim)
+            #compressPath: (filepath) ->
+            #    return path.relative(__dirname, filepath)
+        )
         rebundle = (bundler) ->
-            bundler.plugin(
-                'minifyify',
-                # where the map file is served from
-                map: "/#{static_serve_dir}/#{filenameRelative}.map"
-                # where the map file is saved to
-                output: "#{static_output_dir}/#{filenameRelative}.map"
-                minify: config.production
-                # conversions to make map paths relative (currently breaks browserify-shim)
-                #compressPath: (filepath) ->
-                #    return path.relative(__dirname, filepath)
-            )
             return bundler.bundle()
                 .on('error', $.util.log.bind($.util, 'Browserify Error'))
                 .pipe source(file)
@@ -169,9 +177,8 @@ gulp.task "scripts", ["bower"], ->
                 .on 'end', callback
                 .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("scripts"))
 
-        if not config.production
+        unless config.production
             # use watchify for faster builds in development
-            bundler = watchify bundler
             bundler.on 'update', ->
                 $.util.log($.util.colors.cyan("scripts: (rebuilding)"), filenameRelative)
                 rebundle bundler
