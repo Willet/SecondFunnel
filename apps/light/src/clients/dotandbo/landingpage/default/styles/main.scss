@@ -2,26 +2,26 @@
 @import "src/components/landingpage/styles/base.scss";
 
 body {
-	font-family: Georgia,"Times New Roman",Times,serif;
-	text-rendering: optimizelegibility;
+    font-family: Georgia,"Times New Roman",Times,serif;
+    text-rendering: optimizelegibility;
 }
 
 .navbar {
-	max-width: 1024px;
-	margin: auto;
+    max-width: 1024px;
+    margin: auto;
 }
 
 .previewContainer .cell.info {
-	text-align: left;
+    text-align: left;
 }
 
 .previewContainer .info .title {
-	font-size: 32px;
+    font-size: 32px;
 }
 
 .previewContainer .info .price {
-	font-weight: bold;
-	font-size: 26px;
+    font-weight: bold;
+    font-size: 26px;
 }
 
 .previewContainer .buy .button {
@@ -32,7 +32,7 @@ body {
 }
 
 @media screen and (max-width: 768px) {
-	.previewContainer .cell.info {
-		padding: 0 10px;
-	}
+    .previewContainer .cell.info {
+        padding: 0 10px;
+    }
 }
