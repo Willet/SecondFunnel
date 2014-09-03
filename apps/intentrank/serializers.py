@@ -152,7 +152,7 @@ class PageConfigSerializer(object):
             'overlayMobileButtonColor': page.get('overlay_mobile_button_color') or '',
             'disableBannerRedirectOnMobile': page.get('disable_banner_redirect_on_mobile') or False,
             'mobileTabletView': page.get('mobile_table_view') or False,
-            'widableTemplates': page.get('widable_templates', None),  # TODO: undefined
+            'widableTemplates': json.loads(page.get('widable_templates', 'null')),
             'socialButtons': social_buttons,
 
             'conditionalSocialButtons': page.get('conditional_social_buttons') or {},

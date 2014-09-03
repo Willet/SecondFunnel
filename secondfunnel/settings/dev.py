@@ -29,6 +29,8 @@ DEFAULT_FILE_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 COMPRESS_STORAGE = STATICFILES_STORAGE
 
+# Uncomment this line if you want to not log sql
+#DEVSERVER_MODULES = ()
 
 CACHES = {
     'default': {
