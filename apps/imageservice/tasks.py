@@ -151,7 +151,7 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
         # overwrite must be True to retrieve 'colors'
         trimmed_image = upload_to_cloudinary(source, path=path, effect='trim')
         trimmed_ratio = float(trimmed_image['width']) / trimmed_image['height']
-        if trimmed_ratio < 0.5:  # if height is more than twice the width
+        if trimmed_ratio < 0.6:  # if height is more than twice the width
             normal_image = upload_to_cloudinary(source, path=path)
             normal_ratio = float(normal_image['width']) / normal_image['height']
 
