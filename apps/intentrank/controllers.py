@@ -114,9 +114,13 @@ class IntentRank(object):
             return qs_for([])
 
         try:
-            category = Category.objects.get(name=category_name)
+            if self._page:
+                category = Category.objects.filter(store=self._page.store,
+                                                   name=category_name)[0]
+            else:
+                category = Category.objects.filter(name=category_name)[0]
             products = category.products.all()
-        except Category.DoesNotExist:
+        except (IndexError, Category.DoesNotExist):
             category = None
             products = []
 
