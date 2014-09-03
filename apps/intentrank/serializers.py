@@ -57,7 +57,7 @@ class PageSerializer(IRSerializer):
             'layout': obj.get('layout', 'hero'),
 
             'categories': categories,
-            'description': obj.description,
+            'description': obj.description or '',
 
             # optional (defaults to 240 or 255 pixels)
             # TODO: undefined
