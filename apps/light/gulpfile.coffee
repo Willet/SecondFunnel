@@ -1,5 +1,6 @@
 gulp = require("gulp")
 path = require("path")
+Q = require('q')
 merge = require('merge-stream')
 $ = require("gulp-load-plugins")() # load all gulp plugins
 mainBowerFiles = require("main-bower-files")
@@ -12,7 +13,10 @@ browserifyConfig = require("./package.json")
 watchify = require('watchify')
 _ = require('underscore')
 runSequence = require('run-sequence')
-minimatch = require('minimatch')
+glob = require('glob')
+File = require('vinyl')
+factor_bundle = require('factor-bundle')
+
 
 # versioning stuff, it is harder than one would think
 rev = require('gulp-rev')
@@ -51,9 +55,7 @@ sources =
         "src/clients/**/landingpage/*/index.html"
         "src/clients/**/ad/*/index.html"
     ]
-    browserify: [
-        "src/clients/**/main.js"
-    ]
+    browserify: "src/clients/**/main.js" # currently does not support multiple
     vendor: [ # all these are taken as is
         "src/clients/**/media_player/{launchhypemcanvas3.js,player.html}"
     ]
@@ -133,16 +135,20 @@ gulp.task "styles", ->
         .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("styles"))
 
 
-gulp.task "scripts", ["bower"], ->
+gulp.task "scripts", ["bower"], () ->
+    files = []
+    grabFiles = (file, encoding, callback) ->
+        $.util.log(file)
+        files.push(file)
+        callback()
 
-    #files = minimatch(sources.browserify)
-    #$.util.log(files)
+    defer = Q.defer()
 
-    bundlerTransform = (file, encoding, callback) ->
-        self = this
-        filename = path.resolve(file.path)
-        filenameRelative = path.relative(file.base, file.path)
-
+    finished = 0
+    browserThis = () ->
+        filenames = _.map files, (file) -> file.path
+        relfiles = _.map files, (file) -> path.relative(file.base, file.path)
+        entry_files = _.map files, (file) -> path.resolve(file.base, file.path)
         bundler = browserify(
             cache: {}
             packageCache: {}
@@ -151,31 +157,70 @@ gulp.task "scripts", ["bower"], ->
             commondir: false
             insertGlobals: false
             debug: true # we always want those source maps
-            entries: filename
+            entries: files
             extensions: [".coffee"] # extensions you do not need to put on a require
         )
         unless config.production
             # use watchify for faster builds in development
             bundler = watchify(bundler)
 
-        bundler.plugin(
-            'minifyify',
-            # where the map file is served from
-            map: "/#{static_serve_dir}/#{filenameRelative}.map"
-            # where the map file is saved to
-            output: "#{static_output_dir}/#{filenameRelative}.map"
-            # conversions to make map paths relative (currently breaks browserify-shim)
-            #compressPath: (filepath) ->
-            #    return path.relative(__dirname, filepath)
-        )
+        #bundler.plugin(
+        #   'minifyify',
+        #   # where the map file is served from
+        #   map: "/#{static_serve_dir}/minifyify.map"
+        #   # where the map file is saved to
+        #   output: "#{static_output_dir}/minifyify.map"
+        #   # conversions to make map paths relative (currently breaks browserify-shim)
+        #   #compressPath: (filepath) ->
+        #   #    return path.relative(__dirname, filepath)
+        #)
+        #
+#       factr = factor_bundle(bundler,
+#           entries: entry_files
+#           o: relfiles
+#       )
+#       bundler.plugin(factr)
+#       factr.on 'stream', (stream) ->
+#           $.util.log stream.file
+#           $.util.log stream.file.contents
+#           finished += 1
+#           if finished == files.length
+#               defer.resolve()
+
+        #bundler.plugin(
+        #    'factor-bundle',
+        #    entries: entry_files
+        #    o: _.map(relfiles, (fn) -> path.resolve(static_output_dir, fn))
+        #    objectMode: true
+        #    basedir: __dirname
+        #    threshold: -> false
+        #)
+
+
+        entryPer = (bundler, options) ->
+            amount = 0
+            # lets add me to the start, cause I want to be before bpack
+            bundler.pipeline.get('pack').unshift through.obj (jsonMapping, enc, cb) ->
+                if jsonMapping.entry
+                    console.log jsonMapping
+                cb()
+
+        bundler.plugin entryPer
+
+        $.util.log "ENTRY FILES:", entry_files
+        $.util.log "OUTPUT FILES:", _.map(relfiles, (fn) -> path.resolve(static_output_dir, fn))
+
+        $.util.log("REBUNDLING OCURRING.")
         rebundle = (bundler) ->
-            return bundler.bundle()
-                .on('error', $.util.log.bind($.util, 'Browserify Error'))
-                .pipe source(file)
+            bundler.bundle()
+                .on 'error', $.util.log.bind($.util, 'Browserify Error')
+                .pipe through.obj( (file) -> $.util.log(file) )
+                .pipe source("common.js")
                 .pipe gulp.dest(static_output_dir) # output normal
-                .pipe BrowserSync.reload(stream: true, once: true)
-                .on 'end', callback
-                .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("scripts"))
+                #.pipe BrowserSync.reload(stream: true, once: true)
+                #.pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("scripts"))
+                .on 'end', -> _.delay((-> defer.resolve()), 10 * 1000)
+                #.pipe $.util.noop() # so the on end is ran
 
         unless config.production
             # use watchify for faster builds in development
@@ -183,10 +228,14 @@ gulp.task "scripts", ["bower"], ->
                 $.util.log($.util.colors.cyan("scripts: (rebuilding)"), filenameRelative)
                 rebundle bundler
 
-        return rebundle(bundler)
+        rebundle(bundler)
 
-    return gulp.src(sources.browserify)
-        .pipe through.obj(bundlerTransform) # NOTE: cannot pipe anything else
+    gulp.src sources.browserify
+        .pipe through.obj(grabFiles)
+        .on 'end', browserThis
+        .pipe $.util.noop() # so the on end works
+
+    return defer.promise
 
 
 gulp.task "images", ->
