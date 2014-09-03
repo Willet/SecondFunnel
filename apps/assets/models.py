@@ -172,7 +172,8 @@ class BaseModel(models.Model, SerializableMixin):
         if attr:
             return attr
         if hasattr(self, 'attributes'):
-            return self.attributes.get(key, default)
+            if key in self.attributes:
+                return self.attributes.get(key, default)
         return default
 
     def update(self, other=None, **kwargs):
@@ -243,6 +244,7 @@ class Store(BaseModel):
         help_text="e.g. http://explore.nativeshoes.com, used for store detection",
         blank=True, null=True)
 
+    serializer = ir_serializers.StoreSerializer
     cg_serializer = cg_serializers.StoreSerializer
 
     @classmethod
@@ -579,6 +581,9 @@ class Feed(BaseModel):
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
+
+    serializer = ir_serializers.FeedSerializer
+
     def __unicode__(self):
         try:
             page_names = ', '.join(page.name for page in self.page.all())
@@ -587,11 +592,6 @@ class Feed(BaseModel):
             return u'Feed (#%s)' % self.id
         except:
             return u'(Unsaved Feed)'
-
-    # and other representation specific of the Feed itself
-    def to_json(self, skip_cache=False):
-        serializer = ir_serializers.FeedSerializer(self.tiles.all())
-        return serializer.serialize()
 
     def find_tiles(self, content=None, product=None):
         """:returns list of tiles with this product/content (if given)"""
@@ -769,6 +769,7 @@ class Page(BaseModel):
         ('shareText', 'description'),  # ordered for cg <- sf
     )
 
+    serializer = ir_serializers.PageSerializer
     cg_serializer = cg_serializers.PageSerializer
 
     def __init__(self, *args, **kwargs):
@@ -797,11 +798,14 @@ class Page(BaseModel):
 
         Also looks into the theme_settings JSONField if present.
         """
-        attr = getattr(self, key, None)
-        if attr:
-            return attr
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            pass
+
         if hasattr(self, 'theme_settings') and self.theme_settings:
-            return self.theme_settings.get(key, default)
+            if key in self.theme_settings:
+                return self.theme_settings.get(key, default)
         return default
 
     @classmethod

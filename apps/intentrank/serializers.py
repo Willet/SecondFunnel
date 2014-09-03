@@ -1,3 +1,8 @@
+import ast
+from datetime import datetime
+import json
+from django.conf import settings
+
 from apps.api.serializers import RawSerializer
 from apps.utils.functional import find_where
 
@@ -7,29 +12,220 @@ class IRSerializer(RawSerializer):
     MEMCACHE_TIMEOUT = 0  # use db cache
 
 
-class FeedSerializer(RawSerializer):
-    """Turns tiles in a feed (usually, feed.tiles.all()) into a JSON object.
-
-    :attribute _current the current object in the queryset
-    """
-    def __init__(self, tiles=None):
-        if tiles:
-            self.tiles = tiles
-
-    def serialize(self, queryset=None, **options):
-        tiles = queryset
-        if not tiles and self.tiles:
-            tiles = self.tiles
-        if not tiles:
-            raise ValueError("A QuerySet object must be supplied")
-        return super(FeedSerializer, self).serialize(queryset=tiles, **options)
-
-    @property
-    def json(self, **options):
-        return self.serialize(**options)
-
+class FeedSerializer(IRSerializer):
     def get_dump_object(self, obj):
-        data = self._current
+        return {
+            'id': str(obj.id),
+            'algorithm': obj.feed_algorithm,
+        }
+
+
+class StoreSerializer(IRSerializer):
+    """Generates the PAGES_INFO.store key."""
+    def get_dump_object(self, obj):
+        return {
+            'id': str(obj.id),
+            # required for store-specific themes
+            'slug': obj.slug or "store",
+            'name': obj.name or "Store",
+            'displayName': getattr(obj, 'display_name', ''),  # optional
+        }
+
+
+class PageSerializer(IRSerializer):
+    """Generates the PAGES_INFO.page key."""
+    def get_dump_object(self, obj):
+        # string representation of [{id: 123, name: 'gap'}, ...]
+        # normalize categories list/str into a list
+        categories = obj.get('categories', '[]')
+        if isinstance(categories, basestring):
+            #noinspection PyTypeChecker
+            categories = ast.literal_eval(categories)
+
+        data = {
+            'id': getattr(obj, 'intentrank_id', obj.id),
+            # for verifying the original upload date of a static campaign.
+            # for human use only
+            'pubDate': str(datetime.now().isoformat()),
+
+            'gaAccountNumber': getattr(obj, 'ga_account_number',
+                                       settings.GOOGLE_ANALYTICS_PROPERTY),
+
+            # provided by campaign manager
+            'name': obj.name or '',
+            'slug': obj.url_slug or '',
+            'layout': obj.get('layout', 'hero'),
+
+            'categories': categories,
+            'description': obj.description,
+
+            # optional (defaults to 240 or 255 pixels)
+            # TODO: undefined
+            'columnWidth': obj.get('column_width',
+                                   obj.store.get('column-width', None)),
+            'maxColumnCount': obj.get('column_count', 4),
+        }
+
+        return data
+
+
+class IntentRankSerializer(object):
+    """Generates the PAGES_INFO.intentRank key."""
+    def to_json(self):
+        return {
+            'results': 10,
+            'reqNum': 0,  # optional
+            'offset': 0,  # TODO: find a way to eliminate this variable
+        }
+
+
+class PageConfigSerializer(object):
+    """Generates PAGES_INFO.
+
+    This is not a subclass of Serializer as it accepts different objects
+    as input.
+    """
+    @staticmethod
+    def to_json(request, page, feed=None, store=None, algorithm=None,
+                featured_tile=None, other=None):
+        """
+        keys in other:
+        - tile_set ('product', 'content', '')
+        """
+
+        if not store:
+            store = page.store
+
+        if not feed:
+            feed = page.feed
+
+        if not algorithm:
+            algorithm = 'generic'
+
+        # custom variables (kwargs)
+        kwargs = {}
+        if not other:
+            other = {}
+        kwargs.update(other)
+
+        # output attributes automatically (if the js knows how to use them)
+        if hasattr(page, 'theme_settings'):
+            data = page.theme_settings
+        else:
+            data = {}
+
+        # normalize: socialButtons
+        social_buttons = page.get('social_buttons', page.store.get('social-buttons'))\
+            or ["facebook", "twitter", "pinterest", "tumblr"]
+
+        if isinstance(social_buttons, basestring):
+            #noinspection PyTypeChecker
+            social_buttons = json.loads(social_buttons)
+
+        # normalize: enableTracking
+        enable_tracking = page.get('enable_tracking', True)
+        if not isinstance(enable_tracking, bool):
+            enable_tracking = (enable_tracking == 'true')
+
+        data.update({
+            'debug': settings.DEBUG,
+            # no longer a setting (why would we change this?)
+            'itemSelector': '.tile',
+
+            'store': store.to_json(),
+            'page': page.to_json(),
+            'feed': feed.to_json(),
+            'intentRank': IntentRankSerializer().to_json(),
+
+        })
+
+        data.update({
+            # DEPRECATED (use page:id)
+            'campaign': page.get('intentrank_id') or page.id,
+            # DEPRECATED (use page:columnWidth)
+            'columnWidth': page.get('column_width',
+                page.store.get('column-width', None)),  # TODO: undefined
+            # DEPRECATED (use page:maxColumnCount)
+            'maxColumnCount': page.get('column_count') or 4,
+
+            'overlayButtonColor': page.get('overlay_button_color') or '',
+            'overlayMobileButtonColor': page.get('overlay_mobile_button_color') or '',
+            'disableBannerRedirectOnMobile': page.get('disable_banner_redirect_on_mobile') or False,
+            'mobileTabletView': page.get('mobile_table_view') or False,
+            'widableTemplates': json.loads(page.get('widable_templates', 'null')),
+            'socialButtons': social_buttons,
+
+            'conditionalSocialButtons': page.get('conditional_social_buttons') or {},
+            'openTileInPopup': True if page.get("open_tile_in_popup") else False,
+            'tilePopupUrl': page.get('tile_popup_url') or '',
+            'urlParams': page.get("url_params") or {},
+
+            # a string or boolean indicating if there should be a home button /
+            # what the home button should be
+            'categoryHome': True,
+            # optional, for social buttons (default: true)
+            'showCount': True,
+            # optional; default: true
+            'enableTracking': enable_tracking,
+            # optional. controls how often tiles are wide.
+            'imageTileWide': page.get('image_tile_wide') or 0.0,
+            # minimum width a Cloudinary image can have  TODO: magic number
+            'minImageWidth': page.get('minImageWidth') or 450,
+            # minimum height a Cloudinary image can have  TODO: magic number
+            'minImageHeight': page.get('minImageHeight') or 100,
+            'masonry': {  # passed to masonry
+                'transitionDuration': '0.4s',
+                # minimum number of columns on desktop for masonry
+                'minDesktopColumns': page.get('minDesktopColumns') or 2,
+                # minimum number of columns to show on mobile for masonry
+                'minMobileColumns': page.get('minMobileColumns') or 2,
+            },
+
+            # default: undefined
+            'featured': featured_tile,
+
+            # DEPRECATED (use intentRank:results)
+            'IRResultsCount': 10,
+            # DEPRECATED (use intentRank:url)
+            'IRSource': page.get('ir_base_url') or '/intentrank',
+            # DEPRECATED (use intentRank:results)
+            'IRAlgo': algorithm,
+            # DEPRECATED (use intentRank:tileSet)
+            'IRTileSet': kwargs.get('tile_set', ''),
+            # DEPRECATED (use intentRank:reqNum)
+            'IRReqNum': 0,
+            # DEPRECATED (use intentRank:offset)
+            'IROffset': 0,
+
+            # DEPRECATED (use page:gaAccountNumber)
+            'gaAccountNumber': page.get('ga_account_number') or
+                               settings.GOOGLE_ANALYTICS_PROPERTY,
+
+            'keen': {
+                'projectId': settings.KEEN_CONFIG['projectId'],
+                'writeKey': settings.KEEN_CONFIG['writeKey'],
+            },
+
+            # {[tileId: num,]}
+            'resultsThreshold': page.get('results_threshold', None),
+
+            # JS now fetches its own initial results
+            'initialResults': [],
+        })
+
+        # fill keys not available to parent serializer
+        data['intentRank'].update({
+            'url': page.get('ir_base_url') or '/intentrank',
+            'algorithm': algorithm,  # optional
+            # "content", "products", or anything else for both content and product
+            'tileSet': kwargs.get('tile_set', ''),
+        })
+
+        if page.get('tests'):
+            data.update({
+                'tests': page.get('tests'),
+            })
+
         return data
 
 

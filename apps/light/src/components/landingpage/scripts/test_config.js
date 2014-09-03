@@ -2,8 +2,6 @@
 window.PAGES_INFO = {
     'debug': 0,
     // 'base_url': 'http://www.secondfunnel.com',  // DEPRECATED
-    'discoveryTarget': '#discovery-area',
-    'itemSelector': '.tile',
     'store': {
         'id': '38',
         'name': 'gap',
@@ -16,20 +14,6 @@ window.PAGES_INFO = {
         'offline': false  // optional (if true, loads .content immediately)
     },
     'campaign': 97,
-    'categories': [
-        {  // you will still need to make elements with data-category='96' on the page.
-            'id': 96
-        },
-        {
-            'id': 97
-        },
-        {
-            'id': 98
-        },
-        {
-            'id': 99
-        }
-    ],
     'columnWidth': 255,
     'events': undefined,  // page event bindings (optional)
     'socialButtons': [
@@ -41,12 +25,6 @@ window.PAGES_INFO = {
     ], // optional
     //'shareSocialButtons': [], // optional; default: all
     'shareSources': {},  // optional: default: see sharing module
-    'socialButtonsEnableCondition': function (button) {
-        // required.
-        // this function must return true for a social button to show
-        // and return false for a social button not to show
-        return true;
-    },
     'showCount': true,  // optional, for social buttons (default: true)
     'enableTracking': true, // optional; default: true
     'eventMap': undefined,  // optional
