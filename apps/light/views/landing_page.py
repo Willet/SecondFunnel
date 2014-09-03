@@ -12,7 +12,8 @@ from django.views.decorators.cache import cache_page, cache_control
 from django.views.decorators.vary import vary_on_headers
 
 from apps.assets.models import Page, Store, Product, Tile
-from apps.light.utils import get_store_from_request
+from apps.intentrank.serializers import PageConfigSerializer
+from apps.light.utils import get_store_from_request, get_algorithm
 
 
 @cache_control(must_revalidate=True, max_age=(1 * 60))
@@ -112,14 +113,19 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
     render_context['ir_base_url'] = '/intentrank'
 
     if tile:
-        render_context['tile'] = tile.to_str()
+        render_context['tile'] = tile.to_json()
     else:
-        render_context['tile'] = 'undefined'
+        render_context['tile'] = None
 
     return HttpResponse(render_landing_page(request, page, render_context))
 
 
 def render_landing_page(request, page, render_context):
+    """
+    :returns {str|unicode}
+    """
+    store = page.store
+    tile = render_context.get('tile', None)
 
     tests = []
     if page.get('tests'):
@@ -127,32 +133,41 @@ def render_landing_page(request, page, render_context):
     if page.get('widable_templates'):
         page.widable_templates = json.dumps(page.get('widable_templates'))
 
+    algorithm = get_algorithm(request=request, page=page)
+    PAGES_INFO = PageConfigSerializer.to_json(request=request, page=page,
+        feed=page.feed, store=store, algorithm=algorithm, featured_tile=tile,
+        other={'tile_set': ''})
+
+    initial_results = []  # JS now fetches its own initial results
+
     # TODO: structure this
     #       and escape: simplejson.dumps(s1, cls=simplejson.encoder.JSONEncoderForHTML)
     attributes = {
-        "session_id": request.session.session_key,
+        "algorithm": algorithm,
         "campaign": page or 'undefined',
         "columns": range(4),
-        "preview": False,  # TODO: was this need to fix: not page.live,
-        "open_tile_in_popup": "true" if page.get("open_tile_in_popup") else "false",
-        "initial_results": [],  # JS now fetches its own initial results
-        "backup_results": [],
-        "social_buttons": page.social_buttons or page.store.get('social-buttons', ''),
+        "column_width": page.column_width or store.get('column-width', ''),
         "conditional_social_buttons": page.get('conditional_social_buttons', {}),
+        "desktop_hero_image": page.desktop_hero_image,
         "enable_tracking": page.enable_tracking,  # jsbool
-        # apparently {{ campaign.image_tile_wide|default:0.5 }} is too confusing for django
+        "environment": settings.ENVIRONMENT,
+        "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
         "image_tile_wide": page.image_tile_wide,
-        "pub_date": datetime.now().isoformat(),
+        "initial_results": initial_results,
+        "keen_io": settings.KEEN_CONFIG,
         "legal_copy": page.legal_copy or '',
         "mobile_hero_image": page.mobile_hero_image,
-        "desktop_hero_image": page.desktop_hero_image,
-        "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
-        "keen_io": settings.KEEN_CONFIG,
-        "tile_set": "",
+        "open_tile_in_popup": "true" if page.get("open_tile_in_popup") else "false",
+        "PAGES_INFO": PAGES_INFO,
+        "preview": False,  # TODO: was this need to fix: not page.live,
+        "pub_date": datetime.now().isoformat(),
+        "session_id": request.session.session_key,
+        "social_buttons": page.social_buttons or store.get('social-buttons', ''),
+        "store": store,
+        "tests": tests,
+        "tile": tile,
         "url": page.get('url', ''),
         "url_params": json.dumps(page.get("url_params", {})),
-        "environment": settings.ENVIRONMENT,
-        "tests": tests
     }
 
     attributes.update(render_context)

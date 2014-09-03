@@ -27,8 +27,8 @@ class Command(BaseCommand):
 
         for tile in tiles:
             key = 'p:%s c:%s' % (
-                ','.join(str(x['id']) for x in tile.products.all().order_by('id').values('id')),
-                ','.join(str(x['id']) for x in tile.content.all().order_by('id').values('id')),
+                ','.join(str(x['id']) for x in tile.products.order_by('id').values('id')),
+                ','.join(str(x['id']) for x in tile.content.order_by('id').values('id')),
             )
 
             if key in tiles_dict:

@@ -52,7 +52,7 @@ class DotAndBoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_css('sku', 'span.sku::text')
         l.add_css('name', '#wrapper section.product-block h1::text')
-        l.add_css('price', 'meta[property="og:price:amount"]::attr("content")')
+        l.add_css('price', '.item_msrp::text')
 
         # <span class="item_percentoff">43</span>
 
@@ -77,5 +77,11 @@ class DotAndBoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         attributes = {}
         attributes['categories'] = [(category_name, category_url)]
         l.add_value('attributes', attributes)
+
+        sale_price = '$' + sel.css('meta[property="og:price:amount"]::attr("content")').extract_first()
+        percent_off = sel.css(".item_percentoff::text").extract_first()
+        if l.load_item()['price'] != sale_price:
+            attributes['sale_price'] = sale_price
+            attributes['percent_off'] = percent_off
 
         yield l.load_item()

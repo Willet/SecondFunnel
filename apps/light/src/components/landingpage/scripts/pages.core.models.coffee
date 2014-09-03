@@ -152,8 +152,10 @@ module.exports = (module, App) ->
             displayName: ""
 
         initialize: (data) ->
+            unless data
+                throw new Error("Missing data")
             unless data.slug
-                throw Exception("Missing store slug")
+                throw new Error("Missing store slug")
             unless data.displayName
                 @set "displayName", @get("name")
             return
