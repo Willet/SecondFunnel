@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+import random
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -168,6 +169,7 @@ def render_landing_page(request, page, render_context):
         "url": page.get('url', ''),
         "url_params": json.dumps(page.get("url_params", {})),
     }
+
     attributes.update(render_context)
 
     # make all None undefined

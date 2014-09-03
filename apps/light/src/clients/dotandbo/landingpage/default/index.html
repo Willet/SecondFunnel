@@ -6,18 +6,17 @@
 <head>
     @@include('shared/campaign_opengraph_tags.html')
     @@include('shared/campaign_head.html')
-    <!-- End Optimizer Tests -->
     <link rel="shortcut icon"
-         href="http://canada.roots.com/on/demandware.static/Sites-RootsCA-Site/-/default/v1401786139656/images/favicon.ico" />
+         href="http://www.dotandbo.com/images/favicon-all.ico" />
     <link rel="stylesheet"
-          href="/static/light/roots/landingpage/default/styles/main.css"/>
+          href="/static/light/dotandbo/landingpage/default/styles/main.css"/>
     @@include('shared/campaign_respond.html')
     <!-- Add Optimizer Tests here -->
     <script type="text/javascript">
         window.TRACKING_PIXELS = {
             'A': {
-                'view': 'http://cm.gy/ns69',
-                'click': 'http://cm.gy/ir6p'
+                'view': 'http://9nl.cc/zoer',
+                'click': 'http://9nl.cc/xrd8'
             }
         };
         window.ACTIVE_TEST = 'A';
@@ -70,14 +69,13 @@
             }, 1000);
         </script>
     {% endif %}
-    <title>{{ page.name|default:"Roots" }}</title>
+    <title>{{ page.name|default:"Dot & Bo" }}</title>
 </head>
-<body>
+<body class="{% if tile %}stl{% endif %}">
     <div class='navbar'>
         <div class="container">
-            <div class="line"></div>
-            <a href="https://canada.roots.com/" target="_blank">
-                <img src="/static/light/roots/landingpage/default/images/logo.gif" />
+            <a href="http://www.dotandbo.com/" target="_blank">
+                <img class="logo" src="/static/light/dotandbo/landingpage/default/images/logo.png" />
             </a>
         </div>
     </div>
@@ -91,34 +89,15 @@
         </script>
 
         <script type="text/template" id="shopthelook_template">
-            <div class='featured product'>
-                <img class='img-responsive pull-left' src='<%= obj.defaultImage.url %>' />
-                <div class='pull-right'><%= obj.title || obj.name %></div>
-                    <div class='price'><%= obj.price %></div>
-                    <div>
-                        <a href='<%= obj.url %>' target='_blank'>BUY NOW</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class='spacer'></div>
+            <div class='content'></div>
         </script>
 
         <script type="text/template" id="product_tile_template">
-            <div class="tap-indicator-target"></div>
-            <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
-            <% if (App.option('debug', 0) > 1) { %>
-                <span class="type"><%= obj['content-type'] %></span>
-            <% } %>
-            <div class="name"><%= obj.title || obj.name %></div>
-            <div class="price">
-                <% if (obj.sale_price) { %>
-                    <div class="strike inline">
-                        <%- obj.price %>
-                    </div>
-                    <%- obj.sale_price %>
-                <% } else { %>
-                    <%- obj.price %>
+            <div class="tile-border">
+                <div class="tap-indicator-target"></div>
+                <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
+                <% if (App.option('debug', 0) > 1) { %>
+                    <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
             </div>
         </script>
@@ -133,6 +112,10 @@
             <% } %>
         </script>
 
+        <script type="text/template" id="video_tile_template">
+            <iframe src="<%- obj.url %>" width="100%" height="510" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+        </script>
+
         <script type="text/template" id="youtube_tile_template">
             <div class="img-responsive thumbnail"
                  style="background-image: url('<%= obj.thumbnail || obj.images[0].url %>');">
@@ -145,12 +128,7 @@
         <script type="text/template" id="preview_container_template">
             <div class="fullscreen">
                 <div class="content">
-                    <span class="close">Back to browsing</span>
-                    <span class="close small-close">X</span>
-                    <div class="roots-logo">
-                        <div class="line"></div>
-                        <img src="/static/light/roots/landingpage/default/images/logo.gif" />
-                    </div>
+                    <span class="close">X</span>
                     <div class="scrollable">
                         <div class="template target"></div>
                     </div>
@@ -169,15 +147,15 @@
             </ul>
         </script>
 
-        <script type="text/template" id="tap_indicator_template">
-            +
-            <div>
-                <%= App.option('tapIndicatorText', 'tap to see more') %>
-            </div>
-        </script>
-
         <script type="text/template" id="product_price_template">
-            <%- obj.price %>
+            <% if (obj.sale_price) { %>
+                <div class="strike inline">
+                    <%- obj.price %>
+                </div>
+                <%- obj.sale_price %>
+            <% } else { %>
+                <%- obj.price %>
+            <% } %>
         </script>
 
         <script type="text/template" id="product_title_template">
@@ -186,7 +164,7 @@
 
         <script type="text/template" id="product_buy_template">
             <a class='button' href='<%= obj.url %>' target='_blank'>
-                Shop Now
+                Shop on Dot & Bo
             </a>
         </script>
 
@@ -221,29 +199,30 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <div class="table">
+            <div class="table product">
                 <div class='content-wrapper row'>
+                    <div class='cell image-cell'>
+                        <div class='relative'>
+                            <div class="gallery-main-image"></div>
+                            <% if (obj.images.length > 1 && App.support.mobile()) { %>
+                                <div class='gallery-dots'></div>
+                            <% } %>
+                        </div>
+                    </div>
+                    <% if (!App.support.mobile()) { %>
+                        <div class='cell info'>
+                            <div class='title'></div>
+                            <div class='price'></div>
+                            <div class='description'></div>
+                            <div class='buy'></div>
+                            <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
+                        </div>
+                    <% } %>
                     <% if (App.support.mobile()) { %>
                         <div class='cell info'>
                             <div class='title'></div>
                             <div class='price'></div>
                             <div class='buy'></div>
-                        </div>
-                    <% } %>
-                    <div class='cell'>
-                        <div class="gallery-main-image"></div>
-                    </div>
-                    <% if (obj.images.length > 1 && App.support.mobile()) { %>
-                        <div class='cell'>
-                            <div class='gallery-dots'></div>
-                        </div>
-                    <% } %>
-                    <% if (!App.support.mobile()) { %>
-                        <div class='cell info'>
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <div class='buy'></div>
-                            <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
                         </div>
                     <% } %>
                 </div>
@@ -256,73 +235,73 @@
                 <div class="image-with-tagged-products">
                     <div class="table">
                         <div class="row">
-                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
-                                <div class="cell desktop-only shop">
-                                    <div class="stl-title">Shop the look</div>
-                                    <div class="stl-look">
-                                        <% var  related = obj['tagged-products'] %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <div class="name">
-                                                    <%- related[i].title || related[i].name %>
-                                                </div>
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            <% } %>
-                            <div class="cell desktop-only">
+                            <div class="cell desktop-only image-cell">
                                 <img src="<%= obj.images[0].url %>" alt="image" class="image"/>
                                     <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                                     <div class="landscape">
-                                        <div class="stl-title">Shop the look</div>
+                                        <div class="stl-title">
+                                            Shop the look
+                                        </div>
                                         <div class="stl-look">
-                                            <% var  related = obj['tagged-products'] %>
+                                            <% var related = obj['tagged-products']; %>
                                             <% for (var i = 0; i < related.length; i++) { %>
                                                 <div class="stl-item" data-index="<%- i %>">
                                                     <img src="<%- related[i].images[0].url %>" />
-                                                    <div class="name">
-                                                        <%- related[i].title || related[i].name %>
-                                                    </div>
+                                                    <%- related[i].name %>
                                                 </div>
                                             <% } %>
                                         </div>
                                     </div>
                                 <% } %>
                             </div>
-                            <div class="cell info">
-                                <div class='title'></div>
-                                <div class='price'></div>
-                                <% if (App.support.mobile()) { %>
-                                    <div class='buy'></div>
-                                <% } %>
-                                <div class="gallery-main-image"></div>
-                                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                                <% if (!App.support.mobile()) { %>
-                                    <div class='buy'></div>
-                                <% } %>
-                            </div>
-                            <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
-                                <div class="more-info">
-                                    Shop the rest of this look
-                                    <div class="down-arrow"></div>
-                                </div>
-                            <% } %>
                             <div class="cell mobile-only">
                                 <img src="<%= obj.images[0].url %>" alt="image"/>
                             </div>
+                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
+                                <div class="cell desktop-only shop">
+                                    <div class="stl-title">
+                                        Shop the look
+                                    </div>
+                                    <div class="stl-look">
+                                        <% var related = obj['tagged-products']; %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <%- related[i].name %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <div class="cell info">
+                                <% if (App.support.mobile()) { %>
+                                    <div class='title'></div>
+                                    <div class='price'></div>
+                                <% } %>
+                                <div class='relative'>
+                                    <div class="gallery-main-image"></div>
+                                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                    <% if (App.support.mobile()) { %>
+                                        <div class='buy'></div>
+                                    <% } %>
+                                </div>
+                                <% if (!App.support.mobile()) { %>
+                                    <div class='title'></div>
+                                    <div class='price'></div>
+                                    <div class='buy'></div>
+                                <% } %>
+                            </div>
                             <% if (obj['tagged-products'].length > 1) { %>
                                 <div class="cell mobile-only">
-                                    <div class="stl-title">The Look</div>
+                                    <div class="stl-title">
+                                        Shop the look
+                                    </div>
                                     <div class="stl-look">
                                         <% var related = obj['tagged-products'] %>
                                         <% for (var i = 0; i < related.length; i++) { %>
                                             <div class="stl-item" data-index="<%- i %>">
                                                 <img src="<%- related[i].images[0].url %>" />
-                                                <div class="name">
-                                                    <%- related[i].title || related[i].name %>
-                                                </div>
+                                                <%- related[i].name %>
                                             </div>
                                         <% } %>
                                     </div>
@@ -335,19 +314,17 @@
                 <div class="image-without-tagged-products">
                     <div class="table">
                         <div class="row">
-                            <div class="cell capped-width">
+                            <div class="cell">
                                 <img src="<%= obj.images[0].url %>" alt="image" class="main-image" />
                             </div>
-                            <div class="cell">
-                                <div class="info">
-                                    <div class="title">
-                                        Coming soon to Roots!
-                                    </div>
-                                    <div class="buy">
-                                        <a class='button' href='https://canada.roots.com/' target='_blank'>
-                                            Shop On Roots
-                                        </a>
-                                    </div>
+                            <div class="cell info">
+                                <div class="title">
+                                    Coming soon to Dot & Bo!
+                                </div>
+                                <div class="buy">
+                                    <a class='button' href='http://www.dotandbo.com/' target='_blank'>
+                                        Shop On Dot & Bo
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -356,64 +333,20 @@
             <% } %>
         </script>
 
-        <script type="text/template" id="facebook_social_button_template">
-            <div class='button facebook'>
-                <fb:like href="<%= url %>" width="25" layout="button"
-                         show_faces="false"></fb:like>
-            </div>
-        </script>
-
-        <script type="text/template" id="twitter_social_button_template">
-            <% var desc = caption || description || name; %>
-            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
-            <div class='button twitter'>
-                <a href="//twitter.com/share?url=<%= url %>&text=<%= cleanDesc %>"
-                   target="_blank">
-                    <img src="/static/light/nastygal/landingpage/default/images/twitter.png"/>
-                </a>
-            </div>
-        </script>
-
-        <script type="text/template" id="pinterest_social_button_template">
-            <% var desc = caption || description || name; %>
-            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
-            <div class='button pinterest'>
-                <a data-pin-do="none" href="//pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description=<%= cleanDesc %>"
-                   target="_blank"><img src="/static/light/nastygal/landingpage/default/images/pinterest.png"/></a>
-            </div>
-        </script>
-
-        <script type="text/template" id="tumblr_social_button_template">
-            <% var desc = caption || description || name; %>
-            <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
-            <div class="button tumblr">
-                <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= cleanDesc %>&click_thru=<%= url %>"
-                     target='_blank'><img src="/static/light/nastygal/landingpage/default/images/tumblr.png"/></a>
-            </div>
-        </script>
-
-
-        <!-- custom templates -->
         <script type="text/template" id="hero_template">
-            <div class="hero-image-wrapper">
-                <div class="visible-xs jumbotron">
-                    <img src="{{ mobile_hero_image }}" alt="Hero" />
-                </div>
-                <div class="visible-sm visible-md visible-lg jumbotron">
-                    <img src="{{ desktop_hero_image }}" alt="Hero" />
-                </div>
-            </div>
-            {% if legal_copy %}
-                <div class="legal us">
-                    {{ legal_copy }}
-                </div>
-            {% endif %}
         </script>
     </div>
 
     <div class="container">
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
         <div id="hero-area"></div>
+        <div id="hero-sub-banner">
+            {% if legal_copy %}
+                <div class="legal us">
+                    {{ legal_copy }}
+                </div>
+            {% endif %}
+        </div>
         <div id="category-area"></div>
         <div id="discovery-area" class="discovery-area"></div>
         <div class="tile-sizer tile"></div>
@@ -427,8 +360,9 @@
             </div>
         </noscript>
     </div>
+
     <img src="{% url 'apps.tracking.views.pixel' %}"/>
 
-    <script type="text/javascript" src="/static/light/roots/landingpage/default/scripts/main.js" async></script>
+    <script type="text/javascript" src="/static/light/dotandbo/landingpage/default/scripts/main.js" async></script>
 </body>
 </html>

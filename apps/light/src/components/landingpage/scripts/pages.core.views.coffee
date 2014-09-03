@@ -77,9 +77,6 @@ module.exports = (module, App) ->
             # If the tile model is changed, re-render the tile
             @listenTo @model, "changed", (=> @modelChanged)
 
-            # If the tile model is removed, remove the DOM element
-            @listenTo @model, "destroy", (=> @close)
-
             super(arguments)
 
         modelChanged: (model, value) ->
@@ -186,8 +183,7 @@ module.exports = (module, App) ->
             # the View/Model to free memory
             @$el.on "remove", (ev) =>
                 if ev.target is @el
-                    @model.destroy()
-                return
+                    @close()
 
             return
 
@@ -196,7 +192,6 @@ module.exports = (module, App) ->
             # If a tile fails to load, destroy the model
             # and subsequently this tile.
             console.warn "Missing template - this view is closing.", this
-            @model.destroy()
             @close()
             return
 
@@ -700,7 +695,6 @@ module.exports = (module, App) ->
             @content.show contentInstance
             previewLoadingScreen.hide()
             @listenTo App.vent, "rotate", (width) ->
-
                 # On change in orientation, we want to rerender our layout
                 # this is automatically unbound on close, so we don't have to clean
                 heightMultiplier = (if App.utils.portrait() then 1 else 2)

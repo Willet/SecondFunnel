@@ -26,11 +26,12 @@ class FeedView extends Marionette.CollectionView
 
         @attachListeners()
 
+        _.bindAll(@, 'pageScroll')
+
         # DEFER: this has nothing to do with this view...
         #        especially cause IntentRank then calls this thing back
         initialResults = options.initialResults
         if initialResults and initialResults.length > 0
-            @isLoading = true
             if $.isArray intitialResults
                 deferred = $.when .initialResults
             else
@@ -64,7 +65,7 @@ class FeedView extends Marionette.CollectionView
         App.discovery = @
         @
 
-    fetchTiles: (options, tile) ->
+    fetchTiles: ->
         if @isLoading
             return (new $.Deferred()).promise()
         xhr = @collection.fetch()
@@ -75,6 +76,8 @@ class FeedView extends Marionette.CollectionView
                 @ended = true
                 $(".loading").hide() # DEFER: hack
                 App.vent.trigger('feedEnded', @)
+
+            _.delay @pageScroll, 500
         @lastRequest = xhr
         xhr
 
@@ -143,6 +146,9 @@ class FeedView extends Marionette.CollectionView
         $(window)
             .scroll(globals.scrollHandler)
             .resize(globals.resizeHandler)
+
+        # serve orientation change event via vent
+        $(window).on 'rotate', globals.orientationChangeHandler
 
     detachListeners: ->
         # detach global listeners
