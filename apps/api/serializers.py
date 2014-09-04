@@ -40,7 +40,6 @@ class RawSerializer(JSONSerializer):
         # for when an object was done more than once per request
         skip_cache = options.pop('skip_cache', False)
         if skip_cache:
-            print "cache skipped"
             return self.serialize(queryset=queryset, **options)
 
         if len(queryset) == 1:

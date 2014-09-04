@@ -156,3 +156,24 @@ def int_or_0(thing):
         return int(thing)
     except ValueError:
         return 0
+
+
+def any_in(needle, strings):
+    for string in strings:
+        if needle in string:
+            return True
+    return False
+
+
+def any_is(what, iterable):
+    for i in iterable:
+        if i == what:
+            return True
+    return False
+
+
+def none_of(iterable, attribute, match):
+    for i in iterable:
+        if getattr(i, attribute) == match:
+            return False
+    return True

@@ -13,7 +13,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from apps.assets.models import Tile
-from apps.utils.functional import result, sort_helper, int_or_0, pluck
+from apps.utils.functional import result, sort_helper, int_or_0, pluck, none_of
 
 
 def randomize(tiles):
@@ -747,57 +747,16 @@ def ir_ordered_by(attribute='created_at', reversed_=False):
     return algo
 
 
-@filter_tiles
-def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                   offset=0, allowed_set=None, exclude_set=None,
-                   *args, **kwargs):
-    """Outputs tiles, based on tiles' products' discount, in offset slices."""
-
-    def sort_fn(tile):
-        """Turns a tile into a number"""
-
-        def parse_int(string):
-            if not string:
-                return 0
-            return int(''.join([x for x in string if x.isdigit()]))
-
-        products = list(tile.products.all())
-        for content in tile.content.all():
-            products.extend(list(content.tagged_products.all()))
-
-        discounts = [
-            parse_int(
-                product.attributes.get('discount', product.attributes.get('sale_price', 0))
-            ) for product in products
-        ]
-        if discounts:
-            max_sale = max(discounts)
-        else:
-            max_sale = 0  # no discount = no sale
-        return max_sale
-
-    tiles = sorted(tiles, key=sort_fn, reverse=True)
-
-    print "Returning discounted product tiles, " \
-          "emulating offset {0} ~ {1}".format(offset, offset + results)
-
-    # all edge cases return []
-    if exclude_set or allowed_set:
-        # if exclude set is supplied, then the top 10 results should
-        # already be the results you should show next
-        return tiles[:results]
-    else:
-        return tiles[offset:offset + results]
-
-
 @returns_qs
 def ir_magic(tiles, request, *args, **kwargs):
     """Motherfucking magic, motherfuckers"""
+    _tiles = tiles
     n = settings.INTENTRANK_DEFAULT_NUM_RESULTS  # want 'n tiles'
     SMALL_NONO, MEDIUM_NONO, BIG_NONO = 1, 100, 10000  # penalty factors
     MIN_SAME_TILE_DISTANCE = 7  # how far until a tile can repeat itself
     MIN_SAME_TYPE_DISTANCE = 1  # how far until a <type> tile can be shown again
     results = []
+    shown_tiles = []
 
     def score(tile):
         return getattr(tile, 'score', 0)
@@ -805,6 +764,18 @@ def ir_magic(tiles, request, *args, **kwargs):
     def prefetch(qs):
         return qs.select_related('products', 'content')\
                  .prefetch_related('products', 'content')
+
+    def reset_tile_pool(tile_template=None):
+        """tile_template="product" removes products from the shown pool."""
+        global shown_tile_ids, shown_tiles, tiles
+        if tile_template:
+            shown_tiles = [t for t in shown_tiles if t.template != tile_template]
+        else:
+            shown_tiles = []
+
+        shown_tile_ids = ids_of(shown_tiles)
+        request.session['shown'] = shown_tile_ids
+        tiles = prefetch(qs_for(tiles=_tiles).order_by('?'))
 
     def content_url(tile):
         """the content's url if the tile has content, empty string otherwise"""
@@ -825,11 +796,46 @@ def ir_magic(tiles, request, *args, **kwargs):
                            Q(content__url__icontains="youtube") |
                            Q(content__url__contains="/embed"))))
 
+    def pick(tiles):
+        """based on context outside this function, yield one tile,
+        from tiles (available tile pool), that should be next in results.
+
+        :returns None if no tiles match
+        """
+        if not tiles:
+            return
+
+        for tile in tiles:
+            # not results = this feed has no prioritized tiles
+            # not shown_tiles = this feed has no prioritized tiles
+            # hence no restrictions
+            tile_id = tile.id
+            if not shown_tiles:
+                print "queueing {}".format(tile_id)
+                yield tile
+                continue
+
+            # WARNING: 'results' changes outside function
+            cids = ids_of(shown_tiles) + ids_of(results)
+
+            # tile must be far from itself (1)
+            if tile_id in cids[-MIN_SAME_TILE_DISTANCE:]:
+                continue
+
+            # tile must not be next to one of the same type
+            templates = list(pluck(results, 'template', 'product'))
+            product_count = templates.count('product')
+            non_product_count = len(templates) - product_count
+            if results and tile.template == results[-1].template:
+                continue
+
+            print "auto-queueing {}".format(tile_id)
+            yield tile
+
     req_num = int_or_0(request.GET.get('reqNum', 0))
     shown_tile_ids = request.session.get('shown', [])
     if req_num == 0:
-        # reset condition
-        shown_tile_ids = []
+        reset_tile_pool()  # reset condition
 
     # prefetch things we need in this algorithm
     # (tiles are ordered by priority, random for equal priorities)
@@ -840,73 +846,34 @@ def ir_magic(tiles, request, *args, **kwargs):
     _, product_tiles, content_tiles, _, _ = split_qs(tiles)
     _, shown_product_tiles, shown_content_tiles, _, _ = split_qs(shown_tiles)
 
-    tile_types = list(pluck(tiles, 'template', 'product'))
-    shown_tile_types = list(pluck(shown_tiles, 'template', 'product'))
-
-    def calculate_score(tile):
-        """turn a tile into an int score, based on current context.
-
-        The input tile is guaranteed by the outer function to have 0 priority
-        and is not yet on the page.
-        """
-        tile_id = tile.id
-        score = 0
-
-        tile_content = content_url(tile) or ''
-
-        if tile_id in pluck(results[-MIN_SAME_TILE_DISTANCE:], 'id', 0):
-            score -= BIG_NONO
-
-        # promote tiles not of the same type as the one before
-        if not tile.template in pluck(results[-MIN_SAME_TYPE_DISTANCE:], 'template', 'product'):
-            score += 100
-
-        if (tile_content
-            and shown_tile_types
-            and 'gif' in tile_content
-            and pluck(results[-1], 'template', 'product') in ['video', 'youtube']):
-            score -= BIG_NONO
-
-        return score
-
-    def pick(tiles):
-        """based on context outside this function, yield one tile,
-        from tiles (available tile pool), that should be next in results.
-        """
-        if not tiles:
-            return
-
-        for tile in tiles:
-            # not results = this feed has no prioritized tiles
-            # not shown_tiles = this feed has no prioritized tiles
-            # hence no restrictions
-            if not (results and shown_tiles):
-                yield tile
-
-            previous_tile = results[-1]
-            yield tile
-
     # handle prioritized tiles:
     # - just add them in order
     for tile in tiles.filter(priority__gt=0).exclude(id__in=shown_tile_ids):
         if len(results) < n:
             results.append(tile)
-            print "result #{} is prioritized".format(len(results))
+            print "prioritizing {}".format(tile.id)
     if len(results) >= n:
         return results
 
     # shrink tile pool
     result_ids = list(pluck(results, 'id', 0))
-    tiles = tiles.exclude(id__in=shown_tile_ids + result_ids)
+    tiles = tiles.exclude(id__in=shown_tile_ids + result_ids).order_by('?')
     # handle tiles that were not added:
     # - tiles must obey product/content ratio (7)
     # - unless tile pool itself is too bad for it (8)
-    for tile in pick(tiles):
-        results.append(tile)
-        print "result #{} is not".format(len(results))
-
-        if len(results) >= n:
-            break
+    while len(results) < n:
+        for tile in pick(tiles):
+            results.append(tile)
+            if len(results) >= n:
+                break
+        else:  # could not find enough tiles to meet requirements
+            print "SHIT!"
+            if none_of(tiles, 'template', 'product'):
+                reset_tile_pool("product")
+            elif none_of(tiles, 'template', 'image'):
+                reset_tile_pool("image")
+            else:
+                reset_tile_pool()
 
     return results
 
