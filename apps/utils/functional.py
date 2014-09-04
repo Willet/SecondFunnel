@@ -143,7 +143,7 @@ def sort_helper(obj, attribute):
     return result(getattr(obj, attribute), arg=obj)
 
 
-def pluck(iterable, attribute, default):
+def pluck(iterable, attribute, default=None):
     """With defaults.
 
     :returns generator

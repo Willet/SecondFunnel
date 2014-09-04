@@ -22,30 +22,6 @@ def randomize(tiles):
         yield tile
 
 
-def randomize_with_locality(tiles, previous_tiles, min_seperation=3):
-    # NOTE: this does do uniform random, however
-    # it should do a good enough job
-
-    # previous tiles - a ordered set of tiles that were previous to this
-    save_for_later = []
-
-    # produce random sampling without replacement
-    for i, tile in enumerate(random.sample(tiles, len(tiles))):
-        # only the first min_seperation tiles have to worry
-        # about being to close, cause the remainder are not
-        # repeating tiles.
-        if i < min_seperation:
-            if tile not in previous_tiles[i - min_seperation:]:
-                yield tile
-            else
-                save_for_later.append(tile)
-        else
-            yield tile
-
-    for tile in random.sample(save_for_later, len(save_for_later))
-        yield tile
-
-
 def ids_of(tiles):  # shorthand (got too annoying)
     return [getattr(tile, 'id') for tile in tiles]
 
@@ -817,100 +793,122 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 @returns_qs
 def ir_magic(tiles, request, *args, **kwargs):
     """Motherfucking magic, motherfuckers"""
+    n = settings.INTENTRANK_DEFAULT_NUM_RESULTS  # want 'n tiles'
+    SMALL_NONO, MEDIUM_NONO, BIG_NONO = 1, 100, 10000  # penalty factors
+    MIN_SAME_TILE_DISTANCE = 7  # how far until a tile can repeat itself
+    MIN_SAME_TYPE_DISTANCE = 1  # how far until a <type> tile can be shown again
+    results = []
+
     def score(tile):
         return getattr(tile, 'score', 0)
 
+    def prefetch(qs):
+        return qs.select_related('products', 'content')\
+                 .prefetch_related('products', 'content')
+
+    def content_url(tile):
+        """the content's url if the tile has content, empty string otherwise"""
+        try:
+            return tile.content.all()[0].url
+        except IndexError:
+            return ''
+
     def split_qs(qs):
-        """:returns multiple related <QuerySet>s"""
-        return (qs, qs.filter(template='product'),
-            qs.exclude(template='product'),  # includes "banner"
-            qs.filter(content__url__icontains="gif"),
+        """:returns multiple related <QuerySet>s turned into <list>s."""
+        return (
+            list(qs),
+            list(qs.filter(template='product')),
+            list(qs.exclude(template='product')),  # includes "banner"
+            list(qs.filter(content__url__icontains="gif")),
             # youtube, instagram, or whatever else declares itself as video
-            qs.filter(Q(template="video") | Q(content__url__icontains="youtube") |
-                      Q(content__url__contains="/embed")))
+            list(qs.filter(Q(template="video") |
+                           Q(content__url__icontains="youtube") |
+                           Q(content__url__contains="/embed"))))
 
-    n = settings.INTENTRANK_DEFAULT_NUM_RESULTS  # want 'n tiles'
-    # a number that is at least as large as the maximum priority, and
-    # at least as large as the number of tiles in the feed
-    BIG_NONO = 10000
-    MEDIUM_NONO = 100
-    SMALL_NONO = 1
-    MIN_SAME_TILE_DISTANCE = 7  # how far until a tile can repeat itself
-    MIN_SAME_TYPE_DISTANCE = 1  # how far until a <type> tile can be shown again
-
-    # >>> a = b = c = []; c.append(1); a
-    # [1]
-    results, results_types, results_scores = [], [], []
+    req_num = int_or_0(request.GET.get('reqNum', 0))
     shown_tile_ids = request.session.get('shown', [])
+    if req_num == 0:
+        # reset condition
+        shown_tile_ids = []
 
-    # prefetch things we need in this algo
-    shown_tiles = (Tile.objects.filter(id__in=shown_tile_ids)
-        .select_related('products', 'content')
-        .prefetch_related('products', 'content'))
-    tiles = (qs_for(tiles=tiles)
-        .select_related('products', 'content')
-        .prefetch_related('products', 'content'))
+    # prefetch things we need in this algorithm
+    # (tiles are ordered by priority, random for equal priorities)
+    shown_tiles = prefetch(Tile.objects.filter(id__in=shown_tile_ids))
+    tiles = prefetch(qs_for(tiles=tiles).order_by('-priority', '?'))
 
-    _, product_tiles, content_tiles, gif_tiles, video_tiles = split_qs(tiles)
-    _, shown_product_tiles, shown_content_tiles, shown_gif_tiles, shown_video_tiles = split_qs(shown_tiles)
+    # TODO: make use of other lists
+    _, product_tiles, content_tiles, _, _ = split_qs(tiles)
+    _, shown_product_tiles, shown_content_tiles, _, _ = split_qs(shown_tiles)
 
     tile_types = list(pluck(tiles, 'template', 'product'))
     shown_tile_types = list(pluck(shown_tiles, 'template', 'product'))
 
-    req_num = int_or_0(request.GET.get('reqNum', 0))
+    def calculate_score(tile):
+        """turn a tile into an int score, based on current context.
 
-    def local_tile_score(tile):
-        """turn a tile into an int score, based on current context."""
-        score = 0
-        if req_num == 0:
-            score += tile.priority
+        The input tile is guaranteed by the outer function to have 0 priority
+        and is not yet on the page.
+        """
         tile_id = tile.id
+        score = 0
 
-        try:
-            tile_content = tile.content.all()[0].url
-        except IndexError:
-            tile_content = ''
-
-        # tile has already been shown once
-        if tile_id in shown_tile_ids or tile_id in pluck(results, 'id', 0):
-            print "tile {tile_id} had been shown before".format(tile_id=tile_id)
-            score -= BIG_NONO
+        tile_content = content_url(tile) or ''
 
         if tile_id in pluck(results[-MIN_SAME_TILE_DISTANCE:], 'id', 0):
-            print "tile {tile_id} is too close to itself".format(tile_id=tile_id)
             score -= BIG_NONO
 
         # promote tiles not of the same type as the one before
-        if not tile.template in results_types[-MIN_SAME_TYPE_DISTANCE:]:
+        if not tile.template in pluck(results[-MIN_SAME_TYPE_DISTANCE:], 'template', 'product'):
             score += 100
 
         if (tile_content
             and shown_tile_types
             and 'gif' in tile_content
-            and results_types[-1] in ['video', 'youtube']):
-            # print "tile {tile_id} is too close to a video".format(tile_id=tile_id)
+            and pluck(results[-1], 'template', 'product') in ['video', 'youtube']):
             score -= BIG_NONO
 
-        # print "tile {tile_id} has a local score of {score}".format(tile_id=tile_id, score=score)
         return score
 
-    while len(results) < n:
-        tile, tiles = tiles[0], tiles[1:]  # "shift"
+    def pick(tiles):
+        """based on context outside this function, yield one tile,
+        from tiles (available tile pool), that should be next in results.
+        """
+        if not tiles:
+            return
 
-        # calculate scores relative to current context
-        setattr(tile, 'score', local_tile_score(tile))
+        for tile in tiles:
+            # not results = this feed has no prioritized tiles
+            # not shown_tiles = this feed has no prioritized tiles
+            # hence no restrictions
+            if not (results and shown_tiles):
+                yield tile
 
-        tiles = sorted(tiles, key=score, reverse=True)
-        results.append(tiles[0])
-        results_types.append(tiles[0].template)
-        results_scores.append(score(tiles[0]))
+            previous_tile = results[-1]
+            yield tile
+
+    # handle prioritized tiles:
+    # - just add them in order
+    for tile in tiles.filter(priority__gt=0).exclude(id__in=shown_tile_ids):
+        if len(results) < n:
+            results.append(tile)
+            print "result #{} is prioritized".format(len(results))
+    if len(results) >= n:
+        return results
+
+    # shrink tile pool
+    result_ids = list(pluck(results, 'id', 0))
+    tiles = tiles.exclude(id__in=shown_tile_ids + result_ids)
+    # handle tiles that were not added:
+    # - tiles must obey product/content ratio (7)
+    # - unless tile pool itself is too bad for it (8)
+    for tile in pick(tiles):
+        results.append(tile)
+        print "result #{} is not".format(len(results))
 
         if len(results) >= n:
             break
 
-    print [(tile.id, tile.template, score(tile)) for tile in results]
-
-    return results[:n]
+    return results
 
 
 ir_motherfucking_magic = ir_magic  # internal alias
