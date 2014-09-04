@@ -75,7 +75,7 @@
     <div class='navbar'>
         <div class="container">
             <a href="http://www.dotandbo.com/" target="_blank">
-                <img class="logo" src="/static/light/dotandbo/landingpage/default/images/logo.png" />
+                See what everyone is shopping for the most at Dot & Bo
             </a>
         </div>
     </div>
@@ -99,6 +99,7 @@
                 <% if (App.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
+                <div class="name"><%= obj.title || obj.name %></div>
             </div>
         </script>
 
@@ -149,10 +150,17 @@
 
         <script type="text/template" id="product_price_template">
             <% if (obj.sale_price) { %>
+                <div>
+                    <%- obj.sale_price %>
+                </div>
                 <div class="strike inline">
                     <%- obj.price %>
                 </div>
-                <%- obj.sale_price %>
+                <% if (obj.percent_off) { %>
+                    <div class="discount inline">
+                        -<%- obj.percent_off %>%
+                    </div>
+                <% } %>
             <% } else { %>
                 <%- obj.price %>
             <% } %>
@@ -346,6 +354,9 @@
                     {{ legal_copy }}
                 </div>
             {% endif %}
+            <a href="http://www.dotandbo.com/" target="_blank">
+                Shop more best sellers from Dot & Bo
+            </a>
         </div>
         <div id="category-area"></div>
         <div id="discovery-area" class="discovery-area"></div>
