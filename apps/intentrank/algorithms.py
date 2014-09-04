@@ -750,32 +750,35 @@ def ir_ordered_by(attribute='created_at', reversed_=False):
 @returns_qs
 def ir_magic(tiles, request, *args, **kwargs):
     """Motherfucking magic, motherfuckers"""
-    _tiles = tiles
     n = settings.INTENTRANK_DEFAULT_NUM_RESULTS  # want 'n tiles'
-    SMALL_NONO, MEDIUM_NONO, BIG_NONO = 1, 100, 10000  # penalty factors
     MIN_SAME_TILE_DISTANCE = 7  # how far until a tile can repeat itself
     MIN_SAME_TYPE_DISTANCE = 1  # how far until a <type> tile can be shown again
     results = []
-    shown_tiles = []
-
-    def score(tile):
-        return getattr(tile, 'score', 0)
+    _tiles = qs_for(list(tiles))  # copy for resets
+    req_num = int_or_0(request.GET.get('reqNum', 0))
+    shown_tile_ids = request.session.get('shown', [])
 
     def prefetch(qs):
         return qs.select_related('products', 'content')\
                  .prefetch_related('products', 'content')
 
+    # prefetch things we need in this algorithm
+    # (tiles are ordered by priority, random for equal priorities)
+    shown_tiles = prefetch(Tile.objects.filter(id__in=shown_tile_ids))
+    tiles = prefetch(qs_for(tiles=tiles).order_by('-priority', '?'))
+
     def reset_tile_pool(tile_template=None):
         """tile_template="product" removes products from the shown pool."""
         global shown_tile_ids, shown_tiles, tiles
-        if tile_template:
-            shown_tiles = [t for t in shown_tiles if t.template != tile_template]
-        else:
-            shown_tiles = []
+        for t in shown_tiles:
+            if tile_template is None or t.template == tile_template:
+                shown_tiles.remove(t)
 
         shown_tile_ids = ids_of(shown_tiles)
         request.session['shown'] = shown_tile_ids
-        tiles = prefetch(qs_for(tiles=_tiles).order_by('?'))
+        tiles = prefetch(qs_for(tiles=_tiles).exclude(priority__gt=0)
+                                             .order_by('?'))
+        print "reset {} tiles, showns".format(tile_template)
 
     def content_url(tile):
         """the content's url if the tile has content, empty string otherwise"""
@@ -832,15 +835,8 @@ def ir_magic(tiles, request, *args, **kwargs):
             print "auto-queueing {}".format(tile_id)
             yield tile
 
-    req_num = int_or_0(request.GET.get('reqNum', 0))
-    shown_tile_ids = request.session.get('shown', [])
     if req_num == 0:
         reset_tile_pool()  # reset condition
-
-    # prefetch things we need in this algorithm
-    # (tiles are ordered by priority, random for equal priorities)
-    shown_tiles = prefetch(Tile.objects.filter(id__in=shown_tile_ids))
-    tiles = prefetch(qs_for(tiles=tiles).order_by('-priority', '?'))
 
     # TODO: make use of other lists
     _, product_tiles, content_tiles, _, _ = split_qs(tiles)
@@ -867,11 +863,10 @@ def ir_magic(tiles, request, *args, **kwargs):
             if len(results) >= n:
                 break
         else:  # could not find enough tiles to meet requirements
-            print "SHIT!"
             if none_of(tiles, 'template', 'product'):
-                reset_tile_pool("product")
+                reset_tile_pool('product')
             elif none_of(tiles, 'template', 'image'):
-                reset_tile_pool("image")
+                reset_tile_pool('image')
             else:
                 reset_tile_pool()
 
