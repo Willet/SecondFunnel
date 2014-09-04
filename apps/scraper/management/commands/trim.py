@@ -25,11 +25,11 @@ class Command(BaseCommand):
             raise ValueError("You need a store id (add '--store-id #' to the end)")
 
         try:
-            Store.objects.get(Q(id=store_id) | Q(slug=store_id))
+            store = Store.objects.get(Q(id=store_id) | Q(slug=store_id))
         except (Store.DoesNotExist, MultipleObjectsReturned):
             raise ValueError("No such store")
 
-        p = ProductImage.objects.filter(product__store_id=store_id)
+        p = ProductImage.objects.filter(product__store=store)
         for image in p:
             delete_cloudinary_resource(get_public_id(image.url))
             data = process_image(image.original_url, create_image_path(5),
