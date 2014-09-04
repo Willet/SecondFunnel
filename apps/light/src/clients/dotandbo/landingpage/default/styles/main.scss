@@ -9,6 +9,37 @@ body {
 .navbar {
     max-width: 1024px;
     margin: auto;
+    text-align: center;
+    font-size: 28px;
+    line-height: normal;
+    height: auto;
+    white-space: normal;
+    font-style: italic;
+}
+
+.navbar a:hover {
+    text-decoration: none;
+}
+
+#hero-sub-banner {
+    text-align: center;
+    font-size: 20px;
+}
+
+#hero-sub-banner a:hover {
+    text-decoration: none;
+}
+
+.tile,
+.tile.wide {
+    width: 33%;
+    padding: 10px;
+    color: #3A3A3A;
+
+}
+
+.previewContainer .close {
+    padding: 6px;
 }
 
 .previewContainer .cell.info {
@@ -22,6 +53,20 @@ body {
 .previewContainer .info .price {
     font-weight: bold;
     font-size: 26px;
+}
+
+.previewContainer .info .price .strike,
+.previewContainer .info .price .discount {
+    font-size: 17px;
+}
+
+.previewContainer .info .price .strike {
+    color: #818181;
+    font-weight: normal;
+}
+
+.previewContainer .info .price .discount {
+    color: #d12424;
 }
 
 .previewContainer .buy .button {
