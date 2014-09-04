@@ -5,8 +5,9 @@ as the first positional argument, with all other arguments being kwargs.
 
 All algorithms must return <QuerySet>.
 """
-import random
+from collections import deque
 from functools import partial, wraps
+import random
 
 from django.conf import settings
 from django.db.models import Q
@@ -794,9 +795,12 @@ def ir_magic(tiles, request, *args, **kwargs):
 
     # a number that is at least as large as the maximum priority, and
     # at least as large as the number of tiles in the feed
-    penalty = 1001
+    penalty = 10001
 
-    tiles = qs_for(tiles=tiles)
+    tiles = (qs_for(tiles=tiles)
+        .select_related('products', 'content')
+        .prefetch_related('products', 'content'))
+
     tile_types = list(pluck(tiles, 'template', 'product'))
     product_tiles = tiles.filter(template='product')
     content_tiles = tiles.exclude(template='product')  # includes "banner"
@@ -830,48 +834,54 @@ def ir_magic(tiles, request, *args, **kwargs):
 
     req_num = int_or_0(request.GET.get('reqNum', 0))
 
+    def _score(tile):
+        return getattr(tile, 'score', 0)
+
     def local_tile_score(tile):
         """turn a tile into an int score, based on current context."""
-        score = tile.priority
+        score = 0
+        if req_num == 0:
+            score += tile.priority
         tile_id = tile.id
 
         try:
-            tile_content = tile.content.values_list('url', flat=True)[0]
+            tile_content = tile.content.all()[0].url
         except IndexError:
             tile_content = ''
 
         if tile_id in shown_tile_ids:
-            # print "tile {tile_id} had been shown before".format(tile_id=tile_id)
+            print "tile {tile_id} had been shown before".format(tile_id=tile_id)
             score -= penalty
 
-        if tile_id in shown_tile_ids[-min_same_tile_distance:]:
-            # print "tile {tile_id} is too close to itself".format(tile_id=tile_id)
+        if tile_id in results_types[-min_same_tile_distance:]:
+            print "tile {tile_id} is too close to itself".format(tile_id=tile_id)
             score -= penalty
 
-        if tile.template in shown_tile_types[-min_same_tile_distance:]:
+        if tile.template in results_types[-min_same_type_distance:]:
             # print "tile {tile_id} is too close to another one of its type".format(tile_id=tile_id)
             score -= penalty
 
-        if tile_content and 'gif' in tile_content and len(shown_video_tiles) > 1:
-            print "tile {tile_id} is too close to a video".format(tile_id=tile_id)
+        if (tile_content and shown_tile_types and 'gif' in tile_content and
+                results_types[-1] in ['video', 'youtube']):
+            # print "tile {tile_id} is too close to a video".format(tile_id=tile_id)
             score -= penalty
 
         # print "tile {tile_id} has a local score of {score}".format(tile_id=tile_id, score=score)
-        setattr(tile, 'score', score)
         return score
 
-    def dequeue():
-        _tiles = sorted(tiles, key=local_tile_score, reverse=True)
-        for _ in range(n):  # generate n tiles
-            yield _tiles.pop()
+    while len(results) < n:
+        for tile in tiles:
+            # calculate scores relative to current context
+            setattr(tile, 'score', local_tile_score(tile))
 
-    for tile in dequeue():
-        results.append(tile)
-        results_types.append(tile.template)
+            tiles = sorted(tiles, key=_score, reverse=True)
+            results.append(tiles[0])
+            results_types.append(tiles[0].template)
+            results_scores.append(_score(tiles[0]))
 
-    print [(tile.id, tile.score) for tile in results]
+    print [(tile.id, tile.template, tile.score) for tile in results]
 
-    return results
+    return results[:n]
 
 
 ir_motherfucking_magic = ir_magic  # internal alias
