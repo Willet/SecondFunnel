@@ -12,7 +12,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from apps.assets.models import Tile
-from apps.utils.functional import result, sort_helper
+from apps.utils.functional import result, sort_helper, int_or_0, pluck
 
 
 def ids_of(tiles):  # shorthand (got too annoying)
@@ -788,14 +788,24 @@ def ir_magic(tiles, request, *args, **kwargs):
     """Motherfucking magic, motherfuckers"""
     n = settings.INTENTRANK_DEFAULT_NUM_RESULTS  # want 'n tiles'
 
+    min_same_tile_distance = 7  # how far until a tile can repeat itself
+    min_same_type_distance = 1  # how far until a <type> tile can be shown again
+    results, results_types, results_scores = [], [], []
+
+    # a number that is at least as large as the maximum priority, and
+    # at least as large as the number of tiles in the feed
+    penalty = 1001
+
     tiles = qs_for(tiles=tiles)
+    tile_types = list(pluck(tiles, 'template', 'product'))
     product_tiles = tiles.filter(template='product')
     content_tiles = tiles.exclude(template='product')  # includes "banner"
     gif_tiles = tiles.filter(content__url__icontains="gif")
     # youtube, instagram, or whatever else declares itself as video
-    video_tiles = tiles.filter(Q(template="video") |
-                               Q(content__url__icontains="youtube") |
-                               Q(content__url__contains="/embed"))
+    video_tiles = tiles.filter(
+        Q(template="video") |
+        Q(content__url__icontains="youtube") |
+        Q(content__url__contains="/embed"))
 
     # for getting differences
     tile_ids = ids_of(tiles)
@@ -807,21 +817,59 @@ def ir_magic(tiles, request, *args, **kwargs):
     # showns
     shown_tile_ids = request.session.get('shown', [])
     shown_tiles = Tile.objects.filter(id__in=shown_tile_ids)
+    shown_tile_types = list(pluck(shown_tiles, 'template', 'product'))
     shown_product_tiles = shown_tiles.filter(template='product')
     shown_content_tiles = shown_tiles.exclude(template='product')
+    shown_video_tiles = shown_tiles.filter(
+        Q(template="video") |
+        Q(content__url__icontains="youtube") |
+        Q(content__url__contains="/embed"))
+
     shown_product_tile_ids = ids_of(shown_product_tiles)
     shown_content_tile_ids = ids_of(shown_content_tiles)
 
+    req_num = int_or_0(request.GET.get('reqNum', 0))
+
     def local_tile_score(tile):
         """turn a tile into an int score, based on current context."""
-        return tile.priority
+        score = tile.priority
+        tile_id = tile.id
+
+        try:
+            tile_content = tile.content.values_list('url', flat=True)[0]
+        except IndexError:
+            tile_content = ''
+
+        if tile_id in shown_tile_ids:
+            # print "tile {tile_id} had been shown before".format(tile_id=tile_id)
+            score -= penalty
+
+        if tile_id in shown_tile_ids[-min_same_tile_distance:]:
+            # print "tile {tile_id} is too close to itself".format(tile_id=tile_id)
+            score -= penalty
+
+        if tile.template in shown_tile_types[-min_same_tile_distance:]:
+            # print "tile {tile_id} is too close to another one of its type".format(tile_id=tile_id)
+            score -= penalty
+
+        if tile_content and 'gif' in tile_content and len(shown_video_tiles) > 1:
+            print "tile {tile_id} is too close to a video".format(tile_id=tile_id)
+            score -= penalty
+
+        # print "tile {tile_id} has a local score of {score}".format(tile_id=tile_id, score=score)
+        setattr(tile, 'score', score)
+        return score
 
     def dequeue():
-        _tiles = sorted(tiles, local_tile_score, reverse=True)
+        _tiles = sorted(tiles, key=local_tile_score, reverse=True)
         for _ in range(n):  # generate n tiles
             yield _tiles.pop()
 
-    results = [tile for tile in dequeue()]
+    for tile in dequeue():
+        results.append(tile)
+        results_types.append(tile.template)
+
+    print [(tile.id, tile.score) for tile in results]
 
     return results
 

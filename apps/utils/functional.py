@@ -141,3 +141,18 @@ def result(obj, arg=None):
 def sort_helper(obj, attribute):
     """Turns an object into a number, based on an attribute in each."""
     return result(getattr(obj, attribute), arg=obj)
+
+
+def pluck(iterable, attribute, default):
+    """With defaults.
+
+    :returns generator
+    """
+    return iter(getattr(obj, attribute, default) for obj in iterable)
+
+
+def int_or_0(thing):
+    try:
+        return int(thing)
+    except ValueError:
+        return 0
