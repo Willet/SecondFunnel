@@ -787,55 +787,47 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 @returns_qs
 def ir_magic(tiles, request, *args, **kwargs):
     """Motherfucking magic, motherfuckers"""
+    def score(tile):
+        return getattr(tile, 'score', 0)
+
+    def split_qs(qs):
+        """:returns multiple related <QuerySet>s"""
+        return (qs, qs.filter(template='product'),
+            qs.exclude(template='product'),  # includes "banner"
+            qs.filter(content__url__icontains="gif"),
+            # youtube, instagram, or whatever else declares itself as video
+            qs.filter(Q(template="video") | Q(content__url__icontains="youtube") |
+                      Q(content__url__contains="/embed")))
+
     n = settings.INTENTRANK_DEFAULT_NUM_RESULTS  # want 'n tiles'
-
-    min_same_tile_distance = 7  # how far until a tile can repeat itself
-    min_same_type_distance = 1  # how far until a <type> tile can be shown again
-    results, results_types, results_scores = [], [], []
-
     # a number that is at least as large as the maximum priority, and
     # at least as large as the number of tiles in the feed
-    penalty = 10001
+    BIG_NONO = 10000
+    MEDIUM_NONO = 100
+    SMALL_NONO = 1
+    MIN_SAME_TILE_DISTANCE = 7  # how far until a tile can repeat itself
+    MIN_SAME_TYPE_DISTANCE = 1  # how far until a <type> tile can be shown again
 
+    # >>> a = b = c = []; c.append(1); a
+    # [1]
+    results, results_types, results_scores = [], [], []
+    shown_tile_ids = request.session.get('shown', [])
+
+    # prefetch things we need in this algo
+    shown_tiles = (Tile.objects.filter(id__in=shown_tile_ids)
+        .select_related('products', 'content')
+        .prefetch_related('products', 'content'))
     tiles = (qs_for(tiles=tiles)
         .select_related('products', 'content')
         .prefetch_related('products', 'content'))
 
+    _, product_tiles, content_tiles, gif_tiles, video_tiles = split_qs(tiles)
+    _, shown_product_tiles, shown_content_tiles, shown_gif_tiles, shown_video_tiles = split_qs(shown_tiles)
+
     tile_types = list(pluck(tiles, 'template', 'product'))
-    product_tiles = tiles.filter(template='product')
-    content_tiles = tiles.exclude(template='product')  # includes "banner"
-    gif_tiles = tiles.filter(content__url__icontains="gif")
-    # youtube, instagram, or whatever else declares itself as video
-    video_tiles = tiles.filter(
-        Q(template="video") |
-        Q(content__url__icontains="youtube") |
-        Q(content__url__contains="/embed"))
-
-    # for getting differences
-    tile_ids = ids_of(tiles)
-    product_tile_ids = ids_of(product_tiles)
-    content_tile_ids = ids_of(content_tiles)
-    gif_tile_ids = ids_of(gif_tiles)
-    video_tile_ids = ids_of(video_tiles)
-
-    # showns
-    shown_tile_ids = request.session.get('shown', [])
-    shown_tiles = Tile.objects.filter(id__in=shown_tile_ids)
     shown_tile_types = list(pluck(shown_tiles, 'template', 'product'))
-    shown_product_tiles = shown_tiles.filter(template='product')
-    shown_content_tiles = shown_tiles.exclude(template='product')
-    shown_video_tiles = shown_tiles.filter(
-        Q(template="video") |
-        Q(content__url__icontains="youtube") |
-        Q(content__url__contains="/embed"))
-
-    shown_product_tile_ids = ids_of(shown_product_tiles)
-    shown_content_tile_ids = ids_of(shown_content_tiles)
 
     req_num = int_or_0(request.GET.get('reqNum', 0))
-
-    def _score(tile):
-        return getattr(tile, 'score', 0)
 
     def local_tile_score(tile):
         """turn a tile into an int score, based on current context."""
@@ -849,37 +841,44 @@ def ir_magic(tiles, request, *args, **kwargs):
         except IndexError:
             tile_content = ''
 
-        if tile_id in shown_tile_ids:
+        # tile has already been shown once
+        if tile_id in shown_tile_ids or tile_id in pluck(results, 'id', 0):
             print "tile {tile_id} had been shown before".format(tile_id=tile_id)
-            score -= penalty
+            score -= BIG_NONO
 
-        if tile_id in results_types[-min_same_tile_distance:]:
+        if tile_id in pluck(results[-MIN_SAME_TILE_DISTANCE:], 'id', 0):
             print "tile {tile_id} is too close to itself".format(tile_id=tile_id)
-            score -= penalty
+            score -= BIG_NONO
 
-        if tile.template in results_types[-min_same_type_distance:]:
-            # print "tile {tile_id} is too close to another one of its type".format(tile_id=tile_id)
-            score -= penalty
+        # promote tiles not of the same type as the one before
+        if not tile.template in results_types[-MIN_SAME_TYPE_DISTANCE:]:
+            score += 100
 
-        if (tile_content and shown_tile_types and 'gif' in tile_content and
-                results_types[-1] in ['video', 'youtube']):
+        if (tile_content
+            and shown_tile_types
+            and 'gif' in tile_content
+            and results_types[-1] in ['video', 'youtube']):
             # print "tile {tile_id} is too close to a video".format(tile_id=tile_id)
-            score -= penalty
+            score -= BIG_NONO
 
         # print "tile {tile_id} has a local score of {score}".format(tile_id=tile_id, score=score)
         return score
 
     while len(results) < n:
-        for tile in tiles:
-            # calculate scores relative to current context
-            setattr(tile, 'score', local_tile_score(tile))
+        tile, tiles = tiles[0], tiles[1:]  # "shift"
 
-            tiles = sorted(tiles, key=_score, reverse=True)
-            results.append(tiles[0])
-            results_types.append(tiles[0].template)
-            results_scores.append(_score(tiles[0]))
+        # calculate scores relative to current context
+        setattr(tile, 'score', local_tile_score(tile))
 
-    print [(tile.id, tile.template, tile.score) for tile in results]
+        tiles = sorted(tiles, key=score, reverse=True)
+        results.append(tiles[0])
+        results_types.append(tiles[0].template)
+        results_scores.append(score(tiles[0]))
+
+        if len(results) >= n:
+            break
+
+    print [(tile.id, tile.template, score(tile)) for tile in results]
 
     return results[:n]
 
