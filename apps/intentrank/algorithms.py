@@ -16,6 +16,36 @@ from apps.assets.models import Tile
 from apps.utils.functional import result, sort_helper, int_or_0, pluck
 
 
+def randomize(tiles):
+    # produce random sampling without replacement
+    for tile in random.sample(tiles, len(tiles)):
+        yield tile
+
+
+def randomize_with_locality(tiles, previous_tiles, min_seperation=3):
+    # NOTE: this does do uniform random, however
+    # it should do a good enough job
+
+    # previous tiles - a ordered set of tiles that were previous to this
+    save_for_later = []
+
+    # produce random sampling without replacement
+    for i, tile in enumerate(random.sample(tiles, len(tiles))):
+        # only the first min_seperation tiles have to worry
+        # about being to close, cause the remainder are not
+        # repeating tiles.
+        if i < min_seperation:
+            if tile not in previous_tiles[i - min_seperation:]:
+                yield tile
+            else
+                save_for_later.append(tile)
+        else
+            yield tile
+
+    for tile in random.sample(save_for_later, len(save_for_later))
+        yield tile
+
+
 def ids_of(tiles):  # shorthand (got too annoying)
     return [getattr(tile, 'id') for tile in tiles]
 
