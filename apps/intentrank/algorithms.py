@@ -9,6 +9,7 @@ import random
 from functools import partial, wraps
 
 from django.conf import settings
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from apps.assets.models import Tile
 from apps.utils.functional import result, sort_helper
@@ -780,3 +781,49 @@ def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         return tiles[:results]
     else:
         return tiles[offset:offset + results]
+
+
+@returns_qs
+def ir_magic(tiles, request, *args, **kwargs):
+    """Motherfucking magic, motherfuckers"""
+    n = settings.INTENTRANK_DEFAULT_NUM_RESULTS  # want 'n tiles'
+
+    tiles = qs_for(tiles=tiles)
+    product_tiles = tiles.filter(template='product')
+    content_tiles = tiles.exclude(template='product')  # includes "banner"
+    gif_tiles = tiles.filter(content__url__icontains="gif")
+    # youtube, instagram, or whatever else declares itself as video
+    video_tiles = tiles.filter(Q(template="video") |
+                               Q(content__url__icontains="youtube") |
+                               Q(content__url__contains="/embed"))
+
+    # for getting differences
+    tile_ids = ids_of(tiles)
+    product_tile_ids = ids_of(product_tiles)
+    content_tile_ids = ids_of(content_tiles)
+    gif_tile_ids = ids_of(gif_tiles)
+    video_tile_ids = ids_of(video_tiles)
+
+    # showns
+    shown_tile_ids = request.session.get('shown', [])
+    shown_tiles = Tile.objects.filter(id__in=shown_tile_ids)
+    shown_product_tiles = shown_tiles.filter(template='product')
+    shown_content_tiles = shown_tiles.exclude(template='product')
+    shown_product_tile_ids = ids_of(shown_product_tiles)
+    shown_content_tile_ids = ids_of(shown_content_tiles)
+
+    def local_tile_score(tile):
+        """turn a tile into an int score, based on current context."""
+        return tile.priority
+
+    def dequeue():
+        _tiles = sorted(tiles, local_tile_score, reverse=True)
+        for _ in range(n):  # generate n tiles
+            yield _tiles.pop()
+
+    results = [tile for tile in dequeue()]
+
+    return results
+
+
+ir_motherfucking_magic = ir_magic  # internal alias
