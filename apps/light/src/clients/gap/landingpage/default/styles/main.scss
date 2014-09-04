@@ -312,7 +312,12 @@ div.header {
 }
 
 .tile.youtube, .tile.youtube.wide {
-    height: 310px;
+    height: 196px;
+}
+
+.tile.youtube div.thumbnail,
+.tile.wide.youtube div.thumbnail {
+    height: 196px;
 }
 
 .tile.youtube.wide .social-buttons {
