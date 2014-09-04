@@ -182,6 +182,11 @@ module.exports = (module, App) ->
             unless resp.type
                 resp.type = resp.template
             resp.caption = App.utils.safeString(resp.caption or "")
+
+            # https://therealwillet.hipchat.com/history/room/115122#17:48:02
+            if App.option('adForceTwoColumns', false)
+                resp.orientation = 'portrait'
+
             resp
 
         initialize: (attributes, options) ->
