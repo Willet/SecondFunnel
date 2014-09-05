@@ -749,12 +749,21 @@ def ir_ordered_by(attribute='created_at', reversed_=False):
 
 
 @returns_qs
-def ir_magic(tiles, request, *args, **kwargs):
+def ir_magic(tiles, request, feed, *args, **kwargs):
     """Motherfucking magic, motherfuckers"""
     n = settings.INTENTRANK_DEFAULT_NUM_RESULTS  # want 'n tiles'
-    MIN_SAME_TILE_DISTANCE = 7  # how far until a tile can repeat itself
-    MIN_SAME_TYPE_DISTANCE = 1  # how far until a <type> tile can be shown again
-    results = TileList([])
+
+    # round up and down by adding 0.5. thus correct number of products and content
+    try:
+        n_content = int(n * float(feed.feed_ratio) + 0.5)
+        n_product = n - n_content
+    except (AttributeError, ValueError):
+        # feed is None or whatever... just 50:50
+        n_content = n_product = n / 2
+
+    min_same_tile_distance = 7  # how far until a tile can repeat itself
+    min_same_type_distance = 1  # how far until a <type> tile can be shown again
+    results = TileList()
     _tiles = qs_for(list(tiles))  # copy for resets
     req_num = int_or_0(request.GET.get('reqNum', 0))
     shown_tile_ids = request.session.get('shown', [])
@@ -791,50 +800,59 @@ def ir_magic(tiles, request, *args, **kwargs):
         if not available_tiles:
             return
 
-        for tile in available_tiles:
+        for idx, tile in enumerate(available_tiles):
             # not results = this feed has no prioritized tiles
-            # not shown_tiles = this feed has no prioritized tiles
             # hence no restrictions
             tile_id = tile.id
-            if not shown_tiles:
-                # print "queueing {} {}".format(tile.template, tile.id)
+            if not results:
+                print "queueing {} {} (no results)".format(tile.template, tile.id)
                 yield tile
                 continue
 
-            cids = ids_of(shown_tiles) + ids_of(results)
+            history = TileList(shown_tiles) + TileList(results)
+            cids = ids_of(history)
 
             # tile must be far from itself (1)
-            if tile_id in cids[-MIN_SAME_TILE_DISTANCE:]:
+            if tile_id in cids[-min_same_tile_distance:]:
+                print "rejecting {} {} (too close to itself)".format(tile.template, tile.id)
                 continue
 
-            # tile must not be next to one of the same type
-            templates = list(pluck(results, 'template', 'product'))
+            templates = list(pluck(history, 'template', 'product'))
             product_count = templates.count('product')
             non_product_count = len(templates) - product_count
-            if results and tile.template == results[-MIN_SAME_TYPE_DISTANCE].template:
-                # print "Eck! Getting a better tile!"
+
+            # tile should not be close/next to one of the same type
+            if tile.template in templates[-min_same_type_distance:]:
+                print "rejecting {} {} {} (too close to same type)".format(tile.template, tile.id, idx)
+                continue
+
+            # meet tile counts by type
+            if tile.template == 'product' and product_count < n_product:
+                print "queueing {} {}".format(tile.template, tile.id)
+                yield tile
+                continue
+            elif tile.template != 'product' and non_product_count < n_content:
+                print "queueing {} {}".format(tile.template, tile.id)
+                yield tile
                 continue
             else:
                 pass
-
-            # print "auto-queueing {} {}".format(tile.template, tile.id)
-            yield tile
 
         # you reach this point because there are no "good tiles" left
         # (loosen restrictions)
         available_tiles = available_tiles.order_by('?')
         for tile in available_tiles:
-            tile_id = tile.id
-            cids = ids_of(shown_tiles) + ids_of(results)
-
-            # tile must still be 1 away from itself
-            if tile_id in cids[-MIN_SAME_TYPE_DISTANCE:]:
+            # tile must still be away from itself
+            if tile.template in results.ids[-min_same_tile_distance:]:
+                print "rejecting {} {} (too close to same tile 2)".format(tile.template, tile.id)
                 continue
 
+            print "queueing 2 {} {}".format(tile.template, tile.id)
             yield tile
+        else:
+            yield available_tiles[random.randint(0, available_tiles.count())]
 
-
-    if req_num == 0:
+    if req_num == 0:  # reset
         request.session['shown'] = []
         shown_tile_ids = []
         shown_tiles = []
@@ -849,7 +867,9 @@ def ir_magic(tiles, request, *args, **kwargs):
         if len(results) < n:
             results.append(tile)
             # print "prioritizing {} {}".format(tile.template, tile.id)
-    if len(results) >= n:
+
+    if results:
+        print list(pluck(results, 'template', ''))
         return results
 
     # shrink tile pool
@@ -868,16 +888,14 @@ def ir_magic(tiles, request, *args, **kwargs):
             tile_template = None
             shown_tiles = TileList(shown_tiles)
 
-            # if ran out of products, reset products
             if none_of(tiles, 'template', 'product'):
+                # if ran out of products, reset products only
                 tile_template = 'product'
-            # if ran out of contents, reset contents
             elif none_of(tiles, 'template', 'image'):
+                # if ran out of contents, reset contents only
                 tile_template = 'image'
-            # for all other reasons, reset both
 
-            # same-scope shown reset
-            for t in shown_tiles:
+            for t in shown_tiles:  # for all other reasons, reset both
                 if not t in results:  # if it's being added, it stays excluded
                     if tile_template is None or t.template == tile_template:
                         shown_tiles.remove(t)
@@ -898,6 +916,8 @@ def ir_magic(tiles, request, *args, **kwargs):
     for tile in results[0].feed.tiles.all():
         if not tile.id in shown_tile_ids:
             never_shown.append(tile.id)
+
+    print list(pluck(results, 'template', ''))
     print "{} tiles never used".format(len(never_shown))
 
     return results
