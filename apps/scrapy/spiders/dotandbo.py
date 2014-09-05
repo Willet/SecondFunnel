@@ -11,6 +11,7 @@ from apps.scrapy.utils.itemloaders import ScraperProductLoader
 class DotAndBoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'dotandbo'
     allowed_domains = ['dotandbo.com']
+    remove_background = False
     start_urls = ['http://www.dotandbo.com/']
     rules = [
         # dot and bo does not paginate collections.
