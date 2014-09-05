@@ -512,7 +512,7 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     # prior to this change, the algo returns strictly 5 products or 5 contents
     # even when only contents are prioritized, which means prioritized results
     # are mixed with non-prioritized ones.
-    if request and request.GET.get('reqNum', '0') in [0, '0', u'0']:
+    if request and str(request.GET.get('reqNum', '0')) == '0':
         prioritized_tiles = ir_priority_pageview(tiles=tiles, results=1000,
             exclude_set=exclude_set, allowed_set=allowed_set)
         if prioritized_tiles:
