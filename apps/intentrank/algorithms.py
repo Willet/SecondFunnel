@@ -507,15 +507,19 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     products = products.exclude(id__in=exclude_set)
     contents = contents.exclude(id__in=exclude_set)
 
-    if request and request.GET.get('reqNum', '0') in ['0']:  # only at start, this allows for 10 tiles
-        prioritized_content = ir_priority_pageview(tiles=contents, results=results,
+    # only at start, this allows for *all* prioritized tiles so this algo
+    # doesn't have to worry about them after request 0.
+    # prior to this change, the algo returns strictly 5 products or 5 contents
+    # even when only contents are prioritized, which means prioritized results
+    # are mixed with non-prioritized ones.
+    if request and str(request.GET.get('reqNum', '0')) == '0':
+        prioritized_tiles = ir_priority_pageview(tiles=tiles, results=1000,
             exclude_set=exclude_set, allowed_set=allowed_set)
-        length = len(prioritized_content)
-        contents = list(prioritized_content) + \
-                   list(contents.order_by('-clicks')[:(num_content - length) if num_content > length else num_content])
-    else:
-        contents = list(contents.order_by('-clicks')[:num_content])
+        if prioritized_tiles:
+            print "returning {} prioritized tiles".format(prioritized_tiles.count())
+            return prioritized_tiles
 
+    contents = list(contents.order_by('-clicks')[:num_content])
     products = list(products.order_by('-priority')[:num_product])
 
     tiles = contents + products
