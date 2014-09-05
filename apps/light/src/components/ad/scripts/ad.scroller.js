@@ -41,10 +41,8 @@ module.exports = function (module, App) {
         });
 
         feed.removeTiles(tilesToRemove);
-        feed.fetchTiles();
 
-        // if there is some chance that there won't be enough tiles
-        // in the ad, then get some more.
+        // get more tiles
         if (feed.children.length < 20) {
             feed.pageScroll();
         }
