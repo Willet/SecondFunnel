@@ -818,8 +818,9 @@ def ir_magic(tiles, request, feed, *args, **kwargs):
                 continue
 
             templates = list(pluck(history, 'template', 'product'))
-            product_count = templates.count('product')
-            non_product_count = len(templates) - product_count
+            results_templates = list(pluck(results, 'template', 'product'))
+            product_count = results_templates.count('product')
+            content_count = len(results_templates) - product_count
 
             # tile should not be close/next to one of the same type
             if tile.template in templates[-min_same_type_distance:]:
@@ -831,12 +832,12 @@ def ir_magic(tiles, request, feed, *args, **kwargs):
                 print "queueing {} {}".format(tile.template, tile.id)
                 yield tile
                 continue
-            elif tile.template != 'product' and non_product_count < n_content:
+            elif tile.template != 'product' and content_count < n_content:
                 print "queueing {} {}".format(tile.template, tile.id)
                 yield tile
                 continue
             else:
-                pass
+                a = 5
 
         # you reach this point because there are no "good tiles" left
         # (loosen restrictions)
