@@ -9,6 +9,22 @@ $ad-border-width: 0;
     src: url("//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/fonts/URWBaskerville.otf") format('opentype');
 }
 
+@font-face {
+    font-family: "URWBaskerT";
+    src: url("//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/fonts/URWBaskerville.ttf") format('truetype'),
+         url("//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/fonts/URWBaskerville.woff") format('woff');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "URWBaskerT";
+    src: url("//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/fonts/URWBaskerville-italic.ttf") format('truetype'),
+         url("//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/fonts/URWBaskerville-italic.woff") format('woff');
+    font-weight: bold;
+    font-style: italic;
+}
+
 html {
     border: transparent !important;
 }
@@ -18,7 +34,7 @@ html, body, .container, #discovery-area {
 }
 
 body > .container {
-    padding: 20px;
+    padding: 2px;
     border: 1px #d0d0d0 solid;
 }
 
@@ -47,7 +63,8 @@ body {
 
 #topbar {
     font-family: "URWBaskerT", Georgia, Times, "Times New Roman", "DroidSerif", serif;
-    font-size: 20px;
+    font-size: 19px;
+    font-weight: bold;
     text-rendering: optimizeLegibility;
     text-align: center;
 }
@@ -57,7 +74,11 @@ body {
 }
 
 .caption {
-    font-size: 12px;
+    display: none;
+}
+
+.tile {
+    padding: 2px;
 }
 
 html, body, .container {
