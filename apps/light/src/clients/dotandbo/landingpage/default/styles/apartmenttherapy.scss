@@ -1,0 +1,119 @@
+$header-height: 81px;
+$header-margin-top: 16px;
+$header-margin-bottom: 32px;
+$sidebar-width: 192px;
+
+body {
+    background-image: none;
+}
+
+#apartment-therapy-header,
+#apartment-therapy-sidebar {
+    font-family: "CirceWeb-Regular", "Helvetica Neue", Helvetica, Arial, "Roboto", sans-serif; //TODO get these fonts
+}
+
+#apartment-therapy-header {
+    height: $header-height;
+    margin-top: $header-margin-top;
+    margin-bottom: $header-margin-bottom;
+    padding: 16px 32px 0 32px;
+    border: 1px solid #DDDDD3;
+    border-left: none;
+    border-right: none;
+    line-height: 65px;
+    white-space: nowrap;
+
+    .logo {
+        height: 46px;
+        margin-right: 60px;
+    }
+
+    .menu-bar {
+        font-size: 15px;
+        text-transform: uppercase;
+        line-height: 15px;
+        vertical-align: bottom;
+        margin-bottom: 13px;
+
+        a {
+            margin-right: 16px;
+        }
+        a:last-child {
+            margin-right: 0;
+            color: #ee2737;
+        }
+        a:hover {
+            text-decoration: none;
+            color: #ba0c2f;    
+        }
+    }
+}
+
+#apartment-therapy-sidebar {
+    position: absolute;
+    top: $header-height + $header-margin-top + $header-margin-bottom;
+    left: 0;
+    bottom: 0;
+    width: $sidebar-width;
+    padding-right: 24px;
+    padding-left: 32px;
+    border-right: 1px solid #DDDDD3;
+    font-size: 13px;
+    line-height: 17px;
+
+    .title {
+        color: #666;
+        border-bottom: 1px solid #666;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+    }
+
+    a {
+        display: block;
+        height: 20px;
+        color: #000;
+    }
+    a:hover {
+        text-decoration: none;
+        color: #666;
+    }
+
+    a.red {
+        color: #EE2737;
+    }
+    a.red:hover {
+        color: #ba0c2f;
+    }
+}
+
+#page-content {
+    padding-left: $sidebar-width;
+    width: 100%;
+}
+
+#page-content > .container {
+    width: auto;
+}
+
+@media screen and (max-width: 768px) {
+    #apartment-therapy-header {
+        .menu-bar {
+            display: none;
+        }
+    }
+
+    #apartment-therapy-sidebar {
+        display: none;
+    }
+
+    #page-content {
+        padding-left: 0;
+    }
+}
+
+// Fucking bootstrap
+@media screen and (min-width: 768px) {
+    .container {
+        width: auto;
+    }
+}
