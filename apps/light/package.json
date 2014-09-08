@@ -115,6 +115,7 @@
     "classie": "./lib/classie/classie.js",
     "jquery-touchswipe": "./lib/jquery-touchswipe/jquery.touchSwipe.js",
     "jquery-deparam": "./lib/jquery-bbq-deparam/jquery-deparam.js",
+    "jquery-waypoints": "./lib/jquery-waypoints/waypoints.js",
     "owl-carousel": "./lib/owl-carousel/owl-carousel/owl.carousel.js"
   },
   "browserify-shim": {
@@ -314,6 +315,12 @@
     },
     "jquery-deparam": {
       "exports": "$.deparam",
+      "depends": [
+        "jquery"
+      ]
+    },
+    "jquery-waypoints": {
+      "exports": "$.fn.waypoints",
       "depends": [
         "jquery"
       ]
