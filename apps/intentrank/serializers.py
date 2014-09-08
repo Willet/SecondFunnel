@@ -191,7 +191,7 @@ class PageConfigSerializer(object):
             # DEPRECATED (use intentRank:results)
             'IRAlgo': algorithm,
             # DEPRECATED (use intentRank:tileSet)
-            'IRTileSet': kwargs.get('tile_set', ''),
+            'IRTileSet': page.get('IRTileSet', kwargs.get('tile_set', '')),
             # DEPRECATED (use intentRank:reqNum)
             'IRReqNum': 0,
             # DEPRECATED (use intentRank:offset)
