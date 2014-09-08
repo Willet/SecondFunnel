@@ -24,6 +24,7 @@ body {
     border-right: none;
     line-height: 65px;
     white-space: nowrap;
+    position: relative;
 
     .logo {
         height: 46px;
@@ -47,6 +48,48 @@ body {
         a:hover {
             text-decoration: none;
             color: #ba0c2f;    
+        }
+    }
+
+    .social-area {
+        position: absolute;
+        right: 16px;
+        top: 2px;
+
+        a {
+            display: inline-block;
+            padding: 3px;
+        }
+        a .icon {
+            height: 14px;
+            width: 14px;
+            background-position: bottom center;
+            background-size: cover;
+        }
+        a:hover .icon {
+            background-position: top center;
+        }
+
+        a.facebook .icon {
+            background-image: url('/static/light/dotandbo/landingpage/default/images/facebook.png');
+        }
+        a.pinterest .icon {
+            background-image: url('/static/light/dotandbo/landingpage/default/images/pinterest.png');
+        }
+        a.twitter .icon {
+            background-image: url('/static/light/dotandbo/landingpage/default/images/twitter.png');
+        }
+        a.instagram .icon {
+            background-image: url('/static/light/dotandbo/landingpage/default/images/instagram.png');
+        }
+        a.tumblr .icon {
+            background-image: url('/static/light/dotandbo/landingpage/default/images/tumblr.png');
+        }
+        a.rss .icon {
+            background-image: url('/static/light/dotandbo/landingpage/default/images/rss.png');
+        }
+        a.plus .icon {
+            background-image: url('/static/light/dotandbo/landingpage/default/images/plus.png');
         }
     }
 }
@@ -100,6 +143,10 @@ body {
 @media screen and (max-width: 768px) {
     #apartment-therapy-header {
         .menu-bar {
+            display: none;
+        }
+
+        .social-area {
             display: none;
         }
     }
