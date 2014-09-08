@@ -3,6 +3,7 @@ Marionette = require("backbone.marionette")
 imagesLoaded = require('imagesLoaded')
 $ = require("jquery")
 _ = require("underscore")
+waypoints = require("jquery-waypoints") # register $.fn.waypoint
 
 module.exports = (module, App) ->
 
@@ -346,8 +347,7 @@ module.exports = (module, App) ->
             unless App.support.isAnAndroid()
                 $(document.body).removeClass "no-scroll"
 
-            if $.fn.waypoint
-                $(".stick-bottom", @$el).waypoint "destroy"
+            $(".stick-bottom", @$el).waypoint "destroy"
             return
 
         renderSubregions: (product) ->
