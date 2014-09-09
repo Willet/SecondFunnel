@@ -4,27 +4,6 @@ $ad-border-width: 0;
 
 @import 'src/components/ad/styles/base';
 
-@font-face {
-    font-family: "URWBaskerT";
-    src: url("//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/fonts/URWBaskerville.otf") format('opentype');
-}
-
-@font-face {
-    font-family: "URWBaskerT";
-    src: url("//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/fonts/URWBaskerville.ttf") format('truetype'),
-         url("//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/fonts/URWBaskerville.woff") format('woff');
-    font-weight: bold;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: "URWBaskerT";
-    src: url("//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/fonts/URWBaskerville-italic.ttf") format('truetype'),
-         url("//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/fonts/URWBaskerville-italic.woff") format('woff');
-    font-weight: bold;
-    font-style: italic;
-}
-
 html {
     border: transparent !important;
 }
