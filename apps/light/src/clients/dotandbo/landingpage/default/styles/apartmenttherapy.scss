@@ -1,7 +1,20 @@
 $header-height: 81px;
-$header-margin-top: 16px;
+$header-margin-top: 0;
 $header-margin-bottom: 32px;
 $sidebar-width: 192px;
+$sidebar-margin: 39px;
+
+@font-face {
+    font-family: "CirceWeb-Regular";
+    src: url("/static/light/dotandbo/landingpage/default/fonts/CirceWeb-Regular.ttf") format('truetype'),
+         url("/static/light/dotandbo/landingpage/default/fonts/CirceWeb-Regular.woff") format('woff');
+}
+
+@font-face {
+    font-family: "URWBaskerT";
+    src: url("/static/light/dotandbo/landingpage/default/fonts/URWBaskerville.ttf") format('truetype'),
+         url("/static/light/dotandbo/landingpage/default/fonts/URWBaskerville.woff") format('woff');
+}
 
 body {
     background-image: none;
@@ -11,7 +24,7 @@ body {
 
 #apartment-therapy-header,
 #apartment-therapy-sidebar {
-    font-family: "CirceWeb-Regular", "Helvetica Neue", Helvetica, Arial, "Roboto", sans-serif; //TODO get these fonts
+    font-family: "CirceWeb-Regular", "Helvetica Neue", Helvetica, Arial, "Roboto", sans-serif;
 }
 
 #apartment-therapy-header {
@@ -19,9 +32,7 @@ body {
     margin-top: $header-margin-top;
     margin-bottom: $header-margin-bottom;
     padding: 16px 32px 0 32px;
-    border: 1px solid #DDDDD3;
-    border-left: none;
-    border-right: none;
+    border-bottom: 1px solid #DDDDD3;
     line-height: 65px;
     white-space: nowrap;
     position: relative;
@@ -132,15 +143,25 @@ body {
 }
 
 #page-content {
-    padding-left: $sidebar-width;
+    padding-left: $sidebar-width + $sidebar-margin;
     width: 100%;
+
+    .navbar {
+        font-family: "URWBaskerT", Georgia, Times, "Times New Roman", "DroidSerif", serif;
+        font-style: normal;
+        font-size: 36px;
+        color: #000;
+    }
+    .navbar:hover {
+        color: #666;
+    }
 }
 
 #page-content > .container {
     width: auto;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 768px + $sidebar-margin * 3) {
     #apartment-therapy-header {
         .menu-bar {
             display: none;
