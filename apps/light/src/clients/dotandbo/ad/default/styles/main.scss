@@ -4,11 +4,6 @@ $ad-border-width: 0;
 
 @import 'src/components/ad/styles/base';
 
-@font-face {
-    font-family: "URWBaskerT";
-    src: url("//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/fonts/URWBaskerville.otf") format('opentype');
-}
-
 html {
     border: transparent !important;
 }
@@ -18,7 +13,7 @@ html, body, .container, #discovery-area {
 }
 
 body > .container {
-    padding: 20px;
+    padding: 2px;
     border: 1px #d0d0d0 solid;
 }
 
@@ -47,7 +42,7 @@ body {
 
 #topbar {
     font-family: "URWBaskerT", Georgia, Times, "Times New Roman", "DroidSerif", serif;
-    font-size: 20px;
+    font-size: 19px;
     text-rendering: optimizeLegibility;
     text-align: center;
 }
@@ -57,7 +52,11 @@ body {
 }
 
 .caption {
-    font-size: 12px;
+    display: none;
+}
+
+.tile {
+    padding: 2px;
 }
 
 html, body, .container {
