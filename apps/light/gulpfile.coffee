@@ -156,6 +156,7 @@ gulp.task "scripts", ["bower"], ->
                 map: "/#{static_serve_dir}/#{filenameRelative}.map"
                 # where the map file is saved to
                 output: "#{static_output_dir}/#{filenameRelative}.map"
+                minify: config.production
                 # conversions to make map paths relative (currently breaks browserify-shim)
                 #compressPath: (filepath) ->
                 #    return path.relative(__dirname, filepath)
