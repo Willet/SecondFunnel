@@ -2,7 +2,8 @@
 
 $ad-border-width: 0;
 
-@import 'src/components/ad/styles/base';
+@import "src/clients/dotandbo/landingpage/default/styles/apartmenttherapy.scss";
+@import "src/components/ad/styles/base";
 
 html {
     border: transparent !important;
