@@ -42,8 +42,7 @@ module.exports = function (module, App) {
 
         feed.removeTiles(tilesToRemove);
 
-        // TODO: This does *not* fix the memory leak but will prevent the ad unit from going blank
-        if (feed.$el.children().length < 20) {
+        if (feed.children.length < 20) {
             feed.pageScroll();
         }
 

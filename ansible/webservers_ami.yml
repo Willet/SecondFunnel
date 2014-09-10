@@ -126,6 +126,7 @@
             load_balancer_port: 80
             instance_port: 80
         health_check: "{{aws_lb.healthcheck}}"
+        connection_draining_timeout: 60
       register: load_balancer
 
 - name: "Setup auto-scaling group, scaling policies"
