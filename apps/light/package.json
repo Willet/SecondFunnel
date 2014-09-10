@@ -116,6 +116,7 @@
     "jquery-touchswipe": "./lib/jquery-touchswipe/jquery.touchSwipe.js",
     "jquery-deparam": "./lib/jquery-bbq-deparam/jquery-deparam.js",
     "jquery-waypoints": "./lib/jquery-waypoints/waypoints.js",
+    "jquery-waypoints-sticky": "./lib/jquery-waypoints/shortcuts/sticky-elements/waypoints-sticky.js",
     "owl-carousel": "./lib/owl-carousel/owl-carousel/owl.carousel.js"
   },
   "browserify-shim": {
@@ -323,6 +324,11 @@
       "exports": "$.fn.waypoints",
       "depends": [
         "jquery"
+      ]
+    },
+    "jquery-waypoints-sticky": {
+      "depends": [
+        "jquery", "jquery-waypoints"
       ]
     },
     "owl-carousel2": {

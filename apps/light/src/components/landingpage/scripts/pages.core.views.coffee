@@ -4,6 +4,7 @@ imagesLoaded = require('imagesLoaded')
 $ = require("jquery")
 _ = require("underscore")
 waypoints = require("jquery-waypoints") # register $.fn.waypoint
+waypoints_sticky = require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
 
 module.exports = (module, App) ->
 
