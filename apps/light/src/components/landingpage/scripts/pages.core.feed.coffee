@@ -233,6 +233,7 @@ class MasonryFeedView extends FeedView
     removeTiles: (tileViews) ->
         removeComplete = (masonry, removedItems) =>
             @collection.remove(_.map(tileViews, (view) -> view.model))
+            _.map(tileViews, (view) => @removeChildView(view))
             @masonry.layout()
         @masonry.on 'removeComplete', removeComplete
         @masonry.remove(_.map(tileViews, (view) -> view.$el[0]))
