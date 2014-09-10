@@ -54,6 +54,8 @@
         ec2_elbs: "{{aws_lb.name}}"
         region: "{{aws_region}}"
         state: "absent"
+        wait: yes
+        wait_timeout: 120
       ignore_errors: yes
       when: app_environment != "vagrant"
       tags: deploy
@@ -67,6 +69,8 @@
         ec2_elbs: "{{aws_lb.name}}"
         region: "{{aws_region}}"
         state: "present"
+        wait: yes
+        wait_timeout: 120
       ignore_errors: yes
       when: app_environment != "vagrant"
       tags: deploy
