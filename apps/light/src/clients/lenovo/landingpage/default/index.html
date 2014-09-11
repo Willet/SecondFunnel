@@ -127,7 +127,7 @@
         </script>
 
         <script type="text/template" id="video_tile_template">
-            <iframe src="<%- obj.url %>" width="100%" height="510" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+            <iframe src="<%- obj.url %>" width="100%" height="425" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
         </script>
 
         <script type="text/template" id="youtube_tile_template">
@@ -256,7 +256,7 @@
                         <div class="row">
                             <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
                                 <div class="cell desktop-only shop">
-                                    <div class="stl-title">shop the look</div>
+                                    <div class="stl-title">shop the family</div>
                                     <div class="stl-look">
                                         <% var related = obj['tagged-products']; %>
                                         <% for (var i = 0; i < related.length; i++) { %>
@@ -271,7 +271,7 @@
                                 <img src="<%= obj.images[0].url %>" alt="image" class="image"/>
                                     <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                                     <div class="landscape">
-                                        <div class="stl-title">shop the look</div>
+                                        <div class="stl-title">shop the family</div>
                                         <div class="stl-look">
                                             <% var related = obj['tagged-products']; %>
                                             <% for (var i = 0; i < related.length; i++) { %>
@@ -295,7 +295,7 @@
                             </div>
                             <% if (obj['tagged-products'].length > 1) { %>
                                 <div class="cell mobile-only">
-                                    <div class="stl-title">shop the look</div>
+                                    <div class="stl-title">shop the family</div>
                                     <div class="stl-look">
                                         <% var related = obj['tagged-products'] %>
                                         <% for (var i = 0; i < related.length; i++) { %>
