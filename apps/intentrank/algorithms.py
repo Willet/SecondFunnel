@@ -482,7 +482,7 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         percentage_content = float(feed.feed_ratio)
     percentage_product = 1 - percentage_content
     # round up and down by adding 0.5. thus correct number of products and content
-    num_content = int((results * percentage_content) + 0.5) # can anyone explain why this is better than "round()"?
+    num_content = int((results * percentage_content) + 0.5)
     num_product = int((results * percentage_product) + 0.5)
 
     contents = tiles.exclude(template='product')
@@ -519,21 +519,7 @@ def ir_mixed(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             print "returning {} prioritized tiles".format(prioritized_tiles.count())
             return prioritized_tiles
 
-    # make sure no video tiles touch each other.
-    # spacing by 5 ensures this.
-    video_queue = []
-    video_spacing = 5 # possibly make this 6 if they still touch each others' corners
-    for index, tile in enumerate(contents):
-        if tile.template in ["video", "youtube"]:
-            video_queue.append(contents.pop(index))
-        if video_spacing >= 5 and video_queue:
-            contents.insert(index, video_queue.pop(0))
-            video_spacing = 0
-        video_spacing += 1
-
-
-   # contents = list(contents.order_by('-clicks')[:num_content])
-
+    contents = list(contents.order_by('-clicks')[:num_content])
     products = list(products.order_by('-priority')[:num_product])
 
     tiles = contents + products
