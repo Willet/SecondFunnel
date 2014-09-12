@@ -142,15 +142,6 @@
             <div class='content'></div>
         </script>
 
-        <script type="text/template" id="product_tile_template">
-            <div class="tap-indicator-target"></div>
-            <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
-            <% if (App.option('debug', 0) > 1) { %>
-                <span class="type"><%= obj['content-type'] %></span>
-            <% } %>
-            <div class="name"><%= obj.title || obj.name %></div>
-        </script>
-
         <script type="text/template" id="image_tile_template">
             <div class="tap-indicator-target"></div>
             <div class='relative'>
@@ -440,7 +431,7 @@
     </div>
 
     <img src="{% url 'apps.tracking.views.pixel' %}"/>
-
+    @@include('shared/default_templates.html')
     <script type="text/javascript" src="/static/light/nastygal/landingpage/default/scripts/main.js" async></script>
 </body>
 </html>
