@@ -84,20 +84,6 @@
     @@include('shared/campaign_body.html')
 
     <div>
-        <script type="text/template" id="shopthelook_template">
-            <div class='featured product'>
-                <img class='img-responsive pull-left' src='<%= obj.defaultImage.url %>' />
-                <div class='pull-right'><%= obj.title || obj.name %></div>
-                    <div class='price'><%= obj.price %></div>
-                    <div>
-                        <a href='<%= obj.url %>' target='_blank'>BUY NOW</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class='spacer'></div>
-        </script>
-
         <script type="text/template" id="youtube_tile_template">
             <div class="img-responsive thumbnail"
                  style="background-image: url('<%= obj.thumbnail || obj.images[0].url %>');">
