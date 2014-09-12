@@ -55,7 +55,6 @@ class CrocsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         if sel_price.css('span'):
             l.add_css('price', 'span[style*="line-through"]::text')
             price = sel_price.css('span.saleRedText::text').extract()[0]
-            print price
             attributes['sale_price'] = price[price.index('$'):]
         else:
             l.add_css('price', 'h3.price::text')
