@@ -8,7 +8,7 @@ $icon-font-path: "/static/light/fonts/";
 $newegg-bg-color: #F0EADB;
 
 body {
-  background: $newegg-bg-color;
+  background: #000;
 }
 
 body > .container {
@@ -17,11 +17,25 @@ body > .container {
 }
 
 /* enable fluid width */
-.jumbotron { width: auto; }
-#discovery-area { width: auto; }
-.navbar { width: auto; }
-.tile { width: 25%; }
-.tile.wide { width: 50% }
+.jumbotron {
+    width: auto;
+    border: none;
+}
+
+#discovery-area {
+    width: auto;
+}
+
+.navbar {
+    width: auto;
+}
+
+.tile {
+    width: 33%;
+}
+.tile.wide {
+    width: 33%
+}
 /* end:enable enable fluid width s*/
 
 #hero-area {
@@ -38,11 +52,17 @@ body > .container {
     padding: 10px;
 }
 
-.tile.youtube {
-    height: 280px;
+.tile.wide {
+    min-height: inherit;
 }
 
-.tile.youtube .thumbnail {
+.tile.youtube, .tile.youtube.wide {
+    height: 196px;
+}
+
+.tile.youtube div.thumbnail,
+.tile.wide.youtube div.thumbnail {
+    height: 196px;
     border: none;
 }
 
