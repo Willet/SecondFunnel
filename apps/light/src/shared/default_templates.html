@@ -1,3 +1,19 @@
+<script type="text/template" id="hero_template">
+    <div class="hero-image-wrapper">
+        <div class="visible-xs jumbotron">
+            <img src="{{ mobile_hero_image }}" alt="Hero" />
+        </div>
+        <div class="hidden-xs jumbotron">
+            <img src="{{ desktop_hero_image }}" alt="Hero" />
+        </div>
+    </div>
+    {% if legal_copy %}
+        <div class="legal us">
+            {{ legal_copy }}
+        </div>
+    {% endif %}
+</script>
+
 <script type="text/template" id="category_template">
     <span><%= obj.name %></span>
 </script>
