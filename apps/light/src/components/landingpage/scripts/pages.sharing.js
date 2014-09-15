@@ -34,15 +34,7 @@ module.exports = function (sharing, App) {
             'facebook': '//facebook.com/sharer/sharer.php?u=<%= url %>',
             'twitter': '//twitter.com/share?url=<%= url %>',
             'tumblr': '//tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= landing %>',
-            'pinterest': '//pinterest.com/pin/create/button/?url=<%= url %>',
-
-            // Auxiliary ones
-            'google+': '//plus.google.com/share?url=<%= url %>',
-            'reddit': '//reddit.com/submit?url=<%= url %>',
-            'email': 'mailto: ?subject=<%= title %>&body=<%= caption %>%20<%= url %>',
-            'digg': '//digg.com/submit?url=<%= url %>',
-            'blogger': '//blogger.com/blog-this.g?t=<%= caption %>&u=<%= url %>&n=<%= title %>',
-            'stumbleupon': '//stumbleupon.com/submit?url=<%= url %>'
+            'pinterest': '//pinterest.com/pin/create/button/?url=<%= url %>'
         }, App.option('shareSources'));
 
     /**
@@ -274,121 +266,6 @@ module.exports = function (sharing, App) {
             } catch (err) {
                 console.warn('Could not load twitter');
             }
-            return this;
-        }
-    });
-
-    /**
-     * The 'share this' button that opens a 'share this' popup
-     *
-     * @constructor
-     * @alias sharing.ShareSocialButton
-     * @type {SocialButton}
-     */
-    this.ShareSocialButton = sharing.SocialButton.extend({
-        'events': {
-            'click': function (ev) {
-                // Creates a new popup instead of the default action
-                ev.stopPropagation();
-                ev.preventDefault();
-                var popup = new sharing.SharePopup({
-                    'url': this.options.url,
-                    'model': this.options.model,
-                    'showCount': this.options.showCount
-                });
-                popup.render();
-            }
-        },
-
-        'onTemplateHelpers': function (helpers) {
-            // Catch url for reference on click
-            this.options.url = helpers.url;
-            return helpers;
-        }
-    });
-
-    /**
-     * Displays a popup that provides the viewer with a plethora of other
-     * social share options as defined by the designer/developer.
-     *
-     * @constructor
-     * @alias sharing.SharePopup
-     * @type {ItemView}
-     */
-    this.SharePopup = Marionette.ItemView.extend({
-        'tagName': 'div',
-        'className': 'shareContainer previewContainer',
-        'template': '#share_popup_template',
-        'buttons': App.option('shareSocialButtons'),
-
-        'events': {
-            'click .close, .mask': function (ev) {
-                this.$el.cssFadeOut(100).remove();
-                this.unbind();  // Removes all callbacks on `this`.
-                this.views = [];
-            }
-        },
-
-        'onRender': function () {
-            var self = this;
-
-            this.$el.css({'display': 'table'});
-            $('body').append(this.$el.cssFadeIn(100));
-
-            // this.buttons = ['facebook', 'twitter', 'tumblr', ...]
-            if (!(this.buttons && this.buttons.length)) {
-                this.buttons = _.map(sources, function (obj, key) {
-                    return key;
-                });
-            }
-
-            _.each(this.buttons, function (button) {
-                var share = new sharing.ShareOption(_.extend({
-                    'type': button
-                }, self.options));
-                share.render();
-
-                if (!share.isClosed) {
-                    self.$('.share').append(share.$el);
-                }
-            });
-        }
-    });
-
-    /**
-     * A View for each share option within the 'share this' dialogue.
-     *
-     * @constructor
-     * @alias sharing.ShareOption
-     * @type {ItemView}
-     */
-    this.ShareOption = Marionette.ItemView.extend({
-        'tagName': 'div',
-        'className': 'button',
-        'templates': [
-            '#<%= data.type %>_share_popup_option_template'
-        ],
-        'template': '#share_popup_option_template',
-
-        'templateHelpers': function () {
-            var uri = App.sharing.get(this.options.type),
-                helpers = {};
-            if (uri) {
-                helpers.url = _.template(uri,
-                    _.extend({
-                        'landing': encodeURIComponent(window.location),
-                        'title': document.title
-                    }, this.options, this.model.attributes));
-            } else {
-                helpers.url = window.location;
-            }
-            helpers.text = _.capitalize(this.options.type);
-            return helpers;
-        },
-
-        'onRender': function () {
-            this.$el.addClass((this.options.type + '_share').replace(/[+\-]/g,
-                ''));
             return this;
         }
     });

@@ -18,6 +18,10 @@ $icon-font-path: "/static/light/fonts/";
     font-family: georgia, times, serif;
 }
 
+#hero-area .previewContainer .content {
+    border: none;
+}
+
 .previewContainer .content {
     border: 2px solid #2087cc;
 }

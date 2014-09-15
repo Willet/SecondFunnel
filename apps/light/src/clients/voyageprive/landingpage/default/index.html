@@ -183,11 +183,6 @@
     @@include('shared/campaign_body.html')
 
     <div>
-        <!-- generic templates -->
-        <script type="text/template" id="category_template">
-            <span><%= obj.name %></span>
-        </script>
-
         <script type="text/template" id="shopthelook_template">
             <div class="jumbotron"
                  style='background-image: url("<%= obj.defaultImage.width(1024) %>");
@@ -451,28 +446,6 @@
             </a>
         </script>
 
-        <script type="text/template" id="preview_container_template">
-            <div class="tablecell">
-                <div class="content">
-                    <span class="close">&#x00D7;</span>
-                    <div class="scrollable">
-                        <div class="template target"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="mask"></div>
-        </script>
-
-        <script type="text/template" id="tile_preview_template">
-            <h2><span class="label label-info"><%= obj.template %>_preview_template</span> is missing.</h2>
-            <p>You can define one in your template.</p>
-            <ul>
-                <% for (i in obj) { %>
-                    <li><b><%= i %></b>: <%= obj[i] %></li>
-                <% } %>
-            </ul>
-        </script>
-
         <!-- custom templates -->
         <script type="text/template" id="hero_template">
             <div class="hero-image-wrapper">
@@ -542,7 +515,9 @@
     </script>
     <!-- stop : Eulerian Analytics - officiel-vacances -->
     {% endif %}
-
+    <div>
+        @@include('shared/default_templates.html')
+    </div>
     <script type="text/javascript" src="/static/light/voyageprive/landingpage/default/scripts/main.js" async></script>
 </body>
 </html>

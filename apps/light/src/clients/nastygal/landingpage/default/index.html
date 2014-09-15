@@ -122,15 +122,6 @@
     @@include('shared/campaign_body.html')
 
     <div>
-        <!-- generic templates -->
-        <script type="text/template" id="category_template">
-            <span><%= obj.name %></span>
-        </script>
-
-        <script type="text/template" id="product_description_template">
-            <span><%= obj.description %></span>
-        </script>
-
         <script type="text/template" id="shopthelook_template">
             <% if (App.support.mobile) { %>
                 <div class="hero-image-wrapper">
@@ -140,35 +131,6 @@
                 </div>
             <% } %>
             <div class='content'></div>
-        </script>
-
-        <script type="text/template" id="product_tile_template">
-            <div class="tap-indicator-target"></div>
-            <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
-            <% if (App.option('debug', 0) > 1) { %>
-                <span class="type"><%= obj['content-type'] %></span>
-            <% } %>
-            <div class="name"><%= obj.title || obj.name %></div>
-        </script>
-
-        <script type="text/template" id="image_tile_template">
-            <div class="tap-indicator-target"></div>
-            <div class='relative'>
-                <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
-            </div>
-            <% if (App.option("debug", 0) > 1) { %>
-                <span class="type"><%= obj["content-type"] %></span>
-            <% } %>
-        </script>
-
-        <script type="text/template" id="youtube_tile_template">
-            <div class="img-responsive thumbnail"
-                 style="background-image: url('<%= obj.thumbnail || obj.images[0].url %>');">
-              &nbsp;
-              <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
-            </div>
-            <%= obj.caption || obj.name %>
-            <div class="social-buttons"></div>
         </script>
 
         <script type="text/template" id="preview_container_template">
@@ -181,16 +143,6 @@
                 </div>
             </div>
             <div class="mask"></div>
-        </script>
-
-        <script type="text/template" id="tile_preview_template">
-            <h2><span class="label label-info"><%= obj.template %>_preview_template</span> is missing.</h2>
-            <p>You can define one in your template.</p>
-            <ul>
-                <% for (i in obj) { %>
-                    <li><b><%= i %></b>: <%= obj[i] %></li>
-                <% } %>
-            </ul>
         </script>
 
         <script type="text/template" id="facebook_social_button_template">
@@ -229,14 +181,6 @@
             </div>
         </script>
 
-        <script type="text/template" id="product_price_template">
-            <%- obj.price %>
-        </script>
-
-        <script type="text/template" id="product_title_template">
-            <%- obj.title || obj.name %>
-        </script>
-
         <script type="text/template" id="product_buy_template">
             <a class='button' href='<%= obj.url %>' target='_blank'>
                 <i class="shop-icon"></i>
@@ -244,32 +188,6 @@
                     SHOP NOW
                 </div>
             </a>
-        </script>
-
-        <script type="text/template" id="product_galleryMainImage_template">
-            <div class="main-image-container">
-                <% if (obj.images.length > 1) { %>
-                    <div class="gallery-swipe-left"></div>
-                    <div class="gallery-swipe-right"></div>
-                <% } %>
-                <div class="main-image">
-                    <% for (var i = 0; i < obj.images.length; i++) { %>
-                        <img class="image" src="<%- obj.images[i].url %>" />
-                    <% } %>
-                </div>
-            </div>
-        </script>
-
-        <script type="text/template" id="product_gallery_template">
-            <% for (var i = 0; i < obj.images.length; i++) { %>
-                <img class="item" src="<%- obj.images[i].url %>" />
-            <% } %>
-        </script>
-
-        <script type="text/template" id="product_galleryDots_template">
-            <% for (var i = 0; i < obj.images.length; i++) { %>
-                <div class="item"></div>
-            <% } %>
         </script>
 
         <script type="text/template" id="product_preview_template">
@@ -403,23 +321,6 @@
                 </div>
             <% } %>
         </script>
-
-        <!-- custom templates -->
-        <script type="text/template" id="hero_template">
-            <div class="hero-image-wrapper">
-                <div class="visible-xs jumbotron">
-                    <img class="image" src="{{ mobile_hero_image }}" alt="Hero" />
-                </div>
-                <div class="hidden-xs jumbotron">
-                    <img class="image" src="{{ desktop_hero_image }}" alt="Hero" />
-                </div>
-            </div>
-            {% if legal_copy %}
-                <div class="legal us">
-                    {{ legal_copy }}
-                </div>
-            {% endif %}
-        </script>
     </div>
 
     <div id="main" class="container">
@@ -440,7 +341,9 @@
     </div>
 
     <img src="{% url 'apps.tracking.views.pixel' %}"/>
-
+    <div>
+        @@include('shared/default_templates.html')
+    </div>
     <script type="text/javascript" src="/static/light/nastygal/landingpage/default/scripts/main.js" async></script>
 </body>
 </html>
