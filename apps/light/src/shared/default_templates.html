@@ -51,3 +51,14 @@
     </div>
     <div class="mask"></div>
 </script>
+
+<script type="text/template" id="product_price_template">
+    <% if (obj.sale_price) { %>
+        <div class="strike inline">
+            <%- obj.price %>
+        </div>
+        <%- obj.sale_price %>
+    <% } else { %>
+        <%- obj.price %>
+    <% } %>
+</script>
