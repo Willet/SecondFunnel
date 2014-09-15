@@ -818,7 +818,9 @@
         }());
     </script>
     <img src="{% url 'apps.tracking.views.pixel' %}"/>
-    @@include('shared/default_templates.html')
+    <div>
+        @@include('shared/default_templates.html')
+    </div>
     <script type="text/javascript" src="/static/light/gap/landingpage/default/scripts/main.js" async></script>
 </body>
 </html>
