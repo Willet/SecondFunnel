@@ -86,7 +86,6 @@
 
     <div>
         <script type="text/template" id="product_tile_template">
-            <div class="tap-indicator-target"></div>
             <div class="img-wrapper">
                 <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
                 <div class="quick-view"><span>Quick View</span></div>
@@ -110,7 +109,6 @@
             </script>
 
             <script type="text/template" id="image_tile_template">
-              <div class="tap-indicator-target"></div>
               <div class='relative'>
                   <img class="focus" src="<%= obj.images[0].url %>" alt="<%= obj.caption %>" />
               </div>
@@ -185,14 +183,6 @@
             <div class="button tumblr">
                 <a href="http://www.tumblr.com/share/photo?source=<%= image %>&caption=<%= cleanDesc %>&click_thru=<%= url %>"
                      target='_blank'><img src="/static/light/nastygal/landingpage/default/images/tumblr.png"/></a>
-            </div>
-        </script>
-
-
-        <script type="text/template" id="tap_indicator_template">
-            +
-            <div>
-                <%= App.option('tapIndicatorText', 'tap to see more') %>
             </div>
         </script>
 
