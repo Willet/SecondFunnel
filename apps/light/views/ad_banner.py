@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext, loader
 from django.views.decorators.cache import cache_page, cache_control
@@ -16,7 +16,16 @@ from apps.light.utils import get_algorithm
 @cache_page(60 * 1, key_prefix="ad-")
 def ad_banner(request, page_id):
     """Generates the page for a standard pinpoint banner ad."""
-    page = get_object_or_404(Page, id=page_id)
+
+    # page_id might be either the slug or the id.
+    # try it as a slug, then as an id, then give up.
+    try:
+        page = get_object_or_404(Page, url_slug=page_id)
+    except Http404 as e:
+        try:
+            page = get_object_or_404(Page, id=page_id)
+        except (Http404, ValueError): # not sure which one would happen first
+            raise e
 
     # grab required assets
     store = page.store
