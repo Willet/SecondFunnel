@@ -108,13 +108,14 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <a class='button lenovo' href='<%= obj.url %>' target='_blank'>
-                Shop on Lenovo
-            </a>
             <% if (obj.neweggUrl) { %>
                 <a class='button newegg' href='<%= obj.neweggUrl %>' target='_blank'>
                     Shop on Newegg
                     <div class="arrow"></div>
+                </a>
+            <% } else { %>
+                <a class='button lenovo' href='<%= obj.url %>' target='_blank'>
+                    Shop on Lenovo
                 </a>
             <% } %>
         </script>
