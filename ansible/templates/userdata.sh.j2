@@ -24,7 +24,7 @@ ssh-add $DEPLOY_KEY
 
 # The github.com host-key sometimes changes,
 # so lets just remove it so this always succeeds
-ssh-keygen -R github.com
+# ssh-keygen -R github.com
 
 # create temporary environment file
 echo -e "[$APP_ENVIRONMENT]\nlocalhost" > $INVENTORY_FILE
