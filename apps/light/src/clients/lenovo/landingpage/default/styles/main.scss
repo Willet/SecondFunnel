@@ -78,6 +78,16 @@ body > .container {
     vertical-align: middle;
 }
 
+.previewContainer .cell.shop {
+    width: 120px;
+    text-transform: capitalize;
+}
+
+.previewContainer .stl-look .stl-item {
+    font-size: 9px;
+    white-space: normal;
+}
+
 .previewContainer .info .title {
     font-size: 20px;
     font-weight: bold;
@@ -137,6 +147,10 @@ body > .container {
 @media screen and (max-width: 768px) {
     .previewContainer .content {
         padding-top: 18px;
+    }
+
+    .previewContainer .stl-look .stl-item {
+        font-size: 12px;
     }
 }
 
