@@ -7,7 +7,7 @@ module.exports = function (module, App) {
     this.timer = undefined;
 
     this.initialize = function () {
-        this.timer = setInterval(this.refreshFeed, 8000);
+        this.timer = setInterval(this.refreshFeed, App.option('adRefreshTime', 8000));
     };
 
     this.refreshFeed = function () {

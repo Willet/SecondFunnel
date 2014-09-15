@@ -1,1 +1,0 @@
-echo Defaults:root \!requiretty >> /etc/sudoers

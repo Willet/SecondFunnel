@@ -1,3 +1,0 @@
-cd /opt/python/current/app
-source ../../../run/venv/bin/activate
-source ../env
