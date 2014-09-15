@@ -66,6 +66,10 @@ body > .container {
     border: none;
 }
 
+.tile .overlay .products {
+    font-size: 15px;
+}
+
 .previewContainer .close {
     padding: 6px;
 }
@@ -75,7 +79,8 @@ body > .container {
 }
 
 .previewContainer .info .title {
-    font-size: 26px;
+    font-size: 20px;
+    font-weight: bold;
     text-align: left;
  }
 

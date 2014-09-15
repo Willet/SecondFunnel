@@ -93,11 +93,13 @@
                             <div class="bold">
                                 Shop product
                             </div>
-                            <% if (obj['tagged-products'].length) { %>
-                                <div>
-                                    <%- obj['tagged-products'][0].name %>
-                                </div>
-                            <% } %>
+                            <div class="products">
+                                <% if (obj['tagged-products'].length) { %>
+                                    <div>
+                                        <%- obj['tagged-products'][0].name %>
+                                    </div>
+                                <% } %>
+                            </div>
                         </div>
                     </div>
                 </div>
