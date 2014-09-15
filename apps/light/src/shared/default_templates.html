@@ -24,7 +24,6 @@
 
 <script type="text/template" id="product_tile_template">
     <div class="tile-border">
-        <div class="tap-indicator-target"></div>
         <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
         <% if (App.option('debug', 0) > 1) { %>
             <span class="type"><%= obj['content-type'] %></span>
@@ -34,7 +33,6 @@
 </script>
 
 <script type="text/template" id="image_tile_template">
-    <div class="tap-indicator-target"></div>
     <div class='relative'>
         <img class="focus" src="<%= obj.images[0].url %>" alt="<%= obj.caption %>" />
     </div>

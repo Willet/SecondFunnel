@@ -271,16 +271,6 @@
             </div>
         </script>
 
-        <script type="text/template" id="reddit_social_button_template">
-            <div class="button reddit">
-                <a href="http://www.reddit.com/submit"
-                   onclick="window.location = 'http://www.reddit.com/submit?url=<%= url %>'; return false"
-                  ><img src="http://www.reddit.com/static/spreddit7.gif"
-                       alt="submit to reddit"
-                       border="0" /></a>
-            </div>
-        </script>
-
         <script type="text/template" id="tumblr_social_button_template">
             <% var desc = caption || description || name; %>
             <% var cleanDesc = desc.replace(/<(?:.|\n)*?>/gm, ''); %>
