@@ -24,7 +24,7 @@ urlpatterns = patterns(
 
     # APPS
     url(r'^assets/', include('apps.assets.urls')),
-    url(r'^ads/(?P<page_id>\d+)/?$', 'apps.light.views.ad_banner'),
+    url(r'^ads/(?P<page_id>[-\w]+)/?$', 'apps.light.views.ad_banner'),
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
     url(r'^imageservice/', include('apps.imageservice.urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
