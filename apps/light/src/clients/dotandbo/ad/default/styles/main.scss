@@ -60,6 +60,10 @@ body {
     padding: 2px;
 }
 
+.tile .name {
+    display: none;
+}
+
 html, body, .container {
     overflow: hidden;
 }
