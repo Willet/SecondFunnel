@@ -84,15 +84,13 @@ class FeedView extends Marionette.CollectionView
     # TODO: weird location for this function
     categoryChanged: (event, category) ->
         App.tracker.changeCategory(category)
-        if @isLoading
-            # TODO: better ways to handle this case (bacon.js?)
-            @lastRequest.done =>
-                @resetTiles()
-        else
-            @resetTiles()
+        @resetTiles()
 
     resetTiles: () ->
+        @lastRequest.abort()
+        @isLoading = false
         @empty()
+        @children.each (childView) => @removeChildView(childView)
         @ended = false
         $(".loading").show() # DEFER: hack
         @fetchTiles()
