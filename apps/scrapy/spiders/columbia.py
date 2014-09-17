@@ -50,8 +50,9 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         l.add_css('details', '.pdpDetailsContent div::text')
 
-        # Hack
         img_urls = sel.css('img.s7productthumbnail::attr(data-m-src)').extract()
+        # Hack
+        # get same product imgs with all the different colors
         colors = ['_' + href.split('=')[-1] + '_' for href in sel.css('ul.variationcolor li a::attr(href)').extract()]
         colored_img_urls = []
         for img_url in img_urls:
@@ -60,7 +61,7 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_value('image_urls', colored_img_urls)
 
         attributes = {}
-        if len(sel.css('div.product-price span')) > 1:
+        if len(sel.css('div.product-price span')) > 1: # on sale
             l.add_css('price', 'span.price-standard::text')
             sale_price = sel.css('span.price-sales::text')[0].extract()
             attributes['sale_price'] = sale_price[sale_price.index('$'):].strip()
