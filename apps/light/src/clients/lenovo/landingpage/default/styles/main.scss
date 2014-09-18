@@ -74,6 +74,10 @@ body > .container {
     padding: 6px;
 }
 
+.previewContainer .cell {
+    padding: 0 10px;
+}
+
 .previewContainer .cell.image-cell {
     vertical-align: middle;
 }
@@ -83,6 +87,11 @@ body > .container {
     text-transform: capitalize;
 }
 
+.previewContainer .stl-look {
+    width: auto;
+    max-height: 625px;
+}
+
 .previewContainer .stl-look .stl-item {
     font-size: 9px;
     white-space: normal;
@@ -90,6 +99,7 @@ body > .container {
 
 .previewContainer .info .title {
     font-size: 20px;
+    line-height: 22px;
     font-weight: bold;
     text-align: left;
  }
@@ -103,6 +113,10 @@ body > .container {
     font-size: 24px;
     color: red;
  }
+
+.previewContainer .buy {
+    text-align: left;
+}
 
 .previewContainer .buy .button {
     padding: 5px 10px;
@@ -149,8 +163,18 @@ body > .container {
         padding-top: 18px;
     }
 
+    .previewContainer .cell {
+        padding: 5px 0;
+    }
+
     .previewContainer .stl-look .stl-item {
         font-size: 12px;
+    }
+
+    .previewContainer .title,
+    .previewContainer .price,
+    .previewContainer .buy {
+        padding: 0 10px;
     }
 }
 

@@ -9,12 +9,12 @@ date '+%Y-%m-%d %H:%M:%S'
 
 APP_ENVIRONMENT={{app_environment}}
 GIT_BRANCH={{git_branch}}
-PLAYBOOK=ansible/webservers.yml
+PLAYBOOK_REPO_FILE=ansible/webservers.yml
 TAGS=deploy
-REPO_NAME=SecondFunnel
+CHECKOUT_FOLDER={{secondfunnel_directory}}/userdata_checkout
 GIT_REPO=git@github.com:Willet/SecondFunnel.git
 DEPLOY_KEY={{secondfunnel_directory}}/willet_deploy_key_id_rsa
-INVENTORY_FILE=~/ansible_local_inventory
+INVENTORY_FILE={{secondfunnel_directory}}/ansible_userscript_inventory
 
 # start the ssh-agent, and set it up in the current shell
 eval `ssh-agent`
@@ -22,21 +22,21 @@ eval `ssh-agent`
 # add the deploy key to the running ssh-agent
 ssh-add $DEPLOY_KEY
 
-# The github.com host-key sometimes changes,
-# so lets just remove it so this always succeeds
-# ssh-keygen -R github.com
+# create ansible inventory file for deployment
+echo -e "localhost ansible_connection=local\n" > $INVENTORY_FILE
+echo -e "[$APP_ENVIRONMENT]\nlocalhost\n" >> $INVENTORY_FILE
+echo -e "[webservers]\nlocalhost\n" >> $INVENTORY_FILE
 
-# create temporary environment file
-echo -e "[$APP_ENVIRONMENT]\nlocalhost" > $INVENTORY_FILE
-
-# git clone the repo (for ansible playbooks),
-# and then run the ansible playbook against the localhost
-cd ~/
-git clone --branch $GIT_BRANCH --single-branch --depth 1 $GIT_REPO $REPO_NAME
-cd $REPO_NAME
-ansible-playbook -i $INVENTORY_FILE -e app_environment=$APP_ENVIRONMENT $PLAYBOOK -t $TAGS
+# git clone the code repository (for ansible playbooks),
+# and then run the ansible playbook against the inventory made for localhost
+cd {{secondfunnel_directory}}
+git clone --branch $GIT_BRANCH --single-branch --depth 1 $GIT_REPO $CHECKOUT_FOLDER
+cd $CHECKOUT_FOLDER
+chmod -R a+rX $CHECKOUT_FOLDER $INVENTORY_FILE
+chown -R willet:willet $CHECKOUT_FOLDER $INVENTORY_FILE
+sudo -H -u willet /usr/bin/zsh -c "ansible-playbook -i $INVENTORY_FILE -e app_environment=$APP_ENVIRONMENT $PLAYBOOK_REPO_FILE -t $TAGS"
 cd -
 
 # cleanup
-rm -rf $REPO_NAME $INVENTORY_FILE
+rm -rf $CHECKOUT_FOLDER $INVENTORY_FILE
 echo END
