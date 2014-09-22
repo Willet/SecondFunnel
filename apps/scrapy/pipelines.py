@@ -3,7 +3,7 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from collections import defaultdict
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from urlparse import urlparse
@@ -179,21 +179,35 @@ class CategoryPipeline(object):
 
         # if categories are given, add them
         categories = item.get('attributes', {}).get('categories', [])
-        for name, url in categories:
-            self.add_to_category(item, name, url)
+        for name in categories:
+            self.add_to_category(item, name)
 
         return item
 
-    def add_to_category(self, item, name, url=None):
+    def add_to_category(self, item, name):
         kwargs = {
             'store': item['store'],
-            'name': name
+            'name__iexact': name # django field lookup "iexact", meaning: ignore case
         }
 
-        if url:
-            kwargs['url'] = url
+        # temporary, we're clearing out duplicate categories.
+        # Should dissociate all the products from all the different categories
+        # and associate them with the "good" one (whichever has lowest id),
+        # then delete the "bad" category.
+        try:
+            category, _ = Category.objects.get_or_create(**kwargs)
+        except MultipleObjectsReturned:
+            print "Killing categories"
+            categories = Category.objects.filter(**kwargs).order_by('id')
+            category = categories[0]
+            category.name = category.name.lower()
+            print "keeping category", category.name
+            for duplicate_category in categories[1:]:
+                print "\tkilling:", duplicate_category.name
+                category.products.add(*duplicate_category.products.all())
+                print "\ttransferred", duplicate_category.products.all(), "products"
+                duplicate_category.delete()
 
-        category, _ = Category.objects.get_or_create(**kwargs)
         category.save()
 
         try:
