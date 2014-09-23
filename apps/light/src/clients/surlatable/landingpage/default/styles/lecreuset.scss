@@ -6,7 +6,6 @@
     text-align: left;
     font-size: 12px;
     line-height: 1.5;
-    z-index: 1000;
 }
 
 .header-links-bar a {
@@ -39,7 +38,6 @@
     float: left;
     text-align: center;
     position: relative;
-    z-index: 911;
     font-size: 14px;
     cursor: pointer;
     border-radius: 5px 5px 0 0;
@@ -48,6 +46,8 @@
 }
 
 .topNavWrapper:hover .dropdown-label {
+    //position: absolute;
+    z-index: 10;
     color: #e37b00;
     border: 1px solid #e37b00;
     border-bottom: none;
@@ -74,7 +74,7 @@
     font-size: 14px;
     padding: 10px 20px;
     line-height: 1.5;
-    z-index: 910;
+    z-index: 9;
     min-width: 127px;
 }
 
