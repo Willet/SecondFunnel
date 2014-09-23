@@ -5,13 +5,22 @@ as the first positional argument, with all other arguments being kwargs.
 
 All algorithms must return <QuerySet>.
 """
-import random
+from collections import deque
 from functools import partial, wraps
+import random
 
 from django.conf import settings
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from apps.assets.models import Tile
-from apps.utils.functional import result, sort_helper
+from apps.intentrank.models import TileList
+from apps.utils.functional import result, sort_helper, int_or_0, pluck, none_of
+
+
+def randomize(tiles):
+    # produce random sampling without replacement
+    for tile in random.sample(tiles, len(tiles)):
+        yield tile
 
 
 def ids_of(tiles):  # shorthand (got too annoying)
@@ -743,44 +752,180 @@ def ir_ordered_by(attribute='created_at', reversed_=False):
     return algo
 
 
-@filter_tiles
-def ir_finite_sale(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                   offset=0, allowed_set=None, exclude_set=None,
-                   *args, **kwargs):
-    """Outputs tiles, based on tiles' products' discount, in offset slices."""
+@returns_qs
+def ir_magic(tiles, request, feed, *args, **kwargs):
+    """Motherfucking magic, motherfuckers"""
+    n = settings.INTENTRANK_DEFAULT_NUM_RESULTS  # want 'n tiles'
 
-    def sort_fn(tile):
-        """Turns a tile into a number"""
+    # round up and down by adding 0.5. thus correct number of products and content
+    try:
+        n_content = int(n * float(feed.feed_ratio) + 0.5)
+        n_product = n - n_content
+    except (AttributeError, ValueError):
+        # feed is None or whatever... just 50:50
+        n_content = n_product = n / 2
 
-        def parse_int(string):
-            if not string:
-                return 0
-            return int(''.join([x for x in string if x.isdigit()]))
+    min_same_tile_distance = 7  # how far until a tile can repeat itself
+    min_same_type_distance = 1  # how far until a <type> tile can be shown again
+    results = TileList()
+    _tiles = qs_for(list(tiles))  # copy for resets
+    req_num = int_or_0(request.GET.get('reqNum', 0))
+    shown_tile_ids = request.session.get('shown', [])
 
-        products = list(tile.products.all())
-        for content in tile.content.all():
-            products.extend(list(content.tagged_products.all()))
+    def prefetch(qs):
+        return qs.select_related('products', 'content')\
+                 .prefetch_related('products', 'content')
 
-        discounts = [
-            parse_int(
-                product.attributes.get('discount', product.attributes.get('sale_price', 0))
-            ) for product in products
-        ]
-        if discounts:
-            max_sale = max(discounts)
+    # prefetch things we need in this algorithm
+    # (tiles are ordered by priority, random for equal priorities)
+    shown_tiles = prefetch(Tile.objects.filter(id__in=shown_tile_ids))
+    tiles = prefetch(qs_for(tiles=tiles).order_by('-priority', '?'))
+
+    def get_tilesets(qs):
+        """:returns multiple related <QuerySet>s turned into <list>s."""
+        return (
+            list(qs),
+            list(qs.filter(template='product')),
+            list(qs.exclude(template='product')),  # includes "banner"
+            list(qs.filter(content__url__icontains="gif")),
+            # youtube, instagram, or whatever else declares itself as video
+            list(qs.filter(Q(template="video") |
+                           Q(content__url__icontains="youtube") |
+                           Q(content__url__contains="/embed"))))
+
+    def pick(available_tiles):
+        """based on context outside this function, yield one tile,
+        from tiles (available tile pool), that should be next in results.
+
+        WARNING: 'results' changes outside function
+
+        :returns None if no tiles match
+        """
+        if not available_tiles:
+            return
+
+        for idx, tile in enumerate(available_tiles):
+            # not results = this feed has no prioritized tiles
+            # hence no restrictions
+            tile_id = tile.id
+            if not results:
+                print "queueing {} {} (no results)".format(tile.template, tile.id)
+                yield tile
+                continue
+
+            history = TileList(shown_tiles) + TileList(results)
+            cids = ids_of(history)
+
+            # tile must be far from itself (1)
+            if tile_id in cids[-min_same_tile_distance:]:
+                print "rejecting {} {} (too close to itself)".format(tile.template, tile.id)
+                continue
+
+            templates = list(pluck(history, 'template', 'product'))
+            results_templates = list(pluck(results, 'template', 'product'))
+            product_count = results_templates.count('product')
+            content_count = len(results_templates) - product_count
+
+            # tile should not be close/next to one of the same type
+            if tile.template in templates[-min_same_type_distance:]:
+                print "rejecting {} {} {} (too close to same type)".format(tile.template, tile.id, idx)
+                continue
+
+            # meet tile counts by type
+            if tile.template == 'product' and product_count < n_product:
+                print "queueing {} {}".format(tile.template, tile.id)
+                yield tile
+                continue
+            elif tile.template != 'product' and content_count < n_content:
+                print "queueing {} {}".format(tile.template, tile.id)
+                yield tile
+                continue
+            else:
+                a = 5
+
+        # you reach this point because there are no "good tiles" left
+        # (loosen restrictions)
+        available_tiles = available_tiles.order_by('?')
+        for tile in available_tiles:
+            # tile must still be away from itself
+            if tile.template in results.ids[-min_same_tile_distance:]:
+                print "rejecting {} {} (too close to same tile 2)".format(tile.template, tile.id)
+                continue
+
+            print "queueing 2 {} {}".format(tile.template, tile.id)
+            yield tile
         else:
-            max_sale = 0  # no discount = no sale
-        return max_sale
+            yield available_tiles[random.randint(0, available_tiles.count())]
 
-    tiles = sorted(tiles, key=sort_fn, reverse=True)
+    if req_num == 0:  # reset
+        request.session['shown'] = []
+        shown_tile_ids = []
+        shown_tiles = []
 
-    print "Returning discounted product tiles, " \
-          "emulating offset {0} ~ {1}".format(offset, offset + results)
+    # TODO: remove if sets unused
+    # _ = get_tilesets(tiles)
+    # _ = get_tilesets(shown_tiles)
 
-    # all edge cases return []
-    if exclude_set or allowed_set:
-        # if exclude set is supplied, then the top 10 results should
-        # already be the results you should show next
-        return tiles[:results]
-    else:
-        return tiles[offset:offset + results]
+    # handle prioritized tiles:
+    # - just add them in order
+    for tile in tiles.filter(priority__gt=0).exclude(id__in=shown_tile_ids):
+        if len(results) < n:
+            results.append(tile)
+            # print "prioritizing {} {}".format(tile.template, tile.id)
+
+    if results:
+        print list(pluck(results, 'template', ''))
+        return results
+
+    # shrink tile pool
+    result_ids = list(pluck(results, 'id', 0))
+    tiles = tiles.exclude(id__in=shown_tile_ids + result_ids).order_by('?')
+    while len(results) < n:
+        # handle tiles that were not added:
+        # - tiles must obey product/content ratio (7)
+        # - unless tile pool itself is too bad for it (8)
+        for tile in pick(tiles):
+            results.append(tile)
+            if len(results) >= n:
+                break
+        else:
+            # could not find enough tiles that meet requirements
+            tile_template = None
+            shown_tiles = TileList(shown_tiles)
+
+            if none_of(tiles, 'template', 'product'):
+                # if ran out of products, reset products only
+                tile_template = 'product'
+            elif none_of(tiles, 'template', 'image'):
+                # if ran out of contents, reset contents only
+                tile_template = 'image'
+
+            for t in shown_tiles:  # for all other reasons, reset both
+                if not t in results:  # if it's being added, it stays excluded
+                    if tile_template is None or t.template == tile_template:
+                        shown_tiles.remove(t)
+
+            print "shrinking {} shown pool to {}/{}".format(
+                tile_template,
+                len(shown_tiles.products),
+                len(shown_tiles.contents))
+            shown_tile_ids = shown_tiles.ids
+            request.session['shown'] = shown_tile_ids
+            tiles = prefetch(qs_for(tiles=_tiles).exclude(priority__gt=0)
+                                                 .order_by('?'))
+            print "restoring tile pool to {}/{}".format(
+                len([x for x in tiles if x.template == 'product']),
+                len([x for x in tiles if x.template != 'product']))
+
+    never_shown = []
+    for tile in results[0].feed.tiles.all():
+        if not tile.id in shown_tile_ids:
+            never_shown.append(tile.id)
+
+    print list(pluck(results, 'template', ''))
+    print "{} tiles never used".format(len(never_shown))
+
+    return results
+
+
+ir_motherfucking_magic = ir_magic  # internal alias
