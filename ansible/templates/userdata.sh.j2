@@ -16,16 +16,41 @@ GIT_REPO=git@github.com:Willet/SecondFunnel.git
 DEPLOY_KEY={{secondfunnel_directory}}/willet_deploy_key_id_rsa
 INVENTORY_FILE={{secondfunnel_directory}}/ansible_userscript_inventory
 
+#
+# Verify that github is setup as a valid host verified (always)
+#
+
+# verify we have a host-key file
+mkdir -p ~/.ssh
+touch ~/.ssh/known_hosts
+
+# remove and add github to known hosts for running user
+ssh-keygen -R github.om
+ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+
+#
+# Setup authentication for github using the deploy key
+#
+
 # start the ssh-agent, and set it up in the current shell
 eval `ssh-agent`
 
 # add the deploy key to the running ssh-agent
 ssh-add $DEPLOY_KEY
 
+#
+# Build Ansible Inventory File for the current machine
+#
+
 # create ansible inventory file for deployment
 echo -e "localhost ansible_connection=local\n" > $INVENTORY_FILE
 echo -e "[$APP_ENVIRONMENT]\nlocalhost\n" >> $INVENTORY_FILE
 echo -e "[webservers]\nlocalhost\n" >> $INVENTORY_FILE
+echo -e "[autoscale]\nlocalhost\n" >> $INVENTORY_FILE
+
+#
+# Run the actual deployment
+#
 
 # git clone the code repository (for ansible playbooks),
 # and then run the ansible playbook against the inventory made for localhost
