@@ -49,7 +49,10 @@
   sudo: true
 
 - name: "Setup AWS CLI - credentials profile."
-  template: src=aws_profile dest="~{{common_user}}/.aws/config" mode=0600 owner="{{common_user}}" group="{{common_user}}"
+  template: src=aws_profile dest="{{item}}" mode=0600 owner="{{common_user}}" group="{{common_user}}"
+  with_items:
+    - "~{{common_user}}/.aws/config"
+    - "~{{common_user}}/.aws/credentials"
   sudo: true
 
 - include: zsh.yml
