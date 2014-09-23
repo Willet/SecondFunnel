@@ -44,6 +44,14 @@
   tags: aws
   when: ansible_distribution != 'Amazon' and ansible_env.EC2_HOME | default('') == ''
 
+- name: "Create Directory for AWS CLI configurations"
+  file: state=directory path="~{{common_user}}/.aws" mode=0775 owner="{{common_user}}" group="{{common_user}}"
+  sudo: true
+
+- name: "Setup AWS CLI - credentials profile."
+  template: src=aws_profile dest="~{{common_user}}/.aws/config" mode=0600 owner="{{common_user}}" group="{{common_user}}"
+  sudo: true
+
 - include: zsh.yml
   tags: oh-my-zsh
   when: ansible_distribution != 'Amazon'
