@@ -93,6 +93,7 @@ class FeedView extends Marionette.CollectionView
         @children.each (childView) => @removeChildView(childView)
         @ended = false
         $(".loading").show() # DEFER: hack
+        App.intentRank.options.IROffset = 0
         @fetchTiles()
 
     pageScroll: ->
