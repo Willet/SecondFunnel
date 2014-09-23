@@ -480,22 +480,22 @@ def ir_magic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         # Pick the tile(s) with the highest priority
         for _, templated_tile in templated_tiles.iteritems():
             if templated_tile['added'] < templated_tile['total']:
-                tile_canidate = templated_tile['tiles'][templated_tile['added']]
+                tile_candidate = templated_tile['tiles'][templated_tile['added']]
 
-                if tile_canidate.priority > highest_priority:
-                    tile_list = [tile_canidate]
-                    highest_priority = tile_canidate.priority
-                elif tile_canidate.priority == highest_priority:
-                    tile_list.append(tile_canidate)
+                if tile_candidate.priority > highest_priority:
+                    tile_list = [tile_candidate]
+                    highest_priority = tile_candidate.priority
+                elif tile_candidate.priority == highest_priority:
+                    tile_list.append(tile_candidate)
 
         # Pick the tile that will have the worst (current) ratio
-        for tile_canidate in tile_list:
-            templated_tile = templated_tiles[tile_canidate.template]
+        for tile_candidate in tile_list:
+            templated_tile = templated_tiles[tile_candidate.template]
             ratio = templated_tile['added'] / float(total_tiles)
             ratio /= templated_tile['ratio']
             if ratio < worst_ratio:
                 worst_ratio = ratio
-                tile = tile_canidate
+                tile = tile_candidate
 
         templated_tiles[tile.template]['added'] += 1
 
