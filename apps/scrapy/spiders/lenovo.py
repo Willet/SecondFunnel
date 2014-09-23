@@ -5,14 +5,13 @@ from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from urlparse import urlparse
-from scrapy.spider import Spider
 
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class LenovoSpider(SecondFunnelCrawlScraper, Spider):
+class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'lenovo'
     allowed_domains = ['lenovo.com', 'shop.lenovo.com']
     start_urls = ['http://shop.lenovo.com/us/en/tablets/']
@@ -31,7 +30,7 @@ class LenovoSpider(SecondFunnelCrawlScraper, Spider):
     def is_product_page(self, response):
         sel = Selector(response)
 
-        is_product_page = sel.css('#multichoices.cf')
+        is_product_page = sel.css('#bcaBreadcrumbTop')
 
         return is_product_page
 
@@ -54,16 +53,14 @@ class LenovoSpider(SecondFunnelCrawlScraper, Spider):
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        skus = (sel.css('meta[name="SKU"]::attr(content)').extract_first().split(','))
-        first_sku = skus[0]
-        l.add_value('sku', first_sku)
+        l.add_value('sku', url.split("=")[-1])
 
         product_name = u"{} {} {}".format(
             sel.css('meta[name="ProductName"]::attr(content)').extract_first(),
             sel.css('meta[name="ModelName"]::attr(content)').extract_first(),
             sel.css('meta[name="ModelNumber"]::attr(content)').extract_first())
         l.add_value('name', product_name)
-        l.add_css('price', 'dd.aftercoupon.value', re=r'\$(.*)')
+        l.add_css('price', '.price-was-data::text')
         l.add_value('in_stock', True)
 
         l.add_css('description', '#features>div>div>div.grid_8.alpha')

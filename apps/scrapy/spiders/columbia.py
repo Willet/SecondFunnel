@@ -5,6 +5,7 @@ from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
     SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
+import re
 
 
 class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
@@ -13,9 +14,7 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     start_urls = ['http://www.columbia.com/']
     start_urls_separator = '|'
     rules = [
-        Rule(SgmlLinkExtractor(allow=[
-            r'/\w{2}\d+.*\.html'
-        ]), 'parse_product', follow=False)
+        Rule(SgmlLinkExtractor(restrict_xpaths=['//div[contains(@class, "product-image")]']), callback='parse_product', follow=False)
     ]
 
     store_slug = name
@@ -26,7 +25,7 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     def is_product_page(self, response):
         sel = Selector(response)
 
-        is_product_page = sel.css('span[itemprop="identifier"]')
+        is_product_page = sel.css('span[itemprop="productID"]')
 
         return is_product_page
 
@@ -39,40 +38,38 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         @returns requests 0 0
         @scrapes url sku name price in_stock description details image_urls attributes
         """
-        sel = Selector(response)
 
+        sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
-        l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        l.add_css('sku', 'span[itemprop="identifier"]', re=r'#(\w+)')
-        l.add_css('name', '.product_title::text')
-        l.add_css('price', '.price-index.regprice::text')
+        l.add_value('url', response.url.split('?')[0])
+        l.add_css('sku', 'span[itemprop="productID"]::text')
+        l.add_css('name', '.product-name::text')
         l.add_value('in_stock', True)
 
-        l.add_css('description', '.description')
-        l.replace_value(
-            'description',
-            l.get_output_value('description').replace(u'\xbb', '')\
-                .replace(u'View Details', '')
-        )
+        l.add_css('description', 'div.product-summary::text')
 
-        l.add_css('details', '.pdpDetailsContent')
-        l.replace_value(
-            'details',
-            l.get_output_value('details').replace('\t', '')
-        )
+        l.add_css('details', '.pdpDetailsContent div::text')
 
-
-        image = sel.css('#flashcontent').re_first('image=([^&]+)&')
-        l.add_value(
-            'image_urls',
-            'http://s7d5.scene7.com/is/image/{}?scl=1.1&fmt=jpeg'.format(image)
-        )
+        img_urls = sel.css('img.s7productthumbnail::attr(data-m-src)').extract()
+        # Hack
+        # get same product imgs with all the different colors
+        colors = ['_' + href.split('=')[-1] + '_' for href in sel.css('ul.variationcolor li a::attr(href)').extract()]
+        colored_img_urls = []
+        for img_url in img_urls:
+            for color in colors:
+                colored_img_urls.append(re.sub('_\d{3}_', color, img_url, count=1))
+        l.add_value('image_urls', colored_img_urls)
 
         attributes = {}
+        if len(sel.css('div.product-price span')) > 1: # on sale
+            l.add_css('price', 'span.price-standard::text')
+            sale_price = sel.css('span.price-sales::text')[0].extract()
+            attributes['sale_price'] = sale_price[sale_price.index('$'):].strip()
+        else:
+            l.add_css('price', 'span.reg-price::text')
 
         # Handle categories
-        breadcrumbs = iter(sel.css('#nav-trail a'))
-        breadcrumb = next(breadcrumbs)  # Skip the first element
+        breadcrumbs = sel.css('ol.breadcrumb a')[1:] # Skip the first element
 
         categories = []
         for breadcrumb in breadcrumbs:
@@ -80,11 +77,6 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             category_url = breadcrumb.css('::attr(href)').extract_first()
 
             categories.append((category_name, category_url))
-
-        sale_price = sel.css('#pdpAddToCartContainer #member-price').extract_first()
-        if sale_price:
-            attributes['sale_price'] = sel.css('#member-price')\
-                .extract_first().replace('Now ', '')
 
         attributes['categories'] = categories
         l.add_value('attributes', attributes)
