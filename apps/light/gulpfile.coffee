@@ -146,7 +146,7 @@ gulp.task "scripts", ["bower"], () ->
     # Heavily inspired by https://github.com/greypants/gulp-starter/blob/master/gulp/tasks/browserify.js
     #
 
-    browserifyTransform = (file, encoding, callback) ->
+    browserifyTransform = (file, encoding, cb) ->
         filenameRelative = path.relative(file.base, file.path)
         bundleConfig =
             entries: file
@@ -160,12 +160,6 @@ gulp.task "scripts", ["bower"], () ->
             cache: {}
             packageCache: {}
             fullPaths: true
-            # list of things not to parse, put big libraries here
-            noParse: [
-                "./lib/jquery/dist/jquery.js",
-                "./lib/underscore/underscore.js",
-                "./lib/backbone/backbone.js"
-            ]
             # relative dir to use for root
             basedir: __dirname
             # the entry point of the application
@@ -186,22 +180,29 @@ gulp.task "scripts", ["bower"], () ->
         )
 
         bundle = ->
-            $.util.log("scripts: Bundling #{filenameRelative}...")
+            $.util.log("'#{$.util.colors.cyan("scripts")}'", "Bundling", $.util.colors.blue(filenameRelative), "...")
             bundler.bundle()
                 # report compilation errors
                 .on 'error', $.util.log.bind($.util, 'Browserify Error')
+                .pipe exorcist(
+                    # sourcemap output location
+                    file: "#{static_output_dir}/#{filenameRelative}.map"
+                    # sourcemap url location
+                    url: "/#{static_serve_dir}/#{filenameRelative}.map"
+                )
                 # vinyl-source-stream to make stream gulp-compatible
                 .pipe source(bundleConfig.outputName)
                 # output destination
-                .pipe gulp.dest(bundleConfig.dest)
-                .on 'end', endCallback
+                .pipe gulp.dest(static_output_dir)
+                # notify of end of stream etc
+                .pipe through.obj(endCallback)
 
         endCallback = (bundle) =>
-            $.util.log("scripts: Bundled #{filenameRelative}.")
+            $.util.log("'#{$.util.colors.cyan("scripts")}'", "Bundled", $.util.colors.blue(filenameRelative))
             # add the bundle to the output stream of the transform
             @push bundle
-            # note completion
-            callback()
+            # notify finished
+            cb()
 
         unless config.production
             # Wrap with watchify and rebundle on changes
