@@ -56,7 +56,7 @@
     "vinyl-map": "^1.0.1",
     "vinyl-source-stream2": "^0.1.1",
     "vinyl-transform": "0.0.1",
-    "watchify": "^1.0.3",
+    "watchify": "git://github.com/jballant/watchify.git",
     "wiredep": "^1.8.5"
   },
   "private": true,

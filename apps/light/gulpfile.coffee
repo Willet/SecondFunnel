@@ -142,38 +142,40 @@ gulp.task "styles", ->
 
 
 gulp.task "scripts", ["bower"], () ->
+    #
+    # Heavily inspired by https://github.com/greypants/gulp-starter/blob/master/gulp/tasks/browserify.js
+    #
 
-    bundler = browserify(
-        cache: {}
-        packageCache: {}
-        fullPaths: true
-        basedir: __dirname
-        commondir: false
-        insertGlobals: false
-        detectGlobals: false # we dont use them, so may as well speed up build
-        debug: true # we always want those source maps
-        extensions: [".coffee"] # extensions you do not need to put on a require
-    )
-
-    # use watchify for faster builds in development
-    # don't use in production because it breaks source-maps
-    # in the minification process
-    unless config.production
-        bundler = watchify(bundler)
-
-    files = []
     browserifyTransform = (file, encoding, callback) ->
-        endCallback = (bundle, encoding, bundle_callback) =>
-            # add this file to the stream
-            @push bundle
-            # notify that it is finished
-            bundle_callback()
-            callback()
-
-        bundler.add(file)
         filenameRelative = path.relative(file.base, file.path)
+        bundleConfig =
+            entries: file
+            dest: static_output_dir
+            outputName:
+                base: file.base
+                path: file.path
 
-        # minifyify does not support reset (where as watchify does)
+        bundler = browserify(
+            # watchify args
+            cache: {}
+            packageCache: {}
+            fullPaths: true
+            # list of things not to parse, put big libraries here
+            noParse: [
+                "./lib/jquery/dist/jquery.js",
+                "./lib/underscore/underscore.js",
+                "./lib/backbone/backbone.js"
+            ]
+            # relative dir to use for root
+            basedir: __dirname
+            # the entry point of the application
+            entries: bundleConfig.entries
+            # add file extensions that are optional for require statements
+            extensions: [".coffee"]
+            # enable source maps
+            debug: true
+        )
+
         bundler.plugin(
            'minifyify',
            minify: if config.production then uglify_options else false
@@ -183,32 +185,37 @@ gulp.task "scripts", ["bower"], () ->
            output: "#{static_output_dir}/#{filenameRelative}.map"
         )
 
-        # do the actual browserify
-        bundler.bundle()
-            .on 'error', $.util.log.bind($.util, 'Browserify Error')
-            .pipe source(base: file.base, path: file.path)
-            .pipe transform(-> exorcist("#{static_output_dir}/#{filenameRelative}.map"))
-            .pipe through.obj(endCallback)
-            .pipe $.util.noop() # so the on end is ran
+        bundle = ->
+            $.util.log("scripts: Bundling #{filenameRelative}...")
+            bundler.bundle()
+                # report compilation errors
+                .on 'error', $.util.log.bind($.util, 'Browserify Error')
+                # vinyl-source-stream to make stream gulp-compatible
+                .pipe source(bundleConfig.outputName)
+                # output destination
+                .pipe gulp.dest(bundleConfig.dest)
+                .on 'end', endCallback
 
-        return
+        endCallback = (bundle) =>
+            $.util.log("scripts: Bundled #{filenameRelative}.")
+            # add the bundle to the output stream of the transform
+            @push bundle
+            # note completion
+            callback()
 
-    compileScripts = ->
-        gulp.src sources.browserify
-            .pipe through.obj(browserifyTransform)
-            .pipe gulp.dest(static_output_dir)
-            .pipe BrowserSync.reload(stream: true)
-            .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("scripts"))
-            .pipe $.util.noop() # so previous command works
+        unless config.production
+            # Wrap with watchify and rebundle on changes
+            bundler = watchify(bundler)
+            # Rebundle on update
+            bundler.on 'update', bundle
 
-    unless config.production
-        # watch for file updates, however we won't know which file updated :S
-        bundler.on 'update', (ids) ->
-            $.util.log $.util.colors.cyan("scripts: change detected in"), _.map(ids, (id) -> path.relative(__dirname, id)).join(" ")
-            BrowserSync.notify('Script change detected, beginning compilation')
-            compileScripts()
+        return bundle()
 
-    return compileScripts()
+    return gulp.src sources.browserify
+        .pipe through.obj(browserifyTransform)
+        #.pipe BrowserSync.reload(stream: true)
+        .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("scripts"))
+
 
 gulp.task "images", ->
     return gulp.src(sources.images)
