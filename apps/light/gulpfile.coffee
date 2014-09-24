@@ -16,6 +16,8 @@ runSequence = require('run-sequence')
 glob = require('glob')
 File = require('vinyl')
 factor_bundle = require('factor-bundle')
+exorcist = require('exorcist')
+transform = require('vinyl-transform')
 
 
 # versioning stuff, it is harder than one would think
@@ -67,6 +69,11 @@ template_output_dir = "templates/light"
 bower_dir = "lib/"
 config = production: true
 
+# see https://github.com/mishoo/UglifyJS2#compressor-options for additional options
+uglify_options =
+    mange: true
+    preserveComments: "some" # only copyright etc (closure compilation directives etc)
+
 onError = (err) ->
     $.util.beep()
     console.error err
@@ -116,7 +123,6 @@ gulp.task "html", ["rev"], ->
     return merge(manifest, pages, pages_no_modify)
         .pipe $.if(config.production, revCollector())
         .pipe $.filter("**/*.html") # ignore the manifest
-        .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("all-rev-modified-files"))
         .pipe gulp.dest(template_output_dir)
         .pipe BrowserSync.reload(stream: true, once: true)
         .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("html"))
@@ -144,16 +150,19 @@ gulp.task "scripts", ["bower"], () ->
         basedir: __dirname
         commondir: false
         insertGlobals: false
+        detectGlobals: false # we dont use them, so may as well speed up build
         debug: true # we always want those source maps
         extensions: [".coffee"] # extensions you do not need to put on a require
     )
 
-    # use watchify for faster builds (in general, cause of overlap)
-    bundler = watchify(bundler)
+    # use watchify for faster builds in development
+    # don't use in production because it breaks source-maps
+    # in the minification process
+    unless config.production
+        bundler = watchify(bundler)
 
     files = []
     browserifyTransform = (file, encoding, callback) ->
-        defer = Q.defer()
         endCallback = (bundle, encoding, bundle_callback) =>
             # add this file to the stream
             @push bundle
@@ -167,19 +176,18 @@ gulp.task "scripts", ["bower"], () ->
         # minifyify does not support reset (where as watchify does)
         bundler.plugin(
            'minifyify',
+           minify: if config.production then uglify_options else false
            # where the map file is served from
            map: "/#{static_serve_dir}/#{filenameRelative}.map"
            # where the map file is saved to
            output: "#{static_output_dir}/#{filenameRelative}.map"
-           # conversions to make map paths relative (currently breaks browserify-shim)
-           #compressPath: (filepath) ->
-           #    return path.relative(__dirname, filepath)
         )
 
         # do the actual browserify
         bundler.bundle()
             .on 'error', $.util.log.bind($.util, 'Browserify Error')
             .pipe source(base: file.base, path: file.path)
+            .pipe transform(-> exorcist("#{static_output_dir}/#{filenameRelative}.map"))
             .pipe through.obj(endCallback)
             .pipe $.util.noop() # so the on end is ran
 
@@ -189,17 +197,15 @@ gulp.task "scripts", ["bower"], () ->
         gulp.src sources.browserify
             .pipe through.obj(browserifyTransform)
             .pipe gulp.dest(static_output_dir)
-            .pipe BrowserSync.reload(stream: true, once: true)
+            .pipe BrowserSync.reload(stream: true)
             .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("scripts"))
-            .on 'end', ->
-                if config.production
-                    bundler.close() # turn off watchify (otherwise process will continue)
-            .pipe $.util.noop() # so the on end works
+            .pipe $.util.noop() # so previous command works
 
     unless config.production
         # watch for file updates, however we won't know which file updated :S
-        bundler.on 'update', ->
-            $.util.log($.util.colors.cyan("scripts: (rebuilding all)"))
+        bundler.on 'update', (ids) ->
+            $.util.log $.util.colors.cyan("scripts: change detected in"), _.map(ids, (id) -> path.relative(__dirname, id)).join(" ")
+            BrowserSync.notify('Script change detected, beginning compilation')
             compileScripts()
 
     return compileScripts()
