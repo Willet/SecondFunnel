@@ -60,7 +60,20 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             sel.css('meta[name="ModelName"]::attr(content)').extract_first(),
             sel.css('meta[name="ModelNumber"]::attr(content)').extract_first())
         l.add_value('name', product_name)
-        l.add_css('price', '.price-was-data::text')
+
+        attributes = {}
+
+        price_sel = sel.css('div[id*="mktplPrice"][style*="block"]')
+        price_was = price_sel.css('.price-was-data::text')
+        price_is = '$' + price_sel.css('strong::text').extract_first().replace(',','') + price_sel.css('sup::text').extract_first()
+        print price_is
+
+        if price_was:
+            l.add_value('price', price_was.extract_first())
+            attributes['sale_price'] = price_is
+        else:
+            l.add_value('price', price_is)
+
         l.add_value('in_stock', True)
 
         l.add_css('description', '#features>div>div>div.grid_8.alpha')
@@ -83,5 +96,6 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
                     new_image_urls.append(urlparse(url, scheme='http').geturl())
 
         l.add_value('image_urls', new_image_urls)
+        l.add_value('attributes', attributes)
 
         yield l.load_item()
