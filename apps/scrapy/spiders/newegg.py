@@ -23,7 +23,7 @@ class NeweggSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         )
     ]
 
-    store_slug = name
+    store_slug = 'lenovo'
 
     def __init__(self, *args, **kwargs):
         if kwargs.get('store_slug'):  # typical use case: 'lenovo'
