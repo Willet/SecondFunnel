@@ -194,20 +194,23 @@ class CategoryPipeline(object):
         # Should dissociate all the products from all the different categories
         # and associate them with the "good" one (whichever has lowest id),
         # then delete the "bad" category.
-        try:
-            category, _ = Category.objects.get_or_create(**kwargs)
-        except MultipleObjectsReturned:
+
+        categories = Category.objects.filter(**kwargs)
+        if len(categories) > 1:
             print "Killing categories"
-            categories = Category.objects.filter(**kwargs).order_by('id')
             category = categories[0]
-            category.name = category.name.lower()
             print "keeping category", category.name
             for duplicate_category in categories[1:]:
                 print "\tkilling:", duplicate_category.name
                 category.products.add(*duplicate_category.products.all())
                 print "\ttransferred", duplicate_category.products.all(), "products"
                 duplicate_category.delete()
+        elif len(categories) == 1:
+            category = categories[0]
+        else:
+            category = Category.objects.create(store=kwargs['store'], name=name.lower())
 
+        category.name = category.name.lower()
         category.save()
 
         try:
