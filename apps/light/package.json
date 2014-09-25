@@ -11,8 +11,6 @@
     "coffeelint": "^1.6.0",
     "coffeelint-stylish": "^0.1.1",
     "exorcist": "^0.1.6",
-    "factor-bundle": "^2.2.1",
-    "glob": "^4.0.6",
     "gulp": "^3.8.8",
     "gulp-autoprefixer": "^1.0.1",
     "gulp-bower": "0.0.6",
@@ -48,7 +46,6 @@
     "minify": "^1.0.3",
     "minifyify": "^4.2.0",
     "minimatch": "^1.0.0",
-    "q": "^1.0.1",
     "run-sequence": "^0.3.7",
     "through2": "^0.6.2",
     "underscore": "^1.7.0",
@@ -147,21 +144,18 @@
     "backbone.babysitter": {
       "exports": "Backbone.Babysitter",
       "depends": [
-        "jquery",
         "backbone:Backbone"
       ]
     },
     "backbone.wreqr": {
       "exports": "Backbone.Wreqr",
       "depends": [
-        "jquery",
         "backbone:Backbone"
       ]
     },
     "backbone.marionette": {
       "exports": "Backbone.Marionette",
       "depends": [
-        "jquery",
         "backbone:Backbone",
         "underscore:_"
       ]

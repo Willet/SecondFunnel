@@ -1,6 +1,5 @@
 gulp = require("gulp")
 path = require("path")
-Q = require('q')
 merge = require('merge-stream')
 $ = require("gulp-load-plugins")() # load all gulp plugins
 mainBowerFiles = require("main-bower-files")
@@ -13,9 +12,6 @@ browserifyConfig = require("./package.json")
 watchify = require('watchify')
 _ = require('underscore')
 runSequence = require('run-sequence')
-glob = require('glob')
-File = require('vinyl')
-factor_bundle = require('factor-bundle')
 exorcist = require('exorcist')
 transform = require('vinyl-transform')
 
@@ -57,7 +53,9 @@ sources =
         "src/clients/**/landingpage/*/index.html"
         "src/clients/**/ad/*/index.html"
     ]
-    browserify: "src/clients/**/main.js" # currently does not support multiple
+    browserify: [
+        "src/clients/**/main.js"
+    ]
     vendor: [ # all these are taken as is
         "src/clients/**/media_player/{launchhypemcanvas3.js,player.html}"
     ]

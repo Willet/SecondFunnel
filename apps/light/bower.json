@@ -2,6 +2,7 @@
   "name": "willet-secondfunnel",
   "private": true,
   "dependencies": {
+    "backbone": "~1.1.2",
     "backbone.marionette": "~1.8.6",
     "bootstrap-sass-official": "~3.1.1",
     "cloudinary_js": "~1.0.17",
