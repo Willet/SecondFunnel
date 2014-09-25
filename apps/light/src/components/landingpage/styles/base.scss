@@ -259,23 +259,17 @@ div.loading {
     max-width: 100%;
 }
 
-.tile.wide.youtube {
+.tile.youtube {
     cursor: pointer;
 }
 
-.tile.wide.youtube div.thumbnail {
+.tile.youtube div.thumbnail {
     height: 250px;
     background-size: cover;
     background-position: center center;
 }
 
-.tile.wide.youtube div.thumbnail {
-    height: 250px;
-    background-size: cover;
-    background-position: center center;
-}
-
-.tile.wide.youtube div.thumbnail:before {
+.tile.youtube div.thumbnail:before {
     /* standard youtube thumbnail
        @override
     */

@@ -33,7 +33,7 @@ class NeweggSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     def is_product_page(self, response):
         sel = Selector(response)
 
-        is_product_page = sel.css('#singleFinalPrice>span.price-current-label')
+        is_product_page = sel.css('#bcaBreadcrumbTop')
 
         return is_product_page
 
@@ -64,14 +64,28 @@ class NeweggSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             # reconstruct tpk using the Item key
             tpk = params['Item']
             tpk = tpk[-8:-6] + '-' + tpk[-6:-3] + '-' + tpk[-3:]
+        else:
+            # whichever one is not hidden, hope for the best
+            tpk = sel.css('h1 span[style*="inline"]::attr(id)').extract_first().split('_')[-1]
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_value('sku', params['Item'])
         l.add_css('name', '#grpDescrip_{}::text'.format(tpk))
-        l.add_value('price', sel.css(
-            '#mktplPrice_{} li.price-current strong::text'.format(tpk)
-        ).extract_first())
+
+        attributes = {}
+
+        price_sel = sel.css('#mktplPrice_{}'.format(tpk))
+        price_was = price_sel.css('.price-was-data::text')
+        price_is = '$' + price_sel.css('strong::text').extract_first().replace(',','') + price_sel.css('sup::text').extract_first()
+        print price_is
+
+        if price_was:
+            l.add_value('price', price_was.extract_first())
+            attributes['sale_price'] = price_is
+        else:
+            l.add_value('price', price_is)
+
         l.add_value('in_stock', True)
 
         # * foo
@@ -84,20 +98,17 @@ class NeweggSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         l.add_value('description', points)
 
-        image_urls = sel.css('#pclaImageArea_{} > div > div > ul > li '
-                             '> a > img::attr(src)'.format(tpk)).extract()
+        image_urls = sel.css('#pclaImageArea_{} div div ul li a img::attr(src)'.format(tpk)).extract()
         # convert thumbs into full urls
-        image_urls = [url.replace('$S35$', '$S640$') for url in image_urls]
+        image_urls = [url.replace('All35', 'All300') for url in image_urls]
 
         l.add_value('image_urls', image_urls)
 
         # Handle categories
-        category_breadcrumb = sel.css('#bcaBreadcrumbTop > dl > dd:nth-child(3) > a')
+        category_breadcrumb = sel.css('#bcaBreadcrumbTop dl dd:nth-child(3) a')
         category_name = category_breadcrumb.css('::text').extract_first()
-        category_url = category_breadcrumb.css('::attr(href)').extract_first()
 
-        attributes = {}
-        attributes['categories'] = [(category_name, category_url)]
+        attributes['categories'] = [category_name]
 
         # special "newegg" url; matches "url" if product is scraped from newegg
         attributes['neweggUrl'] = sel.css('link[rel="canonical"]::attr(href)').extract_first()

@@ -4,9 +4,9 @@
     right: 200px;
     display: inline-block;
     text-align: left;
-    font-size: 12px;
+    font-size: 16px;
     line-height: 1.5;
-    z-index: 1000;
+    font-family: MrEavesModernRegular, Arial, Helvetica, sans-serif;
 }
 
 .header-links-bar a {
@@ -27,7 +27,7 @@
     float: left;
     position: relative;
     text-align: left;
-    font-family: Arial, Helvetica, Sans-Serif;
+    font-family: MrEavesSansRegular, Arial, Helvetica, Sans-Serif;
     line-height: 1.5;
     text-transform: uppercase;
 }
@@ -39,8 +39,7 @@
     float: left;
     text-align: center;
     position: relative;
-    z-index: 911;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     border-radius: 5px 5px 0 0;
     box-sizing: content-box;
@@ -48,6 +47,7 @@
 }
 
 .topNavWrapper:hover .dropdown-label {
+    z-index: 10;
     color: #e37b00;
     border: 1px solid #e37b00;
     border-bottom: none;
@@ -74,7 +74,7 @@
     font-size: 14px;
     padding: 10px 20px;
     line-height: 1.5;
-    z-index: 910;
+    z-index: 9;
     min-width: 127px;
 }
 
@@ -91,6 +91,7 @@
 .navDropdown ul li {
     white-space: nowrap;
     line-height: 31px;
+    font-family: MrEavesModernBold, Arial, Helvetica, sans-serif;
 }
 
 .navDropdown ul li:after {
