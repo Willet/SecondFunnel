@@ -87,6 +87,5 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
                     new_image_urls.append(urlparse(url, scheme='http').geturl())
 
         l.add_value('image_urls', new_image_urls)
-        l.add_value('attributes', attributes)
 
         yield l.load_item()
