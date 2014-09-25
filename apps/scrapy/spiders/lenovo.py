@@ -30,7 +30,7 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     def is_product_page(self, response):
         sel = Selector(response)
 
-        is_product_page = sel.css('#bcaBreadcrumbTop')
+        is_product_page = sel.css('.cta')
 
         return is_product_page
 
@@ -53,7 +53,9 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        l.add_value('sku', url.split("=")[-1])
+        skus = (sel.css('meta[name="SKU"]::attr(content)').extract_first().split(','))
+        first_sku = skus[0]
+        l.add_value('sku', first_sku)
 
         product_name = u"{} {} {}".format(
             sel.css('meta[name="ProductName"]::attr(content)').extract_first(),
@@ -61,23 +63,12 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             sel.css('meta[name="ModelNumber"]::attr(content)').extract_first())
         l.add_value('name', product_name)
 
-        attributes = {}
-
-        price_sel = sel.css('div[id*="mktplPrice"][style*="block"]')
-        price_was = price_sel.css('.price-was-data::text')
-        price_is = '$' + price_sel.css('strong::text').extract_first().replace(',','') + price_sel.css('sup::text').extract_first()
-        print price_is
-
-        if price_was:
-            l.add_value('price', price_was.extract_first())
-            attributes['sale_price'] = price_is
-        else:
-            l.add_value('price', price_is)
+        l.add_css('price', 'meta[itemprop="price"]::attr(content)')
 
         l.add_value('in_stock', True)
 
-        l.add_css('description', '#features>div>div>div.grid_8.alpha')
-        l.add_css('details', '#highlights>ul>li')
+        l.add_css('description', '#features div div div.grid_8.alpha')
+        l.add_css('details', '#highlights ul')
 
         time.sleep(2)
         magic_subs = {            # http://www.lenovo.com/images/gallery/1060x596/lenovo-tablet-yoga-8-tilt-mode-6.jpg
