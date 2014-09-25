@@ -25,12 +25,12 @@
         validate_certs=no
       tags: deploy
       run_once: True
-      when: ('autoscale' in groups)
+      when: ('autoscale' in groups) and ('vagrant' not in groups)
 
     - name: "Disabling Auto-scaling during configuration."
       command: "aws autoscaling suspend-processes --auto-scaling-group-name '{{ aws_asg.name }}' --scaling-processes Launch Terminate HealthCheck"
       run_once: True
-      when: ('autoscale' not in groups)
+      when: ('autoscale' not in groups) and ('vagrant' not in groups)
 
 - name: "Remove any (local) known hosts already for the given box"
   hosts: webservers:&vagrant
@@ -120,9 +120,9 @@
         validate_certs=no
       tags: deploy
       run_once: True
-      when: ('autoscale' in groups)
+      when: ('autoscale' in groups) and ('vagrant' not in groups)
 
     - name: "Re-Enable Auto-scaling for after configuration."
       command: "aws autoscaling resume-processes --auto-scaling-group-name '{{ aws_asg.name }}' --scaling-processes Launch Terminate HealthCheck"
       run_once: True
-      when: ('autoscale' not in groups)
+      when: ('autoscale' not in groups) and ('vagrant' not in groups)

@@ -62,7 +62,9 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             sel.css('meta[name="ModelName"]::attr(content)').extract_first(),
             sel.css('meta[name="ModelNumber"]::attr(content)').extract_first())
         l.add_value('name', product_name)
+
         l.add_css('price', 'meta[itemprop="price"]::attr(content)')
+
         l.add_value('in_stock', True)
 
         l.add_css('description', '#features div div div.grid_8.alpha')
@@ -85,5 +87,6 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
                     new_image_urls.append(urlparse(url, scheme='http').geturl())
 
         l.add_value('image_urls', new_image_urls)
+        l.add_value('attributes', attributes)
 
         yield l.load_item()
