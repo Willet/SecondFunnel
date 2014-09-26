@@ -108,26 +108,19 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         attributes['categories'] = [category_name]
         l.add_value('attributes', attributes)
 
-        data_url = self.product_data_url.format(l.get_output_value('sku'))
-        item = l.load_item()
-        request = WebdriverRequest(data_url, callback=self.parse_images)
-
-        request.meta['item'] = item
-
-        yield request
-
-    def parse_images(self, response):
-        sel = Selector(response)
-
-        item = response.meta.get('item', ScraperProduct())
-        l = ScraperProductLoader(item=item, response=response)
-
-        relative_urls = sel.css('body').re(r"Z':\s?'([^']+?)'")
-        image_urls = [
-            self.root_url + url
-            for url in relative_urls
-        ]
-
-        l.add_value('image_urls', image_urls)
+        img_urls = sel.css('#imageThumbs input::attr(src)').extract()
+        big_urls = []
+        big_image_offset = 3
+        for url in img_urls:
+            bits = url.split('/')
+            # MAJIC
+            # basically something like: http://www.gap.com/webcontent/0008/097/815/cn8097815.jpg
+            # needs to become like:     http://www.gap.com/webcontent/0008/097/812/cn8097812.jpg
+            bits[-2] = str(int(bits[-2]) - big_image_offset) 
+            filename, extension = bits[-1].split('.')
+            filename = filename[:-3] + bits[-2]
+            bits[-1] = filename + '.' + extension
+            big_urls.append('/'.join(bits))
+        l.add_value('image_urls', big_urls)
 
         yield l.load_item()
