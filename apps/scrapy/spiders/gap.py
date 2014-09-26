@@ -116,7 +116,7 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             # MAJIC
             # basically something like: http://www.gap.com/webcontent/0008/097/815/cn8097815.jpg
             # needs to become like:     http://www.gap.com/webcontent/0008/097/812/cn8097812.jpg
-            bits[-2] = str(int(bits[-2]) - big_image_offset) 
+            bits[-2] = '{:03}'.format(int(bits[-2]) - big_image_offset))
             filename, extension = bits[-1].split('.')
             filename = filename[:-3] + bits[-2]
             bits[-1] = filename + '.' + extension
