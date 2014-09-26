@@ -110,17 +110,17 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         img_urls = sel.css('#imageThumbs input::attr(src)').extract()
         big_urls = []
+        three = 3
         for url in img_urls:
             bits = url.split('/')
             # MAJIC
             # basically something like: http://www.gap.com/webcontent/0008/097/815/cn8097815.jpg
             # needs to become like:     http://www.gap.com/webcontent/0008/097/812/cn8097812.jpg
-            bits[-2] = str(int(bits[-2]) - 3) # 3 is my favourite number
-            more_bits = bits[-1].split('.')
-            more_bits[0] = more_bits[0][:-3] + bits[-2]
-            bits[-1] = '.'.join(more_bits)
+            bits[-2] = str(int(bits[-2]) - three) # 3 is my favourite number
+            filename, extension = bits[-1].split('.')
+            filename = filename[:-3] + bits[-2]
+            bits[-1] = filename + '.' + extension
             big_urls.append('/'.join(bits))
         l.add_value('image_urls', big_urls)
 
         yield l.load_item()
-
