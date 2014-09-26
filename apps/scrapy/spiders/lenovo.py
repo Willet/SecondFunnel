@@ -76,3 +76,4 @@ class LenovoSpider(SecondFunnelCrawlScraper, Spider):
         l.add_value('image_urls', image_urls)
 
         yield l.load_item()
+        
