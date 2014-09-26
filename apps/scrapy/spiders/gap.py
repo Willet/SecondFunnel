@@ -122,6 +122,5 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             big_urls.append('/'.join(bits))
         l.add_value('image_urls', big_urls)
 
-        data_url = self.product_data_url.format(l.get_output_value('sku'))
         yield l.load_item()
 
