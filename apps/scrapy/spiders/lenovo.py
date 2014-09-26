@@ -4,6 +4,7 @@ import time
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
+from scrapy.spider import Spider
 from urlparse import urlparse
 
 from apps.scrapy.items import ScraperProduct
@@ -11,7 +12,7 @@ from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCra
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class LenovoSpider(SecondFunnelCrawlScraper, Spider):
     name = 'lenovo'
     allowed_domains = ['lenovo.com', 'shop.lenovo.com']
     start_urls = ['http://shop.lenovo.com/us/en/tablets/']
@@ -70,22 +71,8 @@ class LenovoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('description', '#features div div div.grid_8.alpha')
         l.add_css('details', '#highlights ul')
 
-        time.sleep(2)
-        magic_subs = {            # http://www.lenovo.com/images/gallery/1060x596/lenovo-tablet-yoga-8-tilt-mode-6.jpg
-            '115x65': '1060x596'  # http://www.lenovo.com/images/gallery/115x65/lenovo-tablet-yoga-8-tilt-mode-6.jpg
-        }
-
-        # parse the gallery with re (like a caveman)
-        image_urls = re.findall('data-original="([^"]+gallery[^"]+)"', response.body)
-        new_image_urls = []
-        for url in image_urls:
-            for before, after in magic_subs.iteritems():
-                if url.endswith('jpg') and not 'video' in url:
-                    # it just so happens that pngs and gifs are always video
-                    # thumbnails that aren't product images
-                    url = url.replace(before, after)
-                    new_image_urls.append(urlparse(url, scheme='http').geturl())
-
-        l.add_value('image_urls', new_image_urls)
+        image_urls = sel.css('figure:not([itemprop="video"]) a::attr(href)').extract()
+        image_urls = [urlparse(url, scheme='http').geturl() for url in image_urls]
+        l.add_value('image_urls', image_urls)
 
         yield l.load_item()
