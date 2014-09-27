@@ -1,5 +1,6 @@
 ---
-- apt: name={{item}} state=present
+- name: "Install web application requirements"
+  apt: name={{item}} state=present
   with_items:
     - git
     - python-pip
@@ -20,11 +21,11 @@
     - python-numpy-dev
   sudo: true
 
-- name: Install VirtualEnv
+- name: "Install VirtualEnv"
   pip: name=virtualenv
   sudo: true
 
-- name: Create Directories for Application
+- name: "Create Directories for Application"
   file: state=directory path={{item}} mode=0777 owner={{common_user}} group={{common_user}}
   with_items:
     - "{{secondfunnel_directory}}"
@@ -34,11 +35,15 @@
     - "{{secondfunnel_shared_directory}}"
   sudo: true
 
-- name: Create Linked Directories for Application
+- name: "Create Linked To Directories for Application"
   file: state=directory path={{item.dest}} mode=0777 owner={{common_user}} group={{common_user}}
   with_items: linked_directories
   sudo: true
 
-- name: Setup Environment for Database
-  template: src=rds_environment.sh dest=/etc/profile.d/rds_environment.sh mode=0777
+- name: Install NPM global dependencies
+  npm: name="{{item}}" state=latest global=yes
+  with_items:
+    - bower
+    - gulp
+    - "coffee-script"
   sudo: true

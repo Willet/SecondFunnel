@@ -1,20 +1,21 @@
-- name: Setup Login for pgbouncer (so we can connect to db)
+---
+- include: dependencies.yml
+
+- name: "Setup Login for pgbouncer (so we can connect to db)"
   template: src=pgbouncer.userlist.txt.j2 dest=/etc/pgbouncer/userlist.txt mode=0644 owner=postgres group=postgres
   notify: pgbouncer restart
   sudo: true
+  tags: credentials
 
-- name: Install NPM global dependencies
-  npm: name="{{item}}" state=latest global=yes
-  with_items:
-    - bower
-    - gulp
-    - "coffee-script"
+- name: "Setup Environment for Database"
+  template: src=rds_environment.sh dest=/etc/profile.d/rds_environment.sh mode=0777
   sudo: true
+  tags: credentials
 
 - include: deploy.yml
   tags: deploy
 
-- name: Install nginx + uwsgi config
+- name: "Install nginx + uwsgi config"
   template: src=secondfunnel.nginx.conf dest=/etc/nginx/sites-enabled/secondfunnel.nginx.conf
   notify: nginx restart
   sudo: true
