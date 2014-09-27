@@ -1,0 +1,25 @@
+---
+- name: "Setup no SSH Timeout (sshd)"
+  template: src=sshd_config dest=/etc/ssh/sshd_config mode=0644
+  sudo: true
+
+- name: "Set up SSH's authorized_keys for developers etc... logging in as {{common_user}}"
+  authorized_key: user="{{common_user}}"
+                  key="{{lookup('file', item)}}"
+  with_fileglob:
+    - public_keys/*.pub
+  tags: credentials
+  sudo: true
+
+- name: "(VAGRANT ONLY) Grab vagrant's public key"
+  local_action: command ssh-keygen -y -f ~/.vagrant.d/insecure_private_key
+  when: "'vagrant' in groups"
+  tags: credentials
+  register: vagrant_key
+
+- name: "(VAGRANT ONLY) setup authorized_keys"
+  authorized_key: user="{{common_user}}"
+                  key="{{vagrant_key.stdout}}"
+  when: "'vagrant' in groups"
+  tags: credentials
+  sudo: true
