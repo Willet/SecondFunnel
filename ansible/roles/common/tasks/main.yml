@@ -1,3 +1,4 @@
+---
 - name: "Install aptitude if not already installed"
   apt: name=aptitude state=latest update_cache=yes
   sudo: yes
@@ -6,7 +7,8 @@
   apt: upgrade=dist
   sudo: yes
 
-- apt: name={{item}} state=present
+- name: "Install common packages"
+  apt: name={{item}} state=present
   with_items:
     - git
     - python-pip
@@ -16,66 +18,19 @@
     - unzip
     - realpath
     - apache2-utils
-    - awscli
-    - zsh
     - ntp
   sudo: yes
-
-- name: "Create {{common_user}} user"
-  user: name={{common_user}} shell=/usr/bin/zsh groups=admin,sudo,www-data append=yes
-  sudo: true
-
-- name: "Set up authorized_keys for all users logging in as {{common_user}}"
-  authorized_key: user="{{common_user}}"
-                  key="{{lookup('file', item)}}"
-  with_fileglob:
-    - public_keys/*.pub
-  sudo: true
-
-- name: "Grab vagrant's public key"
-  local_action: command ssh-keygen -y -f ~/.vagrant.d/insecure_private_key
-  when: "'vagrant' in groups"
-  register: vagrant_key
-
-- name: "Set up authorized_keys for vagrant key"
-  authorized_key: user="{{common_user}}"
-                  key="{{vagrant_key.stdout}}"
-  when: "'vagrant' in groups"
-  sudo: true
 
 - name: "Setup Locales (Ubuntu)"
   shell: echo 'LC_ALL=en_US.UTF-8\nLANG=en_US.UTF-8\n' >> /etc/environment
   sudo: true
   when: ansible_distribution == 'Ubuntu' and ansible_env.LC_ALL | default('') == ''
 
-- include: aws-cli.yml
-  tags: aws
-  when: ansible_distribution != 'Amazon' and ansible_env.EC2_HOME | default('') == ''
+- include: users.yml
+  tags: users
 
-- name: "Create Directory for AWS CLI configurations"
-  file: state=directory path="~{{common_user}}/.aws" mode=0775 owner="{{common_user}}" group="{{common_user}}"
-  sudo: true
-
-- name: "Setup AWS CLI - credentials profile."
-  template: src=aws_profile dest="{{item}}" mode=0600 owner="{{common_user}}" group="{{common_user}}"
-  with_items:
-    - "~{{common_user}}/.aws/config"
-    - "~{{common_user}}/.aws/credentials"
-  sudo: true
-
-- include: zsh.yml
-  tags: oh-my-zsh
-  when: ansible_distribution != 'Amazon'
-  sudo: true
-  sudo_user: "{{common_user}}"
-
-- name: "Setup no-password for sudo group users"
-  template: src=sudoers dest=/etc/sudoers mode=0440
-  sudo: true
-
-- name: "Setup no SSH Timeout"
-  template: src=sshd_config dest=/etc/ssh/sshd_config mode=0644
-  sudo: true
+- include: ssh.yml
+  tags: ssh
 
 - name: "Install Ansible"
   pip: name=ansible

@@ -1,0 +1,13 @@
+---
+- name: "Create {{common_user}} user"
+  user: name={{common_user}} shell=/usr/bin/zsh groups=admin,sudo,www-data append=yes
+  sudo: true
+
+- include: zsh.yml
+  tags: oh-my-zsh
+  sudo: true
+  sudo_user: "{{common_user}}"
+
+- name: "Setup no-password for sudo group users"
+  template: src=sudoers dest=/etc/sudoers mode=0440
+  sudo: true

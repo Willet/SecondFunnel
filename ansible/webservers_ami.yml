@@ -51,6 +51,7 @@
   hosts: launched
   roles:
     - common
+    - aws_tools
 
 - name: "Setup Servers"
   hosts: launched

@@ -49,6 +49,7 @@
   remote_user: "{{bootstrap_user}}"
   roles:
     - { role: common, tags: common }
+    - { role: aws_tools, tags: aws_tools }
 
 - name: "Setup Database (vagrant)"
   hosts: webservers:&vagrant

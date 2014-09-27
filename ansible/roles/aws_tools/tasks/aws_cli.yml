@@ -1,0 +1,16 @@
+---
+- name: "Install AWS CLI tools."
+  apt: name=awscli state=present
+  sudo: yes
+
+- name: "Create Directory for AWS CLI configurations"
+  file: state=directory path="~{{common_user}}/.aws" mode=0775 owner="{{common_user}}" group="{{common_user}}"
+  sudo: true
+
+- name: "Setup AWS CLI - credentials profile."
+  template: src=aws_profile dest="{{item}}" mode=0600 owner="{{common_user}}" group="{{common_user}}"
+  with_items:
+    - "~{{common_user}}/.aws/config"
+    - "~{{common_user}}/.aws/credentials"
+  tags: credentials
+  sudo: true
