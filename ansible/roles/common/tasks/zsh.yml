@@ -1,6 +1,7 @@
 ---
 - name: "Install zsh"
   apt: name=zsh state=latest
+  sudo: true
 
 - name: check if oh-my-zsh is installed
   stat: path=/home/{{common_user}}/.oh-my-zsh
