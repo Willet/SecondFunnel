@@ -1,0 +1,49 @@
+---
+- name: "Install web application requirements"
+  apt: name={{item}} state=present
+  with_items:
+    - git
+    - python-pip
+    - python-dev
+    - build-essential
+    - iotop
+    - libffi-dev
+    - libyaml-0-2
+    - libyaml-dev
+    - libxslt1.1
+    - libxslt1-dev
+    - libxml2
+    - libxml2-dev
+    - libjpeg-dev
+    - postgresql-client
+    - libpq-dev
+    - python-numpy
+    - python-numpy-dev
+  sudo: true
+
+- name: "Install VirtualEnv"
+  pip: name=virtualenv
+  sudo: true
+
+- name: "Create Directories for Application"
+  file: state=directory path={{item}} mode=0777 owner={{common_user}} group={{common_user}}
+  with_items:
+    - "{{secondfunnel_directory}}"
+    - "{{application_directory}}"
+    - "{{secondfunnel_run_directory}}"
+    - "{{secondfunnel_log_directory}}"
+    - "{{secondfunnel_shared_directory}}"
+  sudo: true
+
+- name: "Create Linked To Directories for Application"
+  file: state=directory path={{item.dest}} mode=0777 owner={{common_user}} group={{common_user}}
+  with_items: linked_directories
+  sudo: true
+
+- name: Install NPM global dependencies
+  npm: name="{{item}}" state=latest global=yes
+  with_items:
+    - bower
+    - gulp
+    - "coffee-script"
+  sudo: true

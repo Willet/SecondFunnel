@@ -12,7 +12,25 @@
         from="Duke Nukem"
         validate_certs=no
       tags: deploy
-      when: (app_environment | default('vagrant') != 'vagrant') and inventory_hostname == play_hosts[0] # change to only once in the future
+      run_once: True
+      when: (app_environment | default('vagrant') != 'vagrant') and 'autoscale' not in groups
+
+    - name: "Notify hipchat of Auto-Scaling"
+      local_action: hipchat
+        token="{{ hipchat.token }}"
+        room="{{ hipchat.room }}"
+        msg="AutoScale - (begin) increasing web machines by 1"
+        color="gray"
+        from="AWS Gods"
+        validate_certs=no
+      tags: deploy
+      run_once: True
+      when: ('autoscale' in groups) and ('vagrant' not in groups)
+
+    - name: "Disabling Auto-scaling during configuration."
+      command: "aws autoscaling suspend-processes --auto-scaling-group-name '{{ aws_asg.name }}' --scaling-processes Launch Terminate HealthCheck"
+      run_once: True
+      when: ('autoscale' not in groups) and ('vagrant' not in groups)
 
 - name: "Remove any (local) known hosts already for the given box"
   hosts: webservers:&vagrant
@@ -31,6 +49,7 @@
   remote_user: "{{bootstrap_user}}"
   roles:
     - { role: common, tags: common }
+    - { role: aws_tools, tags: aws_tools }
 
 - name: "Setup Database (vagrant)"
   hosts: webservers:&vagrant
@@ -60,7 +79,14 @@
       when: app_environment != "vagrant"
       tags: deploy
   roles:
-    - web
+    - { role: phantomjs, tags: phantomjs, sudo: true }
+    - { role: newrelic, tags: newrelic, sudo: true, when: app_environment != 'vagrant' }
+    - { role: monit, tags: monit, sudo: true }
+    - { role: nginx, tags: nginx, sudo: true }
+    - { role: node, tags: node }
+    - { role: pgbouncer, tags: pgbouncer, sudo: true }
+    - { role: uwsgi, tags: uwsgi }
+    - { role: web, tags: web_application }
   post_tasks:
     - name: "Register Instance on LB"
       local_action: ec2_elb
@@ -89,4 +115,22 @@
         from="Hubert"
         validate_certs=no
       tags: deploy
-      when: (app_environment | default('vagrant') != 'vagrant') and inventory_hostname == play_hosts[0] # change to only once in the future
+      run_once: true
+      when: (app_environment | default('vagrant') != 'vagrant') and 'autoscale' not in groups
+
+    - name: "Notify hipchat of Auto-Scaling"
+      local_action: hipchat
+        token="{{ hipchat.token }}"
+        room="{{ hipchat.room }}"
+        msg="AutoScale - (end) increased web machines by 1"
+        color="green"
+        from="AWS Gods"
+        validate_certs=no
+      tags: deploy
+      run_once: True
+      when: ('autoscale' in groups) and ('vagrant' not in groups)
+
+    - name: "Re-Enable Auto-scaling for after configuration."
+      command: "aws autoscaling resume-processes --auto-scaling-group-name '{{ aws_asg.name }}' --scaling-processes Launch Terminate HealthCheck"
+      run_once: True
+      when: ('autoscale' not in groups) and ('vagrant' not in groups)

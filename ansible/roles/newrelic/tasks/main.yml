@@ -16,3 +16,4 @@
   command: nrsysmond-config --set license_key="{{new_relic_license_key}}"
   notify: newrelic-sysmond restart
   when: package_installed|changed
+  tags: credentials

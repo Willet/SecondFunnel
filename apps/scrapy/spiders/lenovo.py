@@ -4,11 +4,11 @@ import time
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
-from urlparse import urlparse
 from scrapy.spider import Spider
+from urlparse import urlparse
 
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
@@ -31,7 +31,7 @@ class LenovoSpider(SecondFunnelCrawlScraper, Spider):
     def is_product_page(self, response):
         sel = Selector(response)
 
-        is_product_page = sel.css('#multichoices.cf')
+        is_product_page = sel.css('.cta')
 
         return is_product_page
 
@@ -63,28 +63,16 @@ class LenovoSpider(SecondFunnelCrawlScraper, Spider):
             sel.css('meta[name="ModelName"]::attr(content)').extract_first(),
             sel.css('meta[name="ModelNumber"]::attr(content)').extract_first())
         l.add_value('name', product_name)
-        l.add_css('price', 'dd.aftercoupon.value', re=r'\$(.*)')
+
+        l.add_css('price', 'meta[itemprop="price"]::attr(content)')
+
         l.add_value('in_stock', True)
 
-        l.add_css('description', '#features>div>div>div.grid_8.alpha')
-        l.add_css('details', '#highlights>ul>li')
+        l.add_css('description', '#features div div div.grid_8.alpha')
+        l.add_css('details', '#highlights ul')
 
-        time.sleep(2)
-        magic_subs = {            # http://www.lenovo.com/images/gallery/1060x596/lenovo-tablet-yoga-8-tilt-mode-6.jpg
-            '115x65': '1060x596'  # http://www.lenovo.com/images/gallery/115x65/lenovo-tablet-yoga-8-tilt-mode-6.jpg
-        }
-
-        # parse the gallery with re (like a caveman)
-        image_urls = re.findall('data-original="([^"]+gallery[^"]+)"', response.body)
-        new_image_urls = []
-        for url in image_urls:
-            for before, after in magic_subs.iteritems():
-                if url.endswith('jpg') and not 'video' in url:
-                    # it just so happens that pngs and gifs are always video
-                    # thumbnails that aren't product images
-                    url = url.replace(before, after)
-                    new_image_urls.append(urlparse(url, scheme='http').geturl())
-
-        l.add_value('image_urls', new_image_urls)
+        image_urls = sel.css('figure:not([itemprop="video"]) a::attr(href)').extract()
+        image_urls = [urlparse(url, scheme='http').geturl() for url in image_urls]
+        l.add_value('image_urls', image_urls)
 
         yield l.load_item()

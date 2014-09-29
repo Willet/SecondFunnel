@@ -9,6 +9,7 @@ import random
 from functools import partial, wraps
 
 from django.conf import settings
+from django.db.models import Count
 from django.db.models.query import QuerySet
 from apps.assets.models import Tile
 from apps.utils.functional import result, sort_helper
@@ -447,6 +448,64 @@ def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         return tiles[:results]
     else:
         return tiles[offset:offset + results]
+
+def ir_magic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+             offset=0, *args, **kwargs):
+
+    total_tiles = tiles.count()
+
+    # Wrap results TODO: add an option for finite which does not execute this
+    overflow = results - total_tiles % results
+    while offset > total_tiles:
+        offset -= overflow + total_tiles
+
+    template_types = tiles.values('template').annotate(Count('id')).values_list('template', 'id__count')
+    templated_tiles = {}
+
+    for template_type, total in template_types:
+        templated_tiles[template_type] = {
+            'tiles': list(tiles.filter(template=template_type).order_by('-priority')),
+            'total': total,
+            'ratio': total / float(total_tiles),
+            'added': 0,
+        }
+
+    result_tiles = []
+
+    def get_next_tile():
+        tile_list = []
+        highest_priority = 0
+        worst_ratio = 2
+
+        # Pick the tile(s) with the highest priority
+        for _, templated_tile in templated_tiles.iteritems():
+            if templated_tile['added'] < templated_tile['total']:
+                tile_candidate = templated_tile['tiles'][templated_tile['added']]
+
+                if tile_candidate.priority > highest_priority:
+                    tile_list = [tile_candidate]
+                    highest_priority = tile_candidate.priority
+                elif tile_candidate.priority == highest_priority:
+                    tile_list.append(tile_candidate)
+
+        # Pick the tile that will have the worst (current) ratio
+        for tile_candidate in tile_list:
+            templated_tile = templated_tiles[tile_candidate.template]
+            ratio = templated_tile['added'] / float(total_tiles)
+            ratio /= templated_tile['ratio']
+            if ratio < worst_ratio:
+                worst_ratio = ratio
+                tile = tile_candidate
+
+        templated_tiles[tile.template]['added'] += 1
+
+        return tile
+
+    while len(result_tiles) < results + offset and len(result_tiles) < total_tiles:
+        result_tiles.append(get_next_tile())
+
+    print "Returning tiles: %s" % result_tiles[offset:]
+    return qs_for(result_tiles[offset:])
 
 
 @returns_qs
