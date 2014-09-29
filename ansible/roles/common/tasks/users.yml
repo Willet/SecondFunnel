@@ -5,8 +5,6 @@
 
 - include: zsh.yml
   tags: oh-my-zsh
-  sudo: true
-  sudo_user: "{{common_user}}"
 
 - name: "Setup no-password for sudo group users"
   template: src=sudoers dest=/etc/sudoers mode=0440

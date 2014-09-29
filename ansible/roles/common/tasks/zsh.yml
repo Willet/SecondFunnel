@@ -6,10 +6,16 @@
 - name: check if oh-my-zsh is installed
   stat: path=/home/{{common_user}}/.oh-my-zsh
   register: oh_my_zsh
+  sudo: true
+  sudo_user: "{{common_user}}"
 
 - name: Install oh-my-zsh
   command: git clone git://github.com/robbyrussell/oh-my-zsh.git /home/{{common_user}}/.oh-my-zsh
   when: oh_my_zsh.stat.exists == false
+  sudo: true
+  sudo_user: "{{common_user}}"
 
 - name: Use templated zshrc as the default for common user
   template: src="zshrc" dest="/home/{{common_user}}/.zshrc"
+  sudo: true
+  sudo_user: "{{common_user}}"
