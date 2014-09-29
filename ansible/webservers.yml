@@ -49,6 +49,7 @@
   remote_user: "{{bootstrap_user}}"
   roles:
     - { role: common, tags: common }
+    - { role: aws_tools, tags: aws_tools }
 
 - name: "Setup Database (vagrant)"
   hosts: webservers:&vagrant
@@ -78,7 +79,14 @@
       when: app_environment != "vagrant"
       tags: deploy
   roles:
-    - web
+    - { role: phantomjs, tags: phantomjs, sudo: true }
+    - { role: newrelic, tags: newrelic, sudo: true, when: app_environment != 'vagrant' }
+    - { role: monit, tags: monit, sudo: true }
+    - { role: nginx, tags: nginx, sudo: true }
+    - { role: node, tags: node }
+    - { role: pgbouncer, tags: pgbouncer, sudo: true }
+    - { role: uwsgi, tags: uwsgi }
+    - { role: web, tags: web_application }
   post_tasks:
     - name: "Register Instance on LB"
       local_action: ec2_elb

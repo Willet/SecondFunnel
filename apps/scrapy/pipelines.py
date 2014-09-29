@@ -194,7 +194,6 @@ class CategoryPipeline(object):
         # Should dissociate all the products from all the different categories
         # and associate them with the "good" one (whichever has lowest id),
         # then delete the "bad" category.
-
         categories = Category.objects.filter(**kwargs)
         if len(categories) > 1:
             print "Killing categories"

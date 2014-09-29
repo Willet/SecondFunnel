@@ -1,0 +1,25 @@
+---
+- name: "Install Java"
+  apt: name=openjdk-7-jre state=present update_cache=yes
+  sudo: yes
+
+- name: "Add JAVA_HOME to Environment"
+  shell: echo JAVA_HOME=`dirname $(dirname $(readlink -f $(which java)))` >> /etc/environment
+  when: ansible_env.JAVA_HOME | default('') == ''
+  sudo: yes
+
+- name: "Add EC2_HOME to Environment"
+  shell: echo EC2_HOME=`realpath /usr/local/ec2/ec2-api-tools-*` >> /etc/environment
+  when: ansible_env.EC2_HOME | default('') == ''
+  sudo: yes
+
+- name: "Download EC2 Tools"
+  get_url: url=http://s3.amazonaws.com/ec2-downloads/ec2-api-tools.zip dest=/tmp/ec2-api-tools.zip
+
+- name: "Create installation directory"
+  file: state=directory path=/usr/local/ec2
+  sudo: yes
+
+- name: "Install EC2 Tools"
+  unarchive: src=/tmp/ec2-api-tools.zip dest=/usr/local/ec2/ copy=no
+  sudo: yes

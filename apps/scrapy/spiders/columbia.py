@@ -74,9 +74,8 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         categories = []
         for breadcrumb in breadcrumbs:
             category_name = breadcrumb.css('::text').extract_first().strip()
-            category_url = breadcrumb.css('::attr(href)').extract_first()
 
-            categories.append((category_name, category_url))
+            categories.append(category_name)
 
         attributes['categories'] = categories
         l.add_value('attributes', attributes)

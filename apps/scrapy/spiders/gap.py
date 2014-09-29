@@ -109,18 +109,21 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_value('attributes', attributes)
 
         img_urls = sel.css('#imageThumbs input::attr(src)').extract()
-        big_urls = []
-        big_image_offset = 3
-        for url in img_urls:
-            bits = url.split('/')
-            # MAJIC
-            # basically something like: http://www.gap.com/webcontent/0008/097/815/cn8097815.jpg
-            # needs to become like:     http://www.gap.com/webcontent/0008/097/812/cn8097812.jpg
-            bits[-2] = '{:03}'.format(int(bits[-2]) - big_image_offset)
-            filename, extension = bits[-1].split('.')
-            filename = filename[:-3] + bits[-2]
-            bits[-1] = filename + '.' + extension
-            big_urls.append('/'.join(bits))
-        l.add_value('image_urls', big_urls)
-
+        if img_urls:
+            big_urls = []
+            big_image_offset = 3
+            for url in img_urls:
+                bits = url.split('/')
+                # MAJIC
+                # basically something like: http://www.gap.com/webcontent/0008/097/815/cn8097815.jpg
+                # needs to become like:     http://www.gap.com/webcontent/0008/097/812/cn8097812.jpg
+                bits[-2] = '{:03}'.format(int(bits[-2]) - big_image_offset)
+                filename, extension = bits[-1].split('.')
+                filename = filename[:-3] + bits[-2]
+                bits[-1] = filename + '.' + extension
+                big_urls.append('/'.join(bits))
+            l.add_value('image_urls', big_urls)
+        else:
+            # no thumbnails
+            l.add_css("#product_image::attr(src)")
         yield l.load_item()

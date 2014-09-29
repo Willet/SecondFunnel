@@ -77,7 +77,7 @@ def returns_qs(fn):
     @wraps(fn)
     def wrapped_fn(*args, **kwargs):
         tiles, feed = kwargs.pop('tiles'), kwargs.get('feed')
-        if feed:
+        if not tiles and feed:
             tiles = feed.tiles.all()
 
         content_only = kwargs.get('content_only', False)

@@ -1,0 +1,6 @@
+---
+- include: aws_cli.yml
+  tags: aws_cli
+
+- include: ec2_api_tools.yml
+  tags: ec2_api_tools

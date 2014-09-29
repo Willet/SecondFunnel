@@ -3,7 +3,10 @@ import json
 from django.conf import settings
 
 from django.core import serializers
-from apps.assets.models import Category
+
+from itertools import chain
+
+from apps.assets.models import Category, Tile, Content
 from apps.intentrank.algorithms import ir_generic, ir_finite_by, ir_ordered_by, \
     qs_for, ir_base
 
@@ -125,13 +128,10 @@ class IntentRank(object):
             products = []
 
         if category_name and category:
-            allowed_set = []
-            for product in products:
-                allowed_set += [t.id for t in product.tiles.all()]
-                contents = product.content.all()
-                for content in contents:
-                    allowed_set += [tile.id for tile in content.tiles.all()]
-            allowed_set = list(set(allowed_set))
+            contents = Content.objects.filter(tagged_products__in=products)
+            product_tiles = Tile.objects.filter(products__in=products).values_list('id', flat=True)
+            content_tiles = Tile.objects.filter(content__in=contents).values_list('id', flat=True)
+            allowed_set = list(set(chain(product_tiles, content_tiles)))
         else:
             allowed_set = None
 
