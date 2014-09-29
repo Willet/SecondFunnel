@@ -84,7 +84,6 @@ App.module("intentRank", function (intentRank, App) {
     this.fetch = function (options) {
         // 'this' can be whatever you want it to be
         var collection = this,
-            deferred = new $.Deferred(),
             data = {},
             opts;
 
@@ -122,11 +121,11 @@ App.module("intentRank", function (intentRank, App) {
         if (collection.ajaxFailCount > 5) {
             console.error("IR failed " + collection.ajaxFailCount +
                 " times consecutively!");
-            return deferred.promise();
+            return this.deferred;
         }
 
         // Make the request to Backbone collection and return deferred
-        Backbone.Collection.prototype
+        this.deferred = Backbone.Collection.prototype
             .sync('read', collection, opts)
             .done(function (results) {
                 // request SUCCEEDED
@@ -152,8 +151,6 @@ App.module("intentRank", function (intentRank, App) {
                 // (it was specified before?)
                 resultsAlreadyRequested = resultsAlreadyRequested.slice(
                     -intentRank.options.IRResultsCount);
-
-                deferred.resolve(results);
             }).fail(function () {
                 // request FAILED
                 if (collection.ajaxFailCount) {
@@ -163,13 +160,13 @@ App.module("intentRank", function (intentRank, App) {
                 }
             });
 
-        deferred.done(function () {
+        this.deferred.done(function () {
             App.options.IRReqNum++;
             intentRank.options.IRReqNum++;
             intentRank.options.IROffset += opts.results;
         });
 
-        return deferred.promise();
+        return this.deferred;
     };
 
     /**
