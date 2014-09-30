@@ -21,10 +21,6 @@
     - python-numpy-dev
   sudo: true
 
-- name: "Install VirtualEnv"
-  pip: name=virtualenv
-  sudo: true
-
 - name: "Create Directories for Application"
   file: state=directory path={{item}} mode=0777 owner={{common_user}} group={{common_user}}
   with_items:
