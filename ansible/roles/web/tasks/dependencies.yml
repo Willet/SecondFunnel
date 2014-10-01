@@ -21,18 +21,10 @@
     - python-numpy-dev
   sudo: true
 
-- name: "Install VirtualEnv"
-  pip: name=virtualenv
-  sudo: true
-
 - name: "Create Directories for Application"
   file: state=directory path={{item}} mode=0777 owner={{common_user}} group={{common_user}}
   with_items:
-    - "{{secondfunnel_directory}}"
     - "{{application_directory}}"
-    - "{{secondfunnel_run_directory}}"
-    - "{{secondfunnel_log_directory}}"
-    - "{{secondfunnel_shared_directory}}"
   sudo: true
 
 - name: "Create Linked To Directories for Application"
