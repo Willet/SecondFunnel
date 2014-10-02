@@ -84,9 +84,10 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         """
         sel = Selector(response)
 
-        their_id = sel.css('link[rel="canonical"]::attr(href)').re("/P(\d+).jsp")[0]
+        url_sel = sel.css('link[rel="canonical"]::attr(href)')
+        their_id = url_sel.re("/P(\d+).jsp")[0]
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
-        l.add_value('url', response.url)
+        l.add_value('url', url_sel.extract()[0])
         l.add_value('sku', their_id)
         l.add_css('name', '.productName::text')
 
