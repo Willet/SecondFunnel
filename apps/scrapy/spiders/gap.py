@@ -117,7 +117,6 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         yield request  # crawl the other url
 
     def images(self, response):
-        print "asdf"
         sel = Selector(response)
         item = response.meta.get('item', ScraperProduct())
         l = ScraperProductLoader(item=item, response=response)
