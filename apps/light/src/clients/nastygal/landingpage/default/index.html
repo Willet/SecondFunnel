@@ -4,8 +4,8 @@
 <!--[if IE 8]>         <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
 <head>
-    @@include('shared/campaign_opengraph_tags.html')
     @@include('shared/campaign_head.html')
+    @@include('shared/campaign_opengraph_tags.html')
     <!-- End Optimizer Tests -->
     <link rel="shortcut icon"
          href="http://assets.nastygal.com/assets/current/images/favicon/favicon-152.png" />
@@ -147,8 +147,7 @@
 
         <script type="text/template" id="facebook_social_button_template">
             <div class='button facebook'>
-                <fb:like href="<%= url %>" width="25" layout="button"
-                         show_faces="false"></fb:like>
+                <iframe src="//www.facebook.com/plugins/like.php?href=<%= url %>&amp;width&amp;layout=button&amp;action=like&amp;show_faces=false&amp;share=false&amp;height=35" scrolling="no" frameborder="0" style="border:none; overflow:hidden; height:14px;" allowTransparency="true"></iframe>
             </div>
         </script>
 

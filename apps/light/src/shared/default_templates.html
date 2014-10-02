@@ -119,9 +119,7 @@
 
 <script type="text/template" id="facebook_social_button_template">
     <div class='button facebook'>
-        <img src="/static/light/images/fb-like-0.png" alt="Like" class="placeholder" />
-        <fb:like href="<%= url %>" width="48" layout="button_count"
-                 show_faces="false"></fb:like>
+        <iframe src="//www.facebook.com/plugins/like.php?href=<%= url %>&amp;width&amp;layout=button&amp;action=like&amp;show_faces=false&amp;share=false&amp;height=35" scrolling="no" frameborder="0" style="border:none; overflow:hidden; height:35px;" allowTransparency="true"></iframe>
     </div>
 </script>
 

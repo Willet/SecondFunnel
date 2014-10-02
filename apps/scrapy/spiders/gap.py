@@ -84,9 +84,10 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         """
         sel = Selector(response)
 
+        their_id = sel.css('link[rel="canonical"]::attr(href)').re("/P(\d+).jsp")[0]
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_value('url', response.url)
-        l.add_css('sku', 'link[rel="canonical"]::attr(href)', re=r'/P(\d+).jsp')
+        l.add_value('sku', their_id)
         l.add_css('name', '.productName::text')
 
         # Presence of product name determines product availability
@@ -108,22 +109,21 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         attributes['categories'] = [category_name]
         l.add_value('attributes', attributes)
 
-        img_urls = sel.css('#imageThumbs input::attr(src)').extract()
-        if img_urls:
-            big_urls = []
-            big_image_offset = 3
-            for url in img_urls:
-                bits = url.split('/')
-                # MAJIC
-                # basically something like: http://www.gap.com/webcontent/0008/097/815/cn8097815.jpg
-                # needs to become like:     http://www.gap.com/webcontent/0008/097/812/cn8097812.jpg
-                bits[-2] = '{:03}'.format(int(bits[-2]) - big_image_offset)
-                filename, extension = bits[-1].split('.')
-                filename = filename[:-3] + bits[-2]
-                bits[-1] = filename + '.' + extension
-                big_urls.append('/'.join(bits))
-            l.add_value('image_urls', big_urls)
-        else:
-            # no thumbnails
-            l.add_css("#product_image::attr(src)")
-        yield l.load_item()
+        # image urls are stored in the "productData" page
+        url = self.product_data_url.format(their_id)
+        request = WebdriverRequest(url, callback=self.images)
+        # request contains other data in meta['item']
+        request.meta['item'] = l.load_item()
+        yield request  # crawl the other url
+
+    def images(self, response):
+        sel = Selector(response)
+        item = response.meta.get('item', ScraperProduct())
+        l = ScraperProductLoader(item=item, response=response)
+
+        relative_urls = sel.css("body").re(r"Z':\s?'([^']+?)'")
+        image_urls = [self.root_url + x for x in relative_urls]
+
+        l.add_value("image_urls", image_urls)
+
+        yield l.load_item() # the actual item is yielded, now with images
