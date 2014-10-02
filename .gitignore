@@ -35,3 +35,6 @@ apps/light/static
 apps/light/templates
 
 vagrant_ansible*
+
+.ssh/
+
