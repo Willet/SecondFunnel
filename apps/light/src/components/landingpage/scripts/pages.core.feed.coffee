@@ -84,17 +84,30 @@ class FeedView extends Marionette.CollectionView
     # TODO: weird location for this function
     categoryChanged: (event, category) ->
         App.tracker.changeCategory(category)
-        @resetTiles()
+
+        if not @resettingTiles
+            @resetTiles()
 
     resetTiles: () ->
+        emptyTiles = () =>
+            @empty()
+            @children.each (childView) => @removeChildView(childView)
+            @ended = false
+            $(".loading").show() # DEFER: hack
+            App.intentRank.options.IROffset = 0
+            @fetchTiles()
+            @resettingTiles = false
+            App.vent.trigger 'tilesEmptied'
+
+        @resettingTiles = true
         @lastRequest.abort()
+        this.collection.ajaxFailCount = 0
         @isLoading = false
-        @empty()
-        @children.each (childView) => @removeChildView(childView)
-        @ended = false
-        $(".loading").show() # DEFER: hack
-        App.intentRank.options.IROffset = 0
-        @fetchTiles()
+
+        if @layoutInProgress
+            App.vent.once 'layoutCompleted', emptyTiles
+        else
+            emptyTiles()
 
     pageScroll: ->
         if @ended
@@ -244,9 +257,10 @@ class MasonryFeedView extends FeedView
         @layoutInProgress = true
 
         imageLoadedCallback = (=>
-            @layoutInProgress = false
             @$el.append(recently_added)
             @masonry.appended recently_added
+            @layoutInProgress = false
+            App.vent.trigger 'layoutCompleted', @
         )
 
         # need to wait for images to load on these items
