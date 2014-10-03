@@ -107,7 +107,7 @@ class FeedView extends Marionette.CollectionView
         documentBottomPos = @$el.height() - @$el.offset().top
         viewportHeights = pageHeight * App.option('prefetchHeight', 2.5)
 
-        if not @isLoading and (children.length is 0 or not App.previewArea.currentView) and
+        if not @isLoading and not @layoutInProgress and (children.length is 0 or not App.previewArea.currentView) and
                 pageBottomPos >= documentBottomPos - viewportHeights
             @fetchTiles()
 
@@ -191,6 +191,7 @@ class MasonryFeedView extends FeedView
         @options = _.extend({}, @default_options, options.masonry)
 
         @recently_added = []
+        @layoutInProgress = false
 
         App.vent.trigger 'layoutEngineInitialized', @, options
         App.layoutEngine = @ # this is the layout engine now-a-days
@@ -240,9 +241,10 @@ class MasonryFeedView extends FeedView
     addItems: _.debounce (->
         recently_added = @recently_added
         @recently_added = []
-
+        @layoutInProgress = true
 
         imageLoadedCallback = (=>
+            @layoutInProgress = false
             @$el.append(recently_added)
             @masonry.appended recently_added
         )
