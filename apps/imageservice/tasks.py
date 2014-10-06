@@ -148,56 +148,43 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
 
     color = None if remove_background == 'uniform' else remove_background
     if (remove_background is not False) and ((remove_background == 'auto') or within_color_range(source, color, 4)):
-        # overwrite must be True to retrieve 'colors'
-        image_object = upload_to_cloudinary(source, path=path, effect='trim')
-        # trimmed_ratio = float(trimmed_image['width']) / trimmed_image['height']
-        # if trimmed_ratio < 0.6:  # if height is more than twice the width
-        #     normal_image = upload_to_cloudinary(source, path=path)
-        #     normal_ratio = float(normal_image['width']) / normal_image['height']
-        #
-        #     if normal_ratio >= trimmed_ratio:  # if the regular image has a better ratio then the trimmed one
-        #         print 'trimmed ratio is unacceptable'
-        #         image_object = normal_image
-        #         delete_cloudinary_resource(trimmed_image['url'])
-        #     else:  # the trimmed image is better despite being less than ideal.
-        #         print 'trimmed ratio is more ideal than not-trimmed'
-        #         # TODO maybe do some cropping here instead?
-        #         image_object = trimmed_image
-        #         delete_cloudinary_resource(normal_image['url'])
-        # else:
-        #     print 'trimmed ratio is ideal. image trimmed'
-        #     image_object = trimmed_image
-
+        print "trimming"
+        trimmed_object = upload_to_cloudinary(source, path=path, effect='trim')
     else:
-        image_object = upload_to_cloudinary(source, path=path)
+        print "not trimming"
+        trimmed_object = upload_to_cloudinary(source, path=path)
 
-    aspect_ratio = float(image_object['height']) / image_object['width']
-    print image_object['width'], image_object['height']
+    aspect_ratio = float(trimmed_object['height']) / trimmed_object['width']
+
+    # force standard aspect ratios (4:3, 1:1, or 1:2)
     kwargs = {'crop': 'pad'}
     if aspect_ratio > 4.0/3:
-        kwargs['width'] = int(3.0 * image_object['height'] / 4)
-        kwargs['height'] = image_object['height']
+        print "changing to portrait (padding 'x')"
+        kwargs['width'] = int(3.0 * trimmed_object['height'] / 4)
+        kwargs['height'] = trimmed_object['height']
     elif aspect_ratio > 7.0/6:
-        kwargs['width'] = image_object['width']
-        kwargs['height'] = int(4.0 * image_object['width'] / 3)
+        print "changing to portrait (padding 'y')"
+        kwargs['width'] = trimmed_object['width']
+        kwargs['height'] = int(4.0 * trimmed_object['width'] / 3)
     elif aspect_ratio > 1:
-        kwargs['width'] = image_object['height']
-        kwargs['height'] = image_object['height']
+        print "changing to square (padding 'x')"
+        kwargs['width'] = trimmed_object['height']
+        kwargs['height'] = trimmed_object['height']
     elif aspect_ratio > 3.0/4:
-        kwargs['width'] = image_object['width']
-        kwargs['height'] = image_object['width']
+        print "changing to square (padding 'y')"
+        kwargs['width'] = trimmed_object['width']
+        kwargs['height'] = trimmed_object['width']
     elif aspect_ratio > 1.0/2:
-        kwargs['width'] = int(2.0 * image_object['height'])
-        kwargs['height'] = image_object['height']
+        print "changing to landscape (padding 'x')"
+        kwargs['width'] = int(2.0 * trimmed_object['height'])
+        kwargs['height'] = trimmed_object['height']
     else:
-        kwargs['width'] = image_object['width']
-        kwargs['height'] = image_object['width'] / 2
+        print "changing to landscape (padding 'y')"
+        kwargs['width'] = trimmed_object['width']
+        kwargs['height'] = trimmed_object['width'] / 2
 
-    aspect_ratio = float(kwargs.get('height', image_object['height'])) / kwargs.get('width', image_object['width'])
-    print kwargs.get('width', image_object['width']), kwargs.get('height', image_object['height'])
-
-    delete_cloudinary_resource(image_object['url']) # destroy the temporary
-    image_object = upload_to_cloudinary(source, path, **kwargs)
+    image_object = upload_to_cloudinary(trimmed_object['url'], **kwargs)
+    delete_cloudinary_resource(trimmed_object['url']) # destroy the temporary
 
     # Grab the dominant colour from cloudinary
     colors = image_object['colors']
