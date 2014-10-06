@@ -105,9 +105,10 @@ class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             l.add_css('price', '#priceText strike::text')
             attributes['sales_price'] = sale_price
 
-        category_name = sel.css('#lnc-division::attr(alt)').extract()[0]
-
-        attributes['categories'] = [category_name]
+        try:
+            category_name = sel.css('#lnc-division::attr(alt)').extract()[0]
+        except IndexError:
+            category_name = sel.css('ul.category li.category')[0].css('a::text').extract()[0]
         l.add_value('attributes', attributes)
 
         # image urls are stored in the "productData" page
