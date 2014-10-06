@@ -63,6 +63,7 @@
     - { role: nginx, tags: nginx, sudo: true }
     - { role: node, tags: node }
     - { role: pgbouncer, tags: pgbouncer, sudo: true }
+    - { role: venv, tags: venv }
     - { role: uwsgi, tags: uwsgi }
     - { role: web, tags: web_application }
 
