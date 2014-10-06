@@ -154,34 +154,34 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
         print "not trimming"
         trimmed_object = upload_to_cloudinary(source, path=path)
 
-    aspect_ratio = float(trimmed_object['height']) / trimmed_object['width']
+    aspect_ratio = float(trimmed_object['width']) / trimmed_object['height']
 
-    # force standard aspect ratios (4:3, 1:1, or 1:2)
+    # force standard aspect ratios (3:4, 1:1, or 2:1)
     kwargs = {'crop': 'pad'}
-    if aspect_ratio > 4.0/3:
+    if aspect_ratio < 3.0/4:
         print "changing to portrait (padding 'x')"
-        kwargs['width'] = int(3.0 * trimmed_object['height'] / 4)
+        kwargs['width'] = int(4.0 * trimmed_object['height'] / 3)
         kwargs['height'] = trimmed_object['height']
-    elif aspect_ratio > 7.0/6:
+    elif aspect_ratio < 6.0/7:
         print "changing to portrait (padding 'y')"
         kwargs['width'] = trimmed_object['width']
-        kwargs['height'] = int(4.0 * trimmed_object['width'] / 3)
-    elif aspect_ratio > 1:
+        kwargs['height'] = int(3.0 * trimmed_object['width'] / 4)
+    elif aspect_ratio < 1:
         print "changing to square (padding 'x')"
         kwargs['width'] = trimmed_object['height']
         kwargs['height'] = trimmed_object['height']
-    elif aspect_ratio > 3.0/4:
+    elif aspect_ratio < 4.0/3:
         print "changing to square (padding 'y')"
         kwargs['width'] = trimmed_object['width']
         kwargs['height'] = trimmed_object['width']
-    elif aspect_ratio > 1.0/2:
+    elif aspect_ratio < 2.0:
         print "changing to landscape (padding 'x')"
-        kwargs['width'] = int(2.0 * trimmed_object['height'])
+        kwargs['width'] = trimmed_object['height'] / 2
         kwargs['height'] = trimmed_object['height']
     else:
         print "changing to landscape (padding 'y')"
         kwargs['width'] = trimmed_object['width']
-        kwargs['height'] = trimmed_object['width'] / 2
+        kwargs['height'] = 2 * trimmed_object['width']
 
     image_object = upload_to_cloudinary(trimmed_object['url'], **kwargs)
     delete_cloudinary_resource(trimmed_object['url']) # destroy the temporary
