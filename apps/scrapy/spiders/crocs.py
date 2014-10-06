@@ -26,7 +26,6 @@ class CrocsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     def __init__(self, *args, **kwargs):
         super(CrocsSpider, self).__init__(*args, **kwargs)
 
-
     def is_product_page(self, response):
         sel = Selector(response)
         return sel.css("#pdpHeaderPrice")
@@ -41,15 +40,12 @@ class CrocsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_css('sku', '.itemNum::text')
 
-        l.add_css('image_urls', '#i2::attr(src)')
+        l.add_css('image_urls', '#productHeroImg::attr(data-zoom-image)')
 
         attributes = {}
 
-        breadcrumbs = sel.css('div.breadcrumbs a')
-        attributes['categories'] = [(
-            crumb.css('::text'),        # name, url of breadcrumb
-            crumb.css('::attr(href)')
-        ) for crumb in breadcrumbs[1:]] # first crumb is the "back" button, so ignore it
+        breadcrumbs = sel.css('#crumbs a::text').extract()
+        attributes['categories'] = breadcrumbs[1:] # first crumb is the "back" button, so ignore it
 
         sel_price = sel.css('h3.price')
         if sel_price.css('span'):
