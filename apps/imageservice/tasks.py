@@ -102,7 +102,7 @@ def upload_to_s3(path, folder, img, size):
     return os.path.join(bucket, filename)
 
 
-def process_image(source, path='', sizes=None, remove_background=False):
+def process_image(source, path='', sizes=None, remove_background=False, aspect_ratios=None):
     """
     Acquires a lock in order to process the image.
 
@@ -116,7 +116,8 @@ def process_image(source, path='', sizes=None, remove_background=False):
 
     PROCESSING_SEM.acquire()
     try:
-        data = process_image_now(source, path, remove_background=remove_background)
+        data = process_image_now(source, path, remove_background=remove_background,
+                                               aspect_ratios=aspect_ratios)
     except Exception as e:
         # Need to ensure semaphore is released
         PROCESSING_SEM.release()
@@ -127,7 +128,7 @@ def process_image(source, path='', sizes=None, remove_background=False):
     return data
 
 
-def process_image_now(source, path='', sizes=None, remove_background=False):
+def process_image_now(source, path='', sizes=None, remove_background=False, aspect_ratios=None):
     """
     Delegates to resize to create the necessary sizes.
 
