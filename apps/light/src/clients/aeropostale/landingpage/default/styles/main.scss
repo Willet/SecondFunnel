@@ -1,0 +1,24 @@
+$icon-font-path: "/static/light/fonts/";
+
+@import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
+@import "src/components/landingpage/styles/base.scss";
+
+.navbar {
+	height: 36px;
+	min-height: inherit;
+}
+
+.navbar .container {
+	font-size: 0;
+	letter-spacing: 0;
+}
+
+.navbar .container a {
+	display: inline-block;
+	height: 100%;
+	width: 105px;
+}
+
+.navbar .container .logo {
+	width: 105px;
+}
