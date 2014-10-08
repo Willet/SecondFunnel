@@ -51,6 +51,8 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('details', '.pdpDetailsContent div::text')
 
         img_urls = sel.css('img.s7productthumbnail::attr(data-m-src)').extract()
+        if len(img_urls) == 0:  # only 1 image means no thumbnails apparently
+            img_urls = sel.css('#s7basiczoom_div::attr(data-defaultasset)').extract()
         # Hack
         # get same product imgs with all the different colors
         colors = ['_' + href.split('=')[-1] + '_' for href in sel.css('ul.variationcolor li a::attr(href)').extract()]

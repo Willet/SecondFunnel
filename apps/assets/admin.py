@@ -84,6 +84,7 @@ class ProductAdmin(BaseAdmin):
     ordering = ['name']
     list_display = ['name', '_category_names'] + BaseAdmin.list_display
     search_fields = ('id', 'name', 'description', 'sku',)
+    exclude = ('default_image',)
 
     def _categories(self, obj):
         return [cat.name for cat in obj.categories.all()]
