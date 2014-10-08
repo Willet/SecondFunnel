@@ -3,22 +3,51 @@ $icon-font-path: "/static/light/fonts/";
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
 
+body {
+    background: none;
+}
+
 .navbar {
-	height: 36px;
-	min-height: inherit;
+    height: 36px;
+    min-height: inherit;
 }
 
 .navbar .container {
-	font-size: 0;
-	letter-spacing: 0;
+    font-size: 0;
+    letter-spacing: 0;
 }
 
 .navbar .container a {
-	display: inline-block;
-	height: 100%;
-	width: 105px;
+    display: inline-block;
+    height: 100%;
+    width: 105px;
 }
 
 .navbar .container .logo {
-	width: 105px;
+    width: 105px;
+}
+
+.tile {
+    outline: 1px solid #CCC;
+    outline-offset: -1px;
+    text-align: center;
+    color: #333;
+    font-size: 13px;
+}
+
+.tile .price {
+    font-weight: bold;
+}
+
+.tile .price .strike {
+    font-size: 12px;
+    margin-right: 3px;
+    color: #999;
+    font-weight: normal;
+}
+
+@media (min-width: 992px) {
+    .container {
+        width: 1024px; /* remind me why the fuck we use bootstrap again? */
+    }
 }

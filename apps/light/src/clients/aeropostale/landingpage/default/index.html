@@ -87,7 +87,27 @@
     @@include('shared/campaign_body.html')
 
     <div>
-        <!-- Templates go here -->
+        <script type="text/template" id="banner_tile_template">
+            <div class="tile-border">
+                <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
+                <% if (App.option('debug', 0) > 1) { %>
+                    <span class="type"><%= obj['content-type'] %></span>
+                <% } %>
+                <div class="name">
+                    <%= obj.title || obj.name %>
+                </div>
+                <div class="price">
+                    <% if (obj.sale_price) { %>
+                        <span class="strike">
+                            <%- obj.price %>
+                        </span>
+                        Now <%- obj.sale_price %>
+                    <% } else { %>
+                        <%- obj.price %>
+                    <% } %>
+                </div>
+            </div>
+        </script>
     </div>
 
     <div class="container">
