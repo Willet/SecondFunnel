@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+    @@include('shared/campaign_head.html')
+    @@include('shared/campaign_opengraph_tags.html')
+    <link rel="shortcut icon" href="http://www.aeropostale.com/aero_favicon.ico" />
+    <link rel="stylesheet" href="/static/light/aeropostale/landingpage/default/styles/main.css"/>
+    @@include('shared/campaign_respond.html')
+    <!-- Add Optimizer Tests here -->
+    <script type="text/javascript">
+        window.TRACKING_PIXELS = {
+            'A': {
+                'view': 'http://pixel.watch/oetf',
+                'click': 'http://pixel.watch/f08v'
+            }
+        };
+        window.ACTIVE_TEST = 'A';
+    </script>
+    {% if environment == 'production' %}
+        <script type='text/javascript'>
+            var interval = setInterval(function() {
+                var test, bindFn;
+
+                if (!window.ACTIVE_TEST) {
+                    return;
+                }
+
+                // Because we need to bind some events before anything else, use this fn
+                // http://stackoverflow.com/a/2641047
+                $.fn.bindFirst = function(name, fn) {
+                    // bind as you normally would
+                    // don't want to miss out on any jQuery magic
+                    this.on(name, fn);
+
+                    // Thanks to a comment by @Martin, adding support for
+                    // namespaced events too.
+                    this.each(function() {
+                        var handlers = $._data(this, 'events')[name.split('.')[0]];
+                        // take out the handler we just inserted from the end
+                        var handler = handlers.pop();
+                        // move it at the beginning
+                        handlers.splice(0, 0, handler);
+                    });
+                };
+
+                bindFn = function() {
+                    (new Image).src = window.TRACKING_PIXELS[test].click;
+                };
+
+                clearInterval(interval);
+                test = window.ACTIVE_TEST;
+
+                // Append click pixel
+                if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                    $('.tile').bindFirst('click', bindFn);
+                } else {
+                    // Why doesn't bindFirst work on desktop?
+                    $('body').on('click', '.tile', bindFn);
+                }
+
+
+                // Append page view pixel
+                (new Image).src = window.TRACKING_PIXELS[test].view;
+            }, 1000);
+        </script>
+    {% endif %}
+    <title>{{ page.name|default:"Aeropostal" }}</title>
+</head>
+<body class="{% if tile %}stl{% endif %}">
+    <div class='navbar'>
+        <div class="container">
+            <a href="http://www.aeropostale.com/" target="_blank">
+                <img class="logo" src="/static/light/aeropostale/landingpage/default/images/logo.png" />
+            </a>
+            <a href="http://www.aeropostale.com/category/index.jsp?categoryId=43421136" target="_blank">
+                <img class="logo" src="/static/light/aeropostale/landingpage/default/images/logo2.png" />
+            </a>
+            <a href="http://www.aeropostale.com/category/index.jsp?categoryId=3534620" target="_blank">
+                <img class="logo" src="/static/light/aeropostale/landingpage/default/images/logo3.png" />
+            </a>
+        </div>
+    </div>
+
+    @@include('shared/campaign_body.html')
+
+    <div>
+        <!-- Templates go here -->
+    </div>
+
+    <div class="container">
+        <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
+        <div id="hero-area"></div>
+        <div id="hero-sub-banner">
+            {% if legal_copy %}
+                <div class="legal us">
+                    {{ legal_copy }}
+                </div>
+            {% endif %}
+        </div>
+        <div id="category-area"></div>
+        <div id="discovery-area" class="discovery-area"></div>
+        <div class="tile-sizer tile"></div>
+        <div class="no-noscript loading"></div>
+        <noscript>
+            <!-- promotions to show when user does not have javascript.
+             this is a 'we need javascript' message by default.
+             -->
+            <div class="alert alert-danger">
+                <b>Oh no!</b> We need JavaScript enabled to show you this page.
+            </div>
+        </noscript>
+    </div>
+
+    <img src="{% url 'apps.tracking.views.pixel' %}"/>
+    <div>
+        @@include('shared/default_templates.html')
+    </div>
+    <script type="text/javascript" src="/static/light/aeropostale/landingpage/default/scripts/main.js" async></script>
+</body>
+</html>
