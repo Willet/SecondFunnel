@@ -101,6 +101,45 @@
             <div class="mask"></div>
         </script>
 
+        <script type="text/template" id="product_galleryMainImage_template">
+            <div class="main-image-container">
+                <% if (obj.images.length > 1) { %>
+                    <div class="gallery-swipe-left"></div>
+                    <div class="gallery-swipe-right"></div>
+                <% } %>
+                <div class="main-image">
+                    <% for (var i = 0; i < obj.images.length && i < 8; i++) { %>
+                        <img class="image" src="<%- obj.images[i].url %>" />
+                    <% } %>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="product_gallery_template">
+            <% for (var i = 0; i < obj.images.length && i < 8; i++) { %>
+                <img class="item" src="<%- obj.images[i].url %>" />
+            <% } %>
+        </script>
+
+        <script type="text/template" id="product_galleryDots_template">
+            <% for (var i = 0; i < obj.images.length && i < 8; i++) { %>
+                <div class="item"></div>
+            <% } %>
+        </script>
+
+        <script type="text/template" id="product_price_template">
+            <% if (obj.sale_price) { %>
+                <div class="sale">
+                    <%- obj.sale_price %>
+                    <span class="strike">
+                        <%- obj.price %>
+                    </span>
+                </div>
+            <% } else { %>
+                <%- obj.price %>
+            <% } %>
+        </script>
+
         <script type="text/template" id="product_preview_template">
             <div class="table">
                 <div class='content-wrapper row'>
