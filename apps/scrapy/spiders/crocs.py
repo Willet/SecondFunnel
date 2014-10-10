@@ -20,7 +20,6 @@ class CrocsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             callback='parse_product', follow=False
         )
     ]
-
     store_slug = name
 
     def __init__(self, *args, **kwargs):
