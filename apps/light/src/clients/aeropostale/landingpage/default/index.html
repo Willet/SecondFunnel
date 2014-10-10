@@ -67,7 +67,7 @@
             }, 1000);
         </script>
     {% endif %}
-    <title>{{ page.name|default:"Aeropostal" }}</title>
+    <title>{{ page.name|default:"Aeropostale" }}</title>
 </head>
 <body class="{% if tile %}stl{% endif %}">
     <div class='navbar'>
@@ -118,6 +118,112 @@
                     </div>
                 </div>
             </div>
+        </script>
+
+        <script type="text/template" id="image_preview_template">
+            <% if (obj['tagged-products'].length) { %>
+                <% var product = obj['tagged-products'][0]; %>
+                <div class="image-with-tagged-products">
+                    <div class="table">
+                        <div class="row">
+                            <div class="cell desktop-only image-cell">
+                                <img src="<%= obj.images[0].url %>" alt="image" class="image"/>
+                                    <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                                    <div class="landscape">
+                                        <div class="stl-title">
+                                            Shop the look
+                                        </div>
+                                        <div class="stl-look">
+                                            <% var related = obj['tagged-products']; %>
+                                            <% for (var i = 0; i < related.length; i++) { %>
+                                                <div class="stl-item" data-index="<%- i %>">
+                                                    <img src="<%- related[i].images[0].url %>" />
+                                                    <%- related[i].name %>
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% } %>
+                            </div>
+                            <div class="cell mobile-only">
+                                <img src="<%= obj.images[0].url %>" alt="image"/>
+                            </div>
+                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
+                                <div class="cell desktop-only shop">
+                                    <div class="stl-title">
+                                        Shop the look
+                                    </div>
+                                    <div class="stl-look">
+                                        <% var related = obj['tagged-products']; %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <%- related[i].name %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <div class="cell info">
+                                <% if (App.support.mobile()) { %>
+                                    <div class='title'></div>
+                                    <div class='price'></div>
+                                <% } %>
+                                <div class='relative'>
+                                    <div class="gallery-main-image"></div>
+                                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                    <% if (App.support.mobile()) { %>
+                                        <div class='buy'></div>
+                                    <% } %>
+                                </div>
+                                <% if (!App.support.mobile()) { %>
+                                    <div>
+                                        <div class='title'></div>
+                                        <div class='price'></div>
+                                    </div>
+                                    <div class='buy'></div>
+                                <% } %>
+                            </div>
+                            <% if (obj['tagged-products'].length > 1) { %>
+                                <div class="cell mobile-only">
+                                    <div class="stl-title">
+                                        Shop the look
+                                    </div>
+                                    <div class="stl-look">
+                                        <% var related = obj['tagged-products'] %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <%- related[i].name %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="image-without-tagged-products">
+                    <div class="table">
+                        <div class="row">
+                            <div class="cell">
+                                <img src="<%= obj.images[0].url %>" alt="image" class="main-image" />
+                            </div>
+                            <div class="cell info">
+                                <div class="title">
+                                    Coming soon to Aeropostale!
+                                </div>
+                                <div class="buy">
+                                    <a class='button' href='http://www.aeropostale.com/' target='_blank'>
+                                        Shop On Aeropostale
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
         </script>
     </div>
 
