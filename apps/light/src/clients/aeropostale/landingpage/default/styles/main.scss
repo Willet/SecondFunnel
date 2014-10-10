@@ -1,4 +1,4 @@
-$icon-font-path: "/static/light/fonts/";
+$aero-pink: #ED008C;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -50,10 +50,11 @@ body {
     font-weight: normal;
 }
 
-.tile .buy .button {
+.tile .buy .button,
+.previewContainer .buy .button {
     font-size: 22px;
     color: #FFF;
-    background-color: #ED008C;
+    background-color: $aero-pink;
     text-transform: uppercase;
     text-decoration: none;
     display: inline-block;
@@ -62,8 +63,65 @@ body {
     padding: 8px 20px;
 }
 
-.tile .buy .button:hover {
+.tile .buy .button:hover,
+.previewContainer .buy .button {
     text-decoration: none;
+}
+
+.previewContainer {
+    color: #333;
+}
+
+.previewContainer .content {
+    padding: 1px;
+}
+
+.previewContainer .close {
+    background-color: $aero-pink;
+    color: #FFF;
+    padding: 10px 13px;
+    font-size: 19px;
+    font-weight: normal;
+}
+
+.previewContainer .cell.info {
+    padding-top: 42px;
+    padding-bottom: 10px;
+    padding-right: 10px;
+    width: 334px;
+}
+
+.previewContainer .cell.shop {
+    width: 120px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-right: 1px solid #333;
+}
+
+.previewContainer .title {
+    font-size: 18px;
+}
+
+.previewContainer .price {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.previewContainer .stl-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.previewContainer .stl-look {
+    width: auto;
+    max-height: 605px;
+    font-size: 12px;
+}
+
+.previewContainer .landscape .stl-look .stl-item {
+    margin: 0 5px;
+    width: auto;
 }
 
 @media (min-width: 992px) {
