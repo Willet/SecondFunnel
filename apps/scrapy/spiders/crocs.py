@@ -14,7 +14,6 @@ class CrocsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     rules = [
         Rule (
             SgmlLinkExtractor(restrict_xpaths='//a/img[contains(@alt, "Go to Next Page")]/..')
-                #'//div[contains(@class, last)]/ul[contains(@class, pagination)/a
         ),
         Rule (
             SgmlLinkExtractor(restrict_xpaths='//div[contains(@class, "productThumb")]'),
