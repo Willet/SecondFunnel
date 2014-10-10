@@ -2,6 +2,7 @@ $aero-pink: #ED008C;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
+@import url(http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic);
 
 body {
     background: none;
@@ -33,6 +34,7 @@ body {
     text-align: center;
     color: #333;
     font-size: 13px;
+    font-family: "Lato", Helvetica, sans-serif;
 }
 
 .tile:hover .overlay:nth-child(n) {
@@ -70,6 +72,7 @@ body {
 
 .previewContainer {
     color: #333;
+    font-family: "Lato", Helvetica, sans-serif;
 }
 
 .previewContainer .content {
