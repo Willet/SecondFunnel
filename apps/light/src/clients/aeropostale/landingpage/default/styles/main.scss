@@ -124,6 +124,13 @@ body {
     width: auto;
 }
 
+@media screen and (max-width: 768px) {
+    .previewContainer .cell.info {
+        padding-top: 5px;
+        width: auto;
+    }
+}
+
 @media (min-width: 992px) {
     .container {
         width: 1024px; /* remind me why the fuck we use bootstrap again? */
