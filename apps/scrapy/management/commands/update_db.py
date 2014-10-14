@@ -20,7 +20,7 @@ class Command(BaseCommand):
 
 		for arg in args:
 			page = Page.objects.get(url_slug=arg)
-			store_name = page.store.name
+			store_name = page.store.name.lower()
 			feed = page.feed
 
 			urls = []
