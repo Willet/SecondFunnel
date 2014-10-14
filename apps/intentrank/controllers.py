@@ -107,6 +107,7 @@ class IntentRank(object):
         request = kwargs.get('request', None)
         category_name = kwargs.get('category_name', None)
         feed = self._feed
+        tiles = None
 
         if not algorithm:
             algorithm = self.algorithm
@@ -127,16 +128,13 @@ class IntentRank(object):
 
         if category_name and category:
             contents = Content.objects.filter(tagged_products__in=products)
-            tiles = Tile.objects.filter(Q(products__in=products) | Q(content__in=contents)).values_list('id', flat=True).distinct()
-            allowed_set = list(tiles)
-        else:
-            allowed_set = None
+            tiles = feed.tiles.filter(Q(products__in=products) | Q(content__in=contents))
 
-        tiles = ir_base(feed=feed, allowed_set=allowed_set)
+        tiles = ir_base(feed=feed, tiles=tiles)
         args = dict(
             tiles=tiles, results=results,
-            exclude_set=exclude_set, allowed_set=allowed_set,
-            request=request, offset=offset, tile_id=tile_id, feed=feed)
+            exclude_set=exclude_set, request=request,
+            offset=offset, tile_id=tile_id, feed=feed)
 
         if 'products_only' in kwargs:
             args['products_only'] = kwargs.get('products_only')
