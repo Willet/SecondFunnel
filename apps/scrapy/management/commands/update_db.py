@@ -23,7 +23,13 @@ class Command(BaseCommand):
 			store_name = page.store.name
 			feed = page.feed
 
-			urls = [tile.product.url for tile in feed.tiles.all() if tile.product]
+			urls = []
+			for tile in feed.tiles.all():
+				if tile.product:
+					urls.append(tile.product.url)
+				for content in tile.content.all():
+					for prod in content.tagged_products.all():
+						urls.append(prod.url)
 
 			to_scrape.append((store_name, urls, feed.id))
 
