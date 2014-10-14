@@ -16,8 +16,6 @@ class Command(BaseCommand):
 	help = "Rescrapes all products in a given page.  Page url_slugs are given in the args.  (No pages specified means do nothing.)"
 
 	def handle(self, *args, **kwargs):
-		# not sure if this first line is needed, but I'm too scared to take it out
-		os.environ.setdefault('SCRAPY_SETTINGS_MODULE', 'apps.scrapy.settings')
 		to_scrape = []  # [store_name, start_urls, feed]
 
 		for arg in args:
