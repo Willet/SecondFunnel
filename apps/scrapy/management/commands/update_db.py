@@ -30,6 +30,7 @@ class Command(BaseCommand):
 				for content in tile.content.all():
 					for prod in content.tagged_products.all():
 						urls.append(prod.url)
+			urls = set(urls)
 
 			to_scrape.append((store_name, urls, feed.id))
 
