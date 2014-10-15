@@ -102,7 +102,7 @@ def upload_to_s3(path, folder, img, size):
     return os.path.join(bucket, filename)
 
 
-def process_image(source, path='', sizes=None, remove_background=False, aspect_ratios=None):
+def process_image(source, path='', sizes=None, remove_background=False):
     """
     Acquires a lock in order to process the image.
 
@@ -116,8 +116,7 @@ def process_image(source, path='', sizes=None, remove_background=False, aspect_r
 
     PROCESSING_SEM.acquire()
     try:
-        data = process_image_now(source, path, remove_background=remove_background,
-                                               aspect_ratios=aspect_ratios)
+        data = process_image_now(source, path, remove_background=remove_background)
     except Exception as e:
         # Need to ensure semaphore is released
         PROCESSING_SEM.release()
@@ -128,7 +127,7 @@ def process_image(source, path='', sizes=None, remove_background=False, aspect_r
     return data
 
 
-def process_image_now(source, path='', sizes=None, remove_background=False, aspect_ratios=None):
+def process_image_now(source, path='', sizes=None, remove_background=False):
     """
     Delegates to resize to create the necessary sizes.
 
@@ -148,37 +147,36 @@ def process_image_now(source, path='', sizes=None, remove_background=False, aspe
     data = {'sizes': {}}
 
     color = None if remove_background == 'uniform' else remove_background
-    if aspect_ratios:
-        if (remove_background is not False) and ((remove_background == 'auto') or within_color_range(source, color, 4)):
-            print "trimming"
-            trimmed_object = upload_to_cloudinary(source, path=path, effect='trim')
-        else:
-            print "not trimming"
-            trimmed_object = upload_to_cloudinary(source, path=path)
-
-        aspect_ratio = float(trimmed_object['width']) / trimmed_object['height']
-
-        # force standard aspect ratios (3:4, 1:1, or 2:1)
-        kwargs = {'crop': 'pad'}
-        def frac(ratio):  # tired of writing this (three whole times, like c'mon)
-            return ratio[0]/ratio[1]
-        for index, value in enumerate(aspect_ratios):
-            if aspect_ratio < frac(value):
-                print "padding x dimension, bringing image to {0}:{1}".format(*value)
-                kwargs['width'] = int(float(value[0]) * trimmed_object['height'] / value[1])
-                kwargs['height'] = trimmed_object['height']
-                break
-            elif index+1 == len(aspect_ratios) or aspect_ratio < (frac(value) + frac(aspect_ratios[index+1])) / 2:
-                print "padding y dimension, bringing image to {0}:{1}".format(*value)
-                kwargs['width'] = trimmed_object['width']
-                kwargs['height'] = int(float(value[1]) * trimmed_object['width'] / value[0])
-                break
-
-        image_object = upload_to_cloudinary(trimmed_object['url'], path=path, **kwargs)
-        delete_cloudinary_resource(trimmed_object['url']) # destroy the temporary
+    if (remove_background is not False) and ((remove_background == 'auto') or within_color_range(source, color, 4)):
+        print "trimming"
+        trimmed_object = upload_to_cloudinary(source, path=path, effect='trim')
     else:
-        print "no resizing"
-        image_object = upload_to_cloudinary(source, path=path)
+        print "not trimming"
+        trimmed_object = upload_to_cloudinary(source, path=path)
+
+    trimmed_ratio = float(trimmed_object['width']) / trimmed_object['height']
+    print "trimmed_ratio:", trimmed_ratio
+    
+    kwargs = {'crop': 'pad'}
+
+    # force standard aspect ratios (3:4, 1:1, or 2:1)
+    aspect_ratios = {0.75: 'portrait', 1: 'square', 2: 'landscape'}
+    keys = sorted(aspect_ratios.keys())
+    msg = "padding {} dimension, bringing image ratio to {} ({})"
+    for index, ratio in enumerate(keys):
+        if trimmed_ratio < ratio:
+            print msg.format('x', ratio, aspect_ratios[ratio])
+            kwargs['width'] = int(trimmed_object['height'] * ratio)
+            kwargs['height'] = trimmed_object['height']
+            break
+        elif index+1 == len(keys) or trimmed_ratio < float(ratio + keys[index+1]) / 2:
+            print msg.format('y', ratio, aspect_ratios[ratio])
+            kwargs['width'] = trimmed_object['width']
+            kwargs['height'] = int(trimmed_object['width'] / ratio)
+            break
+
+    image_object = upload_to_cloudinary(trimmed_object['url'], path=path, **kwargs)
+    delete_cloudinary_resource(trimmed_object['url']) # destroy the temporary
 
     # Grab the dominant colour from cloudinary
     colors = image_object['colors']

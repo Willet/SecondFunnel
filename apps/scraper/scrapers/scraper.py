@@ -113,7 +113,7 @@ class ProductScraper(Scraper):
         return product
 
     @staticmethod  # borrowed by scrapy scraper
-    def process_image(original_url, product, store, remove_background=False, aspect_ratios=None):
+    def process_image(original_url, product, store, remove_background=False):
         if not isinstance(product, Model):
             product = Product.objects.get(sku=product, store_id=store.id)
 
@@ -128,8 +128,7 @@ class ProductScraper(Scraper):
         if not (image.url and image.file_type):
             print('\nprocessing image - ' + original_url)
             data = process_image(original_url, create_image_path(store.id),
-                                 remove_background=remove_background,
-                                 aspect_ratios=aspect_ratios)
+                                 remove_background=remove_background)
             image.url = data.get('url')
             image.file_type = data.get('format')
             image.dominant_color = data.get('dominant_colour')
