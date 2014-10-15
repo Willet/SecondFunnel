@@ -182,8 +182,6 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
         print "To enable trimming and resizing, change \"remove_background\""
         image_object = upload_to_cloudinary(source, path=path)
 
-
-
     # Grab the dominant colour from cloudinary
     colors = image_object['colors']
     colors = sorted(colors, key=lambda c: c[1], reverse=True)
