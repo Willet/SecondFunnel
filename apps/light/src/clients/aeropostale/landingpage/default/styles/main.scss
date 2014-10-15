@@ -1,4 +1,4 @@
-$aero-pink: #ED008C;
+$aero-pink: #EE2841;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -12,6 +12,7 @@ body {
 .navbar {
     height: 36px;
     min-height: inherit;
+    border-bottom: 1px solid #333;
 }
 
 .navbar .container {
@@ -66,6 +67,10 @@ body {
     color: #333;
     font-size: 13px;
     font-family: "Lato", Helvetica, sans-serif;
+}
+
+.tile.image {
+    padding: 0;
 }
 
 .tile:hover .overlay:nth-child(n) {
@@ -149,13 +154,18 @@ body {
 
 .previewContainer .stl-look {
     width: auto;
-    max-height: 605px;
+    max-height: 577px;
     font-size: 12px;
 }
 
 .previewContainer .landscape .stl-look .stl-item {
     margin: 0 5px;
     width: auto;
+}
+
+.previewContainer .main-image-container {
+    width: 50%;
+    margin: auto;
 }
 
 @media screen and (max-width: 768px) {
