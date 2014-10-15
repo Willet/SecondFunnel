@@ -166,7 +166,9 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
                 kwargs['width'] = int(trimmed_object['height'] * ratio)
                 kwargs['height'] = trimmed_object['height']
                 break
-            elif index+1 == len(keys) or trimmed_ratio < float(ratio + keys[index+1]) / 2:
+            # find the tipping point between this ratio and the next.
+            # also, if this is the last ratio.
+            elif trimmed_ratio < float(ratio + keys[index+1]) / 2 or index+1 == len(keys):
                 print msg.format('y', ratio, aspect_ratios[ratio])
                 kwargs['width'] = trimmed_object['width']
                 kwargs['height'] = int(trimmed_object['width'] / ratio)
