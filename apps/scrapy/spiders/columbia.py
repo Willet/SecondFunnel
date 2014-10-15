@@ -64,10 +64,13 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         # get same product imgs with all the different colors
         colors = ['_' + re.findall('(?<=variationColor=)\d+', href)[0] + '_' for href in sel.css('ul.variationcolor li a::attr(href)').extract()]
         colored_img_urls = []
-        for img_url in img_urls:
-            for color in colors:
+        for color in colors:
+            for img_url in img_urls:
                 colored_img_urls.append(re.sub('_\d{3}_', color, img_url, count=1))
-        l.add_value('image_urls', colored_img_urls)
+        print "{} images".format(len(colored_img_urls))
+        if len(colored_img_urls) > 8:
+            print "There are {} images but we are only keeping the first 8 ({} dumped)".format(len(colored_img_urls), len(colored_img_urls)-8)
+        l.add_value('image_urls', colored_img_urls[:8])
 
         attributes = {}
         if len(sel.css('div.product-price span')) > 1: # on sale
