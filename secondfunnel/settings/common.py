@@ -317,6 +317,7 @@ LOCAL_APPS = (
     'apps.utils',
     'apps.imageservice',
     'apps.scraper',
+    'apps.scrapy',
     'apps.dashboard',
     'apps.light',
 )

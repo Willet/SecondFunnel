@@ -6,6 +6,7 @@ $aero-pink: #ED008C;
 
 body {
     background: none;
+    font-family: "Lato", Helvetica, sans-serif;
 }
 
 .navbar {
@@ -26,6 +27,36 @@ body {
 
 .navbar .container .logo {
     width: 105px;
+}
+
+#category-area {
+    border-bottom: 1px solid #000;
+    border-top: 1px solid #000;
+    margin-top: 2px;
+
+    .category {
+        color: #333;
+        border: none;
+        text-transform: uppercase;
+        font-weight: bold;
+        padding: 0 10px;
+
+        span {
+            padding: 10px 20px;
+            display: inline-block;
+        }
+    }
+
+    .category.selected,
+    .category:hover {
+        color: #333;
+        background-color: #FFF;
+
+        span {
+            border-left: 1px solid #999;
+            border-right: 1px solid #999;
+        }
+    }
 }
 
 .tile {

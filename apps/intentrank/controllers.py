@@ -1,10 +1,8 @@
 import importlib
 import json
 from django.conf import settings
-
 from django.core import serializers
-
-from itertools import chain
+from django.db.models import Q
 
 from apps.assets.models import Category, Tile, Content
 from apps.intentrank.algorithms import ir_generic, ir_finite_by, ir_ordered_by, \
@@ -109,6 +107,7 @@ class IntentRank(object):
         request = kwargs.get('request', None)
         category_name = kwargs.get('category_name', None)
         feed = self._feed
+        tiles = None
 
         if not algorithm:
             algorithm = self.algorithm
@@ -129,17 +128,13 @@ class IntentRank(object):
 
         if category_name and category:
             contents = Content.objects.filter(tagged_products__in=products)
-            product_tiles = Tile.objects.filter(products__in=products).values_list('id', flat=True)
-            content_tiles = Tile.objects.filter(content__in=contents).values_list('id', flat=True)
-            allowed_set = list(set(chain(product_tiles, content_tiles)))
-        else:
-            allowed_set = None
+            tiles = feed.tiles.filter(Q(products__in=products) | Q(content__in=contents))
 
-        tiles = ir_base(feed=feed, allowed_set=allowed_set)
+        tiles = ir_base(feed=feed, tiles=tiles)
         args = dict(
             tiles=tiles, results=results,
-            exclude_set=exclude_set, allowed_set=allowed_set,
-            request=request, offset=offset, tile_id=tile_id, feed=feed)
+            exclude_set=exclude_set, request=request,
+            offset=offset, tile_id=tile_id, feed=feed)
 
         if 'products_only' in kwargs:
             args['products_only'] = kwargs.get('products_only')

@@ -1,11 +1,12 @@
+import re
+
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy.selector import Selector
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
-    SecondFunnelCrawlScraper
+from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelCrawlScraper
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
-import re
+from apps.assets.models import Product
 
 
 class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
@@ -17,6 +18,8 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         Rule(SgmlLinkExtractor(restrict_xpaths=['//div[contains(@class, "product-image")]']), callback='parse_product', follow=False)
     ]
 
+    remove_background = False
+
     store_slug = name
 
     def __init__(self, *args, **kwargs):
@@ -24,9 +27,7 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     def is_product_page(self, response):
         sel = Selector(response)
-
-        is_product_page = sel.css('span[itemprop="productID"]')
-
+        is_product_page = sel.css('span[itemprop="productID"]') or sel.css('.error-page-message')
         return is_product_page
 
     def parse_product(self, response):
@@ -41,11 +42,18 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
+
+        # item is out of stock / removed
+        if sel.css('.error-page-message'):
+            prod = Product.objects.get(url=response.url)
+            prod.in_stock = False
+            prod.save()
+            return
+
         l.add_value('url', response.url.split('?')[0])
         l.add_css('sku', 'span[itemprop="productID"]::text')
         l.add_css('name', '.product-name::text')
         l.add_value('in_stock', True)
-
         l.add_css('description', 'div.product-summary::text')
 
         l.add_css('details', '.pdpDetailsContent div::text')
@@ -53,9 +61,10 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         img_urls = sel.css('img.s7productthumbnail::attr(data-m-src)').extract()
         if len(img_urls) == 0:  # only 1 image means no thumbnails apparently
             img_urls = sel.css('#s7basiczoom_div::attr(data-defaultasset)').extract()
+
         # Hack
         # get same product imgs with all the different colors
-        colors = ['_' + href.split('=')[-1] + '_' for href in sel.css('ul.variationcolor li a::attr(href)').extract()]
+        colors = ['_' + re.findall('(?<=variationColor=)\d+', href)[0] + '_' for href in sel.css('ul.variationcolor li a::attr(href)').extract()]
         colored_img_urls = []
         for img_url in img_urls:
             for color in colors:
@@ -69,6 +78,7 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             attributes['sale_price'] = sale_price[sale_price.index('$'):].strip()
         else:
             l.add_css('price', 'span.reg-price::text')
+            attributes['sale_price'] = ''
 
         # Handle categories
         breadcrumbs = sel.css('ol.breadcrumb a')[1:] # Skip the first element
