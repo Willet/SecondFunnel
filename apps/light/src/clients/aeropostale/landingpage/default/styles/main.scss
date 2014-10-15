@@ -1,24 +1,172 @@
-$icon-font-path: "/static/light/fonts/";
+$aero-pink: #ED008C;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
+@import url(http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic);
+
+body {
+    background: none;
+    font-family: "Lato", Helvetica, sans-serif;
+}
 
 .navbar {
-	height: 36px;
-	min-height: inherit;
+    height: 36px;
+    min-height: inherit;
 }
 
 .navbar .container {
-	font-size: 0;
-	letter-spacing: 0;
+    font-size: 0;
+    letter-spacing: 0;
 }
 
 .navbar .container a {
-	display: inline-block;
-	height: 100%;
-	width: 105px;
+    display: inline-block;
+    height: 100%;
+    width: 105px;
 }
 
 .navbar .container .logo {
-	width: 105px;
+    width: 105px;
+}
+
+#category-area {
+    border-bottom: 1px solid #000;
+    border-top: 1px solid #000;
+    margin-top: 2px;
+
+    .category {
+        color: #333;
+        border: none;
+        text-transform: uppercase;
+        font-weight: bold;
+        padding: 0 10px;
+
+        span {
+            padding: 10px 20px;
+            display: inline-block;
+        }
+    }
+
+    .category.selected,
+    .category:hover {
+        color: #333;
+        background-color: #FFF;
+
+        span {
+            border-left: 1px solid #999;
+            border-right: 1px solid #999;
+        }
+    }
+}
+
+.tile {
+    outline: 1px solid #CCC;
+    outline-offset: -1px;
+    text-align: center;
+    color: #333;
+    font-size: 13px;
+    font-family: "Lato", Helvetica, sans-serif;
+}
+
+.tile:hover .overlay:nth-child(n) {
+    cursor: pointer;
+}
+
+.tile .price {
+    font-weight: bold;
+}
+
+.tile .price .strike {
+    font-size: 12px;
+    margin-right: 3px;
+    color: #999;
+    font-weight: normal;
+}
+
+.tile .buy .button,
+.previewContainer .buy .button {
+    font-size: 22px;
+    color: #FFF;
+    background-color: $aero-pink;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: inline-block;
+    white-space: nowrap;
+    text-align: center;
+    padding: 8px 20px;
+}
+
+.tile .buy .button:hover,
+.previewContainer .buy .button {
+    text-decoration: none;
+}
+
+.previewContainer {
+    color: #333;
+    font-family: "Lato", Helvetica, sans-serif;
+}
+
+.previewContainer .content {
+    padding: 1px;
+}
+
+.previewContainer .close {
+    background-color: $aero-pink;
+    color: #FFF;
+    padding: 10px 13px;
+    font-size: 19px;
+    font-weight: normal;
+}
+
+.previewContainer .cell.info {
+    padding-top: 42px;
+    padding-bottom: 10px;
+    padding-right: 10px;
+    width: 334px;
+}
+
+.previewContainer .cell.shop {
+    width: 120px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-right: 1px solid #333;
+}
+
+.previewContainer .title {
+    font-size: 18px;
+}
+
+.previewContainer .price {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.previewContainer .stl-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.previewContainer .stl-look {
+    width: auto;
+    max-height: 605px;
+    font-size: 12px;
+}
+
+.previewContainer .landscape .stl-look .stl-item {
+    margin: 0 5px;
+    width: auto;
+}
+
+@media screen and (max-width: 768px) {
+    .previewContainer .cell.info {
+        padding-top: 5px;
+        width: auto;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        width: 1024px; /* remind me why the fuck we use bootstrap again? */
+    }
 }

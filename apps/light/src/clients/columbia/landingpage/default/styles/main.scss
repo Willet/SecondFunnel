@@ -2,6 +2,8 @@ $icon-font-path: "/static/light/fonts/";
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
+@import url(http://fonts.googleapis.com/css?family=Roboto+Slab:400,700);
 
 .navbar {
     background-color: #F5F5F5;
@@ -12,10 +14,12 @@ $icon-font-path: "/static/light/fonts/";
     color: #000;
     text-align: center;
     padding: 15px;
+    font-family: "Open Sans", sans-serif;
 }
 
 .previewContainer {
-    font-family: georgia, times, serif;
+    color: #000;
+    font-family: "Open Sans", sans-serif;
 }
 
 #hero-area .previewContainer .content {
@@ -27,15 +31,18 @@ $icon-font-path: "/static/light/fonts/";
 }
 
 .previewContainer .close {
-	color: white;
-	border-radius: 25px;
-	background-color: #2087cc;
-	height: 50px;
-	width: 50px;
-	line-height: 50px;
-	right: -25px;
-	top: -25px;
-	z-index: 1003;
+    color: white;
+    border-radius: 20px;
+    background-color: #2087cc;
+    height: 40px;
+    width: 40px;
+    line-height: 40px;
+    right: -20px;
+    top: -20px;
+    z-index: 1003;
+    font-family: arial, sans-serif;
+    font-weight: normal;
+    text-transform: uppercase;
 }
 
 .previewContainer .row {
@@ -58,21 +65,29 @@ $icon-font-path: "/static/light/fonts/";
     font-size: 22px;
     line-height: 22px;
     font-weight: bold;
+    font-family: "Roboto Slab", serif;
 }
 
 .previewContainer .info .price {
     font-size: 22px;
-    color: #2087cc;
     font-weight: bold;
 }
 .previewContainer .info.image .price {
     font-size: 22px;
 }
 
+.previewContainer .info .price .sale {
+    color: #e10e0e;
+}
+
+.previewContainer .info .price .strike {
+    color: #999;
+}
+
 .previewContainer .buy .button {
+    font-size: 16px;
     background-color: #2087cc;
-    padding: 20px 30px;
-    display: block;
+    padding: 10px 40px;
     font-weight: bold;
 }
 
@@ -141,10 +156,5 @@ $icon-font-path: "/static/light/fonts/";
 
     .previewContainer .info .buy {
         text-align: center;
-    }
-
-    .previewContainer .info .buy .button {
-        display: inline-block;
-        min-width: 280px;
     }
 }
