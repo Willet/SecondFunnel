@@ -18,8 +18,6 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         Rule(SgmlLinkExtractor(restrict_xpaths=['//div[contains(@class, "product-image")]']), callback='parse_product', follow=False)
     ]
 
-    remove_background = False
-
     store_slug = name
 
     def __init__(self, *args, **kwargs):
