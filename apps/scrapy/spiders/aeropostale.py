@@ -1,6 +1,6 @@
 import re
 import urlparse
-import time  # lol
+import time
 
 from scrapy.selector import Selector
 from scrapy.contrib.spiders import Rule
