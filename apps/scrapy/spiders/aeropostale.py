@@ -19,7 +19,7 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     rules = [
         Rule(SgmlLinkExtractor(restrict_xpaths='//div[contains(@class, "details-image")]'), 
                            callback='parse_product', follow=False),
-        Rule(SgmlLinkExtractor(restrict_xpaths='//li[contains(@class, "viewAll")]'))
+        Rule(SgmlLinkExtractor(restrict_xpaths='//li[contains(@class, "viewAll")]/a[contains(text(), "100")]'))
     ]
 
     def __init__(self, *args, **kwargs):
@@ -41,10 +41,27 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('name', '.right h2::text')
         l.add_css('price', '.price .now::text', re='(\d+)')
         l.add_value('sku', sku)
-        l.add_css('details', '.product-description')
+        l.add_css('description', '.product-description')
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
 
-        base_img = self.root_url + sel.css('img.zoom::attr(src)').extract()[0]
+        # try once
+        try:
+            base_img = self.root_url + sel.css('img.zoom::attr(src)').extract()[0]
+        except IndexError:
+            # try one more time
+            try:
+                base_img = re.findall(r'background-image:\s*url\(([^)]+)\)', sel.css('#zoomIn::attr(style)').extract()[0])[0]
+                base_img = re.sub(r't\d+x\d+\.jpg', 'enh-z5.jpg', base_img)
+            except IndexError as e:
+                # give up
+                print "This page is fucking slow / has way too much javascript.  Images did not load.  \
+                       We will try this page again at the end."
+                print "cause:", e
+                print "url:", response.url
+                yield WebdriverRequest(response.url, callback=self.parse_product)
+                return
+
+
         colors = sel.css('ul.swatches.clearfix li img::attr(src)').re('-(\d+)_')
         img_urls = [re.sub('-\d+enh', '-'+color+'enh', base_img) for color in colors]
         l.add_value('image_urls', img_urls)
@@ -57,8 +74,8 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         genders = sel.css('#nav-categories a.aeroNavBut')
         if genders[0].css('.current'):
             categories.append('girls')
-        elif genders[1].css('current'):
-            categories.append('boys') 
+        elif genders[1].css('.current'):
+            categories.append('guys')
  
         if float(l.get_output_value('price')) < 10:
             categories.append('under $10')
