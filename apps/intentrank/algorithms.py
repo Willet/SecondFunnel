@@ -456,7 +456,10 @@ def ir_magic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
     # Wrap results TODO: add an option for finite which does not execute this
     overflow = results - total_tiles % results
-    while offset > total_tiles:
+    if results == overflow:
+        overflow = 0
+
+    while offset >= total_tiles:
         offset -= overflow + total_tiles
 
     template_types = tiles.values('template').annotate(Count('id')).values_list('template', 'id__count')
