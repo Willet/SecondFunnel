@@ -130,16 +130,14 @@ class IntentRank(object):
             contents = Content.objects.filter(tagged_products__in=products)
             tiles = feed.tiles.filter(Q(products__in=products) | Q(content__in=contents))
 
-        tiles = ir_base(feed=feed, tiles=tiles)
+        tiles = ir_base(feed=feed, tiles=tiles,
+            products_only=kwargs.get('products_only', False),
+            content_only=kwargs.get('content_only', False))
+
         args = dict(
             tiles=tiles, results=results,
             exclude_set=exclude_set, request=request,
             offset=offset, tile_id=tile_id, feed=feed)
-
-        if 'products_only' in kwargs:
-            args['products_only'] = kwargs.get('products_only')
-        if 'content_only' in kwargs:
-            args['content_only'] = kwargs.get('content_only')
 
         return algorithm(**args)
 
