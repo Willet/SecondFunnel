@@ -46,14 +46,14 @@ def get_public_id(url):
     return public_id
 
 
-def upload_to_cloudinary(source, path='', effect=None):
-    kwargs = {
+def upload_to_cloudinary(source, path='', effect=None, **kwargs):
+    kwargs.update({
         'folder': path,
         'colors': True,
         'format': 'jpg',
         'public_id': generate_public_id(source),
         'overwrite': True
-    }
+    })
 
     if effect:
         kwargs.update({'effect': effect})
