@@ -1,5 +1,6 @@
 import re
 import urlparse
+import time
 
 from scrapy.selector import Selector
 from scrapy.contrib.spiders import Rule
@@ -32,6 +33,7 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     def parse_product(self, response):
         sel = Selector(response)
+        time.sleep(2)
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         # attributes = response.meta.get('attributes', {})
