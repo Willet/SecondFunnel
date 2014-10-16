@@ -3,6 +3,7 @@
 var $ = require('jquery');
 var _ = require('underscore');
 var Backbone = require('backbone');
+Backbone.$ = $; /* make v1.1.2 of backbone happy with browserify */
 
 /**
  * Given an instance of  Marionette Application, add initializers to it.

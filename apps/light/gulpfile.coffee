@@ -12,6 +12,9 @@ browserifyConfig = require("./package.json")
 watchify = require('watchify')
 _ = require('underscore')
 runSequence = require('run-sequence')
+exorcist = require('exorcist')
+transform = require('vinyl-transform')
+
 
 # versioning stuff, it is harder than one would think
 rev = require('gulp-rev')
@@ -64,6 +67,11 @@ template_output_dir = "templates/light"
 bower_dir = "lib/"
 config = production: true
 
+# see https://github.com/mishoo/UglifyJS2#compressor-options for additional options
+uglify_options =
+    mange: true
+    preserveComments: "some" # only copyright etc (closure compilation directives etc)
+
 onError = (err) ->
     $.util.beep()
     console.error err
@@ -113,7 +121,6 @@ gulp.task "html", ["rev"], ->
     return merge(manifest, pages, pages_no_modify)
         .pipe $.if(config.production, revCollector())
         .pipe $.filter("**/*.html") # ignore the manifest
-        .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("all-rev-modified-files"))
         .pipe gulp.dest(template_output_dir)
         .pipe BrowserSync.reload(stream: true, once: true)
         .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("html"))
@@ -132,54 +139,81 @@ gulp.task "styles", ->
         .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("styles"))
 
 
-gulp.task "scripts", ["bower"], ->
-    bundlerTransform = (file, encoding, callback) ->
-        self = this
-        filename = path.resolve(file.path)
+gulp.task "scripts", ["bower"], () ->
+    #
+    # Heavily inspired by https://github.com/greypants/gulp-starter/blob/master/gulp/tasks/browserify.js
+    #
+
+    browserifyTransform = (file, encoding, cb) ->
         filenameRelative = path.relative(file.base, file.path)
+        bundleConfig =
+            entries: file
+            dest: static_output_dir
+            outputName:
+                base: file.base
+                path: file.path
 
         bundler = browserify(
+            # watchify args
             cache: {}
             packageCache: {}
             fullPaths: true
+            # relative dir to use for root
             basedir: __dirname
-            commondir: false
-            insertGlobals: false
-            debug: true # we always want those source maps
-            entries: filename
-            extensions: [".coffee"] # extensions you do not need to put on a require
+            # the entry point of the application
+            entries: bundleConfig.entries
+            # add file extensions that are optional for require statements
+            extensions: [".coffee"]
+            # enable source maps
+            debug: true
         )
-        rebundle = (bundler) ->
-            bundler.plugin(
-                'minifyify',
-                # where the map file is served from
-                map: "/#{static_serve_dir}/#{filenameRelative}.map"
-                # where the map file is saved to
-                output: "#{static_output_dir}/#{filenameRelative}.map"
-                minify: config.production
-                # conversions to make map paths relative (currently breaks browserify-shim)
-                #compressPath: (filepath) ->
-                #    return path.relative(__dirname, filepath)
-            )
-            return bundler.bundle()
-                .on('error', $.util.log.bind($.util, 'Browserify Error'))
-                .pipe source(file)
-                .pipe gulp.dest(static_output_dir) # output normal
-                .pipe BrowserSync.reload(stream: true, once: true)
-                .on 'end', callback
-                .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("scripts"))
 
-        if not config.production
-            # use watchify for faster builds in development
-            bundler = watchify bundler
-            bundler.on 'update', ->
-                $.util.log($.util.colors.cyan("scripts: (rebuilding)"), filenameRelative)
-                rebundle bundler
+        bundler.plugin(
+           'minifyify',
+           minify: if config.production then uglify_options else false
+           # where the map file is served from
+           map: "/#{static_serve_dir}/#{filenameRelative}.map"
+           # where the map file is saved to
+           output: "#{static_output_dir}/#{filenameRelative}.map"
+        )
 
-        return rebundle(bundler)
+        bundle = ->
+            $.util.log("'#{$.util.colors.cyan("scripts")}'", "Bundling", $.util.colors.blue(filenameRelative), "...")
+            bundler.bundle()
+                # report compilation errors
+                .on 'error', $.util.log.bind($.util, 'Browserify Error')
+                .pipe exorcist(
+                    # sourcemap output location
+                    file: "#{static_output_dir}/#{filenameRelative}.map"
+                    # sourcemap url location
+                    url: "/#{static_serve_dir}/#{filenameRelative}.map"
+                )
+                # vinyl-source-stream to make stream gulp-compatible
+                .pipe source(bundleConfig.outputName)
+                # output destination
+                .pipe gulp.dest(static_output_dir)
+                # notify of end of stream etc
+                .pipe through.obj(endCallback)
 
-    return gulp.src(sources.browserify)
-        .pipe through.obj(bundlerTransform) # NOTE: cannot pipe anything else
+        endCallback = (bundle) =>
+            $.util.log("'#{$.util.colors.cyan("scripts")}'", "Bundled", $.util.colors.blue(filenameRelative))
+            # add the bundle to the output stream of the transform
+            @push bundle
+            # notify finished
+            cb()
+
+        unless config.production
+            # Wrap with watchify and rebundle on changes
+            bundler = watchify(bundler)
+            # Rebundle on update
+            bundler.on 'update', bundle
+
+        return bundle()
+
+    return gulp.src sources.browserify
+        .pipe through.obj(browserifyTransform)
+        #.pipe BrowserSync.reload(stream: true)
+        .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("scripts"))
 
 
 gulp.task "images", ->

@@ -4,6 +4,8 @@
 var $ = require('jquery');
 var _ = require('underscore');
 var deparam = require('jquery-deparam');
+var Backbone = require('backbone.marionette');
+Backbone.$ = $; /* make v1.1.2 of Backbone happy with Browserify */
 var Marionette = require('backbone.marionette');
 var Cloudinary = require('cloudinary');
 
