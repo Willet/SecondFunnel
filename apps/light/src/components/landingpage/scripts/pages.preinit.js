@@ -257,6 +257,7 @@ $.fn.getClasses = $.fn.getClasses || function () {
     return _.compact(_.map($(this).attr('class').split(' '), $.trim));
 };
 
+$.support.cors = true;
 
 (function ($) {
     /**
