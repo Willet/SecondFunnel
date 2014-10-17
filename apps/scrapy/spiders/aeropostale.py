@@ -3,6 +3,7 @@ import urlparse
 import time
 
 from scrapy.selector import Selector
+from scrapy.contrib.spiders import CrawlSpider
 from scrapy.contrib.spiders import Rule
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy_webdriver.http import WebdriverRequest
@@ -13,7 +14,7 @@ from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCra
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 from apps.scrapy.items import ScraperProduct
 
-class AeropostaleSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
     name = 'aeropostale'
     root_url = "http://www.aeropostale.com"
     allowed_domains = ['aeropostale.com']
@@ -46,11 +47,17 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('description', '.product-description')
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
 
-        base_img = self.root_url + sel.css('img.zoom::attr(src)').extract()[0]
+        base_imgs = sel.css('#altimages img::attr(src)').extract()
+        if not base_imgs:
+            base_imgs = sel.css('#mainProductImage::attr(src)').extract()
+        base_imgs = [re.sub(r't\d+x\d+\.jpg', 'enh-z5.jpg', img) for img in base_imgs]
 
         colors = sel.css('ul.swatches.clearfix li img::attr(src)').re('-(\d+)_')
-        img_urls = [re.sub('-\d+enh', '-'+color+'enh', base_img) for color in colors]
-        l.add_value('image_urls', img_urls)
+        image_urls = []
+        for color in colors:
+            for base_img in base_imgs:
+                image_urls.append(self.root_url + re.sub('-\d+enh', '-'+color+'enh', base_img))
+        l.add_value('image_urls', image_urls)
 
         attributes = {}
         

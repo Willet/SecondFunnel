@@ -26,7 +26,7 @@ DOWNLOAD_HANDLERS = {
 }
 
 SPIDER_MIDDLEWARES = {
-    'apps.scrapy.utils.middlewares.PatientWebdriverSpiderMiddleware': 543,
+    'scrapy_webdriver.middlewares.WebdriverSpiderMiddleware': 543,
 }
 
 # Or any other from selenium.webdriver
