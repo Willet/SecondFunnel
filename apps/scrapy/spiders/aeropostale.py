@@ -6,6 +6,8 @@ from scrapy.selector import Selector
 from scrapy.contrib.spiders import Rule
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy_webdriver.http import WebdriverRequest
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions
 
 from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
@@ -32,8 +34,9 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         return sel.css('#productPage')
 
     def parse_product(self, response):
+        response.request.manager.webdriver.implicitly_wait(10)
+
         sel = Selector(response)
-        time.sleep(2)
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         # attributes = response.meta.get('attributes', {})
@@ -46,22 +49,22 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('description', '.product-description')
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
 
-        # try once
-        try:
-            base_img = self.root_url + sel.css('img.zoom::attr(src)').extract()[0]
-        except IndexError:
-            # try one more time
-            try:
-                base_img = re.findall(r'background-image:\s*url\(([^)]+)\)', sel.css('#zoomIn::attr(style)').extract()[0])[0]
-                base_img = re.sub(r't\d+x\d+\.jpg', 'enh-z5.jpg', base_img)
-            except IndexError as e:
-                # give up
-                print "This page is fucking slow / has way too much javascript.  Images did not load.  \
-                       We will try this page again at the end."
-                print "cause:", e
-                print "url:", response.url
-                yield WebdriverRequest(response.url, callback=self.parse_product)
-                return
+        # # try once
+        # try:
+        base_img = self.root_url + sel.css('img.zoom::attr(src)').extract()[0]
+        # except IndexError:
+        #     # try one more time
+        #     try:
+        #         base_img = re.findall(r'background-image:\s*url\(([^)]+)\)', sel.css('#zoomIn::attr(style)').extract()[0])[0]
+        #         base_img = re.sub(r't\d+x\d+\.jpg', 'enh-z5.jpg', base_img)
+        #     except IndexError as e:
+        #         # give up
+        #         print "This page is fucking slow / has way too much javascript.  Images did not load.  \
+        #                We will try this page again at the end."
+        #         print "cause:", e
+        #         print "url:", response.url
+        #         yield WebdriverRequest(response.url, callback=self.parse_product)
+        #         return
 
 
         colors = sel.css('ul.swatches.clearfix li img::attr(src)').re('-(\d+)_')
