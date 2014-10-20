@@ -59,18 +59,7 @@ class NastyGalSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('image_urls', '.carousel img::attr(src)')
 
         # Handle categories
-        breadcrumbs = iter(sel.css('.breadcrumb a'))
-        breadcrumb = next(breadcrumbs)  # Skip the first element
-
-        categories = []
-        for breadcrumb in breadcrumbs:
-            category_name = breadcrumb.css('span::text').extract_first().strip()
-            category_url = breadcrumb.css('::attr(href)').extract_first()
-
-            categories.append((
-                category_name,
-                hostname + category_url
-            ))
+        categories = sel.css('.breadcrumb a span::text').extract()[1:]  # Skip the first element
 
         attributes = {}
         attributes['categories'] = categories
