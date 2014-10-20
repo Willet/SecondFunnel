@@ -44,7 +44,8 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
         l.add_css('name', '.right h2::text')
         l.add_css('price', '.price .now::text', re='(\d+)')
         l.add_value('sku', sku)
-        l.add_css('description', '.product-description')
+        a = sel.css('.product-description').extract()[0].replace("<br>", "</p><p>")
+        l.add_value('description', a)
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
 
         base_imgs = sel.css('#altimages img::attr(src)').extract()
