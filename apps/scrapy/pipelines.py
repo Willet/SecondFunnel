@@ -180,7 +180,7 @@ class CategoryPipeline(object):
         # if categories are given, add them
         categories = item.get('attributes', {}).get('categories', [])
         for name in categories:
-            self.add_to_category(item, name)
+            self.add_to_category(item, name.strip())
 
         return item
 
