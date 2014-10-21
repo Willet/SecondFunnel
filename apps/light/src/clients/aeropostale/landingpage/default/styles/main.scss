@@ -4,6 +4,12 @@ $aero-pink: #EE2841;
 @import "src/components/landingpage/styles/base.scss";
 @import url(http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic);
 
+@font-face {
+    font-family: "SaaSeriesFD";
+    src: url("/static/light/aeropostale/landingpage/default/fonts/SaaSeriesFD.ttf") format('truetype'),
+         url("/static/light/aeropostale/landingpage/default/fonts/SaaSeriesFD.woff") format('woff');
+}
+
 body {
     background: none;
     font-family: "Lato", Helvetica, sans-serif;
@@ -35,14 +41,16 @@ body {
 }
 
 #category-area {
-    margin-top: 2px;
-    margin-bottom: 5px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    font-family: "SaaSeriesFD", Helvetica, sans-serif;
 
     .category {
-        color: #333;
+        color: #000;
         border: none;
         text-transform: uppercase;
-        font-weight: bold;
+        font-size: 20px;
+        line-height: 24px;
         padding: 0 10px;
 
         span {
@@ -67,9 +75,9 @@ body {
     width: 33%;
     padding: 7px;
     text-align: center;
-    color: #333;
+    color: #000;
     font-size: 13px;
-    font-family: "Lato", Helvetica, sans-serif;
+    font-family: Arial, sans-serif;
 }
 .tile.wide {
     width: 66%;
@@ -91,6 +99,8 @@ body {
 }
 
 .tile .price {
+    font-size: 18px;
+    line-height: 21px;
     font-weight: bold;
 }
 
@@ -102,6 +112,8 @@ body {
 }
 
 .tile .name {
+    font-size: 15px;
+    line-height: 17px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -127,7 +139,10 @@ body {
 
 .tile .buy .button,
 .previewContainer .buy .button {
-    font-size: 22px;
+    font-family: "SaaSeriesFD", Helvetica, sans-serif;
+    font-size: 21px;
+    line-height: 18px;
+    letter-spacing: 0;
     color: #FFF;
     background-color: $aero-pink;
     text-transform: uppercase;
@@ -135,7 +150,7 @@ body {
     display: inline-block;
     white-space: nowrap;
     text-align: center;
-    padding: 8px 20px;
+    padding: 10px;
 }
 
 .tile .buy .button:hover,
@@ -144,8 +159,8 @@ body {
 }
 
 .previewContainer {
-    color: #333;
-    font-family: "Lato", Helvetica, sans-serif;
+    color: #000;
+    font-family: Arial, sans-serif;
 }
 
 .previewContainer .content {
@@ -176,24 +191,36 @@ body {
 }
 
 .previewContainer .title {
-    font-size: 18px;
+    font-size: 15px;
+    line-height: 17px;
 }
 
 .previewContainer .price {
-    font-size: 20px;
+    font-size: 18px;
+    line-height: 21px;
     font-weight: bold;
 }
 
+.previewContainer .description {
+    text-align: left;
+    font-family: Helvetica, sans-serif;
+    font-size: 11px;
+    color: #3E3E3E;
+}
+
 .previewContainer .stl-title {
+    font-family: "SaaSeriesFD", Helvetica, sans-serif;
     font-size: 14px;
+    line-height: 17px;
     text-transform: uppercase;
-    font-weight: bold;
 }
 
 .previewContainer .stl-look {
     width: auto;
     max-height: 577px;
     font-size: 12px;
+    line-height: 14px;
+    font-weight: bold;
 }
 
 .previewContainer .landscape .stl-look .stl-item {
