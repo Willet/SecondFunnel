@@ -162,7 +162,7 @@ class PageConfigSerializer(object):
 
             # a string or boolean indicating if there should be a home button /
             # what the home button should be
-            'categoryHome': True,
+            'categoryHome': page.get('categoryHome', True),
             # optional, for social buttons (default: true)
             'showCount': True,
             # optional; default: true
