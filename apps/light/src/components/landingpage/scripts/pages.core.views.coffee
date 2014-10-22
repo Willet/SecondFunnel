@@ -778,15 +778,20 @@ module.exports = (module, App) ->
         itemView: module.CategoryView
 
         initialize: (options) ->
-            categories = _.map(App.option("page:categories", []), (cat) -> {name: cat})
+            categories = _.map(App.option("page:categories", []), (category) ->
+                if typeof(category) is "string"
+                    category = {name: category}
+                category
+            )
             if categories.length > 0
 
                 # This specifies that there should be a home button, by default, this is true.
-                if App.option("categoryHome").length
-                    home = App.option("categoryHome")
-                else
-                    home = "home"
-                categories.unshift {name: home}
+                if App.option("categoryHome")
+                    if App.option("categoryHome").length
+                        home = App.option("categoryHome")
+                    else
+                        home = "home"
+                    categories.unshift {name: home}
 
                 @collection = new module.CategoryCollection(categories, model: module.Category)
             else
@@ -795,7 +800,7 @@ module.exports = (module, App) ->
             return this
 
         onRender: ->
-            @$el.children().eq(0).addClass "selected"
+            @$el.children().eq(0).trigger 'click'
 
         onItemviewClick: (view) ->
             $el = view.$el
