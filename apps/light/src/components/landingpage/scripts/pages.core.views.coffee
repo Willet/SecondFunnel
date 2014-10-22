@@ -778,7 +778,11 @@ module.exports = (module, App) ->
         itemView: module.CategoryView
 
         initialize: (options) ->
-            categories = _.map(App.option("page:categories", []), (cat) -> {name: cat})
+            categories = _.map(App.option("page:categories", []), (category) ->
+                if typeof(category) is "string"
+                    category = {name: category}
+                category
+            )
             if categories.length > 0
 
                 # This specifies that there should be a home button, by default, this is true.
