@@ -36,7 +36,11 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
 
     def parse_product(self, response):
         sel = Selector(response)
-        sku = urlparse.parse_qs(urlparse.urlparse(response.url).query)['productId'][0]
+        qs = urlparse.parse_qs(urlparse.urlparse(response.url).query)
+        try:
+            sku = qs['productId'][0]
+        except KeyError:
+            sku = qs['kw'][0]
 
         if "noResults" in response.url:
             prod = Product.objects.get(sku=sku)
