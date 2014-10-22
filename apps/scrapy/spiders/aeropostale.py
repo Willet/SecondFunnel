@@ -32,14 +32,19 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
     def is_product_page(self, response):
         sel = Selector(response)
 
-        return sel.css('#productPage')
+        return sel.css('#productPage') or "noResults" in response.url
 
     def parse_product(self, response):
         sel = Selector(response)
+        sku = urlparse.parse_qs(urlparse.urlparse(response.url).query)['productId'][0]
+
+        if "noResults" in response.url:
+            prod = Product.objects.get(sku=sku)
+            prod.in_stock = False
+            prod.save()
+            return
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
-        
-        sku = urlparse.parse_qs(urlparse.urlparse(response.url).query)['productId'][0]
 
         l.add_css('name', '.right h2::text')
         l.add_css('price', '.price .now::text', re='(\d+)')
