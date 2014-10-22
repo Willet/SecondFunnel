@@ -13,6 +13,7 @@ from selenium.webdriver.support import expected_conditions
 from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 from apps.scrapy.items import ScraperProduct
+from apps.assets.models import Product
 
 class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
     name = 'aeropostale'
