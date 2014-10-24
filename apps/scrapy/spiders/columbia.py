@@ -1,4 +1,5 @@
 import re
+import copy
 
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
@@ -39,7 +40,6 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         """
 
         sel = Selector(response)
-        l = ScraperProductLoader(item=ScraperProduct(), response=response)
 
         # item is out of stock / removed
         if sel.css('.error-page-message'):
@@ -48,42 +48,45 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             prod.save()
             return
 
-        l.add_value('url', response.url.split('?')[0])
-        l.add_css('sku', 'span[itemprop="productID"]::text')
-        l.add_css('name', '.product-name::text')
-        l.add_value('in_stock', True)
-        l.add_css('description', 'div.product-summary::text')
+        sku = sel.css('span[itemprop="productID"]::text').extract()[0]
 
-        l.add_css('details', '.pdpDetailsContent div::text')
+        colors = sel.css('ul.variationcolor li a::attr(href)').extract()
+        colors = ['_' + re.findall('(?<=variationColor=)\d+', href)[0] + '_' for href in colors]
+        print "{} colors".format(len(colors))
 
-        img_urls = sel.css('img.s7productthumbnail::attr(data-m-src)').extract()
-        if len(img_urls) == 0:  # only 1 image means no thumbnails apparently
-            img_urls = sel.css('#s7basiczoom_div::attr(data-defaultasset)').extract()
 
-        # Hack
-        # get same product imgs with all the different colors
-        colors = ['_' + re.findall('(?<=variationColor=)\d+', href)[0] + '_' for href in sel.css('ul.variationcolor li a::attr(href)').extract()]
-        colored_img_urls = []
         for color in colors:
+            l = ScraperProductLoader(item=ScraperProduct(), response=response)
+
+            l.add_value('url', response.url.split('?')[0])
+            l.add_css('name', '.product-name::text')
+            l.add_css('description', 'div.product-summary::text')
+
+            l.add_css('details', '.pdpDetailsContent div::text')
+
+            attributes = {}
+            if len(sel.css('div.product-price span')) > 1: # on sale
+                l.add_css('price', 'span.price-standard::text')
+                sale_price = sel.css('span.price-sales::text')[0].extract()
+                attributes['sale_price'] = sale_price[sale_price.index('$'):].strip()
+            else:
+                l.add_css('price', 'span.reg-price::text')
+                attributes['sale_price'] = ''
+
+            categories = sel.css('ol.breadcrumb a::text').extract()[1:]  # Skip the first element
+
+            attributes['categories'] = categories
+            l.add_value('attributes', attributes)
+
+            img_urls = sel.css('img.s7productthumbnail::attr(data-m-src)').extract()
+            if len(img_urls) == 0:  # only 1 image means no thumbnails apparently
+                img_urls = sel.css('#s7basiczoom_div::attr(data-defaultasset)').extract()
+
+            print color
+            l.add_value('sku', sku + '@' + color[1:-1])
+            image_urls = []
             for img_url in img_urls:
-                colored_img_urls.append(re.sub('_\d{3}_', color, img_url, count=1))
-        print "{} images".format(len(colored_img_urls))
-        if len(colored_img_urls) > 8:
-            print "There are {} images but we are only keeping the first 8 ({} dumped)".format(len(colored_img_urls), len(colored_img_urls)-8)
-        l.add_value('image_urls', colored_img_urls[:8])
-
-        attributes = {}
-        if len(sel.css('div.product-price span')) > 1: # on sale
-            l.add_css('price', 'span.price-standard::text')
-            sale_price = sel.css('span.price-sales::text')[0].extract()
-            attributes['sale_price'] = sale_price[sale_price.index('$'):].strip()
-        else:
-            l.add_css('price', 'span.reg-price::text')
-            attributes['sale_price'] = ''
-
-        categories = sel.css('ol.breadcrumb a::text').extract()[1:]  # Skip the first element
-
-        attributes['categories'] = categories
-        l.add_value('attributes', attributes)
-
-        yield l.load_item()
+                image_urls.append(re.sub('_\d{3}_', color, img_url, count=1))
+            l.add_value('in_stock', bool(image_urls))
+            l.add_value('image_urls', image_urls)
+            yield l.load_item()
