@@ -1,5 +1,4 @@
 import re
-import copy
 
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
@@ -56,6 +55,7 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
 
         for color in colors:
+            print "color variant:", color
             l = ScraperProductLoader(item=ScraperProduct(), response=response)
 
             l.add_value('url', response.url.split('?')[0])
@@ -82,7 +82,6 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             if len(img_urls) == 0:  # only 1 image means no thumbnails apparently
                 img_urls = sel.css('#s7basiczoom_div::attr(data-defaultasset)').extract()
 
-            print color
             l.add_value('sku', sku + '@' + color[1:-1])
             image_urls = []
             for img_url in img_urls:
