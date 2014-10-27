@@ -239,6 +239,8 @@ class Store(BaseModel):
 
     default_theme = models.ForeignKey('Theme', related_name='store', blank=True,
                                       null=True, on_delete=models.SET_NULL)
+    default_page = models.ForeignKey('Page', related_name='default_store', blank=True,
+                                     null=True, on_delete=models.SET_NULL)
 
     public_base_url = models.URLField(
         help_text="e.g. http://explore.nativeshoes.com, used for store detection",
