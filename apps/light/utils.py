@@ -56,7 +56,7 @@ def read_remote_file(url, default_value=''):
 
 
 def get_store_slug_from_hostname(hostname):
-    hostpart_blacklist = ['demo', 'secondfunnel']
+    hostpart_blacklist = ['demo', 'secondfunnel', 'stage']
     if settings.ENVIRONMENT == 'dev':
         # 2ndfunnel is just for debugging. sorry
         hostpart_blacklist.append('2ndfunnel')
