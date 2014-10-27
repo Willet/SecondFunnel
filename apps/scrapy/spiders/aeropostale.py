@@ -44,9 +44,9 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
             sku = qs['kw'][0]
 
         if "noResults" in response.url:
-            prod = Product.objects.get(sku=sku)
-            prod.in_stock = False
-            prod.save()
+            product = Product.objects.get(sku=sku)
+            product.in_stock = False
+            product.save()
             return
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
