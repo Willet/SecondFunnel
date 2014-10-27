@@ -13,6 +13,7 @@ from selenium.webdriver.support import expected_conditions
 from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 from apps.scrapy.items import ScraperProduct
+from apps.assets.models import Product
 
 class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
     name = 'aeropostale'
@@ -32,14 +33,23 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
     def is_product_page(self, response):
         sel = Selector(response)
 
-        return sel.css('#productPage')
+        return sel.css('#productPage') or "noResults" in response.url
 
     def parse_product(self, response):
         sel = Selector(response)
+        qs = urlparse.parse_qs(urlparse.urlparse(response.url).query)
+        try:
+            sku = qs['productId'][0]
+        except KeyError:
+            sku = qs['kw'][0]
+
+        if "noResults" in response.url:
+            product = Product.objects.get(sku=sku)
+            product.in_stock = False
+            product.save()
+            return
 
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
-        
-        sku = urlparse.parse_qs(urlparse.urlparse(response.url).query)['productId'][0]
 
         l.add_css('name', '.right h2::text')
         l.add_css('price', '.price .now::text', re='(\d+)')
