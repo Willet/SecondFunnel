@@ -1,10 +1,10 @@
 <script type="text/template" id="hero_template">
     <div class="hero-image-wrapper">
         <div class="visible-xs jumbotron">
-            <img src="{{ mobile_hero_image }}" alt="Hero" />
+            <img src="<%= obj.mobileHeroImage %>" alt="Hero" />
         </div>
         <div class="hidden-xs jumbotron">
-            <img src="{{ desktop_hero_image }}" alt="Hero" />
+            <img src="<%= obj.desktopHeroImage %>" alt="Hero" />
         </div>
     </div>
     {% if legal_copy %}
