@@ -40,7 +40,9 @@
 
 <script type="text/template" id="product_tile_template">
     <div class="tile-border">
-        <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
+        <div class="image-container">
+            <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
+        </div>
         <% if (App.option('debug', 0) > 1) { %>
             <span class="type"><%= obj['content-type'] %></span>
         <% } %>

@@ -17,6 +17,31 @@ $icon-font-path: "/static/light/fonts/";
     font-family: "Open Sans", sans-serif;
 }
 
+.tile.product .image-container {
+    padding: 133% 0 0 0;
+    position: relative;
+    height: 0;
+}
+
+.tile.product .image-container .focus {
+    display: block;
+    position: absolute;
+    max-width: 100%;
+    max-height: 100%;
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.tile .name {
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
 .previewContainer {
     color: #000;
     font-family: "Open Sans", sans-serif;
