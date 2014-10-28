@@ -818,6 +818,12 @@ module.exports = (module, App) ->
                 $el.siblings().removeClass "selected"
                 $el.addClass "selected"
 
+                if view.model.get("desktopHeroImage") and view.model.get("mobileHeroImage") and App.layoutEngine
+                    App.heroArea.show(new App.core.HeroAreaView(
+                        "desktopHeroImage": view.model.get "desktopHeroImage"
+                        "mobileHeroImage": view.model.get "mobileHeroImage"
+                    ))
+
                 App.intentRank.changeCategory category
 
             this
