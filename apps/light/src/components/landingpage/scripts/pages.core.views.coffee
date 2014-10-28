@@ -577,13 +577,18 @@ module.exports = (module, App) ->
         initialize: (data) ->
             self = this
             tile = data
+
             if $.isEmptyObject(data)
                 tile = App.option("featured")
+
+            if not tile
+                tile =
+                    desktopHeroImage: App.option('desktop_hero_image', '')
+                    mobileHeroImage: App.option('mobile_hero_image', '')
 
             @model = new module.Tile(tile)
             @listenTo App.vent, "windowResize", ->
 
-                # self.render();
                 App.heroArea.show self
                 return
 
