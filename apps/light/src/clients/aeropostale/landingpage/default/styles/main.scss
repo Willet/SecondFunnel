@@ -164,7 +164,7 @@ body {
 }
 
 .previewContainer .content {
-    padding: 1px;
+    padding: 0 2px 0 0;
 }
 
 .previewContainer .close {
@@ -188,6 +188,10 @@ body {
     padding-bottom: 10px;
     border-right: 1px solid #333;
     border-left: 1px solid #333;
+}
+
+.previewContainer .cell.image-cell.desktop-only {
+    padding-right: 0;
 }
 
 .previewContainer .title {
@@ -220,7 +224,6 @@ body {
     max-height: 577px;
     font-size: 12px;
     line-height: 14px;
-    font-weight: bold;
 }
 
 .previewContainer .landscape .stl-look .stl-item {
@@ -242,6 +245,37 @@ body {
 }
 
 @media screen and (max-width: 768px) {
+    #category-area {
+        .category {
+            font-size: 16px;
+            line-height: 20px;
+        }
+
+        .category:hover {
+            color: inherit;
+            background-color: inherit;
+
+            span {
+                border-color: inherit;
+            }
+        }
+    }
+
+    .tile .buy .button,
+    .previewContainer .buy .button {
+        font-size: 16px;
+    }
+
+    .tile .name {
+        font-size: 12px;
+        line-height: 14px;
+    }
+
+    .tile .price {
+        font-size: 14px;
+        line-height: 17px;
+    }
+
     .previewContainer .cell.info {
         padding-top: 5px;
         width: auto;

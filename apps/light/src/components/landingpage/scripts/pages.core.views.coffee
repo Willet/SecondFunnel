@@ -577,13 +577,18 @@ module.exports = (module, App) ->
         initialize: (data) ->
             self = this
             tile = data
+
             if $.isEmptyObject(data)
                 tile = App.option("featured")
+
+            if not tile
+                tile =
+                    desktopHeroImage: App.option('desktop_hero_image', '')
+                    mobileHeroImage: App.option('mobile_hero_image', '')
 
             @model = new module.Tile(tile)
             @listenTo App.vent, "windowResize", ->
 
-                # self.render();
                 App.heroArea.show self
                 return
 
@@ -812,6 +817,12 @@ module.exports = (module, App) ->
             unless $el.hasClass "selected"
                 $el.siblings().removeClass "selected"
                 $el.addClass "selected"
+
+                if view.model.get("desktopHeroImage") and view.model.get("mobileHeroImage") and App.layoutEngine
+                    App.heroArea.show(new App.core.HeroAreaView(
+                        "desktopHeroImage": view.model.get "desktopHeroImage"
+                        "mobileHeroImage": view.model.get "mobileHeroImage"
+                    ))
 
                 App.intentRank.changeCategory category
 
