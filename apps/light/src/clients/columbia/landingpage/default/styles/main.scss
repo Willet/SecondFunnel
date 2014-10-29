@@ -6,8 +6,13 @@ $icon-font-path: "/static/light/fonts/";
 @import url(http://fonts.googleapis.com/css?family=Roboto+Slab:400,700);
 
 .navbar {
-    background-color: #F5F5F5;
+    background-color: #FFF;
     box-shadow: 0px 2px 5px 3px rgba(0,0,0,0.20);
+}
+
+.navbar img {
+    height: 29px;
+    vertical-align: middle;
 }
 
 .tile {
@@ -76,6 +81,10 @@ $icon-font-path: "/static/light/fonts/";
 
 .previewContainer .image-with-tagged-products .cell.shop {
     width: 120px;
+}
+
+.previewContainer .image-with-tagged-products .cell.info {
+    width: 265px;
 }
 
 .previewContainer .info {
@@ -164,6 +173,15 @@ $icon-font-path: "/static/light/fonts/";
 
     .previewContainer .content {
         padding-top: 43px;
+    }
+
+    .previewContainer .image-with-tagged-products .cell.info {
+        width: auto;
+    }
+
+    .previewContainer .cell.info {
+        padding-left: 10px;
+        padding-right: 10px;
     }
 
     .previewContainer .gallery img {

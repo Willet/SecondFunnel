@@ -7,6 +7,9 @@ from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from urlparse import urlparse
+import cloudinary
+import traceback
+
 from apps.assets.models import Store, Product, Category, Feed
 from apps.scraper.scrapers import ProductScraper, ContentScraper
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
@@ -251,9 +254,16 @@ class ProductImagePipeline(object):
     def process_item(self, item, spider):
         remove_background = getattr(spider, 'remove_background', False)
         if isinstance(item, ScraperProduct):
+            has_images = False
             for image_url in item.get('image_urls', []):
                 url = urlparse(image_url, scheme='http')
-                self.process_product_image(item, url.geturl(), remove_background=remove_background)
+                try:
+                    self.process_product_image(item, url.geturl(), remove_background=remove_background)
+                    has_images = True
+                except cloudinary.api.Error as e:
+                    traceback.print_exc()
+            if not has_images:
+                item['in_stock'] = False
         return item
 
     def process_product_image(self, item, image_url, remove_background=False):

@@ -73,8 +73,10 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
                 l.add_css('price', 'span.reg-price::text')
                 attributes['sale_price'] = ''
 
-            categories = sel.css('ol.breadcrumb a::text').extract()[1:]  # Skip the first element
-
+            categories = sel.css('ol.breadcrumb a::text').extract()[1:]  # Skip the first breadcrumb
+            uses = sel.css('.product-activities .value::text').extract()
+            if uses:
+                categories += uses[0].split(',')
             attributes['categories'] = categories
             l.add_value('attributes', attributes)
 
@@ -86,6 +88,6 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             image_urls = []
             for img_url in img_urls:
                 image_urls.append(re.sub('_\d{3}_', color, img_url, count=1))
-            l.add_value('in_stock', bool(image_urls))
+            l.add_value('in_stock', True)
             l.add_value('image_urls', image_urls)
             yield l.load_item()
