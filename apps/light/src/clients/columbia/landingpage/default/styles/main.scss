@@ -161,6 +161,10 @@ $icon-font-path: "/static/light/fonts/";
         display: none;
     }
 
+    .tile.wide {
+        width: 100% !important;
+    }
+
     .previewContainer .close {
         left: 0;
         top: 0;
