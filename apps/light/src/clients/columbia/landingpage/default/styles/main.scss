@@ -41,7 +41,9 @@ $icon-font-path: "/static/light/fonts/";
 }
 
 .tile .name {
-    font-size: 13px;
+    font-family: "Roboto Slab", serif;
+    font-weight: bold;
+    font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -157,6 +159,10 @@ $icon-font-path: "/static/light/fonts/";
 @media screen and (max-width: 768px) {
     .navbar {
         display: none;
+    }
+
+    .tile.wide {
+        width: 100% !important;
     }
 
     .previewContainer .close {

@@ -288,6 +288,8 @@ class Product(BaseModel):
     # - product_set
     attributes = JSONField(blank=True, null=True, default={})
 
+    similar_products = models.ManyToManyField('self', related_name='reverse_similar_products', symmetrical=False, null=True, blank=True)
+
     serializer = ir_serializers.ProductSerializer
     cg_serializer = cg_serializers.ProductSerializer
 

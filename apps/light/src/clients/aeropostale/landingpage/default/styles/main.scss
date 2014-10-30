@@ -93,6 +93,10 @@ body {
     text-transform: uppercase;
 }
 
+.tile.banner a {
+    pointer-events: none;
+}
+
 .tile .tile-border {
     border: 1px solid #979797;
     padding: 5px;

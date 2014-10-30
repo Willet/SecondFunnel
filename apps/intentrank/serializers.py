@@ -247,6 +247,7 @@ class ProductSerializer(IRSerializer):
             "description": obj.description,
             "details": obj.details,
             "name": obj.name,
+            "similar-products": [],
         }
 
         data.update(obj.attributes)
@@ -279,6 +280,12 @@ class ProductSerializer(IRSerializer):
 
         if not "orientation" in data:
             data["orientation"] = "portrait"
+
+        for product in obj.similar_products.filter(in_stock=True):
+            try:
+                data['similar-products'].append(product.to_json())
+            except Product.DoesNotExist as err:
+                pass
 
         return data
 
