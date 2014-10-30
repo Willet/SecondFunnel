@@ -169,7 +169,7 @@ module.exports = (module, App) ->
             else
                 columns = 1
             if App.support.mobile() # maximum of 2 columns
-                if columns <= 2
+                if columns < 2
                     columns = 1
                 else
                     columns = 2
