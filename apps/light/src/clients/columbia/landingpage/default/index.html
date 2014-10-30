@@ -213,19 +213,6 @@
                                     </div>
                                 <% } %>
                             </div>
-                            <div class="cell info">
-                                <div class='title'></div>
-                                <div class='price'></div>
-                                <div class='buy'></div>
-                                <div class="gallery-main-image"></div>
-                                <div class='gallery-dots'></div>
-                                <div class='description'></div>
-                            </div>
-                            <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
-                                <div class="more-info">
-                                    More from this look...
-                                </div>
-                            <% } %>
                             <div class="cell mobile-only">
                                 <img src="<%= obj.images[0].url %>" alt="image"/>
                             </div>
@@ -245,6 +232,16 @@
                                     </div>
                                 </div>
                             <% } %>
+                            <div class="cell info">
+                                <div class='title'></div>
+                                <div class='price'></div>
+                                <div class='buy'></div>
+                                <div class="gallery-main-image"></div>
+                                <div class='gallery-dots'></div>
+                                <% if (!App.support.mobile()) { %>
+                                    <div class='description'></div>
+                                <% } %>
+                            </div>
                         </div>
                     </div>
                 </div>
