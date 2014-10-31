@@ -12,6 +12,11 @@ require('landingpage');
                 '.tile .buy .button, .previewContainer .buy .button {',
                 '	padding-top: 18px;',
                 '}',
+                '@media (max-width: 768px) {',
+                '	.tile .buy .button, .previewContainer .buy .button {',
+                '		padding-top: 16px;',
+                '	}',
+                '}',
                 '</style>'
             ].join(" ")
         );
