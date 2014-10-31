@@ -40,10 +40,35 @@ $icon-font-path: "/static/light/fonts/";
     bottom: 0;
 }
 
+.tile .overlay {
+    background-color: transparent;
+}
+
+.tile:hover .overlay {
+    filter: none;
+}
+
+.tile .overlay .button {
+    display: inline-block;
+    font-size: 16px;
+    font-weight: bold;
+    color: #2087cc;
+    padding: 10px 20px;
+    text-transform: uppercase;
+    background-color: rgba(255, 255, 255, 0.6);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99FFFFFF,endColorstr=#99FFFFFF);
+}
+/* Don't use filter for IE9 + */
+.tile:hover .overlay .button:nth-child(n) {
+    filter: none;
+}
+
+
 .tile .name {
     font-family: "Roboto Slab", serif;
     font-weight: bold;
     font-size: 12px;
+    margin-top: 5px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
