@@ -6,6 +6,14 @@ var bootstrap = require('bootstrap.dropdown'); // for menu-bar drop down on mobi
 require('landingpage');
 (function() {
     if (navigator.platform.toLowerCase().indexOf('windows') == -1) {
-        $(".tile .buy .button, .previewContainer .buy .button").css({'padding-top': '18px'});
+        $('head').append(
+            [
+                '<style type="text/css">',
+                '.tile .buy .button, .previewContainer .buy .button {',
+                '	padding-top: 18px;',
+                '}',
+                '</style>'
+            ].join(" ")
+        );
     }
 })()
