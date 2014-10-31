@@ -5,7 +5,7 @@ var Marionette = require('backbone.marionette');
 var bootstrap = require('bootstrap.dropdown'); // for menu-bar drop down on mobile
 require('landingpage');
 (function() {
-    if (navigator.platform.toLowerCase().indexOf('windows') == -1) {
+    if (navigator.platform.toLowerCase().indexOf('win') != 0) {
         $('head').append(
             [
                 '<style type="text/css">',
