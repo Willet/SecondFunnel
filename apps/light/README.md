@@ -14,11 +14,11 @@ django then reads this directory as a template folder for static page generation
 
 ## Install
 
-1. Install [node](http://nodejs.org/)
-2. Setup your environment PATH to include "node\_modules/bin"
-3. Run `npm install`
-4. Run `bower install`
-5. Run `gulp --require coffee-script/register <command>`
+1. Install [node](http://nodejs.org/) using `sudo apt-get install node`
+2. Setup your environment PATH to include "node\_modules/bin" (already done on Linux)
+3. Install [NPM](https://www.npmjs.org/) by running `sudo npm install`
+4. Install [Bower](http://bower.io/) by running `bower install`
+5. Register CoffeeScript by running `gulp --require coffee-script/register dev`
 
 ## Gulp
 
