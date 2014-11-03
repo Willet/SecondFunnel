@@ -17,6 +17,9 @@ class SecondFunnelScraper(object):
         if kwargs.get('feed_ids'):
             self.feed_ids = kwargs.get('feed_ids').split(',')
 
+        if kwargs.get('categories'):
+            self.categories = kwargs.get('categories').split(',')
+
 
 class SecondFunnelCrawlScraper(SecondFunnelScraper):
 

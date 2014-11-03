@@ -185,6 +185,9 @@ class CategoryPipeline(object):
         for name in categories:
             self.add_to_category(item, name.strip())
 
+        for category in getattr(spider, 'categories', []):
+            self.add_to_category(item, category.strip())
+
         return item
 
     def add_to_category(self, item, name):
