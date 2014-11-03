@@ -74,21 +74,18 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
         
         # who needs one category when fifty eight thousand will do?
         categories = []
+        categories += sel.css('#breadcrumbs a::text').extract()[1:-1]
+        categories += sel.css('#sidebar-left .active a::text').extract()
 
-        genders = sel.css('#nav-categories a.aeroNavBut')
-        if genders[0].css('.current'):
-            categories.append('girls')
-        elif genders[1].css('.current'):
-            categories.append('guys')
+        size_charts = sel.css('#sidebar-left dl dd dl dt a::text').extract()[-1]
+        categories += re.findall(r'Aero ([^\s]*) Size Chart', size_charts)
+
  
         if float(l.get_output_value('price')) < 10:
             categories.append('under $10')
         elif float(l.get_output_value('price')) < 20:
             categories.append('under $20')
 
-        gender = sel.css('.hasChildren.active a::text').extract()
-        if gender:
-            categories.append(gender[0])
 
         attributes['categories'] = categories
 
