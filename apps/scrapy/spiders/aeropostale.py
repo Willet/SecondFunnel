@@ -24,6 +24,9 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
     rules = [
         Rule(SgmlLinkExtractor(restrict_xpaths='//div[contains(@class, "details-image")]'), 
                            callback='parse_product', follow=False),
+        Rule(SgmlLinkExtractor(restrict_xpaths='//div[contains(@class, "childProduct")]//h2'),
+                           callback='parse_product', follow=False),
+        Rule(SgmlLinkExtractor(restrict_xpaths='//area[contains(@title, "Shop the Look")]')),
         Rule(SgmlLinkExtractor(restrict_xpaths='//li[contains(@class, "viewAll")]/a[contains(text(), "100")]'))
     ]
 
