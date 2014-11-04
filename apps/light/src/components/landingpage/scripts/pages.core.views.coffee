@@ -729,12 +729,13 @@ module.exports = (module, App) ->
             App.options.galleryIndexPage = 0
 
             # hide this, then restore discovery.
-            if App.support.mobile() or @feedSwapped
+            if @feedSwapped
                 @$el.swapWith App.discoveryArea.$el.parent()
 
                 # handle results that got loaded while the discovery
                 # area has an undefined height.
                 App.layoutEngine.layout App.discovery
+                App.layoutEngine.masonry.resize()
             return
 
 

@@ -138,6 +138,20 @@
             </div>
         </script>
 
+        <script type="text/template" id="product_galleryMainImage_template">
+            <% if (obj.images.length > 1) { %>
+                <div class="gallery-swipe-left"></div>
+                <div class="gallery-swipe-right"></div>
+            <% } %>
+            <div class="main-image-container">
+                <div class="main-image">
+                    <% for (var i = 0; i < obj.images.length; i++) { %>
+                        <img class="image" src="<%- obj.images[i].url %>" />
+                    <% } %>
+                </div>
+            </div>
+        </script>
+
         <script type="text/template" id="image_preview_template">
             <% if (obj['tagged-products'].length) { %>
                 <% var product = obj['tagged-products'][0]; %>
@@ -275,5 +289,20 @@
         @@include('shared/default_templates.html')
     </div>
     <script type="text/javascript" src="/static/light/aeropostale/landingpage/default/scripts/main.js" async></script>
+    <script type="text/javascript">
+        var csCustomCategory = 'giftguide';
+    </script>
+    <script language='javascript' src='https://dsa.csdata1.com/data/js/10040399/csgather.js'></script>
+    <script type="text/javascript">          
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-3093561-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function() {
+          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+          ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
 </body>
 </html>
