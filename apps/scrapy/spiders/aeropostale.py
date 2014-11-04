@@ -49,46 +49,47 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
             product.save()
             return
 
-        l = ScraperProductLoader(item=ScraperProduct(), response=response)
-
-        l.add_css('name', '.right h2::text')
-        l.add_css('price', '.price .now::text', re='(\d+)')
-        l.add_value('sku', sku)
-        a = sel.css('.product-description').extract()[0].replace("<br>", "</p><p>")
-        l.add_value('description', a)
-        l.add_css('url', 'link[rel="canonical"]::attr(href)')
-
-        base_imgs = sel.css('#altimages img::attr(src)').extract()
-        if not base_imgs:
-            base_imgs = sel.css('#mainProductImage::attr(src)').extract()
-        base_imgs = [re.sub(r't\d+x\d+\.jpg', 'enh-z5.jpg', img) for img in base_imgs]
-
         colors = sel.css('ul.swatches.clearfix li img::attr(src)').re('-(\d+)_')
-        image_urls = []
+        print "{} colors".format(len(colors))
+
         for color in colors:
+            l = ScraperProductLoader(item=ScraperProduct(), response=response)
+
+            l.add_css('name', '.right h2::text')
+            l.add_css('price', '.price .now::text', re='(\d+)')
+            l.add_value('sku', sku + "@" + color)
+            a = sel.css('.product-description').extract()[0].replace("<br>", "</p><p>")
+            l.add_value('description', a)
+            l.add_css('url', 'link[rel="canonical"]::attr(href)')
+
+            base_imgs = sel.css('#altimages img::attr(src)').extract()
+            if not base_imgs:
+                base_imgs = sel.css('#mainProductImage::attr(src)').extract()
+            base_imgs = [re.sub(r't\d+x\d+\.jpg', 'enh-z5.jpg', img) for img in base_imgs]
+
+            image_urls = []
             for base_img in base_imgs:
-                image_urls.append(self.root_url + re.sub('-\d+enh', '-'+color+'enh', base_img))
-        l.add_value('image_urls', image_urls)
+                image_urls.append(self.root_url + re.sub(r'-\d+(?=(_alternate\d+_)?enh)', '-'+color, base_img))
+            l.add_value('image_urls', image_urls)
 
-        attributes = {}
-        
-        # who needs one category when fifty eight thousand will do?
-        categories = []
-        categories += sel.css('#breadcrumbs a::text').extract()[1:-1]
-        categories += sel.css('#sidebar-left .active a::text').extract()
+            attributes = {}
 
-        size_charts = sel.css('#sidebar-left dl dd dl dt a::text').extract()[-1]
-        categories += re.findall(r'Aero ([^\s]*) Size Chart', size_charts)
+            # who needs one category when fifty eight thousand will do?
+            categories = []
+            categories += sel.css('#breadcrumbs a::text').extract()[1:-1]
+            categories += sel.css('#sidebar-left .active a::text').extract()
 
- 
-        if float(l.get_output_value('price')) < 10:
-            categories.append('under $10')
-        elif float(l.get_output_value('price')) < 20:
-            categories.append('under $20')
+            size_charts = sel.css('#sidebar-left dl dd dl dt a::text').extract()[-1]
+            categories += re.findall(r'Aero ([^\s]*) Size Chart', size_charts)
+
+            if float(l.get_output_value('price')) < 10:
+                categories.append('under $10')
+            elif float(l.get_output_value('price')) < 20:
+                categories.append('under $20')
 
 
-        attributes['categories'] = categories
+            attributes['categories'] = categories
 
-        l.add_value('attributes', attributes)
+            l.add_value('attributes', attributes)
 
-        yield l.load_item()
+            yield l.load_item()
