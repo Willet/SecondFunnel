@@ -541,8 +541,8 @@ div.loading {
     cursor: default;
 }
 
-.previewContainer .main-image-container .gallery-swipe-left,
-.previewContainer .main-image-container .gallery-swipe-right {
+.previewContainer .gallery-swipe-left,
+.previewContainer .gallery-swipe-right {
     top: 50%;
     position: absolute;
     cursor: pointer;
@@ -555,25 +555,25 @@ div.loading {
     margin-top: -15px;
 }
 
-.previewContainer .main-image-container .gallery-swipe-left.grey,
-.previewContainer .main-image-container .gallery-swipe-right.grey {
+.previewContainer .gallery-swipe-left.grey,
+.previewContainer .gallery-swipe-right.grey {
     display: none;
     cursor: default;
 }
 
-.previewContainer .main-image-container .gallery-swipe-left {
+.previewContainer .gallery-swipe-left {
     border-right: 25px solid #000;
     left: 5px;
 }
-.previewContainer .main-image-container .gallery-swipe-left:hover {
+.previewContainer .gallery-swipe-left:hover {
     border-right-color: #7D7D7D;
 }
 
-.previewContainer .main-image-container .gallery-swipe-right {
+.previewContainer .gallery-swipe-right {
     border-left: 25px solid #000;
     right: 5px;
 }
-.previewContainer .main-image-container .gallery-swipe-right:hover {
+.previewContainer .gallery-swipe-right:hover {
     border-left-color: #7D7D7D;
 }
 
@@ -1003,11 +1003,11 @@ div.spinner div.bar12 {
         vertical-align: top;
     }
 
-    .previewContainer .main-image-container .gallery-swipe-left:hover {
+    .previewContainer .gallery-swipe-left:hover {
         border-right-color: #000;
     }
 
-    .previewContainer .main-image-container .gallery-swipe-right:hover {
+    .previewContainer .gallery-swipe-right:hover {
         border-left-color: #000;
     }
 
