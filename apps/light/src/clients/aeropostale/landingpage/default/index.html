@@ -138,6 +138,20 @@
             </div>
         </script>
 
+        <script type="text/template" id="product_galleryMainImage_template">
+            <% if (obj.images.length > 1) { %>
+                <div class="gallery-swipe-left"></div>
+                <div class="gallery-swipe-right"></div>
+            <% } %>
+            <div class="main-image-container">
+                <div class="main-image">
+                    <% for (var i = 0; i < obj.images.length; i++) { %>
+                        <img class="image" src="<%- obj.images[i].url %>" />
+                    <% } %>
+                </div>
+            </div>
+        </script>
+
         <script type="text/template" id="image_preview_template">
             <% if (obj['tagged-products'].length) { %>
                 <% var product = obj['tagged-products'][0]; %>
