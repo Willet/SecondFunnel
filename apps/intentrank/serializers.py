@@ -235,6 +235,8 @@ class ProductSerializer(IRSerializer):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
         """
+        from apps.assets.models import Product
+
         product_images = list(obj.product_images.all())
 
         data = {
