@@ -40,9 +40,8 @@ def filter_tiles(fn):
         if not feed and tiles is None:  # permit [] for tiles
             raise ValueError("Either tiles or feed must be supplied")
 
-        if not tiles and feed:
+        if tiles is None and feed:
             tiles = feed.tiles.all()
-
         if not tiles:  # nothing to give
             return qs_for([])
 
@@ -453,6 +452,8 @@ def ir_magic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
              offset=0, *args, **kwargs):
 
     total_tiles = tiles.count()
+    if total_tiles == 0:
+        return tiles
 
     # Wrap results TODO: add an option for finite which does not execute this
     overflow = results - total_tiles % results

@@ -75,7 +75,6 @@ SENTRY_SIGNALS = [
 
 AWS_ACCESS_KEY_ID = settings.AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY = settings.AWS_SECRET_ACCESS_KEY
-FEED_URI = "s3://scrapy.secondfunnel.com/dev/feeds/%(name)s/%(time)s.json"
 
 import cloudinary
 cloudinary.config(**settings.CLOUDINARY)

@@ -20,7 +20,7 @@ body {
 }
 
 .navbar {
-    height: 36px;
+    height: 50px;
     min-height: inherit;
     border-bottom: 1px solid #333;
 }
@@ -33,11 +33,6 @@ body {
 .navbar .container a {
     display: inline-block;
     height: 100%;
-    width: 105px;
-}
-
-.navbar .container .logo {
-    width: 105px;
 }
 
 #category-area {

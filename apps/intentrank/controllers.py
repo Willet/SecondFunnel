@@ -115,18 +115,24 @@ class IntentRank(object):
         if not feed.tiles.count():  # short circuit: return empty resultset
             return qs_for([])
 
-        try:
-            if self._page:
-                category = Category.objects.filter(store=self._page.store,
-                                                   name=category_name)[0]
-            else:
-                category = Category.objects.filter(name=category_name)[0]
-            products = category.products.all()
-        except (IndexError, Category.DoesNotExist):
-            category = None
-            products = []
+        category_names = category_name.split('|')
+        products = None
 
-        if category_name and category:
+        for category_name in category_names:
+            try:
+                if self._page:
+                    category = Category.objects.filter(store=self._page.store, name=category_name)[0]
+                else:
+                    category = Category.objects.filter(name=category_name)[0]
+            except (IndexError, Category.DoesNotExist):
+                continue
+
+            if not products:
+                products = category.products.all()
+            else:
+                products = products & category.products.all()
+
+        if products is not None:
             contents = Content.objects.filter(tagged_products__in=products)
             tiles = feed.tiles.filter(Q(products__in=products) | Q(content__in=contents))
 

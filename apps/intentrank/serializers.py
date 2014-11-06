@@ -235,8 +235,6 @@ class ProductSerializer(IRSerializer):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
         """
-        from apps.assets.models import Product
-
         product_images = list(obj.product_images.all())
 
         data = {
@@ -286,7 +284,7 @@ class ProductSerializer(IRSerializer):
         for product in obj.similar_products.filter(in_stock=True):
             try:
                 data['similar-products'].append(product.to_json())
-            except Product.DoesNotExist as err:
+            except:
                 pass
 
         return data
@@ -311,8 +309,6 @@ class ProductImageSerializer(IRSerializer):
 class ContentSerializer(IRSerializer):
 
     def get_dump_object(self, obj):
-        from apps.assets.models import Product
-
         data = {
             'id': str(obj.id),
             'store-id': str(obj.store.id if obj.store else 0),
@@ -329,7 +325,7 @@ class ContentSerializer(IRSerializer):
         for product in obj.tagged_products.filter(in_stock=True):
             try:
                 data['tagged-products'].append(product.to_json())
-            except Product.DoesNotExist as err:
+            except Exception as err:
                 data['-dbg-tagged-products'].append(str(err.message))
 
         return data
