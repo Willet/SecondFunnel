@@ -47,11 +47,39 @@ body {
         font-size: 20px;
         line-height: 24px;
         padding: 0 10px;
+        position: relative;
 
         span {
             padding: 0 5px;
             display: inline-block;
             border-bottom: 2px solid #000;
+            white-space: nowrap;
+        }
+
+        .sub-categories {
+            position: absolute;
+            z-index: 1;
+            background: white;
+            border: 2px solid #000;
+            border-top: none;
+            border-bottom: none;
+            left: 10px;
+            right: 10px;
+        }
+
+        .sub-category {
+            display: none;
+            width: 100%;
+            color: #000;
+            border-bottom: none;
+        }
+        .sub-category.selected {
+            display: inline-block;
+        }
+
+        .sub-category.selected,
+        .sub-category:hover {
+            color: $aero-pink;
         }
     }
 
@@ -62,6 +90,17 @@ body {
 
         span {
             border-color: $aero-pink;
+        }
+
+        .sub-categories {
+            border-color: $aero-pink;
+            border-bottom: 2px solid;
+        }
+    }
+
+    .category:hover {
+        .sub-category {
+            display: inline-block;
         }
     }
 }

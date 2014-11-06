@@ -769,7 +769,44 @@ module.exports = (module, App) ->
             templateRules
 
         events:
-            click: (ev) -> @trigger "click", @
+            click: (event) ->
+                view = @
+                $el = view.$el
+                category = view.model.get("name")
+                nofilter = view.model.get("nofilter")
+                eventTarget = $(event.target)
+
+                if eventTarget.hasClass('sub-category')
+                    if not eventTarget.hasClass('selected') # this is not in the above if on purpose
+                        subCategory = eventTarget.data('name')
+                else if $('.sub-category.selected', $el).length == 1
+                    $el.removeClass('selected')
+                    $('.sub-category.selected', $el).removeClass('selected')
+
+                # switch to the selected category
+                # if it has changed
+                if not $el.hasClass("selected") or subCategory
+                    $el.siblings().each () ->
+                        self = $(@)
+                        self.removeClass 'selected'
+                        $('.sub-category', self).removeClass 'selected'
+
+                    $el.addClass "selected"
+
+                    if subCategory
+                        eventTarget.siblings().removeClass 'selected'
+                        eventTarget.addClass 'selected'
+                        category += "|" + subCategory
+
+                    if view.model.get("desktopHeroImage") and view.model.get("mobileHeroImage") and App.layoutEngine
+                        App.heroArea.show(new App.core.HeroAreaView(
+                            "desktopHeroImage": view.model.get "desktopHeroImage"
+                            "mobileHeroImage": view.model.get "mobileHeroImage"
+                        ))
+
+                    App.intentRank.changeCategory category
+
+                this
 
     ###
     A collection of Categories to display.
@@ -808,24 +845,4 @@ module.exports = (module, App) ->
         onRender: ->
             @$el.children().eq(0).trigger 'click'
 
-        onItemviewClick: (view) ->
-            $el = view.$el
-            category = view.model.get("name")
-            nofilter = view.model.get("nofilter")
-
-            # switch to the selected category
-            # if it has changed
-            unless $el.hasClass "selected"
-                $el.siblings().removeClass "selected"
-                $el.addClass "selected"
-
-                if view.model.get("desktopHeroImage") and view.model.get("mobileHeroImage") and App.layoutEngine
-                    App.heroArea.show(new App.core.HeroAreaView(
-                        "desktopHeroImage": view.model.get "desktopHeroImage"
-                        "mobileHeroImage": view.model.get "mobileHeroImage"
-                    ))
-
-                App.intentRank.changeCategory category
-
-            this
     return
