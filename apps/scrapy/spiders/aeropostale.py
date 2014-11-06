@@ -82,8 +82,11 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
             categories += sel.css('#breadcrumbs a::text').extract()[1:-1]
             categories += sel.css('#sidebar-left .active a::text').extract()
 
-            size_charts = sel.css('#sidebar-left dl dd dl dt a::text').extract()[-1]
-            categories += re.findall(r'Aero ([^\s]*) Size Chart', size_charts)
+            try:
+                size_charts = sel.css('#sidebar-left dl dd dl dt a::text').extract()[-1]
+                categories += re.findall(r'Aero ([^\s]*) Size Chart', size_charts)
+            except IndexError:
+                pass
 
             if float(l.get_output_value('price')) < 10:
                 categories.append('under $10')
