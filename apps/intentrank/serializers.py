@@ -325,7 +325,7 @@ class ContentSerializer(IRSerializer):
         for product in obj.tagged_products.filter(in_stock=True):
             try:
                 data['tagged-products'].append(product.to_json())
-            except:
+            except Exception as err:
                 data['-dbg-tagged-products'].append(str(err.message))
 
         return data
