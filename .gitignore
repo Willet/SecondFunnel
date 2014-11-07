@@ -22,8 +22,6 @@ apps/pinpoint/static/campaigns
 scripts/flush.sql
 db.sql
 ghostdriver.log
-Gemfile.lock
-Gemfile
 
 # Testing directories
 apps/testing/resources
