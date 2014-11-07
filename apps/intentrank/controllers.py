@@ -115,8 +115,11 @@ class IntentRank(object):
         if not feed.tiles.count():  # short circuit: return empty resultset
             return qs_for([])
 
-        category_names = category_name.split('|')
+        category_names = []
         products = None
+
+        if category_name:
+            category_names = category_name.split('|')
 
         for category_name in category_names:
             try:
