@@ -36,8 +36,7 @@ body {
 }
 
 #category-area {
-    margin-top: 12px;
-    margin-bottom: 12px;
+    padding: 12px 0;
     font-family: "SaaSeriesFD", Helvetica, sans-serif;
 
     .category {
@@ -103,6 +102,10 @@ body {
             display: inline-block;
         }
     }
+}
+
+#category-area.stuck {
+    
 }
 
 .tile {

@@ -21,4 +21,15 @@ require('landingpage');
             ].join(" ")
         );
     }
-})()
+})();
+
+$(document).ready(function() {
+    $(document).on('scroll', function(){
+        var navbar = $("#category-area");
+        if ($(window).scrollTop() > navbar.offset().top + parseInt(navbar.css('margin-top'))) {
+            navbar.addClass('stuck');
+        } else {
+            navbar.removeClass('stuck');
+        }
+    });
+});
