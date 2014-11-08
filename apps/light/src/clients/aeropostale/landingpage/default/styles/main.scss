@@ -95,6 +95,8 @@ body {
         .sub-categories {
             border-color: $aero-pink;
             border-bottom: 2px solid;
+            border-top: 2px solid;
+            margin-top: -2px;
         }
     }
 
