@@ -83,26 +83,37 @@ body {
         }
     }
 
-    .category.selected,
-    .category:hover {
+    .category.selected {
         color: $aero-pink;
         background-color: #FFF;
-
-        span {
+        >span {
             border-color: $aero-pink;
         }
 
         .sub-categories {
-            border-color: $aero-pink;
-            border-bottom: 2px solid;
-            border-top: 2px solid;
             margin-top: -2px;
+            border-top: 2px solid $aero-pink;
+            border-color: $aero-pink;
+        }
+        .sub-category.selected {
+            border-bottom: 2px solid $aero-pink;
         }
     }
 
     .category:hover {
-        .sub-category {
+        color: $aero-pink;
+        background-color: #FFF;
+        .sub-categories {
             display: inline-block;
+            border: 2px solid #000;
+            margin-top: -2px;
+            z-index: 10;
+        }
+        .sub-category,
+        .sub-category.selected {
+            display: inline-block;
+            border: none;
+            margin-top: 0;
         }
     }
 }
