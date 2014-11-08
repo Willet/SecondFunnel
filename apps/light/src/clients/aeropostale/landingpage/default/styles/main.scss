@@ -275,6 +275,10 @@ body {
     margin: 0 5px;
     width: auto;
 }
+.previewContainer .stl-look .stl-item img {
+    opacity: 1;
+    filter: alpha(opacity=100);
+}
 
 .previewContainer .main-image-container {
     width: 50%;
