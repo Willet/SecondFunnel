@@ -25,11 +25,16 @@ require('landingpage');
 
 $(document).ready(function() {
     $(document).on('scroll', function(){
-        var navbar = $("#category-area");
-        if ($(window).scrollTop() > navbar.offset().top + parseInt(navbar.css('margin-top'))) {
-            navbar.addClass('stuck');
+        var category_area = $("#category-area");
+        var category_area_fixed = $("#category-area-fixed")
+        var height = navbar.offset().top;
+        if ($(window).scrollTop() + parseInt(navbar.css('margin-top')) >= height) {
+            category_area_fixed.css({'display': 'block'});
+            category_area_fixed.append(category_area.detach('span, div'));
+
         } else {
-            navbar.removeClass('stuck');
+            category_area_fixed.css({'display': 'none'});
+            category_area.append(category_area_fixed.detach('span, div'));
         }
     });
 });

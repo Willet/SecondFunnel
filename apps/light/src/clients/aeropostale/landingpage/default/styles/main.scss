@@ -35,7 +35,8 @@ body {
     height: 100%;
 }
 
-#category-area {
+#category-area,
+#category-area-fixed {
     padding: 12px 0;
     font-family: "SaaSeriesFD", Helvetica, sans-serif;
 
@@ -117,8 +118,23 @@ body {
     }
 }
 
-#category-area.stuck {
-    
+#category-area-fixed {
+    position: fixed;
+    display: none;
+    top: 0px;
+    z-index: 200;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 768px) {
+    #category-area-fixed {width: 750px;}
+}
+@media (min-width: 992px) {
+    #category-area-fixed {width: 970px;}
+}
+@media (min-width: 1200px) {
+    #category-area-fixed {width: 1170px;}
 }
 
 .tile {
