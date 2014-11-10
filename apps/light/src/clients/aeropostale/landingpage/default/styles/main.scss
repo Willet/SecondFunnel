@@ -252,6 +252,18 @@ body {
     padding: 10px;
 }
 
+.tile .buy .button.padded,
+.previewContainer .buy .button.padded {
+    padding-top: 18px;
+}
+
+@media (max-width: 768px) {
+    .tile .buy .button.padded,
+    .previewContainer .buy .button.padded {
+        padding-top: 16px;
+    }
+}
+
 .tile .buy .button:hover,
 .previewContainer .buy .button {
     text-decoration: none;
