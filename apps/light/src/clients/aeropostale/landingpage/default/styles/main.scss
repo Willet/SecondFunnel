@@ -187,7 +187,25 @@ body {
     bottom: 0;
 }
 
-@media (max-width: 768px) {
+.tile.grooveshark {
+    height: 479px;
+    padding-top: 60px;
+
+    .title {
+        height: 100px;
+        padding: 0 25px 0;
+        font-family: "SaaSeriesFD", Helvetica, sans-serif;
+        font-size: 24px;
+        line-height: 28px;
+        letter-spacing: 0;
+        color: $aero-pink;
+        text-transform: uppercase;
+        text-decoration: none;
+        text-align: center;
+    }
+}
+
+@media (max-width: 991px) {
     .tile.grooveshark {
         display: none;
     }
