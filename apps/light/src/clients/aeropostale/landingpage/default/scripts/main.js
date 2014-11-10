@@ -4,6 +4,7 @@ var Backbone = require('backbone');
 var Marionette = require('backbone.marionette');
 var bootstrap = require('bootstrap.dropdown'); // for menu-bar drop down on mobile
 require('landingpage');
+// This should be refactored toggle classes & keep style info in css
 (function() {
     if (navigator.platform.toLowerCase().indexOf('win') != 0) {
         $('head').append(
@@ -25,16 +26,20 @@ require('landingpage');
 
 $(document).ready(function() {
     $(document).on('scroll', function(){
-        var category_area = $("#category-area");
-        var category_area_fixed = $("#category-area-fixed")
-        var height = navbar.offset().top;
-        if ($(window).scrollTop() + parseInt(navbar.css('margin-top')) >= height) {
-            category_area_fixed.css({'display': 'block'});
-            category_area_fixed.append(category_area.detach('span, div'));
+        function scrolled_beyond_navbar() {
+            return $(window).scrollTop() + parseInt(category_area.css('margin-top')) > category_area.offset().top;
+        }
 
+        var category_area = $("#category-area"),
+            fixed_category_area = $("#category-area-fixed"),
+            fixed_container = fixed_category_area.find('.container');
+        
+        if (scrolled_beyond_navbar()) {
+            fixed_container.append(category_area.children().detach());
+            fixed_category_area.show();
         } else {
-            category_area_fixed.css({'display': 'none'});
-            category_area.append(category_area_fixed.detach('span, div'));
+            fixed_category_area.hide();
+            category_area.append(fixed_container.children().detach());
         }
     });
 });

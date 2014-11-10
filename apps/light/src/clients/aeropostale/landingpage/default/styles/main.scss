@@ -39,6 +39,7 @@ body {
 #category-area-fixed {
     padding: 12px 0;
     font-family: "SaaSeriesFD", Helvetica, sans-serif;
+    background-color: #FFF;
 
     .category {
         color: #000;
@@ -122,19 +123,24 @@ body {
     position: fixed;
     display: none;
     top: 0px;
+    left: 0px;
     z-index: 200;
-    margin-left: auto;
-    margin-right: auto;
-}
+    width: 100%;
 
-@media (min-width: 768px) {
-    #category-area-fixed {width: 750px;}
-}
-@media (min-width: 992px) {
-    #category-area-fixed {width: 970px;}
-}
-@media (min-width: 1200px) {
-    #category-area-fixed {width: 1170px;}
+    .container {
+        display: table;
+    }
+    .category-area {
+        display: table-row;
+        text-align: center;
+
+        .category {
+            width: 200px;
+            display: table-cell;
+            text-align: center;
+            text-transform: uppercase;
+        }
+    }
 }
 
 .tile {
@@ -328,7 +334,10 @@ body {
         display: none;
     }
 
-    #category-area {
+    #category-area,
+    #category-area-fixed {
+        padding-bottom: 0px;
+
         .category-area {
             .category {
                 font-size: 13px;
@@ -369,7 +378,16 @@ body {
         width: auto;
     }
 }
-
+@media (min-width: 768px) {
+    #category-area,
+    #category-area-fixed {
+        .category {
+            font-size: 16px;
+        }
+        .sub-categories {
+        }
+    }
+}
 @media (min-width: 992px) {
     .container {
         width: 1024px; /* remind me why the fuck we use bootstrap again? */
