@@ -35,11 +35,15 @@ $(document).ready(function() {
             fixed_container = fixed_category_area.find('.container');
         
         if (scrolled_beyond_navbar()) {
-            fixed_container.append(category_area.children().detach());
-            fixed_category_area.show();
+            if (fixed_category_area.is(':hidden')) {
+                fixed_container.append(category_area.children().detach());
+                fixed_category_area.show();
+            }
         } else {
-            fixed_category_area.hide();
-            category_area.append(fixed_container.children().detach());
+            if (fixed_category_area.is(':visible')) {
+                fixed_category_area.hide();
+                category_area.append(fixed_container.children().detach());
+            }
         }
     });
 });
