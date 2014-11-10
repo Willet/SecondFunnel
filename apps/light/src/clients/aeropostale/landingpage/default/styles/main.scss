@@ -35,10 +35,11 @@ body {
     height: 100%;
 }
 
-#category-area {
-    margin-top: 12px;
-    margin-bottom: 12px;
+#category-area,
+#category-area-fixed {
+    padding: 12px 0;
     font-family: "SaaSeriesFD", Helvetica, sans-serif;
+    background-color: #FFF;
 
     .category {
         color: #000;
@@ -114,6 +115,30 @@ body {
             display: inline-block;
             border: none;
             margin-top: 0;
+        }
+    }
+}
+
+#category-area-fixed {
+    position: fixed;
+    display: none;
+    top: 0px;
+    left: 0px;
+    z-index: 200;
+    width: 100%;
+
+    .container {
+        display: table;
+    }
+    .category-area {
+        display: table-row;
+        text-align: center;
+
+        .category {
+            width: 200px;
+            display: table-cell;
+            text-align: center;
+            text-transform: uppercase;
         }
     }
 }
@@ -309,7 +334,10 @@ body {
         display: none;
     }
 
-    #category-area {
+    #category-area,
+    #category-area-fixed {
+        padding-bottom: 0px;
+
         .category-area {
             .category {
                 font-size: 13px;
@@ -350,7 +378,16 @@ body {
         width: auto;
     }
 }
-
+@media (min-width: 768px) {
+    #category-area,
+    #category-area-fixed {
+        .category {
+            font-size: 16px;
+        }
+        .sub-categories {
+        }
+    }
+}
 @media (min-width: 992px) {
     .container {
         width: 1024px; /* remind me why the fuck we use bootstrap again? */
