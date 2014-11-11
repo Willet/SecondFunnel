@@ -26,5 +26,6 @@ module.exports = (module, App) ->
         template: "#giftcard_tile_template"
 
         onClick: (ev) ->
-            window.open tile.get("redirect-url"), "_blank"
+            # Hard-coded URL for one-off tile rather than write new IR serializer for the DB
+            window.open 'http://www.aeropostale.com/giftCards/index.jsp', "_blank"
             return
