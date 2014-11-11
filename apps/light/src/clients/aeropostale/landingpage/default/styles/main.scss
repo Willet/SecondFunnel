@@ -215,6 +215,7 @@ body {
 .tile.grooveshark {
     height: 479px;
     padding-top: 60px;
+    cursor: default;
 
     .title {
         height: 100px;
@@ -233,6 +234,18 @@ body {
 @media (max-width: 991px) {
     .tile.grooveshark {
         display: none;
+    }
+}
+
+.tile.giftcard {
+    height: 479px;
+    padding: 7px;
+    cursor: pointer;
+
+    .giftcard-container {
+        font-family: Helvetica, sans-serif;
+        color: $aero-pink;
+        height: 100%;
     }
 }
 

@@ -3,7 +3,9 @@ var _ = require('underscore');
 var Backbone = require('backbone');
 var Marionette = require('backbone.marionette');
 var bootstrap = require('bootstrap.dropdown'); // for menu-bar drop down on mobile
-require('landingpage');
+var Page = require('landingpage');
+Page.App.module('core', require('./views'));
+
 // This should be refactored toggle classes & keep style info in css
 (function() {
     if (navigator.platform.toLowerCase().indexOf('win') != 0) {
