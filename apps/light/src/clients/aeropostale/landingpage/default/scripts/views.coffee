@@ -26,5 +26,6 @@ module.exports = (module, App) ->
         template: "#giftcard_tile_template"
 
         onClick: (ev) ->
+            tile = @model
             window.open tile.get("redirect-url"), "_blank"
             return
