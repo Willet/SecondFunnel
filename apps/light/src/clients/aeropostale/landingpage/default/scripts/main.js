@@ -4,7 +4,6 @@ var Backbone = require('backbone');
 var Marionette = require('backbone.marionette');
 var bootstrap = require('bootstrap.dropdown'); // for menu-bar drop down on mobile
 var waypoints = require("jquery-waypoints") // register $.fn.waypoint
-var waypoints_sticky = require("jquery-waypoints-sticky") // register $.fn.waypoint.sticky
 
 var Page = require('landingpage');
 Page.App.module('core', require('./views'));
