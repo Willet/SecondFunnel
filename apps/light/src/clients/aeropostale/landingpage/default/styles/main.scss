@@ -213,14 +213,21 @@ body {
     bottom: 0;
 }
 
-.tile.grooveshark {
-    height: 479px;
+.grooveshark-placeholder {
+    width: 324px;
+    height: 465px;
+}
+.grooveshark-tile-overlay {
+    position: absolute;
+    left: -10000px;
+    z-index: 1;
+    width: 324px;
+    height: 465px;
     padding-top: 60px;
     cursor: default;
 
     .title {
-        height: 100px;
-        padding: 0 25px 0;
+        height: 90px;
         font-family: "SaaSeriesFD", Helvetica, sans-serif;
         font-size: 24px;
         line-height: 28px;
@@ -229,11 +236,16 @@ body {
         text-transform: uppercase;
         text-decoration: none;
         text-align: center;
+        padding: 0 25px;
+    }
+    .grooveshark-container {
+        padding: 0 35px;
     }
 }
 
 @media (max-width: 991px) {
-    .tile.grooveshark {
+    .tile.grooveshark-placeholder,
+    .grooveshark-tile-overlay {
         display: none;
     }
 }
