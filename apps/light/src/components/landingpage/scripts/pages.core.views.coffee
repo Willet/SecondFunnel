@@ -126,10 +126,14 @@ module.exports = (module, App) ->
                 if url and url.length
                     sku = tile.get("sku")
                     tileId = tile.get("tile-id")
-                    if tileId
-                        url += "/tile/" + tileId
-                    else if sku
-                        url += "/sku/" + sku
+
+                    if App.option('hashPopupRedirect', false) and tileId
+                        url += "#" + tileId
+                    else
+                        if tileId
+                            url += "/tile/" + tileId
+                        else if sku
+                            url += "/sku/" + sku
                     window.open url, "_blank"
                 return
 
