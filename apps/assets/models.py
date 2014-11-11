@@ -585,6 +585,7 @@ class Feed(BaseModel):
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
+    is_finite = models.BooleanField(default=False)
 
     serializer = ir_serializers.FeedSerializer
 

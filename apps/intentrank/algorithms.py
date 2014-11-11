@@ -449,13 +449,23 @@ def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         return tiles[offset:offset + results]
 
 def ir_magic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-             offset=0, *args, **kwargs):
+             offset=0, feed=None, *args, **kwargs):
+
+    # Getting the template types in this feed
+    template_types = tiles.distinct('template').values_list('template', flat=True)
+
+    # Make sure we do not have any duplicates
+    tiles = tiles.distinct('id', 'priority')
 
     total_tiles = tiles.count()
     if total_tiles == 0:
         return tiles
 
-    # Wrap results TODO: add an option for finite which does not execute this
+    # This feed is finite and has returned all of the tiles
+    if feed and feed.is_finite and offset >= total_tiles:
+        return qs_for([])
+
+    # Wrapping results
     overflow = results - total_tiles % results
     if results == overflow:
         overflow = 0
@@ -463,12 +473,14 @@ def ir_magic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     while offset >= total_tiles:
         offset -= overflow + total_tiles
 
-    template_types = tiles.values('template').annotate(Count('id')).values_list('template', 'id__count')
     templated_tiles = {}
 
-    for template_type, total in template_types:
+    for template_type in template_types:
+        tile_list = list(tiles.filter(template=template_type).order_by('-priority'))
+        total = len(tile_list)
+
         templated_tiles[template_type] = {
-            'tiles': list(tiles.filter(template=template_type).order_by('-priority')),
+            'tiles': tile_list,
             'total': total,
             'ratio': total / float(total_tiles),
             'added': 0,
