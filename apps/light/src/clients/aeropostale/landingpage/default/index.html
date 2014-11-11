@@ -211,6 +211,22 @@
                                     </div>
                                 </div>
                             <% } %>
+                            <% if (obj['tagged-products'].length > 1) { %>
+                                <div class="cell mobile-only">
+                                    <div class="stl-title">
+                                        Shop the look
+                                    </div>
+                                    <div class="stl-look">
+                                        <% var related = obj['tagged-products'] %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <%- related[i].name %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
                             <div class="cell info">
                                 <% if (App.support.mobile()) { %>
                                     <div class='title'></div>
@@ -232,22 +248,6 @@
                                     <div class='description'></div>
                                 <% } %>
                             </div>
-                            <% if (obj['tagged-products'].length > 1) { %>
-                                <div class="cell mobile-only">
-                                    <div class="stl-title">
-                                        Shop the look
-                                    </div>
-                                    <div class="stl-look">
-                                        <% var related = obj['tagged-products'] %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <%- related[i].name %>
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            <% } %>
                         </div>
                     </div>
                 </div>
