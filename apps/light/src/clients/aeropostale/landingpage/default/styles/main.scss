@@ -164,9 +164,13 @@ body {
     color: #FFF;
     font-size: 21px;
     text-transform: uppercase;
+    .cell {
+        font-family: SaaSeriesFD, Helvetica, sans-serif;
+    }
 }
 
-.tile.banner a {
+.tile.banner a,
+.tile.giftcard a {
     pointer-events: none;
 }
 
@@ -227,11 +231,11 @@ body {
     z-index: 1;
     width: 324px;
     height: 465px;
-    padding-top: 60px;
+    padding-top: 80px;
     cursor: default;
 
     .title {
-        height: 90px;
+        height: 70px;
         font-family: "SaaSeriesFD", Helvetica, sans-serif;
         font-size: 24px;
         line-height: 28px;
@@ -256,6 +260,7 @@ body {
         font-family: Helvetica, sans-serif;
         color: $aero-pink;
         height: 100%;
+        padding: 20px;
     }
 }
 
