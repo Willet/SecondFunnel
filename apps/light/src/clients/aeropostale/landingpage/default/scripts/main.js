@@ -29,6 +29,7 @@ Page.App.module('core', require('./views'));
 })();
 
 $(document).ready(function() {
+
     var category_area = $("#category-area"),
         fixed_category_area = $("#category-area-fixed"),
         fixed_container = fixed_category_area.find('.container');
