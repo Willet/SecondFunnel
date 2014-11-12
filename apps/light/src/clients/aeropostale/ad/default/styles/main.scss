@@ -12,6 +12,10 @@ $ad-border-width: 0;
 #topbar img {
 	width: 100%;
 }
+.tile.grooveshark,
+.tile.giftcard {
+	display: none;
+}
 
 .tile .tile-border {
 	border: none;
