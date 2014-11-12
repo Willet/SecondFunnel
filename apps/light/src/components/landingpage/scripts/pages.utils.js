@@ -253,7 +253,8 @@ module.exports = function (utils, App) {
         var ratio = Math.ceil(window.devicePixelRatio * 2) / 2,
             width = Math.max(options.width || 0, App.option('minImageWidth')),
             height = Math.max(options.height || 0, App.option('minImageHeight'));
-        options = {};
+        delete options['height'];
+        delete options['width'];
 
         // Do NOT transform animated gifs
         if (url.indexOf('.gif') > -1) {
