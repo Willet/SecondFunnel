@@ -194,8 +194,6 @@ class PageConfigSerializer(object):
             'IRTileSet': page.get('IRTileSet', kwargs.get('tile_set', '')),
             # DEPRECATED (use intentRank:reqNum)
             'IRReqNum': 0,
-            # DEPRECATED (use intentRank:offset)
-            'IROffset': 0,
 
             # DEPRECATED (use page:gaAccountNumber)
             'gaAccountNumber': page.get('ga_account_number') or
