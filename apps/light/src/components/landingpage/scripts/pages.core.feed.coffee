@@ -20,8 +20,6 @@ class FeedView extends Marionette.CollectionView
             @trigger('collection:item:clicked')
         @pagesScrolled = 1
 
-        @attachListeners()
-
         _.bindAll(@, 'pageScroll')
 
         # DEFER: this has nothing to do with this view...
@@ -61,6 +59,7 @@ class FeedView extends Marionette.CollectionView
         @
 
     onShow: ->
+        @attachListeners()
         @fetchTiles()
 
     fetchTiles: ->
