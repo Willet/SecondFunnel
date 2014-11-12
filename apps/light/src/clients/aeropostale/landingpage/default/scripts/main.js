@@ -28,8 +28,6 @@ Page.App.module('core', require('./views'));
     }
 })();
 
-// Comment!
-
 $(document).ready(function() {
     var category_area = $("#category-area"),
         fixed_category_area = $("#category-area-fixed"),
