@@ -194,8 +194,6 @@ class PageConfigSerializer(object):
             'IRTileSet': page.get('IRTileSet', kwargs.get('tile_set', '')),
             # DEPRECATED (use intentRank:reqNum)
             'IRReqNum': 0,
-            # DEPRECATED (use intentRank:offset)
-            'IROffset': 0,
 
             # DEPRECATED (use page:gaAccountNumber)
             'gaAccountNumber': page.get('ga_account_number') or
@@ -402,11 +400,7 @@ class TileSerializer(IRSerializer):
         if hasattr(obj, 'priority'):
             data['priority'] = obj.priority
 
-        if hasattr(obj, 'attributes') and obj.attributes.get('colspan'):
-            data['colspan'] = obj.attributes.get('colspan')
-
-        if hasattr(obj, 'attributes') and obj.attributes.get('facebook-ad'):
-            data['facebook-ad'] = obj.attributes.get('facebook-ad')
+        data.update(obj.attributes)
 
         return data
 

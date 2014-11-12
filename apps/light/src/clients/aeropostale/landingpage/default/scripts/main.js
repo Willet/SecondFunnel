@@ -3,6 +3,8 @@ var _ = require('underscore');
 var Backbone = require('backbone');
 var Marionette = require('backbone.marionette');
 var bootstrap = require('bootstrap.dropdown'); // for menu-bar drop down on mobile
+var waypoints = require("jquery-waypoints") // register $.fn.waypoint
+
 var Page = require('landingpage');
 Page.App.module('core', require('./views'));
 
@@ -27,25 +29,24 @@ Page.App.module('core', require('./views'));
 })();
 
 $(document).ready(function() {
-    $(document).on('scroll', function() {
-        function scrolled_beyond_navbar() {
-            return $(window).scrollTop() + parseInt(category_area.css('margin-top')) > category_area.offset().top;
+
+    var category_area = $("#category-area"),
+        fixed_category_area = $("#category-area-fixed"),
+        fixed_container = fixed_category_area.find('.container');
+
+    // To avoid the page shifting when categories are removed from their container
+    category_area.css('height', category_area.css('height'));
+
+    category_area.waypoint(function (direction) {
+        if (direction === 'down') {
+            // If scrolling down, attach the categories to the fixed container
+            fixed_container.append(category_area.children().detach());
+            fixed_category_area.show();
+        } else if (direction === 'up') {
+            // If scrolling back up, reattach the categories to the page
+            fixed_category_area.hide();
+            category_area.append(fixed_container.children().detach());
         }
 
-        var category_area = $("#category-area"),
-            fixed_category_area = $("#category-area-fixed"),
-            fixed_container = fixed_category_area.find('.container');
-        
-        if (scrolled_beyond_navbar()) {
-            if (fixed_category_area.is(':hidden')) {
-                fixed_container.append(category_area.children().detach());
-                fixed_category_area.show();
-            }
-        } else {
-            if (fixed_category_area.is(':visible')) {
-                fixed_category_area.hide();
-                category_area.append(fixed_container.children().detach());
-            }
-        }
     });
 });

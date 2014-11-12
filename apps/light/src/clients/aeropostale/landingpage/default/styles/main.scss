@@ -66,6 +66,7 @@ body {
             border-bottom: none;
             left: 10px;
             right: 10px;
+            top: 100%;
         }
 
         .sub-category {
@@ -124,7 +125,7 @@ body {
     display: none;
     top: 0px;
     left: 0px;
-    z-index: 200;
+    z-index: 9;
     width: 100%;
 
     .container {
@@ -194,6 +195,10 @@ body {
     overflow: hidden;
 }
 
+.tile.banner .image-border {
+    padding: 20px 15px;
+}
+
 .tile.banner .image-container {
     padding: 133% 0 0 0;
     position: relative;
@@ -212,14 +217,21 @@ body {
     bottom: 0;
 }
 
-.tile.grooveshark {
-    height: 479px;
+.grooveshark-placeholder {
+    width: 324px;
+    height: 465px;
+}
+.grooveshark-tile-overlay {
+    position: absolute;
+    left: -10000px;
+    z-index: 1;
+    width: 324px;
+    height: 465px;
     padding-top: 60px;
     cursor: default;
 
     .title {
-        height: 100px;
-        padding: 0 25px 0;
+        height: 90px;
         font-family: "SaaSeriesFD", Helvetica, sans-serif;
         font-size: 24px;
         line-height: 28px;
@@ -228,12 +240,10 @@ body {
         text-transform: uppercase;
         text-decoration: none;
         text-align: center;
+        padding: 0 25px;
     }
-}
-
-@media (max-width: 991px) {
-    .tile.grooveshark {
-        display: none;
+    .grooveshark-container {
+        padding: 0 35px;
     }
 }
 
@@ -408,6 +418,12 @@ body {
         padding-top: 5px;
         width: auto;
     }
+
+    .previewContainer .cell.image-cell {
+        padding-top: 0;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
 }
 @media (min-width: 768px) {
     #category-area,
@@ -419,6 +435,14 @@ body {
         }
     }
 }
+
+@media (max-width: 991px) {
+    .tile.grooveshark-placeholder,
+    .grooveshark-tile-overlay {
+        display: none;
+    }
+}
+
 @media (min-width: 992px) {
     .container {
         width: 1024px; /* remind me why the fuck we use bootstrap again? */

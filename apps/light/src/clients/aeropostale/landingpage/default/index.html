@@ -89,8 +89,10 @@
     <div>
         <script type="text/template" id="banner_tile_template">
             <div class="tile-border">
-                <div class="image-container">
-                    <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
+                <div class="image-border">
+                    <div class="image-container">
+                        <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
+                    </div>
                 </div>
                 <% if (App.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
@@ -152,18 +154,14 @@
             </div>
         </script>
 
+        <!-- content is overlayed on tile creation -->
         <script type="text/template" id="grooveshark_tile_template">
-            <div class='title'>
-                <span>click play to hear our gift to you</span>
-            </div>
-            <div class="grooveshark-container">
-                <object width="250" height="250" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" id="gsPlaylist10194444485" name="gsPlaylist10194444485"><param name="movie" value="http://grooveshark.com/widget.swf"><param name="wmode" value="window"><param name="allowScriptAccess" value="always"><param name="flashvars" value="hostname=grooveshark.com&amp;playlistID=101944444&amp;p=0&amp;bbg=f7f7f7&amp;bth=f7f7f7&amp;pfg=f7f7f7&amp;lfg=f7f7f7&amp;bt=d13a3a&amp;pbg=d13a3a&amp;pfgh=d13a3a&amp;si=d13a3a&amp;lbg=d13a3a&amp;<br />;lfgh=d13a3a&amp;sb=d13a3a&amp;bfg=fafafa&amp;pbgh=fafafa&amp;lbgh=fafafa&amp;sbh=fafafa"><object type="application/x-shockwave-flash" data="http://grooveshark.com/widget.swf" width="250" height="250"><param name="wmode" value="window"><param name="allowScriptAccess" value="always"><param name="flashvars" value="hostname=grooveshark.com&amp;playlistID=101944444&amp;p=0&amp;bbg=f7f7f7&amp;bth=f7f7f7&amp;pfg=f7f7f7&amp;lfg=f7f7f7&amp;bt=d13a3a&amp;pbg=d13a3a&amp;pfgh=d13a3a&amp;si=d13a3a&amp;lbg=d13a3a&amp;lfgh=d13a3a&amp;sb=d13a3a&amp;bfg=fafafa&amp;pbgh=fafafa&amp;lbgh=fafafa&amp;sbh=fafafa"><span><a href="http://grooveshark.com/search/playlist?q=Aero%3A%20Your%20Music%2C%20Your%20Now%20Anna%20Murphy" title="Aero: Your Music, Your Now by Anna Murphy on Grooveshark">Aero: Your Music, Your Now by Anna Murphy on Grooveshark</a></span></object></object>
-            </div>
+            <div class='grooveshark-placeholder'></div>
         </script>
 
         <script type="text/template" id="giftcard_tile_template">
             <div class='giftcard-container'>
-                <img src='http://res.cloudinary.com/secondfunnel/image/upload/c_fit,w_324/v1415688265/gift_card_callout_1_col_uk5z1d.png' />
+                <img src='http://res.cloudinary.com/secondfunnel/image/upload/c_fit,w_324/v1415744584/gift_card_callout_1_col_2_rkhe9c.png' />
             </div>
         </script>
 
@@ -192,7 +190,7 @@
                                     </div>
                                 <% } %>
                             </div>
-                            <div class="cell mobile-only">
+                            <div class="cell mobile-only image-cell">
                                 <img src="<%= obj.images[0].url %>" alt="image"/>
                             </div>
                             <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
@@ -202,6 +200,22 @@
                                     </div>
                                     <div class="stl-look">
                                         <% var related = obj['tagged-products']; %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <%- related[i].name %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <% if (obj['tagged-products'].length > 1) { %>
+                                <div class="cell mobile-only">
+                                    <div class="stl-title">
+                                        Shop the look
+                                    </div>
+                                    <div class="stl-look">
+                                        <% var related = obj['tagged-products'] %>
                                         <% for (var i = 0; i < related.length; i++) { %>
                                             <div class="stl-item" data-index="<%- i %>">
                                                 <img src="<%- related[i].images[0].url %>" />
@@ -232,22 +246,6 @@
                                     <div class='description'></div>
                                 <% } %>
                             </div>
-                            <% if (obj['tagged-products'].length > 1) { %>
-                                <div class="cell mobile-only">
-                                    <div class="stl-title">
-                                        Shop the look
-                                    </div>
-                                    <div class="stl-look">
-                                        <% var related = obj['tagged-products'] %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <%- related[i].name %>
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            <% } %>
                         </div>
                     </div>
                 </div>
@@ -273,6 +271,16 @@
                 </div>
             <% } %>
         </script>
+    </div>
+
+    <!-- this will be overlayed on top of the grooveshark tile when it is in the feed -->
+    <div class='grooveshark-tile-overlay'>
+        <div class='title'>
+            <span>Our Gift to You: Click Play</span>
+        </div>
+        <div class="grooveshark-container">
+            <object width="250" height="250" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" id="gsPlaylist10194444485" name="gsPlaylist10194444485"><param name="movie" value="http://grooveshark.com/widget.swf"><param name="wmode" value="window"><param name="allowScriptAccess" value="always"><param name="flashvars" value="hostname=grooveshark.com&amp;playlistID=101944444&amp;p=0&amp;bbg=f7f7f7&amp;bth=f7f7f7&amp;pfg=f7f7f7&amp;lfg=f7f7f7&amp;bt=d13a3a&amp;pbg=d13a3a&amp;pfgh=d13a3a&amp;si=d13a3a&amp;lbg=d13a3a&amp;<br />;lfgh=d13a3a&amp;sb=d13a3a&amp;bfg=fafafa&amp;pbgh=fafafa&amp;lbgh=fafafa&amp;sbh=fafafa"><object type="application/x-shockwave-flash" data="http://grooveshark.com/widget.swf" width="250" height="250"><param name="wmode" value="window"><param name="allowScriptAccess" value="always"><param name="flashvars" value="hostname=grooveshark.com&amp;playlistID=101944444&amp;p=0&amp;bbg=f7f7f7&amp;bth=f7f7f7&amp;pfg=f7f7f7&amp;lfg=f7f7f7&amp;bt=d13a3a&amp;pbg=d13a3a&amp;pfgh=d13a3a&amp;si=d13a3a&amp;lbg=d13a3a&amp;lfgh=d13a3a&amp;sb=d13a3a&amp;bfg=fafafa&amp;pbgh=fafafa&amp;lbgh=fafafa&amp;sbh=fafafa"><span><a href="http://grooveshark.com/search/playlist?q=Aero%3A%20Your%20Music%2C%20Your%20Now%20Anna%20Murphy" title="Aero: Your Music, Your Now by Anna Murphy on Grooveshark">Aero: Your Music, Your Now by Anna Murphy on Grooveshark</a></span></object></object>
+        </div>
     </div>
 
     <div id="category-area-fixed">
