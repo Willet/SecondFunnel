@@ -20,12 +20,6 @@ class FeedView extends Marionette.CollectionView
             @trigger('collection:item:clicked')
         @pagesScrolled = 1
 
-        # Listen to Application Events
-        @listenTo App.vent, 'change:category', @categoryChanged, @
-        @listenTo App.vent, 'feedEnded', => @ended = true
-
-        @attachListeners()
-
         _.bindAll(@, 'pageScroll')
 
         # DEFER: this has nothing to do with this view...
@@ -58,12 +52,15 @@ class FeedView extends Marionette.CollectionView
         @listenTo @collection, 'error', =>
             @isLoading = false
 
-        # immediately fetch more from IR
-        @fetchTiles()
+        @collection.offset = 0
 
-        # DEFER: REMOVE THIS (its really not needed)
         App.discovery = @
+
         @
+
+    onShow: ->
+        @attachListeners()
+        @fetchTiles()
 
     fetchTiles: ->
         if @isLoading
@@ -74,40 +71,12 @@ class FeedView extends Marionette.CollectionView
             # TODO: this is not really a good identifier for end of feed
             if tileInfo and tileInfo.length is 0
                 @ended = true
-                $(".loading").hide() # DEFER: hack
-                App.vent.trigger('feedEnded', @)
+                $(".loading").hide()
+                @ended = true
 
             _.delay @pageScroll, 500
         @lastRequest = xhr
         xhr
-
-    # TODO: weird location for this function
-    categoryChanged: (event, category) ->
-        App.tracker.changeCategory(category)
-
-        if not @resettingTiles
-            @resetTiles()
-
-    resetTiles: () ->
-        emptyTiles = () =>
-            @empty()
-            @children.each (childView) => @removeChildView(childView)
-            @ended = false
-            $(".loading").show() # DEFER: hack
-            App.intentRank.options.IROffset = 0
-            @fetchTiles()
-            @resettingTiles = false
-            App.vent.trigger 'tilesEmptied'
-
-        @resettingTiles = true
-        @lastRequest.abort()
-        this.collection.ajaxFailCount = 0
-        @isLoading = false
-
-        if @layoutInProgress
-            App.vent.once 'layoutCompleted', emptyTiles
-        else
-            emptyTiles()
 
     pageScroll: ->
         if @ended
@@ -175,6 +144,8 @@ class FeedView extends Marionette.CollectionView
             )
 
     onClose: ->
+        if @lastRequest
+            @lastRequest.abort()
         @detachListeners()
 
     itemView: (itemViewOptions) ->

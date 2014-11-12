@@ -346,7 +346,6 @@ module.exports = (module, App) ->
         @returns {*}
         ###
         dimens: (width, height, obj) ->
-            resized = undefined
             options = $.extend({}, obj)
             resized = $.extend({}, @defaults, @attributes)
             if width > 0

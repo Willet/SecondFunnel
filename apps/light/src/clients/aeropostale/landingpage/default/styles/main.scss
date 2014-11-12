@@ -164,9 +164,13 @@ body {
     color: #FFF;
     font-size: 21px;
     text-transform: uppercase;
+    .cell {
+        font-family: SaaSeriesFD, Helvetica, sans-serif;
+    }
 }
 
-.tile.banner a {
+.tile.banner a,
+.tile.giftcard a {
     pointer-events: none;
 }
 
@@ -193,6 +197,10 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+}
+
+.tile.banner .image-border {
+    padding: 20px 15px;
 }
 
 .tile.banner .image-container {
@@ -223,11 +231,11 @@ body {
     z-index: 1;
     width: 324px;
     height: 465px;
-    padding-top: 60px;
+    padding-top: 80px;
     cursor: default;
 
     .title {
-        height: 90px;
+        height: 70px;
         font-family: "SaaSeriesFD", Helvetica, sans-serif;
         font-size: 24px;
         line-height: 28px;
@@ -243,13 +251,6 @@ body {
     }
 }
 
-@media (max-width: 991px) {
-    .tile.grooveshark-placeholder,
-    .grooveshark-tile-overlay {
-        display: none;
-    }
-}
-
 .tile.giftcard {
     height: 479px;
     padding: 7px;
@@ -259,6 +260,7 @@ body {
         font-family: Helvetica, sans-serif;
         color: $aero-pink;
         height: 100%;
+        padding: 20px;
     }
 }
 
@@ -421,6 +423,12 @@ body {
         padding-top: 5px;
         width: auto;
     }
+
+    .previewContainer .cell.image-cell {
+        padding-top: 0;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
 }
 @media (min-width: 768px) {
     #category-area,
@@ -432,6 +440,14 @@ body {
         }
     }
 }
+
+@media (max-width: 991px) {
+    .tile.grooveshark-placeholder,
+    .grooveshark-tile-overlay {
+        display: none;
+    }
+}
+
 @media (min-width: 992px) {
     .container {
         width: 1024px; /* remind me why the fuck we use bootstrap again? */

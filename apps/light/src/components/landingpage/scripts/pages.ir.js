@@ -22,7 +22,6 @@ App.module("intentRank", function (intentRank, App) {
         'IRAlgo': 'generic',
         'IRTileSet': '',
         'IRReqNum': 0,
-        'IROffset': 0,  // specific to some deterministic algorithms
         'store': {},
         'content': []
     };
@@ -48,15 +47,14 @@ App.module("intentRank", function (intentRank, App) {
             // @deprecated: options.categories will be page.categories
             'categories': page.categories || options.categories || {},
             'IRResultsCount': options.IRResultsCount || 10,
-            'IRAlgo': options.IRAlgo || 'generic',
+            'IRAlgo': options.IRAlgo || 'magic',
             'IRReqNum': options.IRReqNum || 0,
             'IRTileSet': options.IRTileSet || '',
             'content': options.content || [],
             'filters': options.filters || [],
             // Use this to intelligently guess what our cache calls should
             // request
-            'IRCacheResultCount': options.IRResultsCount || 10,
-            'IROffset': options.IROffset || 0
+            'IRCacheResultCount': options.IRResultsCount || 10
         });
 
         App.vent.trigger('intentRankInitialized', intentRank);
@@ -92,7 +90,7 @@ App.module("intentRank", function (intentRank, App) {
         }
         data.algorithm = intentRank.options.IRAlgo;
         data.reqNum = intentRank.options.IRReqNum;
-        data.offset = intentRank.options.IROffset;
+        data.offset = collection.offset || 0;
         data['tile-set'] = intentRank.options.IRTileSet;
 
         if (intentRank.options.IRReset) {
@@ -124,6 +122,11 @@ App.module("intentRank", function (intentRank, App) {
             return this.deferred;
         }
 
+        // Only do a request if it is the current view
+        if (collection !== App.discovery.collection) {
+            return (new $.Deferred()).promise();
+        }
+
         // Make the request to Backbone collection and return deferred
         this.deferred = Backbone.Collection.prototype
             .sync('read', collection, opts)
@@ -141,6 +144,7 @@ App.module("intentRank", function (intentRank, App) {
 
                 // reset fail counter
                 collection.ajaxFailCount = 0;
+                collection.offset += opts.results;
 
                 collection[method](results, opts);
                 collection.trigger('sync', collection, results, opts);
@@ -160,10 +164,11 @@ App.module("intentRank", function (intentRank, App) {
                 }
             });
 
+        collection.isLoading = true;
+
         this.deferred.done(function () {
             App.options.IRReqNum++;
             intentRank.options.IRReqNum++;
-            intentRank.options.IROffset += opts.results;
         });
 
         return this.deferred;
@@ -264,8 +269,15 @@ App.module("intentRank", function (intentRank, App) {
         // Change the category, category is a string passed to data
         intentRank.options.category = category;
         intentRank.options.IRReset = true;
+        App.tracker.changeCategory(category);
 
         App.vent.trigger('change:category', category, category);
+
+        App.discovery = new App.feed.MasonryFeedView({
+            options: App.options
+        });
+        $(".loading").show();
+        App.discoveryArea.show(App.discovery);
 
         return intentRank;
     };
