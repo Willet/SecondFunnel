@@ -27,7 +27,7 @@ Page.App.module('core', require('./views'));
 })();
 
 $(document).ready(function() {
-    $(document).on('scroll', function(){
+    $(document).on('scroll', function() {
         function scrolled_beyond_navbar() {
             return $(window).scrollTop() + parseInt(category_area.css('margin-top')) > category_area.offset().top;
         }
