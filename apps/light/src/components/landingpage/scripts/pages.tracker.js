@@ -457,7 +457,7 @@ module.exports = function (tracker, App) {
 
         // Purchase Actions (Buy / Find in Store)
         // buy now event
-        'click a.buy': function () {
+        'click .buy .button': function () {
             var modelId, model, trackingInfo, $previewContainer, isPreview;
 
             App.vent.trigger('buyClick');
