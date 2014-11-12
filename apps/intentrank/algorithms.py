@@ -449,7 +449,7 @@ def ir_finite_popular(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         return tiles[offset:offset + results]
 
 def ir_magic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-             offset=0, feed=None, *args, **kwargs):
+             offset=0, feed=None, page=None, *args, **kwargs):
 
     # Getting the template types in this feed
     template_types = tiles.distinct('template').values_list('template', flat=True)
@@ -462,7 +462,7 @@ def ir_magic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         return tiles
 
     # This feed is finite and has returned all of the tiles
-    if feed and feed.is_finite and offset >= total_tiles:
+    if feed and feed.is_finite and offset >= total_tiles and not (page and page.theme_settings.get('override_finite_feed', False)):
         return qs_for([])
 
     # Wrapping results
