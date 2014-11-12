@@ -16,6 +16,15 @@ $ad-border-width: 0;
 .tile.giftcard {
 	display: none;
 }
+.tile.image .overlay {
+    background-color: rgba(238, 40, 65, 0.5);
+    color: #FFF;
+    font-size: 21px;
+    text-transform: uppercase;
+    .cell {
+        font-family: SaaSeriesFD, Helvetica, sans-serif;
+    }
+}
 
 .tile .tile-border {
 	border: none;

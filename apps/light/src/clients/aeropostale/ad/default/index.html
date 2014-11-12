@@ -7,7 +7,7 @@
 
     <body>
         <div id="topbar">
-            <a href='//giftguide.aeropostale.com/giftguide' alt="Aeropostale Gift Guide">
+            <a href='http://giftguide.aeropostale.com/giftguide' alt="Aeropostale Gift Guide">
                 <img src="/static/light/aeropostale/ad/default/images/header.png" />
             </a>
         </div>
@@ -50,6 +50,21 @@
                     </div>
                 </div>
             </script>
+            <script type="text/template" id="image_tile_template">
+            <div class='relative'>
+                <img class="focus" src="<%= obj.images[0].url %>" alt="<%= obj.caption %>" />
+            </div>
+            <% if (App.option("debug", 0) > 1) { %>
+                <span class="type"><%= obj["content-type"] %></span>
+            <% } %>
+            <div class="overlay">
+                <div class='table'>
+                    <div class='cell'>
+                        Shop the Look &gt;
+                    </div>
+                </div>
+            </div>
+        </script>
         </div>
         @@include("shared/default_templates.html")
         <script src="/static/light/aeropostale/ad/default/scripts/main.js" async></script>

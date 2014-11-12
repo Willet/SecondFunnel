@@ -169,7 +169,8 @@ body {
     }
 }
 
-.tile.banner a {
+.tile.banner a,
+.tile.giftcard a {
     pointer-events: none;
 }
 
