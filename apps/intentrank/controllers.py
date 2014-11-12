@@ -146,7 +146,7 @@ class IntentRank(object):
         args = dict(
             tiles=tiles, results=results,
             exclude_set=exclude_set, request=request,
-            offset=offset, tile_id=tile_id, feed=feed)
+            offset=offset, tile_id=tile_id, feed=feed, page=self._page)
 
         return algorithm(**args)
 
