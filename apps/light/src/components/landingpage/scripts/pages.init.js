@@ -73,43 +73,49 @@ module.exports.reinitialize = function (App) {
                 'type': 'hash_change',
                 'hash': window.location.hash
             }));
+            var isNumber = /^\d+$/.test(tileId);
 
-            var tile = App.discovery && App.discovery.collection ?
-                App.discovery.collection.tiles[tileId] :
-                undefined;
+            if (isNumber) { // Preview the tile
+                var tile = App.discovery && App.discovery.collection ?
+                    App.discovery.collection.tiles[tileId] :
+                    undefined;
 
-            previewLoadingScreen.show();
+                previewLoadingScreen.show();
 
-            if (tile !== undefined) {
-                var preview = new App.core.PreviewWindow({
-                    'model': tile
+                if (tile !== undefined) {
+                    var preview = new App.core.PreviewWindow({
+                        'model': tile
+                    });
+                    App.previewArea.show(preview);
+                    return;
+                }
+
+                console.debug('tile not found, fetching from IR.');
+
+                tile = new App.core.Tile({
+                    'tile-id': tileId
                 });
-                App.previewArea.show(preview);
-                return;
+
+                tile.fetch().done(function () {
+                    var TileClass = App.utils.findClass('Tile',
+                            tile.get('type') || tile.get('template'), App.core.Tile);
+                    tile = new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()));
+
+                    var preview = new App.core.PreviewWindow({
+                        'model': tile
+                    });
+                    App.previewArea.show(preview);
+                }).fail(function () {
+                    previewLoadingScreen.hide();
+                    App.router.navigate('', {
+                        trigger: true,
+                        replace: true
+                    });
+                });
+            } else { // Change category
+                App.previewArea.close();
+                App.intentRank.changeCategory(tileId);
             }
-
-            console.debug('tile not found, fetching from IR.');
-
-            tile = new App.core.Tile({
-                'tile-id': tileId
-            });
-
-            tile.fetch().done(function () {
-                var TileClass = App.utils.findClass('Tile',
-                        tile.get('type') || tile.get('template'), App.core.Tile);
-                tile = new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()));
-
-                var preview = new App.core.PreviewWindow({
-                    'model': tile
-                });
-                App.previewArea.show(preview);
-            }).fail(function () {
-                previewLoadingScreen.hide();
-                App.router.navigate('', {
-                    trigger: true,
-                    replace: true
-                });
-            });
         });
 
         Backbone.history.start();

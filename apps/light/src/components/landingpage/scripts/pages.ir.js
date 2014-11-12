@@ -266,6 +266,10 @@ App.module("intentRank", function (intentRank, App) {
      * @return this
      */
     this.changeCategory = function (category) {
+        if (intentRank.options.category === category) {
+            return intentRank;
+        }
+
         // Change the category, category is a string passed to data
         intentRank.options.category = category;
         intentRank.options.IRReset = true;
