@@ -159,13 +159,16 @@ body {
     cursor: pointer;
 }
 
-.tile.image .overlay {
-    background-color: rgba(238, 40, 65, 0.5);
-    color: #FFF;
-    font-size: 21px;
-    text-transform: uppercase;
-    .cell {
-        font-family: SaaSeriesFD, Helvetica, sans-serif;
+.tile.image {
+    padding: 10px 7px 9px 7px;
+    .overlay {
+        background-color: rgba(238, 40, 65, 0.5);
+        color: #FFF;
+        font-size: 21px;
+        text-transform: uppercase;
+        .cell {
+            font-family: SaaSeriesFD, Helvetica, sans-serif;
+        }
     }
 }
 
@@ -224,14 +227,13 @@ body {
     }
 }
 .tile.giftcard {
-    margin: 15px 0 16px 0;
-    padding: 7px;
+    padding: 22px 7px 23px 7px;
     cursor: pointer;
 }
 
 .grooveshark-placeholder {
     width: 324px;
-    height: 465px;
+    height: 466px;
 }
 .grooveshark-tile-overlay {
     position: absolute;
