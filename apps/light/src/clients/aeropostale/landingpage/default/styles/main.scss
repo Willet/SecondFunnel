@@ -199,26 +199,34 @@ body {
     overflow: hidden;
 }
 
-.tile.banner .image-border {
-    padding: 20px 15px;
+.tile.banner,
+.tile.giftcard {
+    .image-border {
+        padding: 20px 15px;
+        
+        .image-container {
+            padding: 133% 0 0 0;
+            position: relative;
+            height: 0;
+            
+            .focus {
+                display: block;
+                position: absolute;
+                max-width: 100%;
+                max-height: 100%;
+                margin: auto;
+                left: 0;
+                right: 0;
+                top: 0;
+                bottom: 0;
+            }
+        }
+    }
 }
-
-.tile.banner .image-container {
-    padding: 133% 0 0 0;
-    position: relative;
-    height: 0;
-}
-
-.tile.banner .image-container .focus {
-    display: block;
-    position: absolute;
-    max-width: 100%;
-    max-height: 100%;
-    margin: auto;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
+.tile.giftcard {
+    margin: 15px 0 16px 0;
+    padding: 7px;
+    cursor: pointer;
 }
 
 .grooveshark-placeholder {
@@ -248,19 +256,6 @@ body {
     }
     .grooveshark-container {
         padding: 0 35px;
-    }
-}
-
-.tile.giftcard {
-    height: 479px;
-    padding: 7px;
-    cursor: pointer;
-
-    .giftcard-container {
-        font-family: Helvetica, sans-serif;
-        color: $aero-pink;
-        height: 100%;
-        padding: 20px;
     }
 }
 
@@ -375,7 +370,7 @@ body {
     border-right-color: #D8D8D8;
 }
 
-@media screen and (max-width: 768px) {
+@media (max-width: 768px) {
     .navbar {
         display: none;
     }
@@ -442,7 +437,7 @@ body {
 }
 
 @media (max-width: 991px) {
-    .tile.grooveshark-placeholder,
+    .tile.grooveshark,
     .grooveshark-tile-overlay {
         display: none;
     }
