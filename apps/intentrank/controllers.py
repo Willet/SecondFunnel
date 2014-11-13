@@ -5,8 +5,7 @@ from django.core import serializers
 from django.db.models import Q
 
 from apps.assets.models import Category, Tile, Content
-from apps.intentrank.algorithms import ir_generic, ir_finite_by, ir_ordered_by, \
-    qs_for, ir_base
+from apps.intentrank.algorithms import ir_magic, qs_for, ir_base
 
 
 class IntentRank(object):
@@ -38,12 +37,6 @@ class IntentRank(object):
         if not algorithm_name.startswith('ir_'):  # normalize algo names
             algorithm_name = 'ir_{}'.format(algorithm_name)
 
-        if 'finite_by_' in algorithm_name:
-            return ir_finite_by(algorithm_name[13:])
-
-        if 'ordered_by_' in algorithm_name:
-            return ir_ordered_by(algorithm_name[14:])
-
         try:
             module = importlib.import_module('apps.intentrank.algorithms')
             algorithm = getattr(module, algorithm_name)
@@ -72,7 +65,7 @@ class IntentRank(object):
                 self._feed.feed_algorithm)
 
         if not algorithm:
-            algorithm = ir_generic
+            algorithm = ir_magic
         return algorithm
 
     @property
@@ -82,7 +75,7 @@ class IntentRank(object):
         - if this IntentRank object has one already determined, then that one
         - page's algo
         - feed's algo
-        - ir_generic
+        - ir_magic
         """
         return self._get_algorithm()
 

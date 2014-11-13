@@ -12,7 +12,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.synced_folder ".", "/opt/secondfunnel/app", :mount_options => ["uid=1002,gid=1002"]
 
     config.vm.provider "virtualbox" do |v|
-      v.memory = 1024
+      v.memory = 2048
       v.cpus = 2
       # see https://github.com/mitchellh/vagrant/issues/391 (ssh issues on reload)
       v.customize ["modifyvm", :id, "--natnet1", "192.168/16"] # setup nat networking
