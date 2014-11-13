@@ -23,20 +23,19 @@ module.exports = (module, App) ->
         template: "#grooveshark_tile_template"
 
         onShow: (ev) ->
-            window.App.layoutEngine.masonry.once('layoutComplete', ->
+            App.vent.once 'layoutCompleted', ->
                 # Move Grooveshark overlay onto the tile position
                 position = $('.grooveshark-placeholder').offset()
+                console.error(position)
                 if position?
                     $('.grooveshark-tile-overlay').css(
                         'top': position.top
                         'left': position.left
                     )
-            )
 
         onClose: (ev) ->
             # Move Grooveshark overlay off of the screen
             $('.grooveshark-tile-overlay').css('left', '-10000px')
-
 
     class module.GiftcardTileView extends module.ContainerTileView
         template: "#giftcard_tile_template"
