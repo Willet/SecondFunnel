@@ -26,7 +26,6 @@ module.exports = (module, App) ->
             App.vent.once 'layoutCompleted', ->
                 # Move Grooveshark overlay onto the tile position
                 position = $('.grooveshark-placeholder').offset()
-                console.error(position)
                 if position?
                     $('.grooveshark-tile-overlay').css(
                         'top': position.top
