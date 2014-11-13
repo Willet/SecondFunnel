@@ -146,7 +146,9 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     });
 
     // IE8 has this as undefined
-    window.devicePixelRatio = window.devicePixelRatio || 1;
+    if (!window.devicePixelRatio) {
+        window.devicePixelRatio = 1;
+    }
 
     // removes the 'debug' param from all outgoing urls.
     hashIdx = hash.indexOf('debug=');
