@@ -808,7 +808,9 @@ module.exports = (module, App) ->
                             "mobileHeroImage": view.model.get "mobileHeroImage"
                         ))
 
-                    App.intentRank.changeCategory category
+                    App.navigate(category,
+                        trigger: true
+                    )
 
                 this
 
