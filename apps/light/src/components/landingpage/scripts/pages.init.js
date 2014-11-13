@@ -63,6 +63,7 @@ module.exports.reinitialize = function (App) {
             }
 
             App.previewArea.close();
+            App.intentRank.changeCategory('')
         });
 
         /**

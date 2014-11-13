@@ -266,9 +266,17 @@ App.module("intentRank", function (intentRank, App) {
      * @return this
      */
     this.changeCategory = function (category) {
+        if ($('.category-area span').length < 1) {
+            return intentRank;
+        }
+        if (category === '') {
+            category = $($('.category-area span')[0]).attr('data-name');
+        }
+
         if (intentRank.options.category === category) {
             return intentRank;
         }
+
         // Change the category, category is a string passed to data
         intentRank.options.category = category;
         intentRank.options.IRReset = true;
@@ -283,7 +291,7 @@ App.module("intentRank", function (intentRank, App) {
         App.discoveryArea.show(App.discovery);
 
         var categoryHierarchy = category.split("|");
-        var categorySpan = $('#category-area span[data-name="' + categoryHierarchy[0] + '"]:not(.sub-category)');
+        var categorySpan = $('.category-area span[data-name="' + categoryHierarchy[0] + '"]:not(.sub-category)');
         if (categoryHierarchy.length > 1) {
             // sub-categories
             categorySpan = $('.sub-category[data-name="' + categoryHierarchy[1] + '"]', categorySpan.parent());
