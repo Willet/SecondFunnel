@@ -92,14 +92,13 @@ App.module('core', require('./views'));
         );
     }
 
-    // 
+    // If Flash is disabled/not installed, don't show Grooveshark player
     var hasFlash = false;
     try {
         hasFlash = Boolean(new ActiveXObject('ShockwaveFlash.ShockwaveFlash'));
     } catch(exception) {
         hasFlash = ('undefined' != typeof navigator.mimeTypes['application/x-shockwave-flash']);
     }
-    console.error('hasFlash: '+hasFlash);
     if (!hasFlash) {
         $('head').append([
                 '<style type="text/css">',
