@@ -185,8 +185,11 @@ module.exports.reinitialize = function (App) {
 
         App.vent.trigger('finished', App.options, App);
 
-        var fa = new App.core.HeroAreaView();
-        App.heroArea.show(fa);
+        // prevent hero image from resetting to first category on reload
+        if (!App.heroArea.currentView){
+            var fa = new App.core.HeroAreaView();
+            App.heroArea.show(fa);
+        }
     });
 
     App.vent.on('finished', function (data) {
