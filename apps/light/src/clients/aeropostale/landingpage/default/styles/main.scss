@@ -135,7 +135,9 @@ body {
 #category-area-fixed,
 #mobile-category-area-fixed {
     position: fixed;
-    .container {
+    .container,
+    .mobile-fixed-container {
+        width: 100%;
         display: table;
     }
 }
@@ -149,6 +151,9 @@ body {
     .category {
         width: 150px;
         padding: 0 20px;
+    }
+    .category:hover .sub-categories {
+        padding-top: 5px;
     }
 }
 #mobile-category-area {

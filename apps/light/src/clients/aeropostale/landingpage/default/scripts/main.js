@@ -102,7 +102,7 @@ App.module('core', require('./views'));
             fixedContainer = fixedCatArea.find('.container'),
             mobileCatArea = $("#mobile-category-area"),
             fixedMobileCatArea = $("#mobile-category-area-fixed"),
-            fixedMobileContainer = fixedMobileCatArea.find('.container');
+            fixedMobileContainer = $(".mobile-fixed-container");
 
         function initStickyNav (home_hook, fixed_holder, fixed_hook) {
             // To avoid the page shifting when categories are removed from their container
