@@ -66,8 +66,9 @@ module.exports = (module, App) ->
             click: (event) ->
                 eventTarget = $(event.target)
                 category = eventTarget.data('name')
+                parent = eventTarget.parents('.category')
                 subCategory = eventTarget.hasClass 'sub-category'
-                view = App.mobileCategoriesView.collection.findWhere({ 'name': category })
+                model = App.mobileCategoriesView.collection.findWhere({ 'name': category })
 
                 # switch to the selected category
                 # if it has changed
@@ -76,7 +77,6 @@ module.exports = (module, App) ->
                         if not eventTarget.hasClass 'selected'
                             eventTarget.siblings().removeClass 'selected'
                             eventTarget.addClass 'selected'
-                            parent = eventTarget.parents('.category')
                             parent.addClass 'selected'
                             parent.siblings().each () ->
                                 self = $(@)
@@ -86,16 +86,16 @@ module.exports = (module, App) ->
                         # category
                         # remove from child sub-categories
                         $('.sub-category', eventTarget).removeClass 'selected'
-                        if not eventTarget.parent().hasClass 'selected'
-                            eventTarget.parent().addClass 'selected'
+                        if not parent.hasClass 'selected'
+                            parent.addClass 'selected'
                             # remove selected from other categories
-                            eventTarget.parent().siblings().each () ->
+                            parent.siblings().each () ->
                                 self = $(@)
                                 self.removeClass 'selected'
                                 $('.sub-category', self).removeClass 'selected' 
 
 
-                    if view.get("desktopHeroImage") and view.get("mobileHeroImage") and App.layoutEngine
+                    if model.get("desktopHeroImage") and model.get("mobileHeroImage") and App.layoutEngine
                         App.heroArea.show(new App.core.HeroAreaView(
                             "desktopHeroImage": view.get "desktopHeroImage"
                             "mobileHeroImage": view.get "mobileHeroImage"

@@ -9,6 +9,7 @@ var Page = require('landingpage');
 Page.App.module('core', require('./views'));
 
 (function () {
+    // The mobile nav requires a new change category function
     App.intentRank.changeMobileCategory = function (category) {
 
         var intentRank = App.intentRank;
@@ -52,8 +53,8 @@ Page.App.module('core', require('./views'));
         'mobileCategoryArea': '#mobile-category-area'
     });
 
-    var mc = App.mobileCategoriesView = new App.core.MobileCategoryCollectionView();
-    App.mobileCategoryArea.show(mc);
+    App.mobileCategoriesView = new App.core.MobileCategoryCollectionView();
+    App.mobileCategoryArea.show(App.mobileCategoriesView);
 
     // Because the mobile categories follow a different pattern than desktop
     // we have to build the drop-downs
@@ -125,6 +126,8 @@ Page.App.module('core', require('./views'));
         if (is_mobile()) {
             mobileCatArea.show();
             initStickyNav(mobileCatArea, fixedMobileCatArea, fixedMobileContainer);
+
+            // Assignmnet!
             App.intentRank.changeCategory = App.intentRank.changeMobileCategory;
         } else {
             catArea.show();
