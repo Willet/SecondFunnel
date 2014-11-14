@@ -36,7 +36,10 @@ body {
 }
 
 #category-area,
-#category-area-fixed {
+#category-area-fixed,
+#mobile-category-area,
+#mobile-category-area-fixed {
+    display: none;
     padding: 12px 0;
     font-family: "SaaSeriesFD", Helvetica, sans-serif;
     background-color: #FFF;
@@ -49,7 +52,7 @@ body {
         line-height: 24px;
         position: relative;
 
-        span {
+        >span {
             padding: 0 5px;
             display: inline-block;
             border-bottom: 2px solid #000;
@@ -73,10 +76,10 @@ body {
             width: 100%;
             color: #000;
             border-bottom: none;
-        }
-        .sub-category>span {
-            padding: 0 5px;
-            white-space: nowrap;
+            >span {
+                padding: 0 5px;
+                white-space: nowrap;
+            }
         }
         .sub-category.selected {
             display: inline-block;
@@ -129,13 +132,22 @@ body {
         padding: 12px 0;
     }
 }
+#category-area-fixed,
+#mobile-category-area-fixed {
+    position: fixed;
+    .container {
+        display: table;
+    }
+}
 #category-area .category ,
 #category-area-fixed .category {
+    width: 200px;
     padding: 0 10px;
 }
 #mobile-category-area,
 #mobile-category-area-fixed {
     .category {
+        width: 150px;
         padding: 0 20px;
     }
 }
@@ -144,26 +156,21 @@ body {
     margin: 0 auto;
 }
 
-#category-area-fixed {
-    position: fixed;
-    display: none;
+#category-area-fixed,
+#mobile-category-area,
+#mobile-category-area-fixed {
     top: 0px;
     left: 0px;
     z-index: 9;
     width: 100%;
-
-    .container {
-        display: table;
-    }
     .category-area {
         display: table-row;
         text-align: center;
-
         .category {
-            width: 200px;
             display: table-cell;
             text-align: center;
             text-transform: uppercase;
+            cursor: pointer;
         }
     }
 }
@@ -464,6 +471,12 @@ body {
 @media (min-width: 581px) {
     #mobile-category-area,
     #mobile-category-area-fixed {
+        display: none !important;
+    }
+}
+@media (max-width: 580px) {
+    #category-area,
+    #category-area-fixed {
         display: none !important;
     }
 }

@@ -65,14 +65,14 @@ module.exports = (module, App) ->
         events:
             click: (event) ->
                 eventTarget = $(event.target)
-                category = eventTarget.data('name')
-                parent = eventTarget.parents('.category')
+                category = eventTarget.data 'name'
+                parent = eventTarget.parents '.category'
                 subCategory = eventTarget.hasClass 'sub-category'
                 model = App.mobileCategoriesView.collection.findWhere({ 'name': category })
 
                 # switch to the selected category
                 # if it has changed
-                if category and view
+                if category and parent
                     if subCategory
                         if not eventTarget.hasClass 'selected'
                             eventTarget.siblings().removeClass 'selected'
@@ -85,7 +85,7 @@ module.exports = (module, App) ->
                     else
                         # category
                         # remove from child sub-categories
-                        $('.sub-category', eventTarget).removeClass 'selected'
+                        $('.sub-category', parent).removeClass 'selected'
                         if not parent.hasClass 'selected'
                             parent.addClass 'selected'
                             # remove selected from other categories
@@ -95,10 +95,9 @@ module.exports = (module, App) ->
                                 $('.sub-category', self).removeClass 'selected' 
 
 
-                    if model.get("desktopHeroImage") and model.get("mobileHeroImage") and App.layoutEngine
+                    if model.get "mobileHeroImage" and App.layoutEngine
                         App.heroArea.show(new App.core.HeroAreaView(
-                            "desktopHeroImage": view.get "desktopHeroImage"
-                            "mobileHeroImage": view.get "mobileHeroImage"
+                            "mobileHeroImage": model.get "mobileHeroImage"
                         ))
 
                     App.navigate(category,

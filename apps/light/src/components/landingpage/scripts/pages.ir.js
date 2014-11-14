@@ -270,7 +270,7 @@ App.module("intentRank", function (intentRank, App) {
             return intentRank;
         }
         if (category === '') {
-            category = $($('.category-area span')[0]).attr('data-name');
+            category = $('.category-area span:first').attr('data-name');
         }
 
         if (intentRank.options.category === category) {

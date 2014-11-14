@@ -5,8 +5,9 @@ var Marionette = require('backbone.marionette');
 var bootstrap = require('bootstrap.dropdown'); // for menu-bar drop down on mobile
 var waypoints = require("jquery-waypoints") // register $.fn.waypoint
 
-var Page = require('landingpage');
-Page.App.module('core', require('./views'));
+var Page = require('landingpage'),
+    App = Page.App;
+App.module('core', require('./views'));
 
 (function () {
     // The mobile nav requires a new change category function
@@ -135,4 +136,4 @@ Page.App.module('core', require('./views'));
         }
 
     });
-});
+})();
