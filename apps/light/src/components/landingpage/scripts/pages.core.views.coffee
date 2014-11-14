@@ -643,7 +643,7 @@ module.exports = (module, App) ->
                 if App.initialPage is ""
                     Backbone.history.history.back()
                 else
-                    App.router.navigate "",
+                    App.router.navigate "#" + App.intentRank.options.category,
                         trigger: true
                         replace: true
 
@@ -811,8 +811,7 @@ module.exports = (module, App) ->
                     App.navigate(category,
                         trigger: true
                     )
-
-                this
+                return @
 
     ###
     A collection of Categories to display.
@@ -846,9 +845,8 @@ module.exports = (module, App) ->
             else
                 @collection = new module.CategoryCollection([], model: module.Category)
 
-            return this
+            return @
 
         onRender: ->
             @$el.children().eq(0).trigger 'click'
-
-    return
+            return @
