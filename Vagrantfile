@@ -13,7 +13,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     config.vm.provider "virtualbox" do |v|
       v.memory = 2048
-      v.cpus = 2
+      v.cpus = 1
+      v.gui = true
       # see https://github.com/mitchellh/vagrant/issues/391 (ssh issues on reload)
       v.customize ["modifyvm", :id, "--natnet1", "192.168/16"] # setup nat networking
       v.customize ["modifyvm", :id, "--rtcuseutc", "on"] # fix clocks for DHCP
