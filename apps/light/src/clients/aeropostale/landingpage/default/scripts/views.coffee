@@ -64,25 +64,41 @@ module.exports = (module, App) ->
 
         events:
             click: (event) ->
-                view = @
-                $el = view.$el
-                category = view.model.get("name")
-                nofilter = view.model.get("nofilter")
                 eventTarget = $(event.target)
+                category = eventTarget.data('name')
+                subCategory = eventTarget.hasClass 'sub-category'
+                view = App.mobileCategoriesView.collection.findWhere({ 'name': category })
 
                 # switch to the selected category
                 # if it has changed
-                if not $el.hasClass("selected")
-                    $el.siblings().each () ->
-                        self = $(@)
-                        self.removeClass 'selected'
+                if category and view
+                    if subCategory
+                        if not eventTarget.hasClass 'selected'
+                            eventTarget.siblings().removeClass 'selected'
+                            eventTarget.addClass 'selected'
+                            parent = eventTarget.parents('.category')
+                            parent.addClass 'selected'
+                            parent.siblings().each () ->
+                                self = $(@)
+                                self.removeClass 'selected'
+                                $('.sub-category', self).removeClass 'selected'
+                    else
+                        # category
+                        # remove from child sub-categories
+                        $('.sub-category', eventTarget).removeClass 'selected'
+                        if not eventTarget.parent().hasClass 'selected'
+                            eventTarget.parent().addClass 'selected'
+                            # remove selected from other categories
+                            eventTarget.parent().siblings().each () ->
+                                self = $(@)
+                                self.removeClass 'selected'
+                                $('.sub-category', self).removeClass 'selected' 
 
-                    $el.addClass "selected"
 
-                    if view.model.get("desktopHeroImage") and view.model.get("mobileHeroImage") and App.layoutEngine
+                    if view.get("desktopHeroImage") and view.get("mobileHeroImage") and App.layoutEngine
                         App.heroArea.show(new App.core.HeroAreaView(
-                            "desktopHeroImage": view.model.get "desktopHeroImage"
-                            "mobileHeroImage": view.model.get "mobileHeroImage"
+                            "desktopHeroImage": view.get "desktopHeroImage"
+                            "mobileHeroImage": view.get "mobileHeroImage"
                         ))
 
                     App.navigate(category,

@@ -297,7 +297,7 @@ App.module("intentRank", function (intentRank, App) {
             categorySpan = $('.sub-category[data-name="' + categoryHierarchy[1] + '"]', categorySpan.parent());
         }
         categorySpan.trigger("click");
-
+        
         return intentRank;
     };
 });

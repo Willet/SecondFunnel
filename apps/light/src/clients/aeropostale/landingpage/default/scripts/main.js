@@ -10,12 +10,50 @@ var Page = require('landingpage'),
 App.module('core', require('./views'));
 
 (function () {
+    App.intentRank.changeMobileCategory = function (category) {
+
+        var intentRank = App.intentRank;
+
+        if ($('.category-area span').length < 1) {
+            return intentRank;
+        }
+        if (category === '') {
+            if (App.option("categoryHome") && App.option("categoryHome").length ) {
+                category = App.option("categoryHome");
+            } else {
+                category = $('.category-area span:first').attr('data-name');
+            }
+        }
+
+        if (intentRank.options.category === category) {
+            return intentRank;
+        }
+
+        // Change the category, category is a string passed to data
+        intentRank.options.category = category;
+        intentRank.options.IRReset = true;
+        App.tracker.changeCategory(category);
+
+        App.vent.trigger('change:category', category, category);
+
+        App.discovery = new App.feed.MasonryFeedView({
+            options: App.options
+        });
+        $(".loading").show();
+        App.discoveryArea.show(App.discovery);
+
+        var categorySpan = $('.category-area span[data-name="' + category + '"]');
+        categorySpan.trigger("click");
+
+        return intentRank;
+    };
+
     // Enable mobile categories
     App.addRegions({
         'mobileCategoryArea': '#mobile-category-area'
     });
 
-    var mc = new App.core.MobileCategoryCollectionView();
+    var mc = App.mobileCategoriesView = new App.core.MobileCategoryCollectionView();
     App.mobileCategoryArea.show(mc);
 
     // Because the mobile categories follow a different pattern than desktop
@@ -24,14 +62,19 @@ App.module('core', require('./views'));
     var mobileCatEls = $("#mobile-category-area .category-area").children();
     
     var keepCatEls = mobileCatEls.slice(0,2), // 1st two will be our new categories
-        subCatEls = mobileCatEls.slice(2); // the rest will be our sub-categories
+        subCatEls = mobileCatEls.slice(2).children(); // the rest will be our sub-categories
     keepCatEls.append("<div class='sub-categories'></div>");
-    subCatEls.removeClass('category').addClass('sub-category');
+    subCatEls.addClass('sub-category');
 
-    while(subCatEls) {
-        $(keepCatEls[0]).find('.sub-categories').append(subCatEls[0]);
-        $(keepCatEls[1]).find('.sub-categories').append(subCatEls[1]);
+    var i = 0;
+    while (subCatEls) {
+        $(keepCatEls[0]).find('.sub-categories').append(subCatEls[i]);
+        $(keepCatEls[1]).find('.sub-categories').append(subCatEls[i+1]);
+        i += 2;
+        if (i >= subCatEls.length) break;
     }
+    // Get rid of parent elements
+    mobileCatEls.slice(2).remove();
 
     // Fix for the font rendering strangley on anything but windows
     if (navigator.platform.toLowerCase().indexOf('win') != 0) {
@@ -83,6 +126,7 @@ App.module('core', require('./views'));
         if (is_mobile()) {
             mobileCatArea.show();
             initStickyNav(mobileCatArea, fixedMobileCatArea, fixedMobileContainer);
+            App.intentRank.changeCategory = App.intentRank.changeMobileCategory;
         } else {
             catArea.show();
             initStickyNav(catArea, fixedCatArea, fixedContainer);
