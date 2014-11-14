@@ -50,7 +50,7 @@ module.exports = (module, App) ->
     @constructor
     @type {Layout}
     ###
-    class module.MobileCategoryView extends Marionette.ItemView
+    class module.MobileCategoryView extends module.CategoryView
         tagName: "div"
         className: "category"
 
@@ -103,6 +103,7 @@ module.exports = (module, App) ->
                     App.navigate(category,
                         trigger: true
                     )
+                return @
 
     ###
     A collection of Categories to display on mobile.
@@ -110,7 +111,7 @@ module.exports = (module, App) ->
     @constrcutor
     @type {CollectionView}
     ###
-    class module.MobileCategoryCollectionView extends Marionette.CollectionView
+    class module.MobileCategoryCollectionView extends module.CategoryCollectionView
         tagName: "div"
         className: "category-area"
 
@@ -137,8 +138,3 @@ module.exports = (module, App) ->
                 @collection = new module.CategoryCollection([], model: module.Category)
 
             return @
-
-        onRender: ->
-            @$el.children().eq(0).trigger 'click'
-
-    return

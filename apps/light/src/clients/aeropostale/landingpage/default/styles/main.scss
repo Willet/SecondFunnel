@@ -143,16 +143,17 @@ body {
 }
 #category-area .category ,
 #category-area-fixed .category {
-    width: 200px;
+    width: 250px;
     padding: 0 10px;
 }
 #mobile-category-area,
 #mobile-category-area-fixed {
     .category {
-        width: 150px;
+        width: 200px;
         padding: 0 20px;
     }
-    .category:hover .sub-categories {
+    .category:hover .sub-categories,
+    .category.selected .sub-category.selected {
         padding-top: 5px;
     }
 }

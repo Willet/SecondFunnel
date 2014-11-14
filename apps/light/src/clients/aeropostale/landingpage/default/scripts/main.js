@@ -67,12 +67,9 @@ App.module('core', require('./views'));
     keepCatEls.append("<div class='sub-categories'></div>");
     subCatEls.addClass('sub-category');
 
-    var i = 0;
-    while (subCatEls) {
+    for (var i = 0, l = subCatEls.length; i < l; i +=2) {
         $(keepCatEls[0]).find('.sub-categories').append(subCatEls[i]);
         $(keepCatEls[1]).find('.sub-categories').append(subCatEls[i+1]);
-        i += 2;
-        if (i >= subCatEls.length) break;
     }
     // Get rid of parent elements
     mobileCatEls.slice(2).remove();
