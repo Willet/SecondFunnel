@@ -643,7 +643,7 @@ module.exports = (module, App) ->
                 if App.initialPage is ""
                     Backbone.history.history.back()
                 else
-                    App.router.navigate "",
+                    App.router.navigate "#" + App.intentRank.options.category,
                         trigger: true
                         replace: true
 
