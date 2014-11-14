@@ -670,7 +670,7 @@ module.exports = (module, App) ->
             return
 
         templateHelpers: ->
-
+            return
 
         # return {data: $.extend({}, this.options, {template: this.template})};
         onRender: ->
@@ -812,8 +812,6 @@ module.exports = (module, App) ->
                         trigger: true
                     )
 
-                this
-
     ###
     A collection of Categories to display.
 
@@ -846,7 +844,7 @@ module.exports = (module, App) ->
             else
                 @collection = new module.CategoryCollection([], model: module.Category)
 
-            return this
+            return @
 
         onRender: ->
             @$el.children().eq(0).trigger 'click'
