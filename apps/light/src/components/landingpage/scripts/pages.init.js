@@ -187,8 +187,8 @@ module.exports.reinitialize = function (App) {
 
         // prevent hero image from resetting to first category on reload
         if (!App.heroArea.currentView){
-            var fa = new App.core.HeroAreaView();
-            App.heroArea.show(fa);
+            // load the default hero image
+            App.heroArea.show(new App.core.HeroAreaView());
         }
     });
 
