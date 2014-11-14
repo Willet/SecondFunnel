@@ -36,10 +36,8 @@ body {
 }
 
 #category-area,
-#category-area-fixed,
-#mobile-category-area,
-#mobile-category-area-fixed {
-    display: none;
+#category-area-fixed {
+    padding: 12px 0;
     font-family: "SaaSeriesFD", Helvetica, sans-serif;
     background-color: #FFF;
 
@@ -50,7 +48,6 @@ body {
         font-size: 20px;
         line-height: 24px;
         position: relative;
-        cursor: pointer;
 
         span {
             padding: 0 5px;
@@ -125,6 +122,7 @@ body {
         }
     }
 }
+
 #category-area {
     padding: 12px 0;
     .container {
@@ -146,9 +144,14 @@ body {
     margin: 0 auto;
 }
 
-#category-area-fixed,
-#mobile-category-area,
-#mobile-category-area-fixed {
+#category-area-fixed {
+    position: fixed;
+    display: none;
+    top: 0px;
+    left: 0px;
+    z-index: 9;
+    width: 100%;
+
     .container {
         display: table;
     }
@@ -163,14 +166,6 @@ body {
             text-transform: uppercase;
         }
     }
-}
-#category-area-fixed,
-#mobile-category-area-fixed {
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    z-index: 9;
-    width: 100%;
 }
 
 .tile {
@@ -407,9 +402,7 @@ body {
     }
 
     #category-area,
-    #category-area-fixed,
-    #mobile-category-area,
-    #mobile-category-area-fixed {
+    #category-area-fixed {
         padding-bottom: 0px;
 
         .category-area {

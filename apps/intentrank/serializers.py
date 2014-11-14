@@ -42,11 +42,6 @@ class PageSerializer(IRSerializer):
             #noinspection PyTypeChecker
             categories = ast.literal_eval(categories)
 
-        mobileCategories = obj.get('mobileCategories', '[]')
-        if isinstance(mobileCategories, basestring):
-            #noinspection PyTypeChecker
-            mobileCategories = ast.literal_eval(mobileCategories)
-
         data = {
             'id': getattr(obj, 'intentrank_id', obj.id),
             # for verifying the original upload date of a static campaign.
@@ -62,7 +57,6 @@ class PageSerializer(IRSerializer):
             'layout': obj.get('layout', 'hero'),
 
             'categories': categories,
-            'mobileCategories': mobileCategories,
             'description': obj.description or '',
 
             # optional (defaults to 240 or 255 pixels)

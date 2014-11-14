@@ -144,8 +144,8 @@ module.exports.reinitialize = function (App) {
             App.tracker.initialize();
         }
 
-        var categories = new App.core.CategoryCollectionView();
-        App.categoryArea.show(categories);
+        var ca = new App.core.CategoryCollectionView();
+        App.categoryArea.show(ca);
 
         // there isn't an "view.isOpen", so this checks if the feed element
         // exists, and if it does, close the view.
@@ -185,8 +185,8 @@ module.exports.reinitialize = function (App) {
 
         App.vent.trigger('finished', App.options, App);
 
-        var hero = new App.core.HeroAreaView();
-        App.heroArea.show(hero);
+        var fa = new App.core.HeroAreaView();
+        App.heroArea.show(fa);
     });
 
     App.vent.on('finished', function (data) {
