@@ -92,6 +92,25 @@ App.module('core', require('./views'));
         );
     }
 
+    // 
+    var hasFlash = false;
+    try {
+        hasFlash = Boolean(new ActiveXObject('ShockwaveFlash.ShockwaveFlash'));
+    } catch(exception) {
+        hasFlash = ('undefined' != typeof navigator.mimeTypes['application/x-shockwave-flash']);
+    }
+    console.error('hasFlash: '+hasFlash);
+    if (!hasFlash) {
+        $('head').append([
+                '<style type="text/css">',
+                '.tile.grooveshark,',
+                '.grooveshark-tile-overlay {',
+                '    display: none !important;',
+                '}',
+                '</style>'
+            ].join(" "));
+    }
+
     // Enable sticky categories once document is ready
     $(document).ready(function() {
         var catArea = $("#category-area"),
