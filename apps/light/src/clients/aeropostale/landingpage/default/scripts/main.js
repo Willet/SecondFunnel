@@ -92,6 +92,24 @@ App.module('core', require('./views'));
         );
     }
 
+    // If Flash is disabled/not installed, don't show Grooveshark player
+    var hasFlash = false;
+    try {
+        hasFlash = Boolean(new ActiveXObject('ShockwaveFlash.ShockwaveFlash'));
+    } catch(exception) {
+        hasFlash = ('undefined' != typeof navigator.mimeTypes['application/x-shockwave-flash']);
+    }
+    if (!hasFlash) {
+        $('head').append([
+                '<style type="text/css">',
+                '.tile.grooveshark,',
+                '.grooveshark-tile-overlay {',
+                '    display: none !important;',
+                '}',
+                '</style>'
+            ].join(" "));
+    }
+
     // Enable sticky categories once document is ready
     $(document).ready(function() {
         var catArea = $("#category-area"),
