@@ -151,10 +151,26 @@ body {
     .category {
         width: 200px;
         padding: 0 20px;
+
+        .sub-category {
+            font-size: 14px;
+            line-height: 30px;
+        }
+    }
+    .category:first-child .sub-categories {
+        margin-right: -20%;
+        width: 110%;
+    }
+    .category:last-child .sub-categories {
+        margin-left: -20%;
+        width: 110%;
     }
     .category:hover .sub-categories,
     .category.selected .sub-category.selected {
         padding-top: 5px;
+    }
+    .category.selected:hover .sub-category.selected {
+        padding-top: 0px;
     }
 }
 #mobile-category-area {
