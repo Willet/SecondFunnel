@@ -11,13 +11,14 @@ var Backbone = require('backbone');
 module.exports.reinitialize = function (App) {
 
     // setup regions if not already
-    if (!App.heroArea) {
+    if (!App._initialized) {
         App.addRegions({
             'heroArea': '#hero-area',
             'categoryArea': '#category-area',
             'discoveryArea': '#discovery-area',
             'previewArea': '#preview-area'
         });
+        App._initialized = true;
     }
 
     // from davidsulc/marionette-gentle-introduction
@@ -77,6 +78,9 @@ module.exports.reinitialize = function (App) {
             var isNumber = /^\d+$/.test(tileId);
 
             if (isNumber) { // Preview the tile
+                if (App.option('debug', false)) {
+                    console.error('Router opening tile preview: '+tileId);
+                }
                 var tile = App.discovery && App.discovery.collection ?
                     App.discovery.collection.tiles[tileId] :
                     undefined;
@@ -114,6 +118,9 @@ module.exports.reinitialize = function (App) {
                     });
                 });
             } else { // Change category
+                if App.option('debug', false) {
+                    console.error('Router changing category: '+tileId);
+                }
                 App.previewArea.close();
                 App.intentRank.changeCategory(tileId);
             }
@@ -186,7 +193,7 @@ module.exports.reinitialize = function (App) {
         App.vent.trigger('finished', App.options, App);
 
         // prevent hero image from resetting to first category on reload
-        if (!App.heroArea.currentView){
+        if (!App.heroArea.currentView) {
             // load the default hero image
             App.heroArea.show(new App.core.HeroAreaView());
         }
