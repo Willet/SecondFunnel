@@ -493,18 +493,6 @@ body {
         }
     }
 }
-@media (min-width: 581px) {
-    #mobile-category-area,
-    #mobile-category-area-fixed {
-        display: none !important;
-    }
-}
-@media (max-width: 580px) {
-    #category-area,
-    #category-area-fixed {
-        display: none !important;
-    }
-}
 
 @media (max-width: 991px) {
     .tile.grooveshark,

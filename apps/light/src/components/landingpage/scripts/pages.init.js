@@ -121,10 +121,10 @@ module.exports.reinitialize = function (App) {
 
         Backbone.history.start();
 
-        //Making sure we know where we came from.
+        // Making sure we know where we came from.
         App.initialPage = window.location.hash;
         if (App.initialPage !== '' && App.support.mobile()) {
-            // if on mobile push the state to the history stack
+            // If on mobile push the state to the history stack
             if ('replaceState' in window.history) {
                 // back button closes the popup
                 window.history.replaceState('', document.title, loc.split('#')[0]);

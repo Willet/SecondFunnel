@@ -54,25 +54,7 @@ App.module('core', require('./views'));
         'mobileCategoryArea': '#mobile-category-area'
     });
 
-    App.mobileCategoriesView = new App.core.MobileCategoryCollectionView();
-    App.mobileCategoryArea.show(App.mobileCategoriesView);
-
-    // Because the mobile categories follow a different pattern than desktop
-    // we have to build the drop-downs
-    // Convert categories into drop-downs
-    var mobileCatEls = $("#mobile-category-area .category-area").children();
-    
-    var keepCatEls = mobileCatEls.slice(0,2), // 1st two will be our new categories
-        subCatEls = mobileCatEls.slice(2).children(); // the rest will be our sub-categories
-    keepCatEls.append("<div class='sub-categories'></div>");
-    subCatEls.addClass('sub-category');
-
-    for (var i = 0, l = subCatEls.length; i < l; i +=2) {
-        $(keepCatEls[0]).find('.sub-categories').append(subCatEls[i]);
-        $(keepCatEls[1]).find('.sub-categories').append(subCatEls[i+1]);
-    }
-    // Get rid of parent elements
-    mobileCatEls.slice(2).remove();
+    App.mobileCategoryArea.show(new App.core.MobileCategoryCollectionView());
 
     // Fix for the font rendering strangley on anything but windows
     if (navigator.platform.toLowerCase().indexOf('win') != 0) {
@@ -94,12 +76,7 @@ App.module('core', require('./views'));
 
     // Enable sticky categories once document is ready
     $(document).ready(function() {
-        var catArea = $("#category-area"),
-            fixedCatArea = $("#category-area-fixed"),
-            fixedContainer = fixedCatArea.find('.container'),
-            mobileCatArea = $("#mobile-category-area"),
-            fixedMobileCatArea = $("#mobile-category-area-fixed"),
-            fixedMobileContainer = $(".mobile-fixed-container");
+        var catArea, fixedCatArea, fixedContainer;
 
         function initStickyNav (home_hook, fixed_holder, fixed_hook) {
             // To avoid the page shifting when categories are removed from their container
@@ -117,20 +94,24 @@ App.module('core', require('./views'));
 
             });
         }
-        function is_mobile() {
-            return ( $(window).width() < 581 );
-        }
         // Initialize on pageload whichever nav is relevant
-        if (is_mobile()) {
-            mobileCatArea.show();
-            initStickyNav(mobileCatArea, fixedMobileCatArea, fixedMobileContainer);
-
-            // Assignmnet!
+        //if ($.browser && $.browser.mobile && !App.support.isAniPad()) {
+        if (true) {
+            // Mobile device
+            catArea = $("#category-area");
+            fixedCatArea = $("#category-area-fixed");
+            fixedContainer = fixedCatArea.find('.container');
+            App.categoryArea.reset(); // Remove other category from view
             App.intentRank.changeCategory = App.intentRank.changeMobileCategory;
         } else {
-            catArea.show();
-            initStickyNav(catArea, fixedCatArea, fixedContainer);
+            // Desktop/tablet
+            catArea = $("#mobile-category-area");
+            fixedCatArea = $("#mobile-category-area-fixed");
+            fixedContainer = $(".mobile-fixed-container");
+            App.mobileCategoryArea.reset(); // Remove mobie category from view
         }
+        catArea.show();
+        initStickyNav(catArea, fixedCatArea, fixedContainer);
 
     });
 })();
