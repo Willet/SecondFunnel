@@ -10,7 +10,47 @@ var Page = require('landingpage'),
 App.module('core', require('./views'));
 
 (function () {
-    // The mobile nav requires a new change category function
+    // Custom Aero theme implementation
+
+    // Fix for the font rendering strangley on anything but windows
+    if (navigator.platform.toLowerCase().indexOf('win') != 0) {
+        $('head').append(
+            [
+                '<style type="text/css">',
+                '.tile .buy .button, .previewContainer .buy .button {',
+                '	padding-top: 18px;',
+                '}',
+                '@media (max-width: 768px) {',
+                '	.tile .buy .button, .previewContainer .buy .button {',
+                '		padding-top: 16px;',
+                '	}',
+                '}',
+                '</style>'
+            ].join(" ")
+        );
+    }
+
+    // If Flash is disabled/not installed, don't show Grooveshark player
+    var hasFlash = false;
+    try {
+        hasFlash = Boolean(new ActiveXObject('ShockwaveFlash.ShockwaveFlash'));
+    } catch(exception) {
+        hasFlash = ('undefined' != typeof navigator.mimeTypes['application/x-shockwave-flash']);
+    }
+    if (!hasFlash) {
+        $('head').append([
+                '<style type="text/css">',
+                '.tile.grooveshark,',
+                '.grooveshark-tile-overlay {',
+                '    display: none !important;',
+                '}',
+                '</style>'
+            ].join(" "));
+    }
+
+    // ### Aero mobile nav ###
+    // requires a new change category function because sub-categories
+    // are categories, not filters on categories
     App.intentRank.changeMobileCategory = function (category) {
 
         var intentRank = App.intentRank;
@@ -49,106 +89,54 @@ App.module('core', require('./views'));
         return intentRank;
     };
 
-    // Enable mobile categories
-    App.addRegions({
-        'mobileCategoryArea': '#mobile-category-area'
-    });
+    // Helper function for Aero sticky nav
+    function initStickyNav (home_hook, fixed_holder, fixed_hook) {
+        // To avoid the page shifting when categories are removed from their container
+        home_hook.css('height', home_hook.css('height'));
+        home_hook.waypoint(function (direction) {
+            if (direction === 'down') {
+                // If scrolling down, attach the categories to the fixed container
+                fixed_hook.append(home_hook.children().detach());
+                fixed_holder.show();
+            } else if (direction === 'up') {
+                // If scrolling back up, reattach the categories to the page
+                fixed_holder.hide();
+                home_hook.append(fixed_hook.children().detach());
+            }
 
-    App.mobileCategoriesView = new App.core.MobileCategoryCollectionView();
-    App.mobileCategoryArea.show(App.mobileCategoriesView);
-
-    // Because the mobile categories follow a different pattern than desktop
-    // we have to build the drop-downs
-    // Convert categories into drop-downs
-    var mobileCatEls = $("#mobile-category-area .category-area").children();
-    
-    var keepCatEls = mobileCatEls.slice(0,2), // 1st two will be our new categories
-        subCatEls = mobileCatEls.slice(2).children(); // the rest will be our sub-categories
-    keepCatEls.append("<div class='sub-categories'></div>");
-    subCatEls.addClass('sub-category');
-
-    for (var i = 0, l = subCatEls.length; i < l; i +=2) {
-        $(keepCatEls[0]).find('.sub-categories').append(subCatEls[i]);
-        $(keepCatEls[1]).find('.sub-categories').append(subCatEls[i+1]);
-    }
-    // Get rid of parent elements
-    mobileCatEls.slice(2).remove();
-
-    // Fix for the font rendering strangley on anything but windows
-    if (navigator.platform.toLowerCase().indexOf('win') != 0) {
-        $('head').append(
-            [
-                '<style type="text/css">',
-                '.tile .buy .button, .previewContainer .buy .button {',
-                '	padding-top: 18px;',
-                '}',
-                '@media (max-width: 768px) {',
-                '	.tile .buy .button, .previewContainer .buy .button {',
-                '		padding-top: 16px;',
-                '	}',
-                '}',
-                '</style>'
-            ].join(" ")
-        );
+        });
     }
 
-    // If Flash is disabled/not installed, don't show Grooveshark player
-    var hasFlash = false;
-    try {
-        hasFlash = Boolean(new ActiveXObject('ShockwaveFlash.ShockwaveFlash'));
-    } catch(exception) {
-        hasFlash = ('undefined' != typeof navigator.mimeTypes['application/x-shockwave-flash']);
-    }
-    if (!hasFlash) {
-        $('head').append([
-                '<style type="text/css">',
-                '.tile.grooveshark,',
-                '.grooveshark-tile-overlay {',
-                '    display: none !important;',
-                '}',
-                '</style>'
-            ].join(" "));
+    var catArea, fixedCatArea, fixedContainer;
+    // Check if on mobile device (Bootstrap defines mobile as 768px wide and less)
+    // Alternative check: $.browser && $.browser.mobile && !App.support.isAniPad()
+    if ($(window).width() <= 768) {
+        // Mobile device
+        // Enable mobile categories
+        App.addRegions({
+            'mobileCategoryArea': '#mobile-category-area'
+        });
+        App.mobileCategoryArea.show(new App.core.MobileCategoryCollectionView());
+        // Choose mobile elements for sticky nav
+        catArea = $("#mobile-category-area");
+        fixedCatArea = $("#mobile-category-area-fixed");
+        fixedContainer = $(".mobile-fixed-container");
+        // Remove other category from view
+        App.categoryArea.reset();
+        App.intentRank.changeCategory = App.intentRank.changeMobileCategory;
+    } else {
+        // Desktop/tablet
+        // Choose mobile elements for sticky nav
+        catArea = $("#category-area");
+        fixedCatArea = $("#category-area-fixed");
+        fixedContainer = fixedCatArea.find('.container');
+        // Unhide categories
+        catArea.show();
     }
 
     // Enable sticky categories once document is ready
     $(document).ready(function() {
-        var catArea = $("#category-area"),
-            fixedCatArea = $("#category-area-fixed"),
-            fixedContainer = fixedCatArea.find('.container'),
-            mobileCatArea = $("#mobile-category-area"),
-            fixedMobileCatArea = $("#mobile-category-area-fixed"),
-            fixedMobileContainer = $(".mobile-fixed-container");
-
-        function initStickyNav (home_hook, fixed_holder, fixed_hook) {
-            // To avoid the page shifting when categories are removed from their container
-            home_hook.css('height', home_hook.css('height'));
-            home_hook.waypoint(function (direction) {
-                if (direction === 'down') {
-                    // If scrolling down, attach the categories to the fixed container
-                    fixed_hook.append(home_hook.children().detach());
-                    fixed_holder.show();
-                } else if (direction === 'up') {
-                    // If scrolling back up, reattach the categories to the page
-                    fixed_holder.hide();
-                    home_hook.append(fixed_hook.children().detach());
-                }
-
-            });
-        }
-        function is_mobile() {
-            return ( $(window).width() < 581 );
-        }
         // Initialize on pageload whichever nav is relevant
-        if (is_mobile()) {
-            mobileCatArea.show();
-            initStickyNav(mobileCatArea, fixedMobileCatArea, fixedMobileContainer);
-
-            // Assignmnet!
-            App.intentRank.changeCategory = App.intentRank.changeMobileCategory;
-        } else {
-            catArea.show();
-            initStickyNav(catArea, fixedCatArea, fixedContainer);
-        }
-
+        initStickyNav(catArea, fixedCatArea, fixedContainer);
     });
 })();
