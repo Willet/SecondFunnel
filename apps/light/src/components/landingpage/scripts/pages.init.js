@@ -118,8 +118,8 @@ module.exports.reinitialize = function (App) {
                     });
                 });
             } else { // Change category
-                if App.option('debug', false) {
-                    console.error('Router changing category: '+tileId);
+                if (App.option('debug', false)) {
+                    console.error('Router changing category: ' + tileId);
                 }
                 App.previewArea.close();
                 App.intentRank.changeCategory(tileId);
