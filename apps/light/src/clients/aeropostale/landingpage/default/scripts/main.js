@@ -108,25 +108,30 @@ App.module('core', require('./views'));
     }
 
     var catArea, fixedCatArea, fixedContainer;
-    //if ($.browser && $.browser.mobile && !App.support.isAniPad()) {
-    if (true) {
+    // Check if on mobile device (Bootstrap defines mobile as 768px wide and less)
+    // Alternative check: $.browser && $.browser.mobile && !App.support.isAniPad()
+    if ($(window).width() <= 768) {
+        // Mobile device
         // Enable mobile categories
         App.addRegions({
             'mobileCategoryArea': '#mobile-category-area'
         });
         App.mobileCategoryArea.show(new App.core.MobileCategoryCollectionView());
-        // Mobile device
+        // Choose mobile elements for sticky nav
         catArea = $("#mobile-category-area");
         fixedCatArea = $("#mobile-category-area-fixed");
         fixedContainer = $(".mobile-fixed-container");
-        App.categoryArea.reset(); // Remove other category from view
+        // Remove other category from view
+        App.categoryArea.reset();
         App.intentRank.changeCategory = App.intentRank.changeMobileCategory;
     } else {
         // Desktop/tablet
+        // Choose mobile elements for sticky nav
         catArea = $("#category-area");
         fixedCatArea = $("#category-area-fixed");
         fixedContainer = fixedCatArea.find('.container');
-        catArea.show(); // It loads as display: none;
+        // Unhide categories
+        catArea.show();
     }
 
     // Enable sticky categories once document is ready
