@@ -139,4 +139,8 @@ App.module('core', require('./views'));
         // Initialize on pageload whichever nav is relevant
         initStickyNav(catArea, fixedCatArea, fixedContainer);
     });
+
+    // Aero wants their own tracking
+    window.ga('create', 'UA-53950735-1', 'auto', {'name': 'aero-tracker'});
+    window.ga('aero-tracker.send', 'pageview');
 })();
