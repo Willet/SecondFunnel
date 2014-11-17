@@ -141,5 +141,6 @@ App.module('core', require('./views'));
     });
 
     // Aero wants their own tracking
-    window.ga('create', 'UA-53950735-1', 'auto');
+    window.ga('create', 'UA-53950735-1', 'auto', {'name': 'aero-tracker'});
+    window.ga('aero-tracker.send', 'pageview');
 })();
