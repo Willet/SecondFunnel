@@ -13,11 +13,6 @@ class FeedView extends Marionette.CollectionView
         super arguments
 
     initialize: (options) ->
-        # DEFER: check if anything listens to this
-        #        itemview's events are already delegated...
-        #        by marionette
-        @on 'itemview:item:clicked', =>
-            @trigger('collection:item:clicked')
         @pagesScrolled = 1
 
         _.bindAll(@, 'pageScroll')

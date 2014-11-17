@@ -54,61 +54,84 @@ module.exports = (module, App) ->
         tagName: "div"
         className: "category"
 
-        template: "#mobile_category_template"
+        template: "#category_template"
         templates: ->
             templateRules = [
-                "#<%= options.store.slug %>_mobile_category_template"
-                "#mobile_category_template"
+                "#<%= options.store.slug %>_category_template"
+                "#category_template"
             ]
             templateRules
 
         events:
-            click: (event) ->
-                eventTarget = $(event.target)
-                category = eventTarget.data 'name'
-                parent = eventTarget.parents '.category'
-                subCategory = eventTarget.hasClass 'sub-category'
-                model = App.mobileCategoriesView.collection.findWhere({ 'name': category })
-
-                # switch to the selected category
-                # if it has changed
-                if category and parent
-                    if subCategory
-                        if not eventTarget.hasClass 'selected'
-                            eventTarget.siblings().removeClass 'selected'
-                            eventTarget.addClass 'selected'
-                            parent.addClass 'selected'
-                            parent.siblings().each () ->
-                                self = $(@)
-                                self.removeClass 'selected'
-                                $('.sub-category', self).removeClass 'selected'
-                    else
-                        # category
-                        # remove from child sub-categories
-                        $('.sub-category', parent).removeClass 'selected'
-                        if not parent.hasClass 'selected'
-                            parent.addClass 'selected'
+            'click .sub-category': (event) ->
+                $target = $(event.target)
+                category = $target.data 'name'
+                $el = @$el
+                
+                if category
+                    unless $el.hasClass 'selected' and $target.hasClass 'selected' and not $target.siblings().hasClass 'selected'
+                        # switch to selected sub-category
+                        $target.addClass 'selected'
+                        $target.siblings().removeClass 'selected'
+                        # switch to selected category if not already
+                        unless $el.hasClass 'selected'
+                            $el.addClass 'selected'
                             # remove selected from other categories
-                            parent.siblings().each () ->
+                            $el.siblings().each () ->
                                 self = $(@)
                                 self.removeClass 'selected'
-                                $('.sub-category', self).removeClass 'selected' 
+                                self.find('.sub-category').removeClass 'selected'
 
+                        # switch hero image *of category*
+                        if @model.get("desktopHeroImage") and @model.get("mobileHeroImage") and App.layoutEngine
+                            App.heroArea.show(new App.core.HeroAreaView(
+                                "desktopHeroImage": @model.get "desktopHeroImage"
+                                "mobileHeroImage": @model.get "mobileHeroImage"
+                            ))
 
-                    if model.get "mobileHeroImage" and App.layoutEngine
-                        App.heroArea.show(new App.core.HeroAreaView(
-                            "mobileHeroImage": model.get "mobileHeroImage"
-                        ))
+                        App.navigate(category,
+                            trigger: true
+                        )
+                else if App.option('debug', false)
+                    console.error "Attempted to switch to sub-category '#{category}' which does not exist."
+                return false # stop propogation
 
-                    App.navigate(category,
-                        trigger: true
-                    )
-                return @
+            'click': (event) ->
+                category = @model.get("name")
+                $el = @$el
+                subcategories = $el.find '.sub-category'
+
+                if category
+                    unless $el.hasClass 'selected' and not subcategories.hasClass 'selected'
+                        # remove selected from child sub-categories
+                        subcategories.removeClass 'selected'
+                        # switch to the selected category if it has changed
+                        unless $el.hasClass 'selected'
+                            $el.addClass 'selected'
+                            # remove selected from other categories
+                            $el.siblings().each () ->
+                                self = $(@)
+                                self.removeClass 'selected'
+                                self.find('.sub-category').removeClass 'selected'
+
+                        # switch hero image *of category*
+                        if @model.get("desktopHeroImage") and @model.get("mobileHeroImage") and App.layoutEngine
+                            App.heroArea.show(new App.core.HeroAreaView(
+                                "desktopHeroImage": @model.get "desktopHeroImage"
+                                "mobileHeroImage": @model.get "mobileHeroImage"
+                            ))
+
+                        App.navigate(category,
+                            trigger: true
+                        )
+                else if App.option('debug', false)
+                    console.error "Attempted to switch to category '#{category}' which does not exist."
+                return false # stop propogation
 
     ###
     A collection of Categories to display on mobile.
 
-    @constrcutor
+    @constructor
     @type {CollectionView}
     ###
     class module.MobileCategoryCollectionView extends module.CategoryCollectionView
@@ -137,4 +160,12 @@ module.exports = (module, App) ->
             else
                 @collection = new module.CategoryCollection([], model: module.Category)
 
+            return @
+
+        onRender: ->
+            # This loads strictly after the page is already initialized
+            # Try to load whatever is currently loaded if it is a mobile category too
+            # Otherwise, load to first category
+            loadCategory = $("span[data-name='#{App.intentRank.options.category}']", @$el) or @$el.children().eq(0)
+            loadCategory.trigger 'click'
             return @

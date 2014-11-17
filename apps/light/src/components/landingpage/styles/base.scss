@@ -174,11 +174,9 @@ div.loading {
     width: 30px;
     height: 30px;
     margin: 0 auto;
-    margin-bottom: 10px;
+    margin-bottom: 50px;
     animation: spinner 2s infinite linear;
-
 }
-
 
 @keyframes spinner {
     from {
