@@ -65,10 +65,10 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
             l.add_value('description', a)
             l.add_css('url', 'link[rel="canonical"]::attr(href)')
             try:
-                l.add_css('price', '.price li:not(.now)::text', re=r'([\d.]+)')
+                l.add_value('price', sel.css('.price li:not(.now)::text').re(r'([\d.]+)')[0])
                 attributes['sale_price'] = '$' + sel.css('.price .now::text').re(r'([\d.]+)')[0]
             except:
-                l.add_css('price', '.price li.now)::text', re=r'([\d.]+)')
+                l.add_css('price', '.price li.now::text', re=r'([\d.]+)')
                 attributes['sale_price'] = ''
 
             base_imgs = sel.css('#altimages img::attr(src)').extract()
