@@ -1,0 +1,20 @@
+# GridMasonry
+
+_Masonry with an enforced grid_
+
+Forces Masonry to use a grid layout. Assumes all tiles are *roughly* multiples of the same width & height.
+Still works with other sizes, but will create gaps until it can establish the next row.
+
+## Initialize
+
+### In JavaScript
+
+``` js
+var container = document.querySelector('#container');
+var msnry = new GridMasonry( container, {
+  // options...
+  itemSelector: '.item',
+  columnWidth: 200,
+  rowHeight: 266
+});
+```
