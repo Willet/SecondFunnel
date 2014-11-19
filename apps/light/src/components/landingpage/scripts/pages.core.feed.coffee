@@ -192,11 +192,11 @@ class MasonryFeedView extends FeedView
         
         if @options.forceGrid and @options.rowHeight
             if App.option 'debug', false
-                console.error "Using GridMasonry"
+                console.warn "Using GridMasonry"
             @masonry = new GridMasonry @$el[0], @options
         else
             if App.option 'debug', false
-                console.error console.error "Using Masonry"
+                console.warn "Using Masonry"
             @masonry = new Masonry @$el[0], @options
         @masonry.bindResize()
         @masonry.layout()

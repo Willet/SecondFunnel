@@ -79,7 +79,7 @@ module.exports.reinitialize = function (App) {
 
             if (isNumber) { // Preview the tile
                 if (App.option('debug', false)) {
-                    console.error('Router opening tile preview: '+tileId);
+                    console.warn('Router opening tile preview: '+tileId);
                 }
                 var tile = App.discovery && App.discovery.collection ?
                     App.discovery.collection.tiles[tileId] :
