@@ -18,7 +18,6 @@ runserver
 libpeerconnection.log
 MySQL-python-1.2.3
 apps/pinpoint/static/campaigns
-.vagrant
 scripts/flush.sql
 db.sql
 ghostdriver.log
@@ -34,6 +33,8 @@ apps/light/.sass-cache
 apps/light/static
 apps/light/templates
 
+Vagrantfile
+.vagrant
 vagrant_ansible*
 
 .ssh/
