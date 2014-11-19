@@ -43,7 +43,10 @@ class Command(BaseCommand):
 			Spider = self.get_spider(module)
 			separator = getattr(Spider, "start_urls_separator", ",")
 
-			spider = Spider(start_urls=separator.join(start_urls), feed_ids=str(feed_id))
+			kw = {'start_urls': separator.join(start_urls)}
+			if kwargs.get('add_to_feed'):
+				kw['feed_ids'] = feed.id
+			spider = Spider(**kw)
 
 			crawler.crawl(spider)
 			crawler.start()

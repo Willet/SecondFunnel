@@ -47,9 +47,14 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
             sku = qs['kw'][0]
 
         if "noResults" in response.url:
-            product = Product.objects.get(sku=sku)
-            product.in_stock = False
-            product.save()
+            print "Out of stock!"
+            products = Product.objects.filter(sku__contains=sku + '@')
+            if not products:
+                print "We didn't have this product anyway."
+            for product in products:
+                print "product out of stock: {} {}".format(product.sku, product)
+                product.in_stock = False
+                product.save()
             return
 
         colors = sel.css('ul.swatches.clearfix li img::attr(src)').re(r'-(\d+)_')
