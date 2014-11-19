@@ -106,11 +106,6 @@ module.exports = (module, App) ->
         onClick: (ev) ->
             tile = @model
 
-            # Tile is a banner tile
-            if tile.get("redirect-url") and not (App.option("disableBannerRedirectOnMobile") and App.support.mobile())
-                window.open tile.get("redirect-url"), "_blank"
-                return
-
             if App.option("openTileInPopup", false)
                 if App.option("tilePopupUrl")
                     # override for ad units whose tiles point to our pages
