@@ -72,13 +72,13 @@
 <body class="{% if tile %}stl{% endif %}">
     <div class='navbar'>
         <div class="container">
-            <a href="http://www.aeropostale.com/" target="_blank">
+            <a href="http://www.aeropostale.com/">
                 <img class="logo" src="/static/light/aeropostale/landingpage/default/images/logo.png" />
             </a>
-            <a href="http://www.aeropostale.com/category/index.jsp?categoryId=43421136" target="_blank">
+            <a href="http://www.aeropostale.com/category/index.jsp?categoryId=43421136">
                 <img class="logo" src="/static/light/aeropostale/landingpage/default/images/logo2.png" />
             </a>
-            <a href="http://www.aeropostale.com/family/index.jsp?categoryId=53073646&cp=3534618.3534620.3534631.3542244" target="_blank">
+            <a href="http://www.aeropostale.com/family/index.jsp?categoryId=53073646&cp=3534618.3534620.3534631.3542244">
                 <img class="logo" src="/static/light/aeropostale/landingpage/default/images/logo3.png" />
             </a>
         </div>
@@ -115,7 +115,7 @@
                 <div class='table'>
                     <div class='cell'>
                         <div class="buy">
-                            <a class='button' href='<%= obj.url %>' target='_blank'>
+                            <a class='button' href='<%= obj.url %>'>
                                 Shop Now
                             </a>
                         </div>
@@ -171,7 +171,7 @@
                 <div class='table'>
                     <div class='cell'>
                         <div class="buy">
-                            <a class='button' href='<%= obj.url %>' target='_blank'>
+                            <a class='button' href='<%= obj.url %>'>
                                 Shop Now
                             </a>
                         </div>
@@ -276,7 +276,7 @@
                                     Coming soon to Aeropostale!
                                 </div>
                                 <div class="buy">
-                                    <a class='button' href='http://www.aeropostale.com/' target='_blank'>
+                                    <a class='button' href='http://www.aeropostale.com/'>
                                         Shop On Aeropostale
                                     </a>
                                 </div>
@@ -285,6 +285,11 @@
                     </div>
                 </div>
             <% } %>
+        </script>
+        <script type="text/template" id="product_buy_template">
+            <a class='button' href='<%= obj.url %>'>
+                Shop Now
+            </a>
         </script>
     </div>
 

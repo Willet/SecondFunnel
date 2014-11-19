@@ -41,8 +41,17 @@ module.exports = (module, App) ->
 
         onClick: (ev) ->
             tile = @model
-            window.open tile.get("redirect-url"), "_blank"
+            window.open tile.get("redirect-url"), "_self"
             return
+
+    class module.BannerTileView extends module.TileView
+        template: "#banner_tile_template"
+
+        onClick: (ev) ->
+            tile = @model
+            window.open tile.get("redirect-url"), "_self"
+            return
+
 
     ###
     Mobile categories for Aero behave differently than desktop
