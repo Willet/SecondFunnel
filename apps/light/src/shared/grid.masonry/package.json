@@ -1,9 +1,0 @@
-{
-  "name": "grid.masonry",
-  "version": "0.0.1",
-  "description": "Extends Masonry.js",
-  "main": "grid.masonry.js",
-  "directories": {
-    "example": "examples",
-  }
-}

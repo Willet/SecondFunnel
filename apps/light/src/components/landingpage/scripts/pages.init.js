@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 var $ = require('jquery');
 var _ = require('underscore');
@@ -183,9 +183,7 @@ module.exports.reinitialize = function (App) {
 
         App.store = new App.core.Store(App.options.store);
 
-        App.discovery = new App.feed.MasonryFeedView({
-            options: App.options
-        });
+        App.discovery = new App.feed.MasonryFeedView( App.options );
         App.discoveryArea.show(App.discovery);
 
         App.vent.trigger('initRouter', App.options, App);

@@ -3,6 +3,7 @@ Marionette = require('backbone.marionette')
 $ = require('jquery')
 _ = require('underscore')
 Masonry = require('masonry')
+GridMasonry = require('grid.masonry')
 Modernizr = require('modernizr')
 imagesLoaded = require('imagesLoaded')
 
@@ -10,7 +11,7 @@ class FeedView extends Marionette.CollectionView
 
     constructor: () ->
         @collection = new App.core.TileCollection()
-        super arguments
+        super # this is magic, it passes forward arguments
 
     initialize: (options) ->
         @pagesScrolled = 1
@@ -165,10 +166,9 @@ class MasonryFeedView extends FeedView
             opacity: 0
 
     initialize: (options) ->
-        super(arguments)
+        super # this is magic, it passes forward arguments
         # only care about the masonry options, parent class will care about rest
         @options = _.extend({}, @default_options, options.masonry)
-
         @recently_added = []
         @layoutInProgress = false
 
@@ -189,7 +189,15 @@ class MasonryFeedView extends FeedView
 
     setupMasonry: ->
         @options.columnWidth = $('.tile-sizer')[0]
-        @masonry = new Masonry @$el[0], @options
+        
+        if @options.forceGrid and @options.rowHeight
+            if App.option 'debug', false
+                console.error "Using GridMasonry"
+            @masonry = new GridMasonry @$el[0], @options
+        else
+            if App.option 'debug', false
+                console.error console.error "Using Masonry"
+            @masonry = new Masonry @$el[0], @options
         @masonry.bindResize()
         @masonry.layout()
 

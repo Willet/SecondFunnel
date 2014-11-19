@@ -7,7 +7,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     config.ssh.username = 'vagrant'
     config.ssh.forward_agent = true
-    config.vm.network :public_network
+    config.vm.network :public_network, :bridge => 'en1: Wi-Fi (AirPort)'
     config.vm.network :forwarded_port, guest: 80, host: 8000
     config.vm.synced_folder ".", "/opt/secondfunnel/app", :mount_options => ["uid=1002,gid=1002"]
 

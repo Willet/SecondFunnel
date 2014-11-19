@@ -7,7 +7,7 @@ var $ = require('jquery');
 /**
  * @module intentRank
  */
-App.module("intentRank", function (intentRank, App) {
+module.exports = function (intentRank, App) {
     "use strict";
     var resultsAlreadyRequested = []; // list of product IDs
 
@@ -281,12 +281,9 @@ App.module("intentRank", function (intentRank, App) {
         intentRank.options.category = category;
         intentRank.options.IRReset = true;
         App.tracker.changeCategory(category);
-
         App.vent.trigger('change:category', category, category);
-
-        App.discovery = new App.feed.MasonryFeedView({
-            options: App.options
-        });
+        
+        App.discovery = new App.feed.MasonryFeedView( App.options );
         $(".loading").show();
         App.discoveryArea.show(App.discovery);
 
@@ -300,4 +297,4 @@ App.module("intentRank", function (intentRank, App) {
         
         return intentRank;
     };
-});
+};

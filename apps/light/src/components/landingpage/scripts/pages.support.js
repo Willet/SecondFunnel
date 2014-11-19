@@ -2,7 +2,7 @@
 'use strict';
 var $ = require('jquery');
 
-module.exports = function (module, App) {
+module.exports = function (support, App) {
     // make new module full of transient utilities
 
     var $window = $(window),

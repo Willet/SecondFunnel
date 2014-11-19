@@ -1,6 +1,8 @@
 /*!
  * Grid Masonry v0.0.1
  *
+ * Most Masonry features, such as stamp's, layout right-to-left, layout bottom-to-top, etc remain untested
+ *
  * extended from:
  *
  * Masonry v3.1.5
@@ -9,33 +11,16 @@
  * MIT License
  * by David DeSandro
  */
+//
+"use strict"
+var Outlayer = require('outlayer');
+var getSize = require('get-size');
+var _ = require('underscore');
+var $ = require('jquery');
 
-( function( window ) {
-
-'use strict';
-
-// -------------------------- helpers -------------------------- //
-
-var indexOf = Array.prototype.indexOf ?
-  function( items, value ) {
-    return items.indexOf( value );
-  } :
-  function ( items, value ) {
-    for ( var i=0, len = items.length; i < len; i++ ) {
-      var item = items[i];
-      if ( item === value ) {
-        return i;
-      }
-    }
-    return -1;
-  };
-
-// -------------------------- masonryDefinition -------------------------- //
-
-// used for AMD definition and requires
-function gridMasonryDefinition( Outlayer, getSize ) {
+// -------------------------- gridMasonryDefinition -------------------------- //
   // create an Outlayer layout class
-  var GridMasonry = Outlayer.create('gridMasonry');
+  var GridMasonry = Outlayer.create('masonry');
 
   GridMasonry.prototype._resetLayout = function() {
     this.getSize();
@@ -93,14 +78,14 @@ function gridMasonryDefinition( Outlayer, getSize ) {
       }
       return cleanArr;
     }
-    var boundedColYs = colYs.reduce( removeExcessCols, [] );
+    var boundedColYs = _.reduce( colYs, removeExcessCols, [] );
     
     if (boundedColYs.length < 1) {
       // No tiles are within one row height
       // Find the next possible row height, find the tiles within variance of that
       // and then choose the height of lowest tile
       currentRowY = Math.min.apply(null, colYs) - rowHeight; // Have to correct for subtracting it later
-      boundedColYs = colYs.reduce( removeExcessCols, [] );
+      boundedColYs = _.reduce( colYs, removeExcessCols, [] );
     }
     return Math.max.apply(null, boundedColYs);
   };
@@ -110,7 +95,7 @@ function gridMasonryDefinition( Outlayer, getSize ) {
     // Replace any assignment to _currentRowY with this function
     if (newY > this._currentRowY) {
       this._currentRowY = newY;
-      $(document.createElement('div')).addClass('line').css({ 'top': newY+$('#grid').offset().top }).appendTo(document.body);
+      $(document.createElement('div')).addClass('line').css({ 'top': newY+$('.discovery-area').offset().top }).appendTo(document.body);
     }
   };
 
@@ -138,7 +123,7 @@ function gridMasonryDefinition( Outlayer, getSize ) {
     function findEmptySpot (colY) {
       return ((colY - _this._currentRowY) > 0);
     }
-    var noEmptyCols = Math.min.apply( null, this.colYs.map( findEmptySpot ) );
+    var noEmptyCols = Math.min.apply( null, _.map(this.colYs, findEmptySpot ) );
     if (noEmptyCols) {
       // start new row
       this._currentRowY = this._getNextRowY();
@@ -152,11 +137,11 @@ function gridMasonryDefinition( Outlayer, getSize ) {
       return arr;
     }
     var colGroup = this._getColGroup( colSpan );
-    var colGroupOnCurrentRow = colGroup.reduce( findColOnCurrentRow, [] );
+    var colGroupOnCurrentRow = _.reduce( colGroup, findColOnCurrentRow, [] );
     
     if (colGroupOnCurrentRow.length) {
       // Tile fits in empty spot on current row
-      var shortColIndex = indexOf( colGroup, colGroupOnCurrentRow[0] );
+      var shortColIndex = _.indexOf( colGroup, colGroupOnCurrentRow[0] );
       
       // position the brick
       var position = {
@@ -209,7 +194,7 @@ function gridMasonryDefinition( Outlayer, getSize ) {
     item.hide();
     item.isIgnored = true;
     this._delayedQueue.push( item );
-  }
+  };
 
   GridMasonry.prototype.unstashItem = function() {
     if ( this._delayedQueue && this._delayedQueue.length ) {
@@ -221,7 +206,7 @@ function gridMasonryDefinition( Outlayer, getSize ) {
       }
     }
     return undefined;
-  }
+  };
 
   GridMasonry.prototype._layoutItems = function( items, isInstant ) {
     var _this = this;
@@ -261,7 +246,7 @@ function gridMasonryDefinition( Outlayer, getSize ) {
     }
 
     // get array of queued items
-    var queuedItems = queue.map( function (position){ return position.item; });
+    var queuedItems = _.map( queue, function (position){ return position.item; });
 
     // emit layoutComplete when queued items are placed
     this._itemsOn( queuedItems, 'layout', function (){  
@@ -338,24 +323,4 @@ function gridMasonryDefinition( Outlayer, getSize ) {
     }
   };
 
-  return GridMasonry;
-}
-
-// -------------------------- transport -------------------------- //
-
-if ( typeof define === 'function' && define.amd ) {
-  // AMD
-  define( [
-      'outlayer/outlayer',
-      'get-size/get-size'
-    ],
-    gridMasonryDefinition );
-} else {
-  // browser global
-  window.GridMasonry = gridMasonryDefinition(
-    window.Outlayer,
-    window.getSize
-  );
-}
-
-})( window );
+module.exports = GridMasonry;

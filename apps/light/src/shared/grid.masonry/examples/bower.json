@@ -1,8 +1,8 @@
 {
   "name": "grid.masonry",
   "version": "0.0.1",
-  "description": "Extension of masonry",
-  "main": "grid.masonry.js",
+  "description": "Extension of Masonry",
+  "main": "../grid.masonry.js",
   "dependencies": {
     "get-size": "desandro/get-size#>=1.1.4 <2.0",
     "outlayer": "^1.2.0"
@@ -14,10 +14,7 @@
   },
   "ignore": [
     "examples/",
-    "package.json",
     "**/.*",
-    "node_modules",
-    "bower_components",
-  ],
-  "license": "MIT"
+    "bower_components"
+  ]
 }

@@ -245,13 +245,6 @@
         "outlayer"
       ]
     },
-    "grid.masonry": {
-      "exports": "window.GridMasonry",
-      "depends": [
-        "jquery",
-        "outlayer"
-      ]
-    },
     "outlayer": {
       "exports": "Outlayer",
       "depends": [
