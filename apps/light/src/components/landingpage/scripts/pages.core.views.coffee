@@ -509,7 +509,7 @@ module.exports = (module, App) ->
             templateRules
 
         onRender: ->
-            super(arguments)
+            super
 
             # hide discovery, then show this window as a page.
             if App.support.mobile()
@@ -521,7 +521,7 @@ module.exports = (module, App) ->
 
         # Disable scrolling body when preview is shown
         onShow: ->
-            super(arguments)
+            super
 
             #
             #  NOTE: Previously, it was thought that adding `no-scroll`
@@ -642,6 +642,12 @@ module.exports = (module, App) ->
                         trigger: true
                         replace: true
 
+                return
+
+            "click .buy": (event) ->
+                $target = $(event.target)
+                url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') or "http://www.aeropostale.com" )
+                window.open url, "_self"
                 return
 
         regions:

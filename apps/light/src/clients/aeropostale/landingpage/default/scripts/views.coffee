@@ -40,16 +40,16 @@ module.exports = (module, App) ->
         template: "#giftcard_tile_template"
 
         onClick: (ev) ->
-            tile = @model
-            window.open tile.get("redirect-url"), "_self"
+            url = App.utils.addUrlTrackingParameters( @model.get("redirect-url") )
+            window.open url, "_self"
             return
 
     class module.BannerTileView extends module.TileView
         template: "#banner_tile_template"
 
         onClick: (ev) ->
-            tile = @model
-            window.open tile.get("redirect-url"), "_self"
+            url = App.utils.addUrlTrackingParameters( @model.get("redirect-url") )
+            window.open url, "_self"
             return
 
 
