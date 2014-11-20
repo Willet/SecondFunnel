@@ -67,7 +67,7 @@ App.module('core', require('./views'));
         var params = { 
             'utm_source': 'giftguide',
             'utm_medium': 'site',
-            'utm_campaign': trackingCode[ App.intentRank.options.category ] or 'for_her'
+            'utm_campaign': trackingCode[ App.intentRank.options.category ] || 'for_her'
         }
         return ( url + (_.indexOf(url,'?') ? '&' : '?') + $.param(params) );
     };
