@@ -19,7 +19,6 @@ class Command(BaseCommand):
 		just creates product tiles.
 	"""
 
-
 	def handle(self, *args, **kwargs):
 		for arg in args:
 			page = Page.objects.get(url_slug=arg)
