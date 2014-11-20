@@ -1,3 +1,4 @@
+import os
 from importlib import import_module  # this line makes me lol for some reason
 
 from django.core.management.base import BaseCommand
@@ -34,30 +35,8 @@ class Command(BaseCommand):
 						start_urls.append(prod.url)
 			start_urls = set(start_urls)
 
-			module = import_module('apps.scrapy.spiders.' + store_name)
-			Spider = self.get_spider(module)
-			separator = getattr(Spider, "start_urls_separator", ",")
-
-			scrapy_args = [
-				'scrapy',
-				'crawl',
-				Spider.name,
-				'-a', 'start_urls={}'.format(separator.join(start_urls))
-			]
-
-			if kwargs.get('tile_template'):
-				scrapy_args += [
-					'-a', 'feed_ids={}'.format(feed.id),
-					'-a', 'tile_template={}'.format(kwargs['tile_template'])
-				]
-			print scrapy_args
-			execute(scrapy_args)
-
-	def get_spider(self, module):
-		contents = dir(module)
-		contents.remove('SecondFunnelCrawlScraper')
-		for i in contents:
-			if issubclass(getattr(module, i), module.SecondFunnelCrawlScraper):
-				return getattr(module, i)
-
-		raise NameError("No such spider: ", module.__name__)
+			for url in start_urls:
+				cmd = 'scrapy crawl {} -a start_urls={}'.format(store_name, url)
+				if kwargs.get('tile_template'):  # don't use it
+					cmd += '-a feed_ids={} -a tile_template={}'.format(feed.id, kwargs['tile_template'])
+				os.system(cmd)
