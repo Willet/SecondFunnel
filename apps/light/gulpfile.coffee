@@ -65,6 +65,7 @@ bower_dir = "lib/"
 config = production: true
 
 onError = (err) ->
+    $.util.log($.util.colors.red("Plumber: Error: #{err}"))
     $.util.beep()
     console.error err
     return
@@ -111,6 +112,7 @@ gulp.task "html", ["rev"], ->
     manifest = gulp.src("#{static_output_dir}/rev-manifest.json")
 
     return merge(manifest, pages, pages_no_modify)
+        .pipe $.plumber(errorHandler: onError)
         .pipe $.if(config.production, revCollector())
         .pipe $.filter("**/*.html") # ignore the manifest
         .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("all-rev-modified-files"))
@@ -121,6 +123,7 @@ gulp.task "html", ["rev"], ->
 
 gulp.task "styles", ->
     gulp.src(sources.sass)
+        .pipe $.plumber(errorHandler: onError)
         .pipe $.sass(
             errLogToConsole: not config.production
             style: (if config.production then "compressed" else "nested")
@@ -184,6 +187,7 @@ gulp.task "scripts", ["bower"], ->
 
 gulp.task "images", ->
     return gulp.src(sources.images)
+        .pipe $.plumber(errorHandler: onError)
         .pipe $.newer(static_output_dir)
         .pipe $.imagemin(
             optimizationLevel: 3
@@ -200,10 +204,11 @@ gulp.task "fonts", ["bower"], ->
         .pipe gulp.dest(static_output_dir)
 
 gulp.task "rev", (cb) ->
-    if config.production # we need to actually revision the files
-        runSequence "_rev", cb
-    else
-        cb()
+    cb()
+    #if config.production # we need to actually revision the files
+    #    runSequence "_rev", cb
+    #else
+    #    cb()
     return
 
 gulp.task "_rev", ["images", "fonts", "scripts", "styles"], ->
@@ -215,6 +220,7 @@ gulp.task "_rev", ["images", "fonts", "scripts", "styles"], ->
             # exclude already reved files (previous versions, etc)
             "!#{static_output_dir}/**/*#{reved_suffix}.{css,js,jpeg,jpg,svg,gif,png,eot,woff,ttf}"
         ], { base: __dirname })
+        .pipe $.plumber(errorHandler: onError)
         .pipe rev()
         .pipe $.rename(suffix: reved_suffix)
         .pipe gulp.dest(__dirname) # output rev-files
@@ -232,10 +238,14 @@ gulp.task "lint", ["jslint", "coffeelint"]
 
 
 gulp.task "jslint", ->
-    js_lint = gulp.src(sources.scripts).pipe($.jshint()).pipe $.jshint.reporter(require("jshint-stylish"))
+    js_lint = gulp.src(sources.scripts)
+        .pipe($.jshint())
+        .pipe $.jshint.reporter(require("jshint-stylish"))
 
 gulp.task "coffeelint", ->
-    gulp.src(["src/**/*.coffee", "gulpfile.coffee"]).pipe($.coffeelint()).pipe $.coffeelint.reporter()
+    gulp.src(["src/**/*.coffee", "gulpfile.coffee"])
+        .pipe($.coffeelint())
+        .pipe $.coffeelint.reporter()
 
 #
 # Development Environment
@@ -263,6 +273,6 @@ gulp.task "dev", [
     gulp.watch sources.fonts, ["fonts"]
     gulp.watch sources.images, ["images"]
     gulp.watch sources.vendor, ["vendor"]
-    $.util.log($.util.colors.blue("ALL FILES ARE BEING WATCHED (BY THE CIA)."))
+    $.util.log($.util.colors.blue("gulp.watch'ing html, styles, fonts, images, vendor"))
     return
 
