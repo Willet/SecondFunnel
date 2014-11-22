@@ -12,5 +12,5 @@ module.exports = (module, App) ->
 
         onClick: (ev) ->
             url = App.utils.generateAdClickUrl( @model.get 'url' )
-            window.open url, "_self"
+            window.open url, "_blank"
             return
