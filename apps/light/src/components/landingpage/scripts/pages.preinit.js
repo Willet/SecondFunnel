@@ -258,7 +258,7 @@ if (!window.requestAnimationFrame) {
 
     // Extend jQuery object
     $.fn.extend(extendFns);
-}());
+}($));
 
 $.support.cors = true;
 
@@ -282,7 +282,7 @@ $.support.cors = true;
     $window.on(listener, function () {
         $window.trigger('rotate');
     });
-}(window.jQuery || window.$));
+}($));
 
 // Underscore extensions
 _.mixin({
