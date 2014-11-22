@@ -3,9 +3,9 @@
 
 var $ = require('jquery');
 var _ = require('underscore');
-var deparam = require('jquery-deparam');
 var Marionette = require('backbone.marionette');
 var Cloudinary = require('cloudinary');
+require('jquery-deparam');
 
 exports.App = new Marionette.Application();
 var App = exports.App,
@@ -51,7 +51,7 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
     if (search && search.length && search[0] === '?') {
         search = search.substr(1);
-        pageParams = deparam(search);
+        pageParams = $.deparam(search);
     }
 
     // :type object

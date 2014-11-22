@@ -3,7 +3,8 @@ var _ = require('underscore');
 var Backbone = require('backbone');
 var Marionette = require('backbone.marionette');
 var bootstrap = require('bootstrap.dropdown'); // for menu-bar drop down on mobile
-var deparam = require('jquery-deparam');
+require('jquery-deparam');
+
 var Ad = require('ad'),
 	App = Ad.App;
 
@@ -34,16 +35,16 @@ App.module('core', require('./views'));
 	App.utils.generateAdClickUrl = function (url) {
 		var click_url, redirect_url, paramStr,
 			parts = urlParse(url),
-            params = deparam(parts.search),
-            window_params = deparam(window.location.search.substr(1));
+            params = $.deparam(parts.search),
+            windowParams = App.options.urlParams;
 
         // Ad server will pass us a click-tracking url
         // append our redirect url to the click-tracking url
-        if (window_params['click']) {
-        	click_url = decodeURI( window_params['click'] );
-        	delete window_params['click'];
-	        
-	        params = $.extend({}, params, window_params, App.options.urlParams || {});
+        if (windowParams['click']) {
+        	click_url = decodeURI( windowParams['click'] );
+        	delete windowParams['click'];
+
+	        params = $.extend({}, params, windowParams, App.options.urlParams || {});
 	        paramStr = '?' + $.param(params);
 
 			redirect_url = parts.protocol +  // http://
