@@ -33,7 +33,7 @@ App.module('core', require('./views'));
     };
 
 	App.utils.generateAdClickUrl = function (url) {
-		var click_url, redirect_url, paramStr,
+		var click_url, redirect_url, dest_url, paramStr,
 			parts = urlParse(url),
             params = $.deparam(parts.search),
             windowParams = App.options.urlParams;
@@ -41,24 +41,25 @@ App.module('core', require('./views'));
         // Ad server will pass us a click-tracking url
         // append our redirect url to the click-tracking url
         if (windowParams['click']) {
-        	click_url = decodeURI( windowParams['click'] );
+        	redirect_url = decodeURI( windowParams['click'] );
         	delete windowParams['click'];
+        }
 
-	        params = $.extend({}, params, windowParams, App.options.urlParams || {});
-	        paramStr = '?' + $.param(params);
+        params = $.extend({}, params, windowParams || {});
+        paramStr = params ? '?' + $.param(params) : '';
+        alert(JSON.stringify(parts));
+    	dest_url = parts.protocol +  // http://
+           		    parts.host +      // google.com:80
+           		    parts.pathname +  // /foobar?
+           		    paramStr +   // baz=kek
+           		    parts.hash;  // #hello
 
-			redirect_url = parts.protocol +  // http://
-	               		   parts.host +      // google.com:80
-	               		   parts.pathname +  // /foobar
-	               		   paramStr +   // ?baz=kek
-	               		   parts.hash;  // #hello
-	        click_url += encodeURIComponent(redirect_url);
-	    } else {
-        	click_url = parts.protocol +  // http://
-               		    parts.host +      // google.com:80
-               		    parts.pathname +  // /foobar?
-               		    paramStr +   // baz=kek
-               		    parts.hash;  // #hello
+        // Do we need to pass through a redirect?
+        if (redirect_url) {
+            redirect_url += encodeURIComponent(dest_url);
+            click_url = redirect_url;
+        } else {
+            click_url = dest_url;
         }
         return click_url;
     };
