@@ -62,4 +62,8 @@ App.module('core', require('./views'));
         }
         return click_url;
     };
+
+    // Update top bar
+    $topbar = $('#topbar a');
+    $topbar.attr('href', App.utils.generateAdClickUrl( $topbar.attr('href') ) );
 }());
