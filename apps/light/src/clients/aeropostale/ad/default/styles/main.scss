@@ -37,6 +37,9 @@ $ad-border-width: 0;
 .tile .price {
 	display: none;
 }
+.tile.banner .button {
+	pointer-events: none;
+}
 
 @media screen and (max-width: 190px) {
 	.tile {
