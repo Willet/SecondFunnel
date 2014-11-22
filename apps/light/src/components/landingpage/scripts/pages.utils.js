@@ -321,7 +321,7 @@ module.exports = function (utils, App) {
             parts = _this.urlParse(url),
             params = $.deparam(parts.search),
             windowParams = $.extend({}, $.deparam( window.location.search.substr(1) ));
-        alert(JSON.stringify(windowParams));
+        
         // Ad server will pass us a click-tracking url (usually encoded once)
         // append our redirect url to the click-tracking url
         // For more information:
