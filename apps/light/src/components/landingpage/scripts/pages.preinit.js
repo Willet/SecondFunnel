@@ -26,43 +26,17 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     // relays current page parameters to all outgoing link clicks.
     // combines PAGES_INFO.urlParams (default to nothing) with the params
     // in the page url right now.
-    var pageParams = {},
-        search = window.location.search,
-        campaignParams = App.options.urlParams || {},
-        urlParse = function (url) {
-            var a = document.createElement('a'),
-                search = '';
-            a.href = url;
-
-            if (a.search) {
-                search = a.search.substr(1);  // remove '?'
-            }
-
-            return {
-                'href': a.href,
-                'host': a.host,
-                'hostname': a.hostname,
-                'pathname': a.pathname,
-                'search': search,
-                'hash': a.hash,
-                'protocol': a.protocol + "//"
-            };
-        };
-
-    if (search && search.length && search[0] === '?') {
-        search = search.substr(1);
-        pageParams = $.deparam(search);
-    }
+    // remove leading '?' before deparamaterizing (note: empty search str -> {})
+    var pageParams = $.deparam( window.location.search.substr(1) ),
+        campaignParams = App.options.urlParams || {};
 
     // :type object
-    pageParams = $.extend({}, pageParams, campaignParams);
-
-    App.options.urlParams = pageParams;
+    App.options.urlParams = $.extend({}, pageParams, campaignParams);
 
     $(document).on('click', 'a', function (ev) {
         var $target = $(ev.target),
             href = $target.attr('href'),
-            parts = urlParse(href),
+            parts = App.utils.urlParse(href),
             params = $.extend({}, deparam(parts.search), App.options.urlParams || {}),
             paramStr = $.param(params);
 

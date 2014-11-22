@@ -230,7 +230,6 @@ if (!window.requestAnimationFrame) {
     $.fn.extend(extendFns);
 }());
 
-
 (function ($) {
     /**
      * Special jQuery listener for rotation events.  A rotation event occurs
@@ -252,6 +251,7 @@ if (!window.requestAnimationFrame) {
         $window.trigger('rotate');
     });
 }(window.jQuery || window.$));
+
 
 // Underscore extensions
 _.mixin({
