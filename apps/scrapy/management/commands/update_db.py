@@ -1,63 +1,42 @@
+import os
 from importlib import import_module  # this line makes me lol for some reason
 
-from scrapy import log, signals
-from twisted.internet import reactor
 from django.core.management.base import BaseCommand
-from scrapy.settings import CrawlerSettings
-from scrapy.crawler import Crawler
+from scrapy.cmdline import execute
 
 from apps.assets.models import Feed, Page
-from apps.scrapy import spiders
-
-import sys
-import os
 
 class Command(BaseCommand):
-	help = "Rescrapes all products in a given page.  Page url_slugs are given in the args.  (No pages specified means do nothing.)"
+	help = """Rescrapes all products in a given page.
+	Usage:
+	python manage.py update_db <url_slug> [...<url_slug>] [--tile_template=<tile_template>]
+
+	url_slug
+		Url slug of the page to rescrape.  (No pages specified means do nothing.)
+
+	tile_template  # DOES NOT WORK YET
+		Whether to create new tiles for scraped products if they don't already exist.
+		If provided, create tiles with the specified template. Currently
+		just creates product tiles.
+	"""
 
 	def handle(self, *args, **kwargs):
-		to_scrape = []  # [store_name, start_urls, feed]
-
 		for arg in args:
 			page = Page.objects.get(url_slug=arg)
 			store_name = page.store.name.lower()
 			feed = page.feed
 
-			urls = []
+			start_urls = []
 			for tile in feed.tiles.all():
 				if tile.product:
-					urls.append(tile.product.url)
+					start_urls.append(tile.product.url)
 				for content in tile.content.all():
 					for prod in content.tagged_products.all():
-						urls.append(prod.url)
-			urls = set(urls)
+						start_urls.append(prod.url)
+			start_urls = set(start_urls)
 
-			to_scrape.append((store_name, urls, feed.id))
-
-		for store_name, start_urls, feed_id in to_scrape:
-			crawler = Crawler(CrawlerSettings(import_module('apps.scrapy.settings')))
-			crawler.install()
-			crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
-
-			module = import_module('apps.scrapy.spiders.' + store_name)
-			Spider = self.get_spider(module)
-			separator = getattr(Spider, "start_urls_separator", ",")
-
-			kw = {'start_urls': separator.join(start_urls)}
-			if kwargs.get('add_to_feed'):
-				kw['feed_ids'] = feed.id
-			spider = Spider(**kw)
-
-			crawler.crawl(spider)
-			crawler.start()
-			log.start()
-			reactor.run()
-
-	def get_spider(self, module):
-		contents = dir(module)
-		contents.remove('SecondFunnelCrawlScraper')
-		for i in contents:
-			if issubclass(getattr(module, i), module.SecondFunnelCrawlScraper):
-				return getattr(module, i)
-
-		raise NameError("No such spider: ", module.__name__)
+			for url in start_urls:
+				cmd = 'scrapy crawl {} -a start_urls={}'.format(store_name, url)
+				if kwargs.get('tile_template'):  # don't use it
+					cmd += '-a feed_ids={} -a tile_template={}'.format(feed.id, kwargs['tile_template'])
+				os.system(cmd)

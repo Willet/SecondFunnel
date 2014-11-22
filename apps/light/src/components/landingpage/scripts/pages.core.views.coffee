@@ -106,11 +106,6 @@ module.exports = (module, App) ->
         onClick: (ev) ->
             tile = @model
 
-            # Tile is a banner tile
-            if tile.get("redirect-url") and not (App.option("disableBannerRedirectOnMobile") and App.support.mobile())
-                window.open tile.get("redirect-url"), "_blank"
-                return
-
             if App.option("openTileInPopup", false)
                 if App.option("tilePopupUrl")
                     # override for ad units whose tiles point to our pages
@@ -514,7 +509,7 @@ module.exports = (module, App) ->
             templateRules
 
         onRender: ->
-            super(arguments)
+            super
 
             # hide discovery, then show this window as a page.
             if App.support.mobile()
@@ -526,7 +521,7 @@ module.exports = (module, App) ->
 
         # Disable scrolling body when preview is shown
         onShow: ->
-            super(arguments)
+            super
 
             #
             #  NOTE: Previously, it was thought that adding `no-scroll`
@@ -647,6 +642,12 @@ module.exports = (module, App) ->
                         trigger: true
                         replace: true
 
+                return
+
+            "click .buy": (event) ->
+                $target = $(event.target)
+                url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') or "http://www.aeropostale.com" )
+                window.open url, "_self"
                 return
 
         regions:

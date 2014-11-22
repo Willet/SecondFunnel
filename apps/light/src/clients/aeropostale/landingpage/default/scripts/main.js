@@ -30,14 +30,16 @@ App.module('core', require('./views'));
         );
     }
 
-    // If Flash is disabled/not installed, don't show Grooveshark player
-    var hasFlash = false;
+    // If Flash is disabled/not installed or Safari browser, don't show Grooveshark player
+    var hasFlash = false,
+        isSafari = false;
     try {
         hasFlash = Boolean(new ActiveXObject('ShockwaveFlash.ShockwaveFlash'));
     } catch(exception) {
         hasFlash = ('undefined' != typeof navigator.mimeTypes['application/x-shockwave-flash']);
     }
-    if (!hasFlash) {
+    isSafari = navigator.userAgent.search("Safari") >= 0 && navigator.userAgent.search("Chrome") < 0;
+    if (isSafari || !hasFlash) {
         $('head').append([
                 '<style type="text/css">',
                 '.tile.grooveshark,',
@@ -47,6 +49,28 @@ App.module('core', require('./views'));
                 '</style>'
             ].join(" "));
     }
+
+    App.utils.addUrlTrackingParameters = function (url) {
+        var trackingCode = {
+            'for-her':                 'for_her',
+            'for-him':                 'for_him',
+            'under-$10':               'under_10',
+            'under-$10|girls':         'under_10_for_her',
+            'under-$10|guys':          'under_10_for_him',
+            'under-$20':               'under_20',
+            'under-$20|girls':         'under_20_for_her',
+            'under-$20|guys':          'under_20_for_him',
+            'stocking-stuffers':       'stocking_stuffers',
+            'stocking-stuffers|girls': 'stocking_stuffers_for_her',
+            'stocking-stuffers|guys':  'stocking_stuffers_for_him'
+        }
+        var params = { 
+            'utm_source': 'giftguide',
+            'utm_medium': 'site',
+            'utm_campaign': trackingCode[ App.intentRank.options.category ] || 'for_her'
+        }
+        return ( url + (_.indexOf(url,'?') ? '&' : '?') + $.param(params) );
+    };
 
     // ### Aero mobile nav ###
     // requires a new change category function because sub-categories
