@@ -2,10 +2,10 @@
 'use strict';
 
 var $ = require('jquery');
+require('jquery-deparam');
 var _ = require('underscore');
 var Marionette = require('backbone.marionette');
 var Cloudinary = require('cloudinary');
-require('jquery-deparam');
 
 exports.App = new Marionette.Application();
 var App = exports.App,
@@ -22,105 +22,40 @@ App._globals = App._globals || {};
 
 App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
-(function (document) {
-    // relays current page parameters to all outgoing link clicks.
-    // combines PAGES_INFO.urlParams (default to nothing) with the params
-    // in the page url right now.
-    var pageParams = {},
-        search = window.location.search,
-        campaignParams = App.options.urlParams || {},
-        urlParse = function (url) {
-            var a = document.createElement('a'),
-                search = '';
-            a.href = url;
+App.utils.generateAdClickUrl = function (url) {
+    var click_url, redirect_url, dest_url, paramStr,
+        parts = urlParse(url),
+        params = $.deparam(parts.search),
+        windowParams = $.extend({}, App.options.urlParams);
 
-            if (a.search) {
-                search = a.search.substr(1);  // remove '?'
-            }
-
-            return {
-                'href': a.href,
-                'host': a.host,
-                'hostname': a.hostname,
-                'pathname': a.pathname,
-                'search': search,
-                'hash': a.hash,
-                'protocol': a.protocol + "//"
-            };
-        };
-
-    if (search && search.length && search[0] === '?') {
-        search = search.substr(1);
-        pageParams = $.deparam(search);
+    // Ad server will pass us a click-tracking url (usually encoded once)
+    // append our redirect url to the click-tracking url
+    // For more information:
+    // - https://support.google.com/adxbuyer/answer/3187721?hl=en
+    // - https://support.google.com/dfp_premium/answer/1242718?hl=en
+    if (windowParams['click']) {
+        redirect_url = decodeURI( windowParams['click'] );
+        delete windowParams['click'];
     }
 
-    // :type object
-    pageParams = $.extend({}, pageParams, campaignParams);
+    params = $.extend({}, params, windowParams);
+    paramStr = _.isEmpty(params) ? '' : '?' + $.param(params);
+    
+    dest_url = parts.protocol +  // http://
+                parts.host +      // google.com:80
+                parts.pathname +  // /foobar?
+                paramStr +   // baz=kek
+                parts.hash;  // #hello
 
-    App.options.urlParams = pageParams;
-
-    $(document).on('click', 'a', function (ev) {
-        var $target = $(ev.target),
-            href = $target.attr('href'),
-            parts = urlParse(href),
-            params = $.extend({}, $.deparam(parts.search), App.options.urlParams || {}),
-            paramStr = $.param(params);
-
-        if (paramStr) {
-            paramStr = "?" + paramStr;
-        }
-
-        href = parts.protocol +  // http://
-               parts.host +      // google.com:80
-               parts.pathname +  // /foobar?
-               paramStr +   // baz=kek
-               parts.hash;  // #hello
-        $target.attr('href', href);
-    });
-}(document));
-
-(function (details) {
-    var pubDate;
-    if (details && details.page && details.page.pubDate) {
-        pubDate = details.page.pubDate;
+    // Do we need to pass through a redirect?
+    if (redirect_url) {
+        redirect_url += encodeURIComponent(dest_url);
+        click_url = redirect_url;
+    } else {
+        click_url = dest_url;
     }
-
-    // feature, not a bug
-    if (window.console && console.log) {
-        console.log('%cSecondFunnel', 'font-family:sans-serif; font-weight:bold; font-size:12pt;');
-        console.log('Published ' + pubDate);
-    }
-}(App.options));
-
-(function (window) {
-    /* https://app.asana.com/0/9719124443216/11060830366388
-     * Add ability to view feed in popular order using not
-     * http://test-gap.secondfunnel.com/livedin?algorithm=popular
-     * but
-     * http://test-gap.secondfunnel.com/livedin?popular
-     */
-    try {
-        if (window !== undefined &&
-            window.location &&
-            window.location.search &&
-            window.location.search.indexOf &&
-            typeof window.location.search.indexOf === 'function' &&
-            window.location.search.indexOf('popular') &&
-            window.location.search.indexOf('?popular') > -1 &&
-            window.location.search.indexOf('&popular') === -1) {
-            if (window.PAGES_INFO &&
-                typeof window.PAGES_INFO === 'object') {
-                window.PAGES_INFO.IRAlgo = 'popular';
-            }
-            if (window.App && window.App.options) {
-                // PAGES_INFO was read before this block; need to read again
-                App.options.IRAlgo = 'popular';
-            }
-        }
-    } catch (err) {
-        // fail silently
-    }
-}(window || {}));
+    return click_url;
+};
 
 // A ?debug value of 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
@@ -168,30 +103,6 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     }
 }(App.options.debug, window.location.hash + window.location.search));
 
-// As implemented, will break in IE9
-// Need a smarter way to determine if we can use console.debug
-//(function (original) {
-//    // make vent.trigger display debug messages.
-//    App.vent.trigger = function (eventName) {
-//        console.debug('App.vent.trigger(' + eventName + '): %o',
-//            _.rest(arguments));
-//        return original.apply(App.vent, arguments);
-//    };
-//}(App.vent.trigger));
-
-// http://stackoverflow.com/questions/1199352/
-String.prototype.truncate = function (n, useSentenceBoundary, addEllipses) {
-    var tooLong = this.length > n,
-        s = tooLong ? this.substr(0, n) : this;
-    if (tooLong && useSentenceBoundary && s.lastIndexOf('. ') > -1) {
-        s = s.substr(0, s.lastIndexOf('. ') + 1);
-    }
-    if (tooLong && addEllipses) {
-        s = s.substr(0, s.length - 3) + '...';
-    }
-    return s;
-};
-
 /**
  * https://gist.github.com/mrdoob/838785 (modified)
  * Provides requestAnimationFrame in a cross browser way.
@@ -207,56 +118,121 @@ if (!window.requestAnimationFrame) {
         };
 }
 
-// JQuery Special event to listen to delete
-// stackoverflow.com/questions/2200494
-// does not work with jQuery UI
-// does not work when affected by html(), replace(), replaceWith(), ...
-$.fn.remove = function () {
-    $(this).trigger(ev);
-    if (orig) {
-        return orig.apply(this, arguments);
-    } else {
-        return $(this);
+// jQuery Extensions
+(function ($) {
+    var extendFns = {
+        'remove': function () {
+            // JQuery Special event to listen to delete
+            // stackoverflow.com/questions/2200494
+            // does not work with jQuery UI
+            // does not work when affected by html(), replace(), replaceWith(), ...
+            $(this).trigger(ev);
+            if (orig) {
+                return orig.apply(this, arguments);
+            } else {
+                return $(this);
+            }
+        },
+        'scrollStopped': function (callback) {
+            /**
+             * @param {function} callback
+             */
+            // stackoverflow.com/a/14035162/1558430
+            $(this).scroll(function () {
+                var self = this, $this = $(self);
+                if ($this.data('scrollTimeout')) {
+                    clearTimeout($this.data('scrollTimeout'));
+                }
+                if (callback) {
+                    $this.data('scrollTimeout', setTimeout(callback, 60, self));
+                }
+            });
+        },
+        'swapWith': function (showWhich) {
+            /**
+             * Hides this page element, then shows another page element in place.
+             * This is very similar to what JQM does.
+             *
+             * @param showWhich {jQuery}   selected page
+             * @returns {jQuery}
+             */
+            showWhich.css('display', showWhich.data('display') || 'block');
+            this.data('offset', $(window).scrollTop()).css('display', 'none');
+            $(window).scrollTop(showWhich.data('offset') || 0);
+
+            return this;
+        },
+        'getScripts': function (urls, callback, options) {
+            // batch getScript with caching
+            // callback receives as many ajax xhr objects as the number of urls.
+
+            // like getScript, this function is incompatible with scripts relying on
+            // its own tag existing on the page (e.g. firebug, facebook jssdk)
+            var calls = _.map(urls, function (url) {
+                var options = $.extend(options || {}, {
+                        'dataType': 'script',
+                        'crossDomain': true,
+                        'cache': true,
+                        'url': url
+                    });
+                return $.ajax(options);
+            });
+            $.when.apply($, calls).done(callback, function () {
+                App.vent.trigger('deferredScriptsLoaded', urls);
+            });
+        }
+    };
+
+    if (!$.fn.tile ) {
+        extendFns['tile'] = function () {
+            /**
+             * Retrieve the first selected element's TileView and Tile, if applicable.
+             * Applicability largely depends on whether or not you had selected a tile.
+             *
+             * Due to aggressive garbage collection, these two calls may not succeed.
+             * If selector did not find a tile, returns an object with undefined values.
+             *
+             * @return {Object}
+             *
+             * @type {Function}
+             */
+            var props = {},
+                cid = this.attr('id');
+
+            if (!(this.hasClass('tile') && cid)) {
+                return props;
+            }
+
+            try {
+                props.view = App.discoveryArea.currentView.children
+                    .findByModelCid(cid);
+                // props.model = props.view.model;  // not always
+            } catch (err) { }
+
+            try {
+                props.model = _.findWhere(App.discovery.collection.models,
+                    {'cid': cid});
+
+                // these can be undefined.
+                props.type = props.model.get('type');
+                props.template = props.model.get('template');
+            } catch (err) { }
+
+            return props;
+        };
     }
-};
 
-/**
- * @param {function} callback
- */
-$.fn.scrollStopped = function (callback) {
-    // stackoverflow.com/a/14035162/1558430
-    $(this).scroll(function () {
-        var self = this, $this = $(self);
-        if ($this.data('scrollTimeout')) {
-            clearTimeout($this.data('scrollTimeout'));
-        }
-        if (callback) {
-            $this.data('scrollTimeout', setTimeout(callback, 60, self));
-        }
-    });
-};
+    if (!$.fn.getClasses) {
+        extendFns['getClasses'] = function () {
+            // random helper. get an element's list of classes.
+            // example output: ['facebook', 'button']
+            return _.compact(_.map($(this).attr('class').split(' '), $.trim));
+        };
+    }
 
-/**
- * Hides this page element, then shows another page element in place.
- * This is very similar to what JQM does.
- *
- * @param showWhich {jQuery}   selected page
- * @returns {jQuery}
- */
-$.fn.swapWith = function (showWhich) {
-    showWhich.css('display', showWhich.data('display') || 'block');
-    this.data('offset', $(window).scrollTop()).css('display', 'none');
-    $(window).scrollTop(showWhich.data('offset') || 0);
-
-    return this;
-};
-
-$.fn.getClasses = $.fn.getClasses || function () {
-    // random helper. get an element's list of classes.
-    // example output: ['facebook', 'button']
-    return _.compact(_.map($(this).attr('class').split(' '), $.trim));
-};
-
+    // Extend jQuery object
+    $.fn.extend(extendFns);
+}());
 
 (function ($) {
     /**
@@ -280,63 +256,8 @@ $.fn.getClasses = $.fn.getClasses || function () {
     });
 }(window.jQuery || window.$));
 
-/**
- * Retrieve the first selected element's TileView and Tile, if applicable.
- * Applicability largely depends on whether or not you had selected a tile.
- *
- * Due to aggressive garbage collection, these two calls may not succeed.
- * If selector did not find a tile, returns an object with undefined values.
- *
- * @return {Object}
- *
- * @type {Function}
- */
-$.fn.tile = $.fn.tile || function () {
-    var props = {},
-        cid = this.attr('id');
 
-    if (!(this.hasClass('tile') && cid)) {
-        return props;
-    }
-
-    try {
-        props.view = App.discoveryArea.currentView.children
-            .findByModelCid(cid);
-        // props.model = props.view.model;  // not always
-    } catch (err) { }
-
-    try {
-        props.model = _.findWhere(App.discovery.collection.models,
-            {'cid': cid});
-
-        // these can be undefined.
-        props.type = props.model.get('type');
-        props.template = props.model.get('template');
-    } catch (err) { }
-
-    return props;
-};
-
-$.getScripts = function (urls, callback, options) {
-    // batch getScript with caching
-    // callback receives as many ajax xhr objects as the number of urls.
-
-    // like getScript, this function is incompatible with scripts relying on
-    // its own tag existing on the page (e.g. firebug, facebook jssdk)
-    var calls = _.map(urls, function (url) {
-        var options = $.extend(options || {}, {
-                'dataType': 'script',
-                'crossDomain': true,
-                'cache': true,
-                'url': url
-            });
-        return $.ajax(options);
-    });
-    $.when.apply($, calls).done(callback, function () {
-        App.vent.trigger('deferredScriptsLoaded', urls);
-    });
-};
-
+// Underscore extensions
 _.mixin({
     'buffer': function (fn, wait) {
     // a variant of _.debounce, whose called function receives an array
@@ -378,6 +299,19 @@ _.mixin({
         return _.uniq(obj, false, function (x) {
             return x[key];
         });
+    },
+    'truncate': function (n, useSentenceBoundary, addEllipses) {
+        // truncate string at boundary
+        // http://stackoverflow.com/questions/1199352/
+        var tooLong = this.length > n,
+            s = tooLong ? this.substr(0, n) : this;
+        if (tooLong && useSentenceBoundary && s.lastIndexOf('. ') > -1) {
+            s = s.substr(0, s.lastIndexOf('. ') + 1);
+        }
+        if (tooLong && addEllipses) {
+            s = s.substr(0, s.length - 3) + '...';
+        }
+        return s;
     }
 });
 
@@ -441,6 +375,20 @@ _.mixin({
         };
     });
 }(App, [Marionette.View, Marionette.CompositeView, Marionette.ItemView]));
+
+// Console welcome message
+(function (details) {
+    var pubDate;
+    if (details && details.page && details.page.pubDate) {
+        pubDate = details.page.pubDate;
+    }
+
+    // feature, not a bug
+    if (window.console && console.log) {
+        console.log('%cSecondFunnel', 'font-family:sans-serif; font-weight:bold; font-size:12pt;');
+        console.log('Published ' + pubDate);
+    }
+}(App.options));
 
 /**
  * Initialize cloudinary

@@ -286,4 +286,32 @@ module.exports = function (utils, App) {
 
         return url;
     };
+
+    /**
+     * Returns the url parsed into components
+     *
+     * @param {string} url
+     *
+     * @returns {Object}
+     */
+    this.urlParse = function (url) {
+        // Trick to parse url is to use location object of a-tag
+        var a = document.createElement('a'),
+            search = '';
+        a.href = url;
+
+        if (a.search) {
+            search = a.search.substr(1);  // remove '?'
+        }
+
+        return {
+            'href': a.href,
+            'host': a.host,
+            'hostname': a.hostname,
+            'pathname': a.pathname,
+            'search': search,
+            'hash': a.hash,
+            'protocol': a.protocol + "//"
+        };
+    };
 };
