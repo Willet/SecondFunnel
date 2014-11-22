@@ -31,12 +31,14 @@ App.module('core', require('./views'));
         };
     };
 
-	App.utils.addUrlParams = function (url) {
+	App.utils.generateAdClickUrl = function (url) {
 		var click_url, redirect_url, paramStr,
 			parts = urlParse(url),
             params = deparam(parts.search),
             window_params = deparam(window.location.search.substr(1));
-        
+
+        // Ad server will pass us a click-tracking url
+        // append our redirect url to the click-tracking url
         if (window_params['click']) {
         	click_url = decodeURI( window_params['click'] );
         	delete window_params['click'];
