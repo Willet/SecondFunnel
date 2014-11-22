@@ -30,7 +30,7 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     var pageParams = $.deparam( window.location.search.substr(1) ),
         campaignParams = App.options.urlParams || {};
 
-    // :type object
+    // On click of last resort, only if event bubbles all the way to document
     App.options.urlParams = $.extend({}, pageParams, campaignParams);
 
     $(document).on('click', 'a', function (ev) {
