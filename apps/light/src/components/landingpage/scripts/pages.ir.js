@@ -7,8 +7,7 @@ var $ = require('jquery');
 /**
  * @module intentRank
  */
-App.module("intentRank", function (intentRank, App) {
-    "use strict";
+module.exports = function (intentRank, App) {
     var resultsAlreadyRequested = []; // list of product IDs
 
     this.options = {
@@ -300,4 +299,4 @@ App.module("intentRank", function (intentRank, App) {
         
         return intentRank;
     };
-});
+};
