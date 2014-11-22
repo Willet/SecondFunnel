@@ -36,18 +36,21 @@ App.module('core', require('./views'));
 		var click_url, redirect_url, dest_url, paramStr,
 			parts = urlParse(url),
             params = $.deparam(parts.search),
-            windowParams = App.options.urlParams;
+            windowParams = $.extend({}, App.options.urlParams);
 
-        // Ad server will pass us a click-tracking url
+        // Ad server will pass us a click-tracking url (usually encoded once)
         // append our redirect url to the click-tracking url
+        // For more information:
+        // - https://support.google.com/adxbuyer/answer/3187721?hl=en
+        // - https://support.google.com/dfp_premium/answer/1242718?hl=en
         if (windowParams['click']) {
         	redirect_url = decodeURI( windowParams['click'] );
         	delete windowParams['click'];
         }
 
-        params = $.extend({}, params, windowParams || {});
-        paramStr = params ? '?' + $.param(params) : '';
-        alert(JSON.stringify(parts));
+        params = $.extend({}, params, windowParams);
+        paramStr = _.isEmpty(params) ? '' : '?' + $.param(params);
+        
     	dest_url = parts.protocol +  // http://
            		    parts.host +      // google.com:80
            		    parts.pathname +  // /foobar?
