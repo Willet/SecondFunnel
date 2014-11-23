@@ -2,18 +2,18 @@
 'use strict';
 
 var $ = require('jquery');
-require('jquery-deparam');
 var _ = require('underscore');
 var Marionette = require('backbone.marionette');
 var Cloudinary = require('cloudinary');
+require('jquery-deparam');
 
-exports.App = new Marionette.Application();
-var App = exports.App,
+var App = new Marionette.Application(),
     ev = new $.Event('remove'),
     orig = $.fn.remove;
 
 window.App = App; // add to window
-window.SecondFunnel = App; // old alias
+
+module.exports.App = App;
 
 // _globals stores things that survive application reinitialization.
 // it is currently used to keep reference to window's scroll and
@@ -21,6 +21,67 @@ window.SecondFunnel = App; // old alias
 App._globals = App._globals || {};
 
 App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
+
+(function (document) {
+    // relays current page parameters to all outgoing link clicks.
+    // combines PAGES_INFO.urlParams (default to nothing) with the params
+    // in the page url right now.
+    // remove leading '?' before deparamaterizing (note: empty search str -> {})
+    var pageParams = $.deparam( window.location.search.substr(1) ),
+        campaignParams = App.options.urlParams || {};
+
+    // On click of last resort, only if event bubbles all the way to document
+    App.options.urlParams = $.extend({}, pageParams, campaignParams);
+
+    $(document).on('click', 'a', function (ev) {
+        var $target = $(ev.target),
+            href = $target.attr('href'),
+            parts = App.utils.urlParse(href),
+            params = $.extend({}, deparam(parts.search), App.options.urlParams || {}),
+            paramStr = $.param(params);
+
+        if (paramStr) {
+            paramStr = "?" + paramStr;
+        }
+
+        href = parts.protocol +  // http://
+               parts.host +      // google.com:80
+               parts.pathname +  // /foobar?
+               paramStr +   // baz=kek
+               parts.hash;  // #hello
+        $target.attr('href', href);
+    });
+}(document));
+
+(function (window) {
+    /* https://app.asana.com/0/9719124443216/11060830366388
+     * Add ability to view feed in popular order using not
+     * http://test-gap.secondfunnel.com/livedin?algorithm=popular
+     * but
+     * http://test-gap.secondfunnel.com/livedin?popular
+     */
+    try {
+        if (window !== undefined &&
+            window.location &&
+            window.location.search &&
+            window.location.search.indexOf &&
+            typeof window.location.search.indexOf === 'function' &&
+            window.location.search.indexOf('popular') &&
+            window.location.search.indexOf('?popular') > -1 &&
+            window.location.search.indexOf('&popular') === -1) {
+            if (window.PAGES_INFO &&
+                typeof window.PAGES_INFO === 'object') {
+                window.PAGES_INFO.IRAlgo = 'popular';
+            }
+            if (window.App && window.App.options) {
+                // PAGES_INFO was read before this block; need to read again
+                App.options.IRAlgo = 'popular';
+            }
+        }
+    } catch (err) {
+        // fail silently
+    }
+}(window || {}));
 
 // A ?debug value of 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
@@ -197,9 +258,10 @@ if (!window.requestAnimationFrame) {
 
     // Extend jQuery object
     $.fn.extend(extendFns);
-}($));
 
-(function ($) {
+    // Support Cross-Origin Resource Sharing
+    $.support.cors = true;
+
     /**
      * Special jQuery listener for rotation events.  A rotation event occurs
      * when the orientation of the page triggers.  A rotation can also be triggered
@@ -221,66 +283,67 @@ if (!window.requestAnimationFrame) {
     });
 }($));
 
-
 // Underscore extensions
-_.mixin({
-    'buffer': function (fn, wait) {
-    // a variant of _.debounce, whose called function receives an array
-    // of buffered args (i.e. fn([arg, arg, arg...])
-    //
-    // the fn will receive only one argument.
-        var args = [],
-            originalContext = this,
-            newFn = _.debounce(function () {
-                    // newFn calls the function and clears the arg buffer
-                    var result = fn.call(originalContext, args);
-                    args = [];
-                    return result;
-                }, wait);
+(function (_) {
+    _.mixin({
+        'buffer': function (fn, wait) {
+        // a variant of _.debounce, whose called function receives an array
+        // of buffered args (i.e. fn([arg, arg, arg...])
+        //
+        // the fn will receive only one argument.
+            var args = [],
+                originalContext = this,
+                newFn = _.debounce(function () {
+                        // newFn calls the function and clears the arg buffer
+                        var result = fn.call(originalContext, args);
+                        args = [];
+                        return result;
+                    }, wait);
 
-        return function (arg) {
-            args.push(arg);
-            return newFn.call(originalContext, args);
-        };
-    },
-    'capitalize': function (string) {
-        // underscore's fancy pants capitalize()
-        var str = string || '';
-        return str.charAt(0).toUpperCase() + str.substring(1);
-    },
-    'get': function (obj, key, defaultValue) {
-        // thin wrapper around obj key access that never throws an error.
-        try {
-            var val = obj[key];
-            if (val !== undefined) {
-                return obj[key];
+            return function (arg) {
+                args.push(arg);
+                return newFn.call(originalContext, args);
+            };
+        },
+        'capitalize': function (string) {
+            // underscore's fancy pants capitalize()
+            var str = string || '';
+            return str.charAt(0).toUpperCase() + str.substring(1);
+        },
+        'get': function (obj, key, defaultValue) {
+            // thin wrapper around obj key access that never throws an error.
+            try {
+                var val = obj[key];
+                if (val !== undefined) {
+                    return obj[key];
+                }
+            } catch (err) {
+                // default
             }
-        } catch (err) {
-            // default
+            return defaultValue;
+        },
+        'uniqBy': function (obj, key) {  // shorthand
+            return _.uniq(obj, false, function (x) {
+                return x[key];
+            });
+        },
+        'truncate': function (n, useSentenceBoundary, addEllipses) {
+            // truncate string at boundary
+            // http://stackoverflow.com/questions/1199352/
+            var tooLong = this.length > n,
+                s = tooLong ? this.substr(0, n) : this;
+            if (tooLong && useSentenceBoundary && s.lastIndexOf('. ') > -1) {
+                s = s.substr(0, s.lastIndexOf('. ') + 1);
+            }
+            if (tooLong && addEllipses) {
+                s = s.substr(0, s.length - 3) + '...';
+            }
+            return s;
         }
-        return defaultValue;
-    },
-    'uniqBy': function (obj, key) {  // shorthand
-        return _.uniq(obj, false, function (x) {
-            return x[key];
-        });
-    },
-    'truncate': function (n, useSentenceBoundary, addEllipses) {
-        // truncate string at boundary
-        // http://stackoverflow.com/questions/1199352/
-        var tooLong = this.length > n,
-            s = tooLong ? this.substr(0, n) : this;
-        if (tooLong && useSentenceBoundary && s.lastIndexOf('. ') > -1) {
-            s = s.substr(0, s.lastIndexOf('. ') + 1);
-        }
-        if (tooLong && addEllipses) {
-            s = s.substr(0, s.length - 3) + '...';
-        }
-        return s;
-    }
-});
+    });
+}(_));
 
-(function (App, views) {
+(function (views) {
     /**
      * View's render() is a noop. It won't trigger a NoTemplateError
      * like other Views do. Here's a patch.
@@ -339,7 +402,7 @@ _.mixin({
             return result;
         };
     });
-}(App, [Marionette.View, Marionette.CompositeView, Marionette.ItemView]));
+}([Marionette.View, Marionette.CompositeView, Marionette.ItemView]));
 
 // Console welcome message
 (function (details) {
@@ -361,22 +424,20 @@ _.mixin({
 Cloudinary.config({ 'cloud_name': 'secondfunnel', 'api_key': '471718281466152' });
 App.CLOUDINARY_DOMAIN = 'http://' + Cloudinary.SHARED_CDN + '/' + Cloudinary.config().cloud_name + '/image/upload/';
 
-
-
+/**
+ * Seupt Application Modules
+ */
 App.module('utils', require('pages.utils'));
+// TODO: widgets are messed up dude
+App.utils.registerWidget('gallery', '.gallery, .gallery-dots', require('pages.widget.gallery'));
 App.module('core', require('pages.core'));
-App.module('intentRank', require('pages.ir'));
+App.module('intentRank', require('pages.intentrank'));
 App.module('core', require('pages.core.models'));
 App.module('core', require('pages.core.views'));
 App.module('support', require('pages.support'));
 App.module('feed', require('pages.core.feed'));
 App.module('optimizer', require('pages.optimizer'));
-//App.module('tracker', require('pages.tracker'));
-//App.module('sharing', require('pages.sharing'));
+App.module('tracker', require('pages.tracker'));
+App.module('sharing', require('pages.sharing'));
 App.module('viewport', require('pages.viewport'));
-//App.utils.registerWidget('gallery', '.gallery, .gallery-dots', require('pages.widget.gallery'));
-App.module("scroller", require('./ad.scroller'));
-
-var reinit = require('pages.init');
-reinit.reinitialize(App);
-App.start();
+App.module('init', require('pages.init'));

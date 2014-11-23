@@ -1,13 +1,21 @@
+/**
+ *  AEROPOSTALE PAGE
+ **/
+"use strict";
+
 var $ = require('jquery');
 var _ = require('underscore');
-var Backbone = require('backbone');
-var Marionette = require('backbone.marionette');
-var bootstrap = require('bootstrap.dropdown'); // for menu-bar drop down on mobile
 var waypoints = require("jquery-waypoints") // register $.fn.waypoint
 
 var Page = require('landingpage'),
     App = Page.App;
+
+// Import client customizations
 App.module('core', require('./views'));
+
+// Run Application
+App.init.initialize(App);
+App.start();
 
 (function () {
     // Custom Aero theme implementation
