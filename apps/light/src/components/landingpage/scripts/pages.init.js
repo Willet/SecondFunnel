@@ -48,7 +48,7 @@ module.exports.reinitialize = function (App) {
             }));
             //http://stackoverflow.com/a/5298684
             var loc = window.location;
-            if (loc.href.indexOf('#') !== -1) {
+            if (loc.href.indexOf('#') > -1) {
                 if ('replaceState' in window.history) {
                     window.history.replaceState('', document.title, loc.pathname + loc.search);
                 } else {

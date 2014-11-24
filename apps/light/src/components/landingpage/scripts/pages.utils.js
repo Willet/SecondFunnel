@@ -298,48 +298,88 @@ module.exports = function (utils, App) {
     this.urlParse = function (url) {
         // Trick to parse url is to use location object of a-tag
         var a = document.createElement('a'),
-            search = '';
         a.href = url;
 
-        if (a.search) {
-            search = a.search.substr(1);  // remove '?'
-        }
-
+        // <protocol>//<hostname>:<port><pathname><search><hash>
+        // hreft - complete url
+        // host - <hostname>:<port>
+        // origin - <protocal>//<hostname>:<port>
         return {
-            'href': a.href,
-            'host': a.host,
+            'href':     a.href,
+            'host':     a.host,
+            'origin':   a.origin,
+            'protocol': a.protocol,
             'hostname': a.hostname,
-            'pathname': a.pathname,
-            'search': search,
-            'hash': a.hash,
-            'protocol': a.protocol + "//"
+            'port':     a.port,
+            'pathname': a.pathname, // if path, includes leading '/'
+            'search':   a.search, // if search, includes leading '?'
+            'hash':     a.hash // if hash, includes leading '#'
         };
     };
 
+    /**
+     * Returns the url string constructed from components
+     *  - non-empty pathname must include leading '/'
+     *  - non-empty search must include leading '?'
+     *  - non-empty hash must incldue leading '#'
+     *
+     * @param {Object} url parts
+     *
+     * @returns {string} url
+     */
+    this.urlBuild = function (urlObj) {
+        // Trick to parse url is to use location object of a-tag
+        var url = urlObj.protocol + '//' + urlObj.hostname;
+        if (urlObj.port) {
+            url += ':' + urlObj.port;
+        }
+        url += urlObj.pathname + urlObj.search + urlObj.hash;
+
+        return url;
+    };
+
+    /**
+     * Returns the url string constructed from components
+     *
+     * @param {Object} url parts
+     *
+     * @returns {string} url
+     */
+    this.urlAddParams = function (url, params) {
+        var urlParts, paramsObj, urlParams;
+        
+        urlParts = _this.urlParse( url );
+        // use substr to remove leading '?'. ''.substr(1) returns ''
+        paramsObj = $.extend({}, params, $.deparam( urlParts.search.substr(1) ));
+        urlParams = _.isEmpty(paramsObj) ? '' : '?' + $.params( paramsObj );
+        
+        return _this.urlBuild( urlParams );
+    }
+
+    /**
+     * Returns ad click-tracking redirect url
+     *
+     * Ad server will pass us a click-tracking url as url param 'click' (usually encoded once)
+     * Use this url for clicks w/ our redirect url appended to the end
+     *
+     * For more information:
+     *  - https://support.google.com/adxbuyer/answer/3187721?hl=en
+     *  - https://support.google.com/dfp_premium/answer/1242718?hl=en
+     *
+     * @param {string} url
+     *
+     * @returns {string} url
+     */
     this.generateAdClickUrl = function (url) {
-        var click_url, redirect_url, dest_url, paramStr,
-            parts = _this.urlParse(url),
-            params = $.deparam(parts.search),
+        var click_url, redirect_url, dest_url,
             windowParams = $.extend({}, $.deparam( window.location.search.substr(1) ));
         
-        // Ad server will pass us a click-tracking url (usually encoded once)
-        // append our redirect url to the click-tracking url
-        // For more information:
-        // - https://support.google.com/adxbuyer/answer/3187721?hl=en
-        // - https://support.google.com/dfp_premium/answer/1242718?hl=en
         if (windowParams['click']) {
             redirect_url = decodeURI( windowParams['click'] );
             delete windowParams['click'];
         }
 
-        params = $.extend({}, params, windowParams);
-        paramStr = _.isEmpty(params) ? '' : '?' + $.param(params);
-        
-        dest_url = parts.protocol +  // http://
-                    parts.host +      // google.com:80
-                    parts.pathname +  // /foobar?
-                    paramStr +   // baz=kek
-                    parts.hash;  // #hello
+        dest_url = _this.urlAddParams(url, windowParams);
 
         // Do we need to pass through a redirect?
         if (redirect_url) {

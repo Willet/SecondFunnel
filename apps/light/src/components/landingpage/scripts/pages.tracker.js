@@ -337,7 +337,7 @@ module.exports = function (tracker, App) {
         App.vent.trigger('videoStateChange', videoId, event, this);
 
         // TODO: Do we only want to measure one event per video?
-        if (videosPlayed.indexOf(videoId) !== -1) {
+        if (videosPlayed.indexOf(videoId) > -1) {
             // not that video
             return;
         }
