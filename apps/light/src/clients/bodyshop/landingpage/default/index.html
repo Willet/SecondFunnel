@@ -116,6 +116,31 @@
         </noscript>
     </div>
 
+    <!-- TILE TEMPLATES -->
+    <script type="text/template" id="product_tile_template">
+        <div class="tile-border">
+            <div class="image-container">
+                <div>
+                    <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
+                </div>
+            </div>
+            <% if (App.option('debug', 0) > 1) { %>
+                <span class="type"><%= obj['content-type'] %></span>
+            <% } %>
+            <div class="name"><%= obj.title || obj.name %></div>
+            <div class="price"><%= obj.price %></div>
+        </div>
+    </script>
+
+    <script type="text/template" id="image_tile_template">
+    <div class='relative'>
+        <img class="focus" src="<%= obj.images[0].url %>" alt="<%= obj.caption %>" />
+    </div>
+    <% if (App.option("debug", 0) > 1) { %>
+        <span class="type"><%= obj["content-type"] %></span>
+    <% } %>
+</script>
+
     <img src="{% url 'apps.tracking.views.pixel' %}"/>
     <div>
         @@include('shared/default_templates.html')
