@@ -1,18 +1,22 @@
 @charset "UTF-8";
 
-$ad-border-width: 0;
+$ad-border-width: 1px;
+$ad-border-color: #F02D3E;
 
 @import 'src/clients/aeropostale/landingpage/default/styles/main.scss';
 @import 'src/components/ad/styles/base';
 
 /* ad border */
+html, body {
+	min-height: 100%;
+}
 body:before, body:after {
     content: "";
     position: fixed;
-    background: #F02D3E;
+    background: $ad-border-color;
     left: 0;
     right: 0;
-    height: 1px;
+    height: $ad-border-width;
 }
 body:before {
     top: 0;
@@ -21,8 +25,9 @@ body:after {
     bottom: 0;
 }
 body {
-    border-left: 1px solid #F02D3E;
-    border-right: 1px solid #F02D3E;  
+    border-left: $ad-border-width solid $ad-border-color;
+    border-right: $ad-border-width solid $ad-border-color;
+    overflow: hidden;
 }
 #discovery-area {
 	margin-top: 2px;
