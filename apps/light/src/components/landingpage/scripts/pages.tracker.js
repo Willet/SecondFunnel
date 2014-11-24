@@ -413,7 +413,7 @@ module.exports = function (tracker, App) {
 
             trackEvent({
                 'category': trackingInfo.category,
-                'action': 'Preview',
+                'action': $(this).hasClass('banner') ? 'Purchase' : 'Preview',
                 'label': label
             });
 
