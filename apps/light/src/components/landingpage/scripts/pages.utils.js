@@ -2,6 +2,7 @@
 
 'use strict';
 var $ = require('jquery');
+require('jquery-deparam');
 var _ = require('underscore');
 /**
  * @module utils
