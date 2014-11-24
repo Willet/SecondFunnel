@@ -348,7 +348,7 @@ module.exports = function (utils, App) {
      * @returns {string} url
      */
     this.urlAddParams = function (url, params) {
-        var urlParts, paramsObj,
+        var urlParts, paramsObj;
         
         urlParts = _this.urlParse( url );
         // use substr to remove leading '?'. ''.substr(1) returns ''
@@ -356,7 +356,7 @@ module.exports = function (utils, App) {
         urlParts.search = _.isEmpty(paramsObj) ? '' : '?' + $.param( paramsObj );
         
         return _this.urlBuild( urlParts );
-    }
+    };
 
     /**
      * Returns ad click-tracking redirect url
