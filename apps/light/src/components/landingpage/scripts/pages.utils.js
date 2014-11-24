@@ -298,8 +298,14 @@ module.exports = function (utils, App) {
      */
     this.urlParse = function (url) {
         // Trick to parse url is to use location object of a-tag
-        var a = document.createElement('a');
+        var path, a = document.createElement('a');
         a.href = url;
+        path = a.pathname;
+
+        // Make IE consistent
+        if (path.length && path.charAt(0) !== '/') {
+            path = '/' + path;
+        }
 
         // <protocol>//<hostname>:<port><pathname><search><hash>
         // hreft - complete url
@@ -312,7 +318,7 @@ module.exports = function (utils, App) {
             'protocol': a.protocol,
             'hostname': a.hostname,
             'port':     a.port,
-            'pathname': a.pathname, // if path, includes leading '/'
+            'pathname': path, // if path, includes leading '/'
             'search':   a.search, // if search, includes leading '?'
             'hash':     a.hash // if hash, includes leading '#'
         };
