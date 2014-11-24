@@ -93,7 +93,8 @@ class FeedView extends Marionette.CollectionView
         if $(window).scrollTop() > 0
             App.vent.trigger 'tracking:trackEvent',
                 category: 'visit'
-                action: 'scroll'
+                action: 'scroll-tick'
+                nonInteraction: true
 
         # TODO: this is global tracking stuff, really does not need to be on this view
         # how many pages did the user scroll
