@@ -66,7 +66,8 @@ module.exports = (module, App) ->
                 else
                     models = []
             for model in models
-                if (t = @models.indexOf(model)) > -1
+                t = @models.indexOf(model)
+                if (t > -1)
                     @models[t..t] = []
                     @length = @length - 1
                     if not options.silent
