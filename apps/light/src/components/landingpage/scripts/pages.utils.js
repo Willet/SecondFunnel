@@ -2,6 +2,7 @@
 
 'use strict';
 var $ = require('jquery');
+require('jquery-deparam');
 var _ = require('underscore');
 /**
  * @module utils
@@ -297,7 +298,7 @@ module.exports = function (utils, App) {
      */
     this.urlParse = function (url) {
         // Trick to parse url is to use location object of a-tag
-        var a = document.createElement('a'),
+        var a = document.createElement('a');
         a.href = url;
 
         // <protocol>//<hostname>:<port><pathname><search><hash>
@@ -328,7 +329,7 @@ module.exports = function (utils, App) {
      * @returns {string} url
      */
     this.urlBuild = function (urlObj) {
-        // Trick to parse url is to use location object of a-tag
+        // <protocol>//<hostname>:<port><pathname><search><hash>
         var url = urlObj.protocol + '//' + urlObj.hostname;
         if (urlObj.port) {
             url += ':' + urlObj.port;
@@ -339,21 +340,22 @@ module.exports = function (utils, App) {
     };
 
     /**
-     * Returns the url string constructed from components
+     * Returns the url string with additional params appended to querystring
      *
      * @param {Object} url parts
+     * @param {object} additional querystring parameters
      *
      * @returns {string} url
      */
     this.urlAddParams = function (url, params) {
-        var urlParts, paramsObj, urlParams;
+        var urlParts, paramsObj,
         
         urlParts = _this.urlParse( url );
         // use substr to remove leading '?'. ''.substr(1) returns ''
         paramsObj = $.extend({}, params, $.deparam( urlParts.search.substr(1) ));
-        urlParams = _.isEmpty(paramsObj) ? '' : '?' + $.params( paramsObj );
+        urlParts.search = _.isEmpty(paramsObj) ? '' : '?' + $.param( paramsObj );
         
-        return _this.urlBuild( urlParams );
+        return _this.urlBuild( urlParts );
     }
 
     /**
