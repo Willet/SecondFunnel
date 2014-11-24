@@ -10,8 +10,8 @@ var Ad = require('ad'),
 
 App.module('core', require('./views'));
 
-(function () {
+$(document).ready(function() {
     // Update top bar
     $topbar = $('#topbar a');
     $topbar.attr('href', App.utils.generateAdClickUrl( $topbar.attr('href') ) );
-}());
+});

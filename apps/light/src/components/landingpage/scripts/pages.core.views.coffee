@@ -45,7 +45,7 @@ module.exports = (module, App) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") >= 0
+                    t.indexOf("mobile") > -1
                 )
             templateRules
 
@@ -504,7 +504,7 @@ module.exports = (module, App) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") >= 0
+                    t.indexOf("mobile") > -1
                 )
             templateRules
 
@@ -627,7 +627,7 @@ module.exports = (module, App) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") >= 0
+                    t.indexOf("mobile") > -1
                 )
             templateRules
 
