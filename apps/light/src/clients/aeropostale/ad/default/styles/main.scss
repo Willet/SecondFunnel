@@ -5,6 +5,25 @@ $ad-border-width: 0;
 @import 'src/clients/aeropostale/landingpage/default/styles/main.scss';
 @import 'src/components/ad/styles/base';
 
+/* ad border */
+body:before, body:after {
+    content: "";
+    position: fixed;
+    background: #F02D3E;
+    left: 0;
+    right: 0;
+    height: 1px;
+}
+body:before {
+    top: 0;
+}
+body:after {
+    bottom: 0;
+}
+body {
+    border-left: 1px solid #F02D3E;
+    border-right: 1px solid #F02D3E;  
+}
 #discovery-area {
 	margin-top: 2px;
 }
