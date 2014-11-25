@@ -11,8 +11,10 @@ var App = new Marionette.Application(),
     ev = new $.Event('remove'),
     orig = $.fn.remove;
 
+// Return App
 module.exports.App = window.App = App;
 
+// Update the shared $, _
 App.module('', require('jquery.extensions'));
 App.module('', require('underscore.extensions'));
 
