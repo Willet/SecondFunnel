@@ -52,25 +52,6 @@ module.exports = function (module, App, Backhone, Marionette, $, _) {
             $(window).scrollTop(showWhich.data('offset') || 0);
 
             return $(this);
-        },
-        'getScripts': function (urls, callback, options) {
-            // batch getScript with caching
-            // callback receives as many ajax xhr objects as the number of urls.
-
-            // like getScript, this function is incompatible with scripts relying on
-            // its own tag existing on the page (e.g. firebug, facebook jssdk)
-            var calls = _.map(urls, function (url) {
-                var options = $.extend(options || {}, {
-                        'dataType': 'script',
-                        'crossDomain': true,
-                        'cache': true,
-                        'url': url
-                    });
-                return $.ajax(options);
-            });
-            $.when.apply($, calls).done(callback, function () {
-                App.vent.trigger('deferredScriptsLoaded', urls);
-            });
         }
     };
 
@@ -123,6 +104,28 @@ module.exports = function (module, App, Backhone, Marionette, $, _) {
 
     // Extend jQuery object
     $.fn.extend(extendFns);
+
+    if (!$.getScripts) {
+        $.getScripts = function (urls, callback, options) {
+            // batch getScript with caching
+            // callback receives as many ajax xhr objects as the number of urls.
+
+            // like getScript, this function is incompatible with scripts relying on
+            // its own tag existing on the page (e.g. firebug, facebook jssdk)
+            var calls = _.map(urls, function (url) {
+                var options = $.extend(options || {}, {
+                        'dataType': 'script',
+                        'crossDomain': true,
+                        'cache': true,
+                        'url': url
+                    });
+                return $.ajax(options);
+            });
+            $.when.apply($, calls).done(callback, function () {
+                App.vent.trigger('deferredScriptsLoaded', urls);
+            });
+        }
+    }
 
     $.support.cors = true;
     /**
