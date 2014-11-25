@@ -57,7 +57,6 @@ module.exports = (module, App, Backhone, Marionette, $, _) ->
             @attachListeners()
             @fetchTiles()
 
-<<<<<<< HEAD
         fetchTiles: ->
             if @isLoading
                 return (new $.Deferred()).promise()
