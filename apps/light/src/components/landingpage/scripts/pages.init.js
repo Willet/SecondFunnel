@@ -18,7 +18,7 @@ module.exports = function (init, App, Backhone, Marionette, $, _) {
             });
             App._initialized = true;
         }
-
+        
         // from davidsulc/marionette-gentle-introduction
         App.navigate = App.navigate || function (route, options) {
             options = options || {};
@@ -46,7 +46,7 @@ module.exports = function (init, App, Backhone, Marionette, $, _) {
                 }));
                 //http://stackoverflow.com/a/5298684
                 var loc = window.location;
-                if (loc.href.indexOf('#') !== -1) {
+                if (loc.href.indexOf('#') > -1) {
                     if ('replaceState' in window.history) {
                         window.history.replaceState('', document.title, loc.pathname + loc.search);
                     } else {

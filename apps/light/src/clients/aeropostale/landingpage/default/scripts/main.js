@@ -4,6 +4,7 @@
 "use strict";
 
 var $ = require('jquery');
+require('jquery-deparam');
 var _ = require('underscore');
 var waypoints = require("jquery-waypoints") // register $.fn.waypoint
 
@@ -77,7 +78,8 @@ App.start();
             'utm_medium': 'site',
             'utm_campaign': trackingCode[ App.intentRank.options.category ] || 'for_her'
         }
-        return ( url + (_.indexOf(url,'?') ? '&' : '?') + $.param(params) );
+
+        return App.utils.urlAddParams(url, params);
     };
 
     // ### Aero mobile nav ###

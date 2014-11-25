@@ -12,6 +12,7 @@ var App = new Marionette.Application(),
     ev = new $.Event('remove'),
     orig = $.fn.remove;
 
+// Return App
 module.exports.App = window.App = App;
 
 App.module('', require('jquery.extensions'));
@@ -55,7 +56,7 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     // removes the 'debug' param from all outgoing urls.
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
-        debugLevel = App.options.debug = hash[hashIdx + 6];
+        debugLevel = App.options.debug = hash.charAt(hashIdx + 6);
         if (App.options.urlParams && App.options.urlParams.debug) {
             delete App.options.urlParams.debug;
         }

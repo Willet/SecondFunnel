@@ -1,5 +1,7 @@
 'use strict';
 
+require('jquery-deparam');
+
 /**
  * @module utils
  */
@@ -293,22 +295,69 @@ module.exports = function (utils, App, Backhone, Marionette, $, _) {
      */
     this.urlParse = function (url) {
         // Trick to parse url is to use location object of a-tag
-        var a = document.createElement('a'),
-            search = '';
+        var path, a = document.createElement('a');
         a.href = url;
+        path = a.pathname;
 
-        if (a.search) {
-            search = a.search.substr(1);  // remove '?'
+        // Make IE consistent
+        if (path.length && path.charAt(0) !== '/') {
+            path = '/' + path;
         }
 
+        // <protocol>//<hostname>:<port><pathname><search><hash>
+        // hreft - complete url
+        // host - <hostname>:<port>
+        // origin - <protocal>//<hostname>:<port>
         return {
-            'href': a.href,
-            'host': a.host,
+            'href':     a.href,
+            'host':     a.host,
+            'origin':   a.origin,
+            'protocol': a.protocol,
             'hostname': a.hostname,
-            'pathname': a.pathname,
-            'search': search,
-            'hash': a.hash,
-            'protocol': a.protocol + "//"
+            'port':     a.port,
+            'pathname': path, // if path, includes leading '/'
+            'search':   a.search, // if search, includes leading '?'
+            'hash':     a.hash // if hash, includes leading '#'
         };
+    };
+
+    /**
+     * Returns the url string constructed from components
+     *  - non-empty pathname must include leading '/'
+     *  - non-empty search must include leading '?'
+     *  - non-empty hash must incldue leading '#'
+     *
+     * @param {Object} url parts
+     *
+     * @returns {string} url
+     */
+    this.urlBuild = function (urlObj) {
+        // <protocol>//<hostname>:<port><pathname><search><hash>
+        var url = urlObj.protocol + '//' + urlObj.hostname;
+        if (urlObj.port) {
+            url += ':' + urlObj.port;
+        }
+        url += urlObj.pathname + urlObj.search + urlObj.hash;
+
+        return url;
+    };
+
+    /**
+     * Returns the url string with additional params appended to querystring
+     *
+     * @param {Object} url parts
+     * @param {object} additional querystring parameters
+     *
+     * @returns {string} url
+     */
+    this.urlAddParams = function (url, params) {
+        var urlParts, paramsObj;
+        
+        urlParts = _this.urlParse( url );
+        // use substr to remove leading '?'. ''.substr(1) returns ''
+        paramsObj = $.extend({}, params, $.deparam( urlParts.search.substr(1) ));
+        urlParts.search = _.isEmpty(paramsObj) ? '' : '?' + $.param( paramsObj );
+        
+        return _this.urlBuild( urlParts );
     };
 };
