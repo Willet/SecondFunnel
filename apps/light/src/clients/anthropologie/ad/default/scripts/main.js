@@ -1,5 +1,5 @@
 /**
- *  AEROPOSTALE AD UNIT
+ *  ANTHROPOLOGIE AD UNIT
  **/
 "use strict";
 
