@@ -15,6 +15,7 @@ var App = new Marionette.Application(),
 // Return App
 module.exports.App = window.App = App;
 
+// Update the shared $, _
 App.module('', require('jquery.extensions'));
 App.module('', require('underscore.extensions'));
 
