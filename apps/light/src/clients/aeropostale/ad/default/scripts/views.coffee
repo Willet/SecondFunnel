@@ -1,11 +1,6 @@
 'use strict';
 
-$ = require('jquery')
-_ = require('underscore')
-Backbone = require('backbone')
-Marionette = require('backbone.marionette')
-
-module.exports = (module, App) ->
+module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.BannerTileView extends module.TileView
         template: "#banner_tile_template"

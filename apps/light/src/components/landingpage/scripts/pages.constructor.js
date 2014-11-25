@@ -2,18 +2,21 @@
 'use strict';
 
 var $ = require('jquery');
+require('jquery-deparam');
 var _ = require('underscore');
 var Marionette = require('backbone.marionette');
 var Cloudinary = require('cloudinary');
-require('jquery-deparam');
 
-exports.App = new Marionette.Application();
-var App = exports.App,
+var App = new Marionette.Application(),
     ev = new $.Event('remove'),
     orig = $.fn.remove;
 
-window.App = App; // add to window
-window.SecondFunnel = App; // old alias
+// Return App
+module.exports.App = window.App = App;
+
+// Update the shared $, _
+App.module('', require('jquery.extensions'));
+App.module('', require('underscore.extensions'));
 
 // _globals stores things that survive application reinitialization.
 // it is currently used to keep reference to window's scroll and
@@ -114,7 +117,7 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     // removes the 'debug' param from all outgoing urls.
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
-        debugLevel = App.options.debug = hash[hashIdx + 6];
+        debugLevel = App.options.debug = hash.charAt(hashIdx + 6);
         if (App.options.urlParams && App.options.urlParams.debug) {
             delete App.options.urlParams.debug;
         }
@@ -144,205 +147,7 @@ if (!window.requestAnimationFrame) {
         };
 }
 
-// jQuery Extensions
-(function ($) {
-    var extendFns = {
-        'remove': function () {
-            // JQuery Special event to listen to delete
-            // stackoverflow.com/questions/2200494
-            // does not work with jQuery UI
-            // does not work when affected by html(), replace(), replaceWith(), ...
-            $(this).trigger(ev);
-            if (orig) {
-                return orig.apply(this, arguments);
-            } else {
-                return $(this);
-            }
-        },
-        'scrollStopped': function (callback) {
-            /**
-             * @param {function} callback
-             */
-            // stackoverflow.com/a/14035162/1558430
-            $(this).scroll(function () {
-                var self = this, $this = $(self);
-                if ($this.data('scrollTimeout')) {
-                    clearTimeout($this.data('scrollTimeout'));
-                }
-                if (callback) {
-                    $this.data('scrollTimeout', setTimeout(callback, 60, self));
-                }
-            });
-        },
-        'swapWith': function (showWhich) {
-            /**
-             * Hides this page element, then shows another page element in place.
-             * This is very similar to what JQM does.
-             *
-             * @param showWhich {jQuery}   selected page
-             * @returns {jQuery}
-             */
-            showWhich.css('display', showWhich.data('display') || 'block');
-            this.data('offset', $(window).scrollTop()).css('display', 'none');
-            $(window).scrollTop(showWhich.data('offset') || 0);
-
-            return this;
-        },
-        'getScripts': function (urls, callback, options) {
-            // batch getScript with caching
-            // callback receives as many ajax xhr objects as the number of urls.
-
-            // like getScript, this function is incompatible with scripts relying on
-            // its own tag existing on the page (e.g. firebug, facebook jssdk)
-            var calls = _.map(urls, function (url) {
-                var options = $.extend(options || {}, {
-                        'dataType': 'script',
-                        'crossDomain': true,
-                        'cache': true,
-                        'url': url
-                    });
-                return $.ajax(options);
-            });
-            $.when.apply($, calls).done(callback, function () {
-                App.vent.trigger('deferredScriptsLoaded', urls);
-            });
-        }
-    };
-
-    if (!$.fn.tile ) {
-        extendFns['tile'] = function () {
-            /**
-             * Retrieve the first selected element's TileView and Tile, if applicable.
-             * Applicability largely depends on whether or not you had selected a tile.
-             *
-             * Due to aggressive garbage collection, these two calls may not succeed.
-             * If selector did not find a tile, returns an object with undefined values.
-             *
-             * @return {Object}
-             *
-             * @type {Function}
-             */
-            var props = {},
-                cid = this.attr('id');
-
-            if (!(this.hasClass('tile') && cid)) {
-                return props;
-            }
-
-            try {
-                props.view = App.discoveryArea.currentView.children
-                    .findByModelCid(cid);
-                // props.model = props.view.model;  // not always
-            } catch (err) { }
-
-            try {
-                props.model = _.findWhere(App.discovery.collection.models,
-                    {'cid': cid});
-
-                // these can be undefined.
-                props.type = props.model.get('type');
-                props.template = props.model.get('template');
-            } catch (err) { }
-
-            return props;
-        };
-    }
-
-    if (!$.fn.getClasses) {
-        extendFns['getClasses'] = function () {
-            // random helper. get an element's list of classes.
-            // example output: ['facebook', 'button']
-            return _.compact(_.map($(this).attr('class').split(' '), $.trim));
-        };
-    }
-
-    // Extend jQuery object
-    $.fn.extend(extendFns);
-}($));
-
-$.support.cors = true;
-
-(function ($) {
-    /**
-     * Special jQuery listener for rotation events.  A rotation event occurs
-     * when the orientation of the page triggers.  A rotation can also be triggered
-     * by the user.
-     */
-    var listener,
-        $window = $(window);
-    // On iOS devices, orientationchange does not exist, so we have to
-    // listen for resize.  Similarly, the use of orientationchange is not
-    // standard.  Reference: http://stackoverflow.com/questions/1649086/
-    if (_.has(window, "onorientationchange")) {
-        listener = "orientationchange";
-    } else {
-        listener = 'resize';
-    }
-
-    $window.on(listener, function () {
-        $window.trigger('rotate');
-    });
-}($));
-
-// Underscore extensions
-_.mixin({
-    'buffer': function (fn, wait) {
-    // a variant of _.debounce, whose called function receives an array
-    // of buffered args (i.e. fn([arg, arg, arg...])
-    //
-    // the fn will receive only one argument.
-        var args = [],
-            originalContext = this,
-            newFn = _.debounce(function () {
-                    // newFn calls the function and clears the arg buffer
-                    var result = fn.call(originalContext, args);
-                    args = [];
-                    return result;
-                }, wait);
-
-        return function (arg) {
-            args.push(arg);
-            return newFn.call(originalContext, args);
-        };
-    },
-    'capitalize': function (string) {
-        // underscore's fancy pants capitalize()
-        var str = string || '';
-        return str.charAt(0).toUpperCase() + str.substring(1);
-    },
-    'get': function (obj, key, defaultValue) {
-        // thin wrapper around obj key access that never throws an error.
-        try {
-            var val = obj[key];
-            if (val !== undefined) {
-                return obj[key];
-            }
-        } catch (err) {
-            // default
-        }
-        return defaultValue;
-    },
-    'uniqBy': function (obj, key) {  // shorthand
-        return _.uniq(obj, false, function (x) {
-            return x[key];
-        });
-    },
-    'truncate': function (n, useSentenceBoundary, addEllipses) {
-        // truncate string at boundary
-        // http://stackoverflow.com/questions/1199352/
-        var tooLong = this.length > n,
-            s = tooLong ? this.substr(0, n) : this;
-        if (tooLong && useSentenceBoundary && s.lastIndexOf('. ') > -1) {
-            s = s.substr(0, s.lastIndexOf('. ') + 1);
-        }
-        if (tooLong && addEllipses) {
-            s = s.substr(0, s.length - 3) + '...';
-        }
-        return s;
-    }
-});
-
-(function (App, views) {
+(function (views) {
     /**
      * View's render() is a noop. It won't trigger a NoTemplateError
      * like other Views do. Here's a patch.
@@ -401,7 +206,7 @@ _.mixin({
             return result;
         };
     });
-}(App, [Marionette.View, Marionette.CompositeView, Marionette.ItemView]));
+}([Marionette.View, Marionette.CompositeView, Marionette.ItemView]));
 
 // Console welcome message
 (function (details) {
@@ -423,22 +228,20 @@ _.mixin({
 Cloudinary.config({ 'cloud_name': 'secondfunnel', 'api_key': '471718281466152' });
 App.CLOUDINARY_DOMAIN = 'http://' + Cloudinary.SHARED_CDN + '/' + Cloudinary.config().cloud_name + '/image/upload/';
 
-
+/**
+ * Seupt Application Modules
+ */
 App.module('utils', require('pages.utils'));
+// TODO: widgets are messed up dude
+App.utils.registerWidget('gallery', '.gallery, .gallery-dots', require('pages.widget.gallery'));
 App.module('core', require('pages.core'));
-App.module('intentRank', require('pages.ir'));
+App.module('intentRank', require('pages.intentrank'));
 App.module('core', require('pages.core.models'));
 App.module('core', require('pages.core.views'));
 App.module('support', require('pages.support'));
 App.module('feed', require('pages.core.feed'));
 App.module('optimizer', require('pages.optimizer'));
 App.module('tracker', require('pages.tracker'));
-//App.module('layoutEngine', require('pages.layoutengine'));
 App.module('sharing', require('pages.sharing'));
 App.module('viewport', require('pages.viewport'));
-// TODO: widgets are messed up dude
-App.utils.registerWidget('gallery', '.gallery, .gallery-dots', require('pages.widget.gallery'));
-
-var reinit = require('pages.init');
-reinit.reinitialize(App);
-App.start();
+App.module('init', require('pages.init'));
