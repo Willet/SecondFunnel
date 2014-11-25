@@ -1,6 +1,6 @@
 "use strict"
 
-module.exports = (module, App, Backhone, Marionette, $, _) ->
+module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.List
 

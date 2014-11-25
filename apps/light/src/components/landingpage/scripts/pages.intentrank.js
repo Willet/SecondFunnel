@@ -3,7 +3,7 @@
 /**
  * @module intentRank
  */
-module.exports = function (intentRank, App, Backhone, Marionette, $, _) {
+module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
     var resultsAlreadyRequested = []; // list of product IDs
 
     this.options = {

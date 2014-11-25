@@ -2,8 +2,7 @@
 
 require('jquery-deparam');
 
-module.exports = function (module, App, Backhone, Marionette, $, _) {
-    var _this = this;
+module.exports = function (module, App, Backbone, Marionette, $, _) {
     /**
      * REQUIRED! Every ad click url should pass throught this function!
      *

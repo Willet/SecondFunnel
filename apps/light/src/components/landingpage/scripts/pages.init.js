@@ -4,7 +4,7 @@
  * Given an instance of  Marionette Application, add initializers to it.
  * @param app
  */
-module.exports = function (init, App, Backhone, Marionette, $, _) {
+module.exports = function (init, App, Backbone, Marionette, $, _) {
 
     // Run this before App.start();
     this.initialize = function () {
@@ -18,7 +18,7 @@ module.exports = function (init, App, Backhone, Marionette, $, _) {
             });
             App._initialized = true;
         }
-        
+
         // from davidsulc/marionette-gentle-introduction
         App.navigate = App.navigate || function (route, options) {
             options = options || {};

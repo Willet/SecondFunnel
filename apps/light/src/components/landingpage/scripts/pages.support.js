@@ -3,7 +3,7 @@
 /**
  * @module support
  */
-module.exports = function (module, App, Backhone, Marionette, $, _) {
+module.exports = function (module, App, Backbone, Marionette, $, _) {
     // make new module full of transient utilities
 
     var $window = $(window),

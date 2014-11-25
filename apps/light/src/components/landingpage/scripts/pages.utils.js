@@ -5,11 +5,12 @@ require('jquery-deparam');
 /**
  * @module utils
  */
-module.exports = function (utils, App, Backhone, Marionette, $, _) {
+module.exports = function (utils, App, Backbone, Marionette, $, _) {
 
     var $window = $(window),
         regions = {},
-        regionWidgets = {};
+        regionWidgets = {},
+        _this = this;
 
     /**
      * Cleans obviously invalid UI strings.

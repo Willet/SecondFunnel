@@ -1,7 +1,7 @@
 "use strict";
 
 // show new products every so often
-module.exports = function (module, App, Backhone, Marionette, $, _) {
+module.exports = function (module, App, Backbone, Marionette, $, _) {
 
     this.timer = undefined;
 

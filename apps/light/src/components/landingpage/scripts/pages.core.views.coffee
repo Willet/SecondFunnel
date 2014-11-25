@@ -4,7 +4,7 @@ imagesLoaded = require('imagesLoaded')
 waypoints = require("jquery-waypoints") # register $.fn.waypoint
 waypoints_sticky = require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
 
-module.exports = (module, App, Backhone, Marionette, $, _) ->
+module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     $window = $(window)
     $document = $(document)

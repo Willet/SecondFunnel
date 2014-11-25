@@ -6,7 +6,7 @@
  *
  * @module sharing
  */
-module.exports = function (sharing, App, Backhone, Marionette, $, _) {
+module.exports = function (sharing, App, Backbone, Marionette, $, _) {
 
     var getButton = function (type) {
             // returns 'best' button class based on requested type.

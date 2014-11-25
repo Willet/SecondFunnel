@@ -9,7 +9,7 @@
  * custom dimension 8 to be A, and custom dimension 9 to be B.
  *
  */
-module.exports = function (optimizer, App, Backhone, Marionette, $, _) {
+module.exports = function (optimizer, App, Backbone, Marionette, $, _) {
     var // custom dimensions must be pre-configured in GA, under
         // Admin > Property > Custom Definitions > Custom Dimensions
         CUSTOM_DIMENSIONS = [],

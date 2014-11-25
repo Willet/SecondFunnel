@@ -1,6 +1,6 @@
 "use strict"
 
-module.exports = (module, App, Backhone, Marionette, $, _) ->
+module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     ###
     convenience method for accessing PAGES_INFO or TEST_*.

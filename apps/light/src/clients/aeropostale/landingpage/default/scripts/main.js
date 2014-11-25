@@ -72,12 +72,12 @@ App.start();
             'stocking-stuffers':       'stocking_stuffers',
             'stocking-stuffers|girls': 'stocking_stuffers_for_her',
             'stocking-stuffers|guys':  'stocking_stuffers_for_him'
-        }
+        };
         var params = { 
             'utm_source': 'giftguide',
             'utm_medium': 'site',
             'utm_campaign': trackingCode[ App.intentRank.options.category ] || 'for_her'
-        }
+        };
 
         return App.utils.urlAddParams(url, params);
     };

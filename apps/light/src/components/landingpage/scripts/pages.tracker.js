@@ -3,7 +3,7 @@
 /**
  * @module tracker
  */
-module.exports = function (tracker, App, Backhone, Marionette, $, _) {
+module.exports = function (tracker, App, Backbone, Marionette, $, _) {
 
     var $document = $(document),
         $window = $(window),
