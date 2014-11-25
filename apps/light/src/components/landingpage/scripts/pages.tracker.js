@@ -1,12 +1,9 @@
-/*global App, console, Keen */
 'use strict';
-var $ = require('jquery');
-var _ = require('underscore');
-var Backbone = require('backbone');
+
 /**
  * @module tracker
  */
-module.exports = function (tracker, App) {
+module.exports = function (tracker, App, Backhone, Marionette, $, _) {
 
     var $document = $(document),
         $window = $(window),

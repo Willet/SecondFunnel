@@ -1,15 +1,12 @@
 /*global App, console*/
 'use strict';
-var $ = require('jquery');
-var _ = require('underscore');
-var Marionette = require('backbone.marionette');
 
 /**
  * This module has no initialization options.
  *
  * @module sharing
  */
-module.exports = function (sharing, App) {
+module.exports = function (sharing, App, Backhone, Marionette, $, _) {
 
     var getButton = function (type) {
             // returns 'best' button class based on requested type.

@@ -1,14 +1,10 @@
 "use strict";
 
-var $ = require('jquery');
-var _ = require('underscore');
-var Backbone = require('backbone');
-
 /**
  * Given an instance of  Marionette Application, add initializers to it.
  * @param app
  */
-module.exports = function (init, App) {
+module.exports = function (init, App, Backhone, Marionette, $, _) {
 
     // Run this before App.start();
     this.initialize = function () {

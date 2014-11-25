@@ -14,7 +14,7 @@ var Page = require('landingpage'),
 App.module('core', require('./views'));
 
 // Run Application
-App.init.initialize(App);
+App.init.initialize();
 App.start();
 
 (function () {

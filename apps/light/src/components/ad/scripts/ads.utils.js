@@ -1,10 +1,6 @@
-/*global App, Backbone, console */
-'use strict';
+"use strict";
 
-var _ = require('underscore');
-var $ = require('jquery');
-
-module.exports = function (utils, App) {
+module.exports = function (utils, App, Backhone, Marionette, $, _) {
 
     /**
      *   REQUIRED: every ad click should pass through this function

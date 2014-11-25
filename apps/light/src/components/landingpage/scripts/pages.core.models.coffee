@@ -1,9 +1,6 @@
-$ = require("jquery")
-_ = require("underscore")
-Backbone = require("backbone")
+"use strict"
 
-
-module.exports = (module, App) ->
+module.exports = (module, App, Backhone, Marionette, $, _) ->
 
     class module.List
 
@@ -66,7 +63,8 @@ module.exports = (module, App) ->
                 else
                     models = []
             for model in models
-                if (t = @models.indexOf(model)) > -1
+                t = _.indexOf(@models, model)
+                if t > -1
                     @models[t..t] = []
                     @length = @length - 1
                     if not options.silent

@@ -1,8 +1,7 @@
-/*global console, App */
-'use strict';
+"use strict";
 
 // show new products every so often
-module.exports = function (module, App) {
+module.exports = function (module, App, Backhone, Marionette, $, _) {
 
     this.timer = undefined;
 

@@ -1,9 +1,9 @@
-/*global App, console */
 'use strict';
 
-var $ = require('jquery');
-
-module.exports = function (viewport, App) {
+/**
+ * @module viewport
+ */
+module.exports = function (viewport, App, Backhone, Marionette, $, _) {
     var $window = $(window),
         getMeta = function () {
             var tag = $('meta[name="viewport"]', 'head');

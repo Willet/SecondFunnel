@@ -1,12 +1,9 @@
-/*global App, location */
-
 'use strict';
-var $ = require('jquery');
-var _ = require('underscore');
+
 /**
  * @module utils
  */
-module.exports = function (utils, App) {
+module.exports = function (utils, App, Backhone, Marionette, $, _) {
 
     var $window = $(window),
         regions = {},

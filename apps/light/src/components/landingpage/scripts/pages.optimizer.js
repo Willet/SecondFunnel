@@ -1,9 +1,6 @@
 /*global App, console, setInterval, clearInterval */
 'use strict';
 
-var _ = require('underscore');
-var $ = require('jquery');
-
 /**
  * @module optimizer
  * @description A/B, split, and multivariate testing tool
@@ -12,7 +9,7 @@ var $ = require('jquery');
  * custom dimension 8 to be A, and custom dimension 9 to be B.
  *
  */
-module.exports = function (optimizer, App) {
+module.exports = function (optimizer, App, Backhone, Marionette, $, _) {
     var // custom dimensions must be pre-configured in GA, under
         // Admin > Property > Custom Definitions > Custom Dimensions
         CUSTOM_DIMENSIONS = [],

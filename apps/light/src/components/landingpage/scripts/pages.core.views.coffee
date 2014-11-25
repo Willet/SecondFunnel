@@ -1,12 +1,10 @@
-Backbone = require("backbone")
-Marionette = require("backbone.marionette")
+"use strict"
+
 imagesLoaded = require('imagesLoaded')
-$ = require("jquery")
-_ = require("underscore")
 waypoints = require("jquery-waypoints") # register $.fn.waypoint
 waypoints_sticky = require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
 
-module.exports = (module, App) ->
+module.exports = (module, App, Backhone, Marionette, $, _) ->
 
     $window = $(window)
     $document = $(document)

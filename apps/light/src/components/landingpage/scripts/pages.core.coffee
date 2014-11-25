@@ -1,9 +1,6 @@
 "use strict"
-$ = require("jquery")
-_ = require("underscore")
-Marionette = require("backbone.marionette")
 
-module.exports = (module, App) ->
+module.exports = (module, App, Backhone, Marionette, $, _) ->
 
     ###
     convenience method for accessing PAGES_INFO or TEST_*.

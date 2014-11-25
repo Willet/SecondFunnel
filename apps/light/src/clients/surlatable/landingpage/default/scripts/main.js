@@ -11,5 +11,5 @@ var Page = require('landingpage'),
     App = Page.App;
 
 // Run Application
-App.init.initialize(App);
+App.init.initialize();
 App.start();
