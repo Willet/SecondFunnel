@@ -533,7 +533,7 @@ module.exports = (module, App) ->
                 # if algorithm is finite but a dupe is about to occur,
                 # issue a warning but display anyway
                 if App.option("IRAlgo", "generic").indexOf("finite") > -1
-                    if tileIds.indexOf(tileId) > -1
+                    if _.indexOf(tileIds, tileId) > -1
                         console.warn "Tile " + tileId + " is already on the page!"
                         unless App.option("allowTileRepeats", false)
                             return
