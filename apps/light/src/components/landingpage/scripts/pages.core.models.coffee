@@ -66,7 +66,7 @@ module.exports = (module, App) ->
                 else
                     models = []
             for model in models
-                t = @models.indexOf(model)
+                t = _.indexOf(@models, model)
                 if (t > -1)
                     @models[t..t] = []
                     @length = @length - 1
