@@ -1,26 +1,23 @@
 /*global App, console*/
 'use strict';
-var $ = require('jquery');
-var _ = require('underscore');
-var Marionette = require('backbone.marionette');
 
 /**
  * This module has no initialization options.
  *
  * @module sharing
  */
-module.exports = function (sharing, App) {
+module.exports = function (module, App, Backbone, Marionette, $, _) {
 
     var getButton = function (type) {
             // returns 'best' button class based on requested type.
             type = _.capitalize(type);  // e.g. Facebook
 
             // if we define a custom button class, return that.
-            if (sharing[type + 'SocialButton']) {
-                return sharing[type + 'SocialButton'];
+            if (module[type + 'SocialButton']) {
+                return module[type + 'SocialButton'];
             }
             // otherwise, return the default.
-            return sharing.SocialButton;
+            return module.SocialButton;
         },
         /**
          * A mapping of the different sharing options and the related
@@ -50,7 +47,7 @@ module.exports = function (sharing, App) {
      * @alias sharing.SocialButtons
      * @type {*}
      */
-    this.SocialButtons = Marionette.View.extend({
+    module.SocialButtons = Marionette.View.extend({
         'tagName': 'span',
         'showCount': App.option('showCount', true),
         'buttonTypes': App.option('socialButtons',
@@ -140,7 +137,7 @@ module.exports = function (sharing, App) {
      * @alias sharing.SocialButton
      * @type {ItemView}
      */
-    this.SocialButton = Marionette.ItemView.extend({
+    module.SocialButton = Marionette.ItemView.extend({
         'initialize': function (options) {
             // Assign attributes to the object
             _.extend(this, options);
@@ -204,7 +201,7 @@ module.exports = function (sharing, App) {
      * @alias sharing.FacebookSocialButton
      * @type {SocialButton}
      */
-    this.FacebookSocialButton = sharing.SocialButton.extend({
+    module.FacebookSocialButton = module.SocialButton.extend({
         'load': function () {
             // Onload, render the button and remove the placeholder
             var facebookButton = this.$el;
@@ -257,7 +254,7 @@ module.exports = function (sharing, App) {
      * @alias sharing.TwitterSocialButton
      * @type {SocialButton}
      */
-    this.TwitterSocialButton = sharing.SocialButton.extend({
+    module.TwitterSocialButton = module.SocialButton.extend({
         'load': function () {
             // Load the widget when called.
             try {

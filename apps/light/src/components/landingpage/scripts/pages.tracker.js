@@ -1,12 +1,9 @@
-/*global App, console, Keen */
 'use strict';
-var $ = require('jquery');
-var _ = require('underscore');
-var Backbone = require('backbone');
+
 /**
  * @module tracker
  */
-module.exports = function (tracker, App) {
+module.exports = function (tracker, App, Backbone, Marionette, $, _) {
 
     var $document = $(document),
         $window = $(window),
@@ -337,7 +334,7 @@ module.exports = function (tracker, App) {
         App.vent.trigger('videoStateChange', videoId, event, this);
 
         // TODO: Do we only want to measure one event per video?
-        if (videosPlayed.indexOf(videoId) !== -1) {
+        if (videosPlayed.indexOf(videoId) > -1) {
             // not that video
             return;
         }
@@ -413,7 +410,7 @@ module.exports = function (tracker, App) {
 
             trackEvent({
                 'category': trackingInfo.category,
-                'action': 'Preview',
+                'action': $(this).hasClass('banner') ? 'Purchase' : 'Preview',
                 'label': label
             });
 

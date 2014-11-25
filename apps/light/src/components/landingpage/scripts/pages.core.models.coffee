@@ -1,9 +1,6 @@
-$ = require("jquery")
-_ = require("underscore")
-Backbone = require("backbone")
+"use strict"
 
-
-module.exports = (module, App) ->
+module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.List
 
@@ -66,7 +63,8 @@ module.exports = (module, App) ->
                 else
                     models = []
             for model in models
-                if (t = @models.indexOf(model)) > -1
+                t = _.indexOf(@models, model)
+                if t > -1
                     @models[t..t] = []
                     @length = @length - 1
                     if not options.silent
@@ -532,7 +530,7 @@ module.exports = (module, App) ->
                 # if algorithm is finite but a dupe is about to occur,
                 # issue a warning but display anyway
                 if App.option("IRAlgo", "generic").indexOf("finite") > -1
-                    if tileIds.indexOf(tileId) > -1
+                    if _.indexOf(tileIds, tileId) > -1
                         console.warn "Tile " + tileId + " is already on the page!"
                         unless App.option("allowTileRepeats", false)
                             return

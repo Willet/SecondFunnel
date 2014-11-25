@@ -1,8 +1,9 @@
-/*global App, console */
 'use strict';
-var $ = require('jquery');
 
-module.exports = function (module, App) {
+/**
+ * @module support
+ */
+module.exports = function (module, App, Backbone, Marionette, $, _) {
     // make new module full of transient utilities
 
     var $window = $(window),

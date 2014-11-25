@@ -1,13 +1,22 @@
+/**
+ *  AEROPOSTALE PAGE
+ **/
+"use strict";
+
 var $ = require('jquery');
+require('jquery-deparam');
 var _ = require('underscore');
-var Backbone = require('backbone');
-var Marionette = require('backbone.marionette');
-var bootstrap = require('bootstrap.dropdown'); // for menu-bar drop down on mobile
 var waypoints = require("jquery-waypoints") // register $.fn.waypoint
 
 var Page = require('landingpage'),
     App = Page.App;
+
+// Import client customizations
 App.module('core', require('./views'));
+
+// Run Application
+App.init.initialize();
+App.start();
 
 (function () {
     // Custom Aero theme implementation
@@ -63,13 +72,14 @@ App.module('core', require('./views'));
             'stocking-stuffers':       'stocking_stuffers',
             'stocking-stuffers|girls': 'stocking_stuffers_for_her',
             'stocking-stuffers|guys':  'stocking_stuffers_for_him'
-        }
+        };
         var params = { 
             'utm_source': 'giftguide',
             'utm_medium': 'site',
             'utm_campaign': trackingCode[ App.intentRank.options.category ] || 'for_her'
-        }
-        return ( url + (_.indexOf(url,'?') ? '&' : '?') + $.param(params) );
+        };
+
+        return App.utils.urlAddParams(url, params);
     };
 
     // ### Aero mobile nav ###

@@ -1,18 +1,14 @@
-/*global App, location */
-
 'use strict';
-var $ = require('jquery');
+
 require('jquery-deparam');
-var _ = require('underscore');
 /**
  * @module utils
  */
-module.exports = function (utils, App) {
+module.exports = function (module, App, Backbone, Marionette, $, _) {
 
     var $window = $(window),
         regions = {},
-        regionWidgets = {},
-        _this = this;
+        regionWidgets = {};
 
     /**
      * Cleans obviously invalid UI strings.
@@ -21,7 +17,7 @@ module.exports = function (utils, App) {
      * @param {undefined} opts
      * @returns {string}
      */
-    this.safeString = function (str) {
+    module.safeString = function (str) {
         var regex = /^(None|undefined|[Ff]alse|0)$/,
             trimmed = $.trim(str);
         if (regex.test(trimmed)) {
@@ -73,14 +69,14 @@ module.exports = function (utils, App) {
         }
     });
 
-    this.postExternalMessage = function (message) {
+    module.postExternalMessage = function (message) {
         window.parent.postMessage(message, '*');
     };
 
     /**
      * @returns true     if the page is in an iframe.
      */
-    this.isIframe = function () {
+    module.isIframe = function () {
         if (typeof top === 'undefined') {
             return false;
         }
@@ -98,7 +94,7 @@ module.exports = function (utils, App) {
      * @param {function} functionality the widget function.
      * @returns true
      */
-    this.registerWidget = function (name, selector, functionality) {
+     module.registerWidget = function (name, selector, functionality) {
         regions[name] = selector;
         regionWidgets[name] = functionality;
         App.vent.trigger('widgetRegistered', name, selector, functionality,
@@ -111,7 +107,7 @@ module.exports = function (utils, App) {
      *
      * @returns {Boolean}
      */
-    this.landscape = function () {
+    module.landscape = function () {
         return $(window).height() < $(window).width();
     };
 
@@ -120,8 +116,8 @@ module.exports = function (utils, App) {
      *
      * @returns {Boolean}
      */
-    this.portrait = function () {
-        return !this.landscape();
+    module.portrait = function () {
+        return !module.landscape();
     };
 
     /**
@@ -132,7 +128,7 @@ module.exports = function (utils, App) {
      * @param {object} defn
      * @returns defn
      */
-    this.addClass = function (name, defn) {
+    module.addClass = function (name, defn) {
         App.core[_.capitalize(name)] = defn;
         App.vent.trigger('classAdded', name, defn);
         return defn;
@@ -148,7 +144,7 @@ module.exports = function (utils, App) {
      * @param {object} defaultClass e.g. TileView
      * @returns {object}|defaultClass
      */
-    this.findClass = function (typeName, prefix, defaultClass) {
+    module.findClass = function (typeName, prefix, defaultClass) {
         var className = _.capitalize(prefix || '') + _.capitalize(typeName || '');
         return App.core[className] || defaultClass;
     };
@@ -160,7 +156,7 @@ module.exports = function (utils, App) {
      *
      * @param {View} viewObject
      */
-    this.runWidgets = function (viewObject) {
+    module.runWidgets = function (viewObject) {
         var self = viewObject;
 
         // process itself (if it is a view)
@@ -190,7 +186,7 @@ module.exports = function (utils, App) {
      * @param {float}  opacity    e.g. 0.5
      * @return {string}           e.g. rgba(1,2,3,opacity)
      */
-    this.hex2rgba = function (hexColor, opacity) {
+    module.hex2rgba = function (hexColor, opacity) {
         return 'rgba(' + parseInt(hexColor.slice(-6, -4), 16) +
             ',' + parseInt(hexColor.slice(-4, -2), 16) +
             ',' + parseInt(hexColor.slice(-2), 16) +
@@ -200,7 +196,7 @@ module.exports = function (utils, App) {
     /**
      * execute param1 if any only if param2 is true
      */
-    this.iff = function (fn, flag) {
+    module.iff = function (fn, flag) {
         var truthTest = flag;
         if (typeof flag === 'function') {
             truthTest = flag();
@@ -215,7 +211,7 @@ module.exports = function (utils, App) {
      * Get query strings
      * http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
      */
-    this.getQuery = function (name) {
+    module.getQuery = function (name) {
         name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
         var regex = new RegExp('[\\?&]' + name + '=([^&#]*)'),
             results = regex.exec(location.search);
@@ -226,7 +222,7 @@ module.exports = function (utils, App) {
      * Returns a ViewportSized Height based on the Viewport size of the browser, taking into
      * account the chrome.
      */
-    this.getViewportSized = function (byWidth) {
+    module.getViewportSized = function (byWidth) {
         var height = $(window).height(),
             width = $(window).width();
 
@@ -251,7 +247,7 @@ module.exports = function (utils, App) {
      *
      * @returns {Object}
      */
-    this.getResizedImage = function (url, options) {
+    module.getResizedImage = function (url, options) {
         var ratio = Math.ceil(window.devicePixelRatio * 2) / 2,
             width = Math.max(options.width || 0, App.option('minImageWidth')),
             height = Math.max(options.height || 0, App.option('minImageHeight'));
@@ -296,59 +292,71 @@ module.exports = function (utils, App) {
      *
      * @returns {Object}
      */
-    this.urlParse = function (url) {
+    module.urlParse = function (url) {
         // Trick to parse url is to use location object of a-tag
-        var a = document.createElement('a'),
-            search = '';
+        var path, a = document.createElement('a');
         a.href = url;
+        path = a.pathname;
 
-        if (a.search) {
-            search = a.search.substr(1);  // remove '?'
+        // Make IE consistent
+        if (path.length && path.charAt(0) !== '/') {
+            path = '/' + path;
         }
 
+        // <protocol>//<hostname>:<port><pathname><search><hash>
+        // hreft - complete url
+        // host - <hostname>:<port>
+        // origin - <protocal>//<hostname>:<port>
         return {
-            'href': a.href,
-            'host': a.host,
+            'href':     a.href,
+            'host':     a.host,
+            'origin':   a.origin,
+            'protocol': a.protocol,
             'hostname': a.hostname,
-            'pathname': a.pathname,
-            'search': search,
-            'hash': a.hash,
-            'protocol': a.protocol + "//"
+            'port':     a.port,
+            'pathname': path, // if path, includes leading '/'
+            'search':   a.search, // if search, includes leading '?'
+            'hash':     a.hash // if hash, includes leading '#'
         };
     };
 
-    this.generateAdClickUrl = function (url) {
-        var click_url, redirect_url, dest_url, paramStr,
-            parts = _this.urlParse(url),
-            params = $.deparam(parts.search),
-            windowParams = $.extend({}, $.deparam( window.location.search.substr(1) ));
-        
-        // Ad server will pass us a click-tracking url (usually encoded once)
-        // append our redirect url to the click-tracking url
-        // For more information:
-        // - https://support.google.com/adxbuyer/answer/3187721?hl=en
-        // - https://support.google.com/dfp_premium/answer/1242718?hl=en
-        if (windowParams['click']) {
-            redirect_url = decodeURI( windowParams['click'] );
-            delete windowParams['click'];
+    /**
+     * Returns the url string constructed from components
+     *  - non-empty pathname must include leading '/'
+     *  - non-empty search must include leading '?'
+     *  - non-empty hash must incldue leading '#'
+     *
+     * @param {Object} url parts
+     *
+     * @returns {string} url
+     */
+    module.urlBuild = function (urlObj) {
+        // <protocol>//<hostname>:<port><pathname><search><hash>
+        var url = urlObj.protocol + '//' + urlObj.hostname;
+        if (urlObj.port) {
+            url += ':' + urlObj.port;
         }
+        url += urlObj.pathname + urlObj.search + urlObj.hash;
 
-        params = $.extend({}, params, windowParams);
-        paramStr = _.isEmpty(params) ? '' : '?' + $.param(params);
+        return url;
+    };
+
+    /**
+     * Returns the url string with additional params appended to querystring
+     *
+     * @param {Object} url parts
+     * @param {object} additional querystring parameters
+     *
+     * @returns {string} url
+     */
+    module.urlAddParams = function (url, params) {
+        var urlParts, paramsObj;
         
-        dest_url = parts.protocol +  // http://
-                    parts.host +      // google.com:80
-                    parts.pathname +  // /foobar?
-                    paramStr +   // baz=kek
-                    parts.hash;  // #hello
-
-        // Do we need to pass through a redirect?
-        if (redirect_url) {
-            redirect_url += encodeURIComponent(dest_url);
-            click_url = redirect_url;
-        } else {
-            click_url = dest_url;
-        }
-        return click_url;
+        urlParts = module.urlParse( url );
+        // use substr to remove leading '?'. ''.substr(1) returns ''
+        paramsObj = $.extend({}, params, $.deparam( urlParts.search.substr(1) ));
+        urlParts.search = _.isEmpty(paramsObj) ? '' : '?' + $.param( paramsObj );
+        
+        return module.urlBuild( urlParts );
     };
 };
