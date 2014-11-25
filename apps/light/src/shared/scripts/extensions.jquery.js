@@ -124,7 +124,7 @@ module.exports = function (module, App, Backhone, Marionette, $, _) {
             $.when.apply($, calls).done(callback, function () {
                 App.vent.trigger('deferredScriptsLoaded', urls);
             });
-        }
+        };
     }
 
     $.support.cors = true;
