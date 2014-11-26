@@ -644,7 +644,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             "click .buy": (event) ->
                 $target = $(event.target)
-                url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') or "http://www.aeropostale.com" )
+                url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') )
                 window.open url, "_self"
                 return
 
