@@ -294,14 +294,19 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      */
     module.urlParse = function (url) {
         // Trick to parse url is to use location object of a-tag
-        var path, a = document.createElement('a');
+        var path, port, a = document.createElement('a');
         a.href = url;
         path = a.pathname;
 
-        // Make IE consistent
+        // IE excludes the leading /
         if (path.length && path.charAt(0) !== '/') {
             path = '/' + path;
         }
+
+        // Check if port is in url, because:
+        // - Safari reports "0" when no port is in the href
+        // - IE reports "80" when no port is in the href
+        port = (url.indexOf(":" + a.port) > -1) ? a.port : "";
 
         // <protocol>//<hostname>:<port><pathname><search><hash>
         // hreft - complete url
@@ -313,7 +318,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             'origin':   a.origin,
             'protocol': a.protocol,
             'hostname': a.hostname,
-            'port':     a.port,
+            'port':     port,
             'pathname': path, // if path, includes leading '/'
             'search':   a.search, // if search, includes leading '?'
             'hash':     a.hash // if hash, includes leading '#'
