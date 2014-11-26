@@ -156,9 +156,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
             # templates use this as obj.image.url
+            console.error "-- TileView.onBeforeRender --"
             @model.set "image", @model.get("defaultImage")
             wideable = widableTemplates[@model.get("template")]
             showWide = (Math.random() > App.option("imageTileWide", 0.5))
+            console.error "wideable: #{wideable}\nshowWide: #{showWide}"
             if _.isNumber(@model.get("colspan"))
                 columns = @model.get("colspan")
             else if wideable and showWide
@@ -177,6 +179,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     break
             @model.set image: imageInfo
             @$el.addClass columnDetails[columns]
+            console.error "columns: #{columns}\nclass: #{columnDetails[columns]}"
 
             # Listen for the image being removed from the DOM, if it is, remove
             # the View/Model to free memory

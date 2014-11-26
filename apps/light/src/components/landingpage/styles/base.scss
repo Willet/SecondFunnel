@@ -930,10 +930,11 @@ div.spinner div.bar12 {
     }
 
     .tile {
-        width: 50% !important;
+        width: 50%;
     }
     .tile.wide {
         min-height: inherit;
+        width: 50%;
     }
     .tile.video {
         width: 480px !important;

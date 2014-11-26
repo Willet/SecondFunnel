@@ -308,9 +308,12 @@ body {
         border-right-color: #D8D8D8;
     }
 }
-@media (max-width: 767px) {
+@media screen and (max-width: 768px) {
     .navbar .container .store-locator {
         display: none;
+    }
+    .tile.image.wide {
+        width: 100% !important;
     }
 }
 @media (max-width: 991px) {
