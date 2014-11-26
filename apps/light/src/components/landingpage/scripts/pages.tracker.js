@@ -644,7 +644,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
      *
      */
     this.initialize = function () {
-        gaAccountNumber = App.option('page:gaAccountNumber', false) || App.option('gaAccountNumber', '')
+        var gaAccountNumber = App.option('page:gaAccountNumber', false) || App.option('gaAccountNumber', '');
         addItem('create', gaAccountNumber, 'auto');
 
         // Register custom dimensions in-case they weren't already
