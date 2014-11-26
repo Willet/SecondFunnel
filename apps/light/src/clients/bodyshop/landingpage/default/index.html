@@ -117,7 +117,7 @@
     </div>
 
     <!-- TILE TEMPLATES -->
-    <script type="text/template" id="product_tile_template">
+    <script type="text/template" id="banner_tile_template">
         <div class="tile-border">
             <div class="image-container">
                 <div>
@@ -130,16 +130,145 @@
             <div class="name"><%= obj.title || obj.name %></div>
             <div class="price"><%= obj.price %></div>
         </div>
+        <div class="overlay">
+            <div class='table'>
+                <div class='cell'>
+                    <div class="buy">
+                        <a class='button' href='<%= obj.url %>'>
+                            Shop Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </script>
 
     <script type="text/template" id="image_tile_template">
-    <div class='relative'>
-        <img class="focus" src="<%= obj.images[0].url %>" alt="<%= obj.caption %>" />
-    </div>
-    <% if (App.option("debug", 0) > 1) { %>
-        <span class="type"><%= obj["content-type"] %></span>
-    <% } %>
-</script>
+        <div class='relative'>
+            <img class="focus" src="<%= obj.images[0].url %>" alt="<%= obj.caption %>" />
+        </div>
+        <% if (App.option("debug", 0) > 1) { %>
+            <span class="type"><%= obj["content-type"] %></span>
+        <% } %>
+        <div class="overlay">
+            <div class='table'>
+                <div class='cell'>
+                    <div class="explore">
+                        <a class='button' href='<%= obj.url %>'>
+                            Explore The Collection
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/template" id="image_preview_template">
+        <% if (obj['tagged-products'].length) { %>
+            <% var product = obj['tagged-products'][0]; %>
+            <div class="image-with-tagged-products">
+                <div class="table">
+                    <div class="row">
+                        <div class="cell desktop-only image-cell">
+                            <img src="<%= obj.images[0].url %>" alt="image" class="image" />
+                                <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                                <div class="landscape">
+                                    <div class="stl-title">
+                                        Shop The Collection
+                                    </div>
+                                    <div class="stl-look">
+                                        <% var related = obj['tagged-products']; %>
+                                        <% for (var i = 0; i < related.length; i++) { %>
+                                            <div class="stl-item" data-index="<%- i %>">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <%- related[i].name %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
+                        <div class="cell mobile-only image-cell">
+                            <img src="<%= obj.images[0].url %>" alt="image" />
+                        </div>
+                        <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
+                            <div class="cell desktop-only shop">
+                                <div class="stl-title">
+                                    Shop The Collection
+                                </div>
+                                <div class="stl-look">
+                                    <% var related = obj['tagged-products']; %>
+                                    <% for (var i = 0; i < related.length; i++) { %>
+                                        <div class="stl-item" data-index="<%- i %>">
+                                            <img src="<%- related[i].images[0].url %>" />
+                                            <%- related[i].name %>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
+                        <% if (obj['tagged-products'].length > 1) { %>
+                            <div class="cell mobile-only">
+                                <div class="stl-title">
+                                    Shop The Collection
+                                </div>
+                                <div class="stl-look">
+                                    <% var related = obj['tagged-products'] %>
+                                    <% for (var i = 0; i < related.length; i++) { %>
+                                        <div class="stl-item" data-index="<%- i %>">
+                                            <img src="<%- related[i].images[0].url %>" />
+                                            <%- related[i].name %>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
+                        <div class="cell info">
+                            <% if (App.support.mobile()) { %>
+                                <div class='title'></div>
+                                <div class='price'></div>
+                            <% } %>
+                            <div class='relative'>
+                                <div class="gallery-main-image"></div>
+                                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                <% if (App.support.mobile()) { %>
+                                    <div class='buy'></div>
+                                <% } %>
+                            </div>
+                            <% if (!App.support.mobile()) { %>
+                                <div>
+                                    <div class='title'></div>
+                                    <div class='price'></div>
+                                </div>
+                                <div class='buy'></div>
+                                <div class='description'></div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% } else { %>
+            <div class="image-without-tagged-products">
+                <div class="table">
+                    <div class="row">
+                        <div class="cell">
+                            <img src="<%= obj.images[0].url %>" alt="image" class="main-image" />
+                        </div>
+                        <div class="cell info">
+                            <div class="title">
+                                Coming Soon to The Body Shop!
+                            </div>
+                            <div class="buy">
+                                <a class='button' href='http://www.thebodyshop-usa.com/'>
+                                    Shop On The Body Shop
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+    </script>
 
     <img src="{% url 'apps.tracking.views.pixel' %}"/>
     <div>

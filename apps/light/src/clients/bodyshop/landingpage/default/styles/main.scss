@@ -1,4 +1,4 @@
-$bs-color: #36805A;
+$bs-green: #36805A;
 $bs-highlight: #bc090c;
 $bs-font: "GillSans", Verdana, Geneva, sans-serif;
 
@@ -14,7 +14,7 @@ body {
     background: none;
     font-family: $bs-font;
     font-size: 14px;
-    color: $bs-color;
+    color: $bs-green;
 }
 
 .navbar {
@@ -63,7 +63,7 @@ body {
     font-family: $bs-font;
 
     .category {
-        color: $bs-color;
+        color: $bs-green;
         border: none;
         text-transform: uppercase;
         font-size: 16px;
@@ -82,10 +82,15 @@ body {
             border-bottom: 2px solid $bs-highlight;
         }
     }
+    .category.selected:hover {
+        >span {
+            border-bottom: 2px solid $bs-highlight;
+        }
+    }
     .category:hover {
     	background-color: rgb(243, 250, 217);
     	>span {
-	        border-bottom: 2px solid $bs-hightlight;
+	        border-bottom: 2px solid $bs-green;
 	    }
     }
 }
@@ -144,7 +149,43 @@ body {
 		border: none;
 	}
 }
-.tile.product {
+.tile .explore .button,
+.tile .buy .button,
+.previewContainer .buy .button {
+    font-family: $bs-font;
+    font-size: 21px;
+    line-height: 18px;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    display: inline-block;
+    white-space: nowrap;
+    text-align: center;
+    padding: 10px;
+    pointer-events: none;
+    cursor: pointer;
+}
+.tile .explore .button {
+    color: #FFF;
+    text-shadow: $bs-green 1px 0, $bs-green -1px 0, $bs-green 0 1px, $bs-green 0 -1px;
+}
+.tile .buy .button,
+.previewContainer .buy .button {
+    color: #FFF;
+    background-color: $bs-green;
+}
+.buy .button:hover {
+    text-decoration: underline;
+}
+.tile.image {
+    .overlay {
+        background-color: rgba(54,128,90,0.5);
+    }
+}
+.tile.banner {
+    padding: 15px;
+    a {
+        pointer-events: none;
+    }
 	.image-container {
 		/* Fixed aspect ratio image: 
 		 *   http://www.mademyday.de/css-height-equals-width-with-pure-css.html 
@@ -173,32 +214,49 @@ body {
 		height: 26px;
 	}
 	.price {
-		color: $bs-color;
+		color: $bs-green;
 		font-size: 24px;
 		padding: 15px 0;
 	}
+    .overlay {
+        cursor: pointer;
+        color: #FFF;
+        font-size: 21px;
+        text-transform: uppercase;
+        .cell {
+            font-family: $bs-font;
+        }
+    }
 }
 .previewContainer {
     color: #000;
     font-family: Arial, sans-serif;
     .buy {
         cursor: pointer;
+        a.button:hover {
+            text-decoration: underline;
+        }
     }
     .content {
         padding: 0 2px 0 0;
     }
     .close {
-        background-color: $aero-pink;
+        background-color: $bs-green;
         color: #FFF;
         padding: 10px 13px;
         font-size: 19px;
         font-weight: normal;
     }
     .cell.info {
-        padding-top: 42px;
-        padding-bottom: 10px;
-        padding-right: 10px;
+        padding: 42px 10px 10px 20px;
         width: 334px;
+        .description {
+            text-align: left;
+            font-family: Helvetica, sans-serif;
+            font-size: 11px;
+            color: #3E3E3E;
+            margin-top: 20px;
+        }
     }
     .cell.shop {
         width: 120px;
@@ -218,12 +276,6 @@ body {
         font-size: 18px;
         line-height: 21px;
         font-weight: bold;
-    }
-    .description {
-        text-align: left;
-        font-family: Helvetica, sans-serif;
-        font-size: 11px;
-        color: #3E3E3E;
     }
     .stl-title {
         font-family: "SaaSeriesFD", Helvetica, sans-serif;
