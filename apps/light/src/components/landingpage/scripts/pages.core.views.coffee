@@ -159,7 +159,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             console.error "-- TileView.onBeforeRender --"
             @model.set "image", @model.get("defaultImage")
             wideable = widableTemplates[@model.get("template")]
-            showWide = (Math.random() > App.option("imageTileWide", 0.5))
+            showWide = (Math.random() < App.option("imageTileWide", 0.5))
             console.error "wideable: #{wideable}\nshowWide: #{showWide}"
             if _.isNumber(@model.get("colspan"))
                 columns = @model.get("colspan")
