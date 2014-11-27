@@ -49,10 +49,9 @@ class ValidationPipeline(object):
         required = ['sku', 'name']
         empty_fields = [k for (k, v) in item.items() if not v and k in required]
         if empty_fields:
-            msg = 'Product fields cannot be blank: ({})'.format(
+            raise DropItem('Product fields cannot be blank: ({})'.format(
                 ', '.join(empty_fields)
-            )
-            raise DropItem(msg)
+            ))
 
         return item
 
@@ -166,11 +165,11 @@ class ItemPersistencePipeline(object):
             return item
 
         model, _ = get_or_create(item_model)
-
+        item['created'] = _
         try:
             update_model(model, item)
         except ValidationError as e:
-            raise DropItem('Item didn\'t validate. ({})'.format(e))
+            raise DropItem('DB item validation failed: ({})'.format(e))
 
         return item
 
@@ -257,30 +256,33 @@ class ProductImagePipeline(object):
     def process_item(self, item, spider):
         remove_background = getattr(spider, 'remove_background', False)
         if isinstance(item, ScraperProduct):
-            has_images = False
+            successes = 0
+            failures = 0
             for image_url in item.get('image_urls', []):
                 url = urlparse(image_url, scheme='http')
                 try:
                     self.process_product_image(item, url.geturl(), remove_background=remove_background)
-                    has_images = True
+                    successes += 1
                 except cloudinary.api.Error as e:
                     traceback.print_exc()
-            if not has_images:
-                item['in_stock'] = False
+                    failures += 1
+            if not successes:
+                # if product has no images, we don't want
+                # to show it on the page.
+                # Implementation is not very idiomatic unfortunately
+                product = Product.objects.get(store__slug=spider.store_slug, sku=item['sku'])
+                product.in_stock = False
+                product.save()
+
+            spider.log('Processed {} images'.format(successes))
+            if failures:
+                spider.log('{} images failed processing'.format(failures))
         return item
 
     def process_product_image(self, item, image_url, remove_background=False):
         store = item['store']
         product = item['sku']
-        try:
-            ProductScraper.process_image(image_url, product, store, remove_background=remove_background)
-        except Product.MultipleObjectsReturned:
-            raise DropItem(
-                'Unclear which product to attach to image. '
-                'More than one product (sku: "{}", store: "{}")'.format(
-                    product, store.id
-                )
-            )
+        ProductScraper.process_image(image_url, product, store, remove_background=remove_background)
 
 
 class ContentImagePipeline(object):
