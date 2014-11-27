@@ -164,8 +164,8 @@ class ItemPersistencePipeline(object):
         except TypeError:
             return item
 
-        model, _ = get_or_create(item_model)
-        item['created'] = _
+        model, was_it_created = get_or_create(item_model)
+        item['created'] = was_it_created
         try:
             update_model(model, item)
         except ValidationError as e:
