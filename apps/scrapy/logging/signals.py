@@ -20,6 +20,7 @@ class LogListener(object):
 
 
 class Signals(object):
+    """Record progress of spider for use in logging"""
     fake_log = LogListener()
 
     @classmethod
