@@ -20,7 +20,14 @@ class LogListener(object):
 
 
 class Signals(object):
-    """Record progress of spider for use in logging"""
+    """
+    Record progress of spider for use in logging, using scrapy signal hooks.
+    This is actually an extension: http://doc.scrapy.org/en/latest/topics/extensions.html
+    Details on signal hooks: http://doc.scrapy.org/en/latest/topics/signals.html
+
+    Scrapy docs are disorganized, this page gives details of the crawler object:
+    http://doc.scrapy.org/en/latest/topics/api.html
+    """
     fake_log = LogListener()
 
     @classmethod
