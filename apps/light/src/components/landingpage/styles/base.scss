@@ -1024,7 +1024,7 @@ div.spinner div.bar12 {
     .desktop-only {
         display: none !important;
     }
-    #category-area.mobile-dropdrown {
+    #category-area.mobile-dropdown {
         width: 100%;
         .category-area .category {
             display: none;
@@ -1033,7 +1033,7 @@ div.spinner div.bar12 {
             display: table-row;
         }
     }
-    #category-area.mobile-dropdrown:hover {
+    #category-area.mobile-dropdown:hover {
         .category-area {
             position: absolute;
         }
