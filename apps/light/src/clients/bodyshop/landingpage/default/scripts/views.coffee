@@ -8,4 +8,4 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onClick: (ev) ->
             url = App.utils.addUrlTrackingParameters( @model.get 'url' )
             window.open url, "_blank"
-            return
+            return false # stop propagation

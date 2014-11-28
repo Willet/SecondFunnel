@@ -94,7 +94,7 @@
 
     <div class="container">
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
-        <div id="category-area"></div>
+        <div id="category-area" class="mobile-dropdown"></div>
         <div id="hero-area"></div>
         <div id="hero-sub-banner">
             {% if legal_copy %}
@@ -156,6 +156,27 @@
                     <div class="explore">
                         <a class='button' href='<%= obj.url %>'>
                             Explore The Collection
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/template" id="shop_product_template">
+        <div class="tile-border">
+            <div class="image-container">
+                <div>
+                    <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
+                </div>
+            </div>
+        </div>
+        <div class="overlay">
+            <div class='table'>
+                <div class='cell'>
+                    <div class="buy">
+                        <a class='button' href='<%= obj.url %>'>
+                            Shop Now
                         </a>
                     </div>
                 </div>

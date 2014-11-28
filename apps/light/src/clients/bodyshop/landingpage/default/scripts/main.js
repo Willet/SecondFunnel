@@ -6,7 +6,8 @@
 var $ = require('jquery');
 require('jquery-deparam');
 var _ = require('underscore');
-var waypoints = require("jquery-waypoints") // register $.fn.waypoint
+var waypoints = require("jquery-waypoints"); // register $.fn.waypoint
+var waypoints_sticky = require("jquery-waypoints-sticky"); // register $.fn.waypoint
 
 var Page = require('landingpage'),
     App = Page.App;
@@ -20,6 +21,13 @@ App.start();
 
 (function () {
     // Custom Body Shop theme implementation
+    var catArea = $("#category-area"),
+        $snowflakes = $(document.createElement('div')).addClass('snowflakes');
+
+    // Insert snowflakes
+    catArea.append( $snowflakes.append( catArea.children().detach() ) );
+    // Make category area sticky
+    catArea.waypoint('sticky');
 
     App.utils.addUrlTrackingParameters = function (url) {
         var trackingCode = {

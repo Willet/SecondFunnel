@@ -54,7 +54,13 @@ a, a:hover, a:focus {
 .relative {
     position: relative;
 }
-
+.sticky-wrapper {
+    /* this ensures the sticky child does not change width */
+    width: inherit;
+    >div {
+        width: inherit;
+    }
+}
 .navbar {
     background: white;
     height: 56px;
@@ -682,11 +688,16 @@ div.loading {
 }
 
 #category-area {
+    position: relative;
     width: 100%;
     display: table;
     text-align: center;
 }
-
+#category-area.stuck {
+    top: 0;
+    width: inherit;
+    position: fixed;
+}
 #category-area .category-area {
     display: table-row;
 }
@@ -930,10 +941,11 @@ div.spinner div.bar12 {
     }
 
     .tile {
-        width: 50% !important;
+        width: 50%;
     }
     .tile.wide {
         min-height: inherit;
+        width: 50%;
     }
     .tile.video {
         width: 480px !important;
@@ -1011,6 +1023,23 @@ div.spinner div.bar12 {
 
     .desktop-only {
         display: none !important;
+    }
+    #category-area.mobile-dropdrown {
+        width: 100%;
+        .category-area .category {
+            display: none;
+        }
+        .category-area .category.selected {
+            display: table-row;
+        }
+    }
+    #category-area.mobile-dropdrown:hover {
+        .category-area {
+            position: absolute;
+        }
+        .category-area .category {
+            display: table-row;
+        }
     }
 }
 
