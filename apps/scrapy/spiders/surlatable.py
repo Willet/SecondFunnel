@@ -36,7 +36,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         attributes = {}
 
-        l.add_css('in_stock', True)
+        l.add_value('in_stock', True)
         l.add_css('name', 'h1.name::text')
         l.add_css('sku', '#productId::attr(value)', re=r'\d+')
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
