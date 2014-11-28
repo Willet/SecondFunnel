@@ -1,122 +1,58 @@
-from urlparse import urlparse
-
-import re
+from scrapy.selector import Selector
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
-from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
 
-from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider,\
-    SecondFunnelCrawlScraper
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
+from apps.scrapy.items import ScraperProduct
 
-
-class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'surlatable'
+    root_url = "http://www.surlatable.com"
     allowed_domains = ['surlatable.com']
-    start_urls = []
+    store_slug = name
+
+    # There is no way of making this pretty.  XPaths, my butt.
     rules = [
-        Rule(SgmlLinkExtractor(allow=[r'.*product/PRO-.*']),
-             callback='parse_product',
-             follow=False)
+        Rule(SgmlLinkExtractor(restrict_xpaths=
+            "//div[contains(@id, 'items')]/div[contains(@class, 'row')]/dl[contains(@class, 'item')]"
+        ), callback="parse_product", follow=False)
     ]
 
-    store_slug = name
-    visited = []
-
-    def parse_start_url(self, response):
-        """
-        Handles any special parsing from start_urls.
-
-        However, we mostly use it to handle pagination.
-
-        This method is misleading as it actually cascades...
-        """
-        # scrape individual products.
-        if self.is_product_page(response):
-            self.rules = ()
-            self._rules = []
-            return self.parse_product(response)
-
-        if response.url in self.visited:
-            return []
-
-        sel = Selector(response)
-        pages = sel.xpath('//*[@class="pagination"][1]')\
-            .css('.pageno::attr(href)').extract()
-
-        if not pages:
-            return []
-
-        url = response.url
-        hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
-
-        page_iter = iter(pages)
-        page = next(page_iter)  # Skip first page, as usual
-
-        urls = []
-        for page in page_iter:
-            page_url = hostname + page
-            self.visited.append(page_url)
-            request = WebdriverRequest(page_url)
-            urls.append(request)
-
-        return urls
+    def __init__(self, *args, **kwargs):
+        super(SurLaTableSpider, self).__init__(*args, **kwargs)
 
     def is_product_page(self, response):
-        is_product_page = re.search('.*product/PRO-.*', response.url)
-        return bool(is_product_page)
+        sel = Selector(response)
+
+        return sel.css('label#productPriceValue')  # TODO: out-of-stock
 
     def parse_product(self, response):
-        """
-        Parses a product page on SurLaTable.com.
-
-        @url http://www.surlatable.com/product/PRO-1447598/Fish+Individual+Bowl
-        @returns items 1 1
-        @returns requests 0 0
-        @scrapes url sku name price description image_urls attributes
-        """
-
-        url = response.url
-        referer = response.request.headers.get('Referer')
-
-        hostname = '{x.scheme}://{x.netloc}'.format(x=urlparse(url))
+        if not self.is_product_page(response):
+            return
 
         sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
-        l.add_value('url', response.url)
-        l.add_css('name', 'h1.name::text')
-        l.add_css('description', '#description span.boxsides')
-        l.add_value("sku", response.url, re=r'(\d+)')
-
         attributes = {}
 
-        sale_price = sel.css('li.sale::text').re_first(r'(\$\d+\.\d+)')
-
-        if sale_price:
-            attributes['sale_price'] = sale_price
-            l.add_css('price', 'li.regular::text', re=r'(\$\d+\.\d+)')
+        l.add_css('in_stock', True)
+        l.add_css('name', 'h1.name::text')
+        l.add_css('sku', '#productId::attr(value)', re=r'\d+')
+        l.add_css('url', 'link[rel="canonical"]::attr(href)')
+        l.add_css('description', '.boxsides::text')
+        try:
+            reg_price = sel.css('.regular label#productPriceValue::text').extract()[0]
+        except IndexError:
+            reg_price = sel.css('.price label#productPriceValue::text').extract()[0]
         else:
-            l.add_css('price', 'li.price::text', re=r'(\$\d+\.\d+)')
+            attributes['sale_price'] = sel.css('.sale label#productPriceValue::text').extract()[0]
+        l.add_value('price', reg_price.strip('$'))
 
-        if referer:
-            attributes['categories'] = {
-                'name': referer,
-            }
-
-        l.add_value('attributes', attributes)
-
-        # URL
-        magic_values = sel.css('.fluid-display::attr(id)')\
-            .extract_first()\
-            .split(':')
-        xml_path = '/images/customers/c{1}/{2}/' \
-            '{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
-
+        magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
+        xml_path = '/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
         item = l.load_item()
-        request = WebdriverRequest(
-            hostname + xml_path, callback=self.parse_images)
+        request = WebdriverRequest(self.root_url + xml_path, callback=self.parse_images)
 
         request.meta['item'] = item
 
@@ -128,21 +64,8 @@ class SurlatableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         item = response.meta.get('item', ScraperProduct())
         l = ScraperProductLoader(item=item, response=response)
 
-        xml_url = response.url
-        path = xml_url.rsplit('/', 1)[0]
-
-        # There may be cleaner ways to do this but they don't have THIS HAT.
-        relative_urls = sel.xpath('//*[@id="TOUCHZOOM"]/../@url').extract()
-        image_urls = [
-            '{0}/{1}'.format(path, u.rsplit('/', 1)[1]) for u in relative_urls
-        ]
-
-        # we only want to select the main product view's images, which labels its images
-        # with the touchzoom_variation_Default_view_###_1704x1704.jpg
-        image_urls = filter(lambda x: 'touchzoom_variation_Default_view' in x, image_urls)
-
-        # make sure they are unique
-        image_urls = list(set(image_urls))
+        urls = sel.css('image[url*="touchzoom"]::attr(url)').extract()
+        image_urls = set(['{}/{}'.format(response.url.rsplit('/', 1)[0], url.rsplit('/', 1)[1]) for url in urls])
 
         l.add_value('image_urls', image_urls)
 
