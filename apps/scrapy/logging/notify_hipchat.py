@@ -1,4 +1,5 @@
 import hipchat
+from django.conf import settings
 
 HIPCHAT_API_TOKEN = "675a844c309ec3227fa9437d022d05"
 scrapy_room = 1003016  # hipchat room_id
@@ -56,7 +57,7 @@ def dump_stats(stats, spider, reason):
         "rooms/message",
         method="POST",
         parameters={
-            "room_id": room_id,
+            "room_id": scrapy_room,
             "from": "scrapy-" + settings.ENVIRONMENT,
             "message": message,
             "message_format": "text",
