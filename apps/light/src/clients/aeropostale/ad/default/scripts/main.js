@@ -21,9 +21,7 @@ App.init.initialize();
 App.start();
 
 (function () {
-    $(document).ready(function() {
-        // Update top bar
-        var $topbar = $('#topbar a');
-        $topbar.attr('href', App.utils.generateAdClickUrl( $topbar.attr('href') ) );
-    });
+    // Update top bar
+    var $topbar = $('#topbar a');
+    $topbar.attr('href', App.utils.generateAdClickUrl( $topbar.attr('href') ) );
 }());

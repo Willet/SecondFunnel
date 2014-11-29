@@ -5,9 +5,9 @@
 
 var $ = require('jquery');
 require('jquery-deparam');
+require("jquery-waypoints"); // register $.fn.waypoint
+require("jquery-waypoints-sticky"); // register $.fn.waypoint
 var _ = require('underscore');
-var waypoints = require("jquery-waypoints"); // register $.fn.waypoint
-var waypoints_sticky = require("jquery-waypoints-sticky"); // register $.fn.waypoint
 
 var Page = require('landingpage'),
     App = Page.App;
