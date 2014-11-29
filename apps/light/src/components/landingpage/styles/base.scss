@@ -18,6 +18,8 @@
 @-o-viewport        { width: device-width; }
 @viewport           { width: device-width; }
 
+$max-page-width: 1024px;
+
 html, body {
     font-family: "helvetica neue", helvetica, arial, sans-serif;
 }
@@ -57,6 +59,7 @@ a, a:hover, a:focus {
 .sticky-wrapper {
     /* this ensures the sticky child does not change width */
     width: inherit;
+    max-width: 100%;
     >div {
         width: inherit;
     }
@@ -113,7 +116,7 @@ a, a:hover, a:focus {
 }
 
 #discovery-area {
-    width: 1024px;
+    width: $max-page-width;
     max-width: 100%;
     margin: auto;
     overflow: hidden; /* disable scroll-bar, don't want it modifying calculation of widths */
@@ -160,7 +163,7 @@ a, a:hover, a:focus {
     /* @override bootstrap 3 */
     padding-right: 0;
     padding-left: 0;
-    max-width: 1024px;
+    max-width: $max-page-width;
 }
 
 .container .legal,
@@ -690,6 +693,7 @@ div.loading {
 #category-area {
     position: relative;
     width: 100%;
+    max-width: 100%;
     display: table;
     text-align: center;
 }
@@ -697,6 +701,7 @@ div.loading {
     top: 0;
     width: inherit;
     position: fixed;
+    max-width: $max-page-width;
 }
 #category-area .category-area {
     display: table-row;
