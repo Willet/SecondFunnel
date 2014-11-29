@@ -294,6 +294,7 @@ body {
     #category-area {
         .snowflakes {
             padding-left: 30px;
+            padding-top: 0px;
         }
         .category-area {
             padding-left: 15px;
@@ -306,14 +307,18 @@ body {
     #category-area:hover {
         .snowflakes {
             /* content jumps out, so make up for it with padding */
-            padding: 33px 15px 0px 15px;
+            padding: 28px 15px 0px 15px;
         }
         .category-area {
             border: 1px solid $bs-green;
-            margin-top: -33px;
+            /* negation of .snowflakes padding-top */
+            margin-top: -28px;
             .category {
                 line-height: 35px;
             }
         }
+    }
+    #discovery-area {
+        margin-top: -6px;
     }
 }
