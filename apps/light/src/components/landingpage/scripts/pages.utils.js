@@ -1,7 +1,6 @@
 'use strict';
 
 require('jquery-deparam');
-
 /**
  * @module utils
  */

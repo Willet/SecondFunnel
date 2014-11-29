@@ -267,11 +267,11 @@
                 <% var sentences = _.compact(description.split('.')); %>
                 <ul>
                     <% _.each(sentences, function(sentence) { %>
-                        <li><%= SecondFunnel.utils.safeString(sentence) %></li>
+                        <li><%= App.utils.safeString(sentence) %></li>
                     <% }); %>
                 </ul>
             <% } else { %>
-                <%= SecondFunnel.utils.safeString(description) %>
+                <%= App.utils.safeString(description) %>
             <% } %>
         </script>
 
@@ -419,7 +419,7 @@
                                         </a>
                                     </div>
                                     <div class='description'>
-                                        <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
+                                        <%= App.utils.safeString(obj.caption || obj.description) %>
                                     </div>
                                 <% } %>
                             </div>

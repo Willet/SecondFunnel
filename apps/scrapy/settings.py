@@ -9,7 +9,7 @@
 import os
 from django.conf import settings
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'secondfunnel.settings.dev'
+#os.environ['DJANGO_SETTINGS_MODULE'] = 'secondfunnel.settings.dev'
 
 BOT_NAME = 'scraper'
 
@@ -17,7 +17,11 @@ SPIDER_MODULES = ['apps.scrapy.spiders']
 NEWSPIDER_MODULE = 'apps.scrapy.spiders'
 
 EXTENSIONS = {
-    'apps.scrapy.utils.extensions.SentrySignals': 10,
+    # SentrySignals removed because we don't use Sentry.
+    # See utils.extensions file for more info.
+    #'apps.scrapy.utils.extensions.SentrySignals': 10,
+
+    'apps.scrapy.logging.signals.Signals': 10,
 }
 
 DOWNLOAD_HANDLERS = {
@@ -65,13 +69,13 @@ IMAGES_STORE = '/Users/nterwoord/Code/ScrapyExperiment'
 # surlatable.com, err, blocks spiders
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1944.0 Safari/537.36'
 
-SENTRY_DSN = 'http://be7092f5a43648119e03e77ec002caff:7739e5e90d1b4f1da99ef8db9ba1ca2b@app.getsentry.com/22626'
+# SENTRY_DSN = 'http://be7092f5a43648119e03e77ec002caff:7739e5e90d1b4f1da99ef8db9ba1ca2b@app.getsentry.com/22626'
 
 # Complete list of signals: http://doc.scrapy.org/en/latest/topics/signals.html
-SENTRY_SIGNALS = [
-    'item_dropped',
-    'spider_error'
-]
+# SENTRY_SIGNALS = [
+#     'item_dropped',
+#     'spider_error'
+# ]
 
 AWS_ACCESS_KEY_ID = settings.AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY = settings.AWS_SECRET_ACCESS_KEY

@@ -7,6 +7,8 @@ class BodyShopSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'bodyshop'
     root_url = "http://www.thebodyshop-usa.com"
     allowed_domains = ['thebodyshop-usa.com']
+
+    remove_background = False
     
     store_slug = 'body-shop'
     rules = []

@@ -17,6 +17,7 @@ class ScraperProduct(DjangoItem):
     django_model = Product
     image_urls = Field()
     images = Field()
+    created = Field()
 
     store = Field(serializer=store_serializer)
 

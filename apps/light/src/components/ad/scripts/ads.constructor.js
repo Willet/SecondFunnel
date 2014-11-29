@@ -179,7 +179,7 @@ App.module('core', require('pages.core.views'));
 App.module('support', require('pages.support'));
 App.module('feed', require('pages.core.feed'));
 App.module('optimizer', require('pages.optimizer'));
-//App.module('tracker', require('pages.tracker'));
+App.module('tracker', require('pages.tracker'));
 //App.module('sharing', require('pages.sharing'));
 App.module('viewport', require('pages.viewport'));
 //App.utils.registerWidget('gallery', '.gallery, .gallery-dots', require('pages.widget.gallery'));

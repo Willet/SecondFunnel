@@ -158,7 +158,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # templates use this as obj.image.url
             @model.set "image", @model.get("defaultImage")
             wideable = widableTemplates[@model.get("template")]
-            showWide = (Math.random() > App.option("imageTileWide", 0.5))
+            showWide = (Math.random() < App.option("imageTileWide", 0.5))
             if _.isNumber(@model.get("colspan"))
                 columns = @model.get("colspan")
             else if wideable and showWide
@@ -644,7 +644,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             "click .buy": (event) ->
                 $target = $(event.target)
-                url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') or "http://www.aeropostale.com" )
+                url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') )
                 window.open url, "_self"
                 return
 
