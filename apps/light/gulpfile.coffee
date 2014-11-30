@@ -253,6 +253,21 @@ gulp.task "set-development", ->
     config.production = false
     return
 
+collectstatic = ->
+    grey = "tput setaf 8"
+    black = "tput sgr0"
+    bell = "tupt bel"
+    time = "date +\"%T\""
+    $.util.log(("Starting collect static files"))
+    # for gulp-shell to work, it needs to be in a pipe or task
+    gulp.src('', {read: false})
+        .pipe( $.shell(["sudo python manage.py collectstatic --noinput",
+                      "echo \"\[$(#{grey})$(#{time})$(#{black})\] $(#{blue})Finished collecting static files $(tput bel)$(tput bel)$(tput bel)\""],
+                     {cwd: '/opt/secondfunnel/app'}) )
+
+# throttle collectstatic so it batches when multiple files are updated
+tCollectstatic = _.throttle(collectstatic, 5000, {leading: false})
+
 gulp.task "dev", [
     "set-development"
     "build"
@@ -272,6 +287,24 @@ gulp.task "dev", [
     gulp.watch sources.fonts, ["fonts"]
     gulp.watch sources.images, ["images"]
     gulp.watch sources.vendor, ["vendor"]
-    $.util.log($.util.colors.blue("gulp.watch'ing html, styles, fonts, images, vendor"))
+    $.util.log($.util.colors.blue("Watch'ing html, styles, fonts, images, vendor"))
     return
 
+gulp.task "vagrant-dev", [
+    "set-development"
+    "build"
+], ->
+    collectstatic()
+
+    gulp.watch "src/**/*.html", -> 
+        gulp.start ["html"], tCollectstatic
+    gulp.watch sources.sass, ->
+        gulp.start ["styles"], tCollectstatic
+    gulp.watch sources.fonts, ->
+        gulp.start ["fonts"], tCollectstatic
+    gulp.watch sources.images, ->
+        gulp.start ["images"], tCollectstatic
+    gulp.watch sources.vendor, ->
+        gulp.start ["vendor"], tCollections
+    $.util.log($.util.colors.blue("Watch'ing html, styles, fonts, images, vendor"))
+    return
