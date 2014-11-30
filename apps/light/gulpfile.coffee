@@ -266,7 +266,7 @@ collectstatic = ->
                      {cwd: '/opt/secondfunnel/app'}) )
 
 # throttle collectstatic so it batches when multiple files are updated
-tCollectstatic = _.throttle(collectstatic, 5000)
+tCollectstatic = _.throttle(collectstatic, 5000, {leading: false})
 
 gulp.task "dev", [
     "set-development"
