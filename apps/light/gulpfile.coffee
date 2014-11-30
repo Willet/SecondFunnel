@@ -265,6 +265,7 @@ collectstatic = ->
                       "echo \"\[$(#{grey})$(#{time})$(#{black})\] $(#{blue})Finished collecting static files $(tput bel)$(tput bel)$(tput bel)\""],
                      {cwd: '/opt/secondfunnel/app'}) )
 
+# throttle collectstatic so it batches when multiple files are updated
 tCollectstatic = _.throttle(collectstatic, 5000)
 
 gulp.task "dev", [
