@@ -254,8 +254,9 @@ gulp.task "set-development", ->
     return
 
 collectstatic = ->
-    grey = "tput setaf 8"
     black = "tput sgr0"
+    blue = "tput setaf 4"
+    grey = "tput setaf 8"
     bell = "tupt bel"
     time = "date +\"%T\""
     $.util.log(("Starting collect static files"))
