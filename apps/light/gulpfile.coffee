@@ -270,10 +270,8 @@ tCollectstatic = _.throttle(collectstatic, 5000)
 
 gulp.task "dev", [
     "set-development"
-    #"build"
+    "build"
 ], ->
-    collectstatic()
-
     BrowserSync
         proxy:
             host: "2ndfunnel.com/" + static_output_dir
@@ -283,6 +281,20 @@ gulp.task "dev", [
             debounce: 500 # wait 0.5 seconds incase more changes come
 
         notify: true # whether to notify the browser when changes were made
+
+    gulp.watch "src/**/*.html", ["html"]
+    gulp.watch sources.sass, ["styles"]
+    gulp.watch sources.fonts, ["fonts"]
+    gulp.watch sources.images, ["images"]
+    gulp.watch sources.vendor, ["vendor"]
+    $.util.log($.util.colors.blue("watch'ing html, styles, fonts, images, vendor"))
+    return
+
+gulp.task "vagrant-dev", [
+    "set-development"
+    "build"
+], ->
+    collectstatic()
 
     gulp.watch "src/**/*.html", -> 
         gulp.start ["html"], tCollectstatic
@@ -296,4 +308,3 @@ gulp.task "dev", [
         gulp.start ["vendor"], tCollections
     $.util.log($.util.colors.blue("watch'ing html, styles, fonts, images, vendor"))
     return
-
