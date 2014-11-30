@@ -11,10 +11,9 @@ $aero-pink: #EE2841;
 }
 
 body {
-    background: none;
+    background: $aero-pink;
     font-family: "Lato", Helvetica, sans-serif;
 }
-
 .jumbotron {
     margin-top: 0;
 }

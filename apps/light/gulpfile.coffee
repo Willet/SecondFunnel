@@ -2,6 +2,7 @@ gulp = require("gulp")
 path = require("path")
 merge = require('merge-stream')
 $ = require("gulp-load-plugins")() # load all gulp plugins
+shell = require("gulp-shell")
 mainBowerFiles = require("main-bower-files")
 browserify = require("browserify")
 browserifyShim = require("browserify-shim")
@@ -253,10 +254,26 @@ gulp.task "set-development", ->
     config.production = false
     return
 
+collectstatic = ->
+    grey = "tput setaf 8"
+    black = "tput sgr0"
+    bell = "tupt bel"
+    time = "date +\"%T\""
+    $.util.log(("Starting collect static files"))
+    # for gulp-shell to work, it needs to be in a pipe or task
+    gulp.src('', {read: false})
+        .pipe( shell(["sudo python manage.py collectstatic --noinput",
+                      "echo \"\[$(#{grey})$(#{time})$(#{black})\] Finished collecting static files $(tput bel)$(tput bel)$(tput bel)\""],
+                     {cwd: '/opt/secondfunnel/app'}) )
+
+tCollectstatic = _.throttle(collectstatic, 5000)
+
 gulp.task "dev", [
     "set-development"
-    "build"
+    #"build"
 ], ->
+    collectstatic()
+
     BrowserSync
         proxy:
             host: "2ndfunnel.com/" + static_output_dir
@@ -267,11 +284,16 @@ gulp.task "dev", [
 
         notify: true # whether to notify the browser when changes were made
 
-    gulp.watch "src/**/*.html", ["html"]
-    gulp.watch sources.sass, ["styles"]
-    gulp.watch sources.fonts, ["fonts"]
-    gulp.watch sources.images, ["images"]
-    gulp.watch sources.vendor, ["vendor"]
-    $.util.log($.util.colors.blue("gulp.watch'ing html, styles, fonts, images, vendor"))
+    gulp.watch "src/**/*.html", -> 
+        gulp.start ["html"], tCollectstatic
+    gulp.watch sources.sass, ->
+        gulp.start ["styles"], tCollectstatic
+    gulp.watch sources.fonts, ->
+        gulp.start ["fonts"], tCollectstatic
+    gulp.watch sources.images, ->
+        gulp.start ["images"], tCollectstatic
+    gulp.watch sources.vendor, ->
+        gulp.start ["vendor"], tCollections
+    $.util.log($.util.colors.blue("watch'ing html, styles, fonts, images, vendor"))
     return
 
