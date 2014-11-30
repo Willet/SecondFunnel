@@ -2,7 +2,6 @@ gulp = require("gulp")
 path = require("path")
 merge = require('merge-stream')
 $ = require("gulp-load-plugins")() # load all gulp plugins
-#shell = require("gulp-shell")
 mainBowerFiles = require("main-bower-files")
 browserify = require("browserify")
 browserifyShim = require("browserify-shim")
