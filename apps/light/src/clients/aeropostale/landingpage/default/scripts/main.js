@@ -33,7 +33,7 @@ App.start();
 
 (function () {
     // Custom Aero theme implementation
-
+    
     // Hero area complete, show categories
     $("#category-area").show().waypoint('sticky');
 
