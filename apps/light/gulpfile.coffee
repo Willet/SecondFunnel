@@ -259,7 +259,7 @@ collectstatic = ->
     blue = "$(tput setaf 4)"
     grey = "$(tput setaf 8)"
     bell = "$(tput bel)"
-    time = "date +\"%T\""
+    time = "$(date +\"%T\")"
     $.util.log($.util.colors.blue("Starting collect static files"))
     # for gulp-shell to work, it needs to be in a pipe or task
     gulp.src('', {read: false})
