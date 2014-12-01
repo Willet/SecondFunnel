@@ -4,13 +4,13 @@ from apps.scrapy.utils.itemloaders import ScraperProductLoader
 from apps.scrapy.items import ScraperProduct
 
 class BodyShopSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
-    name = 'bodyshop'
+    name = 'body-shop'
     root_url = "http://www.thebodyshop-usa.com"
     allowed_domains = ['thebodyshop-usa.com']
 
     remove_background = False
     
-    store_slug = 'body-shop'
+    store_slug = name
     rules = []
 
     def __init__(self, *args, **kwargs):
