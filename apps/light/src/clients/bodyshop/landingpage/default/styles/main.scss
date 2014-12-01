@@ -17,42 +17,42 @@ body {
     color: $bs-green;
 }
 .navbar {
-	height: 60px;
-	line-height: 20px;
-	width: 100%;
-	position: relative;
-	min-height: inherit;
-	.container {
-		font-size: 0;
-		letter-spacing: 0;
-		position: relative;
-		>div {
-		    display: inline-block;
-		    position: absolute;
-		}
-	}
-	.logo {
-		left: 0;
-		top: 8px;
-		img {
-			height: 42px;
-		}
-	}
-	.store-locator {
-		right: 10px;
-		top: 20px;
-		line-height: 18px;
-		img {
-			height: 18px;
-			padding-right: 2px;
-		}
-		span {
-			text-transform: uppercase;
-			text-indent: 2px;
-			font-size: 11px;
-			font-weight: 700;
-		}
-	}
+    height: 60px;
+    line-height: 20px;
+    width: 100%;
+    position: relative;
+    min-height: inherit;
+    .container {
+        font-size: 0;
+        letter-spacing: 0;
+        position: relative;
+        > div {
+            display: inline-block;
+            position: absolute;
+        }
+    }
+    .logo {
+        left: 0;
+        top: 8px;
+        img {
+            height: 42px;
+        }
+    }
+    .store-locator {
+        right: 10px;
+        top: 20px;
+        line-height: 18px;
+        img {
+            height: 18px;
+            padding-right: 2px;
+        }
+        span {
+            text-transform: uppercase;
+            text-indent: 2px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+    }
 }
 #category-area {
     height: 30px;
@@ -88,9 +88,9 @@ body {
         }
     }
     .category.selected {
-    	background-color: transparent;
-    	color: $bs-highlight;
-    	>span {
+        background-color: transparent;
+        color: $bs-highlight;
+        >span {
             border-bottom: 2px solid $bs-highlight;
         }
     }
@@ -100,10 +100,10 @@ body {
         }
     }
     .category:hover {
-    	background-color: rgb(243, 250, 217);
-    	>span {
-	        border-bottom: 2px solid $bs-green;
-	    }
+        background-color: rgb(243, 250, 217);
+        >span {
+            border-bottom: 2px solid $bs-green;
+        }
     }
 }
 #category-area .snowflakes:after {
@@ -115,12 +115,12 @@ body {
     left: 0;
 }
 #hero-area {
-	padding: 0 5px;
+    padding: 0 5px;
     margin-top: -25px;
-	.jumbotron {
-		border: none;
+    .jumbotron {
+        border: none;
         margin-top: 0px;
-	}
+    }
 }
 .tile .explore .button,
 .tile .buy .button,
@@ -189,18 +189,18 @@ body {
     a {
         pointer-events: none;
     }
-	.name {
-		color: #777;
-		text-transform: uppercase;
-		font-size: 13px;
-		line-height: 13px;
-		height: 26px;
-	}
-	.price {
-		color: $bs-green;
-		font-size: 24px;
-		padding: 15px 0;
-	}
+    .name {
+        color: #777;
+        text-transform: uppercase;
+        font-size: 13px;
+        line-height: 13px;
+        height: 26px;
+    }
+    .price {
+        color: $bs-green;
+        font-size: 24px;
+        padding: 15px 0;
+    }
 }
 .previewContainer {
     color: #000;
