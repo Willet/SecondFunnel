@@ -154,31 +154,41 @@ body {
         background-color: rgba(54,128,90,0.5);
     }
 }
+.tile.banner,
+.stl-item {
+    .image-container {
+        /* Fixed aspect ratio image: 
+         *   http://www.mademyday.de/css-height-equals-width-with-pure-css.html 
+         */
+        position: relative;
+        width: 100%;
+        padding-bottom: 5px;
+        >div {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+    }
+    .image-container:before {
+        content: "";
+        display: block;
+        padding-top: 100%;
+    }
+    .overlay {
+        background: rgba(233,233,233,0.60) !important;
+        cursor: pointer;
+        color: #FFF;
+        font-size: 21px;
+        text-transform: uppercase;
+    }
+}
 .tile.banner {
     padding: 15px;
     a {
         pointer-events: none;
     }
-	.image-container {
-		/* Fixed aspect ratio image: 
-		 *   http://www.mademyday.de/css-height-equals-width-with-pure-css.html 
-		 */
-		position: relative;
-		width: 100%;
-		padding-bottom: 5px;
-		>div {
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-		}
-    }
-    .image-container:before {
-		content: "";
-		display: block;
-		padding-top: 100%;
-	}
 	.name {
 		color: #777;
 		text-transform: uppercase;
@@ -191,19 +201,10 @@ body {
 		font-size: 24px;
 		padding: 15px 0;
 	}
-    .overlay {
-        cursor: pointer;
-        color: #FFF;
-        font-size: 21px;
-        text-transform: uppercase;
-        .cell {
-            font-family: $bs-font;
-        }
-    }
 }
 .previewContainer {
     color: #000;
-    font-family: Arial, sans-serif;
+    font-family: proxima-nova-soft, sans-serif, Helvetica, Arial, sans-serif;
     .buy {
         cursor: pointer;
         a.button:hover {
@@ -237,6 +238,76 @@ body {
         padding-bottom: 10px;
         border-right: 1px solid #333;
         border-left: 1px solid #333;
+        .stl-look {
+            width: auto;
+            max-height: 577px;
+        }
+    }
+    .cell.shop-set {
+        width: 334px;
+        padding-top: 42px;
+        padding-right: 10px;
+        padding-bottom: 10px;
+        border-left: 1px solid #333;
+        .stl-title {
+            color: $bs-green;
+            font-size: 16px;
+        }
+        .stl-look {
+            width: 100%;
+            height: 100%;
+            overflow-y: scroll;
+            text-align: left;
+        }
+        .stl-item {
+            width: 49%;
+            display: inline-block;
+            position: relative;
+            text-align: center;
+            margin-bottom: 5px;
+            img {
+                width: 100%;
+                margin: 0;
+                opacity: 1.0;
+                filter: alpha(opacity=100);
+            }
+            .name {
+                color: #777;
+                font-size: 12px;
+                line-height: 12px;
+                height: 24px;
+                text-transform: uppercase;
+            }
+            .price {
+                color: $bs-green;
+                font-size: 14px;
+                padding: 15px 0;
+                font-weight: normal;
+            }
+            .overlay {
+                /* cancels a normalize.css rule */
+                .table {
+                    background: none;
+                }
+                .button {
+                    font-size: 16px;
+                    padding: 8px;
+                }
+                a {
+                    pointer-events: none;
+                }
+            }
+        }
+        .stl-item:hover .overlay {
+            cursor: pointer;
+            opacity: 1;
+            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99FFFFFF,endColorstr=#99FFFFFF);
+        }
+        /* Don't use filter for IE9 + */
+        .stl-item:hover .overlay:nth-child(n) {
+            cursor: pointer;
+            filter: none;
+        }
     }
     .cell.image-cell.desktop-only {
         padding-right: 0;
@@ -257,8 +328,6 @@ body {
         text-transform: uppercase;
     }
     .stl-look {
-        width: auto;
-        max-height: 577px;
         font-size: 12px;
         line-height: 14px;
     }
@@ -320,5 +389,40 @@ body {
     }
     #discovery-area {
         margin-top: -6px;
+    }
+    .previewContainer .cell.shop-set,
+    .previewContainer .cell.shop-set .landscape {
+        margin: 10px 0 20px 0;
+        padding: 0;
+        width: 100%;
+        .stl-title {
+            margin-bottom: 0;
+            font-size: 22px;
+            line-height: 22px;
+        }
+        .stl-look {
+            width: 100%;
+            padding-right: 0;
+        }
+        .stl-item {
+            display: inline-block;
+            width: 49%;
+            max-height: 100%;
+            vertical-align: top;
+            padding: 15px;
+            margin-botton: 0px;
+            .name {
+                font-size: 13px;
+                line-height: 13px;
+                height: 26px;
+            }
+            .price {
+                font-size: 24px;
+            }
+            .overlay .button {
+                font-size: 21px;
+                padding: 10px;
+            }
+        }
     }
 }
