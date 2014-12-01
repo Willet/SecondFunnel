@@ -7,7 +7,7 @@ $bs-font: "GillSans", Verdana, Geneva, sans-serif;
 
 @font-face {
     font-family: "GillSans";
-    src: url("/static/light/bodyshop/landingpage/default/fonts/GillSans.ttc") format('truetype');
+    src: url("/static/light/bodyshop/landingpage/default/fonts/gillsans.ttf") format('truetype');
 }
 
 body {
@@ -251,7 +251,8 @@ body {
         border-left: 1px solid #333;
         .stl-title {
             color: $bs-green;
-            font-size: 16px;
+            font-size: 18px;
+            font-family: $bs-font;
         }
         .stl-look {
             width: 100%;
