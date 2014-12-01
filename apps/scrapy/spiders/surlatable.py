@@ -41,12 +41,14 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('sku', '#productId::attr(value)', re=r'\d+')
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_css('description', '.boxsides::text')
+
+        # prices are sometimes in the form "$9.95 - $48.96"
         try:
-            reg_price = sel.css('.regular label#productPriceValue::text').extract()[0]
+            reg_price = sel.css('.regular label#productPriceValue::text').extract()[0].split('-')[0]
         except IndexError:
-            reg_price = sel.css('.price label#productPriceValue::text').extract()[0]
+            reg_price = sel.css('.price label#productPriceValue::text').extract()[0].split('-')[0]
         else:
-            attributes['sale_price'] = sel.css('.sale label#productPriceValue::text').extract()[0]
+            attributes['sale_price'] = sel.css('.sale label#productPriceValue::text').extract()[0].split('-')[0]
         l.add_value('price', reg_price.strip('$'))
 
         magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
