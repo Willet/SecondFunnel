@@ -163,27 +163,6 @@
         </div>
     </script>
 
-    <script type="text/template" id="shop_product_template">
-        <div class="tile-border">
-            <div class="image-container">
-                <div>
-                    <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
-                </div>
-            </div>
-        </div>
-        <div class="overlay">
-            <div class='table'>
-                <div class='cell'>
-                    <div class="buy">
-                        <a class='button' href='<%= obj.url %>'>
-                            Shop Now
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </script>
-
     <script type="text/template" id="image_preview_template">
         <% if (obj['tagged-products'].length) { %>
             <% var product = obj['tagged-products'][0]; %>
@@ -195,14 +174,23 @@
                                 <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                                 <div class="landscape">
                                     <div class="stl-title">
-                                        Shop The Collection
+                                        Shop The Set
                                     </div>
                                     <div class="stl-look">
                                         <% var related = obj['tagged-products']; %>
                                         <% for (var i = 0; i < related.length; i++) { %>
                                             <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <%- related[i].name %>
+                                                <div class="image-container">
+                                                    <img src="<%- related[i].images[0].url %>" />
+                                                    <%- related[i].name %>
+                                                </div>
+                                                <div class="overlay">
+                                                    <div class="buy">
+                                                        <a class='button' href='<%= obj.url %>'>
+                                                            Shop Now
+                                                        </a>
+                                                    </div>
+                                                </div>
                                             </div>
                                         <% } %>
                                     </div>
@@ -213,58 +201,96 @@
                             <img src="<%= obj.images[0].url %>" alt="image" />
                         </div>
                         <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
-                            <div class="cell desktop-only shop">
+                            <div class="cell desktop-only shop-set">
                                 <div class="stl-title">
-                                    Shop The Collection
+                                    Shop The Set
                                 </div>
                                 <div class="stl-look">
                                     <% var related = obj['tagged-products']; %>
                                     <% for (var i = 0; i < related.length; i++) { %>
                                         <div class="stl-item" data-index="<%- i %>">
-                                            <img src="<%- related[i].images[0].url %>" />
-                                            <%- related[i].name %>
+                                            <div class="holder">
+                                                <div class="image-container">
+                                                    <div>
+                                                        <img src="<%- related[i].images[0].url %>" />
+                                                    </div>
+                                                </div>
+                                                <div class="name"><%= related[i].name %></div>
+                                                <div class="price"><%= related[i].price %></div>
+                                            </div>
+                                            <div class="overlay">
+                                                <div class="table">
+                                                    <div class="cell">
+                                                        <div class="buy">
+                                                            <a class='button' href='<%= obj.url %>'>
+                                                                Shop Now
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     <% } %>
                                 </div>
                             </div>
                         <% } %>
                         <% if (obj['tagged-products'].length > 1) { %>
-                            <div class="cell mobile-only">
+                            <div class="cell mobile-only shop-set">
                                 <div class="stl-title">
-                                    Shop The Collection
+                                    Shop The Set
                                 </div>
                                 <div class="stl-look">
-                                    <% var related = obj['tagged-products'] %>
+                                    <% var related = obj['tagged-products']; %>
                                     <% for (var i = 0; i < related.length; i++) { %>
                                         <div class="stl-item" data-index="<%- i %>">
-                                            <img src="<%- related[i].images[0].url %>" />
-                                            <%- related[i].name %>
+                                            <div class="holder">
+                                                <div class="image-container">
+                                                    <div>
+                                                        <img src="<%- related[i].images[0].url %>" />
+                                                    </div>
+                                                </div>
+                                                <div class="name"><%= related[i].name %></div>
+                                                <div class="price"><%= related[i].price %></div>
+                                            </div>
+                                            <div class="overlay">
+                                                <div class="table">
+                                                    <div class="cell">
+                                                        <div class="buy">
+                                                            <a class='button' href='<%= obj.url %>'>
+                                                                Shop Now
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     <% } %>
                                 </div>
                             </div>
                         <% } %>
-                        <div class="cell info">
-                            <% if (App.support.mobile()) { %>
-                                <div class='title'></div>
-                                <div class='price'></div>
-                            <% } %>
-                            <div class='relative'>
-                                <div class="gallery-main-image"></div>
-                                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                        <% if (obj['tagged-products'].length === 1) { %>
+                            <div class="cell info">
                                 <% if (App.support.mobile()) { %>
-                                    <div class='buy'></div>
-                                <% } %>
-                            </div>
-                            <% if (!App.support.mobile()) { %>
-                                <div>
                                     <div class='title'></div>
                                     <div class='price'></div>
+                                <% } %>
+                                <div class='relative'>
+                                    <div class="gallery-main-image"></div>
+                                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                    <% if (App.support.mobile()) { %>
+                                        <div class='buy'></div>
+                                    <% } %>
                                 </div>
-                                <div class='buy'></div>
-                                <div class='description'></div>
-                            <% } %>
-                        </div>
+                                <% if (!App.support.mobile()) { %>
+                                    <div>
+                                        <div class='title'></div>
+                                        <div class='price'></div>
+                                    </div>
+                                    <div class='buy'></div>
+                                    <div class='description'></div>
+                                <% } %>
+                            </div>
+                        <% } %>
                     </div>
                 </div>
             </div>

@@ -58,7 +58,7 @@ class Signals(object):
         # The other methods of this class use the long approach because
         # dicts don't have an __add__ method.
         self.crawler.stats.inc_value('new_items' if item['created'] else 'updated_items', [item['url']],[])
-        if not item['in_stock']:
+        if not item.get('in_stock', True):
             self.crawler.stats.inc_value('out_of_stock', [item['url']], [])
 
 

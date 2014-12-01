@@ -23,7 +23,7 @@ class Command(BaseCommand):
 	def handle(self, *args, **kwargs):
 		for arg in args:
 			page = Page.objects.get(url_slug=arg)
-			store_name = page.store.name.lower()
+			store_slug = page.store.slug.lower()
 			feed = page.feed
 
 			start_urls = []
@@ -36,7 +36,7 @@ class Command(BaseCommand):
 			start_urls = set(start_urls)
 
 			for url in start_urls:
-				cmd = 'scrapy crawl {} -a start_urls={}'.format(store_name, url)
+				cmd = 'scrapy crawl {} -a start_urls={}'.format(store_slug, url)
 				if kwargs.get('tile_template'):  # don't use it
 					cmd += '-a feed_ids={} -a tile_template={}'.format(feed.id, kwargs['tile_template'])
 				os.system(cmd)
