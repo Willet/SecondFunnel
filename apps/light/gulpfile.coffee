@@ -254,16 +254,17 @@ gulp.task "set-development", ->
     return
 
 collectstatic = ->
-    black = "tput sgr0"
-    blue = "tput setaf 4"
-    grey = "tput setaf 8"
-    bell = "tupt bel"
+    # bash command shortcuts
+    black = "$(tput sgr0)"
+    blue = "$(tput setaf 4)"
+    grey = "$(tput setaf 8)"
+    bell = "$(tput bel)"
     time = "date +\"%T\""
     $.util.log($.util.colors.blue("Starting collect static files"))
     # for gulp-shell to work, it needs to be in a pipe or task
     gulp.src('', {read: false})
         .pipe( $.shell(["sudo python manage.py collectstatic --noinput",
-                      "echo \"\[$(#{grey})$(#{time})$(#{black})\] $(#{blue})Finished collecting static files$(#{black}) $(tput bel)$(tput bel)$(tput bel)\""],
+                      "echo \"\[#{grey}#{time}#{black}\] #{blue}Finished collecting static files#{black} #{bell}#{bell}#{bell}\""],
                      {cwd: '/opt/secondfunnel/app'}) )
 
 # throttle collectstatic so it batches when multiple files are updated

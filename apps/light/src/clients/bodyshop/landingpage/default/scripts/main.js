@@ -23,7 +23,7 @@ App.start();
     // Custom Body Shop theme implementation
     var catArea = $("#category-area"),
         $snowflakes = $(document.createElement('div')).addClass('snowflakes');
-
+    
     // Insert snowflakes
     catArea.append( $snowflakes.append( catArea.children().detach() ) );
     // Make category area sticky
