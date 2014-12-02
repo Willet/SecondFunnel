@@ -276,12 +276,9 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
         intentRank.options.category = category;
         intentRank.options.IRReset = true;
         App.tracker.changeCategory(category);
-
         App.vent.trigger('change:category', category, category);
-
-        App.discovery = new App.feed.MasonryFeedView({
-            options: App.options
-        });
+        
+        App.discovery = new App.feed.MasonryFeedView( App.options );
         $(".loading").show();
         App.discoveryArea.show(App.discovery);
 

@@ -107,6 +107,7 @@
     "bootstrap.transition": "./lib/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/transition.js",
     "cloudinary": "./lib/cloudinary_js/js/jquery.cloudinary.js",
     "masonry": "./lib/masonry/masonry.js",
+    "grid.masonry": "./src/shared/grid.masonry/grid.masonry.js",
     "outlayer": "./lib/outlayer/outlayer.js",
     "outlayerItem": "./lib/outlayer/item.js",
     "eventie": "./lib/eventie/eventie.js",

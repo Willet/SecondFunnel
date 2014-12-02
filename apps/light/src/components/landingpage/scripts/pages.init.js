@@ -77,7 +77,7 @@ module.exports = function (init, App, Backbone, Marionette, $, _) {
 
                 if (isNumber) { // Preview the tile
                     if (App.option('debug', false)) {
-                        console.error('Router opening tile preview: '+tileId);
+                        console.warn('Router opening tile preview: '+tileId);
                     }
                     var tile = App.discovery && App.discovery.collection ?
                         App.discovery.collection.tiles[tileId] :
@@ -181,9 +181,7 @@ module.exports = function (init, App, Backbone, Marionette, $, _) {
 
             App.store = new App.core.Store(App.options.store);
 
-            App.discovery = new App.feed.MasonryFeedView({
-                options: App.options
-            });
+            App.discovery = new App.feed.MasonryFeedView( App.options );
             App.discoveryArea.show(App.discovery);
 
             App.vent.trigger('initRouter', App.options, App);
