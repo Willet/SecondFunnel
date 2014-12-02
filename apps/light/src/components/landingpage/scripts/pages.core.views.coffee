@@ -1,12 +1,10 @@
-Backbone = require("backbone")
-Marionette = require("backbone.marionette")
+"use strict"
+
 imagesLoaded = require('imagesLoaded')
-$ = require("jquery")
-_ = require("underscore")
 waypoints = require("jquery-waypoints") # register $.fn.waypoint
 waypoints_sticky = require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
 
-module.exports = (module, App) ->
+module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     $window = $(window)
     $document = $(document)
@@ -45,7 +43,7 @@ module.exports = (module, App) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") >= 0
+                    t.indexOf("mobile") > -1
                 )
             templateRules
 
@@ -106,11 +104,6 @@ module.exports = (module, App) ->
         onClick: (ev) ->
             tile = @model
 
-            # Tile is a banner tile
-            if tile.get("redirect-url") and not (App.option("disableBannerRedirectOnMobile") and App.support.mobile())
-                window.open tile.get("redirect-url"), "_blank"
-                return
-
             if App.option("openTileInPopup", false)
                 if App.option("tilePopupUrl")
                     # override for ad units whose tiles point to our pages
@@ -165,7 +158,7 @@ module.exports = (module, App) ->
             # templates use this as obj.image.url
             @model.set "image", @model.get("defaultImage")
             wideable = widableTemplates[@model.get("template")]
-            showWide = (Math.random() > App.option("imageTileWide", 0.5))
+            showWide = (Math.random() < App.option("imageTileWide", 0.5))
             if _.isNumber(@model.get("colspan"))
                 columns = @model.get("colspan")
             else if wideable and showWide
@@ -509,12 +502,12 @@ module.exports = (module, App) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") >= 0
+                    t.indexOf("mobile") > -1
                 )
             templateRules
 
         onRender: ->
-            super(arguments)
+            super
 
             # hide discovery, then show this window as a page.
             if App.support.mobile()
@@ -526,7 +519,7 @@ module.exports = (module, App) ->
 
         # Disable scrolling body when preview is shown
         onShow: ->
-            super(arguments)
+            super
 
             #
             #  NOTE: Previously, it was thought that adding `no-scroll`
@@ -632,7 +625,7 @@ module.exports = (module, App) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") >= 0
+                    t.indexOf("mobile") > -1
                 )
             templateRules
 
@@ -647,6 +640,12 @@ module.exports = (module, App) ->
                         trigger: true
                         replace: true
 
+                return
+
+            "click .buy": (event) ->
+                $target = $(event.target)
+                url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') )
+                window.open url, "_self"
                 return
 
         regions:

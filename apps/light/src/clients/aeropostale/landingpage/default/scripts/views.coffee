@@ -1,11 +1,6 @@
 'use strict';
 
-$ = require('jquery')
-_ = require('underscore')
-Backbone = require('backbone')
-Marionette = require('backbone.marionette')
-
-module.exports = (module, App) ->
+module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     A container tile that has no onclick or onhover
 
@@ -40,9 +35,18 @@ module.exports = (module, App) ->
         template: "#giftcard_tile_template"
 
         onClick: (ev) ->
-            tile = @model
-            window.open tile.get("redirect-url"), "_blank"
+            url = App.utils.addUrlTrackingParameters( @model.get("redirect-url") )
+            window.open url, "_self"
             return
+
+    class module.BannerTileView extends module.TileView
+        template: "#banner_tile_template"
+
+        onClick: (ev) ->
+            url = App.utils.addUrlTrackingParameters( @model.get("redirect-url") )
+            window.open url, "_self"
+            return
+
 
     ###
     Mobile categories for Aero behave differently than desktop

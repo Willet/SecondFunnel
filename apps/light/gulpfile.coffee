@@ -65,6 +65,7 @@ bower_dir = "lib/"
 config = production: true
 
 onError = (err) ->
+    $.util.log($.util.colors.red("\n\nPlumber: Error: #{err}\n\n"))
     $.util.beep()
     console.error err
     return
@@ -111,6 +112,7 @@ gulp.task "html", ["rev"], ->
     manifest = gulp.src("#{static_output_dir}/rev-manifest.json")
 
     return merge(manifest, pages, pages_no_modify)
+        .pipe $.plumber(errorHandler: onError)
         .pipe $.if(config.production, revCollector())
         .pipe $.filter("**/*.html") # ignore the manifest
         .pipe $.size(showFiles: true, gzip: true, title: $.util.colors.cyan("all-rev-modified-files"))
@@ -121,6 +123,7 @@ gulp.task "html", ["rev"], ->
 
 gulp.task "styles", ->
     gulp.src(sources.sass)
+        .pipe $.plumber(errorHandler: onError)
         .pipe $.sass(
             errLogToConsole: not config.production
             style: (if config.production then "compressed" else "nested")
@@ -184,6 +187,7 @@ gulp.task "scripts", ["bower"], ->
 
 gulp.task "images", ->
     return gulp.src(sources.images)
+        .pipe $.plumber(errorHandler: onError)
         .pipe $.newer(static_output_dir)
         .pipe $.imagemin(
             optimizationLevel: 3
@@ -215,6 +219,7 @@ gulp.task "_rev", ["images", "fonts", "scripts", "styles"], ->
             # exclude already reved files (previous versions, etc)
             "!#{static_output_dir}/**/*#{reved_suffix}.{css,js,jpeg,jpg,svg,gif,png,eot,woff,ttf}"
         ], { base: __dirname })
+        .pipe $.plumber(errorHandler: onError)
         .pipe rev()
         .pipe $.rename(suffix: reved_suffix)
         .pipe gulp.dest(__dirname) # output rev-files
@@ -232,10 +237,14 @@ gulp.task "lint", ["jslint", "coffeelint"]
 
 
 gulp.task "jslint", ->
-    js_lint = gulp.src(sources.scripts).pipe($.jshint()).pipe $.jshint.reporter(require("jshint-stylish"))
+    js_lint = gulp.src(sources.scripts)
+        .pipe($.jshint())
+        .pipe $.jshint.reporter(require("jshint-stylish"))
 
 gulp.task "coffeelint", ->
-    gulp.src(["src/**/*.coffee", "gulpfile.coffee"]).pipe($.coffeelint()).pipe $.coffeelint.reporter()
+    gulp.src(["src/**/*.coffee", "gulpfile.coffee"])
+        .pipe($.coffeelint())
+        .pipe $.coffeelint.reporter()
 
 #
 # Development Environment
@@ -243,6 +252,23 @@ gulp.task "coffeelint", ->
 gulp.task "set-development", ->
     config.production = false
     return
+
+collectstatic = ->
+    # bash command shortcuts
+    black = "$(tput sgr0)"
+    blue = "$(tput setaf 4)"
+    grey = "$(tput setaf 8)"
+    bell = "$(tput bel)"
+    time = "$(date +\"%T\")"
+    $.util.log($.util.colors.blue("Starting collect static files"))
+    # for gulp-shell to work, it needs to be in a pipe or task
+    gulp.src('', {read: false})
+        .pipe( $.shell(["sudo python manage.py collectstatic --noinput",
+                      "echo \"\[#{grey}#{time}#{black}\] #{blue}Finished collecting static files#{black} #{bell}#{bell}#{bell}\""],
+                     {cwd: '/opt/secondfunnel/app'}) )
+
+# throttle collectstatic so it batches when multiple files are updated
+tCollectstatic = _.throttle(collectstatic, 5000, {leading: false})
 
 gulp.task "dev", [
     "set-development"
@@ -263,6 +289,24 @@ gulp.task "dev", [
     gulp.watch sources.fonts, ["fonts"]
     gulp.watch sources.images, ["images"]
     gulp.watch sources.vendor, ["vendor"]
-    $.util.log($.util.colors.blue("ALL FILES ARE BEING WATCHED (BY THE CIA)."))
+    $.util.log($.util.colors.blue("Watch'ing html, styles, fonts, images, vendor"))
     return
 
+gulp.task "vagrant-dev", [
+    "set-development"
+    "build"
+], ->
+    collectstatic()
+
+    gulp.watch "src/**/*.html", -> 
+        gulp.start ["html"], tCollectstatic
+    gulp.watch sources.sass, ->
+        gulp.start ["styles"], tCollectstatic
+    gulp.watch sources.fonts, ->
+        gulp.start ["fonts"], tCollectstatic
+    gulp.watch sources.images, ->
+        gulp.start ["images"], tCollectstatic
+    gulp.watch sources.vendor, ->
+        gulp.start ["vendor"], tCollections
+    $.util.log($.util.colors.blue("Watch'ing html, styles, fonts, images, vendor"))
+    return

@@ -23,6 +23,7 @@
     "gulp-file-includer": "^0.1.0",
     "gulp-filter": "^1.0.0",
     "gulp-flatten": "^0.0.2",
+    "gulp-shell": "^0.2.0",
     "gulp-htmlmin": "^0.1.3",
     "gulp-if": "^1.2.4",
     "gulp-imagemin": "1.0.0",
@@ -64,13 +65,13 @@
     ]
   },
   "browser": {
-    "landingpage": "./src/components/landingpage/scripts/pages.preinit.js",
+    "landingpage": "./src/components/landingpage/scripts/pages.constructor.js",
     "pages.init": "./src/components/landingpage/scripts/pages.init.js",
-    "pages.preinit": "./src/components/landingpage/scripts/pages.preinit.js",
+    "pages.constructor": "./src/components/landingpage/scripts/pages.constructor.js",
     "pages.core": "./src/components/landingpage/scripts/pages.core.coffee",
     "pages.core.models": "./src/components/landingpage/scripts/pages.core.models.coffee",
     "pages.core.views": "./src/components/landingpage/scripts/pages.core.views.coffee",
-    "pages.ir": "./src/components/landingpage/scripts/pages.ir.js",
+    "pages.intentrank": "./src/components/landingpage/scripts/pages.intentrank.js",
     "pages.support": "./src/components/landingpage/scripts/pages.support.js",
     "pages.core.feed": "./src/components/landingpage/scripts/pages.core.feed.coffee",
     "pages.optimizer": "./src/components/landingpage/scripts/pages.optimizer.js",
@@ -79,11 +80,15 @@
     "pages.viewport": "./src/components/landingpage/scripts/pages.viewport.js",
     "pages.widget.gallery": "./src/components/landingpage/scripts/pages.widget.gallery.js",
     "pages.utils": "./src/components/landingpage/scripts/pages.utils.js",
-    "ad": "./src/components/ad/scripts/main.js",
+    "ad": "./src/components/ad/scripts/ads.constructor.js",
+    "ads.utils": "./src/components/ad/scripts/ads.utils.js",
+    "ads.scroller": "./src/components/ad/scripts/ads.scroller.js",
     "modernizr": "./lib/modernizr/modernizr.js",
     "jquery": "./lib/jquery/dist/jquery.js",
+    "jquery.extensions": "./src/shared/scripts/extensions.jquery.js",
     "json3": "./lib/json3/lib/json3.js",
     "underscore": "./lib/underscore/underscore.js",
+    "underscore.extensions": "./src/shared/scripts/extensions.underscore.js",
     "backbone": "./lib/backbone/backbone.js",
     "backbone.babysitter": "./lib/backbone.babysitter/lib/backbone.babysitter.js",
     "backbone.wreqr": "./lib/backbone.wreqr/lib/backbone.wreqr.js",
@@ -329,7 +334,8 @@
     },
     "jquery-waypoints-sticky": {
       "depends": [
-        "jquery", "jquery-waypoints"
+        "jquery",
+        "jquery-waypoints"
       ]
     },
     "owl-carousel2": {
@@ -355,5 +361,8 @@
       "level": "warn",
       "limitComments": true
     }
+  },
+  "devDependencies": {
+    "gulp-shell": "^0.2.11"
   }
 }
