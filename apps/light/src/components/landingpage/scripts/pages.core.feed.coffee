@@ -189,7 +189,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         setupMasonry: ->
             @options.columnWidth = $('.tile-sizer')[0]
-            if @options.forceGrid and @options.rowHeight
+            if @options.forceGrid and @options.tileAspectRatio
                 if App.option 'debug', false
                     console.warn "Using GridMasonry"
                 @masonry = new GridMasonry @$el[0], @options

@@ -56,29 +56,9 @@ module.exports = function (init, App, Backbone, Marionette, $, _) {
                 }
                 //END http://stackoverflow.com/a/5298684
 
-<<<<<<< HEAD
-            App.previewArea.close();
-            App.intentRank.changeCategory('')
-        });
-
-        /**
-         * Adding the router for tile views
-         */
-        App.router.route(':tile_id', 'tile', function (tileId) {
-            App.utils.postExternalMessage(JSON.stringify({
-                'type': 'hash_change',
-                'hash': window.location.hash
-            }));
-            var isNumber = /^\d+$/.test(tileId);
-
-            if (isNumber) { // Preview the tile
-                if (App.option('debug', false)) {
-                    console.warn('Router opening tile preview: '+tileId);
-=======
                 //Setting that we have been home
                 if (App.initialPage) {
                     App.initialPage = '';
->>>>>>> 3f7c08f15c25501eb0e9d91d8ed5effe44984e51
                 }
 
                 App.previewArea.close();
@@ -97,7 +77,7 @@ module.exports = function (init, App, Backbone, Marionette, $, _) {
 
                 if (isNumber) { // Preview the tile
                     if (App.option('debug', false)) {
-                        console.error('Router opening tile preview: '+tileId);
+                        console.warn('Router opening tile preview: '+tileId);
                     }
                     var tile = App.discovery && App.discovery.collection ?
                         App.discovery.collection.tiles[tileId] :
@@ -201,15 +181,8 @@ module.exports = function (init, App, Backbone, Marionette, $, _) {
 
             App.store = new App.core.Store(App.options.store);
 
-<<<<<<< HEAD
-        App.discovery = new App.feed.MasonryFeedView( App.options );
-        App.discoveryArea.show(App.discovery);
-=======
-            App.discovery = new App.feed.MasonryFeedView({
-                options: App.options
-            });
+            App.discovery = new App.feed.MasonryFeedView( App.options );
             App.discoveryArea.show(App.discovery);
->>>>>>> 3f7c08f15c25501eb0e9d91d8ed5effe44984e51
 
             App.vent.trigger('initRouter', App.options, App);
 
