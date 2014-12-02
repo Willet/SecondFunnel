@@ -25,6 +25,7 @@ var GridMasonry = Outlayer.create('masonry');
 GridMasonry.prototype._resetLayout = function() {
   this.getSize();
   this._getMeasurement( 'columnWidth', 'outerWidth' );
+  this['rowHeight'] = this.columnWidth / (this.option.tileAspectRatio ? this.option.tileAspectRatio : 1);
   this._getMeasurement( 'gutter', 'outerWidth' );
   this.measureColumns();
 
@@ -36,9 +37,11 @@ GridMasonry.prototype._resetLayout = function() {
   }
 
   this.maxY = 0;
+  this._currentRowY = 0;
 };
 
 GridMasonry.prototype.measureColumns = function() {
+  // set this.cols as the calculated number of columns
   this.getContainerWidth();
   // if columnWidth is 0, default to outerWidth of first item
   if ( !this.columnWidth ) {
@@ -68,7 +71,7 @@ GridMasonry.prototype.getContainerWidth = function() {
 GridMasonry.prototype._getNextRowY = function () {
   // finds the lowest height were all tiles on that row have a height within the variance
   var colYs = this.colYs,
-      rowHeight = this.options.columnWidth / (this.options.tileAspectRatio ? this.options.tileAspectRatio : 1),
+      rowHeight = this.rowHeight,
       currentRowY = this._currentRowY,
       heightVariance = this.options.heightVariance || 0.2; // default: +/- 10%
   function removeExcessCols (cleanArr, colY) {
@@ -92,10 +95,21 @@ GridMasonry.prototype._getNextRowY = function () {
 
 GridMasonry.prototype._updateCurrentRow = function( newY ) {
   // Useful for discovering errors in the grid
-  // Replace any assignment to _currentRowY with this function
+  // Replace any assignment to _currentRowY with this function and add this css:
+  // .gridmasonry.line {
+  //     width: 100%;
+  //     border-top: 1px solid red;
+  //     padding: 0;
+  //     margin: 0;
+  //     position: absolute;
+  //     left: 0;
+  // }
   if (newY > this._currentRowY) {
     this._currentRowY = newY;
-    $(document.createElement('div')).addClass('line').css({ 'top': newY+$('.discovery-area').offset().top }).appendTo(document.body);
+    $(document.createElement('div')).addClass('gridmasonry line').css({ 'top': newY+$('.discovery-area').offset().top }).appendTo(document.body);
+  } else if (newY === 0) {
+    $('.gridmasonry.line').remove();
+    $(document.createElement('div')).addClass('gridmasonry line').css({ 'top': newY+$('.discovery-area').offset().top }).appendTo(document.body);
   }
 };
 
@@ -126,6 +140,7 @@ GridMasonry.prototype._getItemLayoutPosition = function( item ) {
   var noEmptyCols = Math.min.apply( null, _.map(this.colYs, findEmptySpot ) );
   if (noEmptyCols) {
     // start new row
+    // this._updateCurrentRow( this._getNextRowY() ); // show grid lines
     this._currentRowY = this._getNextRowY();
   }
 
@@ -190,7 +205,7 @@ GridMasonry.prototype.stashItem = function( item ) {
   if (!this._delayedQueue ) {
     this._delayedQueue = [];
   }
-  $(item.element).addClass('gridmasonry-purple');
+  $(item.element).addClass('gridmasonry purple');
   item.hide();
   item.isIgnored = true;
   this._delayedQueue.push( item );
