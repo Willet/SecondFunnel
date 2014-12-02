@@ -163,7 +163,7 @@ body {
         position: relative;
         width: 100%;
         padding-bottom: 5px;
-        >div {
+        > div {
             position: absolute;
             top: 0;
             left: 0;
@@ -190,15 +190,17 @@ body {
         pointer-events: none;
     }
     .name {
+        font-family: $bs-font;
         color: #777;
         text-transform: uppercase;
-        font-size: 13px;
-        line-height: 13px;
+        font-size: 14px;
+        line-height: 14px;
         height: 26px;
     }
     .price {
+        font-family: $bs-font
         color: $bs-green;
-        font-size: 24px;
+        font-size: 25px;
         padding: 15px 0;
     }
 }
