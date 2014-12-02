@@ -50,14 +50,12 @@ body {
         position: relative;
         width: 250px;
         padding: 0 10px;
-
-        >span {
+        > span {
             padding: 0 5px;
             display: inline-block;
             border-bottom: 2px solid #000;
             white-space: nowrap;
         }
-
         .sub-categories {
             position: absolute;
             z-index: 1;
@@ -69,7 +67,6 @@ body {
             right: 10px;
             top: 100%;
         }
-
         .sub-category {
             display: none;
             width: 100%;
@@ -83,7 +80,6 @@ body {
         .sub-category.selected {
             display: inline-block;
         }
-
         .sub-category.selected,
         .sub-category:hover {
             color: $aero-pink;
