@@ -1,23 +1,8 @@
 from scrapy import signals, log
+from StringIO import StringIO
 from django.conf import settings
 
 from notify_hipchat import dump_stats
-
-class LogListener(object):
-    """
-    Record all logging from spiders.
-    LogListener objects pretend to be file objects by implementing a "write" and 
-    a "close" method.  They can then be used by ScrapyFileLogObserver.
-    """
-    def __init__(self):
-        self.str = ""
-    def write(self, string):
-        self.str += string
-    def flush(self):
-        pass
-    def close(self):
-        pass
-
 
 class Signals(object):
     """
@@ -28,7 +13,7 @@ class Signals(object):
     Scrapy docs are disorganized, this page gives details of the crawler object:
     http://doc.scrapy.org/en/latest/topics/api.html
     """
-    fake_log = LogListener()
+    fake_log = StringIO()
 
     @classmethod
     def from_crawler(cls, crawler):
