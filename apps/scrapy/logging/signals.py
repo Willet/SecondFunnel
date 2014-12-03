@@ -1,7 +1,8 @@
 from scrapy import signals, log
 from django.conf import settings
 
-from notify_hipchat import dump_stats
+import notify_hipchat
+import upload_to_s3
 
 class LogListener(object):
     """
@@ -88,6 +89,7 @@ class Signals(object):
         if settings.ENVIRONMENT == 'dev':
             pass # return
 
-        # TODO: s3
+        full_log = upload_to_s3.full_log(self.fake_log.getvalue(), spider)
+        report = upload_to_s3.general_report(self.crawler.stats.get_stats(), spider, reason)
 
-        dump_stats(self.crawler.stats.get_stats(), spider, reason)
+        notify_hipchat.dump_stats(self.crawler.stats.get_stats(), spider, reason, (report, full_log))

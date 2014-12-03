@@ -5,7 +5,7 @@ HIPCHAT_API_TOKEN = "675a844c309ec3227fa9437d022d05"
 scrapy_room = 1003016  # hipchat room_id
 h = hipchat.HipChat(token=HIPCHAT_API_TOKEN)
 
-def dump_stats(stats, spider, reason):  
+def dump_stats(stats, spider, reason, s3_stuff):
     """
     Assemble stats into a brief message, then
     print it to the Scrapy room in hipchat.
@@ -52,6 +52,7 @@ def dump_stats(stats, spider, reason):
     else:
         message = "Ran spider {}!  ".format(spider.name.upper(), settings.ENVIRONMENT)
     message += ", ".join(report)
+    message += ' (<a href={}>report</a>)(<a href={}>full log</a>)'.format(*s3_stuff)
 
     h.method(
         "rooms/message",
@@ -60,7 +61,7 @@ def dump_stats(stats, spider, reason):
             "room_id": scrapy_room,
             "from": "scrapy-" + settings.ENVIRONMENT,
             "message": message,
-            "message_format": "text",
+            "message_format": "html",
             "color": color,
             "notify": 1
         }
