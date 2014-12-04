@@ -54,7 +54,7 @@ class Signals(object):
 
         msg = str(exception).split(':')[0]
         items = dropped_items.get(msg, [])
-        items.append('url: {}'.format(item.get('url', "(?)")))
+        items.append(item.get('url'))
         dropped_items[msg] = items
 
         self.crawler.stats.set_value('dropped_items', dropped_items)
@@ -65,7 +65,7 @@ class Signals(object):
 
         msg = failure.getErrorMessage()
         items = errors.get(msg, [])
-        items.append('url: {}'.format(response.url))
+        items.append(response.url)
         errors[msg] = items
 
         self.crawler.stats.set_value('errors', errors)
