@@ -19,7 +19,7 @@ def dump_stats(stats, spider, reason, s3_urls):
         ('new items', 'green'),
         ('items updated', 'green')
     ]
-    stats_collection = {key: stats.get('logging/' + key) or [] for key, col in keys}
+    stats_collection = {key: stats.get('logging/' + key) or [] for key, _ in keys}
 
     total = float(sum(map(len, stats_collection.values())))
 
