@@ -19,11 +19,12 @@ def dump_stats(stats, spider, reason, s3_urls):
     total_scraped = new_items + updated_items
     out_of_stock = stats.get('out_of_stock', [])
 
-    message = {
+    result_codes = {
         "shutdown": "Spider {} squashed like a bug (ctrl-C).  ",
         "finished": "Ran spider {}!  " + "But it failed" * bool(errors)
-    }.get(reason, "Spider {} died with unknown exit condition.  Investigate!")
-    message = message.format(spider.name.upper())
+    }
+    unknown_result_msg = "Spider {} died with unknown exit condition.  Investigate!"
+    message = result_codes.get(reason, unknown_result_msg).format(spider.name.upper())
 
     color = "" if reason == "finished" else "red"
 
