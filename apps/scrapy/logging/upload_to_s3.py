@@ -24,7 +24,7 @@ class S3Logger(object):
 
 
     def run(self):
-        report_url = self.send_report()
+        report_url = self.send_summary()
         log_url = self.send_log()
         return report_url, log_url
 
@@ -41,7 +41,7 @@ class S3Logger(object):
     def send_log(self):
         self.key.key = self._generate_filename('log')
         self.key.content_type = "text/text"
-        self.key.set_contents_from_string(self.stats.get('fake_log').getvalue())
+        self.key.set_contents_from_string(self.stats.get('log').getvalue())
 
         return DOMAIN + self.key.key
 
