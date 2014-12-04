@@ -1,22 +1,16 @@
-import hipchat
 from django.conf import settings
+from apps.utils import hipchat_broadcast as hipchat
 
-HIPCHAT_API_TOKEN = "675a844c309ec3227fa9437d022d05"
-scrapy_room = 1003016  # hipchat room_id
-h = hipchat.HipChat(token=HIPCHAT_API_TOKEN)
-
-def dump_stats(stats, spider, reason, s3_stuff):
+def dump_stats(stats, spider, reason, s3_urls):
     """
     Assemble stats into a brief message, then
     print it to the Scrapy room in hipchat.
-    TODO: message links to more details (s3).
     @stats scrapy Stats Collection object, as a dict
     @spider spider which was crawling
     @reason why/how the spider was closed, especially whether it was 
-    force-shutdown by ctrl-C.
+    force-shutdown by ctrl-C
+    @s3_urls links to s3 showing more details about scrape
     """
-
-    # locals().update(stats) ???
 
     errors = stats.get('errors', {})
     dropped_items = stats.get('dropped_items', {})
@@ -25,12 +19,16 @@ def dump_stats(stats, spider, reason, s3_stuff):
     total_scraped = new_items + updated_items
     out_of_stock = stats.get('out_of_stock', [])
 
-    report = []
-    color = ""
+    message = {
+        "shutdown": "Spider {} squashed like a bug (ctrl-C).  ",
+        "finished": "Ran spider {}!  " + "But it failed" * bool(errors)
+    }.get(reason, "Spider {} died with unknown exit condition.  Investigate!")
+    message = message.format(spider.name.upper())
 
+    color = "" if reason == "finished" else "red"
+
+    report = []
     if errors:
-        if reason != "shutdown":
-            report.append("But it failed. ")
         report.append("{} errors".format(len(errors)))
         color = "red"
     if dropped_items:
@@ -46,23 +44,14 @@ def dump_stats(stats, spider, reason, s3_stuff):
         color = color or "yellow"
     color = color or "green"
 
-    if reason == "shutdown":
-        message = "Spider {} squashed like a bug (ctrl-C).  ".format(spider.name.upper())
-        color = "red"
-    else:
-        message = "Ran spider {}!  ".format(spider.name.upper(), settings.ENVIRONMENT)
-    message += ", ".join(report)
-    message += ' (<a href={}>report</a>)(<a href={}>full log</a>)'.format(*s3_stuff)
+    message += ', '.join([a for a in report if a])
+    message += ' (<a href={}>report</a>)(<a href={}>full log</a>)'.format(*s3_urls)
 
-    h.method(
-        "rooms/message",
-        method="POST",
-        parameters={
-            "room_id": scrapy_room,
-            "from": "scrapy-" + settings.ENVIRONMENT,
-            "message": message,
-            "message_format": "html",
-            "color": color,
-            "notify": 1
-        }
+    hipchat.msg(
+        sender='scrapy-' + settings.ENVIRONMENT,
+        room='scrapy',
+        message=message,
+        type='html',
+        color=color,
+        notify=1
     )

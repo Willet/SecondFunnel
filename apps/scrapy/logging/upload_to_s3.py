@@ -6,46 +6,59 @@ from boto.s3.key import Key
 
 from django.conf import settings
 
-def connect():
-    conn = S3Connection(
-        settings.AWS_ACCESS_KEY_ID,
-        settings.AWS_SECRET_ACCESS_KEY
-    )
-    bucket = conn.get_bucket('scrapy.secondfunnel.com')
-    key = Key(bucket)
+class S3(object):
+    def __init__(self, stats, spider, reason):
+        self.conn = S3Connection(
+            settings.AWS_ACCESS_KEY_ID,
+            settings.AWS_SECRET_ACCESS_KEY
+        )
+        self.bucket = self.conn.get_bucket('scrapy.secondfunnel.com')
+        self.key = Key(self.bucket)
 
-    return bucket, key
-
-def generate_public_id(ext):
-    name = datetime.now().strftime('%Y-%m-%d,%H:%M')
-    return '.'.join([name, ext])
+        self.stats = stats
+        self.spider = spider
+        self.reason = reason
 
 
-def full_log(log, spider):
-    bucket, key = connect()
-    key.key = '/'.join([settings.ENVIRONMENT, spider.name, 'full-log', generate_public_id('log')])
-    key.content_type = "text/text"
-    key.set_contents_from_string(log)
+    def run(self):
+        domain = 'http://' + self.bucket.name + '.s3.amazonaws.com/'
+        return domain, self.report(), self.full_log()
 
-    return 'http://' + bucket.name + '.s3.amazonaws.com/' + key.key
 
-def general_report(stats, spider, reason):
-    bucket, key = connect()
-    key.key = '/'.join([settings.ENVIRONMENT, spider.name, 'report', generate_public_id('report')])
-    key.content_type = "text/json"
+    def generate_filename(self, type):
+        env = settings.ENVIRONMENT
+        spider = self.spider.name
+        filename = datetime.now().strftime('%Y-%m-%d,%H:%M')
 
-    report = {}
+        return '/'.join([env, spider, type, filename])
 
-    report['spider'] = spider.name
-    report['date/time'] = datetime.now().isoformat('+')
-    report['scrape-status'] = reason
 
-    report['errors'] = stats.get('errors', {})
-    report['dropped items'] = stats.get('dropped_items', [])
-    report['out of stock'] = stats.get('out_of_stock', [])
-    report['new items'] = stats.get('new_items', [])
-    report['updated items'] = stats.get('updated_items', [])
+    def full_log(self):
+        self.key.key = self.generate_filename('log')
+        self.key.content_type = "text/text"
+        self.key.set_contents_from_string(self.stats.get('fake_log').getvalue())
 
-    key.set_contents_from_string(json.dumps(report, indent=4, separators=(',', ': ')))
+        return self.key.key
 
-    return 'http://' + bucket.name + '.s3.amazonaws.com/' + key.key
+
+    def report(self):
+        self.key.key = self.generate_filename('report')
+        self.key.content_type = "text/json"
+        self.key.set_contents_from_string(self.format_report())
+
+        return self.key.key
+
+
+    def format_report(self):
+        report = {
+            'spider': self.spider.name,
+            'scrape-status': self.reason,
+
+            'errors': self.stats.get('errors', {}),
+            'dropped items': self.stats.get('dropped_items', []),
+            'out of stock': self.stats.get('out_of_stock', []),
+            'new items': self.stats.get('new_items', []),
+            'updated items': self.stats.get('updated_items', []),
+        }
+
+        return json.dumps(report, indent=4, separators=(',', ': '))

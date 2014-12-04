@@ -14,7 +14,6 @@ class Signals(object):
     Scrapy docs are disorganized, this page gives details of the crawler object:
     http://doc.scrapy.org/en/latest/topics/api.html
     """
-    fake_log = StringIO()
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -35,7 +34,9 @@ class Signals(object):
 
 
     def engine_started(self):
-        log.ScrapyFileLogObserver(self.fake_log, level=log.DEBUG).start()
+        fake_log = StringIO()
+        self.crawler.stats.set_value('fake_log', fake_log)
+        log.ScrapyFileLogObserver(fake_log, level=log.DEBUG).start()
 
 
     def item_scraped(self, item, response, spider):
@@ -74,7 +75,13 @@ class Signals(object):
         if settings.ENVIRONMENT == 'dev':
             pass # return
 
-        full_log = upload_to_s3.full_log(self.fake_log.getvalue(), spider)
-        report = upload_to_s3.general_report(self.crawler.stats.get_stats(), spider, reason)
+        domain, report, full_log = upload_to_s3.S3(
+            self.crawler.stats.get_stats(),
+            spider,
+            reason
+        ).run()
+
+        report = domain + report
+        full_log = domain + full_log
 
         notify_hipchat.dump_stats(self.crawler.stats.get_stats(), spider, reason, (report, full_log))
