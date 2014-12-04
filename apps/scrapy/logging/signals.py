@@ -34,9 +34,9 @@ class Signals(object):
 
 
     def engine_started(self):
-        fake_log = StringIO()
-        self.crawler.stats.set_value('fake_log', fake_log)
-        log.ScrapyFileLogObserver(fake_log, level=log.DEBUG).start()
+        log = StringIO()
+        self.crawler.stats.set_value('log', log)
+        log.ScrapyFileLogObserver(log, level=log.DEBUG).start()
 
 
     def item_scraped(self, item, response, spider):
@@ -75,13 +75,15 @@ class Signals(object):
         if settings.ENVIRONMENT == 'dev':
             pass # return
 
-        domain, report, full_log = upload_to_s3.S3(
+        summary_url, log_url = upload_to_s3.S3Logger(
             self.crawler.stats.get_stats(),
             spider,
             reason
         ).run()
 
-        report = domain + report
-        full_log = domain + full_log
-
-        notify_hipchat.dump_stats(self.crawler.stats.get_stats(), spider, reason, (report, full_log))
+        notify_hipchat.dump_stats(
+            self.crawler.stats.get_stats(),
+            spider,
+            reason,
+            (summary_url, log_url)
+        )
