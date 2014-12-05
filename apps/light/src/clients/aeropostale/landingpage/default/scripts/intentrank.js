@@ -31,9 +31,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
         App.vent.trigger('change:category', category, category);
 
-        App.discovery = new App.feed.MasonryFeedView({
-            options: App.options
-        });
+        App.discovery = new App.feed.MasonryFeedView( App.options );
         $(".loading").show();
         App.discoveryArea.show(App.discovery);
 

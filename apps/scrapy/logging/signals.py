@@ -1,23 +1,9 @@
 from scrapy import signals, log
+from StringIO import StringIO
 from django.conf import settings
 
-from notify_hipchat import dump_stats
-
-class LogListener(object):
-    """
-    Record all logging from spiders.
-    LogListener objects pretend to be file objects by implementing a "write" and 
-    a "close" method.  They can then be used by ScrapyFileLogObserver.
-    """
-    def __init__(self):
-        self.str = ""
-    def write(self, string):
-        self.str += string
-    def flush(self):
-        pass
-    def close(self):
-        pass
-
+import notify_hipchat
+import upload_to_s3
 
 class Signals(object):
     """
@@ -28,7 +14,6 @@ class Signals(object):
     Scrapy docs are disorganized, this page gives details of the crawler object:
     http://doc.scrapy.org/en/latest/topics/api.html
     """
-    fake_log = LogListener()
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -49,7 +34,9 @@ class Signals(object):
 
 
     def engine_started(self):
-        log.ScrapyFileLogObserver(self.fake_log, level=log.DEBUG).start()
+        log_buffer = StringIO()
+        self.crawler.stats.set_value('log', log_buffer)
+        log.ScrapyFileLogObserver(log_buffer, level=log.DEBUG).start()
 
 
     def item_scraped(self, item, response, spider):
@@ -57,37 +44,46 @@ class Signals(object):
         # performs list concatenation.
         # The other methods of this class use the long approach because
         # dicts don't have an __add__ method.
-        self.crawler.stats.inc_value('new_items' if item['created'] else 'updated_items', [item['url']],[])
+        self.crawler.stats.inc_value('logging/new items' if item['created'] else 'logging/items updated', [item['url']],[])
         if not item.get('in_stock', True):
-            self.crawler.stats.inc_value('out_of_stock', [item['url']], [])
+            self.crawler.stats.inc_value('logging/items out of stock', [item['url']], [])
 
 
     def item_dropped(self, item, spider, exception):
-        dropped_items = self.crawler.stats.get_value('dropped_items', {})
+        dropped_items = self.crawler.stats.get_value('logging/items dropped', {})
 
         msg = str(exception).split(':')[0]
         items = dropped_items.get(msg, [])
-        items.append('url: {}'.format(item.get('url', "(?)")))
+        items.append(item.get('url'))
         dropped_items[msg] = items
 
-        self.crawler.stats.set_value('dropped_items', dropped_items)
+        self.crawler.stats.set_value('logging/items dropped', dropped_items)
 
 
     def spider_error(self, failure, response, spider):
-        errors = self.crawler.stats.get_value('errors', {})
+        errors = self.crawler.stats.get_value('logging/errors', {})
 
         msg = failure.getErrorMessage()
         items = errors.get(msg, [])
-        items.append('url: {}'.format(response.url))
+        items.append(response.url)
         errors[msg] = items
 
-        self.crawler.stats.set_value('errors', errors)
+        self.crawler.stats.set_value('logging/errors', errors)
 
 
     def spider_closed(self, spider, reason):
         if settings.ENVIRONMENT == 'dev':
             pass # return
 
-        # TODO: s3
+        summary_url, log_url = upload_to_s3.S3Logger(
+            self.crawler.stats.get_stats(),
+            spider,
+            reason
+        ).run()
 
-        dump_stats(self.crawler.stats.get_stats(), spider, reason)
+        notify_hipchat.dump_stats(
+            self.crawler.stats.get_stats(),
+            spider,
+            reason,
+            (summary_url, log_url)
+        )

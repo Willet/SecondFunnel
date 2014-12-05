@@ -19,7 +19,7 @@ App.module('utils', require('./utils'));
 
 // Before starting application, decide which category to use
 (function () {
-    if ($(window).width() <= 768) {
+    if (App.support.mobile()) {
         // Mobile device
         // Enable Aeropostale mobile categories
         App.core.CategoryCollectionView = App.core.MobileCategoryCollectionView;

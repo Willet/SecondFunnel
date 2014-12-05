@@ -1,6 +1,7 @@
 "use strict"
 
 Masonry = require('masonry')
+GridMasonry = require('grid.masonry')
 Modernizr = require('modernizr')
 imagesLoaded = require('imagesLoaded')
 
@@ -10,7 +11,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         constructor: () ->
             @collection = new App.core.TileCollection()
-            super arguments
+            super  # this is magic, it passes forward arguments
 
         initialize: (options) ->
             @pagesScrolled = 1
@@ -50,7 +51,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @collection.offset = 0
 
             App.discovery = @
-
             @
 
         onShow: ->
@@ -165,10 +165,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 opacity: 0
 
         initialize: (options) ->
-            super(arguments)
+            super # this is magic, it passes forward arguments
             # only care about the masonry options, parent class will care about rest
             @options = _.extend({}, @default_options, options.masonry)
-
             @recently_added = []
             @layoutInProgress = false
 
@@ -178,6 +177,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onRender: ->
             @layout()
+
 
         layout: () ->
             if not @masonry
@@ -189,7 +189,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         setupMasonry: ->
             @options.columnWidth = $('.tile-sizer')[0]
-            @masonry = new Masonry @$el[0], @options
+            if @options.forceGrid and @options.tileAspectRatio
+                if App.option 'debug', false
+                    console.warn "Using GridMasonry"
+                @masonry = new GridMasonry @$el[0], @options
+            else
+                if App.option 'debug', false
+                    console.warn "Using Masonry"
+                @masonry = new Masonry @$el[0], @options
             @masonry.bindResize()
             @masonry.layout()
 

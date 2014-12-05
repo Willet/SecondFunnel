@@ -179,13 +179,7 @@ class PageConfigSerializer(object):
             'minImageWidth': page.get('minImageWidth') or 450,
             # minimum height a Cloudinary image can have  TODO: magic number
             'minImageHeight': page.get('minImageHeight') or 100,
-            'masonry': {  # passed to masonry
-                'transitionDuration': '0.4s',
-                # minimum number of columns on desktop for masonry
-                'minDesktopColumns': page.get('minDesktopColumns') or 2,
-                # minimum number of columns to show on mobile for masonry
-                'minMobileColumns': page.get('minMobileColumns') or 2,
-            },
+            'masonry': page.get('masonry') or {},
 
             # default: undefined
             'featured': featured_tile,
@@ -215,6 +209,13 @@ class PageConfigSerializer(object):
 
             # JS now fetches its own initial results
             'initialResults': [],
+        })
+        data['masonry'].update({
+            'transitionDuration': '0.4s',
+            # minimum number of columns on desktop for masonry
+            'minDesktopColumns': page.get('minDesktopColumns') or 2,
+            # minimum number of columns to show on mobile for masonry
+            'minMobileColumns': page.get('minMobileColumns') or 2,
         })
 
         # fill keys not available to parent serializer
