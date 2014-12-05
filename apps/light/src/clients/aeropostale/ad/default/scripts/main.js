@@ -14,7 +14,7 @@ var Ad = require('ad'),
 	App = Ad.App;
 
 // Import client customizations
-App.module('core', require('./views'));
+//
 
 // Start Application
 App.init.initialize();
