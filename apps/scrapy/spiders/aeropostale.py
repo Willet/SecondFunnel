@@ -38,6 +38,13 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
 
         return sel.css('#productPage') or "noResults" in response.url
 
+    def is_sold_out(self, response):
+        if "noResults" in response.url:
+            qs = urlparse.parse_qs(urlparse.urlparse(response.url).query)
+            return qs['kw'][0]
+        else:
+            return False
+
     def parse_product(self, response):
         sel = Selector(response)
         qs = urlparse.parse_qs(urlparse.urlparse(response.url).query)
@@ -45,17 +52,6 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
             sku = qs['productId'][0]
         except KeyError:
             sku = qs['kw'][0]
-
-        if "noResults" in response.url:
-            print "Out of stock!"
-            products = Product.objects.filter(sku__contains=sku + '@')
-            if not products:
-                print "We didn't have this product anyway."
-            for product in products:
-                print "product out of stock: {} {}".format(product.sku, product)
-                product.in_stock = False
-                product.save()
-            return
 
         colors = sel.css('ul.swatches.clearfix li img::attr(src)').re(r'-(\d+)_')
         print "{} colors".format(len(colors))

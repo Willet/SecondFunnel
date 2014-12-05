@@ -45,6 +45,9 @@ class Signals(object):
         # The other methods of this class use the long approach because
         # dicts don't have an __add__ method.
         self.crawler.stats.inc_value('logging/new items' if item['created'] else 'logging/items updated', [item['url']],[])
+
+        # For out-of-stock reasons other than 404 response (i.e. no images)
+        # 404s should be handled by "spider_error"
         if not item.get('in_stock', True):
             self.crawler.stats.inc_value('logging/items out of stock', [item['url']], [])
 
@@ -61,6 +64,11 @@ class Signals(object):
 
 
     def spider_error(self, failure, response, spider):
+        if failure.type.__name__ == "SoldOut":
+            # not strictly an error
+            self.crawler.stats.inc_value('logging/items out of stock', [response.url], [])
+            return
+
         errors = self.crawler.stats.get_value('logging/errors', {})
 
         msg = failure.getErrorMessage()

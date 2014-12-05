@@ -59,11 +59,11 @@ class S3Logger(object):
             'spider': self.spider.name,
             'scrape-status': self.reason,
 
-            'errors': self.stats.get('errors', {}),
-            'dropped items': self.stats.get('dropped_items', []),
-            'out of stock': self.stats.get('out_of_stock', []),
-            'new items': self.stats.get('new_items', []),
-            'updated items': self.stats.get('updated_items', []),
+            'errors': self.stats.get('logging/errors', {}),
+            'dropped items': self.stats.get('logging/items dropped', []),
+            'out of stock': self.stats.get('logging/items out of stock', []),
+            'new items': self.stats.get('logging/new items', []),
+            'updated items': self.stats.get('logging/items updated', []),
         }
 
         return json.dumps(report, indent=4, separators=(',', ': '))
