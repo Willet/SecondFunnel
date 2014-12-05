@@ -186,5 +186,6 @@ App.module('viewport', require('pages.viewport'));
 App.module('init', require('pages.init'));
 
 // Ad specific
+App.module('core', require('ads.core.views'));
 App.module('utils', require('ads.utils'));
 App.module("scroller", require('ads.scroller'));

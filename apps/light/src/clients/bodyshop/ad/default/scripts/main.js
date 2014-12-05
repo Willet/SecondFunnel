@@ -1,5 +1,5 @@
 /**
- *  AEROPOSTALE AD UNIT
+ *  BODY SHOP AD UNIT
  **/
 "use strict";
 

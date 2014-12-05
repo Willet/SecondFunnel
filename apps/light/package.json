@@ -81,6 +81,7 @@
     "pages.widget.gallery": "./src/components/landingpage/scripts/pages.widget.gallery.js",
     "pages.utils": "./src/components/landingpage/scripts/pages.utils.js",
     "ad": "./src/components/ad/scripts/ads.constructor.js",
+    "ads.core.views": "./src/components/ad/scripts/ads.core.views.coffee",
     "ads.utils": "./src/components/ad/scripts/ads.utils.js",
     "ads.scroller": "./src/components/ad/scripts/ads.scroller.js",
     "modernizr": "./lib/modernizr/modernizr.js",
