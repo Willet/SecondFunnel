@@ -1,0 +1,100 @@
+{
+  "image_tile_wide":1,
+  "widable_templates":{
+    "image":true
+  },
+  "social_buttons":null,
+  "ga_account_number":"UA-23764505-25",
+  "minImageWidth":680,
+  "desktop_hero_image":"/static/pinpoint/themes/surlatable/images/header_mobile.jpg",
+  "mobile_hero_image":"/static/pinpoint/themes/surlatable/images/header_desktop.jpg",
+  "column_width":341,
+  "categoryHome":false,
+  "masonry":{
+    "tileAspectRatio":0.6875,
+    "forceGrid":true
+  },
+  "minImageWidth":675,
+  "categories":[
+    {
+      "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1415835468/Aero_for_Her_Mobile_bshkh5.png",
+      "displayName":"Gifts <i>by Price</i>",
+      "name":"under-$100",
+      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1415835478/Aero_for_Her_Desktop_zvjzio.png",
+      "subCategories":[
+        {
+          "displayName":"Under $25",
+          "name":"under-$25"
+        },
+        {
+          "displayName":"Under $50",
+          "name":"under-$50"
+        },
+        {
+          "displayName":"Under $100",
+          "name":"under-$100"
+        },
+        {
+          "displayName":"Over $100",
+          "name":"over-$100"
+        }
+      ]
+    },
+    {
+      "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1415835468/Aero_for_Her_Mobile_bshkh5.png",
+      "displayName":"Gifts <i>by Recipient</i>",
+      "name":"for-her",
+      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1415835478/Aero_for_Her_Desktop_zvjzio.png",
+      "subCategories":[
+        {
+          "displayName":"For Her",
+          "name":"for-her"
+        },
+        {
+          "displayName":"For Him",
+          "name":"for-him"
+        },
+        {
+          "displayName":"The Chef",
+          "name":"the-chef"
+        },
+        {
+          "displayName":"The Baker",
+          "name":"the-baker"
+        },
+        {
+          "displayName":"The Family",
+          "name":"the-family"
+        },
+        {
+          "displayName":"The Entertainer",
+          "name":"the-entertainer"
+        },
+        {
+          "displayName":"The Griller",
+          "name":"the-griller"
+        },
+        {
+          "displayName":"The Wine Lover",
+          "name":"the-wine-lover"
+        },
+        {
+          "displayName":"The Coffee Lover",
+          "name":"the-coffee-lover"
+        },
+        {
+          "displayName":"The Foodie",
+          "name":"the-foodie"
+        },
+        {
+          "displayName":"The Health Nut",
+          "name":"the-health-nut"
+        },
+        {
+          "displayName":"The Bartender",
+          "name":"the-bartender"
+        }
+      ]
+    }
+  ]
+}
