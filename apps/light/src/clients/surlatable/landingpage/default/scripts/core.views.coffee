@@ -4,52 +4,40 @@
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     # Patch CategoryView to accept sub-category hero images
-    module.CategoryView.onClick = (event) ->
-            view = @
-            $el = view.$el
-            category = view.model.get("name")
-            nofilter = view.model.get("nofilter")
-            eventTarget = $(event.target)
+    _.extend module.CategoryView.prototype.events,
+        'click .sub-category': (event) ->
+            $el = @$el
+            category = @model
+            $target = $(event.target)
+            $subCatEl = if $target.hasClass 'sub-category' then $target else $target.parent '.sub-category'
 
-            if eventTarget.hasClass('sub-category')
-                if not eventTarget.hasClass('selected') and eventTarget.data('name') # this is not in the above if on purpose
-                    subCategory = _.find(view.model.get('subCategories'), (cat) ->
-                        cat.name == eventTarget.data('name')
-                    )
-            else if $('.sub-category.selected', $el).length == 1
-                $el.removeClass('selected')
-                $('.sub-category.selected', $el).removeClass('selected')
+            # Retrieve subcategory object
+            subCategory = _.find category.get('subCategories'), (subcategory) ->
+                return subcategory.name == $subCatEl.data('name')
 
-            # switch to the selected category
-            # if it has changed
-            if not $el.hasClass("selected") or subCategory
-                $el.siblings().each () ->
-                    self = $(@)
-                    self.removeClass 'selected'
-                    $('.sub-category', self).removeClass 'selected'
+            # switch to the selected category if it has changed
+            unless $el.hasClass 'selected' and $subCatEl.hasClass 'selected' and not $subCatEl.siblings().hasClass 'selected'
+                # switch to selected sub-category
+                $subCatEl.addClass 'selected'
+                $subCatEl.siblings().removeClass 'selected'
+                # switch to selected category if not already
+                unless $el.hasClass 'selected'
+                    $el.addClass 'selected'
+                    # remove selected from other categories
+                    $el.siblings().each () ->
+                        self = $(@)
+                        self.removeClass 'selected'
 
-                $el.addClass "selected"
+                # If subCategory leads with "|", its an additional filter on the parent category
+                if subCategory['name'].charAt(0) == "|"
+                    switchCategory = category.get("name") + subCategory['name']
+                # Else, subCategory is a category
+                else
+                    switchCategory = subCategory['name']
 
-                if subCategory
-                    eventTarget.siblings().removeClass 'selected'
-                    eventTarget.addClass 'selected'
-
-                    # If subCategory leads with "|", its an additional filter on the category
-                    if subCategory.get('name').charAt(0) == "|"
-                        category += subCategory.get('name')
-                    # Else, subCategory is a category
-                    else
-                        category = subCategory.get('name')
-
-                # Set Hero image
-                # Check if subcategory has hero image specified
-                if subCategory and subCategory.get("desktopHeroImage") and subCategory.get("mobileHeroImage")
-                    desktopHeroImage = subCategory.get("desktopHeroImage")
-                    mobileHeroImage = subCategory.get("mobileHeroImage")
-                # else check if category has hero image specified
-                else if view.model.get("desktopHeroImage") and view.model.get("mobileHeroImage")
-                    desktopHeroImage = view.model.get("desktopHeroImage")
-                    mobileHeroImage = view.model.get("mobileHeroImage")
+                # Set Hero image - check if subcategory has hero image specified
+                desktopHeroImage = subCategory["desktopHeroImage"] or category.get("desktopHeroImage")
+                mobileHeroImage = subCategory["mobileHeroImage"] or category.get("mobileHeroImage")
                 
                 if App.layoutEngine and desktopHeroImage and mobileHeroImage
                     App.heroArea.show(new App.core.HeroAreaView(
@@ -57,7 +45,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         "mobileHeroImage": mobileHeroImage
                     ))
 
-                App.navigate(category,
+                App.navigate(switchCategory,
                     trigger: true
                 )
-            return @
+
+            return false # stop propogation

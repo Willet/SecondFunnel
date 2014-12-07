@@ -18,7 +18,7 @@
   "categories":[
     {
       "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217570/SLT%20GG%20Hero%20Images/Gifts_Under_100_Mobile.png",
-      "displayName":"Gifts <i>by Price</i>",
+      "displayName":"GIFTS by Price",
       "name":"under-$100",
       "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217574/SLT%20GG%20Hero%20Images/Gifts_Under_100_Desktop.png",
       "subCategories":[
@@ -50,7 +50,7 @@
     },
     {
       "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217495/SLT%20GG%20Hero%20Images/Gifts_for_Her_Mobile.png",
-      "displayName":"Gifts <i>by Recipient</i>",
+      "displayName":"GIFTS by Recipient",
       "name":"for-her",
       "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217494/SLT%20GG%20Hero%20Images/Gifts_for_Her_Desktop.png",
       "subCategories":[
