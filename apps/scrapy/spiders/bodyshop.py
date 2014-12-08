@@ -16,15 +16,12 @@ class BodyShopSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     def __init__(self, *args, **kwargs):
     	super(BodyShopSpider, self).__init__(*args, **kwargs)
 
-
     def is_product_page(self, response):
         sel = Selector(response)
         return sel.css('p.price.new')
 
-
     def is_sold_out(self, response):
         return False
-
 
     def parse_product(self, response):
         sel = Selector(response)
