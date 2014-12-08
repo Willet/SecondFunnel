@@ -18,8 +18,10 @@ class BodyShopSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     def is_product_page(self, response):
         sel = Selector(response)
+        return sel.css('p.price.new')
 
-        return sel.css('p.price.new')  # TODO: out-of-stock
+    def is_sold_out(self, response):
+        return False
 
     def parse_product(self, response):
         sel = Selector(response)
@@ -29,9 +31,16 @@ class BodyShopSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('name', 'h1.title::attr(title)')
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_css('description', 'section.product-infos')
-        l.add_css('price', 'p.price.new::text')
         l.add_css('sku', '.volume .title::text', re=r'(\d+)')
-        
+
+        old_price = sel.css('p.price.old::text').extract()
+        new_price = sel.css('p.price.new::text').extract()
+        if old_price:
+            l.add_value('price', old_price[0])
+            attributes['sale_price'] = new_price[0]
+        else:
+            l.add_value('price', new_price[0])
+
         icons = sel.css('.product_views li[data-type="photo"] img::attr(src)').extract()
         image_urls = []
         for img in icons:
@@ -41,4 +50,5 @@ class BodyShopSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             image_urls.append(img) 
         l.add_value('image_urls', image_urls)
         
+        l.add_value('attributes', attributes)
         yield l.load_item()
