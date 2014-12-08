@@ -13,6 +13,8 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     allowed_domains = ['surlatable.com']
     store_slug = name
 
+    remove_background = False
+
     # There is no way of making this pretty.  XPaths, my butt.
     rules = [
         Rule(SgmlLinkExtractor(restrict_xpaths=
