@@ -29,9 +29,9 @@ sources =
         "src/landingpage/**/*.js"
     ]
     fonts: [
-        "src/demo/**/*.{eot,svg,ttf,woff}"
-        "src/clients/**/*.{eot,svg,ttf,woff}"
-        "src/components/**/*.{eot,svg,ttf,woff}"
+        "src/demo/**/*.{eot,svg,ttf,woff,otf}"
+        "src/clients/**/*.{eot,svg,ttf,woff,otf}"
+        "src/components/**/*.{eot,svg,ttf,woff,otf}"
     ]
     sass: [
         "src/clients/**/*.scss"
