@@ -38,12 +38,10 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
 
         return sel.css('#productPage') or "noResults" in response.url
 
+
     def is_sold_out(self, response):
-        if "noResults" in response.url:
-            qs = urlparse.parse_qs(urlparse.urlparse(response.url).query)
-            return qs['kw'][0]
-        else:
-            return False
+        return "noResults" in response.url
+
 
     def parse_product(self, response):
         sel = Selector(response)

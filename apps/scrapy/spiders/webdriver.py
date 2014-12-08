@@ -43,13 +43,13 @@ class SecondFunnelCrawlScraper(SecondFunnelScraper):
         return []
 
     def is_product_page(self, response):
-        return False
+        raise NotImplementedError
 
     def is_sold_out(self, response):
-        return False
+        raise NotImplementedError
 
     def parse_product(self, response):
-        return []
+        raise NotImplementedError
 
 
 class WebdriverCrawlSpider(Spider):
