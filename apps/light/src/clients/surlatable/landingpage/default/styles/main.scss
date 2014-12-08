@@ -236,6 +236,7 @@ body {
             display: inline-block;
             padding-top: 5px;
             font-size: 26px;
+            font-style: italic;
             white-space: nowrap;
             text-align: center;
             text-transform: none;
@@ -324,6 +325,10 @@ body {
 
 .tile {
     padding: 15px;
+    width: 33%;
+    &.wide {
+        width: 33%;
+    }
 }
 
 .tile .name {
