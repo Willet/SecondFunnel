@@ -3,10 +3,10 @@
 /**
  * @module intentRank
  */
-module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
+module.exports = function (module, App, Backbone, Marionette, $, _) {
     var resultsAlreadyRequested = []; // list of product IDs
 
-    this.options = {
+    module.options = {
         'IRSource': '/intentrank',
         'urlTemplate': '<%=IRSource%>/page/<%=campaign%>/getresults',
         'add': true,
@@ -21,8 +21,8 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
         'content': []
     };
 
-    this.on('start', function () {
-        return this.initialize(App.options);
+    module.on('start', function () {
+        return module.initialize(App.options);
     });
 
     /**
@@ -31,29 +31,27 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
      * @param options {Object}    overrides.
      * @returns this
      */
-    this.initialize = function (options) {
+    module.initialize = function (options) {
         // Any additional init declarations go here
         var page = options.page || {};
 
-        _.extend(intentRank.options, {
-            'IRSource': options.IRSource || this.IRSource,
+        _.extend(module.options, {
+            'IRSource': options.IRSource || module.IRSource,
             'store': options.store || {},
             'campaign': options.campaign,
-            // @deprecated: options.categories will be page.categories
-            'categories': page.categories || options.categories || {},
+            'categories': page.categories || {},
             'IRResultsCount': options.IRResultsCount || 10,
             'IRAlgo': options.IRAlgo || 'magic',
             'IRReqNum': options.IRReqNum || 0,
             'IRTileSet': options.IRTileSet || '',
             'content': options.content || [],
             'filters': options.filters || [],
-            // Use this to intelligently guess what our cache calls should
-            // request
+            // Use this to intelligently guess what our cache calls should request
             'IRCacheResultCount': options.IRResultsCount || 10
         });
 
-        App.vent.trigger('intentRankInitialized', intentRank);
-        return this;
+        App.vent.trigger('intentRankInitialized', module);
+        return module;
     };
 
     /**
@@ -61,8 +59,8 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
      *
      * @returns {String}
      */
-    this.url = function () {
-        return _.template(this.options.urlTemplate, intentRank.options);
+    module.url = function () {
+        return _.template(module.options.urlTemplate, module.options);
     };
 
     /**
@@ -74,7 +72,7 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
      * @param options
      * @returns {promise}
      */
-    this.fetch = function (options) {
+    module.fetch = function (options) {
         // 'this' can be whatever you want it to be
         var collection = this,
             data = {},
@@ -83,19 +81,19 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
         if (resultsAlreadyRequested.length) {
             data.shown = resultsAlreadyRequested.sort().join(',');
         }
-        data.algorithm = intentRank.options.IRAlgo;
-        data.reqNum = intentRank.options.IRReqNum;
+        data.algorithm = module.options.IRAlgo;
+        data.reqNum = module.options.IRReqNum;
         data.offset = collection.offset || 0;
-        data['tile-set'] = intentRank.options.IRTileSet;
+        data['tile-set'] = module.options.IRTileSet;
 
-        if (intentRank.options.IRReset) {
+        if (module.options.IRReset) {
             data['session-reset'] = true;
-            intentRank.options.IRReset = false;
+            module.options.IRReset = false;
         }
 
         // normally undefined, unless a category is selected on the page
-        if (intentRank.options.category) {
-            data.category = intentRank.options.category;
+        if (module.options.category) {
+            data.category = module.options.category;
         }
 
         opts = $.extend({}, {
@@ -109,7 +107,7 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
             },
             'parse': true,
             'data': data
-        }, this.config, intentRank.options, options);
+        }, this.config, module.options, options);
 
         if (collection.ajaxFailCount > 5) {
             console.error("IR failed " + collection.ajaxFailCount +
@@ -144,12 +142,12 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
                 collection[method](results, opts);
                 collection.trigger('sync', collection, results, opts);
 
-                resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
+                resultsAlreadyRequested = _.compact(module.getTileIds(results));
 
                 // restrict shown list to last 10 items max
                 // (it was specified before?)
                 resultsAlreadyRequested = resultsAlreadyRequested.slice(
-                    -intentRank.options.IRResultsCount);
+                    -module.options.IRResultsCount);
             }).fail(function () {
                 // request FAILED
                 if (collection.ajaxFailCount) {
@@ -163,7 +161,7 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
 
         this.deferred.done(function () {
             App.options.IRReqNum++;
-            intentRank.options.IRReqNum++;
+            module.options.IRReqNum++;
         });
 
         return this.deferred;
@@ -178,9 +176,9 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
      *                           I think it stands for additional filters.
      * @returns {Array} filtered content
      */
-    this.filter = function (content, selector) {
+    module.filter = function (content, selector) {
         var i, filter,
-            filters = intentRank.options.filters || [];
+            filters = module.options.filters || [];
 
         filters.push(selector);
         filters = _.flatten(filters);
@@ -205,9 +203,9 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
     /**
      * append a list of json results shown.
      */
-    this.addResultsShown = function (results) {
+    module.addResultsShown = function (results) {
         resultsAlreadyRequested = resultsAlreadyRequested.concat(
-            intentRank.getTileIds(results));
+            module.getTileIds(results));
     };
 
     /**
@@ -215,7 +213,7 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
      *               if not given, all tiles on the page
      * @return {Array} unique list of tile ids
      */
-    this.getTileIds = function (tiles) {
+    module.getTileIds = function (tiles) {
         if (tiles === undefined) {
             if (App.discoveryArea && App.discoveryArea.$el) {
                 tiles = _.map(App.discoveryArea.$el.find('.tile'), function (el) {
@@ -241,7 +239,7 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
      * @return this
      */
     this.set = function (results) {
-        return this;
+        return module;
     };
 
     /**
@@ -249,47 +247,38 @@ module.exports = function (intentRank, App, Backbone, Marionette, $, _) {
      *
      * @return this
      */
-    this.sync = function () {
-        return this;
+    module.sync = function () {
+        return module;
     };
 
     /**
-     * Changes the intentRank category, consequently changing the url
-     * that is used as well.
+     * Changes the intentRank category
      *
      * @param {String} category
      * @return this
      */
-    this.changeCategory = function (category) {
+    module.changeCategory = function (category) {
         if ($('.category-area span').length < 1) {
-            return intentRank;
+            return module;
         }
         if (category === '') {
-            category = $('.category-area span:first').attr('data-name');
+            category = module.categories[0].name;
         }
 
-        if (intentRank.options.category === category) {
-            return intentRank;
-        }
+        if (module.options.category !== category) {
+            $(".loading").show();
 
-        // Change the category, category is a string passed to data
-        intentRank.options.category = category;
-        intentRank.options.IRReset = true;
-        App.tracker.changeCategory(category);
-        App.vent.trigger('change:category', category, category);
+            module.options.category = category;
+            module.options.IRReset = true;
+            App.tracker.changeCategory(category);
+            App.vent.trigger('change:category', category, category);
+
+            // We create a new feed each time to ensure the previous
+            // feed & tiles are completely unbinded
+            App.discovery = new App.feed.MasonryFeedView( App.options );
+            App.discoveryArea.show(App.discovery);
+        }
         
-        App.discovery = new App.feed.MasonryFeedView( App.options );
-        $(".loading").show();
-        App.discoveryArea.show(App.discovery);
-
-        var categoryHierarchy = category.split("|");
-        var categorySpan = $('.category-area span[data-name="' + categoryHierarchy[0] + '"]:not(.sub-category)');
-        if (categoryHierarchy.length > 1) {
-            // sub-categories
-            categorySpan = $('.sub-category[data-name="' + categoryHierarchy[1] + '"]', categorySpan.parent());
-        }
-        categorySpan.trigger("click");
-        
-        return intentRank;
+        return module;
     };
 };

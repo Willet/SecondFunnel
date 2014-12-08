@@ -143,6 +143,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             args.unshift(@models)
             return _[method].apply(_, args)
 
+
     class module.Store extends Backbone.Model
         defaults:
             id: "0"
@@ -310,6 +311,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             method = "read" # Must always be read only
             Backbone.sync method, model, options
 
+
     ###
     The Image object (url, width, height, ...)
 
@@ -365,10 +367,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # get url by min height
             @dimens 0, height, obj
 
-    ###
-    automatically subclassed by TileCollection's model() method
-    @type {Tile}
-    ###
 
     ###
     An ImageTile    *is* an image JSON, so we need to allocate all of its
@@ -387,6 +385,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             resp.images = [$.extend(true, {}, resp)]
             resp
 
+
     ###
     automatically subclassed by TileCollection's model() method
     @type {Tile}
@@ -394,6 +393,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.VideoTile extends module.Tile
         defaults:
             type: "video"
+
 
     class module.YoutubeTile extends module.VideoTile
         defaults:

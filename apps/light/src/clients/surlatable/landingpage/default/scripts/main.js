@@ -11,7 +11,6 @@ var Page = require('landingpage'),
     App = Page.App;
 
 // Import client customizations
-App.module('core', require('./core.views'));
 
 // Run Application
 App.init.initialize();

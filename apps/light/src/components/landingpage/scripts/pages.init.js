@@ -4,10 +4,10 @@
  * Given an instance of  Marionette Application, add initializers to it.
  * @param app
  */
-module.exports = function (init, App, Backbone, Marionette, $, _) {
+module.exports = function (module, App, Backbone, Marionette, $, _) {
 
     // Run this before App.start();
-    this.initialize = function () {
+    module.initialize = function () {
         // setup regions if not already
         if (!App._initialized) {
             App.addRegions({
@@ -33,98 +33,8 @@ module.exports = function (init, App, Backbone, Marionette, $, _) {
         App.vent.on('initRouter', function () {
             var loc = window.location.href, // reference to current url
                 previewLoadingScreen = $('#preview-loading');
-            App.router = new Backbone.Router();
-
-            //TODO: put these routes into their own file?
-            /**
-             * Home route
-             */
-            App.router.route('', 'home', function () {
-                App.utils.postExternalMessage(JSON.stringify({
-                    'type': 'hash_change',
-                    'hash': '#'
-                }));
-                //http://stackoverflow.com/a/5298684
-                var loc = window.location;
-                if (loc.href.indexOf('#') > -1) {
-                    if ('replaceState' in window.history) {
-                        window.history.replaceState('', document.title, loc.pathname + loc.search);
-                    } else {
-                        //Fallback for IE 8 & 9
-                        window.location = loc.href.split('#')[0];
-                    }
-                }
-                //END http://stackoverflow.com/a/5298684
-
-                //Setting that we have been home
-                if (App.initialPage) {
-                    App.initialPage = '';
-                }
-
-                App.previewArea.close();
-                App.intentRank.changeCategory('')
-            });
-
-            /**
-             * Adding the router for tile views
-             */
-            App.router.route(':tile_id', 'tile', function (tileId) {
-                App.utils.postExternalMessage(JSON.stringify({
-                    'type': 'hash_change',
-                    'hash': window.location.hash
-                }));
-                var isNumber = /^\d+$/.test(tileId);
-
-                if (isNumber) { // Preview the tile
-                    if (App.option('debug', false)) {
-                        console.warn('Router opening tile preview: '+tileId);
-                    }
-                    var tile = App.discovery && App.discovery.collection ?
-                        App.discovery.collection.tiles[tileId] :
-                        undefined;
-
-                    previewLoadingScreen.show();
-
-                    if (tile !== undefined) {
-                        var preview = new App.core.PreviewWindow({
-                            'model': tile
-                        });
-                        App.previewArea.show(preview);
-                        return;
-                    }
-
-                    console.debug('tile not found, fetching from IR.');
-
-                    tile = new App.core.Tile({
-                        'tile-id': tileId
-                    });
-
-                    tile.fetch().done(function () {
-                        var TileClass = App.utils.findClass('Tile',
-                                tile.get('type') || tile.get('template'), App.core.Tile);
-                        tile = new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()));
-
-                        var preview = new App.core.PreviewWindow({
-                            'model': tile
-                        });
-                        App.previewArea.show(preview);
-                    }).fail(function () {
-                        previewLoadingScreen.hide();
-                        App.router.navigate('', {
-                            trigger: true,
-                            replace: true
-                        });
-                    });
-                } else { // Change category
-                    if (App.option('debug', false)) {
-                        console.error('Router changing category: ' + tileId);
-                    }
-                    App.previewArea.close();
-                    App.intentRank.changeCategory(tileId);
-                }
-            });
-
-            Backbone.history.start();
+            
+            App.router.initialize();
 
             // Making sure we know where we came from.
             App.initialPage = window.location.hash;
@@ -149,8 +59,8 @@ module.exports = function (init, App, Backbone, Marionette, $, _) {
                 App.tracker.initialize();
             }
 
-            var ca = new App.core.CategoryCollectionView();
-            App.categoryArea.show(ca);
+            App.categories = new App.core.CategoryCollectionView();
+            App.categoryArea.show(App.categories);
 
             // there isn't an "view.isOpen", so this checks if the feed element
             // exists, and if it does, close the view.
