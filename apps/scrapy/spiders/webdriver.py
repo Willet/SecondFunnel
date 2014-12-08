@@ -4,6 +4,8 @@ from scrapy.spider import Spider
 from scrapy.utils.spider import iterate_spider_output
 from scrapy_webdriver.http import WebdriverRequest, WebdriverResponse
 
+class SoldOut(Exception):
+    pass
 
 class SecondFunnelScraper(object):
     def __init__(self, *args, **kwargs):
@@ -27,18 +29,27 @@ class SecondFunnelCrawlScraper(SecondFunnelScraper):
     remove_background = '#FFF'
 
     def parse_start_url(self, response):
+        if self.is_sold_out(response):
+            # typically on rescraping a product
+            raise SoldOut(response.url)
+
         if self.is_product_page(response):
             self.rules = ()
             self._rules = []
             return self.parse_product(response)
+        else:
+            self.log("Not a product page: {}".format(response.url))
 
         return []
 
     def is_product_page(self, response):
-        return False
+        raise NotImplementedError
+
+    def is_sold_out(self, response):
+        raise NotImplementedError
 
     def parse_product(self, response):
-        return []
+        raise NotImplementedError
 
 
 class WebdriverCrawlSpider(Spider):
