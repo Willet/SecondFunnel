@@ -13,7 +13,7 @@ var Page = require('landingpage'),
     App = Page.App;
 
 // Import client customizations
-App.module('core', require('./views'));
+App.module('core', require('./core.views'));
 App.module('intentRank', require('./intentrank'));
 App.module('utils', require('./utils'));
 

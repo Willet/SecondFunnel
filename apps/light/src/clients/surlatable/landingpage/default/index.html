@@ -82,13 +82,10 @@
             <div class="header-links-bar">
 			    <a href="https://www.surlatable.com/account/login.jsp" rel="noFollow" >Log In or Register</a> |
 				<a href="https://www.surlatable.com/account/anonymousOrderTracking.jsp" rel="noFollow">Track My Order</a> |
+                <a href="http://blog.surlatable.com/" class="orange">Blog</a> |
 	            <a href="http://www.surlatable.com/eightBridge/ebCurate.jsp" class="orange">Cooking Community</a> |
 				<a href="http://www.surlatable.com/browse/storeLocator/landingPage.jsp" class="green">Find a Store</a>
 		    </div>
-
-            <a href="http://lecreuset.ca/" target="_blank" class="logo logoB">
-                <img src="/static/light/surlatable/landingpage/default/images/LeCreuset-logo.png" />
-            </a>
             <div style="clear:both;"></div>
         </div>
     </div>
@@ -125,16 +122,10 @@
             </div>
         </div>
 
-        <div class="topNavWrapper ">
-            <span class="dropdown-label"> Gift Ideas</span>
-            <div class="navDropdown">
-                <ul>
-                    <li class="topNavHref "><a rel="nofollow" href="http://www.surlatable.com/category/cat1030418/All+Gift+Ideas">All Gift Ideas</a></li>
-                    <li class="topNavHref "><a rel="nofollow" href="http://www.surlatable.com/category/cat870420/Gifts+Under+25">Gifts Under $25</a></li>
-                    <li class="topNavHref "><a rel="nofollow" href="http://www.surlatable.com/category/cat870421/Gifts+Under+50">Gifts Under $50</a></li>
-                    <li class="topNavHref "><a rel="nofollow" href="http://www.surlatable.com/category/cat870422/Gifts+Under+100">Gifts Under $100</a></li>
-                </ul>
-            </div>
+        <div class="topNavWrapper topNavHref no-hover">
+            <span class="dropdown-label">
+                <a rel="nofollow" href="http://www.surlatable.com/category/cat1030418/Holiday+Gift+Ideas">Holiday Gift Ideas</a>
+            </span>
         </div>
 
         <div class="topNavWrapper ">
@@ -200,7 +191,7 @@
         </div>
 
         <div class="topNavWrapper topNavHref no-hover">
-            <span class="customColorLink dropdown-label"><a style="color:#e57b01" rel="nofollow" href="http://www.surlatable.com/category/cat780423/Halloween?cleanSession=true&amp;pCat=cat780423">Halloween</a></span>
+            <span class="customColorLink dropdown-label"><a style="color:#961c17" rel="nofollow" href="http://www.surlatable.com/category/cat2370830/Christmas?cleanSession=true&pCat=cat2370830">Christmas</a></span>
         </div>
     </div>
 
@@ -418,15 +409,43 @@
             <% } %>
         </script>
 
-        <!-- custom templates -->
-        <script type="text/template" id="hero_template">
+        <script type="text/template" id="category_template">
+            <span data-name="<%- obj.name %>">
+                <% if (obj.displayName) { %>
+                    <%- obj.displayName %>
+                <% } else { %>
+                    <%- obj.name %>
+                <% } %>
+            </span>
+            <% if (obj.subCategories) { %>
+                <div class="sub-categories">
+                    <div class="wrap">
+                    <% for (var i = 0; i < obj.subCategories.length; i++) { %>
+                        <div class="sub-category" data-name="<%- obj.subCategories[i].name %>">
+                            <img src="<%- obj.subCategories[i]['thumbnail'] || '/static/light/surlatable/landingpage/default/images/subcat-placeholder.png' %> " />
+                            <span class="name">
+                                <% if (obj.subCategories[i].displayName) { %>
+                                    <%- obj.subCategories[i].displayName %>
+                                <% } else { %>
+                                    <%- obj.subCategories[i].name %>
+                                <% } %>
+                            </span>
+                        </div>
+                    <% } %>
+                    </div>
+                </div>
+            <% } %>
         </script>
+
+        <!-- custom templates -->
+        <!--<script type="text/template" id="hero_template">
+        </script>-->
     </div>
 
     <div class="container">
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
-        <div id="hero-area"></div>
         <div id="category-area"></div>
+        <div id="hero-area"></div>
         <div id="discovery-area" class="discovery-area"></div>
         <div class="tile-sizer tile"></div>
         <div class="no-noscript loading"></div>
