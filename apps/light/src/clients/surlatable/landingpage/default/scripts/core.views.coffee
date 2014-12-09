@@ -10,6 +10,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $el = @$el
             $subCatEl = $el.find '.sub-category'
 
+            # Temporary hack to stop category from expanding b/c IR inialization triggers click
+            if not @firstLoad
+                @firstLoad = true
+                return false
+
             if not $el.hasClass 'expanded'
                 # First click, expand subcategories
                 $el.addClass 'expanded'
@@ -17,31 +22,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else
                 # Second click, select category
                 $el.removeClass 'expanded'
-                unless $el.hasClass 'selected' and not $subCatEl.hasClass 'selected'
-                    # remove selected from child sub-categories
-                    $subCatEl.removeClass 'selected'
-                    # switch to the selected category if it has changed
-                    unless $el.hasClass 'selected'
-                        $el.addClass 'selected'
-                        # remove selected from other categories
-                        $el.siblings().each () ->
-                            self = $(@)
-                            self.removeClass 'selected'
-                            self.find('.sub-category').removeClass 'selected'
 
-                    desktopHeroImage = category.get "desktopHeroImage"
-                    mobileHeroImage = category.get "mobileHeroImage"
-                    # switch hero image *of category*
-                    if desktopHeroImage and mobileHeroImage
-                        App.heroArea.show(new App.core.HeroAreaView(
-                            "desktopHeroImage": desktopHeroImage
-                            "mobileHeroImage": mobileHeroImage
-                        ))
-
-                    App.navigate(category.get("name"),
-                        trigger: true
-                    )
-            
             return false # stop propogation
 
         'click .sub-category': (event) ->

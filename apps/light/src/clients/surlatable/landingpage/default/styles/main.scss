@@ -54,6 +54,9 @@ body {
             filter: alpha(opacity=100);
             img {
                 width: 260px;
+                &.mobile {
+                    display: none;
+                }
             }
             .logoA {
                 float: left;
@@ -214,6 +217,8 @@ body {
 #category-area {
     border-spacing: 2px;
     table-layout: fixed;
+    z-index: 1;
+    background-color: #FFF;
     .category-area {
         background-color: transparent;
         display: table-row;
@@ -250,10 +255,11 @@ body {
             position: absolute;
             top: 100%;
             right: 0;
-            min-width: 150%;
+            min-width: 155%;
             display: none;
             background: white;
             border: none;
+            border-radius: 0px 0px 6px 6px;
         }
         .sub-category {
             display: inline-block;
@@ -576,70 +582,18 @@ body {
     font-size: 20px;
     line-height: 20px;
     font-weight: bold;
-}
-
-.previewContainer .more-info .down-arrow {
-    width: 0;
-    height: 0;
-    background-color: transparent;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 15px solid #000;
-    display: inline-block;
+    .down-arrow {
+        width: 0;
+        height: 0;
+        background-color: transparent;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-top: 15px solid #000;
+        display: inline-block;
+    }
 }
 
 @media screen and (max-width: 768px) {
-    .container {
-        padding: 0px 5px;
-    }
-
-    .navbar .container a.logo {
-        width: 35%;
-    }
-
-    .previewContainer .main-image-container .main-image {
-        max-height: none;
-    }
-
-    .previewContainer .gallery img {
-        display: inline-block;
-    }
-
-    .previewContainer .info {
-        text-align: left;
-        max-width: none;
-        width: auto;
-    }
-
-    .previewContainer .info.image {
-        max-width: none;
-    }
-
-    .previewContainer .info .title {
-        font-size: 1.6em;
-    }
-
-    .previewContainer .info .price {
-        font-size: 1.2em;
-        font-weight: normal;
-    }
-
-    .previewContainer .info .buy .button {
-        display: inline-block;
-        font-size: 1em;
-        padding: 7px 11px;
-    }
-
-    .previewContainer .info .buy .button img {
-        vertical-align: 0px;
-    }
-
-    .previewContainer .image-with-tagged-products .cell.shop {
-        width: auto;
-    }
-}
-
-@media (max-width: 768px) {
     .container {
         padding: 0px;
     }
@@ -651,8 +605,28 @@ body {
         }
     }
     .navbar {
-        margin-top: 2px;
+        &:before,
+        &:after {
+            content: none;
+        }
+        margin: 0;
+        margin-bottom: 1px;
+        padding: 0;
+        border: none;
+        height: 55px;
         .container {
+            a.logo {
+                img {
+                    width: 100%;
+                    border-bottom: 1px solid black;
+                    &.desktop {
+                        display: none;
+                    }
+                    &.mobile {
+                        display: block;
+                    }
+                }
+            }
             .header-links-bar {
                 display: none;
             }
@@ -662,7 +636,11 @@ body {
         display: none;
     }
     #category-area {
-        margin-top: 10px;
+        &.stuck {
+            width: 100%;
+            box-shadow: 1px 1px 2px #AAA;
+        }
+        margin-top: 0px;
         .category {
             width: 100px;
             line-height: 30px;
@@ -684,9 +662,44 @@ body {
             }
         }
     }
+    .previewContainer {
+        .main-image-container .main-image {
+            max-height: none;
+        }
+        .gallery img {
+            display: inline-block;
+        }
+        .info {
+            text-align: left;
+            max-width: none;
+            width: auto;
+            &.image {
+                max-width: none;
+            }
+            .title {
+                font-size: 1.6em;
+            }
+            .price {
+                font-size: 1.2em;
+                font-weight: normal;
+            }
+            .buy .button {
+                display: inline-block;
+                font-size: 1em;
+                padding: 7px 11px;
+                img {
+                    vertical-align: 0px;
+                }
+            }
+        }
+        .image-with-tagged-products .cell.shop {
+            width: auto;
+        }
+    }
 }
 
-.tile.image .overlay .title, .image-with-tagged-products .caption,
+.tile.image .overlay .title,
+.image-with-tagged-products .caption,
 .image-without-tagged-products .caption {
     color: #222;
     font-size: 1.1em;

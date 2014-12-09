@@ -22,6 +22,9 @@ App.start();
 		$categories = $('.category'),
 		$subcategories = $('.sub-categories');
 
+	// Hero area complete, show categories
+    $("#category-area").waypoint('sticky');
+    
 	// Enable drop-down nav categories
 	$topNavWrappers.click(function () {
 		var $this = $(this);
