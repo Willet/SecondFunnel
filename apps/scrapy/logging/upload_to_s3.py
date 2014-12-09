@@ -33,20 +33,10 @@ class S3Logger(object):
         # path format: <environment>/<spider>/<type>/<datetime>[/(some number)]
         env = settings.ENVIRONMENT
         spider = self.spider.name
-        filename = datetime.now().strftime('%Y-%m-%d,%H:%M:%S')
+        filename = datetime.now().strftime('%Y-%m-%d,%H:%M:%S.%f')
 
         # validate the name is unique
-        # hopefully this will never be needed, since filename includes seconds
-        result = '/'.join([env, spider, type, filename])
-        if not self.bucket.get_key(result):
-            return result
-
-        i = 1
-        while self.bucket.get_key(result + "({})".format(i)):
-            i += 1
-
-        return result + "({})".format(i)
-
+        return '/'.join([env, spider, type, filename])
 
     def send_log(self):
         self.key.key = self._generate_filename('log')
