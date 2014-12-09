@@ -30,12 +30,12 @@ class S3Logger(object):
 
 
     def _generate_filename(self, type):
-        # path format: <environment>/<spider>/<type>/<datetime>[/(some number)]
+        # path format: <environment>/<spider>/<type>/<datetime>
         env = settings.ENVIRONMENT
         spider = self.spider.name
         filename = datetime.now().strftime('%Y-%m-%d,%H:%M:%S.%f')
 
-        # validate the name is unique
+        # validate the name  unique
         return '/'.join([env, spider, type, filename])
 
     def send_log(self):
