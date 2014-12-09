@@ -810,7 +810,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     App.navigate(category,
                         trigger: true
                     )
-                return @
+                return false # stop propogation
 
     ###
     A collection of Categories to display.
