@@ -217,7 +217,7 @@ body {
 #category-area {
     border-spacing: 2px;
     table-layout: fixed;
-    z-index: 1;
+    z-index: 10;
     background-color: #FFF;
     .category-area {
         background-color: transparent;
@@ -613,12 +613,20 @@ body {
         margin-bottom: 1px;
         padding: 0;
         border: none;
-        height: 55px;
+        border-bottom: 1px solid black;
+        height: 42px;
+        min-height: 42px;
+        line-height: 42px;
+        background-color: #5D285A;
         .container {
             a.logo {
+                width: 100%;
                 img {
-                    width: 100%;
-                    border-bottom: 1px solid black;
+                    position: relative;
+                    left: 50%;
+                    margin-left: -150px;
+                    width: 300px;
+                    height: auto;
                     &.desktop {
                         display: none;
                     }
