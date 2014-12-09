@@ -11,8 +11,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $subCatEl = $el.find '.sub-category'
 
             # Temporary hack to stop category from expanding b/c IR inialization triggers click
-            if not @firstLoad
-                @firstLoad = true
+            if not @model.collection.enabled
                 return false
 
             if not $el.hasClass 'expanded'
