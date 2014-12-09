@@ -20,35 +20,35 @@
     {
       "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217570/SLT%20GG%20Hero%20Images/Gifts_Under_100_Mobile.png",
       "displayName":"GIFTS by Price",
-      "name":"under-$100",
+      "name":"under-100",
       "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217574/SLT%20GG%20Hero%20Images/Gifts_Under_100_Desktop.png",
       "subCategories":[
         {
           "desktopHeroImage": "http://res.cloudinary.com/secondfunnel/image/upload/v1417217573/SLT%20GG%20Hero%20Images/Gifts_Under_25_Desktop.png",
           "mobileHeroImage": "http://res.cloudinary.com/secondfunnel/image/upload/v1417217568/SLT%20GG%20Hero%20Images/Gifts_Under_25_Mobile.png",
           "displayName":"Under $25",
-          "name":"under-$25",
+          "name":"under-25",
           "thumbnail": "http://res.cloudinary.com/secondfunnel/image/upload/v1418010761/SLT%20GG%20Hero%20Images/Under_25.png"
         },
         {
           "desktopHeroImage": "http://res.cloudinary.com/secondfunnel/image/upload/v1417217578/SLT%20GG%20Hero%20Images/Gifts_Under_50_Desktop.png",
           "mobileHeroImage": "http://res.cloudinary.com/secondfunnel/image/upload/v1417217558/SLT%20GG%20Hero%20Images/Gifts_Under_50_Mobile.png",
           "displayName":"Under $50",
-          "name":"under-$50",
+          "name":"under-50",
           "thumbnail": "http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Under_50.png"
         },
         {
           "mobileHeroImage": "http://res.cloudinary.com/secondfunnel/image/upload/v1417217570/SLT%20GG%20Hero%20Images/Gifts_Under_100_Mobile.png",
           "desktopHeroImage": "http://res.cloudinary.com/secondfunnel/image/upload/v1417217574/SLT%20GG%20Hero%20Images/Gifts_Under_100_Desktop.png",
           "displayName":"Under $100",
-          "name":"under-$100",
+          "name":"under-100",
           "thumbnail": "http://res.cloudinary.com/secondfunnel/image/upload/v1418010761/SLT%20GG%20Hero%20Images/Under_100.png"
         },
         {
           "mobileHeroImage": "http://res.cloudinary.com/secondfunnel/image/upload/v1417217548/SLT%20GG%20Hero%20Images/Gifts_Over_100_Mobile.png",
           "desktopHeroImage": "http://res.cloudinary.com/secondfunnel/image/upload/v1417217552/SLT%20GG%20Hero%20Images/Gifts_Over_100_Desktop.png",
           "displayName":"Over $100",
-          "name":"over-$100",
+          "name":"over-100",
           "thumbnail": "http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Over_100.png"
         }
       ]

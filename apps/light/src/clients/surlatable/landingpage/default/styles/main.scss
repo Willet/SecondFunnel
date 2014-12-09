@@ -217,7 +217,6 @@ body {
 #category-area {
     border-spacing: 2px;
     table-layout: fixed;
-    z-index: 10;
     background-color: #FFF;
     .category-area {
         background-color: transparent;
@@ -644,6 +643,7 @@ body {
         display: none;
     }
     #category-area {
+        z-index: 10;
         &.stuck {
             width: 100%;
             box-shadow: 1px 1px 2px #AAA;
