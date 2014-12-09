@@ -848,7 +848,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if App.option("page:stickyCategories")
                 @$el.parent().waypoint('sticky')
 
-            # Enable sticky category bar
+            # Flag to ignore clicks until feed loads
             @collection.enabled = false
             App.vent.once 'layoutCompleted', =>
                 @collection.enabled = true
