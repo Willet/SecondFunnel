@@ -10,6 +10,7 @@
   "mobile_hero_image":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217570/SLT%20GG%20Hero%20Images/Gifts_Under_100_Mobile.png",
   "column_width":341,
   "categoryHome":false,
+  "stickyCategories": false,
   "masonry":{
     "tileAspectRatio":1,
     "forceGrid":true
