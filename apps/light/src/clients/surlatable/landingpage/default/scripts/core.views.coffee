@@ -5,6 +5,26 @@
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     # Patch CategoryView to accept sub-category hero images
     _.extend module.CategoryView.prototype.events,
+        'click': (event) ->
+            category = @model
+            $el = @$el
+            $subCatEl = $el.find '.sub-category'
+
+            # Temporary hack to stop category from expanding b/c IR inialization triggers click
+            if not @firstLoad
+                @firstLoad = true
+                return false
+
+            if not $el.hasClass 'expanded'
+                # First click, expand subcategories
+                $el.addClass 'expanded'
+                $el.siblings().removeClass 'expanded'
+            else
+                # Second click, select category
+                $el.removeClass 'expanded'
+
+            return false # stop propogation
+
         'click .sub-category': (event) ->
             $el = @$el
             category = @model
@@ -14,6 +34,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # Retrieve subcategory object
             subCategory = _.find category.get('subCategories'), (subcategory) ->
                 return subcategory.name == $subCatEl.data('name')
+
+            # Close categories drop-down
+            $el.removeClass 'expanded'
 
             # switch to the selected category if it has changed
             unless $el.hasClass 'selected' and $subCatEl.hasClass 'selected' and not $subCatEl.siblings().hasClass 'selected'
@@ -39,7 +62,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 desktopHeroImage = subCategory["desktopHeroImage"] or category.get("desktopHeroImage")
                 mobileHeroImage = subCategory["mobileHeroImage"] or category.get("mobileHeroImage")
                 
-                if App.layoutEngine and desktopHeroImage and mobileHeroImage
+                if desktopHeroImage and mobileHeroImage
                     App.heroArea.show(new App.core.HeroAreaView(
                         "desktopHeroImage": desktopHeroImage
                         "mobileHeroImage": mobileHeroImage

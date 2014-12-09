@@ -74,8 +74,7 @@ App.start();
                 '</style>'
             ].join(" "));
     }
-
-    // Enable sticky categories once document is ready
+    
     $(document).ready(function() {
         // Aero wants their own tracking
         window.ga('create', 'UA-53950735-1', 'auto', {'name': 'aero-tracker'});

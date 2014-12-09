@@ -1,8 +1,8 @@
 "use strict"
 
 imagesLoaded = require('imagesLoaded')
-waypoints = require("jquery-waypoints") # register $.fn.waypoint
-waypoints_sticky = require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
+require("jquery-waypoints") # register $.fn.waypoint
+require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
 
@@ -810,7 +810,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     App.navigate(category,
                         trigger: true
                     )
-                return @
+                return false # stop propogation
 
     ###
     A collection of Categories to display.
@@ -843,6 +843,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @collection = new module.CategoryCollection(categories, model: module.Category)
             else
                 @collection = new module.CategoryCollection([], model: module.Category)
+
+            # Enable sticky category bar
+            if App.option("page:stickyCategories")
+                @$el.parent().waypoint('sticky')
 
             return @
 
