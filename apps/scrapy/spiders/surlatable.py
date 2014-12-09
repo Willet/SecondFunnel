@@ -27,9 +27,11 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     def is_product_page(self, response):
         sel = Selector(response)
+        return sel.css('label#productPriceValue')
 
-        return sel.css('label#productPriceValue')  # TODO: out-of-stock
-
+    def is_sold_out(self, response):
+        return False
+        
     def parse_product(self, response):
         if not self.is_product_page(response):
             return
