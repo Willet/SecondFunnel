@@ -315,6 +315,36 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             gallery: ".gallery"
             galleryDots: ".gallery-dots"
 
+        events:
+            "click .stl-look .stl-item": (event) ->
+                $el = @$el
+                $ev = $(event.target)
+                $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
+                
+                $targetEl.addClass("selected").siblings().removeClass "selected"
+                index = $targetEl.data("index")
+                product = @model.get("tagged-products")[index]
+                productModel = new module.Product(product)
+
+                if $el.parents("#hero-area").length
+                    # this is a featured content area
+                    App.options.heroGalleryIndex = index
+                    App.options.heroGalleryIndexPage = 0
+                else
+                    # likely a pop-up
+                    App.options.galleryIndex = index
+                    App.options.galleryIndexPage = 0
+                if product.images.length is 1
+                    $el.find(".gallery, .gallery-dots").addClass "hide"
+                else
+                    $el.find(".gallery, .gallery-dots").removeClass "hide"
+                if socialButtons.length >= 1 and App.sharing
+                    socialButtons.empty()
+                    buttons = new App.sharing.SocialButtons(model: self.model).render().load().$el
+                    socialButtons.append buttons
+                self.renderSubregions productModel
+                return
+        
         onBeforeRender: ->
 
             # Need to get an appropriate sized image
@@ -398,12 +428,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
             $("img.main-image, img.image", @$el).one("load", shrinkContainer(@$el)).each ->
-                self = $(this)
                 if @complete
-
                     # Without the timeout the box may not be rendered. This lets the onShow method return
-                    setTimeout (->
-                        self.load()
+                    setTimeout (=>
+                        $(@).load()
                         return
                     ), 1
                 return
@@ -420,30 +448,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if socialButtons.length >= 1 and App.sharing
                 buttons = new App.sharing.SocialButtons(model: @model).render().load().$el
                 socialButtons.append buttons
-            if @model.get("tagged-products") and @model.get("tagged-products").length > 1
-                @$(".stl-look .stl-item").on "click", ->
-                    $clicked = $(this)
-                    index = $clicked.data("index")
-                    product = self.model.get("tagged-products")[index]
-                    productModel = new module.Product(product)
-                    $clicked.addClass("selected").siblings().removeClass "selected"
-                    if self.$el.parents("#hero-area").length
-                        App.options.heroGalleryIndex = index
-                        App.options.heroGalleryIndexPage = 0
-                    else
-                        App.options.galleryIndex = index
-                        App.options.galleryIndexPage = 0
-                    if product.images.length is 1
-                        self.$(".gallery, .gallery-dots", self.$el).addClass "hide"
-                    else
-                        self.$(".gallery, .gallery-dots", self.$el).removeClass "hide"
-                    if socialButtons.length >= 1 and App.sharing
-                        socialButtons.empty()
-                        buttons = new App.sharing.SocialButtons(model: self.model).render().load().$el
-                        socialButtons.append buttons
-                    self.renderSubregions productModel
-                    return
-
             return
 
 
@@ -629,6 +633,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
             templateRules
 
+        regions:
+            content: ".template.target"
+            socialButtons: ".social-buttons"
+
         events:
             "click .close, .mask": ->
 
@@ -644,13 +652,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             "click .buy": (event) ->
                 $target = $(event.target)
+                # Over-write addUrlTrackingParameters for each customer
                 url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') )
                 window.open url, "_self"
                 return
-
-        regions:
-            content: ".template.target"
-            socialButtons: ".social-buttons"
 
 
         ###
@@ -713,7 +718,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             return
 
-        positionWindow: () ->
+        positionWindow: ->
             windowMiddle = $window.scrollTop() + $window.height() / 2
             if App.windowMiddle
                 windowMiddle = App.windowMiddle
