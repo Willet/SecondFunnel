@@ -22,7 +22,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.TileView extends Marionette.Layout
         tagName: App.option("tileElement", "div")
-        className: App.option("itemSelector", "").substring(1)
+        className: "tile"
 
         template: "#product_tile_template"
         templates: ->

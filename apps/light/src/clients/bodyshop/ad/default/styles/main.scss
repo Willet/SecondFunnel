@@ -12,34 +12,40 @@ $bs-font: "GillSans", Verdana, Geneva, sans-serif;
 html, body {
 	min-height: 100%;
 }
-body:before, body:after {
-    content: "";
-    position: fixed;
-    background: $bs-green;
-    left: 0;
-    right: 0;
-    height: $ad-border-width;
-}
-body:before {
-    top: 0;
-}
-body:after {
-    bottom: 0;
-}
 body {
     border-left: $ad-border-width solid $bs-green;
     border-right: $ad-border-width solid $bs-green;
     overflow: hidden;
+    background-color: #FFF;
+    &:before,
+    &:after {
+        content: "";
+        position: fixed;
+        background: $bs-green;
+        left: 0;
+        right: 0;
+        height: $ad-border-width;
+    }
+    &:before {
+        top: 0;
+    }
+    &:after {
+        bottom: 0;
+    }
+}
+#topbar {
+    z-index: 1;
+    position: relative;
+    img {
+        width: 100%;
+        
+    }
 }
 #discovery-area {
-	margin-top: 2px;
-}
-
-#topbar img {
-	width: 100%;
+	margin-top: -20px;
 }
 .tile.image .overlay {
-    background-color: rgba(238, 40, 65, 0.5);
+    background-color: rgba(54,128,90,0.5);
     color: #FFF;
     font-size: 21px;
     text-transform: uppercase;
@@ -47,7 +53,6 @@ body {
         font-family: $bs-font;
     }
 }
-
 .tile .tile-border {
 	border: none;
 }
