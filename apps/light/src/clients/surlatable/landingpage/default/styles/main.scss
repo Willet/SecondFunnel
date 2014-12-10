@@ -1,9 +1,10 @@
 $icon-font-path: "/static/light/fonts/";
 $slt-modern-font: MrEavesModern, sans-serif;
 $slt-sans-font: MrEavesSans, sans-serif;
-$slt-secondary-font: Verdana, Arial, sans-serif;
+$slt-basic-font: Verdana, Arial, Helvetica, sans-serif;
 $slt-main-color: #405700;
 $slt-xmas-color: #A83731;
+$slt-basic-color: #444444;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -47,7 +48,7 @@ $slt-xmas-color: #A83731;
 
 body {
     background: none;
-    font-family: $slt-secondary-font;
+    font-family: $slt-basic-font;
 }
 .navbar {
     height: auto;
@@ -395,7 +396,7 @@ body {
 .tile.image .overlay .title,
 .image-with-tagged-products .caption,
 .image-without-tagged-products .caption {
-    color: #333333;
+    color: $slt-basic-color;
     font-family: $slt-modern-font;
     font-size: 35px;
     font-weight: 300;
@@ -408,7 +409,7 @@ body {
     .shop-products {
         display: block;
         padding: 0 15px;
-        font-family: $slt-secondary-font;
+        font-family: $slt-basic-font;
         font-size: 14px;
         font-weight: normal;  
     }
@@ -429,7 +430,7 @@ body {
     text-decoration: none;
     font-size: 0.9em;
     font-weight: normal;
-    color: #444;
+    color: $slt-basic-color;
 }
 
 .previewContainer .close:hover {
@@ -475,15 +476,15 @@ body {
 }
 
 .previewContainer .info .title {
-    font-size: 1.3em;
+    font-size: 17px;
     font-weight: bold;
-    color: #444;
+    color: $slt-basic-color;
 }
 
 .previewContainer .info .price {
-    font-size: 14px;
+    font-size: 19px;
     font-weight: bold;
-    color: #444;
+    color: $slt-basic-color;
 }
 
 .previewContainer .info .price .sale {
@@ -537,8 +538,6 @@ body {
 
 .previewContainer .buy .button:hover {
     text-decoration: underline;
-    opacity: 0.8;
-    filter: alpha(opacity=80);
 }
 
 .previewContainer .cell.image {
