@@ -451,7 +451,7 @@ body {
         margin-top: 5px;
         opacity: 0.8;
         filter: alpha(opacity=80);
-        &:nth-child(6n) {
+        &:nth-child(n+6) {
             display: none;
         }
         &.selected {
@@ -598,6 +598,7 @@ body {
 @media screen and (max-width: 991px) {
     .tile {
         width: 50%;
+        padding: 2px;
         &.wide {
             width: 100%;
         }
@@ -664,6 +665,12 @@ body {
             .sub-categories {
                 width: 200%;
             }
+        }
+    }
+    #hero-area {
+        .visible-xs.jumbotron,
+        .visible-sm.jumbotron {
+            margin-bottom: 1px;
         }
     }
     #preview-area {
