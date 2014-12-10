@@ -45,8 +45,11 @@ def dump_stats(stats, spider, reason, s3_urls):
     message += ', '.join([a for a in report if a])
     message += ' (<a href=http://{}>report</a>)(<a href=http://{}>full log</a>)'.format(*s3_urls)
 
+    # apparently 'scrapy-production' is too long for hipchat to handle
+    env = "prod" if settings.ENVIRONMENT == "production" else settings.ENVIRONMENT
+
     hipchat.msg(
-        sender='scrapy-' + settings.ENVIRONMENT,
+        sender='scrapy-' + env,
         room='scrapy',
         message=message,
         type='html',
