@@ -130,8 +130,8 @@ def render_landing_page(request, page, render_context):
     tests = []
     if page.get('tests'):
         tests = json.dumps(page.get('tests'))
-    if page.get('widable_templates'):
-        page.widable_templates = json.dumps(page.get('widable_templates'))
+    if page.get('wideable_templates'):
+        page.wideable_templates = json.dumps(page.get('wideable_templates'))
 
     algorithm = get_algorithm(request=request, page=page)
     PAGES_INFO = PageConfigSerializer.to_json(request=request, page=page,

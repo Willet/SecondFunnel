@@ -22,7 +22,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.TileView extends Marionette.Layout
         tagName: App.option("tileElement", "div")
-        className: App.option("itemSelector", "").substring(1)
+        className: "tile"
 
         template: "#product_tile_template"
         templates: ->
@@ -143,10 +143,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         onBeforeRender: ->
             normalTileWidth = App.layoutEngine.width()
-            widableTemplates = App.option("widableTemplates",
+            wideableTemplates = App.option("wideableTemplates",
                 image: true
                 youtube: true
-                banner: true
+                banner: false
             )
             columnDetails =
                 1: ""
@@ -157,7 +157,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # templates use this as obj.image.url
             @model.set "image", @model.get("defaultImage")
-            wideable = widableTemplates[@model.get("template")]
+            wideable = wideableTemplates[@model.get("template")]
             showWide = (Math.random() < App.option("imageTileWide", 0.5))
             if _.isNumber(@model.get("colspan"))
                 columns = @model.get("colspan")
