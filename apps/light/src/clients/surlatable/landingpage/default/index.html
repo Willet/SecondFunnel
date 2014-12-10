@@ -349,7 +349,7 @@
                                 <div class='price'></div>
                                 <div class='buy'></div>
                                 <div class="gallery-main-image"></div>
-                                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                <div class="gallery<% if (obj['tagged-products'][0].images.length < 2) { %> hide<% } %>"></div>
                             </div>
 
                             <% if (obj['tagged-products'].length > 1 && App.support.mobile()) { %>
@@ -365,23 +365,21 @@
                     </div>
                     <div class="table">
                         <div>
-
-
-                            <% if (obj['tagged-products'].length > 1) { %>
-                                <div class="cell mobile-only">
-                                    <div class="stl-look">
-                                        <% var related = obj['tagged-products'] %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <div class="name">
-                                                    <%- related[i].title || related[i].name %>
-                                                </div>
+                        <% if (obj['tagged-products'].length > 1) { %>
+                            <div class="cell mobile-only">
+                                <div class="stl-look">
+                                    <% var related = obj['tagged-products'] %>
+                                    <% for (var i = 0; i < related.length; i++) { %>
+                                        <div class="stl-item" data-index="<%- i %>">
+                                            <img src="<%- related[i].images[0].url %>" />
+                                            <div class="name">
+                                                <%- related[i].title || related[i].name %>
                                             </div>
-                                        <% } %>
-                                    </div>
+                                        </div>
+                                    <% } %>
                                 </div>
-                            <% } %>
+                            </div>
+                        <% } %>
                         </div>
                     </div>
                 </div>
