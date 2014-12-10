@@ -180,6 +180,25 @@
             </div>
         </script>
 
+        <script type="text/template" id="tumblr_tile_template">
+            <div class='tile-border'>
+                <div class='image-border'>
+                    <div class='image-container'>
+                        <img class='focus' src='<%= obj.images[0].url %>' />
+                    </div>
+                </div>
+            </div>
+            <div class="overlay">
+                <div class='table'>
+                    <div class='cell'>
+                        <span>Artist <%= obj.author %></span>
+                        <br/>
+                        <span><%= obj.url %></span>
+                    </div>
+                </div>
+            </div>
+        </script>
+
         <script type="text/template" id="image_preview_template">
             <% if (obj['tagged-products'].length) { %>
                 <% var product = obj['tagged-products'][0]; %>

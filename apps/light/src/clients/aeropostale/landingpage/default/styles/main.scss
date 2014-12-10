@@ -153,7 +153,8 @@ body {
 }
 
 .tile.banner a,
-.tile.giftcard a {
+.tile.giftcard a,
+.tile.tumblr a {
     pointer-events: none;
 }
 
@@ -183,7 +184,8 @@ body {
 }
 
 .tile.banner,
-.tile.giftcard {
+.tile.giftcard,
+.tile.tumblr  {
     .image-border {
         padding: 20px 15px;
         

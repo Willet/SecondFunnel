@@ -14,6 +14,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onClick: (ev) ->
             return
 
+
     class module.GroovesharkTileView extends module.ContainerTileView
         template: "#grooveshark_tile_template"
 
@@ -31,6 +32,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # Move Grooveshark overlay off of the screen
             $('.grooveshark-tile-overlay').css('left', '-10000px')
 
+
     class module.GiftcardTileView extends module.ContainerTileView
         template: "#giftcard_tile_template"
 
@@ -38,6 +40,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             url = App.utils.addUrlTrackingParameters( @model.get("redirect-url") )
             window.open url, "_self"
             return
+
+
+    class module.TumblrTileView extends module.ContainerTileView
+        template: "#tumblr_tile_template"
+
+        onClick: (ev) ->
+            url = App.utils.addUrlTrackingParameters( @model.get("redirect-url") )
+            window.open url, "_self"
+            return
+
 
     class module.BannerTileView extends module.TileView
         template: "#banner_tile_template"
