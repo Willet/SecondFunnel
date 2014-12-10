@@ -1,6 +1,6 @@
 {
   "image_tile_wide":1,
-  "widable_templates":{
+  "wideable_templates":{
     "image":true
   },
   "social_buttons":null,
