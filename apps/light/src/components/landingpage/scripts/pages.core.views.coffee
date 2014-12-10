@@ -146,7 +146,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             wideableTemplates = App.option("wideableTemplates",
                 image: true
                 youtube: true
-                banner: true
+                banner: false
             )
             columnDetails =
                 1: ""
