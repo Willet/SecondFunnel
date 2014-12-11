@@ -128,7 +128,16 @@
                 <span class="type"><%= obj['content-type'] %></span>
             <% } %>
             <div class="name"><%= obj.title || obj.name %></div>
-            <div class="price"><%= obj.price %></div>
+            <div class="price">
+                <% if (obj.sale_price) { %>
+                    <%- obj.sale_price %>
+                    <span class="strike">
+                        <%- obj.price %>
+                    </span>
+                <% } else { %>
+                    <%- obj.price %>
+                <% } %>
+            </div>
         </div>
         <div class="overlay">
             <div class='table'>
@@ -216,7 +225,16 @@
                                                     </div>
                                                 </div>
                                                 <div class="name"><%= related[i].name %></div>
-                                                <div class="price"><%= related[i].price %></div>
+                                                <div class="price">
+                                                    <% if (related[i].sale_price) { %>
+                                                    <span class="strike">
+                                                        <%- related[i].price %>
+                                                    </span>
+                                                    <%- related[i].sale_price %>
+                                                <% } else { %>
+                                                    <%- related[i].price %>
+                                                <% } %>
+                                                </div>
                                             </div>
                                             <div class="overlay">
                                                 <div class="table">
@@ -250,7 +268,16 @@
                                                     </div>
                                                 </div>
                                                 <div class="name"><%= related[i].name %></div>
-                                                <div class="price"><%= related[i].price %></div>
+                                                <div class="price">
+                                                    <% if (related[i].sale_price) { %>
+                                                    <span class="strike">
+                                                        <%- related[i].price %>
+                                                    </span>
+                                                    Now <%- related[i].sale_price %>
+                                                <% } else { %>
+                                                    <%- related[i].price %>
+                                                <% } %>
+                                                </div>
                                             </div>
                                             <div class="overlay">
                                                 <div class="table">
