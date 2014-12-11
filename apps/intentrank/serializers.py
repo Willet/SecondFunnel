@@ -70,7 +70,7 @@ class PageSerializer(IRSerializer):
                 'minMobileColumns':   obj.get('masonry', {}).get('minMobileColumns', 2),
                 'forceGrid':          obj.get('masonry', {}).get('forceGrid', 2),
                 'tileAspectRatio':    obj.get('masonry', {}).get('tileAspectRatio', 2),
-                'heightRange':     obj.get('masonry', {}).get('heightRange', 2),
+                'heightRange':        obj.get('masonry', {}).get('heightRange', 2),
             },
 
             # optional (defaults to 240 or 255 pixels)
