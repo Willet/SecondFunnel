@@ -364,4 +364,23 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         
         return module.urlBuild( urlParts );
     };
+
+    /**
+     * STUB - returns url with client tracking parameters appended
+     *
+     * @param {string} url
+     *
+     * @returns {string} url
+     */
+    module.addUrlTrackingParameters = function (url) {
+        /* example implementation:
+        var params = { 
+            "utm_source":   "SecondFunnel",
+            "utm_medium":   "ReferringDomains",
+            "utm_campaign": "online gift guide"
+        };
+        return module.urlAddParams(url, params);
+        */
+        return url;
+    };
 };

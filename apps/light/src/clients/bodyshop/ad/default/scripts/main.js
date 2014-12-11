@@ -14,7 +14,7 @@ var Ad = require('ad'),
 	App = Ad.App;
 
 // Import client customizations
-//
+App.module('utils', require('./utils'));
 
 // Start Application
 App.init.initialize();
@@ -22,6 +22,9 @@ App.start();
 
 (function () {
     // Update top bar
-    var $topbar = $('#topbar a');
-    $topbar.attr('href', App.utils.generateAdClickUrl( $topbar.attr('href') ) );
+    var $topbar = $('#topbar a'),
+    	url = $topbar.attr('href');
+    url = App.utils.addUrlTrackingParameters(url);
+    url = App.utils.generateAdClickUrl(url)
+    $topbar.attr('href', url);
 }());

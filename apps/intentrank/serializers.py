@@ -158,11 +158,9 @@ class PageConfigSerializer(object):
             'overlayMobileButtonColor': page.get('overlay_mobile_button_color') or '',
             'disableBannerRedirectOnMobile': page.get('disable_banner_redirect_on_mobile') or False,
             'mobileTabletView': page.get('mobile_table_view') or False,
-            'widableTemplates': json.loads(page.get('widable_templates', 'null')),
             'socialButtons': social_buttons,
 
             'conditionalSocialButtons': page.get('conditional_social_buttons') or {},
-            'openTileInPopup': True if page.get("open_tile_in_popup") else False,
             'tilePopupUrl': page.get('tile_popup_url') or '',
             'urlParams': page.get("url_params") or {},
 

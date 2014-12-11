@@ -53,14 +53,13 @@ def ad_banner(request, page_id):
         "columns": range(4),
         "column_width": page.column_width or 150,  # 150 = 300 / 2
         "conditional_social_buttons": "{}",
-        "enable_tracking": "true" if (page.id == 20) else "false",  # jsbool, TODO: remove hack for page 20
+        "enable_tracking": True,
         "environment": settings.ENVIRONMENT,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
         "image_tile_wide": page.image_tile_wide,
         "initial_results": json.dumps(initial_results),
         "ir_base_url": ir_base_url,
         "keen_io": settings.KEEN_CONFIG,
-        "open_tile_in_popup": "true",
         "PAGES_INFO": PAGES_INFO,
         "product": "undefined",
         "pub_date": datetime.now().isoformat(),
