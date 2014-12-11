@@ -136,7 +136,8 @@ body {
     cursor: pointer;
 }
 
-.tile.image {
+.tile.image,
+.tile.tumblr {
     padding: 10px 7px 9px 7px;
     .overlay {
         background-color: rgba(238, 40, 65, 0.5);
@@ -148,12 +149,21 @@ body {
         }
     }
 }
+.tile.tumblr {
+    .cell {
+        line-height: 50px;
+        .artist {
+            font-style: italic;
+        }
+    }
+}
 .tile.image.wide.portrait {
     padding: 8px 7px 7px 7px;
 }
 
 .tile.banner a,
-.tile.giftcard a {
+.tile.giftcard a,
+.tile.tumblr a {
     pointer-events: none;
 }
 
@@ -183,7 +193,7 @@ body {
 }
 
 .tile.banner,
-.tile.giftcard {
+.tile.giftcard  {
     .image-border {
         padding: 20px 15px;
         
