@@ -72,7 +72,6 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
                              'or prevented by the browser. %o', arguments);
                 return;
             }
-
             window.ga.apply(window, arguments);
         },
 
