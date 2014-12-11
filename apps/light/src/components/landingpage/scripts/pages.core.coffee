@@ -124,5 +124,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @returns {String} the correct template name
     ###
     @getModifiedTemplateName = (name) ->
-        name?.replace /(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i, "image"
+        #name?.replace /(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i, "image"
+        return name
 

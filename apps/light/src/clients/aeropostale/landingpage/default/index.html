@@ -181,19 +181,18 @@
         </script>
 
         <script type="text/template" id="tumblr_tile_template">
-            <div class='tile-border'>
-                <div class='image-border'>
-                    <div class='image-container'>
-                        <img class='focus' src='<%= obj.images[0].url %>' />
-                    </div>
-                </div>
+            <div class='relative'>
+                <img class="focus" src="<%= obj['image-url'] %>" />
             </div>
+            <% if (App.option("debug", 0) > 1) { %>
+                <span class="type"><%= obj["content-type"] %></span>
+            <% } %>
             <div class="overlay">
                 <div class='table'>
                     <div class='cell'>
-                        <span>Artist <%= obj.author %></span>
-                        <br/>
-                        <span><%= obj.url %></span>
+                        <span><span class="artist">Artist</span> <%= obj.author %></span>
+                        <br />
+                        <span><%= obj['redirect-url'].slice(7) %></span>
                     </div>
                 </div>
             </div>
