@@ -48,22 +48,30 @@ class PageSerializer(IRSerializer):
             mobileCategories = ast.literal_eval(mobileCategories)
 
         data = {
-            'id': getattr(obj, 'intentrank_id', obj.id),
-            # for verifying the original upload date of a static campaign.
-            # for human use only
-            'pubDate': str(datetime.now().isoformat()),
-
-            'gaAccountNumber': getattr(obj, 'ga_account_number',
+            'id':                   obj.get('intentrank_id', obj.id),
+            # for verifying the original upload date of a static campaign
+            'pubDate':              str(datetime.now().isoformat()),
+            'gaAccountNumber':      obj.get('ga_account_number',
                                        settings.GOOGLE_ANALYTICS_PROPERTY),
-
+            'categories':           categories,
+            'mobileCategories':     mobileCategories,
             # provided by campaign manager
-            'name': obj.name or '',
-            'slug': obj.url_slug or '',
-            'layout': obj.get('layout', 'hero'),
-
-            'categories': categories,
-            'mobileCategories': mobileCategories,
-            'description': obj.description or '',
+            'name':                 obj.get('name', ''),
+            'slug':                 obj.get('url_slug', ''),
+            'layout':               obj.get('layout', 'hero'),
+            'description':          obj.get('description', ''),
+            'openInNewWindow':      obj.get('openInNewWindow', True),
+            'stickyCategories':     obj.get('stickyCategories', False),
+            'masonry': {
+                'transitionDuration': obj.get('masonry', {}).get('transitionDuration', '0.4s'),
+                # minimum number of columns on desktop for masonry
+                'minDesktopColumns':  obj.get('masonry', {}).get('minDesktopColumns', 2),
+                # minimum number of columns to show on mobile for masonry
+                'minMobileColumns':   obj.get('masonry', {}).get('minMobileColumns', 2),
+                'forceGrid':          obj.get('masonry', {}).get('forceGrid', 2),
+                'tileAspectRatio':    obj.get('masonry', {}).get('tileAspectRatio', 2),
+                'heightRange':     obj.get('masonry', {}).get('heightRange', 2),
+            },
 
             # optional (defaults to 240 or 255 pixels)
             # TODO: undefined
@@ -137,7 +145,6 @@ class PageConfigSerializer(object):
             'debug': settings.DEBUG,
             # no longer a setting (why would we change this?)
             'itemSelector': '.tile',
-
             'store': store.to_json(),
             'page': page.to_json(),
             'feed': feed.to_json(),
@@ -154,10 +161,10 @@ class PageConfigSerializer(object):
             # DEPRECATED (use page:maxColumnCount)
             'maxColumnCount': page.get('column_count') or 4,
 
-            'overlayButtonColor': page.get('overlay_button_color') or '',
-            'overlayMobileButtonColor': page.get('overlay_mobile_button_color') or '',
-            'disableBannerRedirectOnMobile': page.get('disable_banner_redirect_on_mobile') or False,
-            'mobileTabletView': page.get('mobile_table_view') or False,
+            'overlayButtonColor': page.get('overlay_button_color', ''),
+            'overlayMobileButtonColor': page.get('overlay_mobile_button_color', ''),
+            'disableBannerRedirectOnMobile': page.get('disable_banner_redirect_on_mobile', False),
+            'mobileTabletView': page.get('mobile_table_view', False),
             'socialButtons': social_buttons,
 
             'conditionalSocialButtons': page.get('conditional_social_buttons') or {},
@@ -172,11 +179,11 @@ class PageConfigSerializer(object):
             # optional; default: true
             'enableTracking': enable_tracking,
             # optional. controls how often tiles are wide.
-            'imageTileWide': page.get('image_tile_wide') or 0.0,
+            'imageTileWide': page.get('image_tile_wide', 0.0),
             # minimum width a Cloudinary image can have  TODO: magic number
-            'minImageWidth': page.get('minImageWidth') or 450,
+            'minImageWidth': page.get('minImageWidth', 450),
             # minimum height a Cloudinary image can have  TODO: magic number
-            'minImageHeight': page.get('minImageHeight') or 100,
+            'minImageHeight': page.get('minImageHeight', 100),
             'masonry': page.get('masonry') or {},
 
             # default: undefined
@@ -185,7 +192,7 @@ class PageConfigSerializer(object):
             # DEPRECATED (use intentRank:results)
             'IRResultsCount': 10,
             # DEPRECATED (use intentRank:url)
-            'IRSource': page.get('ir_base_url') or '/intentrank',
+            'IRSource': page.get('ir_base_url', '/intentrank'),
             # DEPRECATED (use intentRank:results)
             'IRAlgo': algorithm,
             # DEPRECATED (use intentRank:tileSet)
@@ -208,17 +215,10 @@ class PageConfigSerializer(object):
             # JS now fetches its own initial results
             'initialResults': [],
         })
-        data['masonry'].update({
-            'transitionDuration': '0.4s',
-            # minimum number of columns on desktop for masonry
-            'minDesktopColumns': page.get('minDesktopColumns') or 2,
-            # minimum number of columns to show on mobile for masonry
-            'minMobileColumns': page.get('minMobileColumns') or 2,
-        })
 
         # fill keys not available to parent serializer
         data['intentRank'].update({
-            'url': page.get('ir_base_url') or '/intentrank',
+            'url': page.get('ir_base_url', '/intentrank'),
             'algorithm': algorithm,  # optional
             # "content", "products", or anything else for both content and product
             'tileSet': kwargs.get('tile_set', ''),

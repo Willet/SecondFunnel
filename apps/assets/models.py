@@ -749,6 +749,8 @@ class Page(BaseModel):
         ('column_width', 256),
         ('social_buttons', ''),
         ('enable_tracking', "true"),
+        ('stickyNav', False),
+        ('openInNewWindow', True),
     ]
 
     dashboard_settings = JSONField(default={}, blank=True)

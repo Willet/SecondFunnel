@@ -286,6 +286,15 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     /**
+     * Returns window target for url redirect
+     *
+     * @returns {string}
+     */
+    module.openInWindow = function () {
+        return App.option("page:openInNewWindow", true) ? "_blank" : "_self";
+    };
+
+    /**
      * Returns the url parsed into components
      *
      * @param {string} url

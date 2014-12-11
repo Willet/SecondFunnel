@@ -127,7 +127,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             url += "/tile/" + tileId
                         else if sku
                             url += "/sku/" + sku
-                    window.open url, "_blank"
+                    window.open url, App.utils.openInWindow()
                 return
 
             # clicking on social buttons is not clicking on the tile.
@@ -253,7 +253,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onClick: ->
             if @model.get("url")
-                window.open @model.get("url")
+                window.open @model.get("url"), App.utils.openInWindow()
             return
 
         onPlaybackEnd: (ev) ->
@@ -268,7 +268,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $thumb = @$("div.thumbnail")
             if window.YT is undefined
                 console.warn "YT could not load. Opening link to youtube.com"
-                window.open @model.get("original-url")
+                window.open @model.get("original-url"), App.utils.openInWindow()
                 return
             $thumb.attr("id", thumbId).wrap "<div class=\"video-container\" />"
             player = new window.YT.Player(thumbId,
@@ -654,7 +654,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $target = $(event.target)
                 # Over-write addUrlTrackingParameters for each customer
                 url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') )
-                window.open url, "_self"
+                window.open url, App.utils.openInWindow()
                 return
 
 
