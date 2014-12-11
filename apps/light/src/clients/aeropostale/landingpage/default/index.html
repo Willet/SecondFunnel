@@ -180,6 +180,24 @@
             </div>
         </script>
 
+        <script type="text/template" id="tumblr_tile_template">
+            <div class='relative'>
+                <img class="focus" src="<%= obj['image-url'] %>" />
+            </div>
+            <% if (App.option("debug", 0) > 1) { %>
+                <span class="type"><%= obj["content-type"] %></span>
+            <% } %>
+            <div class="overlay">
+                <div class='table'>
+                    <div class='cell'>
+                        <span><span class="artist">Artist</span> <%= obj.author %></span>
+                        <br />
+                        <span><%= obj['redirect-url'].slice(7) %></span>
+                    </div>
+                </div>
+            </div>
+        </script>
+
         <script type="text/template" id="image_preview_template">
             <% if (obj['tagged-products'].length) { %>
                 <% var product = obj['tagged-products'][0]; %>
