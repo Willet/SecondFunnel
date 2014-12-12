@@ -89,7 +89,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             category = _.find allCats, (cat) ->
                 return cat.name == App.intentRank.options.category
 
-            console.error "Generating hero area: #{category.displayName}"
             tile =
                 desktopHeroImage: "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
                 mobileHeroImage: "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
@@ -100,6 +99,5 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: ->
             @generateHeroArea()
             @listenTo App.vent, "change:category", =>
-                console.error "Event change:category: #{App.intentRank.options.category}"
                 App.heroArea.show new App.core.HeroAreaView()
                 return
