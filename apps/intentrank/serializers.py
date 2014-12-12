@@ -121,23 +121,21 @@ class PageConfigSerializer(object):
         kwargs.update(other)
 
         # output attributes automatically (if the js knows how to use them)
-        if hasattr(page, 'theme_settings'):
-            data = page.theme_settings
-        else:
-            data = {}
+        data = getattr(page, 'theme_settings', {})
 
         # normalize: socialButtons
-        social_buttons = page.get('social_buttons', page.store.get('social-buttons'))\
-            or ["facebook", "twitter", "pinterest", "tumblr"]
+        social_buttons = getattr(page, 'social_buttons', 
+                            getattr(page.store, 'social-buttons', 
+                                ["facebook", "twitter", "pinterest", "tumblr"]))
 
         if isinstance(social_buttons, basestring):
             #noinspection PyTypeChecker
             social_buttons = json.loads(social_buttons)
 
         # normalize: enableTracking
-        enable_tracking = page.get('enable_tracking', True)
+        enable_tracking = getattr(page, 'enable_tracking', True)
         if not isinstance(enable_tracking, bool):
-            enable_tracking = (enable_tracking == 'true')
+            enable_tracking = bool(enable_tracking == 'true')
 
         data.update({
             'debug': settings.DEBUG,
@@ -152,37 +150,37 @@ class PageConfigSerializer(object):
 
         data.update({
             # DEPRECATED (use page:id)
-            'campaign': page.get('intentrank_id') or page.id,
+            'campaign': getattr(page, 'intentrank_id', page.id),
             # DEPRECATED (use page:columnWidth)
-            'columnWidth': page.get('column_width',
-                page.store.get('column-width', None)),  # TODO: undefined
+            'columnWidth': getattr(page, 'column_width',
+                            getattr(page.store, 'column-width', None)),
             # DEPRECATED (use page:maxColumnCount)
-            'maxColumnCount': page.get('column_count') or 4,
+            'maxColumnCount': getattr(page, 'column_count', 4),
 
-            'overlayButtonColor': page.get('overlay_button_color', ''),
-            'overlayMobileButtonColor': page.get('overlay_mobile_button_color', ''),
-            'disableBannerRedirectOnMobile': page.get('disable_banner_redirect_on_mobile', False),
-            'mobileTabletView': page.get('mobile_table_view', False),
+            'overlayButtonColor': getattr(page, 'overlay_button_color', ''),
+            'overlayMobileButtonColor': getattr(page, 'overlay_mobile_button_color', ''),
+            'disableBannerRedirectOnMobile': getattr(page, 'disable_banner_redirect_on_mobile', False),
+            'mobileTabletView': getattr(page, 'mobile_table_view', False),
             'socialButtons': social_buttons,
 
-            'conditionalSocialButtons': page.get('conditional_social_buttons') or {},
-            'tilePopupUrl': page.get('tile_popup_url') or '',
-            'urlParams': page.get("url_params") or {},
+            'conditionalSocialButtons': getattr(page, 'conditional_social_buttons', {}),
+            'tilePopupUrl': getattr(page, 'tile_popup_url', ''),
+            'urlParams': getattr(page, 'url_params', {}),
 
             # a string or boolean indicating if there should be a home button /
             # what the home button should be
-            'categoryHome': page.get('categoryHome', True),
+            'categoryHome': getattr(page, 'categoryHome', True),
             # optional, for social buttons (default: true)
             'showCount': True,
             # optional; default: true
             'enableTracking': enable_tracking,
             # optional. controls how often tiles are wide.
-            'imageTileWide': page.get('image_tile_wide', 0.0),
+            'imageTileWide': getattr(page, 'image_tile_wide', 0.0),
             # minimum width a Cloudinary image can have  TODO: magic number
-            'minImageWidth': page.get('minImageWidth', 450),
+            'minImageWidth': getattr(page, 'minImageWidth', 450),
             # minimum height a Cloudinary image can have  TODO: magic number
-            'minImageHeight': page.get('minImageHeight', 100),
-            'masonry': page.get('masonry') or {},
+            'minImageHeight': getattr(page, 'minImageHeight', 100),
+            'masonry': getattr(page, 'masonry', {}),
 
             # default: undefined
             'featured': featured_tile,
@@ -190,17 +188,16 @@ class PageConfigSerializer(object):
             # DEPRECATED (use intentRank:results)
             'IRResultsCount': 10,
             # DEPRECATED (use intentRank:url)
-            'IRSource': page.get('ir_base_url', '/intentrank'),
+            'IRSource': getattr(page, 'ir_base_url', '/intentrank'),
             # DEPRECATED (use intentRank:results)
             'IRAlgo': algorithm,
             # DEPRECATED (use intentRank:tileSet)
-            'IRTileSet': page.get('IRTileSet', kwargs.get('tile_set', '')),
+            'IRTileSet': getattr(page, 'IRTileSet', kwargs.get('tile_set', '')),
             # DEPRECATED (use intentRank:reqNum)
             'IRReqNum': 0,
 
             # DEPRECATED (use page:gaAccountNumber)
-            'gaAccountNumber': page.get('ga_account_number') or
-                               settings.GOOGLE_ANALYTICS_PROPERTY,
+            'gaAccountNumber': getattr(page, 'ga_account_number', settings.GOOGLE_ANALYTICS_PROPERTY),
 
             'keen': {
                 'projectId': settings.KEEN_CONFIG['projectId'],
@@ -208,7 +205,7 @@ class PageConfigSerializer(object):
             },
 
             # {[tileId: num,]}
-            'resultsThreshold': page.get('results_threshold', None),
+            'resultsThreshold': getattr(page, 'results_threshold', None),
 
             # JS now fetches its own initial results
             'initialResults': [],
@@ -216,15 +213,15 @@ class PageConfigSerializer(object):
 
         # fill keys not available to parent serializer
         data['intentRank'].update({
-            'url': page.get('ir_base_url', '/intentrank'),
+            'url': getattr(page, 'ir_base_url', '/intentrank'),
             'algorithm': algorithm,  # optional
             # "content", "products", or anything else for both content and product
             'tileSet': kwargs.get('tile_set', ''),
         })
 
-        if page.get('tests'):
+        if hasattr(page, 'tests'):
             data.update({
-                'tests': page.get('tests'),
+                'tests': page.tests,
             })
 
         return data
