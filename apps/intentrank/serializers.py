@@ -13,22 +13,22 @@ class IRSerializer(RawSerializer):
 
 
 class FeedSerializer(IRSerializer):
-    def get_dump_object(self, obj):
+    def get_dump_object(self, feed):
         return {
-            'id': str(obj.id),
-            'algorithm': obj.feed_algorithm,
+            'id': str(feed.id),
+            'algorithm': feed.feed_algorithm,
         }
 
 
 class StoreSerializer(IRSerializer):
     """Generates the PAGES_INFO.store key."""
-    def get_dump_object(self, obj):
+    def get_dump_object(self, store):
         return {
-            'id': str(obj.id),
+            'id': str(store.id),
             # required for store-specific themes
-            'slug': obj.slug or "store",
-            'name': obj.name or "Store",
-            'displayName': getattr(obj, 'display_name', ''),  # optional
+            'slug': store.slug or "store",
+            'name': store.name or "Store",
+            'displayName': getattr(store, 'display_name', ''),  # optional
         }
 
 
@@ -229,42 +229,42 @@ class PageConfigSerializer(object):
 
 class ProductSerializer(IRSerializer):
     """This will dump absolutely everything in a product as JSON."""
-    def get_dump_object(self, obj):
+    def get_dump_object(self, product):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
         """
-        product_images = list(obj.product_images.all())
+        product_images = list(product.product_images.all())
 
         data = {
-            "url": obj.url,
+            "url": product.url,
             # products don't *always* have skus
             # -- nor are they unique
             # -- nor are they necessarily numbers
-            "sku": getattr(obj, "sku", ""),
-            "price": obj.price,
-            "description": obj.description,
-            "details": obj.details,
-            "name": obj.name,
+            "sku": getattr(product, "sku", ""),
+            "price": product.price,
+            "description": product.description,
+            "details": product.details,
+            "name": product.name,
             "similar-products": [],
         }
 
-        data.update(obj.attributes)
+        data.update(product.attributes)
 
-        if obj.attributes.get('product_images_order'):
+        if product.attributes.get('product_images_order'):
             # if image ordering is explicitly given, use it
-            for i in obj.attributes.get('product_images_order', []):
+            for i in product.attributes.get('product_images_order', []):
                 try:
                     product_images.append(find_where(product_images, i))
                 except ValueError:
                     pass  # could not find matching product image
-        elif hasattr(obj, 'default_image_id') and obj.default_image_id:
+        elif hasattr(product, 'default_image_id') and product.default_image_id:
             # if default image is missing...
-            data["default-image"] = str(obj.default_image.id or obj.default_image_id)
-            data["orientation"] = obj.default_image.orientation
+            data["default-image"] = str(product.default_image.id or product.default_image_id)
+            data["orientation"] = product.default_image.orientation
 
             try:
-                idx = product_images.index(obj.default_image)
-                product_images = [obj.default_image] + \
+                idx = product_images.index(product.default_image)
+                product_images = [product.default_image] + \
                                  product_images[:idx] + \
                                  product_images[idx+1:]
             except ValueError:  # that's right default image not in list
@@ -279,7 +279,7 @@ class ProductSerializer(IRSerializer):
         if not "orientation" in data:
             data["orientation"] = "portrait"
 
-        for product in obj.similar_products.filter(in_stock=True):
+        for product in product.similar_products.filter(in_stock=True):
             try:
                 data['similar-products'].append(product.to_json())
             except:
@@ -290,15 +290,15 @@ class ProductSerializer(IRSerializer):
 
 class ProductImageSerializer(IRSerializer):
     """This dumps some fields from the image as JSON."""
-    def get_dump_object(self, obj):
+    def get_dump_object(self, product_image):
         """This will be the data used to generate the object."""
         data = {
-            "format": obj.file_type or "jpg",
+            "format": product_image.file_type or "jpg",
             "type": "image",
-            "dominant-color": obj.dominant_color or "transparent",
-            "url": obj.url,
-            "id": obj.id,
-            "orientation": obj.orientation,
+            "dominant-color": product_image.dominant_color or "transparent",
+            "url": product_image.url,
+            "id": product_image.id,
+            "orientation": product_image.orientation,
         }
 
         return data
@@ -306,21 +306,21 @@ class ProductImageSerializer(IRSerializer):
 
 class ContentSerializer(IRSerializer):
 
-    def get_dump_object(self, obj):
+    def get_dump_object(self, content):
         data = {
-            'id': str(obj.id),
-            'store-id': str(obj.store.id if obj.store else 0),
-            'source': obj.source,
-            'source_url': obj.source_url,
-            'url': obj.url or obj.source_url,
-            'author': obj.author,
-            'status': obj.status,
+            'id': str(content.id),
+            'store-id': str(content.store.id if content.store else 0),
+            'source': content.source,
+            'source_url': content.source_url,
+            'url': content.url or content.source_url,
+            'author': content.author,
+            'status': content.status,
         }
 
-        if obj.tagged_products.count() > 0:
+        if content.tagged_products.count() > 0:
             data['tagged-products'] = []
 
-        for product in obj.tagged_products.filter(in_stock=True):
+        for product in content.tagged_products.filter(in_stock=True):
             try:
                 data['tagged-products'].append(product.to_json())
             except Exception as err:
@@ -331,23 +331,23 @@ class ContentSerializer(IRSerializer):
 
 class ImageSerializer(ContentSerializer):
     """This dumps some fields from the image as JSON."""
-    def get_dump_object(self, obj):
+    def get_dump_object(self, image):
         """This will be the data used to generate the object."""
         from apps.assets.models import default_master_size
 
-        data = super(ImageSerializer, self).get_dump_object(obj)
+        data = super(ImageSerializer, self).get_dump_object(image)
         data.update({
-            "format": obj.file_type or "jpg",
+            "format": image.file_type or "jpg",
             "type": "image",
-            "dominant-color": obj.dominant_color or "transparent",
-            "url": obj.url,
-            "id": obj.id,
-            "status": obj.status,
-            "sizes": obj.attributes.get('sizes', {
-                'width': obj.width or '100%',
-                'height': obj.height or '100%',
+            "dominant-color": image.dominant_color or "transparent",
+            "url": image.url,
+            "id": image.id,
+            "status": image.status,
+            "sizes": image.attributes.get('sizes', {
+                'width': image.width or '100%',
+                'height': image.height or '100%',
             }),
-            "orientation": obj.orientation,
+            "orientation": image.orientation,
         })
 
         return data
@@ -355,21 +355,21 @@ class ImageSerializer(ContentSerializer):
 
 class VideoSerializer(ContentSerializer):
     """This will dump absolutely everything in a product as JSON."""
-    def get_dump_object(self, obj):
+    def get_dump_object(self, video):
 
-        data = super(VideoSerializer, self).get_dump_object(obj)
+        data = super(VideoSerializer, self).get_dump_object(video)
 
         data.update({
-            "caption": getattr(obj, 'caption', ''),
-            "description": getattr(obj, 'description', ''),
-            "original-id": obj.original_id or obj.id,
-            "original-url": obj.source_url or obj.url,
-            "source": getattr(obj, 'source', 'youtube'),
+            "caption": getattr(video, 'caption', ''),
+            "description": getattr(video, 'description', ''),
+            "original-id": video.original_id or video.id,
+            "original-url": video.source_url or video.url,
+            "source": getattr(video, 'source', 'youtube'),
         })
 
-        if hasattr(obj, 'attributes'):
-            if obj.attributes.get('username'):
-                data['username'] = obj.attributes.get('username')
+        if hasattr(video, 'attributes'):
+            if video.attributes.get('username'):
+                data['username'] = video.attributes.get('username')
 
         return data
 
@@ -381,53 +381,53 @@ class TileSerializer(IRSerializer):
         """Returns a subclass of the tile serializer if you already know it."""
         return globals()[tile_class.capitalize() + self.__class__.__name__]
 
-    def get_dump_object(self, obj):
+    def get_dump_object(self, tile):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
         """
         data = {
             # prefixed keys are for inspection only; the hyphen is designed to
             # prevent you from using it like a js object
-            'tile-id': obj.id,
+            'tile-id': tile.id,
         }
 
-        if hasattr(obj, 'template'):
-            data['template'] = obj.template
+        if hasattr(tile, 'template'):
+            data['template'] = tile.template
 
-        if hasattr(obj, 'prioritized'):
-            data['prioritized'] = obj.prioritized
+        if hasattr(tile, 'prioritized'):
+            data['prioritized'] = tile.prioritized
 
-        if hasattr(obj, 'priority'):
-            data['priority'] = obj.priority
+        if hasattr(tile, 'priority'):
+            data['priority'] = tile.priority
 
-        data.update(obj.attributes)
+        data.update(tile.attributes)
 
         return data
 
 
 class ProductTileSerializer(TileSerializer):
-    def get_dump_object(self, obj):
+    def get_dump_object(self, product_tile):
         """
-        :param obj  <Tile>
+        :param product_tile  <Tile>
         """
-        data = super(ProductTileSerializer, self).get_dump_object(obj)
+        data = super(ProductTileSerializer, self).get_dump_object(product_tile)
         try:
-            data.update(obj.products.all()[0].to_json())
-            data['product-ids'] = [x.id for x in obj.products.all()]
+            data.update(product_tile.products.all()[0].to_json())
+            data['product-ids'] = [x.id for x in product_tile.products.all()]
         except IndexError:
             pass  # no products in this tile
         return data
 
 
 class ContentTileSerializer(TileSerializer):
-    def get_dump_object(self, obj):
+    def get_dump_object(self, content_tile):
         """
-        :param obj  <Tile>
+        :param content_tile  <Tile>
         """
-        data = super(ContentTileSerializer, self).get_dump_object(obj)
+        data = super(ContentTileSerializer, self).get_dump_object(content_tile)
         try:
-            data.update(obj.content.select_subclasses()[0].to_json())
-            data['content-ids'] = [x.id for x in obj.content.all()]
+            data.update(content_tile.content.select_subclasses()[0].to_json())
+            data['content-ids'] = [x.id for x in content_tile.content.all()]
         except IndexError:
             pass  # no content in this tile
         return data
@@ -437,55 +437,55 @@ MegaTileSerializer = ContentTileSerializer
 
 
 class BannerTileSerializer(TileSerializer):
-    def get_dump_object(self, obj):
+    def get_dump_object(self, banner_tile):
         """
-        :param obj  <Tile>
+        :param banner_tile  <Tile>
         """
-        data = super(BannerTileSerializer, self).get_dump_object(obj)
+        data = super(BannerTileSerializer, self).get_dump_object(banner_tile)
 
-        redirect_url = (obj.attributes.get('redirect_url') or
-                        obj.attributes.get('redirect-url'))
+        redirect_url = (banner_tile.attributes.get('redirect_url') or
+                        banner_tile.attributes.get('redirect-url'))
 
-        if obj.content.count():
+        if banner_tile.content.count():
             content_serializer = ContentTileSerializer()
-            data.update(content_serializer.get_dump_object(obj))
+            data.update(content_serializer.get_dump_object(banner_tile))
 
             if not redirect_url:
                 try:
-                    redirect_url = obj.content.select_subclasses()[0].source_url
+                    redirect_url = banner_tile.content.select_subclasses()[0].source_url
                 except IndexError:
                     pass  # tried to find a redirect url, don't have one
-        elif obj.products.count(): # We prefer content over products
+        elif banner_tile.products.count(): # We prefer content over products
             product_serializer = ProductTileSerializer()
-            data.update(product_serializer.get_dump_object(obj))
+            data.update(product_serializer.get_dump_object(banner_tile))
 
             if not redirect_url:
                 try:
-                    redirect_url = obj.products.all()[0].url
+                    redirect_url = banner_tile.products.all()[0].url
                 except IndexError:
                     pass  # tried to find a redirect url, don't have one
 
         data.update({'redirect-url': redirect_url})
 
-        if not 'images' in data and obj.attributes:
-            data['images'] = [obj.attributes]
+        if not 'images' in data and banner_tile.attributes:
+            data['images'] = [banner_tile.attributes]
 
         return data
 
 
 class ImageTileSerializer(ContentTileSerializer):
-    def get_dump_object(self, obj):
+    def get_dump_object(self, image_tile):
         """
-        :param obj  <Tile>
+        :param image_tile  <Tile>
         """
         data = {
             'type': 'image'
         }
 
-        data.update(super(ImageTileSerializer, self).get_dump_object(obj))
+        data.update(super(ImageTileSerializer, self).get_dump_object(image_tile))
 
         try:
-            data.update(ImageSerializer().get_dump_object(obj.content.all()[0]))
+            data.update(ImageSerializer().get_dump_object(image_tile.content.all()[0]))
         except IndexError:
             pass
 
@@ -493,18 +493,18 @@ class ImageTileSerializer(ContentTileSerializer):
 
 
 class VideoTileSerializer(ContentTileSerializer):
-    def get_dump_object(self, obj):
+    def get_dump_object(self, video_tile):
         """
-        :param obj  <Tile>
+        :param video_tile  <Tile>
         """
         data = {
             'type': 'video'
         }
 
-        data.update(super(VideoTileSerializer, self).get_dump_object(obj))
+        data.update(super(VideoTileSerializer, self).get_dump_object(video_tile))
 
         try:
-            video = obj.content.select_subclasses()[0]
+            video = video_tile.content.select_subclasses()[0]
             data.update({
                 "caption": getattr(video, 'caption', ''),
                 "description": getattr(video, 'description', ''),
