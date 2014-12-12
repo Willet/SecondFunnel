@@ -93,7 +93,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             tile =
                 desktopHeroImage: "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
                 mobileHeroImage: "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
-                title: "GIFTS <i>for</i> #{category.displayName}"
+                title: "<span class='spaced'>GIFTS</span> <span class='for'>for</span> #{category.displayName}"
             @model.destroy() if @model? and @model.destroy
             @model = new module.Tile(tile)
 

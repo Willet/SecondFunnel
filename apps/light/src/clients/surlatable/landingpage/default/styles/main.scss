@@ -355,6 +355,13 @@ body {
         font-family: $slt-modern-font;
         font-size: 55px;
         font-weight: 300;
+        .spaced {
+            letter-spacing: 0.05em;
+        }
+        .for {
+            font-style: italic;
+            padding: 0 0.2em;
+        }
     }
 }
 
