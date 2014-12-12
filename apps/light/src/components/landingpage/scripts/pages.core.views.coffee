@@ -576,7 +576,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         the featured product.
         ###
         initialize: (data) ->
-            self = this
             tile = data
 
             if $.isEmptyObject(data)
@@ -588,9 +587,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     mobileHeroImage: App.option('mobile_hero_image', '')
 
             @model = new module.Tile(tile)
-            @listenTo App.vent, "windowResize", ->
+            @listenTo App.vent, "windowResize", =>
 
-                App.heroArea.show self
+                App.heroArea.show @
                 return
 
             return
@@ -855,7 +854,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # Flag to ignore clicks until feed loads
             @collection.enabled = false
-            App.vent.once 'layoutCompleted', =>
+            @listenTo App.vent, 'layoutCompleted', =>
                 @collection.enabled = true
 
             return @

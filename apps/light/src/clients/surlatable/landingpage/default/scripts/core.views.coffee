@@ -37,6 +37,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # Close categories drop-down
             $el.removeClass 'expanded'
+            # Temporarily disable categories while the feed is loading
+            @model.collection.enabled = false
 
             # switch to the selected category if it has changed
             unless $el.hasClass 'selected' and $subCatEl.hasClass 'selected' and not $subCatEl.siblings().hasClass 'selected'
@@ -58,18 +60,44 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 else
                     switchCategory = subCategory['name']
 
-                # Set Hero image - check if subcategory has hero image specified
-                desktopHeroImage = subCategory["desktopHeroImage"] or category.get("desktopHeroImage")
-                mobileHeroImage = subCategory["mobileHeroImage"] or category.get("mobileHeroImage")
-                
-                if desktopHeroImage and mobileHeroImage
-                    App.heroArea.show(new App.core.HeroAreaView(
-                        "desktopHeroImage": desktopHeroImage
-                        "mobileHeroImage": mobileHeroImage
-                    ))
-
                 App.navigate(switchCategory,
                     trigger: true
                 )
 
             return false # stop propogation
+
+
+    ###
+    View responsible for the "Hero Area"
+    (e.g. Shop-the-look, featured, or just a plain div)
+
+    @constructor
+    @type {Layout}
+    ###
+    class module.SLTHeroAreaView extends Marionette.Layout
+        model: module.Tile
+        className: "previewContainer"
+        template: "#hero_template"
+        regions:
+            content: ".content"
+
+        generateHeroArea: ->
+            mergeSubcategories = (cats, obj) ->
+                Array.prototype.push.apply(cats, obj.subCategories)
+                return cats
+            allCats = _.reduce App.intentRank.options.categories, mergeSubcategories, []   
+            category = _.find allCats, (cat) ->
+                return cat.name == App.intentRank.options.category
+
+            tile =
+                desktopHeroImage: "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
+                mobileHeroImage: "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
+                title: "<span class='spaced'>GIFTS</span> <span class='for'>for</span> #{category.displayName}"
+            @model.destroy() if @model? and @model.destroy
+            @model = new module.Tile(tile)
+
+        initialize: ->
+            @generateHeroArea()
+            @listenTo App.vent, "change:category", =>
+                App.heroArea.show new App.core.HeroAreaView()
+                return
