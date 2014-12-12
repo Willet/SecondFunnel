@@ -89,6 +89,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             category = _.find allCats, (cat) ->
                 return cat.name == App.intentRank.options.category
 
+            if not category?
+                # If category can't be found, IR will choose the first category
+                category = App.intentRank.options.categories[0]
             tile =
                 desktopHeroImage: "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
                 mobileHeroImage: "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
