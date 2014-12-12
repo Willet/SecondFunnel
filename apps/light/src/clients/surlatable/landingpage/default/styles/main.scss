@@ -659,6 +659,8 @@ body {
         .container {
             a.logo {
                 width: 100%;
+                height: 20px;
+                margin-bottom: 20px;
                 img {
                     position: relative;
                     left: 50%;
@@ -683,14 +685,20 @@ body {
     }
     #category-area {
         z-index: 10;
+        /* overlap above clickable element with a margin to reduce fat finger clicks */
+        margin-top: -20px;
+        padding-top: 20px;
+        background-color: transparent;
         &.stuck {
             width: 100%;
             box-shadow: 1px 1px 2px #AAA;
         }
-        margin-top: 0px;
+        .category-area {
+            background-color: #FFF;
+        }
         .category {
             width: 100px;
-            line-height: 30px;
+            line-height: 40px;
             > span {
                 font-size: 16px;
                 padding-top: 2px;
@@ -733,6 +741,11 @@ body {
             &.image {
                 max-width: none;
             }
+            .title,
+            .price,
+            .buy {
+                margin-left: 10px;
+            }
             .title {
                 font-size: 1.6em;
             }
@@ -751,6 +764,18 @@ body {
         }
         .image-with-tagged-products .cell.shop {
             width: auto;
+        }
+    }
+}
+@media screen and (max-width: 400px) {
+    #hero-area {
+        .visible-xs.jumbotron,
+        .visible-sm.jumbotron {
+            margin-bottom: 1px;
+            .category-name {
+                font-size: 25px;
+                left: 15%;
+            }
         }
     }
 }
