@@ -595,7 +595,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onShow: ->
-            dcontentOpts = model: @model
+            contentOpts = model: @model
             contentInstance = undefined
             contentInstance = new module.PreviewContent(contentOpts)
             @content.show contentInstance
@@ -807,8 +807,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                     if view.model.get("desktopHeroImage") and view.model.get("mobileHeroImage") and App.layoutEngine
                         App.heroArea.show(new App.core.HeroAreaView(
-                            "desktopHeroImage": "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
-                            "mobileHeroImage": "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
+                            "desktopHeroImage": view.model.get "desktopHeroImage"
+                            "mobileHeroImage": view.model.get "mobileHeroImage"
                         ))
 
                     App.navigate(category,
