@@ -202,6 +202,13 @@ body {
         color: $bs-green;
         font-size: 25px;
         padding: 15px 0;
+        .strike {
+            font-size: 20px;
+            margin-left: 5px;
+            color: #999;
+            font-weight: normal;
+            font-family: proxima-nova-soft, sans-serif, Helvetica, Arial, sans-serif;
+        }
     }
 }
 .previewContainer {
@@ -286,6 +293,12 @@ body {
                 font-size: 14px;
                 padding: 15px 0;
                 font-weight: normal;
+                .strike {
+                    font-size: 12px;
+                    margin-right: 3px;
+                    color: #999;
+                    font-weight: normal;
+                }
             }
             .overlay {
                 /* cancels a normalize.css rule */
