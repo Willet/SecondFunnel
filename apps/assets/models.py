@@ -70,7 +70,7 @@ class BaseModel(models.Model, SerializableMixin):
         abstract = True
 
     def __getitem__(self, key):
-        return self.get(key)
+        return getattr(self, key, None)
 
     def __setitem__(self, key, value):
         return setattr(self, key, value)
@@ -787,7 +787,7 @@ class Page(BaseModel):
             if name == key:
                 theme_settings = self.theme_settings or {}
                 return theme_settings.get(key, default)
-        return super(Page, self).__getattr__(name)
+        return super(Page, self).__getattribute__(name)
 
     def __setattr__(self, name, value):
         for (key, _) in self.theme_settings_fields:
