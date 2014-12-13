@@ -81,12 +81,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if imageUrl and prodImages
                 matchImgObj = _.find prodImages, (imgObj) ->
                     # Remove Cloudinary url API operations before doing url comparison
+                    # .../upload/c_fit,q_75,w_700/v... -> .../upload/v...
                     baseImgUrl = imgObj.url.replace /(upload)(.*)(\/v)/, "$1$3"
                     return  (baseImgUrl == imageUrl)
 
                 if matchImgObj
                     # prodImages is a reference, will modify product images in place
-                    prodImages.unshift(prodImages.splice(prodImages.indexOf(matchImgObj), 1)[0]);
+                    matchImgObjIndex = prodImages.indexOf(matchImgObj)
+                    matchImgObj = prodImages.splice(matchImgObjIndex, 1)[0]
+                    prodImages.unshift(matchImgObj);
 
         coreRenderSubregions: module.ExpandedContent.prototype.renderSubregions
 
