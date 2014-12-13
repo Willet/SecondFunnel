@@ -66,6 +66,34 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             return false # stop propogation
 
+    # For Sur La Table, the "content" image is the best looking product image
+    # Re-order the product images so that image is first
+    # For desktop, hide it because the pop-up will show the content image
+    # For mobile, we will show the product image in leui of showing the content image
+    _.extend module.ExpandedContent.prototype, 
+        reorderProductImages: ->
+            try 
+                imageUrl = @model.attributes.url
+                prodImages = @model.attributes['tagged-products'][0].images
+            catch err
+                # One of the required objects in the accessor chains doesn't exist
+                return
+            if imageUrl and prodImages
+                matchImgObj = _.find prodImages, (imgObj) ->
+                    # Remove Cloudinary url API operations before doing url comparison
+                    baseImgUrl = imgObj.url.replace /(upload)(.*)(\/v)/, "$1$3"
+                    return  (baseImgUrl == imageUrl)
+
+                if matchImgObj
+                    # prodImages is a reference, will modify product images in place
+                    prodImages.unshift(prodImages.splice(prodImages.indexOf(matchImgObj), 1)[0]);
+
+        coreRenderSubregions: module.ExpandedContent.prototype.renderSubregions
+
+        # Patch PreviewWindow content to order the "content" image first
+        renderSubregions: ->
+            @reorderProductImages()
+            @coreRenderSubregions.apply @, arguments
 
     ###
     View responsible for the "Hero Area"
@@ -95,7 +123,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             tile =
                 desktopHeroImage: "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
                 mobileHeroImage: "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
-                title: "<span class='spaced'>GIFTS</span> <span class='for'>for</span> #{category.displayName}"
+                title: "<span class='spaced'>GIFTS</span> <span class='for'>for #{category.displayName}</span>"
             @model.destroy() if @model? and @model.destroy
             @model = new module.Tile(tile)
 

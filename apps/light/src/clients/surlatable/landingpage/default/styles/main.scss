@@ -348,8 +348,9 @@ body {
         position: absolute;
         z-index: 1;
         top: 50%;
-        left: 20%;
         margin-top: -25px;
+        width: 100%;
+        text-align: center;
         line-height: 55px;
         color: #FFF;
         font-family: $slt-modern-font;
@@ -774,7 +775,6 @@ body {
             margin-bottom: 1px;
             .category-name {
                 font-size: 25px;
-                left: 15%;
             }
         }
     }

@@ -317,6 +317,47 @@
             </div>
         </script>
 
+        <script type="text/template" id="image_mobile_preview_template">
+            <% if (obj['tagged-products'].length) { %>
+                <% var product = obj['tagged-products'][0]; %>
+                <div class="image-with-tagged-products">
+                    <div class="table">
+                        <div class="row">
+                            <div class="cell info">
+                                <div class="gallery-main-image"></div>
+                                <div class='title'></div>
+                                <div class='price'></div>
+                                <div class='buy'></div>
+                                <div class="gallery hide"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="image-without-tagged-products">
+                    <div class="table">
+                        <div>
+                            <div class="image">
+                                <img src="<%= obj.images[0].url %>" alt="image" class="main-image" />
+                            </div>
+                            <div>
+                                <div class="info">
+                                    <div class="title">
+                                        Coming soon to Sur la Table!
+                                    </div>
+                                    <div class="buy">
+                                        <a class='button' href='http://www.surlatable.com/' target='_blank'>
+                                            Shop On Sur la Table
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </script>
+
         <script type="text/template" id="image_preview_template">
             <% if (obj['tagged-products'].length) { %>
                 <% var product = obj['tagged-products'][0]; %>
