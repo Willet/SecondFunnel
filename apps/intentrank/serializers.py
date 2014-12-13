@@ -13,63 +13,69 @@ class IRSerializer(RawSerializer):
 
 
 class FeedSerializer(IRSerializer):
-    def get_dump_object(self, obj):
+    def get_dump_object(self, feed):
         return {
-            'id': str(obj.id),
-            'algorithm': obj.feed_algorithm,
+            'id': str(feed.id),
+            'algorithm': feed.feed_algorithm,
         }
 
 
 class StoreSerializer(IRSerializer):
     """Generates the PAGES_INFO.store key."""
-    def get_dump_object(self, obj):
+    def get_dump_object(self, store):
         return {
-            'id': str(obj.id),
+            'id': str(store.id),
             # required for store-specific themes
-            'slug': obj.slug or "store",
-            'name': obj.name or "Store",
-            'displayName': getattr(obj, 'display_name', ''),  # optional
+            'slug': store.slug or "store",
+            'name': store.name or "Store",
+            'displayName': getattr(store, 'display_name', ''),  # optional
         }
 
 
 class PageSerializer(IRSerializer):
     """Generates the PAGES_INFO.page key."""
-    def get_dump_object(self, obj):
+    def get_dump_object(self, page):
         # string representation of [{id: 123, name: 'gap'}, ...]
         # normalize categories list/str into a list
-        categories = obj.get('categories', '[]')
+        categories = getattr(page, 'categories', '[]')
         if isinstance(categories, basestring):
             #noinspection PyTypeChecker
             categories = ast.literal_eval(categories)
 
-        mobileCategories = obj.get('mobileCategories', '[]')
+        mobileCategories = getattr(page, 'mobileCategories', '[]')
         if isinstance(mobileCategories, basestring):
             #noinspection PyTypeChecker
             mobileCategories = ast.literal_eval(mobileCategories)
 
         data = {
-            'id': getattr(obj, 'intentrank_id', obj.id),
-            # for verifying the original upload date of a static campaign.
-            # for human use only
-            'pubDate': str(datetime.now().isoformat()),
-
-            'gaAccountNumber': getattr(obj, 'ga_account_number',
-                                       settings.GOOGLE_ANALYTICS_PROPERTY),
-
+            'id':                   getattr(page, 'intentrank_id', page.id),
+            # for verifying the original upload date of a static campaign
+            'pubDate':              str(datetime.now().isoformat()),
+            'gaAccountNumber':      getattr(page, 'ga_account_number', settings.GOOGLE_ANALYTICS_PROPERTY),
+            'categories':           categories,
+            'mobileCategories':     mobileCategories,
             # provided by campaign manager
-            'name': obj.name or '',
-            'slug': obj.url_slug or '',
-            'layout': obj.get('layout', 'hero'),
-
-            'categories': categories,
-            'mobileCategories': mobileCategories,
-            'description': obj.description or '',
+            'name':                 getattr(page, 'name', ''),
+            'slug':                 getattr(page, 'url_slug', ''),
+            'layout':               getattr(page, 'layout', 'hero'),
+            'description':          getattr(page, 'description', ''),
+            'openInNewWindow':      getattr(page, 'openInNewWindow', True),
+            'stickyCategories':     getattr(page, 'stickyCategories', False),
+            'masonry': {
+                'transitionDuration': getattr(page, 'masonry', {}).get('transitionDuration', '0.4s'),
+                # minimum number of columns on desktop for masonry
+                'minDesktopColumns':  getattr(page, 'masonry', {}).get('minDesktopColumns', 2),
+                # minimum number of columns to show on mobile for masonry
+                'minMobileColumns':   getattr(page, 'masonry', {}).get('minMobileColumns', 2),
+                'forceGrid':          getattr(page, 'masonry', {}).get('forceGrid', True),
+                'tileAspectRatio':    getattr(page, 'masonry', {}).get('tileAspectRatio', 0.75),
+                'heightRange':        getattr(page, 'masonry', {}).get('heightRange', 0.2),
+            },
 
             # optional (defaults to 240 or 255 pixels)
             # TODO: undefined
-            'columnWidth': obj.get('column_width',
-                                   obj.store.get('column-width', None)),
-            'maxColumnCount': obj.get('column_count', 4),
+            'columnWidth': getattr(page, 'column_width', getattr(page.store, 'column-width', None)),
+            'maxColumnCount': getattr(page, 'column_count', 4),
         }
 
         return data
@@ -115,29 +121,26 @@ class PageConfigSerializer(object):
         kwargs.update(other)
 
         # output attributes automatically (if the js knows how to use them)
-        if hasattr(page, 'theme_settings'):
-            data = page.theme_settings
-        else:
-            data = {}
+        data = getattr(page, 'theme_settings', {})
 
         # normalize: socialButtons
-        social_buttons = page.get('social_buttons', page.store.get('social-buttons'))\
-            or ["facebook", "twitter", "pinterest", "tumblr"]
+        social_buttons = getattr(page, 'social_buttons', 
+                            getattr(page.store, 'social-buttons', 
+                                ["facebook", "twitter", "pinterest", "tumblr"]))
 
         if isinstance(social_buttons, basestring):
             #noinspection PyTypeChecker
             social_buttons = json.loads(social_buttons)
 
         # normalize: enableTracking
-        enable_tracking = page.get('enable_tracking', True)
+        enable_tracking = getattr(page, 'enable_tracking', True)
         if not isinstance(enable_tracking, bool):
-            enable_tracking = (enable_tracking == 'true')
+            enable_tracking = bool(enable_tracking == 'true')
 
         data.update({
             'debug': settings.DEBUG,
             # no longer a setting (why would we change this?)
             'itemSelector': '.tile',
-
             'store': store.to_json(),
             'page': page.to_json(),
             'feed': feed.to_json(),
@@ -147,37 +150,37 @@ class PageConfigSerializer(object):
 
         data.update({
             # DEPRECATED (use page:id)
-            'campaign': page.get('intentrank_id') or page.id,
+            'campaign': getattr(page, 'intentrank_id', page.id),
             # DEPRECATED (use page:columnWidth)
-            'columnWidth': page.get('column_width',
-                page.store.get('column-width', None)),  # TODO: undefined
+            'columnWidth': getattr(page, 'column_width',
+                            getattr(page.store, 'column-width', None)),
             # DEPRECATED (use page:maxColumnCount)
-            'maxColumnCount': page.get('column_count') or 4,
+            'maxColumnCount': getattr(page, 'column_count', 4),
 
-            'overlayButtonColor': page.get('overlay_button_color') or '',
-            'overlayMobileButtonColor': page.get('overlay_mobile_button_color') or '',
-            'disableBannerRedirectOnMobile': page.get('disable_banner_redirect_on_mobile') or False,
-            'mobileTabletView': page.get('mobile_table_view') or False,
+            'overlayButtonColor': getattr(page, 'overlay_button_color', ''),
+            'overlayMobileButtonColor': getattr(page, 'overlay_mobile_button_color', ''),
+            'disableBannerRedirectOnMobile': getattr(page, 'disable_banner_redirect_on_mobile', False),
+            'mobileTabletView': getattr(page, 'mobile_table_view', False),
             'socialButtons': social_buttons,
 
-            'conditionalSocialButtons': page.get('conditional_social_buttons') or {},
-            'tilePopupUrl': page.get('tile_popup_url') or '',
-            'urlParams': page.get("url_params") or {},
+            'conditionalSocialButtons': getattr(page, 'conditional_social_buttons', {}),
+            'tilePopupUrl': getattr(page, 'tile_popup_url', ''),
+            'urlParams': getattr(page, 'url_params', {}),
 
             # a string or boolean indicating if there should be a home button /
             # what the home button should be
-            'categoryHome': page.get('categoryHome', True),
+            'categoryHome': getattr(page, 'categoryHome', True),
             # optional, for social buttons (default: true)
             'showCount': True,
             # optional; default: true
             'enableTracking': enable_tracking,
             # optional. controls how often tiles are wide.
-            'imageTileWide': page.get('image_tile_wide') or 0.0,
+            'imageTileWide': getattr(page, 'image_tile_wide', 0.0),
             # minimum width a Cloudinary image can have  TODO: magic number
-            'minImageWidth': page.get('minImageWidth') or 450,
+            'minImageWidth': getattr(page, 'minImageWidth', 450),
             # minimum height a Cloudinary image can have  TODO: magic number
-            'minImageHeight': page.get('minImageHeight') or 100,
-            'masonry': page.get('masonry') or {},
+            'minImageHeight': getattr(page, 'minImageHeight', 100),
+            'masonry': getattr(page, 'masonry', {}),
 
             # default: undefined
             'featured': featured_tile,
@@ -185,17 +188,16 @@ class PageConfigSerializer(object):
             # DEPRECATED (use intentRank:results)
             'IRResultsCount': 10,
             # DEPRECATED (use intentRank:url)
-            'IRSource': page.get('ir_base_url') or '/intentrank',
+            'IRSource': getattr(page, 'ir_base_url', '/intentrank'),
             # DEPRECATED (use intentRank:results)
             'IRAlgo': algorithm,
             # DEPRECATED (use intentRank:tileSet)
-            'IRTileSet': page.get('IRTileSet', kwargs.get('tile_set', '')),
+            'IRTileSet': getattr(page, 'IRTileSet', kwargs.get('tile_set', '')),
             # DEPRECATED (use intentRank:reqNum)
             'IRReqNum': 0,
 
             # DEPRECATED (use page:gaAccountNumber)
-            'gaAccountNumber': page.get('ga_account_number') or
-                               settings.GOOGLE_ANALYTICS_PROPERTY,
+            'gaAccountNumber': getattr(page, 'ga_account_number', settings.GOOGLE_ANALYTICS_PROPERTY),
 
             'keen': {
                 'projectId': settings.KEEN_CONFIG['projectId'],
@@ -203,30 +205,23 @@ class PageConfigSerializer(object):
             },
 
             # {[tileId: num,]}
-            'resultsThreshold': page.get('results_threshold', None),
+            'resultsThreshold': getattr(page, 'results_threshold', None),
 
             # JS now fetches its own initial results
             'initialResults': [],
         })
-        data['masonry'].update({
-            'transitionDuration': '0.4s',
-            # minimum number of columns on desktop for masonry
-            'minDesktopColumns': page.get('minDesktopColumns') or 2,
-            # minimum number of columns to show on mobile for masonry
-            'minMobileColumns': page.get('minMobileColumns') or 2,
-        })
 
         # fill keys not available to parent serializer
         data['intentRank'].update({
-            'url': page.get('ir_base_url') or '/intentrank',
+            'url': getattr(page, 'ir_base_url', '/intentrank'),
             'algorithm': algorithm,  # optional
             # "content", "products", or anything else for both content and product
             'tileSet': kwargs.get('tile_set', ''),
         })
 
-        if page.get('tests'):
+        if hasattr(page, 'tests'):
             data.update({
-                'tests': page.get('tests'),
+                'tests': page.tests,
             })
 
         return data
@@ -234,42 +229,42 @@ class PageConfigSerializer(object):
 
 class ProductSerializer(IRSerializer):
     """This will dump absolutely everything in a product as JSON."""
-    def get_dump_object(self, obj):
+    def get_dump_object(self, product):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
         """
-        product_images = list(obj.product_images.all())
+        product_images = list(product.product_images.all())
 
         data = {
-            "url": obj.url,
+            "url": product.url,
             # products don't *always* have skus
             # -- nor are they unique
             # -- nor are they necessarily numbers
-            "sku": getattr(obj, "sku", ""),
-            "price": obj.price,
-            "description": obj.description,
-            "details": obj.details,
-            "name": obj.name,
+            "sku": getattr(product, "sku", ""),
+            "price": product.price,
+            "description": product.description,
+            "details": product.details,
+            "name": product.name,
             "similar-products": [],
         }
 
-        data.update(obj.attributes)
+        data.update(product.attributes)
 
-        if obj.attributes.get('product_images_order'):
+        if product.attributes.get('product_images_order'):
             # if image ordering is explicitly given, use it
-            for i in obj.attributes.get('product_images_order', []):
+            for i in product.attributes.get('product_images_order', []):
                 try:
                     product_images.append(find_where(product_images, i))
                 except ValueError:
                     pass  # could not find matching product image
-        elif hasattr(obj, 'default_image_id') and obj.default_image_id:
+        elif hasattr(product, 'default_image_id') and product.default_image_id:
             # if default image is missing...
-            data["default-image"] = str(obj.default_image.id or obj.default_image_id)
-            data["orientation"] = obj.default_image.orientation
+            data["default-image"] = str(product.default_image.id or product.default_image_id)
+            data["orientation"] = product.default_image.orientation
 
             try:
-                idx = product_images.index(obj.default_image)
-                product_images = [obj.default_image] + \
+                idx = product_images.index(product.default_image)
+                product_images = [product.default_image] + \
                                  product_images[:idx] + \
                                  product_images[idx+1:]
             except ValueError:  # that's right default image not in list
@@ -284,7 +279,7 @@ class ProductSerializer(IRSerializer):
         if not "orientation" in data:
             data["orientation"] = "portrait"
 
-        for product in obj.similar_products.filter(in_stock=True):
+        for product in product.similar_products.filter(in_stock=True):
             try:
                 data['similar-products'].append(product.to_json())
             except:
@@ -295,15 +290,15 @@ class ProductSerializer(IRSerializer):
 
 class ProductImageSerializer(IRSerializer):
     """This dumps some fields from the image as JSON."""
-    def get_dump_object(self, obj):
+    def get_dump_object(self, product_image):
         """This will be the data used to generate the object."""
         data = {
-            "format": obj.file_type or "jpg",
+            "format": product_image.file_type or "jpg",
             "type": "image",
-            "dominant-color": obj.dominant_color or "transparent",
-            "url": obj.url,
-            "id": obj.id,
-            "orientation": obj.orientation,
+            "dominant-color": product_image.dominant_color or "transparent",
+            "url": product_image.url,
+            "id": product_image.id,
+            "orientation": product_image.orientation,
         }
 
         return data
@@ -311,21 +306,21 @@ class ProductImageSerializer(IRSerializer):
 
 class ContentSerializer(IRSerializer):
 
-    def get_dump_object(self, obj):
+    def get_dump_object(self, content):
         data = {
-            'id': str(obj.id),
-            'store-id': str(obj.store.id if obj.store else 0),
-            'source': obj.source,
-            'source_url': obj.source_url,
-            'url': obj.url or obj.source_url,
-            'author': obj.author,
-            'status': obj.status,
+            'id': str(content.id),
+            'store-id': str(content.store.id if content.store else 0),
+            'source': content.source,
+            'source_url': content.source_url,
+            'url': content.url or content.source_url,
+            'author': content.author,
+            'status': content.status,
         }
 
-        if obj.tagged_products.count() > 0:
+        if content.tagged_products.count() > 0:
             data['tagged-products'] = []
 
-        for product in obj.tagged_products.filter(in_stock=True):
+        for product in content.tagged_products.filter(in_stock=True):
             try:
                 data['tagged-products'].append(product.to_json())
             except Exception as err:
@@ -336,23 +331,23 @@ class ContentSerializer(IRSerializer):
 
 class ImageSerializer(ContentSerializer):
     """This dumps some fields from the image as JSON."""
-    def get_dump_object(self, obj):
+    def get_dump_object(self, image):
         """This will be the data used to generate the object."""
         from apps.assets.models import default_master_size
 
-        data = super(ImageSerializer, self).get_dump_object(obj)
+        data = super(ImageSerializer, self).get_dump_object(image)
         data.update({
-            "format": obj.file_type or "jpg",
+            "format": image.file_type or "jpg",
             "type": "image",
-            "dominant-color": obj.dominant_color or "transparent",
-            "url": obj.url,
-            "id": obj.id,
-            "status": obj.status,
-            "sizes": obj.attributes.get('sizes', {
-                'width': obj.width or '100%',
-                'height': obj.height or '100%',
+            "dominant-color": image.dominant_color or "transparent",
+            "url": image.url,
+            "id": image.id,
+            "status": image.status,
+            "sizes": image.attributes.get('sizes', {
+                'width': image.width or '100%',
+                'height': image.height or '100%',
             }),
-            "orientation": obj.orientation,
+            "orientation": image.orientation,
         })
 
         return data
@@ -360,21 +355,21 @@ class ImageSerializer(ContentSerializer):
 
 class VideoSerializer(ContentSerializer):
     """This will dump absolutely everything in a product as JSON."""
-    def get_dump_object(self, obj):
+    def get_dump_object(self, video):
 
-        data = super(VideoSerializer, self).get_dump_object(obj)
+        data = super(VideoSerializer, self).get_dump_object(video)
 
         data.update({
-            "caption": getattr(obj, 'caption', ''),
-            "description": getattr(obj, 'description', ''),
-            "original-id": obj.original_id or obj.id,
-            "original-url": obj.source_url or obj.url,
-            "source": getattr(obj, 'source', 'youtube'),
+            "caption": getattr(video, 'caption', ''),
+            "description": getattr(video, 'description', ''),
+            "original-id": video.original_id or video.id,
+            "original-url": video.source_url or video.url,
+            "source": getattr(video, 'source', 'youtube'),
         })
 
-        if hasattr(obj, 'attributes'):
-            if obj.attributes.get('username'):
-                data['username'] = obj.attributes.get('username')
+        if hasattr(video, 'attributes'):
+            if video.attributes.get('username'):
+                data['username'] = video.attributes.get('username')
 
         return data
 
@@ -386,53 +381,53 @@ class TileSerializer(IRSerializer):
         """Returns a subclass of the tile serializer if you already know it."""
         return globals()[tile_class.capitalize() + self.__class__.__name__]
 
-    def get_dump_object(self, obj):
+    def get_dump_object(self, tile):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
         """
         data = {
             # prefixed keys are for inspection only; the hyphen is designed to
             # prevent you from using it like a js object
-            'tile-id': obj.id,
+            'tile-id': tile.id,
         }
 
-        if hasattr(obj, 'template'):
-            data['template'] = obj.template
+        if hasattr(tile, 'template'):
+            data['template'] = tile.template
 
-        if hasattr(obj, 'prioritized'):
-            data['prioritized'] = obj.prioritized
+        if hasattr(tile, 'prioritized'):
+            data['prioritized'] = tile.prioritized
 
-        if hasattr(obj, 'priority'):
-            data['priority'] = obj.priority
+        if hasattr(tile, 'priority'):
+            data['priority'] = tile.priority
 
-        data.update(obj.attributes)
+        data.update(tile.attributes)
 
         return data
 
 
 class ProductTileSerializer(TileSerializer):
-    def get_dump_object(self, obj):
+    def get_dump_object(self, product_tile):
         """
-        :param obj  <Tile>
+        :param product_tile  <Tile>
         """
-        data = super(ProductTileSerializer, self).get_dump_object(obj)
+        data = super(ProductTileSerializer, self).get_dump_object(product_tile)
         try:
-            data.update(obj.products.all()[0].to_json())
-            data['product-ids'] = [x.id for x in obj.products.all()]
+            data.update(product_tile.products.all()[0].to_json())
+            data['product-ids'] = [x.id for x in product_tile.products.all()]
         except IndexError:
             pass  # no products in this tile
         return data
 
 
 class ContentTileSerializer(TileSerializer):
-    def get_dump_object(self, obj):
+    def get_dump_object(self, content_tile):
         """
-        :param obj  <Tile>
+        :param content_tile  <Tile>
         """
-        data = super(ContentTileSerializer, self).get_dump_object(obj)
+        data = super(ContentTileSerializer, self).get_dump_object(content_tile)
         try:
-            data.update(obj.content.select_subclasses()[0].to_json())
-            data['content-ids'] = [x.id for x in obj.content.all()]
+            data.update(content_tile.content.select_subclasses()[0].to_json())
+            data['content-ids'] = [x.id for x in content_tile.content.all()]
         except IndexError:
             pass  # no content in this tile
         return data
@@ -442,55 +437,55 @@ MegaTileSerializer = ContentTileSerializer
 
 
 class BannerTileSerializer(TileSerializer):
-    def get_dump_object(self, obj):
+    def get_dump_object(self, banner_tile):
         """
-        :param obj  <Tile>
+        :param banner_tile  <Tile>
         """
-        data = super(BannerTileSerializer, self).get_dump_object(obj)
+        data = super(BannerTileSerializer, self).get_dump_object(banner_tile)
 
-        redirect_url = (obj.attributes.get('redirect_url') or
-                        obj.attributes.get('redirect-url'))
+        redirect_url = (banner_tile.attributes.get('redirect_url') or
+                        banner_tile.attributes.get('redirect-url'))
 
-        if obj.content.count():
+        if banner_tile.content.count():
             content_serializer = ContentTileSerializer()
-            data.update(content_serializer.get_dump_object(obj))
+            data.update(content_serializer.get_dump_object(banner_tile))
 
             if not redirect_url:
                 try:
-                    redirect_url = obj.content.select_subclasses()[0].source_url
+                    redirect_url = banner_tile.content.select_subclasses()[0].source_url
                 except IndexError:
                     pass  # tried to find a redirect url, don't have one
-        elif obj.products.count(): # We prefer content over products
+        elif banner_tile.products.count(): # We prefer content over products
             product_serializer = ProductTileSerializer()
-            data.update(product_serializer.get_dump_object(obj))
+            data.update(product_serializer.get_dump_object(banner_tile))
 
             if not redirect_url:
                 try:
-                    redirect_url = obj.products.all()[0].url
+                    redirect_url = banner_tile.products.all()[0].url
                 except IndexError:
                     pass  # tried to find a redirect url, don't have one
 
         data.update({'redirect-url': redirect_url})
 
-        if not 'images' in data and obj.attributes:
-            data['images'] = [obj.attributes]
+        if not 'images' in data and banner_tile.attributes:
+            data['images'] = [banner_tile.attributes]
 
         return data
 
 
 class ImageTileSerializer(ContentTileSerializer):
-    def get_dump_object(self, obj):
+    def get_dump_object(self, image_tile):
         """
-        :param obj  <Tile>
+        :param image_tile  <Tile>
         """
         data = {
             'type': 'image'
         }
 
-        data.update(super(ImageTileSerializer, self).get_dump_object(obj))
+        data.update(super(ImageTileSerializer, self).get_dump_object(image_tile))
 
         try:
-            data.update(ImageSerializer().get_dump_object(obj.content.all()[0]))
+            data.update(ImageSerializer().get_dump_object(image_tile.content.all()[0]))
         except IndexError:
             pass
 
@@ -498,18 +493,18 @@ class ImageTileSerializer(ContentTileSerializer):
 
 
 class VideoTileSerializer(ContentTileSerializer):
-    def get_dump_object(self, obj):
+    def get_dump_object(self, video_tile):
         """
-        :param obj  <Tile>
+        :param video_tile  <Tile>
         """
         data = {
             'type': 'video'
         }
 
-        data.update(super(VideoTileSerializer, self).get_dump_object(obj))
+        data.update(super(VideoTileSerializer, self).get_dump_object(video_tile))
 
         try:
-            video = obj.content.select_subclasses()[0]
+            video = video_tile.content.select_subclasses()[0]
             data.update({
                 "caption": getattr(video, 'caption', ''),
                 "description": getattr(video, 'description', ''),
