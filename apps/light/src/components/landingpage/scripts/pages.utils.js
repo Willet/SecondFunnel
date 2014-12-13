@@ -103,6 +103,36 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     /**
+     * process widget regions.
+     * each widget function receives args (the view, the $element, option alias).
+     * TODO: tests
+     *
+     * @param {View} viewObject
+     */
+    module.runWidgets = function (viewObject) {
+        var self = viewObject;
+
+        // process itself (if it is a view)
+        _.each(regions, function (selector, name, list) {
+            var widgetFunc = regionWidgets[name];
+            self.$(selector).each(function (idx, el) {
+                return widgetFunc.call(self, self, $(el), App.option);
+            });
+        });
+
+        // process children regions (if it is a layout)
+        _.each(self.regions, function (selector, name, list) {
+            var isWidget = _.contains(regions, name),
+                widgetFunc = (regionWidgets || {})[name];
+            if (isWidget && widgetFunc) {
+                self.$(selector).each(function (idx, el) {
+                    return widgetFunc.call(self, self, $(el), App.option);
+                });
+            }
+        });
+    };
+
+    /**
      * Returns true if landscape.
      *
      * @returns {Boolean}
@@ -147,36 +177,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     module.findClass = function (typeName, prefix, defaultClass) {
         var className = _.capitalize(prefix || '') + _.capitalize(typeName || '');
         return App.core[className] || defaultClass;
-    };
-
-    /**
-     * process widget regions.
-     * each widget function receives args (the view, the $element, option alias).
-     * TODO: tests
-     *
-     * @param {View} viewObject
-     */
-    module.runWidgets = function (viewObject) {
-        var self = viewObject;
-
-        // process itself (if it is a view)
-        _.each(regions, function (selector, name, list) {
-            var widgetFunc = regionWidgets[name];
-            self.$(selector).each(function (idx, el) {
-                return widgetFunc.call(self, self, $(el), App.option);
-            });
-        });
-
-        // process children regions (if it is a layout)
-        _.each(self.regions, function (selector, name, list) {
-            var isWidget = _.contains(regions, name),
-                widgetFunc = (regionWidgets || {})[name];
-            if (isWidget && widgetFunc) {
-                self.$(selector).each(function (idx, el) {
-                    return widgetFunc.call(self, self, $(el), App.option);
-                });
-            }
-        });
     };
 
     /**
