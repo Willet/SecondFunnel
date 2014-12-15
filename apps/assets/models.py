@@ -794,15 +794,6 @@ class Page(BaseModel):
         except KeyError:
             return super(Page, self).__getattribute__(name)
 
-    """def __setattr__(self, name, value):
-        for (key, _) in self.theme_settings_fields:
-            if name == key:
-                if not self.theme_settings:
-                    self.theme_settings = {}
-                self.theme_settings[key] = value
-                return
-        super(Page, self).__setattr__(name, value)"""
-
     def get(self, key, default=None):
         """Duck-type a <dict>'s get() method to make CG transition easier.
 
