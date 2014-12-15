@@ -89,7 +89,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     # prodImages is a reference, will modify product images in place
                     matchImgObjIndex = prodImages.indexOf(matchImgObj)
                     matchImgObj = prodImages.splice(matchImgObjIndex, 1)[0]
-                    prodImages.unshift(matchImgObj);
+                    # Add back as 1st piece of content on mobile because there
+                    # is only one gallery on mobile
+                    if App.support.mobile()
+                        prodImages.unshift(matchImgObj);
 
         coreRenderSubregions: module.ExpandedContent.prototype.renderSubregions
 
