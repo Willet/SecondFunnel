@@ -130,7 +130,11 @@ class PageConfigSerializer(object):
 
         if isinstance(social_buttons, basestring):
             #noinspection PyTypeChecker
-            social_buttons = json.loads(social_buttons)
+            try:
+                social_buttons = json.loads(social_buttons)
+            except ValueError:
+                # wasn't JSON
+                social_buttons = []
 
         # normalize: enableTracking
         enable_tracking = getattr(page, 'enable_tracking', True)

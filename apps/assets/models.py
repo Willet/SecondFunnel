@@ -747,7 +747,7 @@ class Page(BaseModel):
         ('desktop_hero_image', ''),
         ('mobile_hero_image', ''),
         ('column_width', 256),
-        ('social_buttons', ''),
+        ('social_buttons', []),
         ('enable_tracking', "true"),
     ]
 
