@@ -282,6 +282,7 @@ body {
     }
     .content {
         padding: 0 2px 0 0;
+        max-width: 1100px;
     }
     .close {
         background-color: $aero-pink;
@@ -291,9 +292,7 @@ body {
         font-weight: normal;
     }
     .cell.info {
-        padding-top: 42px;
-        padding-bottom: 10px;
-        padding-right: 10px;
+        padding: 42px 10px 10px 20px;
         width: 334px;
     }
     .cell.shop {
@@ -305,6 +304,7 @@ body {
     }
     .cell.image-cell {
         position: relative;
+
         &.desktop-only {
             padding-right: 0;
         }
