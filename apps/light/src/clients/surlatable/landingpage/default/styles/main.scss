@@ -24,14 +24,20 @@ $slt-basic-color: #444444;
 @font-face{
     font-family: MrEavesModern;
     src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-Book.otf') format("opentype");
-    font-weight: 600;
+    font-weight: 300;
     font-style: normal;
 }
 @font-face{
     font-family: MrEavesModern;
     src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-Light.otf') format("opentype");
-    font-weight: 300;
+    font-weight: 200;
     font-style: normal;
+}
+@font-face{
+    font-family: MrEavesModern;
+    src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-BookItalic.otf') format("opentype");
+    font-weight: 300;
+    font-style: italic;
 }
 @font-face{
     font-family: MrEavesModern;
@@ -226,6 +232,7 @@ body {
     border-spacing: 2px;
     table-layout: fixed;
     background-color: #FFF;
+    z-index: 2;
     .category-area {
         background-color: transparent;
         display: table-row;
@@ -326,10 +333,37 @@ body {
 }
 
 #hero-area .jumbotron {
-    border: none;
-    border-radius: 5px;
+    position: relative;
+    max-height: 104px; /* 2px + 100px + 2px */
     padding: 2px;
+    margin-top: 0px;
+    margin-bottom: 2px;
     background: none;
+    overflow: hidden;
+    img {
+        border: none;
+        border-radius: 5px;
+    }
+    .category-name {
+        position: absolute;
+        z-index: 1;
+        top: 50%;
+        margin-top: -25px;
+        width: 100%;
+        text-align: center;
+        line-height: 55px;
+        color: #FFF;
+        font-family: $slt-modern-font;
+        font-size: 55px;
+        font-weight: 300;
+        .spaced {
+            letter-spacing: 0.05em;
+        }
+        .for {
+            font-style: italic;
+            padding: 0 0.2em;
+        }
+    }
 }
 
 .tile {
@@ -399,7 +433,7 @@ body {
     color: #333333;
     font-family: $slt-modern-font;
     font-size: 35px;
-    font-weight: 300;
+    font-weight: 200;
     span:first-child:after {
         content: '\00bb';
         position: relative;
@@ -626,6 +660,8 @@ body {
         .container {
             a.logo {
                 width: 100%;
+                height: 20px;
+                margin-bottom: 20px;
                 img {
                     position: relative;
                     left: 50%;
@@ -650,14 +686,20 @@ body {
     }
     #category-area {
         z-index: 10;
+        /* overlap above clickable element with a margin to reduce fat finger clicks */
+        margin-top: -20px;
+        padding-top: 20px;
+        background-color: transparent;
         &.stuck {
             width: 100%;
             box-shadow: 1px 1px 2px #AAA;
         }
-        margin-top: 0px;
+        .category-area {
+            background-color: #FFF;
+        }
         .category {
             width: 100px;
-            line-height: 30px;
+            line-height: 40px;
             > span {
                 font-size: 16px;
                 padding-top: 2px;
@@ -671,6 +713,10 @@ body {
         .visible-xs.jumbotron,
         .visible-sm.jumbotron {
             margin-bottom: 1px;
+            .category-name {
+                font-size: 30px;
+                margin-top: -25px;
+            }
         }
     }
     #preview-area {
@@ -696,6 +742,11 @@ body {
             &.image {
                 max-width: none;
             }
+            .title,
+            .price,
+            .buy {
+                margin-left: 10px;
+            }
             .title {
                 font-size: 1.6em;
             }
@@ -714,6 +765,17 @@ body {
         }
         .image-with-tagged-products .cell.shop {
             width: auto;
+        }
+    }
+}
+@media screen and (max-width: 400px) {
+    #hero-area {
+        .visible-xs.jumbotron,
+        .visible-sm.jumbotron {
+            margin-bottom: 1px;
+            .category-name {
+                font-size: 25px;
+            }
         }
     }
 }

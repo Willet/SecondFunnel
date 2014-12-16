@@ -9,7 +9,7 @@
     <!-- End Optimizer Tests -->
     <link rel="shortcut icon"
          href="http://g.etfv.co/http://www.surlatable.com" />
-    <link rel="stylesheet" href="/static/light/surlatable/landingpage/default/styles/main.css"/>
+    <link rel="stylesheet" href="/static/light/surlatable/landingpage/default/styles/main.css" />
 
     @@include('shared/campaign_respond.html')
     <!-- Add Optimizer Tests here -->
@@ -200,6 +200,20 @@
     @@include('shared/campaign_body.html')
 
     <div>
+
+        <script type="text/template" id="hero_template">
+            <div class="hero-image-wrapper">
+                <div class="visible-xs jumbotron">
+                    <img src="<%= obj.mobileHeroImage %>" alt="Hero" />
+                    <span class="category-name"><%= obj.title %></span>
+                </div>
+                <div class="hidden-xs jumbotron">
+                    <img src="<%= obj.desktopHeroImage %>" alt="Hero" />
+                    <span class="category-name"><%= obj.title %></span>
+                </div>
+            </div>
+        </script>
+
         <script type="text/template" id="product_tile_template">
             <div class="img-wrapper">
                 <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
@@ -303,6 +317,47 @@
             </div>
         </script>
 
+        <script type="text/template" id="image_mobile_preview_template">
+            <% if (obj['tagged-products'].length) { %>
+                <% var product = obj['tagged-products'][0]; %>
+                <div class="image-with-tagged-products">
+                    <div class="table">
+                        <div class="row">
+                            <div class="cell info">
+                                <div class="gallery-main-image"></div>
+                                <div class='title'></div>
+                                <div class='price'></div>
+                                <div class='buy'></div>
+                                <div class="gallery hide"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="image-without-tagged-products">
+                    <div class="table">
+                        <div>
+                            <div class="image">
+                                <img src="<%= obj.images[0].url %>" alt="image" class="main-image" />
+                            </div>
+                            <div>
+                                <div class="info">
+                                    <div class="title">
+                                        Coming soon to Sur la Table!
+                                    </div>
+                                    <div class="buy">
+                                        <a class='button' href='http://www.surlatable.com/' target='_blank'>
+                                            Shop On Sur la Table
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </script>
+
         <script type="text/template" id="image_preview_template">
             <% if (obj['tagged-products'].length) { %>
                 <% var product = obj['tagged-products'][0]; %>
@@ -358,9 +413,9 @@
                                     <div class="down-arrow"></div>
                                 </div>
                             <% } %>
-                            <div class="cell mobile-only">
+                            <!--<div class="cell mobile-only">
                                 <img src="<%= obj.images[0].url %>" alt="image"/>
-                            </div>
+                            </div>-->
                         </div>
                     </div>
                     <div class="table">

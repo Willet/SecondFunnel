@@ -70,7 +70,7 @@ class BaseModel(models.Model, SerializableMixin):
         abstract = True
 
     def __getitem__(self, key):
-        return self.get(key)
+        return getattr(self, key, None)
 
     def __setitem__(self, key, value):
         return setattr(self, key, value)
@@ -747,7 +747,7 @@ class Page(BaseModel):
         ('desktop_hero_image', ''),
         ('mobile_hero_image', ''),
         ('column_width', 256),
-        ('social_buttons', ''),
+        ('social_buttons', []),
         ('enable_tracking', "true"),
     ]
 
@@ -779,24 +779,20 @@ class Page(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super(Page, self).__init__(*args, **kwargs)
+        # self._theme_settings is a merged theme_settings with defaults
         if not self.theme_settings:
-            self.theme_settings = {}
+            self._theme_settings = {}
+        else:
+            self._theme_settings = self.theme_settings.copy()
+        for (key, default) in self.theme_settings_fields:
+            if not key in self.theme_settings:
+                self._theme_settings[key] = default
 
     def __getattr__(self, name):
-        for (key, default) in self.theme_settings_fields:
-            if name == key:
-                theme_settings = self.theme_settings or {}
-                return theme_settings.get(key, default)
-        return super(Page, self).__getattr__(name)
-
-    def __setattr__(self, name, value):
-        for (key, _) in self.theme_settings_fields:
-            if name == key:
-                if not self.theme_settings:
-                    self.theme_settings = {}
-                self.theme_settings[key] = value
-                return
-        super(Page, self).__setattr__(name, value)
+        try:
+            return self._theme_settings[name]
+        except KeyError:
+            return super(Page, self).__getattribute__(name)
 
     def get(self, key, default=None):
         """Duck-type a <dict>'s get() method to make CG transition easier.
