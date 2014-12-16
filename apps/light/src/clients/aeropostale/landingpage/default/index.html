@@ -180,6 +180,7 @@
             </div>
         </script>
 
+        <!-- DEPRECATED -->
         <script type="text/template" id="tumblr_tile_template">
             <div class='relative'>
                 <img class="focus" src="<%= obj['image-url'] %>" />
@@ -197,6 +198,7 @@
                 </div>
             </div>
         </script>
+        <!-- // -->
 
         <script type="text/template" id="image_preview_template">
             <% if (obj['tagged-products'].length) { %>
@@ -206,28 +208,11 @@
                         <div class="row">
                             <div class="cell desktop-only image-cell">
                                 <img src="<%= obj.images[0].url %>" alt="image" class="image"/>
-                                    <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
-                                    <div class="landscape">
-                                        <div class="stl-title">
-                                            Shop the look
-                                        </div>
-                                        <div class="stl-look">
-                                            <% var related = obj['tagged-products']; %>
-                                            <% for (var i = 0; i < related.length; i++) { %>
-                                                <div class="stl-item" data-index="<%- i %>">
-                                                    <img src="<%- related[i].images[0].url %>" />
-                                                    <%- related[i].name %>
-                                                </div>
-                                            <% } %>
-                                        </div>
-                                    </div>
+                                <% if (obj['tumblr'] && obj.tumblr.author && obj.tumblr.url) { %>
+                                <span class='tumblr'><a href="//<%= obj.tumblr.url %>"><%= obj.tumblr.author %> - <%- obj.tumblr.url %></a></span>
                                 <% } %>
-                            </div>
-                            <div class="cell mobile-only image-cell">
-                                <img src="<%= obj.images[0].url %>" alt="image"/>
-                            </div>
-                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
-                                <div class="cell desktop-only shop">
+                                <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                                <div class="landscape">
                                     <div class="stl-title">
                                         Shop the look
                                     </div>
@@ -241,22 +226,45 @@
                                         <% } %>
                                     </div>
                                 </div>
+                                <% } %>
+                            </div>
+                            <div class="cell mobile-only image-cell">
+                                <img src="<%= obj.images[0].url %>" alt="image"/>
+                                <% if (obj['tumblr'] && obj.tumblr.author && obj.tumblr.url) { %>
+                                <span class='tumblr'><a href="<%= obj.tumblr.ul %>"><%= obj.tumblr.author %> - <%- obj.tumblr.url %></a></span>
+                                <% } %>
+                            </div>
+                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
+                            <div class="cell desktop-only shop">
+                                <div class="stl-title">
+                                    Shop the look
+                                </div>
+                                <div class="stl-look">
+                                    <% var related = obj['tagged-products']; %>
+                                    <% for (var i = 0; i < related.length; i++) { %>
+                                        <div class="stl-item" data-index="<%- i %>">
+                                            <img src="<%- related[i].images[0].url %>" />
+                                            <%- related[i].name %>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
                             <% } %>
                             <% if (obj['tagged-products'].length > 1) { %>
-                                <div class="cell mobile-only">
-                                    <div class="stl-title">
-                                        Shop the look
-                                    </div>
-                                    <div class="stl-look">
-                                        <% var related = obj['tagged-products'] %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <%- related[i].name %>
-                                            </div>
-                                        <% } %>
-                                    </div>
+                            <div class="cell mobile-only">
+                                <div class="stl-title">
+                                    Shop the look
                                 </div>
+                                <div class="stl-look">
+                                    <% var related = obj['tagged-products'] %>
+                                    <% for (var i = 0; i < related.length; i++) { %>
+                                        <div class="stl-item" data-index="<%- i %>">
+                                            <img src="<%- related[i].images[0].url %>" />
+                                            <%- related[i].name %>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
                             <% } %>
                             <div class="cell info">
                                 <% if (App.support.mobile()) { %>

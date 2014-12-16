@@ -303,8 +303,20 @@ body {
         border-right: 1px solid #333;
         border-left: 1px solid #333;
     }
-    .cell.image-cell.desktop-only {
-        padding-right: 0;
+    .cell.image-cell {
+        position: relative;
+        &.desktop-only {
+            padding-right: 0;
+        }
+    }
+    .tumblr {
+        position: absolute;
+        bottom: 5px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        color: #555;
+        font-family: "SaaSeriesFD", Helvetica, sans-serif;
     }
     .title {
         font-size: 15px;
