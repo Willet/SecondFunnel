@@ -77,7 +77,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # If the tile model is changed, re-render the tile
             @listenTo @model, "changed", (=> @modelChanged)
 
-            super(arguments)
+            super
 
         modelChanged: (model, value) ->
             @render()
@@ -91,7 +91,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return this
 
             # load buttons for this tile only if it hasn't already been loaded
-            if not @socialButtons.$el and App.sharing
+            if not @socialButtons.$el
                 @socialButtons.show new App.sharing.SocialButtons(model: @model)
 
             # show/hide buttons only if there are buttons
@@ -293,8 +293,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
             return
 
+
     class module.TileCollectionView extends Marionette.CollectionView
 
+    ###
+    Widgets that make up a Product Info in a Expanded Content
+
+    @constructor
+    @type {ItemView}
+    ###
     class module.ProductInfoView extends Marionette.ItemView
         initialize: (options) ->
             unless options.infoItem
@@ -305,6 +312,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         getTemplate: ->
             "#product_#{@options.infoItem}_template"
 
+
+    ###
+    A Shop The Look
+
+    @constructor
+    @type {Layout}
+    ###
     class module.ExpandedContent extends Marionette.Layout
         regions:
             price: ".price"
@@ -314,6 +328,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             galleryMainImage: ".gallery-main-image"
             gallery: ".gallery"
             galleryDots: ".gallery-dots"
+            socialButtons: ".social-buttons"
 
         events:
             "click .stl-look .stl-item": (event) ->
@@ -338,15 +353,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     $el.find(".gallery, .gallery-dots").addClass "hide"
                 else
                     $el.find(".gallery, .gallery-dots").removeClass "hide"
-                if socialButtons.length >= 1 and App.sharing
-                    socialButtons.empty()
-                    buttons = new App.sharing.SocialButtons(model: self.model).render().load().$el
-                    socialButtons.append buttons
-                self.renderSubregions productModel
+                @renderSubregions productModel
                 return
         
         onBeforeRender: ->
-
             # Need to get an appropriate sized image
             image = $.extend(true, {}, @model.get("defaultImage").attributes)
             image = new module.Image(image)
@@ -370,16 +380,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         close: ->
-
             # See NOTE in onShow
             unless App.support.isAnAndroid()
                 $(document.body).removeClass "no-scroll"
 
-            $(".stick-bottom", @$el).waypoint "destroy"
+            @$(".stick-bottom").waypoint "destroy"
             return
 
         renderSubregions: (product) ->
-            _.each _.keys(@regions), (key) =>
+            # SocialButtons are a View
+            if App.option('page:socialButtons') and App.option('page:socialButtons').length
+                @socialButtons.show new App.sharing.SocialButtons model: @model
+
+            # Refactor subregions to be Views/ItemViews
+            # for now, remove socialButtons region and render widgets
+            keys = _.without _.keys(@regions), 'socialButtons'
+
+            _.each keys, (key) =>
                 @[key].show new module.ProductInfoView(
                     model: product
                     infoItem: key
@@ -437,19 +454,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
 
             return
-
-        onRender: ->
-
-            # ItemViews don't have regions - have to do it manually
-            self = this
-            socialButtons = @$(".social-buttons")
-            buttons = undefined
-            related = undefined
-            if socialButtons.length >= 1 and App.sharing
-                buttons = new App.sharing.SocialButtons(model: @model).render().load().$el
-                socialButtons.append buttons
-            return
-
 
         # Disable scrolling body when preview is shown
         onShow: ->
@@ -511,8 +515,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             templateRules
 
         onRender: ->
-            super
-
             # hide discovery, then show this window as a page.
             if App.support.mobile()
                 @trigger "swap:feed", @$el # out of scope
@@ -525,7 +527,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onShow: ->
             super
 
-            #
             #  NOTE: Previously, it was thought that adding `no-scroll`
             #  to android devices was OK, because no problems were observed
             #  on some device.
@@ -588,7 +589,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             @model = new module.Tile(tile)
             @listenTo App.vent, "windowResize", =>
-
                 App.heroArea.show @
                 return
 
@@ -634,7 +634,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         regions:
             content: ".template.target"
-            socialButtons: ".social-buttons"
 
         events:
             "click .close, .mask": ->
@@ -656,13 +655,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 window.open url, App.utils.openInWindow()
                 return
 
-
-        ###
-        Initialize the PreviewWindow by rendering the content to
-        display in it as well.
-
-        @param options {Object}     optional overrides.
-        ###
         initialize: (options) ->
             @options = options
             return
@@ -673,7 +665,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         templateHelpers: ->
-
 
         # return {data: $.extend({}, this.options, {template: this.template})};
         onRender: ->
@@ -793,7 +784,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # switch to the selected category
                 # if it has changed
                 if not $el.hasClass("selected") or subCategory
-                    $el.siblings().each () ->
+                    $el.siblings().each ->
                         self = $(@)
                         self.removeClass 'selected'
                         $('.sub-category', self).removeClass 'selected'
