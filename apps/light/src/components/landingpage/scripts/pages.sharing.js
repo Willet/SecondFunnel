@@ -49,8 +49,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      */
     module.SocialButtons = Marionette.View.extend({
         'tagName': 'span',
-        'showCount': App.option('showCount', true),
-        'buttonTypes': App.option('socialButtons',
+        'showCount': App.option('page:showSharingCount', true),
+        'buttonTypes': App.option('page:socialButtons',
             ['facebook', 'twitter', 'pinterest']), // @override via constructor
 
         'loadSocial': _.once(function (callback) {
@@ -86,22 +86,22 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             // Initializes the SocialButton View by determining what
             // social buttons to show and loading the initial config if necessary.
             // automatically called when its parent Layout is rendered.
-            var self = this;
+            var _this = this;
             // Only load the social once
             this.loadSocial(_.bind(this.initSocial, this));
             this.views = [];  // list of button views (used by marionette)
 
-            self.buttonTypes = options.buttonTypes || self.buttonTypes;
+            this.buttonTypes = options.buttonTypes || this.buttonTypes;
 
-            _.each(_.compact(self.buttonTypes), function (type) {
+            _.each(_.compact(_this.buttonTypes), function (type) {
                 var count = options.showCount || true,
                     ButtonClass,
                     template = '#' + type.toLowerCase() + '_social_button_template';
                 ButtonClass = getButton(type);
-                self.views.push(new ButtonClass({
+                _this.views.push(new ButtonClass({
                     'model': options.model,
                     'template': template,
-                    'showCount': self.showCount
+                    'showCount': _this.showCount
                 }));
             });
         },
@@ -117,11 +117,11 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
         'render': function () {
             // Render each child view and append to master.
-            var self = this;
-            _.each(self.views, function (view) {
+            var _this = this;
+            _.each(_this.views, function (view) {
                 view.render();
                 if (!view.isClosed) {
-                    self.$el.append(view.$el);
+                    _this.$el.append(view.$el);
                 }
             });
             return this;
