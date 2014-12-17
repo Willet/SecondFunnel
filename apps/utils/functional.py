@@ -141,3 +141,22 @@ def result(obj, arg=None):
 def sort_helper(obj, attribute):
     """Turns an object into a number, based on an attribute in each."""
     return result(getattr(obj, attribute), arg=obj)
+
+def may_be_json(obj, attr, expected_cls):
+    """
+    Try to load JSON, catch ValueError if its not well formatted JSON
+
+    @param obj  obj containing attr with potential JSON
+    @param attr - name of attribute to look up on obj
+    @param expected resulting class
+    """
+    maybe = getattr(obj, attr, expected_cls())
+    if isinstance(obj, basestring):
+        try:
+            maybe = json.loads(maybe)
+        except ValueError:
+            # wasn't JSON
+            pass
+    if not isinstance(maybe, expected_cls):
+        maybe = expected_cls()
+    return maybe

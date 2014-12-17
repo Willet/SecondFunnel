@@ -1,10 +1,9 @@
-import ast
 from datetime import datetime
-import json
 from django.conf import settings
+import json
 
 from apps.api.serializers import RawSerializer
-from apps.utils.functional import find_where
+from apps.utils.functional import find_where, may_be_json
 
 
 class IRSerializer(RawSerializer):
@@ -35,25 +34,16 @@ class StoreSerializer(IRSerializer):
 class PageSerializer(IRSerializer):
     """Generates the PAGES_INFO.page key."""
     def get_dump_object(self, page):
-        # string representation of [{id: 123, name: 'gap'}, ...]
-        # normalize categories list/str into a list
-        categories = getattr(page, 'categories', '[]')
-        if isinstance(categories, basestring):
-            #noinspection PyTypeChecker
-            categories = ast.literal_eval(categories)
-
-        mobileCategories = getattr(page, 'mobileCategories', '[]')
-        if isinstance(mobileCategories, basestring):
-            #noinspection PyTypeChecker
-            mobileCategories = ast.literal_eval(mobileCategories)
-
         data = {
             'id':                   getattr(page, 'intentrank_id', page.id),
             # for verifying the original upload date of a static campaign
             'pubDate':              str(datetime.now().isoformat()),
             'gaAccountNumber':      getattr(page, 'ga_account_number', settings.GOOGLE_ANALYTICS_PROPERTY),
-            'categories':           categories,
-            'mobileCategories':     mobileCategories,
+            # expected format: {}
+            'categories':           may_be_json(page, 'categories', list),
+            'mobileCategories':     may_be_json(page, 'mobileCategories', list),
+            # expected format: ["facebook", "twitter", "pinterest", "tumblr"]
+            'socialButtons':        may_be_json(page, 'socialButtons', list),
             # provided by campaign manager
             'name':                 getattr(page, 'name', ''),
             'slug':                 getattr(page, 'url_slug', ''),
@@ -61,6 +51,8 @@ class PageSerializer(IRSerializer):
             'description':          getattr(page, 'description', ''),
             'openInNewWindow':      getattr(page, 'openInNewWindow', True),
             'stickyCategories':     getattr(page, 'stickyCategories', False),
+            'showSharingCount':     getattr(page, 'showSharingCount', False),
+            # Format ["facebook", "twitter", "pinterest", "tumblr"]
             'masonry': {
                 'transitionDuration': getattr(page, 'masonry', {}).get('transitionDuration', '0.4s'),
                 # minimum number of columns on desktop for masonry
@@ -123,19 +115,6 @@ class PageConfigSerializer(object):
         # output attributes automatically (if the js knows how to use them)
         data = getattr(page, 'theme_settings', {})
 
-        # normalize: socialButtons
-        social_buttons = getattr(page, 'social_buttons', 
-                            getattr(page.store, 'social-buttons', 
-                                ["facebook", "twitter", "pinterest", "tumblr"]))
-
-        if isinstance(social_buttons, basestring):
-            #noinspection PyTypeChecker
-            try:
-                social_buttons = json.loads(social_buttons)
-            except ValueError:
-                # wasn't JSON
-                social_buttons = []
-
         # normalize: enableTracking
         enable_tracking = getattr(page, 'enable_tracking', True)
         if not isinstance(enable_tracking, bool):
@@ -165,8 +144,6 @@ class PageConfigSerializer(object):
             'overlayMobileButtonColor': getattr(page, 'overlay_mobile_button_color', ''),
             'disableBannerRedirectOnMobile': getattr(page, 'disable_banner_redirect_on_mobile', False),
             'mobileTabletView': getattr(page, 'mobile_table_view', False),
-            'socialButtons': social_buttons,
-
             'conditionalSocialButtons': getattr(page, 'conditional_social_buttons', {}),
             'tilePopupUrl': getattr(page, 'tile_popup_url', ''),
             'urlParams': getattr(page, 'url_params', {}),
@@ -219,7 +196,6 @@ class PageConfigSerializer(object):
         data['intentRank'].update({
             'url': getattr(page, 'ir_base_url', '/intentrank'),
             'algorithm': algorithm,  # optional
-            # "content", "products", or anything else for both content and product
             'tileSet': kwargs.get('tile_set', ''),
         })
 

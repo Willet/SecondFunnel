@@ -25,7 +25,7 @@ window.PAGES_INFO = {
     ], // optional
     //'shareSocialButtons': [], // optional; default: all
     'shareSources': {},  // optional: default: see sharing module
-    'showCount': true,  // optional, for social buttons (default: true)
+    'showSharingCount': true,  // optional, for social buttons (default: true)
     'enableTracking': true, // optional; default: true
     'eventMap': undefined,  // optional
     'tileElement': undefined,  // optional. alters the type of tag used by tiles.

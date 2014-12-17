@@ -19,7 +19,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @type {Function}
      * @returns {Boolean}
      */
-    this.mobile = function () {
+    module.mobile = function () {
         return ($window.width() <= 768) || // 768 is set in stone now
             (App.option('mobileTabletView') && $('html').hasClass('tablet'));
     };
@@ -30,7 +30,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @type {Function}
      * @returns {Boolean}
      */
-    this.touch = function () {
+    module.touch = function () {
         return ('ontouchstart' in document.documentElement) ||
             $('html').hasClass('touch-enabled');
     };
@@ -39,7 +39,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * (basically) tests for hardware css transform.
      * @returns {boolean}
      */
-    this.transform3d = function () {
+    module.transform3d = function () {
         //github.com/Modernizr/Modernizr/blob/master/feature-detects/css/transforms3d.js#L20
         return (document.documentElement.webkitPerspective !== undefined);
     };
@@ -50,7 +50,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @type {Function}
      * @returns {Boolean}
      */
-    this.isAniPad = function () {
+    module.isAniPad = function () {
         // use of this function is highly discouraged, but you know it
         // will be used anyway
         return testUA(/ipad/i);
@@ -62,7 +62,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @type {Function}
      * @returns {Boolean}
      */
-    this.isAnAndroid = function () {
+    module.isAnAndroid = function () {
         // use of this function is highly discouraged, but you know it
         // will be used anyway
         return testUA(/Android/i);
@@ -74,7 +74,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @type {Function}
      * @returns {Boolean}
      */
-    this.isLessThanIe9 = function () {
+    module.isLessThanIe9 = function () {
         return $('html').hasClass('lt-ie9');
     };
 
@@ -86,7 +86,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @param context {object}: should be the caller's "this"
      * @returns protected function return
      */
-    this.failsafe = function (func, context /*, *args */) {
+    module.failsafe = function (func, context /*, *args */) {
         try {
             var pArgs = Array.prototype.slice.call(arguments, 2);
             return func.apply(context || window, pArgs);

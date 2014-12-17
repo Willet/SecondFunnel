@@ -143,11 +143,10 @@ def render_landing_page(request, page, render_context):
     # TODO: structure this
     #       and escape: simplejson.dumps(s1, cls=simplejson.encoder.JSONEncoderForHTML)
     attributes = {
-        "algorithm": algorithm,
+        "algorithm": algorithm or 'magic',
         "campaign": page or 'undefined',
         "columns": range(4),
         "column_width": page.column_width or store.get('column-width', ''),
-        "conditional_social_buttons": page.get('conditional_social_buttons', {}),
         "desktop_hero_image": page.desktop_hero_image,
         "enable_tracking": page.enable_tracking,  # jsbool
         "environment": settings.ENVIRONMENT,
@@ -162,7 +161,6 @@ def render_landing_page(request, page, render_context):
         "preview": False,  # TODO: was this need to fix: not page.live,
         "pub_date": datetime.now().isoformat(),
         "session_id": request.session.session_key,
-        "social_buttons": page.social_buttons or store.get('social-buttons', ''),
         "store": store,
         "tests": tests,
         "tile": tile,
