@@ -39,7 +39,7 @@ class PageSerializer(IRSerializer):
             # for verifying the original upload date of a static campaign
             'pubDate':              str(datetime.now().isoformat()),
             'gaAccountNumber':      getattr(page, 'ga_account_number', settings.GOOGLE_ANALYTICS_PROPERTY),
-            # expected format: {}
+            # expected format: [{ "mobileHeroImage":"__img_url__.jpg", "displayName":"For Her", "name":"for-her", "desktopHeroImage":"__img_url__.png" }, { ... }, ... ]
             'categories':           may_be_json(page, 'categories', list),
             'mobileCategories':     may_be_json(page, 'mobileCategories', list),
             # expected format: ["facebook", "twitter", "pinterest", "tumblr"]
