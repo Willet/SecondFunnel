@@ -58,7 +58,6 @@ class PageSerializer(IRSerializer):
             'openInNewWindow':      getattr(page, 'openInNewWindow', True),
             'stickyCategories':     getattr(page, 'stickyCategories', False),
             'showSharingCount':     getattr(page, 'showSharingCount', False),
-            # Format ["facebook", "twitter", "pinterest", "tumblr"]
             'masonry': {
                 'transitionDuration': getattr(page, 'masonry', {}).get('transitionDuration', '0.4s'),
                 # minimum number of columns on desktop for masonry
