@@ -39,7 +39,13 @@ class PageSerializer(IRSerializer):
             # for verifying the original upload date of a static campaign
             'pubDate':              str(datetime.now().isoformat()),
             'gaAccountNumber':      getattr(page, 'ga_account_number', settings.GOOGLE_ANALYTICS_PROPERTY),
-            # expected format: [{ "mobileHeroImage":"__img_url__.jpg", "displayName":"For Her", "name":"for-her", "desktopHeroImage":"__img_url__.png" }, { ... }, ... ]
+            # expected format: [{
+            #                     "mobileHeroImage":"__img_url__.jpg",
+            #                     "displayName":"For Her",
+            #                     "name":"for-her",
+            #                     "desktopHeroImage":"__img_url__.png"
+            #                   },
+            #                   { ... }]
             'categories':           may_be_json(page, 'categories', list),
             'mobileCategories':     may_be_json(page, 'mobileCategories', list),
             # expected format: ["facebook", "twitter", "pinterest", "tumblr"]
@@ -60,8 +66,8 @@ class PageSerializer(IRSerializer):
                 # minimum number of columns to show on mobile for masonry
                 'minMobileColumns':   getattr(page, 'masonry', {}).get('minMobileColumns', 2),
                 'forceGrid':          getattr(page, 'masonry', {}).get('forceGrid', True),
-                'tileAspectRatio':    getattr(page, 'masonry', {}).get('tileAspectRatio', 0.75),
-                'heightRange':        getattr(page, 'masonry', {}).get('heightRange', 0.2),
+                'tileAspectRatio':    getattr(page, 'masonry', {}).get('tileAspectRatio', 0.7),
+                'heightRange':        getattr(page, 'masonry', {}).get('heightRange', 0.6),
             },
 
             # optional (defaults to 240 or 255 pixels)
@@ -161,7 +167,6 @@ class PageConfigSerializer(object):
             'minImageWidth': getattr(page, 'minImageWidth', 450),
             # minimum height a Cloudinary image can have  TODO: magic number
             'minImageHeight': getattr(page, 'minImageHeight', 100),
-            'masonry': getattr(page, 'masonry', {}),
 
             # default: undefined
             'featured': featured_tile,
