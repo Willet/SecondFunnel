@@ -5,8 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 
 admin.autodiscover()
 
-urlpatterns = patterns(
-    '',
+urlpatterns = patterns('',
     url(r'^healthcheck/?$', lambda x: HttpResponse('OK', status=200)),
 
     # INTERNAL ADMIN
@@ -25,7 +24,6 @@ urlpatterns = patterns(
     # APPS
     url(r'^assets/', include('apps.assets.urls')),
     url(r'^ads/(?P<page_id>[-\w]+)/?$', 'apps.light.views.ad_banner'),
-    url(r'^pinpoint/', include('apps.pinpoint.urls')),
     url(r'^imageservice/', include('apps.imageservice.urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
     url(r'^scraper/', include('apps.scraper.urls')),
@@ -34,21 +32,16 @@ urlpatterns = patterns(
     url(r'^dashboard$', lambda x: HttpResponseRedirect('/dashboard/')),
     url(r'^dashboard/', include('apps.dashboard.urls')),
 
-    url(r'^fail/?', 'apps.pinpoint.views.fail'),
-
-    # special top-level urls for RSS feeds
     url(r'^(?P<page_slug>[^/\.]+)/?$',
         'apps.light.views.landing_page'),
 
-    url(r'^(?P<page_slug>[^/\.]+)/stats$',
-        'apps.pinpoint.views.page_stats', name='page-stats'),
-    url(r'^(?P<page_slug>[^/\.]+)/google\.rss$',
-        'apps.pinpoint.views.product_feed', name='product-feed'),
     # special top-level urls for RSS feeds
     url(r'^(?P<page_id>\d+)/(?P<feed_name>[^/\.]+\.rss)$',
         'apps.intentrank.views.get_rss_feed', name='get-feed'),
     url(r'^(?P<page_slug>[^/\.]+)/(?P<feed_name>[^/\.]+\.rss)$',
-        'apps.intentrank.views.get_rss_feed', name='get-feed'),
+        'apps.intentrank.views.get_rss_feed'),
+    url(r'^(?P<page_slug>[^/\.]+)/google\.rss$',
+        'apps.intentrank.views.get_rss_feed'),
     # shop-the-look slugs e.g. livedin/id/123
     url(r'^(?P<page_slug>[^/\.]+)'
         r'/(?P<identifier>(id|sku|tile))'
