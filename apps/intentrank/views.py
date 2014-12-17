@@ -197,7 +197,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
 @never_cache
 @csrf_exempt
 @request_methods('GET')
-def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
+def get_rss_feed(request, feed_name, page_id=0, page_slug=None, google=False, **kwargs):
     feed_link = 'http://' + str(request.META['HTTP_HOST']) + '/'
     if page_slug:
         feed_link += str(page_slug) + '/' + str(feed_name)
@@ -207,7 +207,7 @@ def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
         page = Page.objects.get(id=page_id)
     else:
         raise Http404("Feed not found")
-    feed = rss_feed.main(page, feed_name=feed_name, feed_link=feed_link)
+    feed = rss_feed.main(page, feed_name=feed_name, feed_link=feed_link, google=google)
     return HttpResponse(feed, content_type='application/rss+xml')
 
 
