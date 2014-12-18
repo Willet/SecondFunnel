@@ -93,9 +93,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         # compose 'data' variable for rendering a tile priority list.
         # needs to be deep copy (for store info)
         data = $.extend({}, @model.attributes)
-        try
-            data.template = module.getModifiedTemplateName(data.template)
-        catch err
+        unless data.template
             data.template = ""
 
         # model did not need to specify a template.
@@ -114,15 +112,4 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 break
             i++
         template
-
-    ###
-    Reduces all image-type names to 'image'.
-    If this logic gets any more complex, it should be moved into
-    Tile or TileView.
-
-    @param name {String} the current template name
-    @returns {String} the correct template name
-    ###
-    @getModifiedTemplateName = (name) ->
-        name?.replace /(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i, "image"
 

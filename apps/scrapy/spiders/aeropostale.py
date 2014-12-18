@@ -38,6 +38,11 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
 
         return sel.css('#productPage') or "noResults" in response.url
 
+
+    def is_sold_out(self, response):
+        return "noResults" in response.url
+
+
     def parse_product(self, response):
         sel = Selector(response)
         qs = urlparse.parse_qs(urlparse.urlparse(response.url).query)
@@ -45,17 +50,6 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
             sku = qs['productId'][0]
         except KeyError:
             sku = qs['kw'][0]
-
-        if "noResults" in response.url:
-            print "Out of stock!"
-            products = Product.objects.filter(sku__contains=sku + '@')
-            if not products:
-                print "We didn't have this product anyway."
-            for product in products:
-                print "product out of stock: {} {}".format(product.sku, product)
-                product.in_stock = False
-                product.save()
-            return
 
         colors = sel.css('ul.swatches.clearfix li img::attr(src)').re(r'-(\d+)_')
         print "{} colors".format(len(colors))
@@ -70,10 +64,10 @@ class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
             l.add_value('description', a)
             l.add_css('url', 'link[rel="canonical"]::attr(href)')
             try:
-                l.add_value('price', sel.css('.price li:not(.now)::text').re(r'([\d.]+)')[0])
-                attributes['sale_price'] = '$' + sel.css('.price .now::text').re(r'([\d.]+)')[0]
+                l.add_value('price', sel.css('.right .price li:not(.now)::text').re(r'([\d.]+)')[0])
+                attributes['sale_price'] = '$' + sel.css('.right .price .now::text').re(r'([\d.]+)')[0]
             except:
-                l.add_css('price', '.price li.now::text', re=r'([\d.]+)')
+                l.add_css('price', '.right .price li.now::text', re=r'([\d.]+)')
                 attributes['sale_price'] = ''
 
             base_imgs = sel.css('#altimages img::attr(src)').extract()

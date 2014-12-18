@@ -6,12 +6,12 @@
     </head>
 
     <body>
-        <div id="topbar">
-            <a href='http://product.secondfunnel.com/body-shop' alt="The Body Shop Gift Guide" target="_blank">
-                <img src="/static/light/bodyshop/ad/default/images/header.png" />
-            </a>
-        </div>
         <div class="waterfall container">
+            <div id="topbar">
+                <a href='http://product.secondfunnel.com/body-shop' alt="The Body Shop Gift Guide" target="_blank">
+                    <img src="/static/light/bodyshop/ad/default/images/header.png" />
+                </a>
+            </div>
             <div id="discovery-area"></div>
             <div class="tile-sizer tile"></div>
         </div>
@@ -62,7 +62,11 @@
                 <div class="overlay">
                     <div class='table'>
                         <div class='cell'>
-                            Shop the Look &gt;
+                            <div class="explore">
+                                <a class='button' href='<%= obj.url %>'>
+                                    Explore The Collection
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

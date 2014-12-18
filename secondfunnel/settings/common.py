@@ -309,7 +309,6 @@ LOCAL_APPS = (
     # our apps
     'apps.api',
     'apps.assets',
-    'apps.pinpoint',
     'apps.intentrank',
     'apps.contentgraph',
     'apps.website',

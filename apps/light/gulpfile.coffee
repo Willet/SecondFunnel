@@ -307,6 +307,6 @@ gulp.task "vagrant-dev", [
     gulp.watch sources.images, ->
         gulp.start ["images"], tCollectstatic
     gulp.watch sources.vendor, ->
-        gulp.start ["vendor"], tCollections
+        gulp.start ["vendor"], tCollectstatic
     $.util.log($.util.colors.blue("Watch'ing html, styles, fonts, images, vendor"))
     return

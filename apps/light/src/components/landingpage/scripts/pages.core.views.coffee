@@ -1,8 +1,8 @@
 "use strict"
 
 imagesLoaded = require('imagesLoaded')
-waypoints = require("jquery-waypoints") # register $.fn.waypoint
-waypoints_sticky = require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
+require("jquery-waypoints") # register $.fn.waypoint
+require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
 
@@ -22,7 +22,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.TileView extends Marionette.Layout
         tagName: App.option("tileElement", "div")
-        className: App.option("itemSelector", "").substring(1)
+        className: "tile"
 
         template: "#product_tile_template"
         templates: ->
@@ -77,7 +77,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # If the tile model is changed, re-render the tile
             @listenTo @model, "changed", (=> @modelChanged)
 
-            super(arguments)
+            super
 
         modelChanged: (model, value) ->
             @render()
@@ -91,7 +91,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return this
 
             # load buttons for this tile only if it hasn't already been loaded
-            if not @socialButtons.$el and App.sharing
+            if not @socialButtons.$el
                 @socialButtons.show new App.sharing.SocialButtons(model: @model)
 
             # show/hide buttons only if there are buttons
@@ -127,7 +127,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             url += "/tile/" + tileId
                         else if sku
                             url += "/sku/" + sku
-                    window.open url, "_blank"
+                    window.open url, App.utils.openInWindow()
                 return
 
             # clicking on social buttons is not clicking on the tile.
@@ -143,10 +143,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         onBeforeRender: ->
             normalTileWidth = App.layoutEngine.width()
-            widableTemplates = App.option("widableTemplates",
+            wideableTemplates = App.option("wideableTemplates",
                 image: true
                 youtube: true
-                banner: true
+                banner: false
             )
             columnDetails =
                 1: ""
@@ -157,7 +157,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # templates use this as obj.image.url
             @model.set "image", @model.get("defaultImage")
-            wideable = widableTemplates[@model.get("template")]
+            wideable = wideableTemplates[@model.get("template")]
             showWide = (Math.random() < App.option("imageTileWide", 0.5))
             if _.isNumber(@model.get("colspan"))
                 columns = @model.get("colspan")
@@ -253,7 +253,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onClick: ->
             if @model.get("url")
-                window.open @model.get("url")
+                window.open @model.get("url"), App.utils.openInWindow()
             return
 
         onPlaybackEnd: (ev) ->
@@ -269,7 +269,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $thumb = @$("div.thumbnail")
             if window.YT is undefined
                 console.warn "YT could not load. Opening link to youtube.com"
-                window.open @model.get("original-url")
+                window.open @model.get("original-url"), App.utils.openInWindow()
                 return
             $thumb.attr("id", thumbId).wrap "<div class=\"video-container\" />"
             player = new window.YT.Player(thumbId,
@@ -298,6 +298,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.TileCollectionView extends Marionette.CollectionView
 
 
+    ###
+    Widgets that make up a Product Info in a Expanded Content
+
+    @constructor
+    @type {ItemView}
+    ###
     class module.ProductInfoView extends Marionette.ItemView
         initialize: (options) ->
             unless options.infoItem
@@ -309,6 +315,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             "#product_#{@options.infoItem}_template"
 
 
+    ###
+    A Shop The Look
+
+    @constructor
+    @type {Layout}
+    ###
     class module.ExpandedContent extends Marionette.Layout
         regions:
             price: ".price"
@@ -318,9 +330,35 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             galleryMainImage: ".gallery-main-image"
             gallery: ".gallery"
             galleryDots: ".gallery-dots"
+            socialButtons: ".social-buttons"
 
+        events:
+            "click .stl-look .stl-item": (event) ->
+                $el = @$el
+                $ev = $(event.target)
+                $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
+                
+                $targetEl.addClass("selected").siblings().removeClass "selected"
+                index = $targetEl.data("index")
+                product = @model.get("tagged-products")[index]
+                productModel = new module.Product(product)
+
+                if $el.parents("#hero-area").length
+                    # this is a featured content area
+                    App.options.heroGalleryIndex = index
+                    App.options.heroGalleryIndexPage = 0
+                else
+                    # likely a pop-up
+                    App.options.galleryIndex = index
+                    App.options.galleryIndexPage = 0
+                if product.images.length is 1
+                    $el.find(".gallery, .gallery-dots").addClass "hide"
+                else
+                    $el.find(".gallery, .gallery-dots").removeClass "hide"
+                @renderSubregions productModel
+                return
+        
         onBeforeRender: ->
-
             # Need to get an appropriate sized image
             image = $.extend(true, {}, @model.get("defaultImage").attributes)
             image = new module.Image(image)
@@ -344,16 +382,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         close: ->
-
             # See NOTE in onShow
             unless App.support.isAnAndroid()
                 $(document.body).removeClass "no-scroll"
 
-            $(".stick-bottom", @$el).waypoint "destroy"
+            @$(".stick-bottom").waypoint "destroy"
             return
 
         renderSubregions: (product) ->
-            _.each _.keys(@regions), (key) =>
+            # SocialButtons are a View
+            if App.option('page:socialButtons') and App.option('page:socialButtons').length
+                @socialButtons.show new App.sharing.SocialButtons model: @model
+
+            # Refactor subregions to be Views/ItemViews
+            # for now, remove socialButtons region and render widgets
+            keys = _.without _.keys(@regions), 'socialButtons'
+
+            _.each keys, (key) =>
                 @[key].show new module.ProductInfoView(
                     model: product
                     infoItem: key
@@ -402,54 +447,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
             $("img.main-image, img.image", @$el).one("load", shrinkContainer(@$el)).each ->
-                self = $(this)
                 if @complete
-
                     # Without the timeout the box may not be rendered. This lets the onShow method return
-                    setTimeout (->
-                        self.load()
+                    setTimeout (=>
+                        $(@).load()
                         return
                     ), 1
                 return
 
             return
-
-        onRender: ->
-
-            # ItemViews don't have regions - have to do it manually
-            self = this
-            socialButtons = @$(".social-buttons")
-            buttons = undefined
-            related = undefined
-            if socialButtons.length >= 1 and App.sharing
-                buttons = new App.sharing.SocialButtons(model: @model).render().load().$el
-                socialButtons.append buttons
-            if @model.get("tagged-products") and @model.get("tagged-products").length > 1
-                @$(".stl-look .stl-item").on "click", ->
-                    $clicked = $(this)
-                    index = $clicked.data("index")
-                    product = self.model.get("tagged-products")[index]
-                    productModel = new module.Product(product)
-                    $clicked.addClass("selected").siblings().removeClass "selected"
-                    if self.$el.parents("#hero-area").length
-                        App.options.heroGalleryIndex = index
-                        App.options.heroGalleryIndexPage = 0
-                    else
-                        App.options.galleryIndex = index
-                        App.options.galleryIndexPage = 0
-                    if product.images.length is 1
-                        self.$(".gallery, .gallery-dots", self.$el).addClass "hide"
-                    else
-                        self.$(".gallery, .gallery-dots", self.$el).removeClass "hide"
-                    if socialButtons.length >= 1 and App.sharing
-                        socialButtons.empty()
-                        buttons = new App.sharing.SocialButtons(model: self.model).render().load().$el
-                        socialButtons.append buttons
-                    self.renderSubregions productModel
-                    return
-
-            return
-
 
         # Disable scrolling body when preview is shown
         onShow: ->
@@ -512,8 +518,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             templateRules
 
         onRender: ->
-            super
-
             # hide discovery, then show this window as a page.
             if App.support.mobile()
                 @trigger "swap:feed", @$el # out of scope
@@ -526,7 +530,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onShow: ->
             super
 
-            #
             #  NOTE: Previously, it was thought that adding `no-scroll`
             #  to android devices was OK, because no problems were observed
             #  on some device.
@@ -586,7 +589,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 tile = @getCategoryHeroImages(App.intentRank.category)
 
             @model = new module.Tile(tile)
-
             @listenTo App.vent, "windowResize", =>
                 App.heroArea.show @
                 return
@@ -653,6 +655,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
             templateRules
 
+        regions:
+            content: ".template.target"
+
         events:
             "click .close, .mask": ->
 
@@ -668,21 +673,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             "click .buy": (event) ->
                 $target = $(event.target)
+                # Over-write addUrlTrackingParameters for each customer
                 url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') )
-                window.open url, "_self"
+                window.open url, App.utils.openInWindow()
                 return
 
-        regions:
-            content: ".template.target"
-            socialButtons: ".social-buttons"
-
-
-        ###
-        Initialize the PreviewWindow by rendering the content to
-        display in it as well.
-
-        @param options {Object}     optional overrides.
-        ###
         initialize: (options) ->
             @options = options
             return
@@ -693,7 +688,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         templateHelpers: ->
-
 
         # return {data: $.extend({}, this.options, {template: this.template})};
         onRender: ->
@@ -737,7 +731,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             return
 
-        positionWindow: () ->
+        positionWindow: ->
             windowMiddle = $window.scrollTop() + $window.height() / 2
             if App.windowMiddle
                 windowMiddle = App.windowMiddle
@@ -802,19 +796,29 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $el = @$el
                 $subCatEl = $el.find('.sub-category')
 
-                unless $el.hasClass 'selected' and not $subCatEl.hasClass 'selected'
-                    @selectCategoryEl($el)
+                if not $el.hasClass 'expanded'
+                    # First click, expand subcategories
+                    $el.addClass 'expanded'
+                    $el.siblings().removeClass 'expanded'
+                else
+                    # Second click, select category
+                    $el.removeClass 'expanded'
+                    unless $el.hasClass 'selected' and not $subCatEl.hasClass 'selected'
+                        @selectCategoryEl($el)
 
-                    App.navigate(category,
-                        trigger: true
-                    )
+                        App.navigate(category,
+                            trigger: true
+                        )
                 return false # stop propogation
 
             'click .sub-category': (event) ->
                 $el = @$el
                 category = @model
-                $target = $(event.target)
-                $subCatEl = if $target.hasClass 'sub-category' then $target else $target.parent '.sub-category'
+                $ev = $(event.target)
+                $subCatEl = if $ev.hasClass 'sub-category' then $ev else $ev.parent '.sub-category'
+
+                # Close categories drop-down
+                $el.removeClass 'expanded'
 
                 # Retrieve subcategory object
                 subCategory = _.find category.get('subCategories'), (subcategory) ->
@@ -836,9 +840,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     )
                 return false # stop propogation
 
-        ###
-        Apply the 'selected' class to a category or sub-category element
-        ###
+        # Apply the 'selected' class to a category or sub-category element
         selectCategoryEl: (el) ->
             $el = $(el)
 
@@ -908,6 +910,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # Watch for updates to feed, generally from intentRank
             @listenTo App.vent, "change:category", @selectCategory
 
+            # Enable sticky category bar
+            if App.option("page:stickyCategories")
+                @$el.parent().waypoint('sticky')
+            
             return @
 
         onRender: ->

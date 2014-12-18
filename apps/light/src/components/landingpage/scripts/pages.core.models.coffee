@@ -171,9 +171,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             caption: ""
             description: ""
             "tile-id": 0
-
-            # 'tile-class': 'tile',    // what used tile-class?
-            # 'content-type': ''    // where did content-type go?
             "tagged-products": []
             "dominant-color": "transparent"
 
@@ -191,7 +188,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: (attributes, options) ->
 
             # turn image json into image objects for easier access.
-            self = this
             defaultImage = undefined
             imgInstances = undefined
             relatedProducts = undefined
@@ -207,7 +203,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     "dominant-color": @get("dominant-color")
                     url: @get("url")
                 )
-            defaultImage = self.getDefaultImage()
+            defaultImage = @getDefaultImage()
 
             # Transform related-product image, if necessary
             relatedProducts = @get("tagged-products")
@@ -536,9 +532,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             return
                 respBuilder.push tile # this tile passes
             )
-            _.map respBuilder, (jsonEntry) ->
+            tiles = _.map respBuilder, (jsonEntry) ->
                 TileClass = App.utils.findClass("Tile", jsonEntry.template or jsonEntry.type, module.Tile)
                 new TileClass(jsonEntry, parse: true)
+            tiles
 
 
 

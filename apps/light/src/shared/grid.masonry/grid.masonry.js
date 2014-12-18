@@ -73,10 +73,10 @@ GridMasonry.prototype._getNextRowY = function () {
   var colYs = this.colYs,
       rowHeight = this.rowHeight,
       currentRowY = this._currentRowY,
-      heightVariance = this.options.heightVariance || 0.2; // default: +/- 10%
+      heightRange = this.options.heightRange || 0.2; // default: +/- 10%
   function removeExcessCols (cleanArr, colY) {
     // If height is within variance, add it to array
-    if ( (Math.abs(colY-rowHeight-currentRowY)) < (heightVariance*rowHeight) ) {
+    if ( (Math.abs(colY-rowHeight-currentRowY)) < (heightRange*rowHeight) ) {
       cleanArr.push(colY);
     }
     return cleanArr;

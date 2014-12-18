@@ -147,7 +147,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # Lookup the class to use based on the template specified on the item
             model = itemViewOptions.model
             itemViewClass = App.utils.findClass('TileView',
-                App.core.getModifiedTemplateName(model.get('template')),
+                model.get('template'),
                 App.core.TileView
             ) || App.core.TileView
             return new itemViewClass(itemViewOptions)
