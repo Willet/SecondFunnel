@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block storename %}
+<div class="store">{{store.name}}</div>
+{% endblock %}
+
+{% block content %}
+<script type="text/javascript">
+var store = "{{store.slug}}";
+</script>
+<script type="text/javascript" src="{% static 'scrapy/main.js' %}"></script>
+
+<p>Put the contents of a CSV file here.</p>
+<p>Format: [URL, category, priority] <span class="warning"></span></p>
+<textarea id="pseudo-spreadsheet"></textarea>
+<p>Choose delimiter:</p>
+<input id="delimiter" type="text" name="delimiter" value=","/>
+<div></div>
+<input type="button" onclick="run()" value="run"/>
+
+{% endblock %}

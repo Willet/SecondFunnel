@@ -1,0 +1,26 @@
+{% load static %}
+<html>
+	<link rel="stylesheet" href="{% static 'scrapy/main.css' %}" type="text/css"/>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<head>
+</head>
+<body>
+	<div class="sidebar">
+		<ul class="stores-list">Stores
+			{% for store in stores %}
+				<li><a href="/scrapy/{{store.slug}}/">{{store.name}}</a></li>
+			{% endfor %}
+		</ul>
+	</div>
+	<div class="content-area">
+		<div class="header">
+			<div class="title">Scrapy Management</div>
+			{% block storename %}{% endblock %}
+		</div>
+		<div class="content">
+			{% block content %}
+			{% endblock %}
+		</div>
+	</div>
+</body>
+</html>
