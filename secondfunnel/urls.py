@@ -29,6 +29,8 @@ urlpatterns = patterns(
     url(r'^imageservice/', include('apps.imageservice.urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
     url(r'^scraper/', include('apps.scraper.urls')),
+    url(r'^scrapy$', lambda x: HttpResponseRedirect('scrapy/')),
+    url(r'^scrapy/', include('apps.scrapy.urls')),
     url(r'^tracker/', include('apps.tracking.urls')),
     # dashboard
     url(r'^dashboard$', lambda x: HttpResponseRedirect('/dashboard/')),
