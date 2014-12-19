@@ -1,14 +1,14 @@
 .sidebar {
-	float: left;
-	width: 300;
+    float: left;
+    width: 300;
 }
 
 .content-area {
-	margin-left: 300;
+    margin-left: 300;
 }
 
 .header .title {
-	font-size: 45;
+    font-size: 45;
 }
 
 .header .store {
@@ -16,14 +16,14 @@
 }
 
 #pseudo-spreadsheet {
-	width: 800;
-	height: 500;
+    width: 800;
+    height: 500;
 }
 
 #delimiter {
-	font-size: 20;
+    font-size: 20;
 }
 
 .warning {
-	color: red;
+    color: red;
 }
