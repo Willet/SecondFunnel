@@ -19,20 +19,12 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             App._initialized = true;
         }
 
-        // from davidsulc/marionette-gentle-introduction
-        App.navigate = App.navigate || function (route, options) {
-            options = options || {};
-            Backbone.history.navigate(route, options);
-        };
-
-        // from davidsulc/marionette-gentle-introduction
-        App.getCurrentRoute = App.getCurrentRoute || function () {
-            return Backbone.history.fragment;
-        };
+        // TODO investigate turning into region?
+        // Toggle with .show() and .hide()
+        App.previewLoadingScreen = $('#preview-loading');
 
         App.vent.on('initRouter', function () {
-            var loc = window.location.href, // reference to current url
-                previewLoadingScreen = $('#preview-loading');
+            var loc = window.location.href; // reference to current url
             
             App.router.initialize();
 

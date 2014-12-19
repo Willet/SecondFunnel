@@ -2,18 +2,22 @@
 
 /**
  * Router for landing pages
+ *
+ * Before calling module.initialize, routes can be added to module.AppRouter
+ * After calling module.initialize, the module is overwritten into a Backbone.Router instance
+ *
  * @param app
  */
 module.exports = function (module, App, Backbone, Marionette, $, _) {
-	module.initialize = function () {
-		module = new Backbone.Router({
+	// Hook to add routes before initialization
+	module.AppRouter = Backbone.Router.extend({
+		routes: {
 			'': 					 'home',
 			':tile_id':				 'preview', // deprecating for /tile/:tile_id
 			'preview/:tile_id': 	 'preview',
 			'category/:category_id': 'category'
-		});
-
-	    module.home = function () {
+		},
+		home: function () {
 	        App.utils.postExternalMessage(JSON.stringify({
 	            'type': 'hash_change',
 	            'hash': '#'
@@ -36,9 +40,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
 	        App.previewArea.close();
 	        App.intentRank.changeCategory('');
-	    };
-
-	   	module.preview = function (tileId) {
+	    },
+	    preview: function (tileId) {
 	        App.utils.postExternalMessage(JSON.stringify({
 	            'type': 'hash_change',
 	            'hash': window.location.hash
@@ -53,7 +56,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	                App.discovery.collection.tiles[tileId] :
 	                undefined;
 
-	            previewLoadingScreen.show();
+	            App.previewLoadingScreen.show();
 
 	            if (tile !== undefined) {
 	                var preview = new App.core.PreviewWindow({
@@ -79,19 +82,24 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	                });
 	                App.previewArea.show(preview);
 	            }).fail(function () {
-	                previewLoadingScreen.hide();
+	                App.previewLoadingScreen.hide();
 	                App.router.navigate('', {
 	                    trigger: true,
 	                    replace: true
 	                });
 	            });
 	        } else { 
-	        	// Deprecated: Change category
-	            module.category(tileId);
+	        	// DEPRECATE THIS: Change category
+	            var category = tileId;
+	            if (App.option('debug', false)) {
+		            console.error('Router changing category: ' + category);
+		        }
+		        // Ensure any preview area is closed
+		        App.previewArea.close();
+		        App.intentRank.changeCategory(category);
 	        }
-	    };
-
-		module.category = function (category) {
+	    },
+	    category: function (category) {
 			if (category) {
 		        if (App.option('debug', false)) {
 		            console.error('Router changing category: ' + category);
@@ -109,9 +117,14 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	                replace: true
 	            });
 		    }
-	    };
+	    }
+	});
 
-	    // Start history
+	// initializes replaces the module with the Router
+	module.initialize = function () {
+		App.router = new module.AppRouter();
+
+		// Start history
 	   	Backbone.history.start();
 	};
 };

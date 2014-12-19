@@ -665,10 +665,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if App.initialPage is ""
                     Backbone.history.history.back()
                 else
-                    App.router.navigate "#" + App.intentRank.options.category,
+                    hashnav = if App.intentRank.options.category then "#" + App.intentRank.options.category else ""
+                    App.router.navigate hashnav,
                         trigger: true
                         replace: true
-
                 return
 
             "click .buy": (event) ->
@@ -693,7 +693,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onRender: ->
             heightMultiplier = undefined
             self = this
-            previewLoadingScreen = $("#preview-loading")
 
             # cannot declare display:table in marionette class.
             heightMultiplier = (if App.utils.portrait() then 1 else 2)
@@ -720,7 +719,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
 
             @content.show contentInstance
-            previewLoadingScreen.hide()
+            App.previewLoadingScreen.hide()
             @listenTo App.vent, "rotate", (width) ->
                 # On change in orientation, we want to rerender our layout
                 # this is automatically unbound on close, so we don't have to clean
@@ -796,17 +795,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $el = @$el
                 $subCatEl = $el.find('.sub-category')
 
-                if not $el.hasClass 'expanded'
+                if $subCatEl and not $el.hasClass 'expanded'
                     # First click, expand subcategories
                     $el.addClass 'expanded'
                     $el.siblings().removeClass 'expanded'
                 else
-                    # Second click, select category
+                    # First click w/ no subcategories or
+                    # second click w/ categories, select category
                     $el.removeClass 'expanded'
                     unless $el.hasClass 'selected' and not $subCatEl.hasClass 'selected'
                         @selectCategoryEl($el)
 
-                        App.navigate(category,
+                        App.router.navigate(category,
                             trigger: true
                         )
                 return false # stop propogation
@@ -835,7 +835,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     else
                         switchCategory = subCategory['name']
 
-                    App.navigate(switchCategory,
+                    App.router.navigate(switchCategory,
                         trigger: true
                     )
                 return false # stop propogation
@@ -851,7 +851,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 unless $el.hasClass 'selected'
                     $el.addClass 'selected'
                     # remove selected from other categories
-                    $el.siblings().each () ->
+                    $el.siblings().each ->
                         self = $(@)
                         self.removeClass 'selected'
                         self.find('.sub-category').removeClass 'selected'
@@ -866,9 +866,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 unless $catEl.hasClass 'selected'
                     $catEl.addClass 'selected'
                     # remove selected from other categories
-                    $catEl.siblings().each () ->
+                    $catEl.siblings().each ->
                         self = $(@)
                         self.removeClass 'selected'
+                        self.find('.sub-category').removeClass 'selected'
 
 
     ###
@@ -888,11 +889,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 catOpt = "page:mobileCategories"
             else
                 catOpt = "page:categories"
-            categories = _.map(App.option(catOpt, []), (category) ->
+            categories = for category in App.option catOpt, []
                 if typeof(category) is "string"
                     category = {name: category}
                 category
-            )
+
             if categories.length > 0
 
                 # This specifies that there should be a home button, by default, this is true.
@@ -900,12 +901,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     if App.option("categoryHome").length
                         home = App.option("categoryHome")
                     else
-                        home = "home"
+                        home = ""
                     categories.unshift {name: home}
 
-                @collection = new module.CategoryCollection(categories, model: module.Category)
+                @collection = new module.CategoryCollection categories, model: module.Category
             else
-                @collection = new module.CategoryCollection([], model: module.Category)
+                @collection = new module.CategoryCollection [], model: module.Category
 
             # Watch for updates to feed, generally from intentRank
             @listenTo App.vent, "change:category", @selectCategory
@@ -919,51 +920,24 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onRender: ->
             App.vent.once 'finished', ->
                 if App.intentRank.category
-                    @selectCategory(category)
+                    @selectCategory category
             return @
 
         ###
-        Given a category string, find it and add the .selected class
+        Given a category string, find it and select it (add the .selected class)
         Returns boolean if category / sub-category found
         @returns {bool}
         ###
         selectCategory: (category) ->
-            findModelByName (name) =>
-                @collection.find (model) ->
-                    return model.get('name') == name
-
-            categoryHierarchy = category.split "|"
-            categorySpan = @$el.find('span[data-name="' + categoryHierarchy[0] + '"]:not(.sub-category)')
-
-            catModel = findModelByName(categoryHierarchy[0])
-            catView = if catModel then @.children.findByModel(catModel) else null
-            # Check if simple category
-            if catView and categoryHierarchy.length == 1
-                catView.selectCategoryEl catView.$el
+            try
+                catMapObj = @collection.findModelByName category
+                catView = @children.findByModel(catMapObj.category)
+                $el = catView.$el
+                $catEl = catView.$el.find(".sub-category[data-name='#{catMapObj.subCategory}']")
+                $target = if catMapObj.subCategory then $catEl else $el
+                catView.selectCategoryEl $target
                 return true
-            
-            # Check if simple category/subcategory hierarchy
-            else if catView and categoryHierarchy.length > 1
-                subCatSpan = $('.sub-category[data-name="' + categoryHierarchy[1] + '"]', catView.$el)
-                if subCatSpan
-                    catView.selectCategoryEl subCatSpan
-                    return true
-
-            # Check if is a complex category
-            catModel = findModelByName(category)
-            catView = if catModel then @.children.findByModel(catModel) else null
-            if catView
-                catView.selectCategoryEl catView.$el
-                return true
-
-            # Check if is a self-contained complex sub-category
-            subCatSpan = @$el.find('span.sub-category[data-name="' + category + '"]')  
-            if subCatSpan
-                parentCatName = subCatSpan.parents('.category').data('name')
-                catModel = findByModelName(parentCatName)
-                catView = @.children.findByModel(catModel)
-                catView.selectCategoryEl subCatSpan
-                return true
-            
-            # Couldn't find this category
+            catch err
+                if App.option 'debug', false
+                    console.error "Could not find category '#{category}' because:\n#{JSON.stringify(err.message)}"
             return false

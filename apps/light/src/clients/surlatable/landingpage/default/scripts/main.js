@@ -11,8 +11,8 @@ var Page = require('landingpage'),
     App = Page.App;
 
 // Import client customizations
-
-App.core.HeroAreaView = App.core.SLTHeroAreaView;
+App.module('core', require('./core.views'));
+App.core.HeroAreaView = App.core.SLTHeroAreaView
 
 // Run Application
 App.init.initialize();

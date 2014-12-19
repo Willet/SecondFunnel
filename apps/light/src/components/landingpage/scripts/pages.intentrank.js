@@ -261,8 +261,13 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         if ($('.category-area span').length < 1) {
             return module;
         }
+        // If category doesn't exist, try the categoryHome, then try the first category
         if (category === '') {
-            category = module.categories[0].name;
+            if (App.option("categoryHome")) {
+                category = App.option("categoryHome");
+            } else {
+                category = module.options.categories[0].name;
+            }
         }
 
         if (module.options.category !== category) {
