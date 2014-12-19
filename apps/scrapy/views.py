@@ -32,7 +32,7 @@ def scrape(request, store_slug):
     urls = json.loads(urlparse.unquote(request.GET.get('urls')))
     #raise Exception(urls)
     # set up scrapy crawler
-    settings = get_project_settings() 
+    settings = get_project_settings()
     # CrawlerSettings()
     # settings.settings_module = django_settings.SCRAPY_SETTINGS_MODULE
     crawler = Crawler(settings)
