@@ -1,0 +1,29 @@
+.sidebar {
+	float: left;
+	width: 300;
+}
+
+.content-area {
+	margin-left: 300;
+}
+
+.header .title {
+	font-size: 45;
+}
+
+.header .store {
+
+}
+
+#pseudo-spreadsheet {
+	width: 800;
+	height: 500;
+}
+
+#delimiter {
+	font-size: 20;
+}
+
+.warning {
+	color: red;
+}
