@@ -39,8 +39,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 }
             }
         });
-
-
+        
         App.addInitializer(function () {
             // set its width to whatever it began with.
             App.options.initialWidth = $(window).width();
@@ -51,50 +50,37 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 App.tracker.initialize();
             }
 
-            App.categories = new App.core.CategoryCollectionView();
-            App.categoryArea.show(App.categories);
+            App.vent.trigger('beforeInit', App.options, App);
 
-            // there isn't an "view.isOpen", so this checks if the feed element
-            // exists, and if it does, close the view.
+            // Set up regions
+            App.store = new App.core.Store(App.options.store);
+
+            // Create categoryArea
+            var categoriesView = new App.core.CategoryCollectionView();
+            App.categoryArea.show(categoriesView);
+            // Global reference to the category collection
+            App.categories = categoriesView.collection;
+
+            // prevent hero image from resetting to first category on reload
+            if (!App.heroArea.currentView) {
+                // load the category or default hero image
+                App.heroArea.show(new App.core.HeroAreaView());
+            }
+
+            // Close any existing discoveryArea view
             if(App.discovery && App.discovery.$el) {
                 // Why is this necessary?
                 App.discovery.$el.empty();
                 App.discovery.close();
                 delete App.discovery;
             }
-
-            // Add our initializer, this allows us to pass a series of tiles
-            // to be displayed immediately (and first) on the landing page.
-
-            $('.brand-label').text(App.option('store:displayName') ||
-                                   _.capitalize(App.option('store:name')) ||
-                                   'Brand Name');
-
-            $(document).ajaxError(function (event, request, settings) {
-                App.vent.trigger('ajaxError', settings.url, App);
-            });
-        });
-
-
-        // from davidsulc/marionette-gentle-introduction
-        App.addInitializer(function () {
-            // create a discovery area with tiles in it
-            App.vent.trigger('beforeInit', App.options, App);
-
-            App.store = new App.core.Store(App.options.store);
-
+            // Create our new view
             App.discovery = new App.feed.MasonryFeedView( App.options );
             App.discoveryArea.show(App.discovery);
 
             App.vent.trigger('initRouter', App.options, App);
 
             App.vent.trigger('finished', App.options, App);
-
-            // prevent hero image from resetting to first category on reload
-            if (!App.heroArea.currentView) {
-                // load the default hero image
-                App.heroArea.show(new App.core.HeroAreaView());
-            }
         });
 
         App.vent.on('finished', function (data) {
@@ -117,6 +103,11 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             App.vent.on('scrollStopped', function () {
                 $('body').removeClass('disable-hover');
             });
+        });
+
+        // On an Ajax request error, fire event
+        $(document).ajaxError(function (event, request, settings) {
+            App.vent.trigger('ajaxError', settings.url, App);
         });
     };
 };

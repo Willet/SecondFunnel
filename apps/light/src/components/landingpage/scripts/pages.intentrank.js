@@ -258,9 +258,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @return this
      */
     module.changeCategory = function (category) {
-        if ($('.category-area span').length < 1) {
-            return module;
-        }
         // If category doesn't exist, try the categoryHome, then try the first category
         if (category === '') {
             if (App.option("categoryHome")) {

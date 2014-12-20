@@ -580,13 +580,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         the featured product.
         ###
         initialize: (data) ->
-            tile = data
-
-            if $.isEmptyObject(data)
-                tile = App.option("featured")
-
-            if not tile
-                tile = @getCategoryHeroImages(App.intentRank.category)
+            tile = if not _.isEmpty(data) then data else
+                App.option("featured") or @getCategoryHeroImages App.intentRank.category
 
             @model = new module.Tile(tile)
             @listenTo App.vent, "windowResize", =>
@@ -610,18 +605,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             App.heroArea.show @
 
         getCategoryHeroImages: (category='') ->
-            catObj = _.findWhere App.options.categories, name: category.split("|")[0]
-
-            if _.isObject catObj
-                return {
-                    "desktopHeroImage": catObj['desktopHeroImage']
-                    "mobileHeroImage": catObj['mobileHeroImage']
-                }
-            else
-                return {
-                    "desktopHeroImage": App.options['desktop_hero_image']
-                    "mobileHeroImage": App.options['mobile_hero_image']
-                }
+            catObj = App.categories.findModelByName(category) or {}
+            heroImages =
+                "desktopHeroImage": catObj['desktopHeroImage'] or App.options['desktop_hero_image']
+                "mobileHeroImage": catObj['mobileHeroImage'] or App.options['mobile_hero_image']
+            return heroImages
 
 
     ###
@@ -795,7 +783,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $el = @$el
                 $subCatEl = $el.find('.sub-category')
 
-                if $subCatEl and not $el.hasClass 'expanded'
+                if _isEmpty($subCatEl) and not $el.hasClass 'expanded'
                     # First click, expand subcategories
                     $el.addClass 'expanded'
                     $el.siblings().removeClass 'expanded'
@@ -881,7 +869,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CategoryCollectionView extends Marionette.CollectionView
         tagName: "div"
         className: "category-area"
-
         itemView: module.CategoryView
 
         initialize: (options) ->
@@ -932,12 +919,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             try
                 catMapObj = @collection.findModelByName category
                 catView = @children.findByModel(catMapObj.category)
+
                 $el = catView.$el
                 $catEl = catView.$el.find(".sub-category[data-name='#{catMapObj.subCategory}']")
+
                 $target = if catMapObj.subCategory then $catEl else $el
                 catView.selectCategoryEl $target
                 return true
             catch err
                 if App.option 'debug', false
-                    console.error "Could not find category '#{category}' because:\n#{JSON.stringify(err.message)}"
+                    console.error "Could not find category '#{category}' because:\n#{err.message}"
             return false

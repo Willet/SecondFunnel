@@ -615,34 +615,37 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.CategoryCollection extends Backbone.Collection
         model: module.Category
+
+        initialize: ->
+            @on 'add, remove, reset': _.debounce(@generateNameModelMap, 100)
+        
         generateNameModelMap: ->
             # construct a lookup table based on model name
             # {
-            #   'for-her':          { category: <Category> },
-            #   'for-him':          { category: <Category>, subCategory: 'for-him' },
-            #   'for-him|under-10': { category: <Category> },
-            #   'for-her|under-20': { category: <Category>, subCategory: '|under-20' }
+            #   'for-her':          { category: <Category>, ... cat.attributes properties },
+            #   'for-him':          { category: <Category>, subCategory: 'for-him', ... subCategory properties },
+            #   'for-him|under-10': { category: <Category>, ... cat.attributes properties },
+            #   'for-her|under-20': { category: <Category>, subCategory: '|under-20', ... subCategory properties }
             # }
             categoryFlattener = (memo, cat) ->
                 # Add category first, will be overwritten by any subcategory with same name
-                memo[cat.attributes.name] = 
+                memo[cat.attributes.name] = _.extend {}, cat.attributes,
                     category: cat
                 subCatMemo = _.reduce(cat.attributes.subCategories, (subMemo, subcat) ->
                         if subcat.name.charAt(0) == '|'
-                            subMemo[cat.attributes.name + subcat.name] =
-                                category: cat
+                            subMemo[cat.attributes.name + subcat.name] = _.extend {}, subcat,
                                 subCategory: subcat.name
+                                category: cat
                         else
-                            subMemo[subcat.name] =
-                                category: cat
+                            subMemo[subcat.name] = _.extend {}, subcat,
                                 subCategory: subcat.name
+                                category: cat
                         return subMemo
                     , {})
-                _.extend(memo, subCatMemo)
-                return memo
+                return _.extend memo, subCatMemo
 
             @nameModelMap = _.reduce @models, categoryFlattener, {}
-
+        
         findModelByName: (name) ->
             # Names can be a simple category ('for-her') or complex category ('for-her|under-20')
             # Categories can be a:
