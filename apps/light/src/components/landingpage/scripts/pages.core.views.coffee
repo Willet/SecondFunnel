@@ -783,7 +783,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $el = @$el
                 $subCatEl = $el.find('.sub-category')
 
-                if _isEmpty($subCatEl) and not $el.hasClass 'expanded'
+                if not _.isEmpty($subCatEl) and not $el.hasClass 'expanded'
                     # First click, expand subcategories
                     $el.addClass 'expanded'
                     $el.siblings().removeClass 'expanded'
