@@ -50,7 +50,7 @@ body {
         position: relative;
         width: 250px;
         padding: 0 10px;
-        > span {
+        >span {
             padding: 0 5px;
             display: inline-block;
             border-bottom: 2px solid #000;
@@ -84,6 +84,22 @@ body {
         .sub-category:hover {
             color: $aero-pink;
         }
+        &.expanded {
+            color: $aero-pink;
+            background-color: #FFF;
+            .sub-categories {
+                display: inline-block;
+                border: 2px solid #000;
+                margin-top: -2px;
+                z-index: 10;
+            }
+            .sub-category,
+            .sub-category.selected {
+                display: inline-block;
+                border: none;
+                margin-top: 0;
+            }
+        }
     }
 
     .category.selected {
@@ -102,22 +118,8 @@ body {
             border-bottom: 2px solid $aero-pink;
         }
     }
-
-    .category:hover {
-        color: $aero-pink;
-        background-color: #FFF;
-        .sub-categories {
-            display: inline-block;
-            border: 2px solid #000;
-            margin-top: -2px;
-            z-index: 10;
-        }
-        .sub-category,
-        .sub-category.selected {
-            display: inline-block;
-            border: none;
-            margin-top: 0;
-        }
+    .category.selected.expanded .sub-category.selected {
+        border-bottom: none;
     }
 }
 
@@ -380,15 +382,6 @@ body {
                 line-height: 20px;
                 margin-bottom: 10px;
             }
-
-            .category:hover {
-                color: inherit;
-                background-color: inherit;
-
-                span {
-                    border-color: inherit;
-                }
-            }
             .sub-category {
                 font-size: 14px;
                 line-height: 30px;
@@ -401,11 +394,11 @@ body {
                 margin-left: -20%;
                 width: 110%;
             }
-            .category:hover .sub-categories,
+            .category.expanded .sub-categories,
             .category.selected .sub-category.selected {
                 padding-top: 5px;
             }
-            .category.selected:hover .sub-category.selected {
+            .category.selected.expanded .sub-category.selected {
                 padding-top: 0px;
             }
         }
