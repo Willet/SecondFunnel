@@ -143,6 +143,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             args.unshift(@models)
             return _[method].apply(_, args)
 
+
     class module.Store extends Backbone.Model
         defaults:
             id: "0"
@@ -306,6 +307,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             method = "read" # Must always be read only
             Backbone.sync method, model, options
 
+
     ###
     The Image object (url, width, height, ...)
 
@@ -361,10 +363,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # get url by min height
             @dimens 0, height, obj
 
-    ###
-    automatically subclassed by TileCollection's model() method
-    @type {Tile}
-    ###
 
     ###
     An ImageTile    *is* an image JSON, so we need to allocate all of its
@@ -383,6 +381,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             resp.images = [$.extend(true, {}, resp)]
             resp
 
+
     ###
     automatically subclassed by TileCollection's model() method
     @type {Tile}
@@ -390,6 +389,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.VideoTile extends module.Tile
         defaults:
             type: "video"
+
 
     class module.YoutubeTile extends module.VideoTile
         defaults:
@@ -615,3 +615,51 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.CategoryCollection extends Backbone.Collection
         model: module.Category
+
+        initialize: ->
+            @on 'add, remove, reset': _.debounce(@generateNameModelMap, 100)
+        
+        generateNameModelMap: ->
+            ###
+            construct a lookup table based on model name
+            {
+              'for-her':          { category: <Category>, ... cat.attributes properties },
+              'for-him':          { category: <Category>, subCategory: 'for-him', ... subCategory properties },
+              'for-him|under-10': { category: <Category>, ... cat.attributes properties },
+              'for-her|under-20': { category: <Category>, subCategory: '|under-20', ... subCategory properties }
+            }
+            ###
+            categoryFlattener = (memo, cat) ->
+                # Add category first, will be overwritten by any subcategory with same name
+                memo[cat.attributes.name] = _.extend {}, cat.attributes,
+                    category: cat
+                subCatMemo = _.reduce(cat.attributes.subCategories, (subMemo, subcat) ->
+                        if subcat.name.charAt(0) == '|'
+                            subMemo[cat.attributes.name + subcat.name] = _.extend {}, subcat,
+                                subCategory: subcat.name
+                                category: cat
+                        else
+                            subMemo[subcat.name] = _.extend {}, subcat,
+                                subCategory: subcat.name
+                                category: cat
+                        return subMemo
+                    , {})
+                return _.extend memo, subCatMemo
+
+            @nameModelMap = _.reduce @models, categoryFlattener, {}
+        
+        findModelByName: (name) ->
+            ###
+            Names can be a simple category ('for-her') or complex category ('for-her|under-20')
+            Categories can be a:
+              - self-contained simple category or subcategory ('for-her')
+              - self-contained complex category or sub-category ('for-her|under-20')
+              - filter sub-category ('|under-20'), acts upon its parent category (ie: 'for-her')
+                to become ('for-her|under-20')
+            Note: filters can be arbitrarily chained
+            ###
+            if not @nameModelMap
+                # This seems like a perfect piece of code to be in Model.initialization
+                # except Backbone won't let you hook in *after* the Collection has been set up...
+                @generateNameModelMap()
+            return @nameModelMap[name]

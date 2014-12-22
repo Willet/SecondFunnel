@@ -260,6 +260,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             App.vent.trigger "videoEnded", ev, this
             return
 
+
     class module.YoutubeTileView extends module.VideoTileView
         template: ->
 
@@ -295,6 +296,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.TileCollectionView extends Marionette.CollectionView
+
 
     ###
     Widgets that make up a Product Info in a Expanded Content
@@ -481,6 +483,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             return
 
+
     ###
     Contents inside a PreviewWindow.
 
@@ -550,6 +553,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @trigger "scroll:disable"
             return
 
+
     ###
     View responsible for the "Hero Area"
     (e.g. Shop-the-look, featured, or just a plain div)
@@ -558,7 +562,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {Layout}
     ###
     class module.HeroAreaView extends Marionette.Layout
-        model: module.Tile
         className: "previewContainer"
         regions:
             content: ".content"
@@ -577,20 +580,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         the featured product.
         ###
         initialize: (data) ->
-            tile = data
-
-            if $.isEmptyObject(data)
-                tile = App.option("featured")
-
-            if not tile
-                tile =
-                    desktopHeroImage: App.option('desktop_hero_image', '')
-                    mobileHeroImage: App.option('mobile_hero_image', '')
+            tile = if not _.isEmpty(data) then data else
+                App.option("featured") or @getCategoryHeroImages App.intentRank.category
 
             @model = new module.Tile(tile)
             @listenTo App.vent, "windowResize", =>
                 App.heroArea.show @
                 return
+
+            @listenTo App.vent, "change:category", @updateCategoryHeroImage
 
             return
 
@@ -600,6 +598,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             contentInstance = new module.PreviewContent(contentOpts)
             @content.show contentInstance
             return
+
+        updateCategoryHeroImage: (category) ->
+            @model.destroy()
+            @model = new module.Tile(@getCategoryHeroImages(category))
+            App.heroArea.show @
+
+        getCategoryHeroImages: (category='') ->
+            catObj = App.categories.findModelByName(category) or {}
+            heroImages =
+                "desktopHeroImage": catObj['desktopHeroImage'] or App.options['desktop_hero_image']
+                "mobileHeroImage": catObj['mobileHeroImage'] or App.options['mobile_hero_image']
+            return heroImages
+
 
     ###
     Container view for a PreviewContent object.
@@ -642,10 +653,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if App.initialPage is ""
                     Backbone.history.history.back()
                 else
-                    App.router.navigate "#" + App.intentRank.options.category,
+                    hashnav = if App.intentRank.options.category then "#" + App.intentRank.options.category else ""
+                    App.router.navigate hashnav,
                         trigger: true
                         replace: true
-
                 return
 
             "click .buy": (event) ->
@@ -670,7 +681,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onRender: ->
             heightMultiplier = undefined
             self = this
-            previewLoadingScreen = $("#preview-loading")
 
             # cannot declare display:table in marionette class.
             heightMultiplier = (if App.utils.portrait() then 1 else 2)
@@ -697,7 +707,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
 
             @content.show contentInstance
-            previewLoadingScreen.hide()
+            App.previewLoadingScreen.hide()
             @listenTo App.vent, "rotate", (width) ->
                 # On change in orientation, we want to rerender our layout
                 # this is automatically unbound on close, so we don't have to clean
@@ -742,6 +752,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @feedSwapped = true
             return
 
+
     ###
     View for switching categories.
 
@@ -767,45 +778,87 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             templateRules
 
         events:
-            click: (event) ->
-                view = @
-                $el = view.$el
-                category = view.model.get("name")
-                nofilter = view.model.get("nofilter")
-                eventTarget = $(event.target)
+            'click': (event) ->
+                category = @model.get("name")
+                $el = @$el
+                $subCatEl = $el.find('.sub-category')
 
-                if eventTarget.hasClass('sub-category')
-                    if not eventTarget.hasClass('selected') # this is not in the above if on purpose
-                        subCategory = eventTarget.data('name')
-                else if $('.sub-category.selected', $el).length == 1
-                    $el.removeClass('selected')
-                    $('.sub-category.selected', $el).removeClass('selected')
+                if $subCatEl.length and not $el.hasClass 'expanded'
+                    # First click, expand subcategories
+                    $el.addClass 'expanded'
+                    $el.siblings().removeClass 'expanded'
+                else
+                    # First click w/ no subcategories or
+                    # second click w/ categories, select category
+                    $el.removeClass 'expanded'
+                    unless $el.hasClass 'selected' and not $subCatEl.hasClass 'selected'
+                        @selectCategoryEl($el)
 
-                # switch to the selected category
-                # if it has changed
-                if not $el.hasClass("selected") or subCategory
-                    $el.siblings().each ->
-                        self = $(@)
-                        self.removeClass 'selected'
-                        $('.sub-category', self).removeClass 'selected'
+                        App.router.navigate(category,
+                            trigger: true
+                        )
+                return false # stop propogation
 
-                    $el.addClass "selected"
+            'click .sub-category': (event) ->
+                $el = @$el
+                category = @model
+                $ev = $(event.target)
+                $subCatEl = if $ev.hasClass 'sub-category' then $ev else $ev.parent '.sub-category'
 
-                    if subCategory
-                        eventTarget.siblings().removeClass 'selected'
-                        eventTarget.addClass 'selected'
-                        category += "|" + subCategory
+                # Close categories drop-down
+                $el.removeClass 'expanded'
 
-                    if view.model.get("desktopHeroImage") and view.model.get("mobileHeroImage") and App.layoutEngine
-                        App.heroArea.show(new App.core.HeroAreaView(
-                            "desktopHeroImage": view.model.get "desktopHeroImage"
-                            "mobileHeroImage": view.model.get "mobileHeroImage"
-                        ))
+                # Retrieve subcategory object
+                subCategory = _.find category.get('subCategories'), (subcategory) ->
+                    return subcategory.name == $subCatEl.data('name')
 
-                    App.navigate(category,
+                # switch to the selected category if it has changed
+                unless $el.hasClass 'selected' and $subCatEl.hasClass 'selected' and not $subCatEl.siblings().hasClass 'selected'
+                    @selectCategoryEl($subCatEl)
+
+                    # If subCategory leads with "|", its an additional filter on the parent category
+                    if subCategory['name'].charAt(0) == "|"
+                        switchCategory = category.get("name") + subCategory['name']
+                    # Else, subCategory is a category
+                    else
+                        switchCategory = subCategory['name']
+
+                    App.router.navigate(switchCategory,
                         trigger: true
                     )
                 return false # stop propogation
+
+        # Apply the 'selected' class to a category or sub-category element
+        selectCategoryEl: (el) ->
+            $el = $(el)
+
+            if $el.hasClass 'category'
+                # remove selected from child sub-categories
+                $el.find('.sub-category').removeClass 'selected'
+                # switch to the selected category if it has changed
+                unless $el.hasClass 'selected'
+                    $el.addClass 'selected'
+                    # remove selected from other categories
+                    $el.siblings().each ->
+                        self = $(@)
+                        self.removeClass 'selected'
+                        self.find('.sub-category').removeClass 'selected'
+
+            else if $el.hasClass 'sub-category'
+                $catEl = $el.parents('.category')
+                
+                # switch to selected sub-category
+                $el.addClass 'selected'
+                $el.siblings().removeClass 'selected'
+                # switch to selected category if not already
+                unless $catEl.hasClass 'selected'
+                    $catEl.addClass 'selected'
+                    # remove selected from other categories
+                    $catEl.siblings().each ->
+                        self = $(@)
+                        self.removeClass 'selected'
+                        self.find('.sub-category').removeClass 'selected'
+
 
     ###
     A collection of Categories to display.
@@ -816,15 +869,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CategoryCollectionView extends Marionette.CollectionView
         tagName: "div"
         className: "category-area"
-
         itemView: module.CategoryView
 
         initialize: (options) ->
-            categories = _.map(App.option("page:categories", []), (category) ->
+            if App.support.mobile() and App.option("page:mobileCategories")
+                catOpt = "page:mobileCategories"
+            else
+                catOpt = "page:categories"
+            categories = for category in App.option catOpt, []
                 if typeof(category) is "string"
                     category = {name: category}
                 category
-            )
+
             if categories.length > 0
 
                 # This specifies that there should be a home button, by default, this is true.
@@ -832,24 +888,45 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     if App.option("categoryHome").length
                         home = App.option("categoryHome")
                     else
-                        home = "home"
+                        home = ""
                     categories.unshift {name: home}
 
-                @collection = new module.CategoryCollection(categories, model: module.Category)
+                @collection = new module.CategoryCollection categories, model: module.Category
             else
-                @collection = new module.CategoryCollection([], model: module.Category)
+                @collection = new module.CategoryCollection [], model: module.Category
+
+            # Watch for updates to feed, generally from intentRank
+            @listenTo App.vent, "change:category", @selectCategory
 
             # Enable sticky category bar
             if App.option("page:stickyCategories")
                 @$el.parent().waypoint('sticky')
-
-            # Flag to ignore clicks until feed loads
-            @collection.enabled = false
-            @listenTo App.vent, 'layoutCompleted', =>
-                @collection.enabled = true
-
+            
             return @
 
         onRender: ->
-            @$el.children().eq(0).trigger 'click'
+            App.vent.once 'finished', ->
+                if App.intentRank.category
+                    @selectCategory category
             return @
+
+        ###
+        Given a category string, find it and select it (add the .selected class)
+        Returns boolean if category / sub-category found
+        @returns {bool}
+        ###
+        selectCategory: (category) ->
+            try
+                catMapObj = @collection.findModelByName category
+                catView = @children.findByModel(catMapObj.category)
+
+                $el = catView.$el
+                $catEl = catView.$el.find(".sub-category[data-name='#{catMapObj.subCategory}']")
+
+                $target = if catMapObj.subCategory then $catEl else $el
+                catView.selectCategoryEl $target
+                return true
+            catch err
+                if App.option 'debug', false
+                    console.error "Could not find category '#{category}' because:\n#{err.message}"
+            return false
