@@ -1,15 +1,17 @@
 import json
 
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout
-from django.core.exceptions import ObjectDoesNotExist
-
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
 from django.shortcuts import render_to_response, render
 from django.template import RequestContext
-
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+
+from apps.assets.models import Store
 from apps.dashboard.models import DashBoard, UserProfile, Query
+
 
 LOGIN_URL = '/dashboard/login'
 
@@ -114,6 +116,21 @@ def dashboard(request, dashboard_id):
         context_dict['siteName'] = cur_dashboard.site_name
 
         return render(request, 'dashboard.html', context_dict)
+
+
+@login_required(login_url=LOGIN_URL)
+def overview(request):
+    """A list of all active pages and clients.
+    The user must be able to view the dashboard.
+    """
+    stores = Store.objects.prefetch_related(
+        'pages',
+        'pages__feed'
+    )
+    return render_to_response('overview.html', {
+        'stores': stores,
+        'domain': settings.WEBSITE_BASE_URL,
+    })
 
 
 def user_login(request):

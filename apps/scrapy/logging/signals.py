@@ -95,3 +95,7 @@ class Signals(object):
             reason,
             (summary_url, log_url)
         )
+
+        # to be returned to the web page
+        self.crawler.stats.set_value('summary_url', summary_url)
+        self.crawler.stats.set_value('log_url', log_url)

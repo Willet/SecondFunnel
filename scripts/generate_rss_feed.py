@@ -36,7 +36,7 @@ def _serialize_xml(write, elem, encoding, qnames, namespaces):
 etree._serialize_xml = etree._serialize['xml'] = _serialize_xml
 
 
-def main(page, results=DEFAULT_RESULTS, feed_link=None, feed_name=None):
+def main(page, results=DEFAULT_RESULTS, google=False, feed_link=None, feed_name=None):
     """Returns an rss feed
 
     page -- the page model for the feed
@@ -50,7 +50,10 @@ def main(page, results=DEFAULT_RESULTS, feed_link=None, feed_name=None):
     if not feed_link:
         feed_link = url + feed_name
 
-    feed = generate_feed(page, url, feed_link, results)
+    if google:
+        feed = generate_google_feed(page, url, feed_link, results)
+    else:
+        feed = generate_feed(page, url, feed_link, results)
 
     return feed
 
@@ -173,6 +176,127 @@ def generate_feed(page, url, feed_link, results=DEFAULT_RESULTS):
 
     feed = tostring(root, 'utf-8')
     return minidom.parseString(feed).toprettyxml(indent='\t')
+
+
+def generate_google_feed(page, url, feed_link, results=DEFAULT_RESULTS):
+    root = Element('rss')
+    root.set('version', '2.0')
+    root.set('xmlns:g', 'http://base.google.com/ns/1.0')
+
+    channel = SubElement(root, 'channel')
+
+    page_title = SubElement(channel, 'title')
+    page_title.text = page.name
+
+    page_link = SubElement(channel, 'link')
+    page_link.text = url
+
+    page_description = SubElement(channel, 'description')
+    page_description.text = page.description
+
+    tiles = ir_base(feed=page.feed)
+
+    for obj in tiles:
+        tile = obj.to_json()
+        item = Element('item')
+
+        tagged_products = tile.get('tagged-products', [])
+        if len(tagged_products) > 0:
+            product = tagged_products[0]
+        else:
+            product = tile
+
+        # Begin - Always Required
+        title = SubElement(item, 'title')
+        title.text = product.get('name')
+
+        # Since we can't link to gap.com and have the feed validate, need to
+        # build the URL.
+
+        # So, this is only really a solution in the short term.
+        link = SubElement(item, 'link')
+
+        if tile.get('template') == 'banner' and tile.get('redirect-url'):
+            link.text = tile.get('redirect-url')
+        else:
+            link.text = '{}#{}'.format(
+                url,
+                tile.get('tile-id')
+            )
+
+        description = SubElement(item, 'description')
+        description.text = product.get('description')
+
+        # Needs to be unique across everything!
+        # Assumption: Product ids are unique across stores
+        id = SubElement(item, 'g:id')
+        id.text = '{0}P{1}T{2}'.format(
+            page.store.slug,
+            page.id,
+            tile.get('tile-id')
+        )
+
+        condition = SubElement(item, 'g:condition')
+        condition.text = 'new'
+
+        price = SubElement(item, 'g:price')
+        price.text = product.get('sale_price') or product.get('price')
+
+        availability = SubElement(item, 'g:availability')
+        availability.text = 'in stock'
+
+        image_id = int(product.get('default-image', 0))
+        images = product.get('images', [])
+        image = next(ifilter(lambda x: x.get('id') == image_id, images), {})
+
+        if tile.get('facebook-ad'):
+            image = tile.get('facebook-ad')
+
+        image_link = SubElement(item, 'g:image_link')
+        image_link.text = image.get('url')
+        # End - Always Required
+
+        # Begin - Required (Apparel)
+        google_category = SubElement(item, 'g:google_product_category')
+        google_category.text = 'Apparel &amp; Accessories &gt; Clothing'
+
+        brand = SubElement(item, 'g:brand')
+        brand.text = page.store.name
+
+        # Our own categories
+        product_type = SubElement(item, 'g:product_type')
+        product_type.text = 'Uncategorized'
+
+        # Hack: Force the product gender until we have it
+        gender = SubElement(item, 'g:gender')
+        gender.text = 'unisex'
+
+        # Hack: Force the product age group until we have it
+        age_group = SubElement(item, 'g:age_group')
+        age_group.text = 'adult'
+
+        # Hack: Force the product color until we have it
+        color = SubElement(item, 'g:color')
+        color.text = 'white'
+
+        # Hack: Force the product size until we have it
+        size = SubElement(item, 'g:size')
+        size.text = 'M'
+
+        # Shipping / Tax is required for US orders, see
+        # https://support.google.com/merchants/answer/160162?hl=en&ref_topic=3404778
+
+        # Don't worry about variants for now.
+
+        # End - Required (Apparel)
+
+        channel.append(item)
+
+    feed = tostring(root, 'utf-8')
+    pretty_feed = minidom.parseString(feed).toprettyxml(
+        indent='\t', encoding='utf-8'
+    )
+    pretty_feed = pretty_feed.replace('&quot;', '\"')
 
 
 if __name__ == "__main__":

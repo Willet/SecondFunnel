@@ -14,18 +14,7 @@ var Page = require('landingpage'),
 
 // Import client customizations
 App.module('core', require('./core.views'));
-App.module('intentRank', require('./intentrank'));
 App.module('utils', require('./utils'));
-
-// Before starting application, decide which category to use
-(function () {
-    if (App.support.mobile()) {
-        // Mobile device
-        // Enable Aeropostale mobile categories
-        App.core.CategoryCollectionView = App.core.MobileCategoryCollectionView;
-        App.intentRank.changeCategory = App.intentRank.changeMobileCategory;
-    }
-}());
 
 // Run Application
 App.init.initialize();
