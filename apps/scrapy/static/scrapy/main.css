@@ -3,6 +3,10 @@
     width: 300;
 }
 
+.sidebar .page-list li {
+	font-size: 14;
+}
+
 .content-area {
     margin-left: 300;
 }
@@ -11,17 +15,50 @@
     font-size: 45;
 }
 
-.header .store {
-
+.header .page-info {
+	display: inline-block;
+}
+.page-info .page-name {
+	width: 280;
+	font-size: 25;
+	display: inline-block;
 }
 
-#pseudo-spreadsheet {
-    width: 800;
+.page-info .store-name {
+	color: rgb(80,80,80);
+}
+
+.content {
+    position: relative;
+}
+.content .csv {
+    display: inline-block;
+    width: 600;
+    padding: 0px 60px 0px 0px;
+}
+.csv #pseudo-spreadsheet {
     height: 500;
+    width: 100%;
+    resize: vertical;
 }
 
-#delimiter {
+.content .options {
+    position: absolute;
+    display: inline-block;
+}
+
+.options #delimiter {
     font-size: 20;
+}
+
+.options #create-tiles {
+    transform: scale(1.5);
+    margin-left: 12;
+}
+
+.options #run {
+    width: 140;
+    font-size: 40;
 }
 
 .warning {
