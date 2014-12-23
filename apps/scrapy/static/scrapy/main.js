@@ -16,6 +16,7 @@ var prioritize = function(cat) {
     });
 };
 
+// callback for "run" button
 var run = function() {
     var csv = $('#pseudo-spreadsheet').val();
     var lines = csv.split('\n');
@@ -26,6 +27,7 @@ var run = function() {
     var create_tiles = $('#create-tiles').prop('checked');
     var categories = {};
 
+    // will get some text in red letters if data doesn't validate
     var warning = $('.warning');
     warning.text('');
 
@@ -42,11 +44,14 @@ var run = function() {
             cat = line[1].trim(),
             priority = line[2].trim();
 
+        // assemble the CSV into a js object to pass to server side handlers
         categories[cat] = categories[cat] || {urls: [], priorities: [], name: cat};
         categories[cat].urls.push(url);
         categories[cat].priorities.push(priority);
     }
     console.log('running');
+
+    // run each category separately (spiders only take one set of categories at a time)
     for (cat in categories) {
         console.log('category: ' + cat);
         $.ajax({
@@ -60,6 +65,7 @@ var run = function() {
             },
             success: function(data, status) {
                 console.log('scrape succeeded with status: ' + status);
+                // if it worked, run priorities
                 prioritize(categories[cat]);
             },
             error: function(obj, status, error) {

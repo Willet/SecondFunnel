@@ -17,20 +17,26 @@ from apps.assets.models import Page, Store, Product
 stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
 
 def index(request):
+    """"Home" page.  does nothing."""
+
     data = {
-        'stores': stores
+        'stores': stores,
     }
     return render(request, 'index.html', data)
 
 def page(request, page_slug):
+    """This page is where scrapers are run from"""
+
     page = get_object_or_404(Page, url_slug=page_slug)
     data = {
         'page': page,
-        'stores': stores
+        'stores': stores,
     }
     return render(request, 'page.html', data)
 
 def scrape(request, page_slug):
+    """callback for running a spider"""
+
     page = get_object_or_404(Page, url_slug=page_slug)
     def process(request, store_slug):
         category = request.GET.get('category')
@@ -60,11 +66,13 @@ def scrape(request, page_slug):
     return HttpResponse(status=204)
 
 def prioritize(request, page_slug):
+    """callback for prioritizing tiles, if applicable"""
+
     cat = json.loads(urlparse.unquote(request.GET.get('cat')))
     urls = cat['urls']
     priorities = cat['priorities']
-    for i, v in enumerate(urls):
-        prods = Product.objects.filter(url=v)
+    for i, url in enumerate(urls):
+        prods = Product.objects.filter(url=url)
         for prod in prods:
             for tile in prod.tiles.all():
                 tile.priority = priorities[i]
