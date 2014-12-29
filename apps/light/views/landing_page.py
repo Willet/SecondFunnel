@@ -49,7 +49,7 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
         store = page.store
 
     # Support for redirects for when a campaign is over
-    if page.dashboard_settings.get('redirect_to', False):
+    if page.dashboard_settings.get('redirect_to'):
         return HttpResponseRedirect(page.dashboard_settings.get('redirect_to'))
     
     #
