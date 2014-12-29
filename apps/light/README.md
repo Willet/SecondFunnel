@@ -12,7 +12,7 @@ All output files are in `static`
 
 django then reads this directory as a template folder for static page generation
 
-## Install
+## Install in apps/light directory
 
 1. Install [node](http://nodejs.org/) using `sudo apt-get install node`
 2. Setup your environment PATH to include "node\_modules/bin" (already done on Linux)
