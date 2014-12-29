@@ -1,9 +1,11 @@
 import json
 from datetime import datetime
+from urlparse import urlparse
 import random
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import URLValidator
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Count
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -50,7 +52,17 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
 
     # Support for redirects for when a campaign is over
     if page.dashboard_settings.get('redirect_to'):
-        return HttpResponseRedirect(page.dashboard_settings.get('redirect_to'))
+        url = page.dashboard_settings.get('redirect_to')
+        validator = URLValidator()
+        try:
+            validator(url)
+        except ValidationError:
+            url = settings.WEBSITE_BASE_URL
+        parts = urlparse(url)
+        # missing netloc indicates no protocol was set
+        if not parts.netloc:
+            url = '//' + url
+        return HttpResponseRedirect(url)
     
     #
     # Lookup Product for Shop-The-Look style pages
