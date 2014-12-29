@@ -2,6 +2,10 @@
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
 
+	# TODO !!!
+	#module.ImageTileView.prototype.onClick = ->
+		#  
+
     class module.BannerTileView extends module.TileView
         template: "#banner_tile_template"
 
