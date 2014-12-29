@@ -60,7 +60,7 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
             url = settings.WEBSITE_BASE_URL
         parts = urlparse(url)
         # missing netloc indicates no protocol was set
-        if not url_parts.netloc:
+        if not parts.netloc:
             url = '//' + url
         return HttpResponseRedirect(url)
     
