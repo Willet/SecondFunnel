@@ -5,7 +5,7 @@ import random
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template import RequestContext, loader
 from django.views.decorators.cache import cache_page, cache_control
@@ -48,6 +48,10 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
         page = get_object_or_404(Page, url_slug=page_slug)
         store = page.store
 
+    # Support for redirects for when a campaign is over
+    if page.dashboard_settings.get('redirect_to'):
+        return HttpResponseRedirect(page.dashboard_settings.get('redirect_to'))
+    
     #
     # Lookup Product for Shop-The-Look style pages
     #
