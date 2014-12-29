@@ -57,7 +57,7 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
         try:
             validator(page.dashboard_settings.get('redirect_to'))
         except ValidationError:
-            url = 'www.secondfunnel.com'
+            url = settings.WEBSITE_BASE_URL
         parts = urlparse(url)
         # missing netloc indicates no protocol was set
         if not url_parts.netloc:
