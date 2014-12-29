@@ -4,17 +4,20 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from collections import defaultdict
 from django.core.exceptions import ValidationError, MultipleObjectsReturned
+from django.db.models import Model
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from urlparse import urlparse
 import cloudinary
 import traceback
 
-from apps.assets.models import Store, Product, Category, Feed
-from apps.scraper.scrapers import ProductScraper, ContentScraper
+from apps.assets.models import Store, Product, Category, Feed, ProductImage
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
 from apps.scrapy.utils.misc import CloudinaryStore
+
+from apps.imageservice.tasks import process_image
+from apps.imageservice.utils import create_image_path
 
 
 class CloudinaryPipeline(ImagesPipeline):
@@ -282,12 +285,65 @@ class ProductImagePipeline(object):
     def process_product_image(self, item, image_url, remove_background=False):
         store = item['store']
         product = item['sku']
-        ProductScraper.process_image(image_url, product, store, remove_background=remove_background)
+
+        if not isinstance(product, Model):
+            product = Product.objects.get(sku=product, store_id=store.id)
+
+        # Doesn't this mean that if we ever end up seeing the same URL twice,
+        # then we'll create new product images if the product differs?
+        try:
+            image = ProductImage.objects.get(original_url=image_url, product=product)
+        except ProductImage.DoesNotExist:
+            image = ProductImage(original_url=image_url, product=product)
+
+        # this image needs to be uploaded
+        if not (image.url and image.file_type):
+            print('\nprocessing image - ' + image_url)
+            data = process_image(image_url, create_image_path(store.id),
+                                 remove_background=remove_background)
+            image.url = data.get('url')
+            image.file_type = data.get('format')
+            image.dominant_color = data.get('dominant_colour')
+
+            image.attributes['sizes'] = data['sizes']
+
+            # save the image
+            image.save()
+
+            if product and not product.default_image:
+                product.default_image = image
+                product.save()
+        else:
+            print('\nimage has already been processed')
+
+        print(image.to_json())
+
+        return image
 
 
 class ContentImagePipeline(object):
     def process_item(self, item, spider):
         if isinstance(item, ScraperImage):
             if item.get('source_url', False):
-                item = ContentScraper.process_image(item['source_url'], item, item['store'])
+                item = self.process_image(item['source_url'], item, item['store'])
         return item
+
+    def process_image(self, source_url, image, store, remove_background=False):
+        if image.get('url', False) and image.get('file_type', False) and image.get('source_url', False):
+            return image
+
+        print('')
+        print('processing image - ' + source_url)
+        data = process_image(source_url, create_image_path(store.id), remove_background=remove_background)
+        image['url'] = data.get('url')
+        image['file_type'] = data.get('format')
+        image['dominant_color'] = data.get('dominant_colour')
+        image['source_url'] = source_url
+        if not image.get('attributes', False):
+            image['attributes'] = {}
+        try:
+            image['attributes']['sizes'] = data['sizes']
+        except KeyError:
+            image['attributes']['sizes'] = {}
+
+        return image

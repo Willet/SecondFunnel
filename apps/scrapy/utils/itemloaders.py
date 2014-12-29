@@ -1,9 +1,17 @@
+import bleach
 from scrapy.contrib.loader import ItemLoader, Identity
 from scrapy.contrib.loader.processor import TakeFirst, Compose
-from apps.scraper.scrapers import Scraper
+
 from apps.scrapy.utils.misc import str_to_boolean
 from apps.scrapy.utils.processors import MergeDicts
 
+def sanitize_html(html):
+    allowed_tags = ['div', 'ul', 'ol', 'li', 'p', ]
+    allowed_attrs = {
+        '*': [],
+    }
+    return bleach.clean(html, tags=allowed_tags, attributes=allowed_attrs,
+                        strip=True)
 
 class ScraperProductLoader(ItemLoader):
     """
@@ -23,9 +31,9 @@ class ScraperProductLoader(ItemLoader):
 
     name_in = Compose(TakeFirst(), unicode.strip)
 
-    description_in = Compose(TakeFirst(), Scraper._sanitize_html)
+    description_in = Compose(TakeFirst(), sanitize_html)
 
-    details_in = Compose(TakeFirst(), Scraper._sanitize_html)
+    details_in = Compose(TakeFirst(), sanitize_html)
 
     attributes_out = MergeDicts()
 
@@ -40,8 +48,8 @@ class ScraperContentLoader(ItemLoader):
 
     name_in = Compose(TakeFirst(), unicode.strip)
 
-    description_in = Compose(TakeFirst(), Scraper._sanitize_html)
+    description_in = Compose(TakeFirst(), sanitize_html)
 
-    details_in = Compose(TakeFirst(), Scraper._sanitize_html)
+    details_in = Compose(TakeFirst(), sanitize_html)
 
     attributes_out = MergeDicts()
