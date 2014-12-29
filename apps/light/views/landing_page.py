@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from urlparse import urlparse, urlunsplit
+from urlparse import urlparse
 import random
 
 from django.conf import settings
