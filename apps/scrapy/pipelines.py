@@ -298,7 +298,7 @@ class ProductImagePipeline(object):
 
         # this image needs to be uploaded
         if not (image.url and image.file_type):
-            print('\nprocessing image - ' + image_url)
+            print '\nprocessing image - ' + image_url
             data = process_image(image_url, create_image_path(store.id),
                                  remove_background=remove_background)
             image.url = data.get('url')
@@ -314,9 +314,9 @@ class ProductImagePipeline(object):
                 product.default_image = image
                 product.save()
         else:
-            print('\nimage has already been processed')
+            print '\nimage has already been processed')
 
-        print(image.to_json())
+        print image.to_json()
 
         return image
 
@@ -332,8 +332,7 @@ class ContentImagePipeline(object):
         if image.get('url', False) and image.get('file_type', False) and image.get('source_url', False):
             return image
 
-        print('')
-        print('processing image - ' + source_url)
+        print '\nprocessing image - ' + source_url
         data = process_image(source_url, create_image_path(store.id), remove_background=remove_background)
         image['url'] = data.get('url')
         image['file_type'] = data.get('format')
