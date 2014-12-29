@@ -55,14 +55,14 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
         url = page.dashboard_settings.get('redirect_to')
         validator = URLValidator()
         try:
-            validator(page.dashboard_settings.get('redirect_to'))
+            validator(url)
         except ValidationError:
             url = settings.WEBSITE_BASE_URL
         parts = urlparse(url)
         # missing netloc indicates no protocol was set
         if not url_parts.netloc:
             url = '//' + url
-        return HttpResponseRedirect(page.dashboard_settings.get('redirect_to'))
+        return HttpResponseRedirect(url)
     
     #
     # Lookup Product for Shop-The-Look style pages
