@@ -6,9 +6,16 @@
 </head>
 <body>
     <div class="sidebar">
-        <ul class="stores-list">Stores
+        <ul class="stores-list">
             {% for store in stores %}
-                <li><a href="/scrapy/{{store.slug}}/">{{store.name}}</a></li>
+                <li>
+                    {{store.name}}
+                    <ul class="page-list">
+                        {% for page in store.pages %}
+                            <li><a href="/scrapy/{{page.url_slug}}/">{{page.name}}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
             {% endfor %}
         </ul>
     </div>

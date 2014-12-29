@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block storename %}
+<div class="page-info">
+    <span class="page-name">Page: {{page.name}}</span>
+    <span class="store-name">Store: {{page.store.name}}</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<script type="text/javascript">
+    var page = "{{page.url_slug}}";
+</script>
+<script type="text/javascript" src="{% static 'scrapy/main.js' %}"></script>
+
+<div class="csv">
+    <p>Put the contents of a CSV file here.</p>
+    <p>Format: [URL, category, priority] <span class="warning"></span></p>
+    <textarea id="pseudo-spreadsheet"></textarea>
+</div>
+
+<div class="options">
+    <p>Choose delimiter: <input id="delimiter" type="text" name="delimiter" value="," /></p>
+    <p>
+        Create tiles?
+        <input id="create-tiles" type="checkbox" name="create-tiles" value="false" />
+        <br />
+        Note: Tiles will not be created if they already exist.
+    </p>
+    <input id="run" type="button" onclick="run()" value="RUN!!!!" />
+</div>
+
+{% endblock %}

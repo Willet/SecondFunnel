@@ -1,9 +1,10 @@
 import json
 import urlparse
+from multiprocessing import Process
 
 from django.http import HttpResponse, Http404
 from django.conf import settings as django_settings
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from twisted.internet import reactor
 
 from scrapy import log as scrapy_log, signals
@@ -11,58 +12,75 @@ from scrapy.crawler import Crawler
 from scrapy.settings import CrawlerSettings
 from scrapy.utils.project import get_project_settings
 
-from apps.assets.models import Page, Store
+from apps.assets.models import Page, Store, Product
 
-stores = Store.objects.all()
+stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
+
 def index(request):
-    return render(request, 'index.html', {'stores': stores})
+    """"Home" page.  does nothing."""
 
-def store(request, store_slug):
-    try:
-        store = stores.get(slug=store_slug)
-    except:
-        raise Http404
+    data = {
+        'stores': stores,
+    }
+    return render(request, 'index.html', data)
 
-    return render(request, 'store.html', {'store': store, 'stores': stores})
+def page(request, page_slug):
+    """This page is where scrapers are run from"""
 
-def scrape(request, store_slug):
-    #from twisted.internet import reactor
-    
-    category = request.GET.get('category')
-    urls = json.loads(urlparse.unquote(request.GET.get('urls')))
-    #raise Exception(urls)
-    # set up scrapy crawler
-    settings = get_project_settings()
-    # CrawlerSettings()
-    # settings.settings_module = django_settings.SCRAPY_SETTINGS_MODULE
-    crawler = Crawler(settings)
-    crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
-    crawler.configure()
-    #return HttpResponse(json.dumps(settings.__dict__, default=lambda x: ''), content_type="application/json")
+    page = get_object_or_404(Page, url_slug=page_slug)
+    data = {
+        'page': page,
+        'stores': stores,
+    }
+    return render(request, 'page.html', data)
 
-    spider = crawler.spiders.create(store_slug)
-    spider.start_urls = urls
-    spider.categories = [category]
-    crawler.crawl(spider)
-    scrapy_log.start()
-    crawler.start()
+def scrape(request, page_slug):
+    """callback for running a spider"""
 
-    reactor.run()
+    page = get_object_or_404(Page, url_slug=page_slug)
+    def process(request, store_slug):
+        category = request.GET.get('category')
+        urls = json.loads(urlparse.unquote(request.GET.get('urls')))
+        tiles = request.GET.get('tiles')
+        feeds = [Page.objects.get(url_slug=request.GET.get('page')).feed.id] if tiles else []
 
+        settings = get_project_settings()
+        crawler = Crawler(settings)
+        crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
+        crawler.configure()
 
-    def default(x):
-        if type(x).__name__ == 'module':
-            return x.__dict__.keys()
-        return type(x).__name__
-    #response = json.dumps(crawler.__dict__, default=default)
+        spider = crawler.spiders.create(store_slug)
+        spider.start_urls = urls
+        spider.categories = [category]
+        spider.feed_ids = feeds
+        crawler.crawl(spider)
+        scrapy_log.start()
+        crawler.start()
 
-    response = json.dumps(crawler.stats.get_stats(), default=lambda x: "(fake)")
+        reactor.run()
 
-    return HttpResponse(response, content_type="application/json")
+    p = Process(target=process, args=[request, page.store.slug])
+    p.start()
+    p.join()
 
+    return HttpResponse(status=204)
 
-def log(request, store_slug, filename=None):
+def prioritize(request, page_slug):
+    """callback for prioritizing tiles, if applicable"""
+
+    cat = json.loads(urlparse.unquote(request.GET.get('cat')))
+    urls = cat['urls']
+    priorities = cat['priorities']
+    for i, url in enumerate(urls):
+        prods = Product.objects.filter(url=url)
+        for prod in prods:
+            for tile in prod.tiles.all():
+                tile.priority = priorities[i]
+                tile.save()
+    return HttpResponse(status=404)
+
+def log(request, page_slug, filename=None):
     return HttpResponse("<html><body>asdf3</body></html")
 
-def summary(request, store_slug, filename=None):
+def summary(request, page_slug, filename=None):
     return HttpResponse("<html><body>asdf4</body></html")
