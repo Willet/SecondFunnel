@@ -1,3 +1,5 @@
+# temporary, used for data migration
+
 import re
 price_pattern = re.compile('\d+.\d{0,2}')
 
