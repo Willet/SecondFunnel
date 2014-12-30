@@ -271,10 +271,8 @@ class Product(BaseModel):
     details = models.TextField(blank=True, null=True, default="")
     url = models.TextField()
     sku = models.CharField(max_length=255)
-    price = models.CharField(max_length=16)  # DEFER: could make more sense to be an integer (# of cents)
-                                             # ... or, maybe a composite field with currency too
-    # temporary field
-    price1 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     sale_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     currency = models.CharField(max_length=5, default="$")
 
