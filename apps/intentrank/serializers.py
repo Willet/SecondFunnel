@@ -56,6 +56,8 @@ class PageSerializer(IRSerializer):
             'layout':               getattr(page, 'layout', 'hero'),
             'description':          getattr(page, 'description', ''),
             'openInNewWindow':      getattr(page, 'openInNewWindow', True),
+            'openTileInPopup':      getattr(page, 'openInNewWindow', True),
+            'openProductTileInPDP': getattr(page, 'openProductTileInPDP', False),
             'stickyCategories':     getattr(page, 'stickyCategories', False),
             'showSharingCount':     getattr(page, 'showSharingCount', False),
             'masonry': {

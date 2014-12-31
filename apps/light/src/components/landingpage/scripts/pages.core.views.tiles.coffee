@@ -97,7 +97,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             #
 
-            if App.option("openTileInPopup", false)
+            if App.option("page:openTileInPopup", false)
                 if App.option("tilePopupUrl")
                     # override for ad units whose tiles point to our pages
                     url = App.option("tilePopupUrl")
@@ -232,10 +232,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.ProductTileView extends module.TileView
         template: "#product_tile_template"
 
-
         onClick: ->
-        	if App.option('openProductInPDP')
-        		App.utils.openUrl( @model.get("redirect-url"))
+        	if App.option('page:openProductTileInPDP')
+        		App.utils.openUrl(@model.get("redirect-url"))
         	else
         		# TODO: this is psuedo-code
         		parentClass.onClick()
