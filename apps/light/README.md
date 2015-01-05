@@ -24,7 +24,9 @@ django then reads this directory as a template folder for static page generation
 ## Gulp
 
 `gulp build` to generate static pages once
+
 `gulp dev` to run an autoreload server for development (live css, reload on js + html changes)
+
 `gulp vagrant-dev` to run an autoreload server for development within Vagrant
 
 ## Directory Structure
