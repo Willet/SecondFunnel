@@ -14,7 +14,7 @@ django then reads this directory as a template folder for static page generation
 
 ## Install in apps/light directory
 
-1. Change directory to `/secondfunnel/apps/light`
+1. Change directory to `/secondfunnel/app/apps/light`
 2. Install [node](http://nodejs.org/) using `sudo apt-get install node`
 3. Setup your environment PATH to include "node\_modules/bin" (already done on Linux)
 4. Install [NPM](https://www.npmjs.org/) by running `sudo npm install`
