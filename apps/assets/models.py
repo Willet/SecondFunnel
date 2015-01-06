@@ -783,12 +783,12 @@ class Page(BaseModel):
         super(Page, self).__init__(*args, **kwargs)
         # self._theme_settings is a merged theme_settings with defaults
         if not self.theme_settings:
-            self._theme_settings = {}
+            self._theme_settings = { key: default for (key, default) in self.theme_settings_fields }
         else:
             self._theme_settings = self.theme_settings.copy()
-        for (key, default) in self.theme_settings_fields:
-            if not key in self.theme_settings:
-                self._theme_settings[key] = default
+            for (key, default) in self.theme_settings_fields:
+                if not key in self.theme_settings:
+                    self._theme_settings[key] = default
 
     def __getattr__(self, name):
         try:
