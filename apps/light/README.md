@@ -14,15 +14,20 @@ django then reads this directory as a template folder for static page generation
 
 ## Install in apps/light directory
 
-1. Install [node](http://nodejs.org/) using `sudo apt-get install node`
-2. Setup your environment PATH to include "node\_modules/bin" (already done on Linux)
-3. Install [NPM](https://www.npmjs.org/) by running `sudo npm install`
-4. Install [Bower](http://bower.io/) by running `bower install`
-5. Register CoffeeScript by running `gulp --require coffee-script/register dev`
+1. Change directory to `/secondfunnel/app/apps/light`
+2. Install [node](http://nodejs.org/) using `sudo apt-get install node`
+3. Setup your environment PATH to include "node\_modules/bin" (already done on Linux)
+4. Install [NPM](https://www.npmjs.org/) by running `sudo npm install`
+5. Install [Bower](http://bower.io/) by running `bower install`
+6. Register CoffeeScript by running `gulp --require coffee-script/register dev`
 
 ## Gulp
 
+`gulp build` to generate static pages once
+
 `gulp dev` to run an autoreload server for development (live css, reload on js + html changes)
+
+`gulp vagrant-dev` to run an autoreload server for development within Vagrant
 
 ## Directory Structure
 

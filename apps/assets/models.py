@@ -271,8 +271,10 @@ class Product(BaseModel):
     details = models.TextField(blank=True, null=True, default="")
     url = models.TextField()
     sku = models.CharField(max_length=255)
-    price = models.CharField(max_length=16)  # DEFER: could make more sense to be an integer (# of cents)
-                                             # ... or, maybe a composite field with currency too
+
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    currency = models.CharField(max_length=5, default="$")
 
     default_image = models.ForeignKey('ProductImage', related_name='default_image',
                                       blank=True, null=True, on_delete=models.SET_NULL)
@@ -781,12 +783,12 @@ class Page(BaseModel):
         super(Page, self).__init__(*args, **kwargs)
         # self._theme_settings is a merged theme_settings with defaults
         if not self.theme_settings:
-            self._theme_settings = {}
+            self._theme_settings = { key: default for (key, default) in self.theme_settings_fields }
         else:
             self._theme_settings = self.theme_settings.copy()
-        for (key, default) in self.theme_settings_fields:
-            if not key in self.theme_settings:
-                self._theme_settings[key] = default
+            for (key, default) in self.theme_settings_fields:
+                if not key in self.theme_settings:
+                    self._theme_settings[key] = default
 
     def __getattr__(self, name):
         try:
