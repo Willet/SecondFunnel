@@ -97,7 +97,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             #
 
-            if App.option("page:openTileInPopup", false)
+            if App.option("page:tiles:openTileInPopup", false)
                 if App.option("tilePopupUrl")
                     # override for ad units whose tiles point to our pages
                     url = App.option("tilePopupUrl")
@@ -140,6 +140,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 image: true
                 youtube: true
                 banner: false
+                product: false
             )
             columnDetails =
                 1: ""
@@ -234,14 +235,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onClick: ->
         	if App.option('page:openProductTileInPDP')
-        		App.utils.openUrl(@model.get("redirect-url"))
+        		App.utils.openUrl @model.get("redirect-url")
         	else
-        		# TODO: this is psuedo-code
-        		parentClass.onClick()
+        		super
 
 
     class module.ImageTileView extends module.TileView
         template: "#image_tile_template"
+
+        onClick: ->
+            super
 
 
     class module.VideoTileView extends module.TileView

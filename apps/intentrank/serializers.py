@@ -56,10 +56,12 @@ class PageSerializer(IRSerializer):
             'layout':               getattr(page, 'layout', 'hero'),
             'description':          getattr(page, 'description', ''),
             'openInNewWindow':      getattr(page, 'openInNewWindow', True),
-            'openTileInPopup':      getattr(page, 'openInNewWindow', True),
-            'openProductTileInPDP': getattr(page, 'openProductTileInPDP', False),
             'stickyCategories':     getattr(page, 'stickyCategories', False),
             'showSharingCount':     getattr(page, 'showSharingCount', False),
+            'tiles': {
+                'openTileInPopup':      getattr(page, 'tiles', {}).get('openTileInPopup', True),
+                'openProductTileInPDP': getattr(page, 'tiles', {}).get('openProductTileInPDP', False),
+            }
             'masonry': {
                 'transitionDuration': getattr(page, 'masonry', {}).get('transitionDuration', '0.4s'),
                 # minimum number of columns on desktop for masonry
