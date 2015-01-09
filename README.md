@@ -7,33 +7,7 @@ into shoppers. Additional information on the project can be found
 Installation
 ------------
 
-1. Download and Install [Vagrant](http://www.vagrantup.com/)
-2. Download and Install [VirtualBox](https://www.virtualbox.org/)
-2. Download and Install [pip](http://pip.readthedocs.org)
-```
-    wget https://bootstrap.pypa.io/get-pip.py
-    python get-pip.py
-```
-3. Download and Install [Ansible](http://docs.ansible.com/intro_installation.html)
-```
-    pip install ansible
-```
-4. Add `export PATH=node_modules/.bin:$PATH` to your `.bashrc/.zshrc`
-5. Build a local vagrant instance (this may take a while to provision, feel free to walk away, have a coffee, smoke a cigarette, reddit)
-
-    `vagrant up`
-    `ssh willet@127.0.0.1 -p 2222`
-    `honcho start gulp` # this task does not finish, it autoreloads your browser etc, watch it for compilation failures
-
-And voila! The server should be available [here](http://localhost:8000) ; note you should be redirect to www.secondfunnel.com
-
-An NGINX server (exactly like production) is running inside the vagrant box, and auto-reloading of code should work seamlessly.
-
-gulp runs on your local box and monitors light's assets and recompiles + reloads your browser if necessary.
-
-You may also want to import productions data as a seed to your vagrant box, the simplest way to do that is:
-
-    `ansible-playbook -i .vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory ansible/db_data_import.yml -e app_environment=production`
+See the super useful [Setup Environment wiki](https://github.com/Willet/SecondFunnel/wiki/Environment-Setup).
 
 Structure
 ---------
