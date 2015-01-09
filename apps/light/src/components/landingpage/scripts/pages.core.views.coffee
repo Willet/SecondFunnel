@@ -4,9 +4,6 @@ imagesLoaded = require('imagesLoaded')
 require("jquery-waypoints") # register $.fn.waypoint
 require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
 
-# Import submodule
-require("./pages.core.views.tiles")
-
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     $window = $(window)
     $document = $(document)
@@ -507,7 +504,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     unless $el.hasClass 'selected' and not $subCatEl.hasClass 'selected'
                         @selectCategoryEl($el)
 
-                        App.router.navigate(category,
+                        App.router.navigate("category/#{category}",
                             trigger: true
                         )
                 return false # stop propogation
@@ -536,7 +533,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     else
                         switchCategory = subCategory['name']
 
-                    App.router.navigate(switchCategory,
+                    App.router.navigate("category/#{switchCategory}",
                         trigger: true
                     )
                 return false # stop propogation

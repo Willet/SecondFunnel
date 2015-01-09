@@ -180,7 +180,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             resp.caption = App.utils.safeString(resp.caption or "")
 
             # https://therealwillet.hipchat.com/history/room/115122#17:48:02
-            if App.option('adForceTwoColumns', false)
+            if App.option('ad:forceTwoColumns', false)
                 resp.orientation = 'portrait'
 
             resp

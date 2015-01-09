@@ -9,12 +9,66 @@
  * @param app
  */
 module.exports = function (module, App, Backbone, Marionette, $, _) {
+
+	// Route app to home
+	var return_home = function () {
+		if (App.option('debug', false)) {
+            console.error('Router failed to find tile, redirecting to home');
+        }
+
+        App.previewLoadingScreen.hide();
+        App.previewArea.close();
+
+        App.router.navigate('', {
+            trigger: true,
+            replace: true
+        });
+    };
+
+    // Attempt to retrieve tile, then execute success_cb or failure_cb
+    // tileId - 
+    // success_cb - <function> (<Tile>)
+    // failure_cb - <function>: ()
+    var get_tile = function (tileId, success_cb, failure_cb) {
+    	var isNumber = /^\d+$/.test(tileId);
+
+        if (isNumber) {
+            if (App.option('debug', false)) {
+                console.warn('Router opening tile preview: '+tileId);
+            }
+            var tile = App.discovery && App.discovery.collection ?
+                App.discovery.collection.tiles[tileId] :
+                undefined;
+
+            if (tile !== undefined) {
+                success_cb(tile);
+                return;
+            }
+
+            console.debug('tile not found, fetching from IR.');
+
+            tile = new App.core.Tile({
+                'tile-id': tileId
+            });
+
+            tile.fetch().done(function () {
+                var TileClass = App.utils.findClass('Tile',
+                        tile.get('type') || tile.get('template'), App.core.Tile);
+                tile = new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()));
+
+                success_cb(tile);
+            }).fail(failure_cb);
+        } else {
+        	failure_cb();
+        }
+	};
+
 	// Hook to add routes before initialization
 	module.AppRouter = Backbone.Router.extend({
 		routes: {
 			'': 					 'home',
-			':tile_id':				 'preview', // deprecating for /tile/:tile_id
-			'preview/:tile_id': 	 'preview',
+			'tile/:tile_id':  		 'tile', // tile hero area
+			'preview/:tile_id': 	 'preview', // preview pop-up
 			'category/:category_id': 'category'
 		},
 		home: function () {
@@ -33,7 +87,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	            }
 	        }
 
-	        //Setting that we have been home
+	        // Setting that we have been home
 	        if (App.initialPage) {
 	            App.initialPage = '';
 	        }
@@ -41,71 +95,50 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	        App.previewArea.close();
 	        App.intentRank.changeCategory('');
 	    },
+	    tile: function (tileId) {
+	    	App.utils.postExternalMessage(JSON.stringify({
+	            'type': 'hash_change',
+	            'hash': window.location.hash
+	        }));
+
+	        var hero_tile = function (tile) {
+	        	var heroArea = new App.core.HeroAreaView(tile.attributes);
+	            App.heroArea.show(heroArea);
+	        }
+
+	        // Ensure any preview area is closed
+	        App.previewArea.close();
+	        get_tile(tileId, feature_tile, return_home);
+	    },
 	    preview: function (tileId) {
 	        App.utils.postExternalMessage(JSON.stringify({
 	            'type': 'hash_change',
 	            'hash': window.location.hash
 	        }));
-	        var isNumber = /^\d+$/.test(tileId);
 
-	        if (isNumber) { // Preview the tile
-	            if (App.option('debug', false)) {
-	                console.warn('Router opening tile preview: '+tileId);
-	            }
-	            var tile = App.discovery && App.discovery.collection ?
-	                App.discovery.collection.tiles[tileId] :
-	                undefined;
+	        var preview_tile = function (tile) {
+	        	var preview = new App.core.PreviewWindow({
+                    'model': tile
+                });
+                App.previewArea.show(preview);
+            };
 
-	            App.previewLoadingScreen.show();
-
-	            if (tile !== undefined) {
-	                var preview = new App.core.PreviewWindow({
-	                    'model': tile
-	                });
-	                App.previewArea.show(preview);
-	                return;
-	            }
-
-	            console.debug('tile not found, fetching from IR.');
-
-	            tile = new App.core.Tile({
-	                'tile-id': tileId
-	            });
-
-	            tile.fetch().done(function () {
-	                var TileClass = App.utils.findClass('Tile',
-	                        tile.get('type') || tile.get('template'), App.core.Tile);
-	                tile = new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()));
-
-	                var preview = new App.core.PreviewWindow({
-	                    'model': tile
-	                });
-	                App.previewArea.show(preview);
-	            }).fail(function () {
-	                App.previewLoadingScreen.hide();
-	                App.router.navigate('', {
-	                    trigger: true,
-	                    replace: true
-	                });
-	            });
-	        } else { 
-	        	// DEPRECATE THIS: Change category
-	            var category = tileId;
-	            if (App.option('debug', false)) {
-		            console.error('Router changing category: ' + category);
-		        }
-		        // Ensure any preview area is closed
-		        App.previewArea.close();
-		        App.intentRank.changeCategory(category);
-	        }
+            App.previewLoadingScreen.show();
+            get_tile(tileId, preview_tile, return_home);
 	    },
 	    category: function (category) {
+	    	App.utils.postExternalMessage(JSON.stringify({
+	            'type': 'hash_change',
+	            'hash': window.location.hash
+	        }));
+	        // Ensure any preview area is closed
+	        App.previewArea.close();
+
 			if (category) {
 		        if (App.option('debug', false)) {
 		            console.error('Router changing category: ' + category);
 		        }
-		        // Ensure any preview area is closed
-		        App.previewArea.close();
+		        
 
 		        // Update regions
 		        // this emits a 'category:change' event that triggers updates

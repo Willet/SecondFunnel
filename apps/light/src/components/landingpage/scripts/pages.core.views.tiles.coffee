@@ -1,10 +1,10 @@
 "use strict"
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
-	###
+    ###
     View for showing a Tile (or its extensions).
     This Layout contains socialButtons and tapIndicator regions.
-
+    
     @constructor
     @type {Layout}
     ###
@@ -91,43 +91,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onClick: (ev) ->
             tile = @model
-            # open tile in popup
 
-            # open tile in new hero area
-
-            #
-
-            if App.option("page:tiles:openTileInPopup", false)
-                if App.option("tilePopupUrl")
-                    # override for ad units whose tiles point to our pages
-                    url = App.option("tilePopupUrl")
-                else if tile.get("template") is "product"
-                    url = tile.get("url")
-                else if tile.get("tagged-products") and tile.get("tagged-products").length
-                    url = tile.get("tagged-products")[0].url
-                # missing schema
-                if url.indexOf("http") is -1 and App.store.get("slug")
-                    url = "http://" + App.store.get("slug") + ".secondfunnel.com" + url
-
-                if url and url.length
-                    sku = tile.get("sku")
-                    tileId = tile.get("tile-id")
-
-                    if App.option('hashPopupRedirect', false) and tileId
-                        url += "#" + tileId
-                    else
-                        if tileId
-                            url += "/tile/" + tileId
-                        else if sku
-                            url += "/sku/" + sku
-                    App.utils.openUrl url
+            # clicking on social buttons is not clicking on the tile
+            # this is a dirty check
+            if $(ev.target).parents(".button").length
                 return
 
-            # clicking on social buttons is not clicking on the tile.
-            unless $(ev.target).parents(".button").length
-                App.router.navigate String(tile.get("tile-id")),
-                    trigger: true
-
+            # open tile in hero area
+            else if App.option("page:tiles:openTileInHero", false)
+                App.router.navigate "tile/#{String(tile.get('tile-id'))}", trigger: true
+            # open tile in popup
+            else
+                App.router.navigate "preview/#{String(tile.get('tile-id'))}", trigger: true
+            
             return
 
 
@@ -136,7 +112,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         onBeforeRender: ->
             normalTileWidth = App.layoutEngine.width()
-            wideableTemplates = App.option("wideableTemplates",
+            wideableTemplates = App.option("page:tiles:wideableTemplates",
                 image: true
                 youtube: true
                 banner: false
@@ -152,7 +128,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # templates use this as obj.image.url
             @model.set "image", @model.get("defaultImage")
             wideable = wideableTemplates[@model.get("template")]
-            showWide = (Math.random() < App.option("imageTileWide", 0.5))
+            showWide = (Math.random() < App.option("page:tiles:imageTileWideProb", 0.5))
             if _.isNumber(@model.get("colspan"))
                 columns = @model.get("colspan")
             else if wideable and showWide
@@ -230,21 +206,52 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
 
+    ###
+    View for Product Tile
+    A product tile displays one product
+
+    @constructor
+    @type {Layout}
+    ###
     class module.ProductTileView extends module.TileView
         template: "#product_tile_template"
 
         onClick: ->
-        	if App.option('page:openProductTileInPDP')
-        		App.utils.openUrl @model.get("redirect-url")
-        	else
-        		super
+        	if App.option('page:tiles:openProductTileInPDP')
+                App.utils.openUrl @model.get("url")
+            else
+                super
+            return
 
 
+    ###
+    View for Image Tile
+    An image tile is an image that is tagged with one or more products
+
+    @constructor
+    @type {Layout}
+    ###
     class module.ImageTileView extends module.TileView
         template: "#image_tile_template"
 
+
+    ###
+    View for Banner Tile
+    A banner tile is any piece of content that links to a 3rd party site
+    To be used sparingly to achieve client requests
+
+    @constructor
+    @type {Layout}
+    ###
+    class module.BannerTileView extends module.TileView
+        template: "#image_tile_template"
+
         onClick: ->
-            super
+            if @model.get("redirect-url")
+                App.utils.openUrl @model.get("redirect-url")
+            else
+                super
+            return
 
 
     class module.VideoTileView extends module.TileView

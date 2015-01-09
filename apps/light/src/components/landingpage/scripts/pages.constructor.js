@@ -229,7 +229,8 @@ Cloudinary.config({ 'cloud_name': 'secondfunnel', 'api_key': '471718281466152' }
 App.CLOUDINARY_DOMAIN = 'http://' + Cloudinary.SHARED_CDN + '/' + Cloudinary.config().cloud_name + '/image/upload/';
 
 /**
- * Seupt Application Modules
+ * Setup Application Modules
+ * Order matters
  */
 App.module('utils', require('pages.utils'));
 // TODO: widgets are messed up dude
@@ -237,6 +238,7 @@ App.utils.registerWidget('gallery', '.gallery, .gallery-dots', require('pages.wi
 App.module('core', require('pages.core'));
 App.module('intentRank', require('pages.intentrank'));
 App.module('core', require('pages.core.models'));
+App.module('core', require('pages.core.views.tiles'));
 App.module('core', require('pages.core.views'));
 App.module('support', require('pages.support'));
 App.module('feed', require('pages.core.feed'));

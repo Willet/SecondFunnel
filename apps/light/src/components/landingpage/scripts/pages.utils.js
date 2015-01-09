@@ -307,7 +307,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @returns {string}
      */
     module.openInWindow = function () {
-        return App.option("page:openInNewWindow", true) ? "_blank" : "_self";
+        return App.option("page:openLinksInNewWindow", true) ? "_blank" : "_self";
     };
 
     /**
