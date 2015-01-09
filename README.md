@@ -19,7 +19,6 @@ The SecondFunnel project is broken into different folders for the application.
 - `apps`: Applications and common code
     - `analytics`: Our analytics framework for tracking users
     - `assets`: Common models and functions used across applications
-    - `pinpoint`: (deprecated) Th old landing pages, and feeds
     - `dashboard`: A dashboard to show all analytics gathered to the end user
     - `api`: The base API used by various of our front-end services
     - `intentrank`: A system used for ordering content in feeds for our components
@@ -33,7 +32,7 @@ The SecondFunnel project uses Epydocs for documenting code.  For procedural and 
 
 The SecondFunnel project has a few primary components:
 * [**API**](.#-api): The backbone of the SecondFunnel project; provides an API for requesting and serving content.
-* [**Pinpoint (Pages)**](.#-pages): The front-end javascript; manages how content is arranged on the pinpoint pages, services API queries to IntentRank and handles interactions between the user and the pinpoint pages.
+* [**Light (Pages)**](.#-pages): The front-end javascript; manages how content is arranged on the discovery page or ad, services API queries to IntentRank and handles interactions between the user and the pinpoint pages.
 * [**IntentRank**](.#intentrank):  Provides Pages with products and content (in the form of "Tiles").
 * [**Analytics**](.#-analytics): An analytics framework for tracking how users interact with the pinpoint pages.
 
