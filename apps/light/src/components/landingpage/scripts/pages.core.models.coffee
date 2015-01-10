@@ -617,7 +617,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         model: module.Category
 
         initialize: ->
-            @on 'add, remove, reset': _.debounce(@generateNameModelMap, 100)
+            @listenTo(@, 'add, remove, reset', _.debounce(@generateNameModelMap, 100))
         
         generateNameModelMap: ->
             ###
