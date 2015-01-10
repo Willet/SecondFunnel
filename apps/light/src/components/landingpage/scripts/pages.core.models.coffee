@@ -554,7 +554,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         url: ->
             url = undefined
-            category = App.intentRank.category
+            category = App.intentRank.currentCategory()
             url = "#{@config.apiUrl}/page/#{@config.campaign}/getresults?results=#{@config.results}"
             if category
                 return url + "&category=" + encodeURIComponent(category)

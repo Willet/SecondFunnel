@@ -292,7 +292,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # TODO get rid of App.option("featured"), was used by old /tile/xxx router
             # which is now incorporated with push state
             tile = if not _.isEmpty(data) then data else
-                App.option("featured") or @getCategoryHeroImages App.intentRank.category
+                App.option("featured") or @getCategoryHeroImages App.intentRank.currentCategory()
 
             @model = new module.Tile(tile)
             @listenTo App.vent, "windowResize", =>
@@ -364,7 +364,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if App.initialPage is ""
                     Backbone.history.history.back()
                 else
-                    App.router.navigate (App.intentRank.category or ""),
+                    App.router.navigate (App.intentRank.currentCategory() or ""),
                         trigger: true
                         replace: true
                 return
@@ -604,8 +604,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onRender: ->
             App.vent.once 'finished', ->
-                if App.intentRank.category
-                    @selectCategory App.intentRank.category
+                if App.intentRank.currentCategory()
+                    @selectCategory App.intentRank.currentCategory()
             return @
 
         ###
