@@ -665,4 +665,4 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return @nameModelMap[name]
 
         categoryExists: (category) ->
-            return Boolean(findModelByName(category))
+            return Boolean(@findModelByName(category))
