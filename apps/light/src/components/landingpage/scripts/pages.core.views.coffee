@@ -289,6 +289,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         the featured product.
         ###
         initialize: (data) ->
+            # TODO get rid of App.option("featured"), was used by old /tile/xxx router
+            # which is now incorporated with push state
             tile = if not _.isEmpty(data) then data else
                 App.option("featured") or @getCategoryHeroImages App.intentRank.category
 
