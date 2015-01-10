@@ -619,16 +619,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: ->
             @on 'add, remove, reset': _.debounce(@generateNameModelMap, 100)
         
+        ###
+        construct a lookup table based on model name
+        {
+          'for-her':          { category: <Category>, ... cat.attributes properties },
+          'for-him':          { category: <Category>, subCategory: 'for-him', ... subCategory properties },
+          'for-him|under-10': { category: <Category>, ... cat.attributes properties },
+          'for-her|under-20': { category: <Category>, subCategory: '|under-20', ... subCategory properties }
+        }
+        ###
         generateNameModelMap: ->
-            ###
-            construct a lookup table based on model name
-            {
-              'for-her':          { category: <Category>, ... cat.attributes properties },
-              'for-him':          { category: <Category>, subCategory: 'for-him', ... subCategory properties },
-              'for-him|under-10': { category: <Category>, ... cat.attributes properties },
-              'for-her|under-20': { category: <Category>, subCategory: '|under-20', ... subCategory properties }
-            }
-            ###
             categoryFlattener = (memo, cat) ->
                 # Add category first, will be overwritten by any subcategory with same name
                 memo[cat.attributes.name] = _.extend {}, cat.attributes,
@@ -648,18 +648,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             @nameModelMap = _.reduce @models, categoryFlattener, {}
         
+        ###
+        Names can be a simple category ('for-her') or complex category ('for-her|under-20')
+        Categories can be a:
+          - self-contained simple category or subcategory ('for-her')
+          - self-contained complex category or sub-category ('for-her|under-20')
+          - filter sub-category ('|under-20'), acts upon its parent category (ie: 'for-her')
+            to become ('for-her|under-20')
+        Note: filters can be arbitrarily chained
+        ###
         findModelByName: (name) ->
-            ###
-            Names can be a simple category ('for-her') or complex category ('for-her|under-20')
-            Categories can be a:
-              - self-contained simple category or subcategory ('for-her')
-              - self-contained complex category or sub-category ('for-her|under-20')
-              - filter sub-category ('|under-20'), acts upon its parent category (ie: 'for-her')
-                to become ('for-her|under-20')
-            Note: filters can be arbitrarily chained
-            ###
             if not @nameModelMap
                 # This seems like a perfect piece of code to be in Model.initialization
                 # except Backbone won't let you hook in *after* the Collection has been set up...
                 @generateNameModelMap()
             return @nameModelMap[name]
+
+        categoryExists: (category) ->
+            return Boolean(findModelByName(category))
