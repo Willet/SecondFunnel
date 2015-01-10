@@ -277,14 +277,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             content: ".content"
 
         getTemplate: ->
-
-            # if page config contains a product, render hero area with a
-            # template that supports it
-            if App.option("featured") isnt undefined and $("#shopthelook_template").length
+            # if the model has a template, let the PreviewContent try to render it
+            # otherwise, assume its just hero images
+            if @model.attributes.template
                 return "#shopthelook_template"
-            "#hero_template"
-
-
+            else
+                return "#hero_template"
+        
         ###
         @param data normal product data, or, if omitted,
         the featured product.
@@ -363,8 +362,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if App.initialPage is ""
                     Backbone.history.history.back()
                 else
-                    hashnav = if App.intentRank.options.category then "#" + App.intentRank.options.category else ""
-                    App.router.navigate hashnav,
+                    App.router.navigate (App.intentRank.category or ""),
                         trigger: true
                         replace: true
                 return
@@ -586,24 +584,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 catOpt = "page:mobileCategories"
             else
                 catOpt = "page:categories"
-            categories = for category in App.option catOpt, []
+            categories = for category in App.option(catOpt, [])
                 if typeof(category) is "string"
                     category = {name: category}
                 category
 
-            if categories.length > 0
-
-                # This specifies that there should be a home button, by default, this is true.
-                if App.option("categoryHome")
-                    if App.option("categoryHome").length
-                        home = App.option("categoryHome")
-                    else
-                        home = ""
-                    categories.unshift {name: home}
-
-                @collection = new module.CategoryCollection categories, model: module.Category
-            else
-                @collection = new module.CategoryCollection [], model: module.Category
+            @collection = new module.CategoryCollection categories, model: module.Category
 
             # Watch for updates to feed, generally from intentRank
             @listenTo App.vent, "change:category", @selectCategory
@@ -617,7 +603,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onRender: ->
             App.vent.once 'finished', ->
                 if App.intentRank.category
-                    @selectCategory category
+                    @selectCategory App.intentRank.category
             return @
 
         ###

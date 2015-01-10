@@ -60,6 +60,8 @@ class PageSerializer(IRSerializer):
             'categories':           may_be_json(page, 'categories', list),
             'mobileCategories':     may_be_json(page, 'mobileCategories', list),
             'stickyCategories':     getattr(page, 'stickyCategories', False),
+            # a string indicating if there should be a home button & category home is
+            'categoryHome':         getattr(page, 'categoryHome', ''),
             # expected format: ["facebook", "twitter", "pinterest", "tumblr"]
             'socialButtons':        may_be_json(page, 'socialButtons', list),
             'showSharingCount':     getattr(page, 'showSharingCount', False),
@@ -157,9 +159,6 @@ class PageConfigSerializer(object):
             'conditionalSocialButtons': getattr(page, 'conditional_social_buttons', {}),
             'urlParams': getattr(page, 'url_params', {}),
 
-            # a string or boolean indicating if there should be a home button /
-            # what the home button should be
-            'categoryHome': getattr(page, 'categoryHome', True),
             # optional; default: true
             'enableTracking': enable_tracking,
             # optional. controls how often tiles are wide.

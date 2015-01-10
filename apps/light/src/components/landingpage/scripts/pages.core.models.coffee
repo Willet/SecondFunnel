@@ -554,7 +554,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         url: ->
             url = undefined
-            category = App.intentRank.options.category
+            category = App.intentRank.category
             url = "#{@config.apiUrl}/page/#{@config.campaign}/getresults?results=#{@config.results}"
             if category
                 return url + "&category=" + encodeURIComponent(category)
@@ -563,8 +563,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: (arrayOfData, url, campaign, results) ->
             @setup url, campaign, results # if necessary
             @tiles = {}
-            @on "add", @itemAdded, this
-            App.vent.trigger "tileCollectionInitialized", this
+            @on "add", @itemAdded, @
+            App.vent.trigger "tileCollectionInitialized", @
             return
 
 
@@ -605,7 +605,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.Category extends Backbone.Model
         url: ->
-            _.template "<%=IRSource%>/page/<%=campaign%>/getresults?results=<%=IRResultsCount&category=<%=name%>", _.extend({}, App.options, @attributes)
+            _.template "<%=IRSource%>/page/<%=campaign%>/getresults?results=<%=IRResultsCount%>&category=<%=name%>", _.extend({}, App.options, @attributes)
 
     ###
     Container for categories, does nothing for now.
@@ -665,4 +665,4 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return @nameModelMap[name]
 
         categoryExists: (category) ->
-            return Boolean(findModelByName(name))
+            return Boolean(@findModelByName(category))

@@ -64,7 +64,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 delete App.discovery;
             }
             // Create our new view
-            App.discovery = new App.feed.MasonryFeedView( App.options );
+            App.discovery = new App.core.MasonryFeedView(App.options);
             App.discoveryArea.show(App.discovery);
 
             // Create categoryArea

@@ -58,7 +58,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return cats
             allCats = _.reduce App.intentRank.options.categories, mergeSubcategories, []   
             category = _.find allCats, (cat) ->
-                return cat.name == App.intentRank.options.category
+                return cat.name == App.intentRank.category
 
             if not category?
                 # If category can't be found, IR will choose the first category

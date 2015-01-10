@@ -92,9 +92,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         }
 
         // normally undefined, unless a category is selected on the page
-        if (module.options.category) {
-            data.category = module.options.category;
-        }
+        data.category = module.category || module.options.category || undefined;
 
         opts = $.extend({}, {
             'results': 10,
@@ -259,25 +257,26 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @return this
      */
     module.changeCategory = function (category) {
-        // If category doesn't exist, try the categoryHome, then try the first category
-        if (!category) {
-            if (App.option('debug', false)) {
+        // If category doesn't exist
+        if (!(category && App.categories.categoryExists(category))) {
+            if (!(category === '') && App.option('debug', false)) {
                 console.error("Invalid category '"+category+"', attempting to load home category");
             }
-            if (App.option("categoryHome")) {
-                category = App.option("categoryHome");
-            } else {
-                category = module.options.categories[0].name;
+            // try the categoryHome
+            category = App.option("page:categoryHome");
+
+            if (!App.categories.categoryExists(category)) {
+                // categoryHome is either any empty string or something rotten, lets go with empty string
+                if (App.option('debug', false)) {
+                    console.error("Could not find category '"+category+"', loading feed without category");
+                }
+                // load feed without a category
+                category = '';
             }
         }
-
-        // Check that the category exists
-        if (App.categories.categoryExists(category)) {
-            if (App.option('debug', false)) {
-                console.error("Could not change category to '"+category+"': category does not exist");
-            }
-        // And check the category differs from the current category
-        } else if (module.options.category !== category) {
+         
+        // Check the category differs from the current category
+        if (module.category === category) {
             if (App.option('debug', false)) {
                 console.warn("Could not change category to '"+category+"'': category already selected");
             }
@@ -285,14 +284,14 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             // Change to valid category
             $(".loading").show();
 
-            module.options.category = category;
+            module.category = category;
             module.options.IRReset = true;
             App.tracker.changeCategory(category);
             App.vent.trigger('change:category', category, category);
 
             // We create a new feed each time to ensure the previous
             // feed & tiles are completely unbinded
-            App.discovery = new App.feed.MasonryFeedView( App.options );
+            App.discovery = new App.core.MasonryFeedView(App.options);
             App.discoveryArea.show(App.discovery);
         }
         

@@ -25,16 +25,18 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         });
     };
 
-    // Attempt to retrieve tile, then execute success_cb or failure_cb
-    // tileId - 
-    // success_cb - <function> (<Tile>)
-    // failure_cb - <function>: ()
+    /* 
+     * Attempt to retrieve tile, then execute success_cb or failure_cb
+     *   tileId - <string>
+     *   success_cb - <function> (<Tile>)
+     *   failure_cb - <function>: ()
+     */
     var get_tile = function (tileId, success_cb, failure_cb) {
     	var isNumber = /^\d+$/.test(tileId);
 
         if (isNumber) {
-            if (App.option('debug', false)) {
-                console.warn('Router opening tile preview: '+tileId);
+        	if (App.option('debug', false)) {
+                console.warn('Router getting tile: '+tileId);
             }
             var tile = App.discovery && App.discovery.collection ?
                 App.discovery.collection.tiles[tileId] :
@@ -101,13 +103,14 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	            'hash': window.location.hash
 	        }));
 
-	        var hero_tile = function (tile) {
+	        var feature_tile = function (tile) {
 	        	var heroArea = new App.core.HeroAreaView(tile.attributes);
 	            App.heroArea.show(heroArea);
-	        }
+	        };
 
 	        // Ensure any preview area is closed
 	        App.previewArea.close();
+	        App.previewLoadingScreen.hide();
 	        get_tile(tileId, feature_tile, return_home);
 	    },
 	    preview: function (tileId) {
@@ -138,7 +141,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 		        if (App.option('debug', false)) {
 		            console.error('Router changing category: ' + category);
 		        }
-		        
 
 		        // Update regions
 		        // this emits a 'category:change' event that triggers updates
