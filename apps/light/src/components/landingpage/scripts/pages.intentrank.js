@@ -35,6 +35,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         // Any additional init declarations go here
         var page = options.page || {};
 
+        module._category = '';
+
         _.extend(module.options, {
             'IRSource': options.IRSource || module.IRSource,
             'store': options.store || {},
