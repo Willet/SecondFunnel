@@ -139,7 +139,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
 			if (category) {
 		        if (App.option('debug', false)) {
-		            console.error('Router changing category: ' + category);
+		            console.warn('Router changing category: ' + category);
 		        }
 
 		        // Update regions

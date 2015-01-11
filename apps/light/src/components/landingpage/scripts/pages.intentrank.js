@@ -280,7 +280,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             } else {
                 // categoryHome is no beuno, lets go with empty string
                 if (App.option('debug', false)) {
-                    console.error("No home category, loading feed without category");
+                    console.warn("No home category, loading feed without category");
                 }
                 // load feed without a category
                 category = '';

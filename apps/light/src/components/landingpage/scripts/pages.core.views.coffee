@@ -568,6 +568,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         self = $(@)
                         self.removeClass 'selected'
                         self.find('.sub-category').removeClass 'selected'
+            return @
 
 
     ###
@@ -603,17 +604,28 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return @
 
         onRender: ->
-            App.vent.once 'finished', ->
+            App.vent.once 'finished', =>
                 if App.intentRank.currentCategory()
                     @selectCategory App.intentRank.currentCategory()
             return @
 
+        # Remove the 'selected' class from all category and sub-category elements
+        unselectCategories: ->
+            @$el.find('.selected').removeClass('selected')
+            return @
+
         ###
         Given a category string, find it and select it (add the .selected class)
+        An empty string '' will remove selection from all categories
         Returns boolean if category / sub-category found
+        
         @returns {bool}
         ###
         selectCategory: (category) ->
+            if category == ''
+                # home category
+                @unselectCategories()
+                return true
             try
                 catMapObj = @collection.findModelByName category
                 catView = @children.findByModel(catMapObj.category)
