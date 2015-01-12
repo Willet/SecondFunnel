@@ -290,7 +290,8 @@ gulp.task "dev", [
     gulp.watch sources.fonts, ["fonts"]
     gulp.watch sources.images, ["images"]
     gulp.watch sources.vendor, ["vendor"]
-    $.util.log($.util.colors.blue("Watch'ing html, styles, fonts, images, vendor"))
+    gulp.watch sources.scripts, ["scripts"]
+    $.util.log($.util.colors.blue("Watch'ing html, styles, fonts, images, vendor, scripts"))
     return
 
 gulp.task "vagrant-dev", [
@@ -311,5 +312,5 @@ gulp.task "vagrant-dev", [
         gulp.start ["vendor"], tCollectstatic
     gulp.watch sources.scripts, ->
         gulp.start ["scripts"], tCollectstatic
-    $.util.log($.util.colors.blue("Watch'ing html, styles, fonts, images, vendor"))
+    $.util.log($.util.colors.blue("Watch'ing html, styles, fonts, images, vendor, scripts"))
     return
