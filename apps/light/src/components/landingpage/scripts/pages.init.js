@@ -23,10 +23,10 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         // Toggle with .show() and .hide()
         App.previewLoadingScreen = $('#preview-loading');
 
-        App.vent.on('initRouter', function () {
+        App.vent.on('start'), function () {
             var loc = window.location.href; // reference to current url
             
-            App.router.initialize();
+            App.router.initialize(App.options);
 
             // Making sure we know where we came from.
             App.initialPage = window.location.hash;
@@ -56,6 +56,9 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             // Order matters
             App.store = new App.core.Store(App.options.store);
 
+            // Initialize IntentRank
+            App.intentRank.initialize(App.options);
+
             // Close any existing discoveryArea view
             if(App.discovery && App.discovery.$el) {
                 // Why is this necessary?
@@ -78,8 +81,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 // load the category or default hero image
                 App.heroArea.show(new App.core.HeroAreaView());
             }
-            
-            App.vent.trigger('initRouter', App.options, App);
 
             App.vent.trigger('finished', App.options, App);
         });

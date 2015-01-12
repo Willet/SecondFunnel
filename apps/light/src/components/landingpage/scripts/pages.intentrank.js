@@ -21,10 +21,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         'content': []
     };
 
-    module.on('start', function () {
-        return module.initialize(App.options);
-    });
-
     /**
      * Initializes intentRank.
      *
@@ -34,8 +30,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     module.initialize = function (options) {
         // Any additional init declarations go here
         var page = options.page || {};
-
-        module._category = undefined;
 
         _.extend(module.options, {
             'IRSource': options.IRSource || module.IRSource,
@@ -51,6 +45,9 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             // Use this to intelligently guess what our cache calls should request
             'IRCacheResultCount': options.IRResultsCount || 10
         });
+
+        module._category = category || App.option('categoryHome') || undefined;
+        module.changeCategory(module._category);
 
         App.vent.trigger('intentRankInitialized', module);
         return module;

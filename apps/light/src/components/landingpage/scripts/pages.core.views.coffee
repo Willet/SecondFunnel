@@ -602,7 +602,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.parent().waypoint('sticky')
             
             return @
-
+        
         onRender: ->
             App.vent.once 'finished', =>
                 if App.intentRank.currentCategory()
