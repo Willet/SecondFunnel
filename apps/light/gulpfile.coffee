@@ -36,6 +36,7 @@ sources =
     sass: [
         "src/clients/**/*.scss"
         "src/demo/**/*.scss"
+        "src/components/**/*.scss"
     ]
     images: [
         "src/clients/**/*.{gif,png,jpg,jpeg,svg}"
@@ -308,5 +309,7 @@ gulp.task "vagrant-dev", [
         gulp.start ["images"], tCollectstatic
     gulp.watch sources.vendor, ->
         gulp.start ["vendor"], tCollectstatic
+    gulp.watch sources.scripts, ->
+        gulp.start ["scripts"], tCollectstatic
     $.util.log($.util.colors.blue("Watch'ing html, styles, fonts, images, vendor"))
     return
