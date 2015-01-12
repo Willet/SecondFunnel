@@ -23,12 +23,10 @@ revCollector = require('gulp-rev-collector')
 sources =
     base: "src"
     scripts: [
-        "src/components/ad/scripts/*.js"
-        "src/components/landingpage/scripts/*.js"
+        "src/ad/**/*.js"
         "src/clients/**/*.js"
         "src/demo/**/*.js"
-        "src/shared/extensions/*.js"
-        
+        "src/landingpage/**/*.js"
     ]
     fonts: [
         "src/demo/**/*.{eot,svg,ttf,woff,otf}"
@@ -302,8 +300,6 @@ gulp.task "vagrant-dev", [
 
     gulp.watch "src/**/*.html", -> 
         gulp.start ["html"], tCollectstatic
-    gulp.watch sources.scripts, ->
-        gulp.start ["scripts"], tCollectstatic
     gulp.watch sources.sass, ->
         gulp.start ["styles"], tCollectstatic
     gulp.watch sources.fonts, ->
@@ -312,5 +308,5 @@ gulp.task "vagrant-dev", [
         gulp.start ["images"], tCollectstatic
     gulp.watch sources.vendor, ->
         gulp.start ["vendor"], tCollectstatic
-    $.util.log($.util.colors.blue("Watch'ing html, scripts, styles, fonts, images, vendor"))
+    $.util.log($.util.colors.blue("Watch'ing html, styles, fonts, images, vendor"))
     return
