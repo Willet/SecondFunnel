@@ -414,38 +414,36 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         resizeContainer: ->
             shrinkContainer = (element) ->
                 ->
-                    # This container resizing code is irrelevant (probably)
-                    # If don't need by Feb 15th, delete.
-                    # container = element.closest(".fullscreen")
-                    # containedItem = element.closest(".content")
-                    # if --imageCount isnt 0
-                    #     return
+                    unless App.support.mobile()
+                        container = element.closest(".fullscreen")
+                        containedItem = element.closest(".content")
+                        if --imageCount isnt 0
+                            return
 
-                    # # no container to shrink
-                    # unless container and container.length
-                    #     return
-                    # container.css
-                    #     top: "0"
-                    #     bottom: "0"
-                    #     left: "0"
-                    #     right: "0"
+                        # no container to shrink
+                        unless container and container.length
+                            return
+                        container.css
+                            top: "0"
+                            bottom: "0"
+                            left: "0"
+                            right: "0"
 
-                    # heightReduction = $(window).height()
-                    # widthReduction = container.outerWidth()
-                    # heightReduction -= containedItem.outerHeight()
-                    # heightReduction /= 2 # Split over top and bottom
-                    # if heightReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
-                    #     heightReduction = "0"
-                    # widthReduction -= containedItem.outerWidth()
-                    # widthReduction /= 2
-                    # if widthReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
-                    #     widthReduction = "0"
-                    # container.css
-                    #     top: heightReduction
-                    #     bottom: heightReduction
-                    #     left: widthReduction
-                    #     right: widthReduction
-
+                        heightReduction = $(window).height()
+                        widthReduction = container.outerWidth()
+                        heightReduction -= containedItem.outerHeight()
+                        heightReduction /= 2 # Split over top and bottom
+                        if heightReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                            heightReduction = "0"
+                        widthReduction -= containedItem.outerWidth()
+                        widthReduction /= 2
+                        if widthReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                            widthReduction = "0"
+                        container.css
+                            top: heightReduction
+                            bottom: heightReduction
+                            left: widthReduction
+                            right: widthReduction
                     return
 
             imageCount = $("img.main-image, img.image", @$el).length
