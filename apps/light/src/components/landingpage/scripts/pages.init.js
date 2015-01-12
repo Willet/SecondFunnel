@@ -78,7 +78,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 // load the category or default hero image
                 App.heroArea.show(new App.core.HeroAreaView());
             }
-
+            
             App.vent.trigger('initRouter', App.options, App);
 
             App.vent.trigger('finished', App.options, App);
