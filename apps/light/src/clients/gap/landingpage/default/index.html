@@ -473,7 +473,7 @@
                     </span>
                     <div class='buttons'>
                         <%
-                            var share = App.options.page.description;
+                            var share = App.option("page.description", "");
                             var src = top.location.href;
                             var fbLink = 'http://www.facebook.com/sharer/sharer.php?'
                                 + 's=100'
