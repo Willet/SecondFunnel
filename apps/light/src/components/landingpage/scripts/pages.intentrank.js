@@ -206,6 +206,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     module.addResultsShown = function (results) {
         resultsAlreadyRequested = resultsAlreadyRequested.concat(
             module.getTileIds(results));
+        return module;
     };
 
     /**
@@ -259,7 +260,10 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      */
     module.changeCategory = function (category) {
         // If category doesn't exist, try the categoryHome, then try the first category
-        if (category === '') {
+        if (!category) {
+            if (App.option('debug', false)) {
+                console.error("Invalid category '"+category+"', attempting to load home category");
+            }
             if (App.option("categoryHome")) {
                 category = App.option("categoryHome");
             } else {
@@ -267,7 +271,18 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             }
         }
 
-        if (module.options.category !== category) {
+        // Check that the category exists
+        if (App.categories.categoryExists(category)) {
+            if (App.option('debug', false)) {
+                console.error("Could not change category to '"+category+"': category does not exist");
+            }
+        // And check the category differs from the current category
+        } else if (module.options.category !== category) {
+            if (App.option('debug', false)) {
+                console.warn("Could not change category to '"+category+"'': category already selected");
+            }
+        } else {
+            // Change to valid category
             $(".loading").show();
 
             module.options.category = category;

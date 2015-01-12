@@ -289,7 +289,7 @@ FRAMEWORK_APPS = (
     'adminactions',  # before 'django.contrib.admin'
     'django.contrib.admin',
     'django.contrib.admindocs',
-    'django.contrib.humanize'
+    'django.contrib.humanize',
 )
 
 THIRD_PARTY_APPS = (
