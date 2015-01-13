@@ -289,25 +289,36 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         the featured product.
         ###
         initialize: (data) ->
-            # TODO get rid of App.option("featured"), was used by old /tile/xxx router
+            # TODO Refactor to utilize default coming from 'page:setup'
+            # get rid of App.option("featured"), was used by old /tile/xxx router
             # which is now incorporated with push state
-            tile = if not _.isEmpty(data) then data else
-                App.option("featured") or @getCategoryHeroImages App.intentRank.currentCategory()
-
-            @model = new module.Tile(tile)
+            tile = if not _.isEmpty(data) then data else App.option("featured")
+            if tile
+                @model = new module.Tile(tile)
+            # Get category from intentRank when its ready
+            else if App.intentRank.currentCategory
+                tile = @updateCategoryHeroImages(App.intentRank.currentCategory())
+                @model = new module.Tile(tile)
+            # Try again when the app is finished loading
+            else
+                App.vent.once('finished', =>
+                    @initialize()
+                )
+                return
+            
             @listenTo App.vent, "windowResize", =>
                 App.heroArea.show @
                 return
 
             @listenTo App.vent, "change:category", @updateCategoryHeroImage
-
             return
+
 
         onShow: ->
             contentOpts = model: @model
             contentInstance = undefined
             contentInstance = new module.PreviewContent(contentOpts)
-            @content.show contentInstance
+            @content.show(contentInstance)
             return
 
         updateCategoryHeroImage: (category) ->
@@ -361,12 +372,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             "click .close, .mask": ->
 
                 # If we have been home then it's safe to use back()
-                if App.initialPage is ""
+                if App.initialPage == ''
                     Backbone.history.history.back()
                 else
-                    App.router.navigate (App.intentRank.currentCategory() or ""),
+                    App.router.navigate("category/#{App.intentRank.currentCategory()}",
                         trigger: true
                         replace: true
+                    )
                 return
 
             "click .buy": (event) ->
@@ -605,7 +617,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         
         onRender: ->
             App.vent.once 'finished', =>
-                if App.intentRank.currentCategory()
+                if App.intentRank.currentCategory
                     @selectCategory App.intentRank.currentCategory()
             return @
 

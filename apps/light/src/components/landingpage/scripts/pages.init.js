@@ -19,26 +19,15 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             App._initialized = true;
         }
 
+        App.pageSetup = {
+            'hero': '',
+            'category': '',
+            'preview': ''
+        }
+
         // TODO investigate turning into region?
         // Toggle with .show() and .hide()
         App.previewLoadingScreen = $('#preview-loading');
-
-        App.vent.on('start'), function () {
-            var loc = window.location.href; // reference to current url
-            
-            App.router.initialize(App.options);
-
-            // Making sure we know where we came from.
-            App.initialPage = window.location.hash;
-            if (App.initialPage !== '' && App.support.mobile()) {
-                // If on mobile push the state to the history stack
-                if ('replaceState' in window.history) {
-                    // back button closes the popup
-                    window.history.replaceState('', document.title, loc.split('#')[0]);
-                    window.history.pushState({}, '', loc);
-                }
-            }
-        });
         
         App.addInitializer(function () {
             // set its width to whatever it began with.
@@ -53,39 +42,59 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             App.vent.trigger('beforeInit', App.options, App);
 
             // Set up regions
-            // Order matters
             App.store = new App.core.Store(App.options.store);
 
-            // Initialize IntentRank
-            App.intentRank.initialize(App.options);
-
             // Close any existing discoveryArea view
-            if(App.discovery && App.discovery.$el) {
+            if (App.discovery && App.discovery.$el) {
                 // Why is this necessary?
                 App.discovery.$el.empty();
                 App.discovery.close();
                 delete App.discovery;
             }
-            // Create our new view
-            App.discovery = new App.core.MasonryFeedView(App.options);
-            App.discoveryArea.show(App.discovery);
 
-            // Create categoryArea
-            var categoriesView = new App.core.CategoryCollectionView();
-            App.categoryArea.show(categoriesView);
-            // Global reference to the category collection
-            App.categories = categoriesView.collection;
+            // Prevent categories from reloading
+            if (!App.categoryArea.currentView) {
+                var categoriesView = new App.core.CategoryCollectionView();
+                App.categoryArea.show(categoriesView);
+                // Global reference to the category collection
+                App.categories = categoriesView.collection;
+            }
 
-            // prevent hero image from resetting to first category on reload
+            // Prevent hero image from resetting to first category on reload
             if (!App.heroArea.currentView) {
                 // load the category or default hero image
                 App.heroArea.show(new App.core.HeroAreaView());
             }
 
-            App.vent.trigger('finished', App.options, App);
+            // Initialize IntentRank
+            // will create new discovery feed
+            // TODO: refactor intentRank options
+            App.intentRank.initialize({
+                'category': '',
+                'trigger': true
+            });
+
+            App.vent.trigger('afterPageInit', App.options, App);
         });
 
-        App.vent.on('finished', function (data) {
+        App.vent.on('afterPageInit', function () {
+            var loc = window.location.href; // reference to current url
+            
+            App.router.initialize();
+
+            // Making sure we know where we came from.
+            App.initialPage = window.location.hash;
+            if (App.initialPage !== '' && App.support.mobile()) {
+                // If on mobile push the state to the history stack
+                if ('replaceState' in window.history) {
+                    // back button closes the popup
+                    window.history.replaceState('', document.title, loc.split('#')[0]);
+                    window.history.pushState({}, '', loc);
+                }
+            }
+        });
+
+        App.vent.on('afterPageInit', function () {
 
             if (App.support.isAniPad()) {
                 $('html').addClass('ipad');
