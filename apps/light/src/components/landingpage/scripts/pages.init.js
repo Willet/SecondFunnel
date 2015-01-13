@@ -19,12 +19,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             App._initialized = true;
         }
 
-        App.pageSetup = {
-            'hero': '',
-            'category': '',
-            'preview': ''
-        }
-
         // TODO investigate turning into region?
         // Toggle with .show() and .hide()
         App.previewLoadingScreen = $('#preview-loading');
