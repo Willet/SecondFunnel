@@ -264,7 +264,6 @@ class Store(BaseModel):
 
 class Product(BaseModel):
     store = models.ForeignKey(Store, related_name='products')
-
     name = models.CharField(max_length=1024, default="")
     description = models.TextField(blank=True, null=True, default="")
     # point form stuff like <li>hand wash</li> that isn't in the description already
@@ -278,6 +277,7 @@ class Product(BaseModel):
 
     default_image = models.ForeignKey('ProductImage', related_name='default_image',
                                       blank=True, null=True, on_delete=models.SET_NULL)
+    # product_images is an array of ProductImages (many-to-one relationship)
 
     last_scraped_at = models.DateTimeField(blank=True, null=True)
 
@@ -898,16 +898,12 @@ class Tile(BaseModel):
     def to_str(self, skip_cache=False):
         # determine what kind of tile this is
         serializer = None
-        if self.template == 'image':
-            serializer = ir_serializers.ContentTileSerializer
-
-        if not serializer:
-            try:
-                target_class = self.template.capitalize()
-                serializer = getattr(ir_serializers,
-                                     '{}TileSerializer'.format(target_class))
-            except:  # cannot find e.g. 'Youtube'TileSerializer -- use default
-                pass
+        try:
+            target_class = self.template.capitalize()
+            serializer = getattr(ir_serializers,
+                                 '{}TileSerializer'.format(target_class))
+        except:  # cannot find e.g. 'Youtube'TileSerializer -- use default
+            pass
 
         if not serializer:  # default
             serializer = ir_serializers.TileSerializer

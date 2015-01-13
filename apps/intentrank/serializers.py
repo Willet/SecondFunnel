@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.conf import settings
 import json
+import urlparse, os
 
 from apps.api.serializers import RawSerializer
 from apps.utils.functional import find_where, may_be_json
@@ -319,19 +320,24 @@ class ImageSerializer(ContentSerializer):
         """This will be the data used to generate the object."""
         from apps.assets.models import default_master_size
 
+        try:
+            ext = os.path.splitext(urlparse.urlparse(image.url).path)[1][1:]
+        except:
+            ext = ""
+
         data = super(ImageSerializer, self).get_dump_object(image)
         data.update({
-            "format": image.file_type or "jpg",
+            "format": ext,
             "type": "image",
-            "dominant-color": image.dominant_color or "transparent",
+            "dominant-color": getattr(image, "dominant_color", "transparent"),
             "url": image.url,
             "id": image.id,
             "status": image.status,
             "sizes": image.attributes.get('sizes', {
-                'width': image.width or '100%',
-                'height': image.height or '100%',
+                'width': getattr(image, "width", '100%'),
+                'height': getattr(image, "height", '100%'),
             }),
-            "orientation": image.orientation,
+            "orientation": getattr(image, "orientation", "portrait"),
         })
 
         return data
@@ -474,6 +480,10 @@ class ImageTileSerializer(ContentTileSerializer):
             pass
 
         return data
+
+
+class GifTileSerializer(ImageTileSerializer):
+    pass
 
 
 class VideoTileSerializer(ContentTileSerializer):

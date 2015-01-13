@@ -57,6 +57,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             socialButtons: ".social-buttons"
             tapIndicator: ".tap-indicator-target"
 
+        defaultWideableTemplates:
+            image: true
+            gif: true
+            youtube: true
+            banner: false
+
         initialize: (options) ->
             data = options.model.attributes
 
@@ -144,20 +150,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         onBeforeRender: ->
             normalTileWidth = App.layoutEngine.width()
-            wideableTemplates = App.option("wideableTemplates",
-                image: true
-                youtube: true
-                banner: false
-            )
+            wideableTemplates = _.extend({}, @defaultWideableTemplates, App.option("wideableTemplates", {}))
             columnDetails =
                 1: ""
                 2: "wide"
                 3: "three-col"
                 4: "full"
 
-
             # templates use this as obj.image.url
-            @model.set "image", @model.get("defaultImage")
+            if @model.get("baseImage") is undefined
+                @model.set "image", @model.get("defaultImage")
+            else
+                @model.set "image", @model.get("baseImage")
             wideable = wideableTemplates[@model.get("template")]
             showWide = (Math.random() < App.option("imageTileWide", 0.5))
             if _.isNumber(@model.get("colspan"))
@@ -173,10 +177,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     columns = 2
             for column in columns
                 idealWidth = normalTileWidth * columns
-                imageInfo = @model.get("defaultImage").width(idealWidth, true)
+                imageInfo = @model.get("image").width(idealWidth, true)
                 if imageInfo
                     break
-            @model.set image: imageInfo
+            # @model.set image: imageInfo
             @$el.addClass columnDetails[columns]
 
             # Listen for the image being removed from the DOM, if it is, remove
@@ -201,7 +205,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         onRender: ->
             model = @model
-            tileImage = model.get("image") # assigned by onBeforeRender
             $tileImg = @$("img.focus")
             hexColor = undefined
             rgbaColor = undefined
@@ -245,10 +248,20 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#image_tile_template"
 
 
+    class module.GifTileView extends module.TileView
+        template: "#gif_tile_template"
+
+        initialize: ->
+            @listenToOnce App.vent, "layoutCompleted", =>
+                gifUrl = @model.get("images")[0].get("url")
+                @$("img.focus").attr("src", gifUrl)
+
+
+
     class module.VideoTileView extends module.TileView
         template: "#video_tile_template"
 
-        onInitialize: ->
+        initialize: ->
             @$el.addClass "wide"
             return
 
@@ -731,7 +744,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onShow: ->
             @img_load = imagesLoaded(@$el)
-            @img_load.on 'always', =>
+            @listenTo @image_load, 'always', =>
                 @positionWindow()
             return
 

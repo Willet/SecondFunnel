@@ -188,6 +188,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: (attributes, options) ->
 
             # turn image json into image objects for easier access.
+            baseImage = undefined
             defaultImage = undefined
             imgInstances = undefined
             relatedProducts = undefined
@@ -197,12 +198,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 new module.Image($.extend(true, {}, image))
             ) or []
 
+            if @get("template") == "gif" && @get("baseImageURL")
+                baseImage = new module.Image(
+                    "dominant-color": @get("dominant-color")
+                    url: @get("baseImageURL")
+                )
+
             # this tile has no images, or can be an image itself
             if imgInstances.length is 0
                 imgInstances.push new module.Image(
                     "dominant-color": @get("dominant-color")
                     url: @get("url")
                 )
+
             defaultImage = @getDefaultImage()
 
             # Transform related-product image, if necessary
@@ -222,6 +230,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @set
                 images: imgInstances
                 image: defaultImage
+                baseImage: baseImage
                 defaultImage: defaultImage
                 "tagged-products": relatedProducts
                 "dominant-color": defaultImage.get("dominant-color")
