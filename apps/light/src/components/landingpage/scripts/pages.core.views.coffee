@@ -290,36 +290,41 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         initialize: (data) ->
             # TODO Refactor to utilize default coming from 'page:setup'
-            # get rid of App.option("featured"), was used by old /tile/xxx router
-            # which is now incorporated with push state
+            # and remove App.option("featured")
             tile = if not _.isEmpty(data) then data else App.option("featured")
             if tile
-                @model = new module.Tile(tile)
-            # Get category from intentRank when its ready
+                @deferred = $.when(tile)
+            # Try to get it from intentRank if its setup
             else if App.intentRank.currentCategory
-                tile = @updateCategoryHeroImages(App.intentRank.currentCategory())
-                @model = new module.Tile(tile)
-            # Try again when the app is finished loading
-            else
-                App.vent.once('finished', =>
-                    @initialize()
+                tile = @getCategoryHeroImages(App.intentRank.currentCategory())
+                @deferred = $.when(tile)
+            # Get category from intentRank when its ready
+            else 
+                @deferred = $.Deferred()
+                App.vent.once('intentRankInitialized', =>
+                    @deferred.resolve(=>
+                        return @updateCategoryHeroImages(App.intentRank.currentCategory())
+                    )
                 )
+                        
+            @deferred.done((tile) =>
+                @model = new module.Tile(tile)
+                @listenTo App.vent, "windowResize", =>
+                    App.heroArea.show @
                 return
-            
-            @listenTo App.vent, "windowResize", =>
-                App.heroArea.show @
-                return
+            )
 
             @listenTo App.vent, "change:category", @updateCategoryHeroImage
             return
 
-
         onShow: ->
-            contentOpts = model: @model
-            contentInstance = undefined
-            contentInstance = new module.PreviewContent(contentOpts)
-            @content.show(contentInstance)
-            return
+            @deferred.done(=>
+                contentOpts = model: @model
+                contentInstance = undefined
+                contentInstance = new module.PreviewContent(contentOpts)
+                @content.show(contentInstance)
+                return
+            )
 
         updateCategoryHeroImage: (category) ->
             @model.destroy()
@@ -616,9 +621,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return @
         
         onRender: ->
-            App.vent.once 'finished', =>
-                if App.intentRank.currentCategory
-                    @selectCategory App.intentRank.currentCategory()
+            if App.intentRank.currentCategory
+                @selectCategory App.intentRank.currentCategory()
+            else
+                App.vent.once 'intentRankInitialized', =>
+                    if App.intentRank.currentCategory
+                        @selectCategory App.intentRank.currentCategory()
             return @
 
         # Remove the 'selected' class from all category and sub-category elements

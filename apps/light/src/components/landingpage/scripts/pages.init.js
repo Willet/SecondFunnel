@@ -52,6 +52,14 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 delete App.discovery;
             }
 
+            // Initialize IntentRank
+            // will create new discovery feed
+            // TODO: refactor intentRank options
+            App.intentRank.initialize({
+                'category': '',
+                'trigger': true
+            });
+
             // Prevent categories from reloading
             if (!App.categoryArea.currentView) {
                 var categoriesView = new App.core.CategoryCollectionView();
@@ -66,18 +74,10 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 App.heroArea.show(new App.core.HeroAreaView());
             }
 
-            // Initialize IntentRank
-            // will create new discovery feed
-            // TODO: refactor intentRank options
-            App.intentRank.initialize({
-                'category': '',
-                'trigger': true
-            });
-
-            App.vent.trigger('afterPageInit', App.options, App);
+            App.vent.trigger('afterInit', App.options, App);
         });
 
-        App.vent.on('afterPageInit', function () {
+        App.vent.on('afterInit', function () {
             var loc = window.location.href; // reference to current url
             
             App.router.initialize();
@@ -94,7 +94,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             }
         });
 
-        App.vent.on('afterPageInit', function () {
+        App.vent.on('afterInit', function () {
 
             if (App.support.isAniPad()) {
                 $('html').addClass('ipad');
