@@ -203,23 +203,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     "dominant-color": @get("dominant-color")
                     url: @get("url")
                 )
-                defaultImage = @getDefaultImage()
-            # create new Image for gif's base image
-            else if @get("template") == "gif"
-                try
-                    if @get("images")[0] && @get("images")[0]["baseImageURL"]
-                        defaultImage = new module.Image(
-                            "dominant-color": @get("dominant-color")
-                            url: @get("images")[0]["baseImageURL"]
-                        )
-                catch e
-                    console.warn "This gif does not have a base image.", @get("images")
-                    defaultImage = new module.Image(
-                        "dominant-color": @get("dominant-color")
-                        url: @get("url")
-                    )
-            else
-                defaultImage = @getDefaultImage()
+            defaultImage = @getDefaultImage()
 
             # Transform related-product image, if necessary
             relatedProducts = @get("tagged-products")
