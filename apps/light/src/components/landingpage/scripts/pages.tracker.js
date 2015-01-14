@@ -187,8 +187,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
                 label;
 
             if (!model) {
-                throw 'Lost reference to model ' +
-                      '(check if correct template is used)';
+                throw 'Lost reference to model (check if correct template is used)';
             }
 
             // Convert model to proper category?
@@ -200,11 +199,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
                 break;
             default:
                 category = 'Content';
-                label = model.get('image');
-                if (label.get) {
-                    label = label.get('url');
-                }
-
+                label = model.get('id')
                 break;
             }
 

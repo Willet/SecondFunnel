@@ -152,6 +152,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             ) || App.core.TileView
             return new itemViewClass(itemViewOptions)
 
+
     class module.MasonryFeedView extends module.FeedView
 
         default_options:
