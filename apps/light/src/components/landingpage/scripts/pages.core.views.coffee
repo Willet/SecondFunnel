@@ -157,10 +157,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 4: "full"
 
             # templates use this as obj.image.url
-            if @model.get("baseImage") is undefined
-                @model.set "image", @model.get("defaultImage")
-            else
-                @model.set "image", @model.get("baseImage")
+            @model.set "image", @model.get("defaultImage")
             wideable = wideableTemplates[@model.get("template")]
             showWide = (Math.random() < App.option("imageTileWide", 0.5))
             if _.isNumber(@model.get("colspan"))
