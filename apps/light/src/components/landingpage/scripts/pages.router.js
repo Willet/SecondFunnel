@@ -9,7 +9,12 @@
  * @param app
  */
 module.exports = function (module, App, Backbone, Marionette, $, _) {
-
+	App.vent.on('route', function (route, name) {
+		if (App.option('debug', false)) {
+            console.warn('Route: '+route+' Name: '+name);
+        }
+	});
+	
 	// Route app to home
 	var return_home = function () {
 		if (App.option('debug', false)) {
@@ -74,6 +79,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 			'category/:category_id': 'category'
 		},
 		home: function () {
+			// Update category to home
 	        App.utils.postExternalMessage(JSON.stringify({
 	            'type': 'hash_change',
 	            'hash': '#'
@@ -98,6 +104,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	        App.intentRank.changeCategory('');
 	    },
 	    tile: function (tileId) {
+	    	// Load tile into hero area
 	    	App.utils.postExternalMessage(JSON.stringify({
 	            'type': 'hash_change',
 	            'hash': window.location.hash
@@ -114,6 +121,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	        get_tile(tileId, feature_tile, return_home);
 	    },
 	    preview: function (tileId) {
+	    	// Load tile in pop-up preview
 	        App.utils.postExternalMessage(JSON.stringify({
 	            'type': 'hash_change',
 	            'hash': window.location.hash
@@ -130,6 +138,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             get_tile(tileId, preview_tile, return_home);
 	    },
 	    category: function (category) {
+	    	// Load category
 	    	App.utils.postExternalMessage(JSON.stringify({
 	            'type': 'hash_change',
 	            'hash': window.location.hash
@@ -139,7 +148,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
 			if (category) {
 		        if (App.option('debug', false)) {
-		            console.error('Router changing category: ' + category);
+		            console.warn('Router changing category: ' + category);
 		        }
 
 		        // Update regions

@@ -32,7 +32,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#product_tile_template"
 
         onClick: ->
-        	if App.option('ad:tiles:openProductTileInPDP')
+            if App.option('ad:tiles:openProductTileInPDP')
                 App.utils.openUrl @model.get("url")
             else
                 super

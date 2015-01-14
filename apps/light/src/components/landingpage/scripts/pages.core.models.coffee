@@ -554,7 +554,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         url: ->
             url = undefined
-            category = App.intentRank.category
+            category = App.intentRank.currentCategory()
             url = "#{@config.apiUrl}/page/#{@config.campaign}/getresults?results=#{@config.results}"
             if category
                 return url + "&category=" + encodeURIComponent(category)
@@ -617,7 +617,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         model: module.Category
 
         initialize: ->
-            @on 'add, remove, reset': _.debounce(@generateNameModelMap, 100)
+            @listenTo(@, 'add, remove, reset', _.debounce(@generateNameModelMap, 100))
         
         ###
         construct a lookup table based on model name

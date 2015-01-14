@@ -22,8 +22,56 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         // TODO investigate turning into region?
         // Toggle with .show() and .hide()
         App.previewLoadingScreen = $('#preview-loading');
+        
+        App.addInitializer(function () {
+            // set its width to whatever it began with.
+            App.options.initialWidth = $(window).width();
+            if (App.optimizer) { // TODO: move to optimizer
+                App.optimizer.initialize();
+            }
+            if (App.tracker) { // TODO: move to tracker
+                App.tracker.initialize();
+            }
 
-        App.vent.on('initRouter', function () {
+            App.vent.trigger('beforeInit', App.options, App);
+
+            // Set up regions
+            App.store = new App.core.Store(App.options.store);
+
+            // Close any existing discoveryArea view
+            if (App.discovery && App.discovery.$el) {
+                // Why is this necessary?
+                App.discovery.$el.empty();
+                App.discovery.close();
+                delete App.discovery;
+            }
+
+            // Initialize IntentRank
+            // will create new discovery feed
+            // TODO: refactor intentRank options
+            App.intentRank.initialize({
+                'category': '',
+                'trigger': true
+            });
+
+            // Prevent categories from reloading
+            if (!App.categoryArea.currentView) {
+                var categoriesView = new App.core.CategoryCollectionView();
+                App.categoryArea.show(categoriesView);
+                // Global reference to the category collection
+                App.categories = categoriesView.collection;
+            }
+
+            // Prevent hero image from resetting to first category on reload
+            if (!App.heroArea.currentView) {
+                // load the category or default hero image
+                App.heroArea.show(new App.core.HeroAreaView());
+            }
+
+            App.vent.trigger('afterInit', App.options, App);
+        });
+
+        App.vent.on('afterInit', function () {
             var loc = window.location.href; // reference to current url
             
             App.router.initialize();
@@ -39,52 +87,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 }
             }
         });
-        
-        App.addInitializer(function () {
-            // set its width to whatever it began with.
-            App.options.initialWidth = $(window).width();
-            if (App.optimizer) { // TODO: move to optimizer
-                App.optimizer.initialize();
-            }
-            if (App.tracker) { // TODO: move to tracker
-                App.tracker.initialize();
-            }
 
-            App.vent.trigger('beforeInit', App.options, App);
-
-            // Set up regions
-            // Order matters
-            App.store = new App.core.Store(App.options.store);
-
-            // Close any existing discoveryArea view
-            if(App.discovery && App.discovery.$el) {
-                // Why is this necessary?
-                App.discovery.$el.empty();
-                App.discovery.close();
-                delete App.discovery;
-            }
-            // Create our new view
-            App.discovery = new App.core.MasonryFeedView(App.options);
-            App.discoveryArea.show(App.discovery);
-
-            // Create categoryArea
-            var categoriesView = new App.core.CategoryCollectionView();
-            App.categoryArea.show(categoriesView);
-            // Global reference to the category collection
-            App.categories = categoriesView.collection;
-
-            // prevent hero image from resetting to first category on reload
-            if (!App.heroArea.currentView) {
-                // load the category or default hero image
-                App.heroArea.show(new App.core.HeroAreaView());
-            }
-
-            App.vent.trigger('initRouter', App.options, App);
-
-            App.vent.trigger('finished', App.options, App);
-        });
-
-        App.vent.on('finished', function (data) {
+        App.vent.on('afterInit', function () {
 
             if (App.support.isAniPad()) {
                 $('html').addClass('ipad');

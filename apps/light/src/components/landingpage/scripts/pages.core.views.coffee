@@ -1,6 +1,7 @@
 "use strict"
 
 imagesLoaded = require('imagesLoaded')
+require("jquery-scrollto")
 require("jquery-waypoints") # register $.fn.waypoint
 require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
 
@@ -65,6 +66,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     $el.find(".gallery, .gallery-dots").addClass "hide"
                 else
                     $el.find(".gallery, .gallery-dots").removeClass "hide"
+                if App.support.mobile()
+                    $('body').scrollTo ".cell.info", 500
                 @renderSubregions productModel
                 return
         
@@ -121,36 +124,36 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         resizeContainer: ->
             shrinkContainer = (element) ->
                 ->
-                    container = element.closest(".fullscreen")
-                    containedItem = element.closest(".content")
-                    if --imageCount isnt 0
-                        return
+                    unless App.support.mobile()
+                        container = element.closest(".fullscreen")
+                        containedItem = element.closest(".content")
+                        if --imageCount isnt 0
+                            return
 
-                    # no container to shrink
-                    unless container and container.length
-                        return
-                    container.css
-                        top: "0"
-                        bottom: "0"
-                        left: "0"
-                        right: "0"
+                        # no container to shrink
+                        unless container and container.length
+                            return
+                        container.css
+                            top: "0"
+                            bottom: "0"
+                            left: "0"
+                            right: "0"
 
-                    heightReduction = $(window).height()
-                    widthReduction = container.outerWidth()
-                    heightReduction -= containedItem.outerHeight()
-                    heightReduction /= 2 # Split over top and bottom
-                    if heightReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
-                        heightReduction = "0"
-                    widthReduction -= containedItem.outerWidth()
-                    widthReduction /= 2
-                    if widthReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
-                        widthReduction = "0"
-                    container.css
-                        top: heightReduction
-                        bottom: heightReduction
-                        left: widthReduction
-                        right: widthReduction
-
+                        heightReduction = $(window).height()
+                        widthReduction = container.outerWidth()
+                        heightReduction -= containedItem.outerHeight()
+                        heightReduction /= 2 # Split over top and bottom
+                        if heightReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                            heightReduction = "0"
+                        widthReduction -= containedItem.outerWidth()
+                        widthReduction /= 2
+                        if widthReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                            widthReduction = "0"
+                        container.css
+                            top: heightReduction
+                            bottom: heightReduction
+                            left: widthReduction
+                            right: widthReduction
                     return
 
             imageCount = $("img.main-image, img.image", @$el).length
@@ -252,7 +255,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             #
             #  So, for now, only add no-scroll if the device is NOT an android.
             #
-            unless App.support.isAnAndroid()
+            unless App.support.mobile()
                 width = Marionette.getOption(this, "width")
                 if width
                     @$(".content").css("width", width + "px")
@@ -290,26 +293,43 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         the featured product.
         ###
         initialize: (data) ->
-            # TODO get rid of App.option("featured"), was used by old /tile/xxx router
-            # which is now incorporated with push state
-            tile = if not _.isEmpty(data) then data else
-                App.option("featured") or @getCategoryHeroImages(App.intentRank.category)
-
-            @model = new module.Tile(tile)
-            @listenTo(App.vent, "windowResize", (=>
-                App.heroArea.show(@)
+            # TODO Refactor to utilize default coming from 'page:setup'
+            # and remove App.option("featured")
+            tile = if not _.isEmpty(data) then data else App.option("featured")
+            if tile
+                @deferred = $.when(tile)
+            # Try to get it from intentRank if its setup
+            else if App.intentRank.currentCategory
+                tile = @getCategoryHeroImages(App.intentRank.currentCategory())
+                @deferred = $.when(tile)
+            # Get category from intentRank when its ready
+            else 
+                @deferred = $.Deferred()
+                App.vent.once('intentRankInitialized', =>
+                    @deferred.resolve(=>
+                        return @updateCategoryHeroImages(App.intentRank.currentCategory())
+                    )
+                )
+                        
+            @deferred.done((tile) =>
+                @model = new module.Tile(tile)
+                @listenTo(App.vent, "windowResize", =>
+                    App.heroArea.show @
+                )
                 return
-            ))
+            )
 
             @listenTo(App.vent, "change:category", @updateCategoryHeroImage)
             return
 
         onShow: ->
-            contentOpts = model: @model
-            contentInstance = undefined
-            contentInstance = new module.PreviewContent(contentOpts)
-            @content.show(contentInstance)
-            return
+            @deferred.done(=>
+                contentOpts = model: @model
+                contentInstance = undefined
+                contentInstance = new module.PreviewContent(contentOpts)
+                @content.show(contentInstance)
+                return
+            )
 
         updateCategoryHeroImage: (category) ->
             @model.destroy()
@@ -361,10 +381,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         events:
             "click .close, .mask": ->
                 # If we have been home then it's safe to use back()
-                if App.initialPage is ""
+                if App.initialPage == ''
                     Backbone.history.history.back()
                 else
-                    App.router.navigate((App.intentRank.category or ""),
+                    App.router.navigate("category/#{App.intentRank.currentCategory()}",
                         trigger: true
                         replace: true
                     )
@@ -575,6 +595,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         self = $(@)
                         self.removeClass('selected')
                         self.find('.sub-category').removeClass('selected')
+            return @
 
 
     ###
@@ -608,19 +629,34 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.parent().waypoint('sticky')
             
             return @
-
+        
         onRender: ->
-            App.vent.once 'finished', ->
-                if App.intentRank.category
-                    @selectCategory(App.intentRank.currentCategory())
+            if App.intentRank.currentCategory
+                @selectCategory(App.intentRank.currentCategory())
+            else
+                App.vent.once('intentRankInitialized', =>
+                    if App.intentRank.currentCategory
+                        @selectCategory (App.intentRank.currentCategory())
+                )
+            return @
+
+        # Remove the 'selected' class from all category and sub-category elements
+        unselectCategories: ->
+            @$el.find('.selected').removeClass('selected')
             return @
 
         ###
         Given a category string, find it and select it (add the .selected class)
+        An empty string '' will remove selection from all categories
         Returns boolean if category / sub-category found
+        
         @returns {bool}
         ###
         selectCategory: (category) ->
+            if category == ''
+                # home category
+                @unselectCategories()
+                return true
             try
                 catMapObj = @collection.findModelByName(category)
                 catView = @children.findByModel(catMapObj.category)

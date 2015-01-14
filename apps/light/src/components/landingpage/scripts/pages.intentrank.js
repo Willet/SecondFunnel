@@ -4,40 +4,39 @@
  * @module intentRank
  */
 module.exports = function (module, App, Backbone, Marionette, $, _) {
-    var resultsAlreadyRequested = []; // list of product IDs
-
-    module.options = {
-        'IRSource': '/intentrank',
-        'urlTemplate': '<%=IRSource%>/page/<%=campaign%>/getresults',
-        'add': true,
-        'merge': true,
-        'remove': false,
-        'categories': {},
-        'IRResultsCount': 10,
-        'IRAlgo': 'generic',
-        'IRTileSet': '',
-        'IRReqNum': 0,
-        'store': {},
-        'content': []
-    };
-
-    module.on('start', function () {
-        return module.initialize(App.options);
-    });
+    var resultsAlreadyRequested = [], // list of product IDs
+        defaultOptions = {
+            'IRSource': '/intentrank',
+            'urlTemplate': '<%=IRSource%>/page/<%=campaign%>/getresults',
+            'add': true,
+            'merge': true,
+            'remove': false,
+            'categories': {},
+            'IRResultsCount': 10,
+            'IRAlgo': 'generic',
+            'IRTileSet': '',
+            'IRReqNum': 0,
+            'store': {},
+            'content': []
+        };
 
     /**
      * Initializes intentRank.
      *
-     * @param options {Object}    overrides.
+     * @param opts {Object}:
+     *     {String} category - record current category as this
+     *     {Boolean} trigger - trigger category change
+     *
      * @returns this
      */
-    module.initialize = function (options) {
-        // Any additional init declarations go here
-        var page = options.page || {};
+    module.initialize = function (opts) {
+        var page = App.option('page') || {},
+            options = App.options;
 
-        module._category = '';
+        opts = _.isObject(opts) ? opts : {};
 
-        _.extend(module.options, {
+
+        module.options = _.extend(defaultOptions, {
             'IRSource': options.IRSource || module.IRSource,
             'store': options.store || {},
             'campaign': options.campaign,
@@ -52,8 +51,23 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             'IRCacheResultCount': options.IRResultsCount || 10
         });
 
+        if (opts.trigger) {
+            module.changeCategory(opts.category);
+        } else {
+            module._category = opts.category || '';
+        }
+
         App.vent.trigger('intentRankInitialized', module);
         return module;
+    };
+
+    /**
+     *  Return the current category
+     *
+     *  @returns {String}
+     */
+    module.currentCategory = function () {
+        return module._category;
     };
 
     /**
@@ -94,7 +108,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         }
 
         // normally undefined, unless a category is selected on the page
-        data.category = module.category || module.options.category || undefined;
+        data.category = module._category || module.options.category || undefined;
 
         opts = $.extend({}, {
             'results': 10,
@@ -253,24 +267,30 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     /**
-     * Changes the intentRank category
+     * Changes the intentRank category and updates the discovery area
+     * Fire 'change:category' event (optional)
      *
      * @param {String} category
+     * @param {Boolean} silent
+     *
      * @return this
      */
-    module.changeCategory = function (category) {
+    module.changeCategory = function (category, silent) {
+        silent = silent || false;
+
         // If category doesn't exist
         if (!(category && App.categories.categoryExists(category))) {
+            // '' is valid; it means load home
             if (!(category === '') && App.option('debug', false)) {
                 console.error("Invalid category '"+category+"', attempting to load home category");
             }
             // try the categoryHome
-            category = App.option("page:categoryHome");
-
-            if (!App.categories.categoryExists(category)) {
-                // categoryHome is either any empty string or something rotten, lets go with empty string
+            if (App.option("page:categoryHome")) {
+                category = App.option("page:categoryHome");
+            } else {
+                // categoryHome is no beuno, lets go with empty string
                 if (App.option('debug', false)) {
-                    console.error("Could not find category '"+category+"', loading feed without category");
+                    console.warn("No home category, loading feed without category");
                 }
                 // load feed without a category
                 category = '';
@@ -278,7 +298,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         }
          
         // Check the category differs from the current category
-        if (module.category === category) {
+        if (module._category === category) {
             if (App.option('debug', false)) {
                 console.warn("Could not change category to '"+category+"'': category already selected");
             }
@@ -286,10 +306,13 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             // Change to valid category
             $(".loading").show();
 
-            module.category = category;
+            module._category = category;
             module.options.IRReset = true;
             App.tracker.changeCategory(category);
-            App.vent.trigger('change:category', category, category);
+
+            if (!silent) {
+                App.vent.trigger('change:category', category, category);
+            }
 
             // We create a new feed each time to ensure the previous
             // feed & tiles are completely unbinded
