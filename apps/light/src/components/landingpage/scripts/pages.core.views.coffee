@@ -6,298 +6,8 @@ require("jquery-waypoints") # register $.fn.waypoint
 require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
-
     $window = $(window)
     $document = $(document)
-
-    # specifically, pages scrolled downwards; pagesScrolled defaults
-    # to 1 because the user always sees the first page.
-    pagesScrolled = 1
-
-    ###
-    View for showing a Tile (or its extensions).
-    This Layout contains socialButtons and tapIndicator regions.
-
-    @constructor
-    @type {Layout}
-    ###
-    class module.TileView extends Marionette.Layout
-        tagName: App.option("tileElement", "div")
-        className: "tile"
-
-        template: "#product_tile_template"
-        templates: ->
-            templateRules = [
-                "#<%= options.store.slug %>_<%= data.source %>_<%= data.template %>_mobile_tile_template" # gap_instagram_image_mobile_tile_template
-                "#<%= data.source %>_<%= data.template %>_mobile_tile_template" # instagram_image_mobile_tile_template
-                "#<%= options.store.slug %>_<%= data.template %>_mobile_tile_template" # gap_image_mobile_tile_template
-                "#<%= data.template %>_mobile_tile_template" # image_mobile_tile_template
-                "#<%= options.store.slug %>_<%= data.source %>_<%= data.template %>_tile_template" # gap_instagram_image_tile_template
-                "#<%= data.source %>_<%= data.template %>_tile_template" # instagram_image_tile_template
-                "#<%= options.store.slug %>_<%= data.template %>_tile_template" # gap_image_tile_template
-                "#<%= data.template %>_tile_template" # image_tile_template
-                "#product_mobile_tile_template" # fallback
-                "#product_tile_template" # fallback
-            ]
-            unless App.support.mobile()
-
-                # remove mobile templates if it isn't mobile, since they take
-                # higher precedence by default
-                templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") > -1
-                )
-            templateRules
-
-        events:
-            click: "onClick"
-            mouseenter: "onHover"
-            mouseleave: "onHover"
-
-        regions: # if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
-            socialButtons: ".social-buttons"
-            tapIndicator: ".tap-indicator-target"
-
-        initialize: (options) ->
-            data = options.model.attributes
-
-            # expose tile "types" as classes on the dom
-            if data.type
-                @className = data.type.toLowerCase().split().join(' ')
-
-            if data.template
-                @className += " #{data.template}"
-            @className += " tile"
-
-            # expose model reference in form of id
-            @$el.attr
-                class: @className
-                id: @model.cid
-                data:
-                    tile_id: @model.id
-
-            # If the tile model is changed, re-render the tile
-            @listenTo @model, "changed", (=> @modelChanged)
-
-            super
-
-        modelChanged: (model, value) ->
-            @render()
-            return
-
-        onHover: (ev) ->
-
-            # Trigger tile hover event with event and tile
-            App.vent.trigger "tileHover", ev, this
-            if App.support.mobile() or App.support.touch() # don't need buttons here
-                return this
-
-            # load buttons for this tile only if it hasn't already been loaded
-            if not @socialButtons.$el
-                @socialButtons.show new App.sharing.SocialButtons(model: @model)
-
-            # show/hide buttons only if there are buttons
-            if @socialButtons and @socialButtons.$el and @socialButtons.$el.children().length
-                inOrOut = (if (ev.type is "mouseenter") then "cssFadeIn" else "cssFadeOut")
-                @socialButtons.currentView.load()
-                @socialButtons.$el[inOrOut] 200
-            this
-
-        onClick: (ev) ->
-            tile = @model
-
-            if App.option("openTileInPopup", false)
-                if App.option("tilePopupUrl")
-                    # override for ad units whose tiles point to our pages
-                    url = App.option("tilePopupUrl")
-                else if tile.get("template") is "product"
-                    url = tile.get("url")
-                else if tile.get("tagged-products") and tile.get("tagged-products").length
-                    url = tile.get("tagged-products")[0].url
-                # missing schema
-                if url.indexOf("http") is -1 and App.store.get("slug")
-                    url = "http://" + App.store.get("slug") + ".secondfunnel.com" + url
-
-                if url and url.length
-                    sku = tile.get("sku")
-                    tileId = tile.get("tile-id")
-
-                    if App.option('hashPopupRedirect', false) and tileId
-                        url += "#" + tileId
-                    else
-                        if tileId
-                            url += "/tile/" + tileId
-                        else if sku
-                            url += "/sku/" + sku
-                    window.open url, App.utils.openInWindow()
-                return
-
-            # clicking on social buttons is not clicking on the tile.
-            unless $(ev.target).parents(".button").length
-                App.router.navigate String(tile.get("tile-id")),
-                    trigger: true
-
-            return
-
-
-        ###
-        Before the View is rendered. this.$el is still an empty div.
-        ###
-        onBeforeRender: ->
-            normalTileWidth = App.layoutEngine.width()
-            wideableTemplates = App.option("wideableTemplates",
-                image: true
-                youtube: true
-                banner: false
-            )
-            columnDetails =
-                1: ""
-                2: "wide"
-                3: "three-col"
-                4: "full"
-
-
-            # templates use this as obj.image.url
-            @model.set "image", @model.get("defaultImage")
-            wideable = wideableTemplates[@model.get("template")]
-            showWide = (Math.random() < App.option("imageTileWide", 0.5))
-            if _.isNumber(@model.get("colspan"))
-                columns = @model.get("colspan")
-            else if wideable and showWide
-                columns = 2
-            else
-                columns = 1
-            if App.support.mobile() # maximum of 2 columns
-                if columns < 2
-                    columns = 1
-                else
-                    columns = 2
-            for column in columns
-                idealWidth = normalTileWidth * columns
-                imageInfo = @model.get("defaultImage").width(idealWidth, true)
-                if imageInfo
-                    break
-            @model.set image: imageInfo
-            @$el.addClass columnDetails[columns]
-
-            # Listen for the image being removed from the DOM, if it is, remove
-            # the View/Model to free memory
-            @$el.on "remove", (ev) =>
-                if ev.target is @el
-                    @close()
-
-            return
-
-        onMissingTemplate: ->
-
-            # If a tile fails to load, destroy the model
-            # and subsequently this tile.
-            console.warn "Missing template - this view is closing.", this
-            @close()
-            return
-
-
-        ###
-        onRender occurs between beforeRender and show.
-        ###
-        onRender: ->
-            model = @model
-            tileImage = model.get("image") # assigned by onBeforeRender
-            $tileImg = @$("img.focus")
-            hexColor = undefined
-            rgbaColor = undefined
-
-            # set dominant colour on tile, and set the height of the tile
-            # so it looks like it is all-ready
-            if model.get("dominant-color")
-                hexColor = model.get("dominant-color")
-                rgbaColor = App.utils.hex2rgba(hexColor, 0.5)
-                $tileImg.css "background-color": rgbaColor
-
-            # this is the 'image 404' event
-            if $tileImg and $tileImg.length >= 1
-                $tileImg[0].onerror = =>
-                    console.warn "Image error, closing views: " + arguments
-                    @close()
-                    return
-
-            if App.sharing and App.option("conditionalSocialButtons", {})[model.get("colspan")]
-                socialButtons = $(".socialButtons", @$el)
-                buttons = new App.sharing.SocialButtons(
-                    model: model
-                    buttonTypes: App.option("conditionalSocialButtons", {})[model.get("colspan")]
-                )
-                socialButtons.append buttons.render().$el
-            @$el.addClass @model.get("orientation") or "portrait"
-
-            if App.utils.isIframe() and @$el.hasClass("landscape")
-                @$el.addClass "full"
-
-            # add view to our database
-            App.vent.trigger "tracking:trackTileView", model.get("tile-id")
-            return
-
-
-    class module.ProductTileView extends module.TileView
-        template: "#product_tile_template"
-
-
-    class module.ImageTileView extends module.TileView
-        template: "#image_tile_template"
-
-
-    class module.VideoTileView extends module.TileView
-        template: "#video_tile_template"
-
-        onInitialize: ->
-            @$el.addClass "wide"
-            return
-
-        onClick: ->
-            if @model.get("url")
-                window.open @model.get("url"), App.utils.openInWindow()
-            return
-
-        onPlaybackEnd: (ev) ->
-            App.vent.trigger "videoEnded", ev, this
-            return
-
-
-    class module.YoutubeTileView extends module.VideoTileView
-        template: ->
-
-        onClick: (ev) ->
-            thumbId = "thumb-#{@model.cid}"
-            $thumb = @$("div.thumbnail")
-            if window.YT is undefined
-                console.warn "YT could not load. Opening link to youtube.com"
-                window.open @model.get("original-url"), App.utils.openInWindow()
-                return
-            $thumb.attr("id", thumbId).wrap "<div class=\"video-container\" />"
-            player = new window.YT.Player(thumbId,
-                width: $thumb.width()
-                height: $thumb.height()
-                videoId: @model.attributes["original-id"] or @model.id
-                playerVars:
-                    wmode: "opaque"
-                    autoplay: 1
-                    controls: false
-
-                events:
-                    onReady: $.noop
-                    onStateChange: (newState) =>
-                        App.tracker.videoStateChange @model.attributes["original-id"] or @model.id, newState
-                        switch newState
-                            when window.YT.PlayerState.ENDED
-                                @onPlaybackEnd()
-                            else
-
-                    onError: $.noop
-            )
-            return
-
-
-    class module.TileCollectionView extends Marionette.CollectionView
-
 
     ###
     Widgets that make up a Product Info in a Expanded Content
@@ -570,37 +280,54 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             content: ".content"
 
         getTemplate: ->
-
-            # if page config contains a product, render hero area with a
-            # template that supports it
-            if App.option("featured") isnt undefined and $("#shopthelook_template").length
+            # if the model has a template, let the PreviewContent try to render it
+            # otherwise, assume its just hero images
+            if @model.attributes.template
                 return "#shopthelook_template"
-            "#hero_template"
-
-
+            else
+                return "#hero_template"
+        
         ###
         @param data normal product data, or, if omitted,
         the featured product.
         ###
         initialize: (data) ->
-            tile = if not _.isEmpty(data) then data else
-                App.option("featured") or @getCategoryHeroImages App.intentRank.category
-
-            @model = new module.Tile(tile)
-            @listenTo App.vent, "windowResize", =>
-                App.heroArea.show @
+            # TODO Refactor to utilize default coming from 'page:setup'
+            # and remove App.option("featured")
+            tile = if not _.isEmpty(data) then data else App.option("featured")
+            if tile
+                @deferred = $.when(tile)
+            # Try to get it from intentRank if its setup
+            else if App.intentRank.currentCategory
+                tile = @getCategoryHeroImages(App.intentRank.currentCategory())
+                @deferred = $.when(tile)
+            # Get category from intentRank when its ready
+            else 
+                @deferred = $.Deferred()
+                App.vent.once('intentRankInitialized', =>
+                    @deferred.resolve(=>
+                        return @updateCategoryHeroImages(App.intentRank.currentCategory())
+                    )
+                )
+                        
+            @deferred.done((tile) =>
+                @model = new module.Tile(tile)
+                @listenTo App.vent, "windowResize", =>
+                    App.heroArea.show @
                 return
+            )
 
             @listenTo App.vent, "change:category", @updateCategoryHeroImage
-
             return
 
         onShow: ->
-            contentOpts = model: @model
-            contentInstance = undefined
-            contentInstance = new module.PreviewContent(contentOpts)
-            @content.show contentInstance
-            return
+            @deferred.done(=>
+                contentOpts = model: @model
+                contentInstance = undefined
+                contentInstance = new module.PreviewContent(contentOpts)
+                @content.show(contentInstance)
+                return
+            )
 
         updateCategoryHeroImage: (category) ->
             @model.destroy()
@@ -652,21 +379,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         events:
             "click .close, .mask": ->
 
-                #If we have been home then it's safe to use back()
-                if App.initialPage is ""
+                # If we have been home then it's safe to use back()
+                if App.initialPage == ''
                     Backbone.history.history.back()
                 else
-                    hashnav = if App.intentRank.options.category then "#" + App.intentRank.options.category else ""
-                    App.router.navigate hashnav,
+                    App.router.navigate("category/#{App.intentRank.currentCategory()}",
                         trigger: true
                         replace: true
+                    )
                 return
 
             "click .buy": (event) ->
                 $target = $(event.target)
                 # Over-write addUrlTrackingParameters for each customer
                 url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') )
-                window.open url, App.utils.openInWindow()
+                App.utils.openUrl url
                 return
 
         initialize: (options) ->
@@ -797,7 +524,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     unless $el.hasClass 'selected' and not $subCatEl.hasClass 'selected'
                         @selectCategoryEl($el)
 
-                        App.router.navigate(category,
+                        App.router.navigate("category/#{category}",
                             trigger: true
                         )
                 return false # stop propogation
@@ -826,7 +553,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     else
                         switchCategory = subCategory['name']
 
-                    App.router.navigate(switchCategory,
+                    App.router.navigate("category/#{switchCategory}",
                         trigger: true
                     )
                 return false # stop propogation
@@ -861,6 +588,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         self = $(@)
                         self.removeClass 'selected'
                         self.find('.sub-category').removeClass 'selected'
+            return @
 
 
     ###
@@ -879,24 +607,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 catOpt = "page:mobileCategories"
             else
                 catOpt = "page:categories"
-            categories = for category in App.option catOpt, []
+            categories = for category in App.option(catOpt, [])
                 if typeof(category) is "string"
                     category = {name: category}
                 category
 
-            if categories.length > 0
-
-                # This specifies that there should be a home button, by default, this is true.
-                if App.option("categoryHome")
-                    if App.option("categoryHome").length
-                        home = App.option("categoryHome")
-                    else
-                        home = ""
-                    categories.unshift {name: home}
-
-                @collection = new module.CategoryCollection categories, model: module.Category
-            else
-                @collection = new module.CategoryCollection [], model: module.Category
+            @collection = new module.CategoryCollection categories, model: module.Category
 
             # Watch for updates to feed, generally from intentRank
             @listenTo App.vent, "change:category", @selectCategory
@@ -906,19 +622,33 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.parent().waypoint('sticky')
             
             return @
-
+        
         onRender: ->
-            App.vent.once 'finished', ->
-                if App.intentRank.category
-                    @selectCategory category
+            if App.intentRank.currentCategory
+                @selectCategory App.intentRank.currentCategory()
+            else
+                App.vent.once 'intentRankInitialized', =>
+                    if App.intentRank.currentCategory
+                        @selectCategory App.intentRank.currentCategory()
+            return @
+
+        # Remove the 'selected' class from all category and sub-category elements
+        unselectCategories: ->
+            @$el.find('.selected').removeClass('selected')
             return @
 
         ###
         Given a category string, find it and select it (add the .selected class)
+        An empty string '' will remove selection from all categories
         Returns boolean if category / sub-category found
+        
         @returns {bool}
         ###
         selectCategory: (category) ->
+            if category == ''
+                # home category
+                @unselectCategories()
+                return true
             try
                 catMapObj = @collection.findModelByName category
                 catView = @children.findByModel(catMapObj.category)
