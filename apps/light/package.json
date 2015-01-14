@@ -23,7 +23,6 @@
     "gulp-file-includer": "^0.1.0",
     "gulp-filter": "^1.0.0",
     "gulp-flatten": "^0.0.2",
-    "gulp-shell": "^0.2.0",
     "gulp-htmlmin": "^0.1.3",
     "gulp-if": "^1.2.4",
     "gulp-imagemin": "1.0.0",
@@ -38,9 +37,11 @@
     "gulp-rev-outdated": "0.0.6",
     "gulp-rimraf": "^0.1.0",
     "gulp-sass": "^0.7.3",
+    "gulp-shell": "^0.2.0",
     "gulp-size": "^1.0.0",
     "gulp-uglify": "^0.3.1",
     "gulp-util": "^3.0.0",
+    "jquery.scrollto": "^1.4.14",
     "jshint-stylish": "^0.4.0",
     "main-bower-files": "^1.0.2",
     "merge-stream": "^0.1.5",
@@ -64,6 +65,7 @@
       "coffeeify"
     ]
   },
+  "//": "specify browser and browserify-shim entries for bower dependencies",
   "browser": {
     "landingpage": "./src/components/landingpage/scripts/pages.constructor.js",
     "pages.constructor": "./src/components/landingpage/scripts/pages.constructor.js",
@@ -126,6 +128,7 @@
     "jquery-deparam": "./lib/jquery-bbq-deparam/jquery-deparam.js",
     "jquery-waypoints": "./lib/jquery-waypoints/waypoints.js",
     "jquery-waypoints-sticky": "./lib/jquery-waypoints/shortcuts/sticky-elements/waypoints-sticky.js",
+    "jquery-scrollto": "./lib/jquery.scrollTo/jquery.scrollTo.js",
     "owl-carousel": "./lib/owl-carousel/owl-carousel/owl.carousel.js"
   },
   "browserify-shim": {
@@ -339,6 +342,12 @@
       "depends": [
         "jquery",
         "jquery-waypoints"
+      ]
+    },
+    "jquery-scrollto": {
+      "exports": "$.fn.scrollTo",
+      "depends": [
+        "jquery"
       ]
     },
     "owl-carousel2": {
