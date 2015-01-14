@@ -39,9 +39,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @coreRenderSubregions.apply @, arguments
 
     ###
-    View responsible for the "Hero Area"
-    (e.g. Shop-the-look, featured, or just a plain div)
-
+    View responsible for the Sur La Table Hero Area
+    This Hero's are special in that they use the same background images
+    and overlay with text: GIFTS for ____ (ex: The Chef, Him)
+    
     @constructor
     @type {Layout}
     ###
@@ -53,25 +54,38 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             content: ".content"
 
         generateHeroArea: ->
-            mergeSubcategories = (cats, obj) ->
-                Array.prototype.push.apply(cats, obj.subCategories)
-                return cats
-            allCats = _.reduce App.intentRank.options.categories, mergeSubcategories, []   
-            category = _.find allCats, (cat) ->
-                return cat.name == App.intentRank.currentCategory()
+            category = App.intentRank.currentCategory() || App.option('categoryHome')
+            catObj = App.categories.findModelByName(category)
 
-            if not category?
-                # If category can't be found, IR will choose the first category
-                category = App.categories.models[0].attributes
+            # If category can't be found, default to 'The Chef'
+            if not catObj? then catObj = displayName: 'The Chef'
+
             tile =
                 desktopHeroImage: "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
                 mobileHeroImage: "/static/light/surlatable/landingpage/default/images/slt-hero-desktop.png"
-                title: "<span class='spaced'>GIFTS</span> <span class='for'>for #{category.displayName}</span>"
-            @model.destroy() if @model? and @model.destroy
+                title: "<span class='spaced'>GIFTS</span> <span class='for'>for #{catObj.displayName}</span>"
+            
+            if @model? and @model.destroy then @model.destroy()
             @model = new module.Tile(tile)
+            return @
+
+        loadHeroArea: ->
+            @generateHeroArea()
+            # If view is already visible, update with new category
+            if not @.isClosed
+                App.heroArea.show @
 
         initialize: ->
-            @generateHeroArea()
+            if App.intentRank.currentCategory and App.categories
+                @generateHeroArea()
+            else
+                # placeholder to stop error
+                @model = new module.Tile()
+                App.vent.once('intentRankInitialized', =>
+                    @loadHeroArea()
+                )
             @listenTo App.vent, "change:category", =>
-                App.heroArea.show new App.core.HeroAreaView()
-                return
+                @loadHeroArea()
+            return @
+
+            
