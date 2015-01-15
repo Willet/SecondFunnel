@@ -364,7 +364,7 @@ class GifSerializer(ContentSerializer):
 
         try:
             ext = os.path.splitext(urlparse.urlparse(gif.url).path)[1][1:]
-        except:
+        except AttributeError:
             ext = ""
 
         data = super(GifSerializer, self).get_dump_object(gif)

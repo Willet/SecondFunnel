@@ -49,6 +49,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             gif: true
             youtube: true
             banner: false
+            product: false
 
         initialize: (options) ->
             data = options.model.attributes
@@ -128,7 +129,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # templates use this as obj.image.url
             @model.set "image", @model.get("defaultImage")
             wideable = wideableTemplates[@model.get("template")]
-            showWide = (Math.random() < App.option("imageTileWide", 0.5))
+            showWide = (Math.random() < App.option("page:tiles:imageTileWideProb", 0.5))
             if _.isNumber(@model.get("colspan"))
                 columns = @model.get("colspan")
             else if wideable and showWide
@@ -145,7 +146,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 imageInfo = @model.get("image").width(idealWidth, true)
                 if imageInfo
                     break
-            # @model.set image: imageInfo
+            @model.set image: imageInfo
             @$el.addClass columnDetails[columns]
 
             # Listen for the image being removed from the DOM, if it is, remove
@@ -241,7 +242,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: ->
             @listenToOnce App.vent, "layoutCompleted", =>
                 try
-                    if @model.get("images") && @model.get("images")[0].get("baseImageURL")
+                    if @model.get("images") and @model.get("images")[0].get("baseImageURL")
                         gifUrl = @model.get("images")[0].get("baseImageURL")
                         @$("img.focus").attr("src", gifUrl)
                 catch e
