@@ -1,10 +1,9 @@
 from datetime import datetime
 from django.conf import settings
 import json
-import urlparse, os
 
 from apps.api.serializers import RawSerializer
-from apps.utils.functional import find_where, may_be_json
+from apps.utils.functional import find_where, may_be_json, get_image_file_type
 
 
 class IRSerializer(RawSerializer):
@@ -334,8 +333,8 @@ class ImageSerializer(ContentSerializer):
         from apps.assets.models import default_master_size
 
         try:
-            ext = os.path.splitext(urlparse.urlparse(image.url).path)[1][1:]
-        except:
+            ext = get_image_file_type(image.url)
+        except AttributeError:
             ext = ""
 
         data = super(ImageSerializer, self).get_dump_object(image)
@@ -363,7 +362,7 @@ class GifSerializer(ContentSerializer):
         from apps.assets.models import default_master_size
 
         try:
-            ext = os.path.splitext(urlparse.urlparse(gif.url).path)[1][1:]
+            ext = get_image_file_type(gif.url)
         except AttributeError:
             ext = ""
 
