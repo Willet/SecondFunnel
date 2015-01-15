@@ -513,6 +513,13 @@ class Image(Content):
         super(Image, self).delete(*args, **kwargs)
 
 
+class Gif(Image):
+    baseImageURL = models.TextField() # location of gif image
+
+    serializer = ir_serializers.GifSerializer
+    cg_serializer = cg_serializers.GifSerializer
+
+
 class Video(Content):
     name = models.CharField(max_length=1024, blank=True, null=True)
 

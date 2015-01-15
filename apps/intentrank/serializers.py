@@ -356,6 +356,36 @@ class ImageSerializer(ContentSerializer):
         return data
 
 
+class GifSerializer(ContentSerializer):
+    """This dumps some fields from the image as JSON."""
+    def get_dump_object(self, gif):
+        """This will be the data used to generate the object."""
+        from apps.assets.models import default_master_size
+
+        try:
+            ext = os.path.splitext(urlparse.urlparse(gif.url).path)[1][1:]
+        except:
+            ext = ""
+
+        data = super(GifSerializer, self).get_dump_object(gif)
+        data.update({
+            "format": ext,
+            "type": "gif",
+            "dominant-color": getattr(gif, "dominant_color", "transparent"),
+            "url": gif.url,
+            "id": gif.id,
+            "status": gif.status,
+            "sizes": gif.attributes.get('sizes', {
+                'width': getattr(gif, "width", '100%'),
+                'height': getattr(gif, "height", '100%'),
+            }),
+            "orientation": getattr(gif, "orientation", "portrait"),
+            "baseImageURL": gif.baseImageURL
+        })
+
+        return data
+
+
 class VideoSerializer(ContentSerializer):
     """This will dump absolutely everything in a product as JSON."""
     def get_dump_object(self, video):
@@ -488,15 +518,30 @@ class ImageTileSerializer(ContentTileSerializer):
         data.update(super(ImageTileSerializer, self).get_dump_object(image_tile))
 
         try:
-            data.update(ImageSerializer().get_dump_object(image_tile.content.all()[0]))
+            data.update(ImageSerializer().get_dump_object(image_tile.content.select_subclasses()[0]))
         except IndexError:
             pass
 
         return data
 
 
-class GifTileSerializer(ImageTileSerializer):
-    pass
+class GifTileSerializer(ContentTileSerializer):
+    def get_dump_object(self, gif_tile):
+        """
+        :param gif_tile  <Tile>
+        """
+        data = {
+            'type': 'gif'
+        }
+
+        data.update(super(GifTileSerializer, self).get_dump_object(gif_tile))
+
+        try:
+            data.update(GifSerializer().get_dump_object(gif_tile.content.select_subclasses()[0]))
+        except IndexError:
+            pass
+
+        return data
 
 
 class VideoTileSerializer(ContentTileSerializer):

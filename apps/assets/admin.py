@@ -6,7 +6,7 @@ from django.forms import SelectMultiple, ModelMultipleChoiceField
 
 from apps.assets.forms import CategoryForm
 from apps.assets.models import (Store, Page, Tile, Feed, Product, ProductImage,
-                                Image, Content, Theme, Review, Video, Category)
+                                Image, Content, Theme, Review, Video, Category, Gif)
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -106,6 +106,12 @@ class ImageAdmin(BaseAdmin):
     list_display = ['url'] + BaseAdmin.list_display + ['original_url']
 
 
+class GifAdmin(BaseAdmin):
+    ordering = ['created_at', 'original_url']
+    search_fields = ('id', 'url', 'name', 'description', 'baseImageURL')
+    list_display = ['baseImageURL'] + ['url'] + BaseAdmin.list_display + ['original_url']
+
+
 class ContentAdmin(BaseAdmin):
     ordering = ['id']
     list_display = ['image_tag'] + BaseAdmin.list_display
@@ -135,6 +141,7 @@ admin.site.register(Page, PageAdmin)
 admin.site.register(Tile, TileAdmin)
 admin.site.register(Feed, FeedAdmin)
 admin.site.register(Image, ImageAdmin)
+admin.site.register(Gif, GifAdmin)
 admin.site.register(ProductImage, ProductImageAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Content, ContentAdmin)
