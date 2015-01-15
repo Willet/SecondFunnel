@@ -44,6 +44,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             socialButtons: ".social-buttons"
             tapIndicator: ".tap-indicator-target"
 
+        defaultWideableTemplates:
+            image: true
+            gif: true
+            youtube: true
+            banner: false
+
         initialize: (options) ->
             data = options.model.attributes
 
@@ -112,23 +118,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         onBeforeRender: ->
             normalTileWidth = App.layoutEngine.width()
-            wideableTemplates = App.option("page:tiles:wideableTemplates",
-                image: true
-                youtube: true
-                banner: false
-                product: false
-            )
+            wideableTemplates = _.extend({}, @defaultWideableTemplates, App.option("wideableTemplates", {}))
             columnDetails =
                 1: ""
                 2: "wide"
                 3: "three-col"
                 4: "full"
 
-
             # templates use this as obj.image.url
             @model.set "image", @model.get("defaultImage")
             wideable = wideableTemplates[@model.get("template")]
-            showWide = (Math.random() < App.option("page:tiles:imageTileWideProb", 0.5))
+            showWide = (Math.random() < App.option("imageTileWide", 0.5))
             if _.isNumber(@model.get("colspan"))
                 columns = @model.get("colspan")
             else if wideable and showWide
@@ -142,10 +142,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     columns = 2
             for column in columns
                 idealWidth = normalTileWidth * columns
-                imageInfo = @model.get("defaultImage").width(idealWidth, true)
+                imageInfo = @model.get("image").width(idealWidth, true)
                 if imageInfo
                     break
-            @model.set image: imageInfo
+            # @model.set image: imageInfo
             @$el.addClass columnDetails[columns]
 
             # Listen for the image being removed from the DOM, if it is, remove
@@ -233,6 +233,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.ImageTileView extends module.TileView
         template: "#image_tile_template"
+
+
+    class module.GifTileView extends module.TileView
+        template: "#gif_tile_template"
+
+        initialize: ->
+            @listenToOnce App.vent, "layoutCompleted", =>
+                try
+                    if @model.get("images") && @model.get("images")[0].get("baseImageURL")
+                        gifUrl = @model.get("images")[0].get("baseImageURL")
+                        @$("img.focus").attr("src", gifUrl)
+                catch e
+                    console.warn "This gif does not have a base image.", @get("images")
 
 
     ###
