@@ -178,21 +178,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 index = App.option("heroGalleryIndex", 0)
 
             @$(".stl-look").each ->
-                $(this).find(".stl-item").eq(index).addClass "selected"
+                $(this).find(".stl-item").eq(index).addClass("selected")
                 return
 
             if @model.get("tagged-products") and @model.get("tagged-products").length
                 product = new module.Product(@model.get("tagged-products")[index])
-                @renderSubregions product
+                @renderSubregions(product)
             else if @model.get("template", "") is "product"
-                @renderSubregions @model
+                @renderSubregions(@model)
             else
                 @resizeContainer()
 
             if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
-                $(".stick-bottom", @$el).addClass("stuck").waypoint "sticky",
+                $(".stick-bottom", @$el).addClass("stuck").waypoint("sticky",
                     offset: "bottom-in-view"
                     direction: "up"
+                )
 
             return
 
@@ -233,9 +234,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onRender: ->
             # hide discovery, then show this window as a page.
             if App.support.mobile()
-                @trigger "swap:feed", @$el # out of scope
-                @trigger "feed:swapped"
-            App.vent.trigger "previewRendered", this
+                @trigger("swap:feed", @$el) # out of scope
+                @trigger("feed:swapped")
+            App.vent.trigger("previewRendered", @)
             return
 
 
@@ -257,13 +258,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             unless App.support.mobile()
                 width = Marionette.getOption(this, "width")
                 if width
-                    @$(".content").css "width", width + "px"
+                    @$(".content").css("width", width + "px")
                 else if App.support.mobile()
-                    @$el.width $window.width() # assign width
+                    @$el.width($window.width()) # assign width
 
                 # if it's a real preview, add no-scroll
                 unless @$el.parents("#hero-area").length
-                    @trigger "scroll:disable"
+                    @trigger("scroll:disable")
             return
 
 
@@ -312,12 +313,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         
             @deferred.done((tile) =>
                 @model = new module.Tile(tile)
-                @listenTo App.vent, "windowResize", =>
+                @listenTo(App.vent, "windowResize", =>
                     App.heroArea.show @
+                )
                 return
             )
 
-            @listenTo App.vent, "change:category", @updateCategoryHeroImage
+            @listenTo(App.vent, "change:category", @updateCategoryHeroImage)
             return
 
         onShow: ->
@@ -332,13 +334,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         updateCategoryHeroImage: (category) ->
             @model.destroy()
             @model = new module.Tile(@getCategoryHeroImages(category))
-            App.heroArea.show @
+            App.heroArea.show(@)
 
         getCategoryHeroImages: (category='') ->
-            catObj = App.categories.findModelByName(category) or {}
+            catObj = (App.categories.findModelByName(category) or {})
             heroImages =
-                "desktopHeroImage": catObj['desktopHeroImage'] or App.options['desktop_hero_image']
-                "mobileHeroImage": catObj['mobileHeroImage'] or App.options['mobile_hero_image']
+                "desktopHeroImage": (catObj['desktopHeroImage'] or App.options['desktop_hero_image'])
+                "mobileHeroImage": (catObj['mobileHeroImage'] or App.options['mobile_hero_image'])
             return heroImages
 
 
@@ -371,14 +373,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 templateRules = _.reject(templateRules, (t) ->
                     t.indexOf("mobile") > -1
                 )
-            templateRules
+            return templateRules
 
         regions:
             content: ".template.target"
 
         events:
             "click .close, .mask": ->
-
                 # If we have been home then it's safe to use back()
                 if App.initialPage == ''
                     Backbone.history.history.back()
@@ -393,7 +394,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $target = $(event.target)
                 # Over-write addUrlTrackingParameters for each customer
                 url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') )
-                App.utils.openUrl url
+                App.utils.openUrl(url)
                 return
 
         initialize: (options) ->
@@ -410,7 +411,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         # return {data: $.extend({}, this.options, {template: this.template})};
         onRender: ->
             heightMultiplier = undefined
-            self = this
 
             # cannot declare display:table in marionette class.
             heightMultiplier = (if App.utils.portrait() then 1 else 2)
@@ -424,28 +424,34 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             contentInstance = new module.PreviewContent(contentOpts)
 
             # remember if $.fn.swapWith is called so the feed can be swapped back
-            contentInstance.on "feed:swapped", ->
-                self.triggerMethod "feed:swapped"
+            contentInstance.on("feed:swapped", =>
+                @triggerMethod("feed:swapped")
                 return
+            )
 
-            contentInstance.on "swap:feed", ($el) ->
-                App.discoveryArea.$el.parent().swapWith $el
+            contentInstance.on("swap:feed", ($el) ->
+                App.discoveryArea.$el.parent().swapWith($el)
                 return
+            )
 
-            contentInstance.on "scroll:disable", ->
-                $(document.body).addClass "no-scroll"
+            contentInstance.on("scroll:disable", ->
+                $(document.body).addClass("no-scroll")
                 return
+            )
 
-            @content.show contentInstance
+            @content.show(contentInstance)
             App.previewLoadingScreen.hide()
-            @listenTo App.vent, "rotate", (width) ->
+
+            @listenTo(App.vent, "rotate", (width) =>
                 # On change in orientation, we want to rerender our layout
                 # this is automatically unbound on close, so we don't have to clean
                 heightMultiplier = (if App.utils.portrait() then 1 else 2)
-                self.$el.css height: (if App.support.mobile() then heightMultiplier * $window.height() else "")
-                self.content.show new module.PreviewContent(contentOpts)
+                @$el.css(
+                    height: (if App.support.mobile() then heightMultiplier * $window.height() else "")
+                )
+                @content.show(new module.PreviewContent(contentOpts))
                 return
-
+            )
             return
 
         positionWindow: ->
@@ -453,13 +459,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if App.windowMiddle
                 windowMiddle = App.windowMiddle
             if App.windowHeight and App.support.mobile()
-                @$el.css "height", App.windowHeight
-            @$el.css "top", Math.max(windowMiddle - (@$el.height() / 2), 0)
+                @$el.css("height", App.windowHeight)
+            @$el.css("top", Math.max(windowMiddle - (@$el.height() / 2), 0))
 
         onShow: ->
             @img_load = imagesLoaded(@$el)
-            @img_load.on 'always', =>
+            @img_load.on('always', =>
                 @positionWindow()
+            )
             return
 
         onClose: ->
@@ -468,11 +475,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # hide this, then restore discovery.
             if @feedSwapped
-                @$el.swapWith App.discoveryArea.$el.parent()
+                @$el.swapWith(App.discoveryArea.$el.parent())
 
                 # handle results that got loaded while the discovery
                 # area has an undefined height.
-                App.layoutEngine.layout App.discovery
+                App.layoutEngine.layout(App.discovery)
                 App.layoutEngine.masonry.resize()
             return
 
@@ -513,15 +520,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $el = @$el
                 $subCatEl = $el.find('.sub-category')
 
-                if $subCatEl.length and not $el.hasClass 'expanded'
+                if $subCatEl.length and not $el.hasClass('expanded')
                     # First click, expand subcategories
-                    $el.addClass 'expanded'
-                    $el.siblings().removeClass 'expanded'
+                    $el.addClass('expanded')
+                    $el.siblings().removeClass('expanded')
                 else
                     # First click w/ no subcategories or
                     # second click w/ categories, select category
-                    $el.removeClass 'expanded'
-                    unless $el.hasClass 'selected' and not $subCatEl.hasClass 'selected'
+                    $el.removeClass('expanded')
+                    unless $el.hasClass('selected') and not $subCatEl.hasClass('selected')
                         @selectCategoryEl($el)
 
                         App.router.navigate("category/#{category}",
@@ -533,17 +540,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $el = @$el
                 category = @model
                 $ev = $(event.target)
-                $subCatEl = if $ev.hasClass 'sub-category' then $ev else $ev.parent '.sub-category'
+                $subCatEl = if $ev.hasClass('sub-category') then $ev else $ev.parent('.sub-category')
 
                 # Close categories drop-down
                 $el.removeClass 'expanded'
 
                 # Retrieve subcategory object
-                subCategory = _.find category.get('subCategories'), (subcategory) ->
+                subCategory = _.find(category.get('subCategories'), (subcategory) ->
                     return subcategory.name == $subCatEl.data('name')
-
+                )
                 # switch to the selected category if it has changed
-                unless $el.hasClass 'selected' and $subCatEl.hasClass 'selected' and not $subCatEl.siblings().hasClass 'selected'
+                unless $el.hasClass('selected') and $subCatEl.hasClass('selected') and not $subCatEl.siblings().hasClass('selected')
                     @selectCategoryEl($subCatEl)
 
                     # If subCategory leads with "|", its an additional filter on the parent category
@@ -562,32 +569,32 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         selectCategoryEl: (el) ->
             $el = $(el)
 
-            if $el.hasClass 'category'
+            if $el.hasClass('category')
                 # remove selected from child sub-categories
-                $el.find('.sub-category').removeClass 'selected'
+                $el.find('.sub-category').removeClass('selected')
                 # switch to the selected category if it has changed
-                unless $el.hasClass 'selected'
-                    $el.addClass 'selected'
+                unless $el.hasClass('selected')
+                    $el.addClass('selected')
                     # remove selected from other categories
                     $el.siblings().each ->
                         self = $(@)
-                        self.removeClass 'selected'
-                        self.find('.sub-category').removeClass 'selected'
+                        self.removeClass('selected')
+                        self.find('.sub-category').removeClass('selected')
 
-            else if $el.hasClass 'sub-category'
+            else if $el.hasClass('sub-category')
                 $catEl = $el.parents('.category')
                 
                 # switch to selected sub-category
-                $el.addClass 'selected'
-                $el.siblings().removeClass 'selected'
+                $el.addClass('selected')
+                $el.siblings().removeClass('selected')
                 # switch to selected category if not already
-                unless $catEl.hasClass 'selected'
-                    $catEl.addClass 'selected'
+                unless $catEl.hasClass('selected')
+                    $catEl.addClass('selected')
                     # remove selected from other categories
                     $catEl.siblings().each ->
                         self = $(@)
-                        self.removeClass 'selected'
-                        self.find('.sub-category').removeClass 'selected'
+                        self.removeClass('selected')
+                        self.find('.sub-category').removeClass('selected')
             return @
 
 
@@ -612,10 +619,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     category = {name: category}
                 category
 
-            @collection = new module.CategoryCollection categories, model: module.Category
+            @collection = new module.CategoryCollection(categories, model: module.Category)
 
             # Watch for updates to feed, generally from intentRank
-            @listenTo App.vent, "change:category", @selectCategory
+            @listenTo(App.vent, "change:category", @selectCategory)
 
             # Enable sticky category bar
             if App.option("page:stickyCategories")
@@ -625,11 +632,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         
         onRender: ->
             if App.intentRank.currentCategory
-                @selectCategory App.intentRank.currentCategory()
+                @selectCategory(App.intentRank.currentCategory())
             else
-                App.vent.once 'intentRankInitialized', =>
+                App.vent.once('intentRankInitialized', =>
                     if App.intentRank.currentCategory
-                        @selectCategory App.intentRank.currentCategory()
+                        @selectCategory (App.intentRank.currentCategory())
+                )
             return @
 
         # Remove the 'selected' class from all category and sub-category elements
@@ -650,16 +658,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @unselectCategories()
                 return true
             try
-                catMapObj = @collection.findModelByName category
+                catMapObj = @collection.findModelByName(category)
                 catView = @children.findByModel(catMapObj.category)
 
                 $el = catView.$el
                 $catEl = catView.$el.find(".sub-category[data-name='#{catMapObj.subCategory}']")
 
                 $target = if catMapObj.subCategory then $catEl else $el
-                catView.selectCategoryEl $target
+                catView.selectCategoryEl($target)
                 return true
             catch err
                 if App.option 'debug', false
-                    console.error "Could not select category '#{category}' because:\n#{err.message}"
+                    console.error("Could not select category '#{category}' because:\n#{err.message}")
             return false
