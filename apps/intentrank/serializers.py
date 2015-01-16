@@ -332,11 +332,11 @@ class ImageSerializer(ContentSerializer):
         """This will be the data used to generate the object."""
         from apps.assets.models import default_master_size
 
-        ext = get_image_file_type(image)
+        ext = get_image_file_type(image.url)
 
         data = super(ImageSerializer, self).get_dump_object(image)
         data.update({
-            "format": ext,
+            "format": ext or "jpg",
             "type": "image",
             "dominant-color": getattr(image, "dominant_color", "transparent"),
             "url": image.url,
@@ -358,11 +358,11 @@ class GifSerializer(ContentSerializer):
         """This will be the data used to generate the object."""
         from apps.assets.models import default_master_size
 
-        ext = get_image_file_type(gif)
+        ext = get_image_file_type(gif.url)
 
         data = super(GifSerializer, self).get_dump_object(gif)
         data.update({
-            "format": ext,
+            "format": ext or "gif",
             "type": "gif",
             "dominant-color": getattr(gif, "dominant_color", "transparent"),
             "url": gif.url,
