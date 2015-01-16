@@ -447,6 +447,8 @@ class ProductTileSerializer(TileSerializer):
 
 
 class ContentTileSerializer(TileSerializer):
+    serializer_model = ContentSerializer
+    
     def get_dump_object(self, content_tile):
         """
         :param content_tile  <Tile>
