@@ -386,6 +386,7 @@ class VideoSerializer(ContentSerializer):
         data = super(VideoSerializer, self).get_dump_object(video)
 
         data.update({
+            "type": "video",
             "caption": getattr(video, 'caption', ''),
             "description": getattr(video, 'description', ''),
             "original-id": video.original_id or video.id,
@@ -508,29 +509,7 @@ class GifTileSerializer(ContentTileSerializer):
 
 
 class VideoTileSerializer(ContentTileSerializer):
-    def get_dump_object(self, video_tile):
-        """
-        :param video_tile  <Tile>
-        """
-        data = {
-            'type': 'video'
-        }
-
-        data.update(super(VideoTileSerializer, self).get_dump_object(video_tile))
-
-        try:
-            video = video_tile.content.select_subclasses()[0]
-            data.update({
-                "caption": getattr(video, 'caption', ''),
-                "description": getattr(video, 'description', ''),
-                "original-id": video.original_id or video.id,
-                "original-url": video.source_url or video.url,
-                "source": getattr(video, 'source', 'youtube'),
-            })
-        except:
-            pass # No video in this tile.
-
-        return data
+    serializer_model = VideoSerializer
 
 
 YoutubeTileSerializer = VideoTileSerializer
