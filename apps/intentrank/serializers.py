@@ -452,7 +452,7 @@ class ContentTileSerializer(TileSerializer):
         """
         data = super(ContentTileSerializer, self).get_dump_object(content_tile)
         try:
-            data.update(content_tile.content.select_subclasses()[0].to_json())
+            data.update(self.serializer_model().get_dump_object(content_tile.content.select_subclasses()[0]))
             data['content-ids'] = [x.id for x in content_tile.content.all()]
         except IndexError:
             pass  # no content in this tile
@@ -500,41 +500,11 @@ class BannerTileSerializer(TileSerializer):
 
 
 class ImageTileSerializer(ContentTileSerializer):
-    def get_dump_object(self, image_tile):
-        """
-        :param image_tile  <Tile>
-        """
-        data = {
-            'type': 'image'
-        }
-
-        data.update(super(ImageTileSerializer, self).get_dump_object(image_tile))
-
-        try:
-            data.update(ImageSerializer().get_dump_object(image_tile.content.select_subclasses()[0]))
-        except IndexError:
-            pass
-
-        return data
+    serializer_model = ImageSerializer
 
 
 class GifTileSerializer(ContentTileSerializer):
-    def get_dump_object(self, gif_tile):
-        """
-        :param gif_tile  <Tile>
-        """
-        data = {
-            'type': 'gif'
-        }
-
-        data.update(super(GifTileSerializer, self).get_dump_object(gif_tile))
-
-        try:
-            data.update(GifSerializer().get_dump_object(gif_tile.content.select_subclasses()[0]))
-        except IndexError:
-            pass
-
-        return data
+    serializer_model = GifSerializer
 
 
 class VideoTileSerializer(ContentTileSerializer):
