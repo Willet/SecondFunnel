@@ -36,8 +36,11 @@ def find_where(lst, obj_id):
     raise ValueError("object {id} not in list".format(id=obj_id))
 
 
-def get_image_file_type(image_url):
-    return os.path.splitext(urlparse.urlparse(image_url).path)[1][1:]
+def get_image_file_type(image):
+    try:
+        return os.path.splitext(urlparse.urlparse(image.url).path)[1][1:]
+    except AttributeError:
+        return ""
 
 
 def where(lst, **kwargs):

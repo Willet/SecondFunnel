@@ -332,10 +332,7 @@ class ImageSerializer(ContentSerializer):
         """This will be the data used to generate the object."""
         from apps.assets.models import default_master_size
 
-        try:
-            ext = get_image_file_type(image.url)
-        except AttributeError:
-            ext = ""
+        ext = get_image_file_type(image)
 
         data = super(ImageSerializer, self).get_dump_object(image)
         data.update({
@@ -361,10 +358,7 @@ class GifSerializer(ContentSerializer):
         """This will be the data used to generate the object."""
         from apps.assets.models import default_master_size
 
-        try:
-            ext = get_image_file_type(gif.url)
-        except AttributeError:
-            ext = ""
+        ext = get_image_file_type(gif)
 
         data = super(GifSerializer, self).get_dump_object(gif)
         data.update({
