@@ -85,13 +85,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     Marionette.TemplateCache.getSubtemplate = (templateId) ->
         cachedTemplate = @templateCaches[templateId]
-
-        if !cachedTemplate
+        if not cachedTemplate
           cachedTemplate = new Marionette.TemplateCache(templateId)
           @templateCaches[templateId] = cachedTemplate
 
         return cachedTemplate.loadSubtemplate()
-
 
 
     ###
@@ -137,7 +135,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     Replaces default load method. Stores template string in "template" property.
     ###
     Marionette.TemplateCache::load = ->
-        if @compiledTemplate == undefined
+        if @compiledTemplate is undefined
             @template = @loadTemplate(@templateId)
             @compiledTemplate = @compileTemplate(@template)
         
@@ -151,7 +149,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @returns {string} template
     ###
     Marionette.TemplateCache::loadSubtemplate = ->
-        if @template == undefined
+        if @template is undefined
             templateStr = @loadTemplate(@templateId)
             @template = @compileSubtemplate(templateStr)
         
