@@ -167,12 +167,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @returns {string} template
     ###
     Marionette.TemplateCache::compileSubtemplate = (str) ->
-        while str != (str = str.replace(
-                /<%\sinclude\s*(.*?)\s%>/g,
-                (match, templateId) ->
-                    templateId = '#' + templateId
-                    return Marionette.TemplateCache.getSubtemplate(templateId)
-            )) then
+        includeRegex = /<%\sinclude\s*(.*?)\s%>/g
+        str = str.replace(
+            includeRegex,
+            (match, templateId) ->
+                templateId = '#' + templateId
+                return Marionette.TemplateCache.getSubtemplate(templateId)
+            )
         
         return str
 
@@ -182,7 +183,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     compiling the template.
     ###
     Marionette.TemplateCache::compileTemplate = (rawTemplate) ->
-        rawTemplate = this.compileSubtemplate(rawTemplate)
+        rawTemplate = @compileSubtemplate(rawTemplate)
         
         return _.template(rawTemplate)
         
