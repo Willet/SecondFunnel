@@ -76,6 +76,25 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     ###
+    Using templateId, checks if the template exists in the cache and creates a
+    new one if not found. Returns the template string.
+
+    @method getSubtemplate
+    @param templateId
+    @returns {string} template
+    ###
+    Marionette.TemplateCache.getSubtemplate = (templateId) ->
+        cachedTemplate = @templateCaches[templateId]
+
+        if !cachedTemplate
+          cachedTemplate = new Marionette.TemplateCache(templateId)
+          @templateCaches[templateId] = cachedTemplate
+
+        return cachedTemplate.loadSubtemplate()
+
+
+
+    ###
     Accept an arbitrary number of template selectors instead of just one.
     Function will return in a short-circuit manner once a template is found.
 
@@ -112,4 +131,59 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 break
             i++
         template
+
+
+    ###
+    Replaces default load method. Stores template string in "template" property.
+    ###
+    Marionette.TemplateCache::load = ->
+        if @compiledTemplate == undefined
+            @template = @loadTemplate(@templateId)
+            @compiledTemplate = @compileTemplate(@template)
+        
+        return @compiledTemplate
+
+
+    ###
+    Returns partially compiled template string.
+
+    @method loadSubtemplate
+    @returns {string} template
+    ###
+    Marionette.TemplateCache::loadSubtemplate = ->
+        if @template == undefined
+            templateStr = @loadTemplate(@templateId)
+            @template = @compileSubtemplate(templateStr)
+        
+        return @template
+
+
+    ###
+    Replaces all include tags within a given template with cached templates.
+    Returns the resulting partially-compiled template.
+
+    @method loadSubtemplate
+    @param str
+    @returns {string} template
+    ###
+    Marionette.TemplateCache::compileSubtemplate = (str) ->
+        while str != (str = str.replace(
+                /<%\sinclude\s*(.*?)\s%>/g,
+                (match, templateId) ->
+                    templateId = '#' + templateId
+                    return Marionette.TemplateCache.getSubtemplate(templateId)
+            )) then
+        
+        return str
+
+
+    ###
+    Replaces default compileTempalte method. Removes include tags before
+    compiling the template.
+    ###
+    Marionette.TemplateCache::compileTemplate = (rawTemplate) ->
+        rawTemplate = this.compileSubtemplate(rawTemplate)
+        
+        return _.template(rawTemplate)
+        
 
