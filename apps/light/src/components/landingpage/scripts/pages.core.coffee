@@ -165,11 +165,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @returns {string} template
     ###
     Marionette.TemplateCache::compileSubtemplate = (str) ->
-        includeRegex = /<%\sinclude\("*(.*?)"\)\s%>/g
+        includeRegex = /<%\sinclude(\("(.*?)"\)|\s"(.*?)")\s%>/g
         str = str.replace(
             includeRegex,
-            (match, templateId) ->
-                templateId = '#' + templateId
+            (match, result, javascriptId, coffeescriptId) ->
+                templateId = "##{javascriptId or coffeescriptId}"
+
                 return Marionette.TemplateCache.getSubtemplate(templateId)
             )
         
