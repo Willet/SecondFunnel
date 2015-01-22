@@ -314,7 +314,7 @@
         </script>
 
         <!-- custom templates -->
-        <script type="text/template" id="desktop-tagged-products">
+        <script type="text/template" id="desktop_tagged_products">
             <% if (obj['tagged-products'].length > 1 && obj.orientation === 'portrait') { %>
                 <div class="cell desktop-only shop">
                     <div class="stl-title">
@@ -358,7 +358,7 @@
             </div>
         </script>
 
-        <script type="text/template" id="mobile-tagged-products">
+        <script type="text/template" id="mobile_tagged_products">
             <div class="cell">
                 <img src="<%= image_src %>" alt="image"/>
             </div>
@@ -390,7 +390,7 @@
             </div>
         </script>
 
-        <script type="text/template" id="no-tagged-products">
+        <script type="text/template" id="no_tagged_products">
             <% if (!App.support.mobile()) { %>
                 <div class="image cell">
                     <img class="image" src="<%= image_src %>" alt="image"/>

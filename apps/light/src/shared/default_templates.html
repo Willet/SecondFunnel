@@ -114,9 +114,9 @@
             <div class="table">
                 <div class="row">
                     <% if (App.support.mobile()) { %>
-                        <% include "mobile-tagged-products" %>
+                        <% include "mobile_tagged_products" %>
                     <% } else { %>
-                        <% include "desktop-tagged-products" %>
+                        <% include "desktop_tagged_products" %>
                     <% } %>
                 </div>
             </div>
@@ -125,7 +125,7 @@
         <div class="image-without-tagged-products">
             <div class="table">
                 <div class="row">
-                    <% include "no-tagged-products" %>
+                    <% include "no_tagged_products" %>
                 </div>
             </div>
         </div>
