@@ -106,6 +106,36 @@
     <div class="mask"></div>
 </script>
 
+<script type="text/template" id="image_preview_template">
+    <% var image_src = (obj.baseImageURL || obj.images[0].url); %>
+    <% if (obj['tagged-products'].length) { %>
+    <% var product = obj['tagged-products'][0]; %>
+        <div class="image-with-tagged-products">
+            <div class="table">
+                <div class="row">
+                    <% if (App.support.mobile()) { %>
+                        <% include "mobile-tagged-products" %>
+                    <% } else { %>
+                        <% include "desktop-tagged-products" %>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    <% } else { %>
+        <div class="image-without-tagged-products">
+            <div class="table">
+                <div class="row">
+                    <% include "no-tagged-products" %>
+                </div>
+            </div>
+        </div>
+    <% } %>
+</script>
+
+<script type="text/template" id="gif_preview_template">
+    <% include "image_preview_template" %>
+</script>
+
 <script type="text/template" id="product_price_template">
     <% if (obj.sale_price) { %>
         <div class="strike inline">
