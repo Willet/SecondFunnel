@@ -22,12 +22,18 @@ class FeedSerializer(IRSerializer):
 class StoreSerializer(IRSerializer):
     """Generates the PAGES_INFO.store key."""
     def get_dump_object(self, store):
+        default_page = getattr(store, 'default_page', None)
+        try:
+            default_page_name = default_page.url_slug
+        except AttributeError:
+            default_page_name = None
         return {
             'id': str(store.id),
             # required for store-specific themes
             'slug': store.slug or "store",
             'name': store.name or "Store",
             'displayName': getattr(store, 'display_name', ''),  # optional
+            'defaultPageName': default_page_name,
         }
 
 
@@ -36,43 +42,50 @@ class PageSerializer(IRSerializer):
     def get_dump_object(self, page):
         data = {
             'id':                   getattr(page, 'intentrank_id', page.id),
-            # for verifying the original upload date of a static campaign
-            'pubDate':              str(datetime.now().isoformat()),
-            'gaAccountNumber':      getattr(page, 'ga_account_number', settings.GOOGLE_ANALYTICS_PROPERTY),
-            # expected format: [{
-            #                     "mobileHeroImage":"__img_url__.jpg",
-            #                     "displayName":"For Her",
-            #                     "name":"for-her",
-            #                     "desktopHeroImage":"__img_url__.png"
-            #                   },
-            #                   { ... }]
-            'categories':           may_be_json(page, 'categories', list),
-            'mobileCategories':     may_be_json(page, 'mobileCategories', list),
-            # expected format: ["facebook", "twitter", "pinterest", "tumblr"]
-            'socialButtons':        may_be_json(page, 'socialButtons', list),
             # provided by campaign manager
             'name':                 getattr(page, 'name', ''),
             'slug':                 getattr(page, 'url_slug', ''),
             'layout':               getattr(page, 'layout', 'hero'),
             'description':          getattr(page, 'description', ''),
-            'openInNewWindow':      getattr(page, 'openInNewWindow', True),
+            # for verifying the original upload date of a static campaign
+            'pubDate':              str(datetime.now().isoformat()),
+            'gaAccountNumber':      getattr(page, 'ga_account_number', settings.GOOGLE_ANALYTICS_PROPERTY),
+            # categories format: [{
+            #                     "desktopHeroImage":"__img_url__.png"
+            #                     "displayName":"For Her",
+            #                     "mobileHeroImage":"__img_url__.jpg",
+            #                     "name":"for-her",
+            #                   },
+            #                   { ... }]
+            'categories':           may_be_json(page, 'categories', list),
+            'mobileCategories':     may_be_json(page, 'mobileCategories', list),
             'stickyCategories':     getattr(page, 'stickyCategories', False),
+            # a string indicating if there should be a home button & category home is
+            'categoryHome':         getattr(page, 'categoryHome', ''),
+            # expected format: ["facebook", "twitter", "pinterest", "tumblr"]
+            'socialButtons':        may_be_json(page, 'socialButtons', list),
             'showSharingCount':     getattr(page, 'showSharingCount', False),
+            'openLinksInNewWindow': getattr(page, 'openLinksInNewWindow', True),
+            'tiles': {
+                'openTileInHero':       getattr(page, 'tiles', {}).get('openTileInHero', False),
+                'openProductTileInPDP': getattr(page, 'tiles', {}).get('openProductTileInPDP', False),
+                # expected format: {'image': True, 'youtube': True, 'banner': False, 'product': False}
+                'wideableTemplates':    getattr(page, 'tiles', {}).get('wideableTemplates', None),
+                # image tile width can be randomized
+                'imageTileWideProb':    getattr(page, 'tiles', {}).get('imageTileWideProb', 0.5),
+            },
             'masonry': {
                 'transitionDuration': getattr(page, 'masonry', {}).get('transitionDuration', '0.4s'),
                 # minimum number of columns on desktop for masonry
                 'minDesktopColumns':  getattr(page, 'masonry', {}).get('minDesktopColumns', 2),
+                # currently unused:
+                'maxColumnCount':     getattr(page, 'column_count', 4),
                 # minimum number of columns to show on mobile for masonry
                 'minMobileColumns':   getattr(page, 'masonry', {}).get('minMobileColumns', 2),
                 'forceGrid':          getattr(page, 'masonry', {}).get('forceGrid', True),
                 'tileAspectRatio':    getattr(page, 'masonry', {}).get('tileAspectRatio', 0.7),
                 'heightRange':        getattr(page, 'masonry', {}).get('heightRange', 0.6),
             },
-
-            # optional (defaults to 240 or 255 pixels)
-            # TODO: undefined
-            'columnWidth': getattr(page, 'column_width', getattr(page.store, 'column-width', None)),
-            'maxColumnCount': getattr(page, 'column_count', 4),
         }
 
         return data
@@ -139,25 +152,13 @@ class PageConfigSerializer(object):
         data.update({
             # DEPRECATED (use page:id)
             'campaign': getattr(page, 'intentrank_id', page.id),
-            # DEPRECATED (use page:columnWidth)
-            'columnWidth': getattr(page, 'column_width',
-                            getattr(page.store, 'column-width', None)),
-            # DEPRECATED (use page:maxColumnCount)
-            'maxColumnCount': getattr(page, 'column_count', 4),
-
             'overlayButtonColor': getattr(page, 'overlay_button_color', ''),
             'overlayMobileButtonColor': getattr(page, 'overlay_mobile_button_color', ''),
             'disableBannerRedirectOnMobile': getattr(page, 'disable_banner_redirect_on_mobile', False),
             'mobileTabletView': getattr(page, 'mobile_table_view', False),
             'conditionalSocialButtons': getattr(page, 'conditional_social_buttons', {}),
-            'tilePopupUrl': getattr(page, 'tile_popup_url', ''),
             'urlParams': getattr(page, 'url_params', {}),
 
-            # a string or boolean indicating if there should be a home button /
-            # what the home button should be
-            'categoryHome': getattr(page, 'categoryHome', True),
-            # optional, for social buttons (default: true)
-            'showCount': True,
             # optional; default: true
             'enableTracking': enable_tracking,
             # optional. controls how often tiles are wide.
@@ -194,6 +195,18 @@ class PageConfigSerializer(object):
 
             # JS now fetches its own initial results
             'initialResults': [],
+            # Should be moved to a new class
+            'ad': {
+                'forceTwoColumns':    getattr(page, 'forceTwoColumns', False),
+                'columnWidth':        getattr(page, 'columnWidth', 240),
+                # this is actually the slug of the associated page '/slug_name'
+                # this should be a Ad Model attribute like 'associated_page'
+                'tilePopupUrl':       getattr(page, 'tile_popup_url', ''),
+                'tiles': {
+                    'openTilesInPreview':    getattr(page, 'tiles', {}).get('openTilesInPreview', False),
+                    'openProductTilesInPDP': getattr(page, 'tiles', {}).get('openProductTileInPDP', False),
+                }
+            }
         })
 
         # fill keys not available to parent serializer

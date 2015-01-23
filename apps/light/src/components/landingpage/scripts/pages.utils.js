@@ -286,12 +286,28 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     /**
+     * ALL CLICKS TO EXTERNAL URLS SHOULD GO THROUGH THIS FUNCTION
+     * 
+     * Opens url in correct window w/ tracking parameters appended & Emits tracking event
+     *
+     * @param {string} url
+     */
+    module.openUrl = function (targetUrl) {
+        var windowParams = $.extend({}, $.deparam( window.location.search.substr(1) )),
+            url = module.urlAddParams(targetUrl, windowParams);
+        url = module.addUrlTrackingParameters(url);
+        App.vent.trigger("tracking:click", url);
+        window.open(url, module.openInWindow());
+        return;
+    };
+
+    /**
      * Returns window target for url redirect
      *
      * @returns {string}
      */
     module.openInWindow = function () {
-        return App.option("page:openInNewWindow", true) ? "_blank" : "_self";
+        return App.option("page:openLinksInNewWindow", true) ? "_blank" : "_self";
     };
 
     /**

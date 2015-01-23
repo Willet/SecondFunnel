@@ -23,7 +23,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             initialResults = options.initialResults
             if initialResults and initialResults.length > 0
                 if $.isArray intitialResults
-                    deferred = $.when .initialResults
+                    deferred = $.when(initialResults)
                 else
                     deferred = $.Deferred()
                     intitialResults.onreadystatechange = ->
@@ -151,6 +151,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 App.core.TileView
             ) || App.core.TileView
             return new itemViewClass(itemViewOptions)
+
 
     class module.MasonryFeedView extends module.FeedView
 
