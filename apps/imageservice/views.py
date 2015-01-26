@@ -6,9 +6,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
-from apps.imageservice.tasks import process_image
+from apps.imageservice.tasks import process_image, process_gif
 from apps.imageservice.utils import create_image_path
-from apps.assets.models import ProductImage, Image, Product, Store
+from apps.assets.models import ProductImage, Image, Product, Store, Gif
 
 
 def has_image_key(fn):
@@ -87,6 +87,40 @@ def create_image(request, img, store_id, source):
 
     image.save()
     return image.to_json()
+
+
+@csrf_exempt
+@login_required
+@require_http_methods(["POST"])
+@has_image_key
+def create_gif(request, gif, store_id, source):
+    """
+    Consumes a request object with a passed file and delegates it to the
+    image service for processing, assigning it to a store.
+
+    @param request: HttpRequest object
+    @param gif: str
+    @param store_id: The store id
+    @param source: The source of the image
+    @return: HttpResponse
+    """
+    path = create_image_path(store_id, source)
+    data = process_gif(gif, path)
+    store = Store.objects.get(pk=store_id)
+
+
+    # Get the last old id to use for this object
+    gif = Gif(original_url=request.POST.get('url'),
+                  attributes={"sizes": data['sizes']},
+                  dominant_color=data['dominant-color'],
+                  url=data['url'],
+                  store=store,
+                  source=source,
+                  file_type='gif',
+                  baseImageURL=data['baseImageURL'])
+
+    gif.save()
+    return gif.to_json()
 
 
 @csrf_exempt

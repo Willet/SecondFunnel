@@ -7,6 +7,7 @@ import json
 import re
 import StringIO
 import functools
+import boto
 
 from functools import partial
 from django.conf import settings
@@ -15,6 +16,7 @@ from boto import sns
 from boto import sqs
 from boto.sqs.message import RawMessage
 
+from boto.s3 import connect_to_region
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
@@ -23,7 +25,7 @@ from boto.route53.record import ResourceRecordSets
 from boto.route53.exception import DNSServerError
 
 S3_SERVICE_CLASSES = {
-    's3': S3Connection,
+    's3': connect_to_region,
     'route53': Route53Connection
 }
 
@@ -51,10 +53,13 @@ def get_connection(service):
     if not service_class:
         raise ValueError(
             "Connection to service not supported: {0}".format(service))
+    calling_format = boto.s3.connection.OrdinaryCallingFormat()
 
     return service_class(
+        region_name=settings.AWS_SNS_REGION_NAME,
         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        calling_format=calling_format)
 
 
 def connection_required(service_class):
