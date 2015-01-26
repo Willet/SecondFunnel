@@ -170,7 +170,7 @@ class GifSerializer(ContentSerializer):
             "format": obj.file_type,
             "hash": getattr(obj, 'file_checksum', ''),
             "orientation": 'landscape' if obj.width > obj.height else 'portrait',
-            "gif_url": obj.gif_url
+            "gifUrl": obj.gif_url
         })
 
         return data

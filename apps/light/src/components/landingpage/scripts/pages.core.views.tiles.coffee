@@ -242,8 +242,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: ->
             @listenToOnce App.vent, "layoutCompleted", =>
                 try
-                    if @model.get("images") and @model.get("images")[0].get("gif_url")
-                        gifUrl = @model.get("images")[0].get("gif_url")
+                    if @model.get("images") and @model.get("images")[0].get("gifUrl")
+                        gifUrl = @model.get("images")[0].get("gifUrl")
                         @$("img.focus").attr("src", gifUrl)
                 catch e
                     console.warn "This gif does not have a base image.", @get("images")
