@@ -108,8 +108,8 @@ class ImageAdmin(BaseAdmin):
 
 class GifAdmin(BaseAdmin):
     ordering = ['created_at', 'original_url']
-    search_fields = ('id', 'url', 'name', 'description', 'baseImageURL')
-    list_display = ['baseImageURL'] + ['url'] + BaseAdmin.list_display + ['original_url']
+    search_fields = ('id', 'url', 'name', 'description', 'gif_url')
+    list_display = ['gif_url'] + ['url'] + BaseAdmin.list_display + ['original_url']
 
 
 class ContentAdmin(BaseAdmin):

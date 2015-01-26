@@ -514,7 +514,7 @@ class Image(Content):
 
 
 class Gif(Image):
-    baseImageURL = models.TextField() # location of gif image
+    gif_url = models.TextField() # location of gif image
 
     serializer = ir_serializers.GifSerializer
     cg_serializer = cg_serializers.GifSerializer

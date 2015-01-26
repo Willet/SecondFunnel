@@ -8,17 +8,23 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Gif'
-        db.create_table(u'assets_gif', (
-            (u'image_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['assets.Image'], unique=True, primary_key=True)),
-            ('baseImageURL', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal(u'assets', ['Gif'])
+        # Deleting field 'Gif.baseImageURL'
+        db.delete_column(u'assets_gif', 'baseImageURL')
+
+        # Adding field 'Gif.gif_url'
+        db.add_column(u'assets_gif', 'gif_url',
+                      self.gf('django.db.models.fields.TextField')(default=''),
+                      keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting model 'Gif'
-        db.delete_table(u'assets_gif')
+        # Adding field 'Gif.baseImageURL'
+        db.add_column(u'assets_gif', 'baseImageURL',
+                      self.gf('django.db.models.fields.TextField')(default=''),
+                      keep_default=False)
+
+        # Deleting field 'Gif.gif_url'
+        db.delete_column(u'assets_gif', 'gif_url')
 
 
     models = {
@@ -56,11 +62,12 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'ir_cache': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'is_finite': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'source_urls': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
         },
         u'assets.gif': {
             'Meta': {'object_name': 'Gif', '_ormbases': [u'assets.Image']},
-            'baseImageURL': ('django.db.models.fields.TextField', [], {}),
+            'gif_url': ('django.db.models.fields.TextField', [], {}),
             u'image_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['assets.Image']", 'unique': 'True', 'primary_key': 'True'})
         },
         u'assets.image': {
