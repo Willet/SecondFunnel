@@ -28,6 +28,13 @@ Point = namedtuple('Point', ('coords', 'n', 'ct'))
 Cluster = namedtuple('Cluster', ('points', 'center', 'n'))
 
 
+def get_filetype(url):
+    path = urlparse.urlparse(url).path
+    filetype = os.path.splitext(path)[1][1:]
+
+    return filetype
+
+
 def get_public_id(url):
     """
     Returns the public ID of a cloudinary resource.

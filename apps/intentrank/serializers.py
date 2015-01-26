@@ -373,7 +373,7 @@ class GifSerializer(ContentSerializer):
                 'height': getattr(gif, "height", '100%'),
             }),
             "orientation": getattr(gif, "orientation", "portrait"),
-            "baseImageURL": gif.baseImageURL
+            "gif_url": gif.gif_url
         })
 
         return data
