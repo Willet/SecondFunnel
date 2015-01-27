@@ -72,6 +72,15 @@
     <% } %>
 </script>
 
+<script type="text/template" id="gif_tile_template">
+    <div class='relative'>
+        <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
+    </div>
+    <% if (App.option("debug", 0) > 1) { %>
+        <span class="type"><%= obj["content-type"] %></span>
+    <% } %>
+</script>
+
 <script type="text/template" id="video_tile_template">
     <iframe src="<%- obj.url %>" width="100%" height="425" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
 </script>
@@ -95,6 +104,36 @@
         </div>
     </div>
     <div class="mask"></div>
+</script>
+
+<script type="text/template" id="image_preview_template">
+    <% var image_src = (obj.gifUrl || obj.images[0].url); %>
+    <% if (obj['tagged-products'].length) { %>
+    <% var product = obj['tagged-products'][0]; %>
+        <div class="image-with-tagged-products">
+            <div class="table">
+                <div class="row">
+                    <% if (App.support.mobile()) { %>
+                        <% include("mobile_tagged_products") %>
+                    <% } else { %>
+                        <% include("desktop_tagged_products") %>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    <% } else { %>
+        <div class="image-without-tagged-products">
+            <div class="table">
+                <div class="row">
+                    <% include("no_tagged_products") %>
+                </div>
+            </div>
+        </div>
+    <% } %>
+</script>
+
+<script type="text/template" id="gif_preview_template">
+    <% include("image_preview_template") %>
 </script>
 
 <script type="text/template" id="product_price_template">

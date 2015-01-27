@@ -464,7 +464,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onShow: ->
             @img_load = imagesLoaded(@$el)
-            @img_load.on('always', =>
+            @listenTo(@image_load, 'always', =>
                 @positionWindow()
             )
             return

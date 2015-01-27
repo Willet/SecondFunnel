@@ -136,8 +136,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     Marionette.TemplateCache::load = ->
         if @compiledTemplate is undefined
-            @template = @loadTemplate(@templateId)
-            @compiledTemplate = @compileTemplate(@template)
+            @rawTemplate = @loadTemplate(@templateId)
+            @compiledTemplate = @compileTemplate(@rawTemplate)
         
         return @compiledTemplate
 
@@ -149,11 +149,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @returns {string} template
     ###
     Marionette.TemplateCache::loadSubtemplate = ->
-        if @template is undefined
+        if @rawTemplate is undefined
             templateStr = @loadTemplate(@templateId)
-            @template = @compileSubtemplate(templateStr)
+            @rawTemplate = @compileSubtemplate(templateStr)
         
-        return @template
+        return @rawTemplate
 
 
     ###
@@ -165,11 +165,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @returns {string} template
     ###
     Marionette.TemplateCache::compileSubtemplate = (str) ->
-        includeRegex = /<%\sinclude\s*(.*?)\s%>/g
+        includeRegex = /<%\sinclude(\("(.*?)"\)|\s"(.*?)")\s%>/g
         str = str.replace(
             includeRegex,
-            (match, templateId) ->
-                templateId = '#' + templateId
+            (match, result, javascriptId, coffeescriptId) ->
+                templateId = "##{javascriptId or coffeescriptId}"
+
                 return Marionette.TemplateCache.getSubtemplate(templateId)
             )
         

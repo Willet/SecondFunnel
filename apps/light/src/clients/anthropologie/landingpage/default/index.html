@@ -135,109 +135,99 @@
                 </div>
             </div>
         </script>
-
-        <script type="text/template" id="image_preview_template">
-            <% if (obj['tagged-products'].length) { %>
-                <% var product = obj['tagged-products'][0]; %>
-                <div class="image-with-tagged-products">
-                    <div class="table">
-                        <div class="row">
-                            <div class="cell desktop-only image-cell">
-                                <img src="<%= obj.images[0].url %>" alt="image" class="image"/>
-                                    <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
-                                    <div class="landscape">
-                                        <div class="stl-title">
-                                            <img src="/static/light/anthropologie/landingpage/default/images/getthelook.png" />
-                                        </div>
-                                        <div class="stl-look">
-                                            <% var related = obj['tagged-products']; %>
-                                            <% for (var i = 0; i < related.length; i++) { %>
-                                                <div class="stl-item" data-index="<%- i %>">
-                                                    <img src="<%- related[i].images[0].url %>" />
-                                                    <%- related[i].name %>
-                                                </div>
-                                            <% } %>
-                                        </div>
-                                    </div>
-                                <% } %>
-                            </div>
-                            <div class="cell mobile-only">
-                                <img src="<%= obj.images[0].url %>" alt="image"/>
-                            </div>
-                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
-                                <div class="cell desktop-only shop">
-                                    <div class="stl-title">
-                                        <img src="/static/light/anthropologie/landingpage/default/images/getthelook.png" />
-                                    </div>
-                                    <div class="stl-look">
-                                        <% var related = obj['tagged-products']; %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <%- related[i].name %>
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            <% } %>
-                            <div class="cell info">
-                                <% if (App.support.mobile()) { %>
-                                    <div class='title'></div>
-                                    <div class='price'></div>
-                                <% } %>
-                                <div class='relative'>
-                                    <div class="gallery-main-image"></div>
-                                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                                    <% if (App.support.mobile()) { %>
-                                        <div class='buy'></div>
-                                    <% } %>
-                                </div>
-                                <% if (!App.support.mobile()) { %>
-                                    <div class='title'></div>
-                                    <div class='price'></div>
-                                    <div class='buy'></div>
-                                <% } %>
-                            </div>
-                            <% if (obj['tagged-products'].length > 1) { %>
-                                <div class="cell mobile-only">
-                                    <div class="stl-title stick-bottom">
-                                        <img src="/static/light/anthropologie/landingpage/default/images/getthelook.png" />
-                                    </div>
-                                    <div class="stl-look">
-                                        <% var related = obj['tagged-products'] %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <%- related[i].name %>
-                                            </div>
-                                        <% } %>
-                                    </div>
+        
+        <script type="text/template" id="desktop_tagged_products">
+            <div class="cell desktop-only image-cell">
+                <img src="<%= image_src %>" alt="image" class="image"/>
+                <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                    <div class="landscape">
+                        <div class="stl-title">
+                            <img src="/static/light/anthropologie/landingpage/default/images/getthelook.png" />
+                        </div>
+                        <div class="stl-look">
+                            <% var related = obj['tagged-products']; %>
+                            <% for (var i = 0; i < related.length; i++) { %>
+                                <div class="stl-item" data-index="<%- i %>">
+                                    <img src="<%- related[i].images[0].url %>" />
+                                    <%- related[i].name %>
                                 </div>
                             <% } %>
                         </div>
                     </div>
-                </div>
-            <% } else { %>
-                <div class="image-without-tagged-products">
-                    <div class="table">
-                        <div class="row">
-                            <div class="cell">
-                                <img src="<%= obj.images[0].url %>" alt="image" class="main-image" />
+                <% } %>
+            </div>
+            <% if (obj['tagged-products'].length > 1 && obj.orientation === 'portrait') { %>
+                <div class="cell desktop-only shop">
+                    <div class="stl-title">
+                        <img src="/static/light/anthropologie/landingpage/default/images/getthelook.png" />
+                    </div>
+                    <div class="stl-look">
+                        <% var related = obj['tagged-products']; %>
+                        <% for (var i = 0; i < related.length; i++) { %>
+                            <div class="stl-item" data-index="<%- i %>">
+                                <img src="<%- related[i].images[0].url %>" />
+                                <%- related[i].name %>
                             </div>
-                            <div class="cell info">
-                                <div class="title">
-                                    Coming soon to Anthropologie!
-                                </div>
-                                <div class="buy">
-                                    <a class='button' href='http://www.anthropologie.com/' target='_blank'>
-                                        Shop On Anthropologie
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+                        <% } %>
                     </div>
                 </div>
             <% } %>
+            <div class="cell info">
+                <div class='relative'>
+                    <div class="gallery-main-image"></div>
+                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                </div>
+                <div class='title'></div>
+                <div class='price'></div>
+                <div class='buy'></div>
+            </div>
+        </script>
+
+        <script type="text/template" id="mobile_tagged_products">
+            <div class="cell mobile-only">
+                <img src="<%= image_src %>" alt="image"/>
+            </div>
+            <div class="cell info">
+                <div class='title'></div>
+                <div class='price'></div>
+                <div class='relative'>
+                    <div class="gallery-main-image"></div>
+                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                    <div class='buy'></div>
+                </div>
+            </div>
+            <% if (obj['tagged-products'].length > 1) { %>
+                <div class="cell mobile-only">
+                    <div class="stl-title stick-bottom">
+                        <img src="/static/light/anthropologie/landingpage/default/images/getthelook.png" />
+                    </div>
+                    <div class="stl-look">
+                        <% var related = obj['tagged-products'] %>
+                        <% for (var i = 0; i < related.length; i++) { %>
+                            <div class="stl-item" data-index="<%- i %>">
+                                <img src="<%- related[i].images[0].url %>" />
+                                <%- related[i].name %>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            <% } %>
+        </script>
+
+        <script type="text/template" id="no_tagged_products">
+            <div class="cell">
+                <img src="<%- image_src %>" alt="image" class="main-image" />
+            </div>
+            <div class="cell info">
+                <div class="title">
+                    Coming soon to Anthropologie!
+                </div>
+                <div class="buy">
+                    <a class='button' href='http://www.anthropologie.com/' target='_blank'>
+                        Shop On Anthropologie
+                    </a>
+                </div>
+            </div>
         </script>
 
         <script type="text/template" id="hero_template">

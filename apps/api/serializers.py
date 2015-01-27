@@ -161,6 +161,21 @@ class ImageSerializer(ContentSerializer):
         return data
 
 
+class GifSerializer(ContentSerializer):
+    """This will dump absolutely everything in a product as JSON."""
+    def get_dump_object(self, obj):
+        data = super(GifSerializer, self).get_dump_object(obj)
+        data.update({
+            "original-url": obj.original_url or obj.url,
+            "format": obj.file_type,
+            "hash": getattr(obj, 'file_checksum', ''),
+            "orientation": 'landscape' if obj.width > obj.height else 'portrait',
+            "gifUrl": obj.gif_url
+        })
+
+        return data
+
+
 class ProductImageSerializer(RawSerializer):
     """This will dump absolutely everything in a product as JSON."""
     def get_dump_object(self, obj):

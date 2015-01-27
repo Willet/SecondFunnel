@@ -16,20 +16,23 @@ from apps.imageservice.models import ExtendedImage
 
 
 IMAGE_SIZES = getattr(settings, 'IMAGE_SIZES', (
-    ("pico", 16, 16),
-    ("icon", 32, 32),
-    ("thumb", 50, 50),
-    ("small", 100, 100),
-    ("compact", 160, 160),
-    ("medium", 240, 240),
-    ("large", 480, 480),
-    ("grande", 600, 600),
-    ("1024x1024", 1024, 1024),
-    ("master", 2048, 2048)
+   ("thumb", 160, 160),
+   ("small", 240, 240), # 1 col in 4 col layout
+   ("medium", 320, 320), # 1 col in 3 col layout
+   ("large", 660, 660), # 2 col in 3 col layout
+   ("grande", 1024, 1024),
+   ("master", 2048, 2048)
 ))
 
 Point = namedtuple('Point', ('coords', 'n', 'ct'))
 Cluster = namedtuple('Cluster', ('points', 'center', 'n'))
+
+
+def get_filetype(url):
+    path = urlparse.urlparse(url).path
+    filetype = os.path.splitext(path)[1][1:]
+
+    return filetype
 
 
 def get_public_id(url):
@@ -51,6 +54,7 @@ def upload_to_cloudinary(source, path='', effect=None, **kwargs):
         'folder': path,
         'colors': True,
         'format': 'jpg',
+        'allowed_formats': ['jpg'],
         'public_id': generate_public_id(source),
         'overwrite': True
     })
