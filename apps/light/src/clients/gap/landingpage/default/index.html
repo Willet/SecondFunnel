@@ -313,138 +313,124 @@
             </div>
         </script>
 
-        <script type="text/template" id="image_preview_template">
-            <% if (obj['tagged-products'].length) { %>
-                <% var product = obj['tagged-products'][0]; %>
-                <div class="image-with-tagged-products">
-                    <div class="table">
-                        <div class="row">
-                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
-                                <div class="cell desktop-only shop">
-                                    <div class="stl-title">
-                                        Shop the Look
-                                    </div>
-                                    <div class="stl-look">
-                                        <% var related = obj['tagged-products']; %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <%- related[i].name %>
-                                            </div>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            <% } %>
-                            <div class="cell desktop-only">
-                                <img src="<%= obj.images[0].url %>" alt="image" class="image"/>
-                                <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
-                                    <% if (obj['tagged-products'].length > 1) { %>
-                                        <div class="landscape">
-                                            <div class="stl-title">Shop the Look</div>
-                                            <div class="stl-look">
-                                                <% var  related = obj['tagged-products'] %>
-                                                <% for (var i = 0; i < related.length; i++) { %>
-                                                    <div class="stl-item" data-index="<%- i %>">
-                                                        <img src="<%- related[i].images[0].url %>" />
-                                                    </div>
-                                                <% } %>
-                                            </div>
-                                        </div>
-                                    <% } %>
-                                <% } %>
+        <!-- custom templates -->
+        <script type="text/template" id="desktop_tagged_products">
+            <% if (obj['tagged-products'].length > 1 && obj.orientation === 'portrait') { %>
+                <div class="cell desktop-only shop">
+                    <div class="stl-title">
+                        Shop the Look
+                    </div>
+                    <div class="stl-look">
+                        <% var related = obj['tagged-products']; %>
+                        <% for (var i = 0; i < related.length; i++) { %>
+                            <div class="stl-item" data-index="<%- i %>">
+                                <img src="<%- related[i].images[0].url %>" />
+                                <%- related[i].name %>
                             </div>
-                            <% if (App.support.mobile()) { %>
-                                <div class="cell">
-                                    <img src="<%= obj.images[0].url %>" alt="image"/>
-                                </div>
-                                <div class="cell info">
-                                    <div>
-                                        <div class='title'></div>
-                                        <div class='price'></div>
-                                    </div>
-                                    <div class="relative">
-                                        <div class="gallery-main-image"></div>
-                                        <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                                    </div>
-                                    <div class='cell buy'></div>
-                                </div>
-                            <% } %>
-                            <% if (!App.support.mobile()) { %>
-                                <div class="cell info">
-                                    <div class='title'></div>
-                                    <div class='price'></div>
-                                    <div class="gallery-main-image"></div>
-                                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                                    <div class='buy'></div>
-                                </div>
-                            <% } %>
-                            <div class="cell mobile-only">
-                                <% if (obj['tagged-products'].length > 1) { %>
-                                    <div class="landscape">
-                                        <div class="stl-title">Shop the Look</div>
-                                        <div class="stl-look">
-                                            <% var  related = obj['tagged-products'] %>
-                                            <% for (var i = 0; i < related.length; i++) { %>
-                                                <div class="stl-item" data-index="<%- i %>">
-                                                    <img src="<%- related[i].images[0].url %>" />
-                                                </div>
-                                            <% } %>
-                                        </div>
-                                    </div>
-                                <% } %>
-                            </div>
-                        </div>
+                        <% } %>
                     </div>
                 </div>
-            <% } else { %>
-                <div class="image-without-tagged-products">
-                    <div class="table">
-                        <div class="row">
-                            <% if (!App.support.mobile()) { %>
-                                <div class="image cell">
-                                    <img class="image" src="<%= obj.images[0].url %>" alt="image"/>
-                                </div>
-                            <% } %>
-                            <div class="cell info">
-                                <div class='title'><%= obj.title || obj.name || "Coming soon to Gap!" %></div>
-                                <% if (!App.support.mobile()) { %>
-                                    <div class="buy">
-                                        <a class="button" href="http://gap.com/" target="_blank">
-                                            Shop on Gap.com
-                                        </a>
-                                        <a class="button find-store"
-                                           href="http://www.gap.com/customerService/storeLocator.do"
-                                           target="_blank">
-                                            Find a Store
-                                        </a>
-                                    </div>
-                                    <div class='description'>
-                                        <%= App.utils.safeString(obj.caption || obj.description) %>
+            <% } %>
+            <div class="cell desktop-only">
+                <img src="<%= image_src %>" alt="image" class="image"/>
+                <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                    <% if (obj['tagged-products'].length > 1) { %>
+                        <div class="landscape">
+                            <div class="stl-title">Shop the Look</div>
+                            <div class="stl-look">
+                                <% var  related = obj['tagged-products'] %>
+                                <% for (var i = 0; i < related.length; i++) { %>
+                                    <div class="stl-item" data-index="<%- i %>">
+                                        <img src="<%- related[i].images[0].url %>" />
                                     </div>
                                 <% } %>
                             </div>
-                            <% if (App.support.mobile()) { %>
-                                <div class="image cell">
-                                    <img class="image" src="<%= obj.images[0].url %>" alt="image"/>
-                                </div>
-                                <div class="buy">
-                                    <a class="button" href="http://m.gap.com/" target="_blank">
-                                        Shop on Gap.com
-                                    </a>
-                                    <a class="button find-store"
-                                       href="http://m.gap.com/storelocator.html"
-                                       target="_blank">
-                                        Find a Store
-                                    </a>
+                        </div>
+                    <% } %>
+                <% } %>
+            </div>
+            <div class="cell info">
+                <div class='title'></div>
+                <div class='price'></div>
+                <div class="gallery-main-image"></div>
+                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                <div class='buy'></div>
+            </div>
+        </script>
+
+        <script type="text/template" id="mobile_tagged_products">
+            <div class="cell">
+                <img src="<%= image_src %>" alt="image"/>
+            </div>
+            <div class="cell info">
+                <div>
+                    <div class='title'></div>
+                    <div class='price'></div>
+                </div>
+                <div class="relative">
+                    <div class="gallery-main-image"></div>
+                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                </div>
+                <div class='cell buy'></div>
+            </div>
+            <div class="cell mobile-only">
+                <% if (obj['tagged-products'].length > 1) { %>
+                    <div class="landscape">
+                        <div class="stl-title">Shop the Look</div>
+                        <div class="stl-look">
+                            <% var  related = obj['tagged-products'] %>
+                            <% for (var i = 0; i < related.length; i++) { %>
+                                <div class="stl-item" data-index="<%- i %>">
+                                    <img src="<%- related[i].images[0].url %>" />
                                 </div>
                             <% } %>
                         </div>
                     </div>
+                <% } %>
+            </div>
+        </script>
+
+        <script type="text/template" id="no_tagged_products">
+            <% if (!App.support.mobile()) { %>
+                <div class="image cell">
+                    <img class="image" src="<%= image_src %>" alt="image"/>
+                </div>
+            <% } %>
+            <div class="cell info">
+                <div class='title'><%= obj.title || obj.name || "Coming soon to Gap!" %></div>
+                <% if (!App.support.mobile()) { %>
+                    <div class="buy">
+                        <a class="button" href="http://gap.com/" target="_blank">
+                            Shop on Gap.com
+                        </a>
+                        <a class="button find-store"
+                           href="http://www.gap.com/customerService/storeLocator.do"
+                           target="_blank">
+                            Find a Store
+                        </a>
+                    </div>
+                    <div class='description'>
+                        <%= App.utils.safeString(obj.caption || obj.description) %>
+                    </div>
+                <% } %>
+            </div>
+            <% if (App.support.mobile()) { %>
+                <div class="image cell">
+                    <img class="image" src="<%= image_src %>" alt="image"/>
+                </div>
+                <div class="buy">
+                    <a class="button" href="http://m.gap.com/" target="_blank">
+                        Shop on Gap.com
+                    </a>
+                    <a class="button find-store"
+                       href="http://m.gap.com/storelocator.html"
+                       target="_blank">
+                        Find a Store
+                    </a>
                 </div>
             <% } %>
         </script>
 
-        <!-- custom templates -->
         <script type="text/template" id="hero_template">
             <% var heroId = 1 + Math.floor(Math.random() * 3); %>
             <% var isDressNormal = (App.option('page:slug') === 'dressnormal'); %>

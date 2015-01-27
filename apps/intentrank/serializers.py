@@ -3,7 +3,7 @@ from django.conf import settings
 import json
 
 from apps.api.serializers import RawSerializer
-from apps.utils.functional import find_where, may_be_json
+from apps.utils.functional import find_where, may_be_json, get_image_file_type
 
 
 class IRSerializer(RawSerializer):
@@ -332,19 +332,48 @@ class ImageSerializer(ContentSerializer):
         """This will be the data used to generate the object."""
         from apps.assets.models import default_master_size
 
+        ext = get_image_file_type(image.url)
+
         data = super(ImageSerializer, self).get_dump_object(image)
         data.update({
-            "format": image.file_type or "jpg",
+            "format": ext or "jpg",
             "type": "image",
-            "dominant-color": image.dominant_color or "transparent",
+            "dominant-color": getattr(image, "dominant_color", "transparent"),
             "url": image.url,
             "id": image.id,
             "status": image.status,
             "sizes": image.attributes.get('sizes', {
-                'width': image.width or '100%',
-                'height': image.height or '100%',
+                'width': getattr(image, "width", '100%'),
+                'height': getattr(image, "height", '100%'),
             }),
-            "orientation": image.orientation,
+            "orientation": getattr(image, "orientation", "portrait"),
+        })
+
+        return data
+
+
+class GifSerializer(ContentSerializer):
+    """This dumps some fields from the image as JSON."""
+    def get_dump_object(self, gif):
+        """This will be the data used to generate the object."""
+        from apps.assets.models import default_master_size
+
+        ext = get_image_file_type(gif.url)
+
+        data = super(GifSerializer, self).get_dump_object(gif)
+        data.update({
+            "format": ext or "gif",
+            "type": "gif",
+            "dominant-color": getattr(gif, "dominant_color", "transparent"),
+            "url": gif.url,
+            "id": gif.id,
+            "status": gif.status,
+            "sizes": gif.attributes.get('sizes', {
+                'width': getattr(gif, "width", '100%'),
+                'height': getattr(gif, "height", '100%'),
+            }),
+            "orientation": getattr(gif, "orientation", "portrait"),
+            "gifUrl": gif.gif_url
         })
 
         return data
@@ -357,6 +386,7 @@ class VideoSerializer(ContentSerializer):
         data = super(VideoSerializer, self).get_dump_object(video)
 
         data.update({
+            "type": "video",
             "caption": getattr(video, 'caption', ''),
             "description": getattr(video, 'description', ''),
             "original-id": video.original_id or video.id,
@@ -417,13 +447,15 @@ class ProductTileSerializer(TileSerializer):
 
 
 class ContentTileSerializer(TileSerializer):
+    serializer_model = ContentSerializer
+    
     def get_dump_object(self, content_tile):
         """
         :param content_tile  <Tile>
         """
         data = super(ContentTileSerializer, self).get_dump_object(content_tile)
         try:
-            data.update(content_tile.content.select_subclasses()[0].to_json())
+            data.update(self.serializer_model().get_dump_object(content_tile.content.select_subclasses()[0]))
             data['content-ids'] = [x.id for x in content_tile.content.all()]
         except IndexError:
             pass  # no content in this tile
@@ -471,48 +503,15 @@ class BannerTileSerializer(TileSerializer):
 
 
 class ImageTileSerializer(ContentTileSerializer):
-    def get_dump_object(self, image_tile):
-        """
-        :param image_tile  <Tile>
-        """
-        data = {
-            'type': 'image'
-        }
+    serializer_model = ImageSerializer
 
-        data.update(super(ImageTileSerializer, self).get_dump_object(image_tile))
 
-        try:
-            data.update(ImageSerializer().get_dump_object(image_tile.content.all()[0]))
-        except IndexError:
-            pass
-
-        return data
+class GifTileSerializer(ContentTileSerializer):
+    serializer_model = GifSerializer
 
 
 class VideoTileSerializer(ContentTileSerializer):
-    def get_dump_object(self, video_tile):
-        """
-        :param video_tile  <Tile>
-        """
-        data = {
-            'type': 'video'
-        }
-
-        data.update(super(VideoTileSerializer, self).get_dump_object(video_tile))
-
-        try:
-            video = video_tile.content.select_subclasses()[0]
-            data.update({
-                "caption": getattr(video, 'caption', ''),
-                "description": getattr(video, 'description', ''),
-                "original-id": video.original_id or video.id,
-                "original-url": video.source_url or video.url,
-                "source": getattr(video, 'source', 'youtube'),
-            })
-        except:
-            pass # No video in this tile.
-
-        return data
+    serializer_model = VideoSerializer
 
 
 YoutubeTileSerializer = VideoTileSerializer

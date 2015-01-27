@@ -1,4 +1,5 @@
 import cPickle
+import os, urlparse
 
 from functools import partial
 
@@ -33,6 +34,12 @@ def find_where(lst, obj_id):
         if item.id == obj_id:
             return item
     raise ValueError("object {id} not in list".format(id=obj_id))
+
+
+def get_image_file_type(image_url):
+    """Returns the file type of the image from given url string, image_url.
+    """
+    return os.path.splitext(urlparse.urlparse(image_url).path)[1][1:]
 
 
 def where(lst, **kwargs):

@@ -2,6 +2,7 @@ import cStringIO
 import mimetypes
 from threading import Semaphore
 import os
+import urllib, base64
 from django.conf import settings
 from PIL import ImageFilter, Image
 
@@ -24,7 +25,7 @@ def check_configurations():
     not exist.
     """
     for (name, width, height) in IMAGE_SIZES:
-        if not SizeConf.filter(name=name).exists():
+        if not SizeConf.objects.filter(name=name).exists():
             SizeConf(name=name, width=width, height=height).save()
 
 
@@ -102,11 +103,45 @@ def upload_to_s3(path, folder, img, size):
     return os.path.join(bucket, filename)
 
 
+def upload_gif_to_s3(folder, url):
+    image_data = urllib.urlopen(url).read()
+    filename = url.split('/')[-1]
+    bucket = os.path.join(settings.IMAGE_SERVICE_BUCKET, folder)
+
+    if not upload_to_bucket(
+            bucket_name=bucket,
+            filename=filename, content=image_data,
+            content_type=mimetypes.MimeTypes().guess_type(filename)[0],
+            public=True,
+            do_gzip=True):
+        raise IOError("ImageService could not upload size.")
+
+    return os.path.join(bucket, filename)
+
+
+
+def process_gif(source, path='', sizes=None, remove_background=False):
+    """
+    Acquires a lock in order to process the gif.
+
+    @param source: Name of the image source
+    @param path: The path to save the object to
+    @param sizes: List of sizes to create (unused)
+    @return: object
+    """
+    data = process_image(source, path, sizes=sizes, remove_background=remove_background)
+    s3_url = upload_gif_to_s3(path, source)
+    data.update({ 'gif_url': s3_url })
+
+    return data
+
+
+
 def process_image(source, path='', sizes=None, remove_background=False):
     """
     Acquires a lock in order to process the image.
 
-    @param source: The source file
+    @param source: Name of the image source
     @param path: The path to save the object to
     @param sizes: List of sizes to create (unused)
     @return: object
@@ -134,7 +169,7 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
     See all Cloudinary options:
     http://cloudinary.com/documentation/django_image_upload#all_upload_options
 
-    @param source: The source file
+    @param source: Name of the image source
     @param path: The path to save the object to
     @param sizes: List of sizes to create
     @param remove_background: options to remove background

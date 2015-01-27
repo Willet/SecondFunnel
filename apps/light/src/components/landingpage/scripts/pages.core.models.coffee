@@ -379,7 +379,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # image tile contains image:[one copy of itself]
             resp.images = [$.extend(true, {}, resp)]
-            resp
+            return resp
+
+
+    class module.GifTile extends module.ImageTile
+        parse: (resp, options) ->
+            # images field will contain gif object as JSON
+            super(resp, options)
 
 
     ###
