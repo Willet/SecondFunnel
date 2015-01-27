@@ -105,13 +105,12 @@ def upload_to_s3(path, folder, img, size):
 
 def upload_gif_to_s3(folder, url):
     image_data = urllib.urlopen(url).read()
-    image_64 = base64.encodestring(image_data)
     filename = url.split('/')[-1]
     bucket = os.path.join(settings.IMAGE_SERVICE_BUCKET, folder)
 
     if not upload_to_bucket(
             bucket_name=bucket,
-            filename=filename, content=image_64,
+            filename=filename, content=image_data,
             content_type=mimetypes.MimeTypes().guess_type(filename)[0],
             public=True,
             do_gzip=True):

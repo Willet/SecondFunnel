@@ -117,7 +117,6 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
     obj = Key(bucket)
     obj.key = filename
     headers = {"Content-Type": content_type}
-    content = content.encode("utf-8")
 
     if do_gzip:
         zipr = StringIO.StringIO()
