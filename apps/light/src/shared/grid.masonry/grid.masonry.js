@@ -12,7 +12,7 @@
  * by David DeSandro
  */
 //
-"use strict"
+"use strict";
 var Outlayer = require('outlayer');
 var getSize = require('get-size');
 var _ = require('underscore');
