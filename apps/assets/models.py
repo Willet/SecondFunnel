@@ -1,5 +1,6 @@
 import calendar
 import datetime
+import decimal
 import json
 import re
 
@@ -303,17 +304,14 @@ class Product(BaseModel):
     def clean(self):
         if not self.attributes:
             self.attributes = {}
-        price_regex = re.compile(ur'C?(?:\$|\u20AC|\u20A3)\ ?(?:\d{1,3}(?:,\d{3})+|\d*)(?:\.\d{1,2})?')
-        if self.price:
-            match = re.match(price_regex, self.price)
-            if not match:
-                raise ValidationError('Product price does not validate')
-        sale_price = self.attributes.get('sale_price', u'')
-        if sale_price:
-            match = re.match(price_regex, sale_price)
-            if not match:
-                raise ValidationError('Product sale price does not validate')
 
+        if self.price and not (isinstance(self.price, decimal.Decimal) or isinstance(self.price, float)):
+            raise ValidationError('Product price does not validate')
+
+        sale_price = self.attributes.get('sale_price', float())
+        if sale_price and not (isinstance(sale_price, decimal.Decimal) or isinstance(sale_price, float)):
+            raise ValidationError('Product price does not validate')
+        
         # guarantee the default image is in the list of product images
         # (and vice versa)
         image_urls = [img.url for img in self.product_images.all()]
