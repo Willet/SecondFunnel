@@ -237,7 +237,7 @@ class PageSerializer(RawSerializer):
             "social-buttons": obj.social_buttons,
             "theme": obj.theme.template if obj.theme else None,
             "url": obj.url_slug,
-            "imageTileWide": obj.theme_settings.get('image_tile_wide'),
+            "imageTileWide": obj.get('theme_settings',{}).get('image_tile_wide'),
             "legalCopy": obj.legal_copy,
             "shareText": obj.description,
             "created": obj.cg_created_at,

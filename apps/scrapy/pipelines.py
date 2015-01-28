@@ -314,7 +314,7 @@ class ProductImagePipeline(object):
                 product.default_image = image
                 product.save()
         else:
-            print '\nimage has already been processed')
+            print '\nimage has already been processed'
 
         print image.to_json()
 
