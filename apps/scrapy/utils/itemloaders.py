@@ -1,4 +1,6 @@
 import bleach
+from decimal import Decimal
+
 from scrapy.contrib.loader import ItemLoader, Identity
 from scrapy.contrib.loader.processor import TakeFirst, Compose
 
@@ -12,6 +14,7 @@ def sanitize_html(html):
     }
     return bleach.clean(html, tags=allowed_tags, attributes=allowed_attrs,
                         strip=True)
+
 
 class ScraperProductLoader(ItemLoader):
     """
