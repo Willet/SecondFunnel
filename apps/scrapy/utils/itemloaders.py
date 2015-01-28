@@ -1,5 +1,4 @@
 import bleach
-from decimal import Decimal
 
 from scrapy.contrib.loader import ItemLoader, Identity
 from scrapy.contrib.loader.processor import TakeFirst, Compose
