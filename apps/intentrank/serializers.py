@@ -50,6 +50,8 @@ class PageSerializer(IRSerializer):
             # for verifying the original upload date of a static campaign
             'pubDate':              str(datetime.now().isoformat()),
             'gaAccountNumber':      getattr(page, 'ga_account_number', settings.GOOGLE_ANALYTICS_PROPERTY),
+            'desktopHeroImage':     getattr(page, 'desktopHeroImage', ''),
+            'mobileHeroImage':      getattr(page, 'mobileHeroImage', ''),
             # categories format: [{
             #                     "desktopHeroImage":"__img_url__.png"
             #                     "displayName":"For Her",
