@@ -105,6 +105,9 @@ def upload_to_s3(path, folder, img, size):
 
 def upload_gif_to_s3(folder, source):
     filename = source.name
+    # source file is initially read when uploaded, must set seek to 0
+    # otherwise read() returns an empty string
+    # https://code.djangoproject.com/ticket/7812#no1
     source.file.seek(0)
     image_data = source.file.read()
     bucket = os.path.join(settings.IMAGE_SERVICE_BUCKET, folder)
