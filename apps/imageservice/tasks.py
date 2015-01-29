@@ -103,9 +103,13 @@ def upload_to_s3(path, folder, img, size):
     return os.path.join(bucket, filename)
 
 
-def upload_gif_to_s3(folder, url):
-    image_data = urllib.urlopen(url).read()
-    filename = url.split('/')[-1]
+def upload_gif_to_s3(folder, source):
+    filename = source.name
+    # source file is initially read when uploaded, must set seek to 0
+    # otherwise read() returns an empty string
+    # https://code.djangoproject.com/ticket/7812#no1
+    source.file.seek(0)
+    image_data = source.file.read()
     bucket = os.path.join(settings.IMAGE_SERVICE_BUCKET, folder)
 
     if not upload_to_bucket(
@@ -122,9 +126,9 @@ def upload_gif_to_s3(folder, url):
 
 def process_gif(source, path='', sizes=None, remove_background=False):
     """
-    Acquires a lock in order to process the gif.
+    Processes a gif, uploads jpg version to cloudinary, uploads gif to s3.
 
-    @param source: Name of the image source
+    @param source: An UploadedFile containing the image.
     @param path: The path to save the object to
     @param sizes: List of sizes to create (unused)
     @return: object

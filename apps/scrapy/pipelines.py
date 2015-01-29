@@ -10,11 +10,12 @@ from scrapy.exceptions import DropItem
 from urlparse import urlparse
 import cloudinary
 import traceback
+import decimal
 
 from apps.assets.models import Store, Product, Category, Feed, ProductImage
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
-from apps.scrapy.utils.misc import CloudinaryStore
+from apps.scrapy.utils.misc import CloudinaryStore, extract_decimal, extract_currency
 
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
@@ -63,34 +64,21 @@ class ValidationPipeline(object):
 
 
 class PricePipeline(object):
+    """
+    Converts price & sale_price to decimal.Decimal & stores currency
+    Note: currency is *any* characters around price that aren't numbers, decimal, or whitespace
+    """
     def process_item(self, item, spider):
         if isinstance(item, ScraperProduct):
-            item['price'] = item.get('price', '').strip()
+            if not isinstance(item['price'], decimal.Decimal):
+                price = item['price']
 
-            # TODO: Maybe have default currency options in options?
-            # TODO: Couldn't `locale.atof` handle this?
-            currency_info = getattr(spider, 'currency_info', {})
-            symbol = currency_info.get('symbol', '$')
-            group = currency_info.get('group', ',')
-            currency_info.get('position-at-end')
-            #position_at_end = currency_info.get('position-at-end')
+                item['price'] = extract_decimal(price)
+                item['currency'] = extract_currency(price)
 
-            item['price'] = item['price'].strip(symbol)
-            item['price'] = ''.join(item['price'].split(group))
-            item['price'] = float(item['price'])
-
-            # Our Product model uses a narrow regex...
-            # So, forget all this fanciness until that is changed.
-
-            # if position_at_end:
-            #     template = u'{price}{symbol}'
-            # else:
-            #     template = u'{symbol}{price}'
-
-            # item['price'] = template.format(price=item['price'], symbol=symbol)
-            item['price'] = u'{symbol}{price:0.2f}'.format(
-                price=item['price'], symbol=symbol
-            )
+            sale_price = item.get('sale_price', None)
+            if sale_price and not isinstance(sale_price, decimal.Decimal):
+                item['sale_price'] = extract_decimal(sale_price)
 
         return item
 

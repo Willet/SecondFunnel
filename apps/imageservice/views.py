@@ -73,7 +73,7 @@ def create_image(request, img, store_id, source):
     @return: HttpResponse
     """
     path = create_image_path(store_id, source)
-    filetype = get_filetype(img)
+    filetype = get_filetype(img.name)
     if filetype == 'gif':
         process_image_func = process_gif
         ImageCls = Gif
@@ -83,7 +83,7 @@ def create_image(request, img, store_id, source):
     data = process_image_func(img, path)
     store = Store.objects.get(pk=store_id)
     kwargs = {
-        'original_url': request.POST.get('url'),
+        'original_url': request.POST['url'],
         "attributes": {"sizes": data['sizes']},
         "dominant_color": data['dominant-color'],
         "url": data['url'],
