@@ -1,3 +1,4 @@
+
 class MergeDicts(object):
     """
     A processor that, given a list of values (dicts), merges the values

@@ -2,6 +2,7 @@ import base64
 from cloudinary import uploader as uploader
 import os
 import re
+import decimal
 from scrapy.http import HtmlResponse, TextResponse
 from scrapy_webdriver.http import WebdriverResponse
 import six
@@ -37,7 +38,6 @@ def open_in_browser(response, _openfunc=webbrowser.open):
     os.close(fd)
     return _openfunc("file://%s" % fname)
 
-
 def camel_to_underscore(name):
     """
     Converts CamelCase strings to camel_case.
@@ -62,7 +62,6 @@ def camel_to_underscore(name):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
-
 class CloudinaryStore(object):
     def persist_file(self, path, buf, info, meta=None, headers=None):
         # This is the de facto way to upload an image (according to
@@ -84,7 +83,6 @@ class CloudinaryStore(object):
         """
         return None
 
-
 def monkeypatch_method(cls):
     """
     A decorator to replace / add a method of an existing class.
@@ -97,9 +95,28 @@ def monkeypatch_method(cls):
         return func
     return decorator
 
-
 def str_to_boolean(value):
     if not isinstance(value, six.string_types):
         return value
 
     return value.lower() in ['true', 'yes', '1', 't']
+
+def extract_decimal(string):
+        """
+        Given a string, returns a Decimal
+
+        Ie: u'$19.99' -> Decimal('19.99')
+        """
+        num = ''.join(i for i in string if i in "0123456789.")
+        return decimal.Decimal(num)
+
+def extract_currency(string):
+        """
+        Given a string, returns everything that wasn't a number, less whitespace
+
+        Ie: u'$19.99' -> '$'
+            u'$100CAD' -> '$CAD'
+        """
+        pattern = re.compile(r'[0-9\s\.]')
+        currency = re.sub(pattern, '', string)
+        return currency

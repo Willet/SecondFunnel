@@ -339,8 +339,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         getCategoryHeroImages: (category='') ->
             catObj = (App.categories.findModelByName(category) or {})
             heroImages =
-                "desktopHeroImage": (catObj['desktopHeroImage'] or App.options['desktop_hero_image'])
-                "mobileHeroImage": (catObj['mobileHeroImage'] or App.options['mobile_hero_image'])
+                "desktopHeroImage": (catObj['desktopHeroImage'] or App.option('page:desktopHeroImage'))
+                "mobileHeroImage": (catObj['mobileHeroImage'] or App.option('page:mobileHeroImage'))
             return heroImages
 
 
