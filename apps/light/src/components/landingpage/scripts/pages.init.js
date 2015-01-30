@@ -48,13 +48,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 delete App.discovery;
             }
 
-            // Initialize IntentRank
-            // will create new discovery feed
-            App.intentRank.initialize({
-                'category': App.option('page:init:category', App.option('page:home:category', '')),
-                'trigger': true
-            });
-
             // Prevent categories from reloading
             if (!App.categoryArea.currentView) {
                 var categoriesView = new App.core.CategoryCollectionView();
@@ -63,11 +56,18 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 App.categories = categoriesView.collection;
             }
 
+            // Initialize IntentRank
+            // will create new discovery feed
+            App.intentRank.initialize({
+                'category': App.option('page:init:category', App.option('page:home:category', '')),
+                'trigger': true
+            });
+
             // Prevent hero image from resetting to first category on reload
             if (!App.heroArea.currentView) {
                 tileId = App.option('page:init:hero', App.option('page:home:hero', null));
                 if (tileId) {
-                    App.core.Tile.get(tileId,
+                    App.core.Tile.getTileById(tileId,
                         function (tile) {
                             // Found tile, load it up!
                             App.heroArea.show(new App.core.HeroAreaView(tile));

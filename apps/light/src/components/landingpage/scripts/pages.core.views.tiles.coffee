@@ -222,7 +222,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 App.utils.openUrl @model.get("url")
             else
                 super
-            return
+            return        
 
 
     ###
@@ -272,9 +272,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.VideoTileView extends module.TileView
         template: "#video_tile_template"
 
-        onInitialize: ->
+        initialize: ->
             @$el.addClass "wide"
-            return
+            super(@)
 
         onClick: ->
             if @model.get("url")
@@ -318,3 +318,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     onError: $.noop
             )
             return
+
+    class module.HeroTileView extends module.TileView
+        template: "#hero_template"
+
+    class module.HerovideoTileView extends module.HeroTileView
+        template: "#herovideo_template"

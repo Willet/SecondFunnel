@@ -1,0 +1,23 @@
+<html>
+  <head>
+    <style>body{padding:0px;margin:0px;}html{overflow:hidden;}</style>
+  </head>
+  <body>
+    <div id='hypem-playlist-container'></div>
+    <script>
+      var w = window, d = w.document, scr = d.createElement( 'script' ), h = d.getElementsByTagName( 'head' )[0];
+      w.igniteCampaigns = w.igniteCampaigns || {};
+      w.igniteCampaigns.hypemplaylist = w.igniteCampaigns.hypemplaylist || {};
+      w.igniteCampaigns.hypemplaylist.overrides = {
+        clickthru:'#',
+        clickthru2:'http://hypem.com',
+        playlisturl:'http://api.hypem.com/playlist/special/gap_gvb/json/1/data.js?key=48ea0ae3de02f8046ffbf2e70ffd78bf',
+        banner:'http://wac.450f.edgecastcdn.net/80450F/ignitecampaigns.com/uploads/2014/06/10/gap-hype-top-480px.png',
+        footerImage:'http://wac.450f.edgecastcdn.net/80450F/ignitecampaigns.com/uploads/2014/06/11/footer-470.png'
+      };
+      scr.id = 'ignite-hypem-audioplayer';
+      scr.src = '/static/light/gap/landingpage/default/media_player/launchhypemcanvas3.js';
+      h.appendChild( scr );
+    </script>
+  </body>
+</html>

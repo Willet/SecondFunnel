@@ -453,6 +453,39 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             attrs
 
 
+    class module.HeroTile extends module.Tile
+        type: "hero"
+
+        parse: (resp, options) ->
+            for content in resp["contents"]
+                content["template"] = content.type
+                resp[content.type] = content
+            super(resp, options)
+
+    class module.HerovideoTile extends module.HeroTile
+        type: "hero"
+
+        parse: (resp, options) ->
+            for content in resp["contents"]
+                if content.type == "video" and content["original-id"] and not content["thumbnail"]
+                    resp["thumbnail"] = "http://i.ytimg.com/vi/#{content["original-id"]}/hqdefault.jpg"
+                resp[content.type] = content
+            super(resp, options)
+
+        initialize: (attributes, options) ->
+            video = undefined
+            bannerImage = undefined
+            if attributes.image
+                bannerImage = new module.Image($.extend(true, {}, attributes.image))
+
+            @set
+                image: bannerImage
+                images: [bannerImage]
+                defaultImage: bannerImage
+            App.vent.trigger "tileModelInitialized", this
+            return
+
+
     ###
     Our TileCollection manages ALL the tiles on the page.
     This is essentially IntentRank.
