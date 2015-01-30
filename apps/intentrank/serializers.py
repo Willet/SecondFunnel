@@ -63,8 +63,8 @@ class PageSerializer(IRSerializer):
             'mobileCategories':     may_be_json(page, 'mobileCategories', list),
             'stickyCategories':     getattr(page, 'stickyCategories', False),
             'home': {
-                'hero':             getattr(page, 'setup', {}).get('hero', None),
-                'category':         getattr(page, 'setup', {}).get('category', ''),
+                'hero':             getattr(page, 'home', {}).get('hero', None),
+                'category':         getattr(page, 'home', {}).get('category', ''),
             },
             # expected format: ["facebook", "twitter", "pinterest", "tumblr"]
             'socialButtons':        may_be_json(page, 'socialButtons', list),
@@ -467,7 +467,7 @@ class HeroTileSerializer(TileSerializer):
 class HerovideoTileSerializer(HeroTileSerializer):
     def get_dump_object(self, herovideo_tile):
         data = super(HerovideoTileSerializer, self).get_dump_object(herovideo_tile)
-        data["thumbnails"] = herovideo_tile.attributes.thumbnails
+        #data["thumbnails"] = herovideo_tile.attributes.get('thumbnails', [])
         return data
 
 
