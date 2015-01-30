@@ -81,32 +81,16 @@ def landing_page(request, page_slug, identifier='', identifier_value=''):
     # /livedin/id/789 or /dressnormal/sku/012
     elif identifier in ['id', 'sku']:
         try:
-            # NOTE: I'm not sure why this more complicated query is required
-            # leaving it commented in case we run into problems and need it
-            # if a store has two or more products with the same sku,
-            # assume the one the user wanted is the one with
-            # - the most tiles
-            # - has at least a tile
-            #lookup_map = {
-            #   identifier: identifier_value,
-            #   'store': store,
-            #}
-            #product = (Product.objects.filter(**lookup_map)
-            #                  .annotate(num_tiles=Count('tiles'))
-            #                  .filter(num_tiles__gt=0)
-            #                  .order_by('-num_tiles')[0])
             product = None
             lookup_map = {
                 identifier: identifier_value,
             }
             product = Product.objects.get(**lookup_map)
-            if not product:
-                tile = None
-            else:
-                tile = product.tiles.all()[0]
+            tile = product.tiles.all()[0] if product else None
         except (Product.DoesNotExist, IndexError, ValueError):
             tile = None
 
+    # /aeropostale/category/for-her
     elif identifier in ['category']:
         category = identifier_value
 
@@ -117,16 +101,16 @@ def landing_page(request, page_slug, identifier='', identifier_value=''):
     #
     # Build rendering context
     #
-
-    render_context = {}
-    render_context['store'] = store
-    render_context['test'] = tests
-    render_context['algorithm'] = algorithm
-    render_context['ir_base_url'] = '/intentrank'
-    render_context['tile'] = tile.to_json() if tile else {}
-    render_context['hero'] = tile['tile-id'] if (identifier == 'tile') else None
-    render_context['preview'] = tile['tile-id'] if (identifier == 'preview') else None
-    render_context['category'] = category
+    render_context = {
+        'store': store,
+        'test': tests,
+        'algorithm': algorithm,
+        'ir_base_url': '/intentrank',
+        'tile': (tile.to_json() if tile else {}),
+        'hero': (tile['tile-id'] if (identifier == 'tile') else None),
+        'preview': (tile['tile-id'] if (identifier == 'preview') else None),
+        'category': category,
+    }
 
     return HttpResponse(render_landing_page(request, page, render_context))
 

@@ -181,7 +181,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # Check cache
                 tileJson = if (App.discovery and App.discovery.tilecache) then App.discovery.tilecache[tileId] else undefined
                 if tileJson?
-                    tile = @createTile(tileJson)
+                    tile = @selectTileSubclass(tileJson)
                 # Check current feed
                 if not tile?
                     tile = if (App.discovery and App.discovery.collection) then App.discovery.collection.tiles[tileId] else undefined
@@ -194,7 +194,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 tile = new App.core.Tile(
                     'tile-id': tileId
                 )
-                tile.fetch().done(->
+                tile.fetch().done(=>
                     tile = @selectTileSubclass(tile)
                     success_cb(tile)
                 ).fail(failure_cb)
@@ -203,16 +203,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         ###
-        Creates tile from tileJson, infering correct Tile subclass
-        @param tileJson - object literal of tile data
-        @return {Tile} or {_*_Tile}
-        ###
-        @createTile = (tileJson) ->
-            tile = new App.core.Tile(tileJson)
-            return @selectTileSubclass(tile)
-
-        ###
-        Converts a Tile into its correct subclass
+        Creates tile from tileJson or {Tile}, infering correct Tile subclass
         @param tile - {Tile}
         @returns {_*_Tile}
         ###

@@ -268,7 +268,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
     /**
      * Changes the intentRank category and updates the discovery area
-     * Fire 'change:category' event (can be silences with silent=true)
+     * Fire 'change:category' event (can be silenced with silent=true)
      *
      * @param {String} category
      * @param {Boolean} silent
