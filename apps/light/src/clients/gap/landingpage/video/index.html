@@ -198,27 +198,32 @@
     <div>
         <!-- Custom templates here -->
         <script type="text/template" id="herovideo_template">
-            <div class="hero-video-wrapper">
-                <div class="hero-banner-image"
-                     style="background-image: url('<%= obj.image.url %>');">
-                    
-                </div>
-                <div class="hero-video">
-                    <div class="img-responsive video-thumbnail"
-                         style="background-image: url('<%= obj.thumbnail || obj.image.url %>');">
-                      &nbsp;
-                      <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
+            <div id="hero-container">
+                <div class="hero-video-wrapper">
+                    <div class="hero-banner-image"
+                         style="background-image: url('<%= obj.image.url %>');">
+                        
+                    </div>
+                    <div class="hero-video">
+                        <!--<div class="img-responsive video-thumbnail"
+                             style="background-image: url('<%= obj.thumbnail || obj.image.url %>');">
+                          &nbsp;
+                          <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
+                        </div>-->
+                        <iframe width="640" height="360" src="https://www.youtube.com/embed/pXsVlwyolSY?showinfo=0" frameborder="0"></iframe>
                     </div>
                 </div>
-            </div>
-            <div class="hero-thumbnail">
-                <% var thumbnails = (obj["thumbnails"] || []) %>
-                <% for(i = 0; i < thumbnails.length; i++) { %>
-                    <div class="thumbnail-item" data-index="<%- i %>">
-                        <img src="<%= thumbnails[i].url %>" alt="image"/>
-                        <p>Ep. <%= i + 1 %> - 2/14</p>
-                    </div>
-                <% } %>
+                <div class="hero-thumbnail">
+                    <% var thumbnails = (obj["thumbnails"] || []) %>
+                    <% for(i = 0; i < thumbnails.length; i++) { %>
+                        <div class="thumbnail-item" data-index="<%- i %>">
+                            <div class="thumbnail-image <% if (i == 0) { %>playing<% } %>"
+                                style="background-image: url('<%= thumbnails[i].url %>');">
+                            </div>
+                            <p>Ep.<%= i + 1 %> - <%= thumbnails[i].date %></p>
+                        </div>
+                    <% } %>
+                </div>
             </div>
         </script>
 
