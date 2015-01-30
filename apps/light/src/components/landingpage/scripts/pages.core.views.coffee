@@ -269,6 +269,88 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     ###
+    View responsible for Hero-specific things
+
+    @constructor
+    @type {ItemView}
+    ###
+    class module.HeroContent extends Marionette.Layout
+        template: "#herovideo_template"
+        templates: ->
+            templateRules = [
+                "#<%= options.store.slug %>_<%= data.template %>_template"
+                "#<%= data.template %>_template"
+                "#herovideo_template" #fallback
+                "#hero_template" # fallback
+            ]
+            unless App.support.mobile()
+
+                # remove mobile templates if it isn't mobile, since they take
+                # higher precedence by default
+                templateRules = _.reject(templateRules, (t) ->
+                    t.indexOf("mobile") > -1
+                )
+            templateRules
+
+        events:
+            "click .video-thumbnail": "onClick"
+
+        onRender: ->
+            # hide discovery, then show this window as a page.
+            if App.support.mobile()
+                @trigger("swap:feed", @$el) # out of scope
+                @trigger("feed:swapped")
+            App.vent.trigger("previewRendered", @)
+            return
+
+        onShow: ->
+            if @$el.parents("#hero-area").length
+                index = App.option("heroGalleryIndex", 0)
+                if not Modernizr.csspositionsticky
+                    $(".stick-bottom", @$el).addClass("stuck").waypoint("sticky",
+                        offset: "bottom-in-view"
+                        direction: "up"
+                    )
+            
+            return
+
+        onClick: (ev) ->
+            video = @model.attributes.video
+            thumbId = "thumb-#{@model.cid}"
+            $thumb = @$("div.video-thumbnail")
+            if window.YT is undefined
+                console.warn "Youtube Player could not load. Opening link to youtube.com"
+                App.utils.openUrl video.get("original-url")
+                return
+            $thumb.attr("id", thumbId).wrap "<div class=\"video-container\" />"
+            player = new window.YT.Player(thumbId,
+                width: $thumb.width()
+                height: $thumb.height()
+                videoId: video.attributes["original-id"] or video.id
+                playerVars:
+                    wmode: "opaque"
+                    autoplay: 1
+                    controls: false
+
+                events:
+                    onReady: $.noop
+                    onStateChange: (newState) =>
+                        App.tracker.videoStateChange @model.attributes.video["original-id"] or @model.attributes.video.id, newState
+                        switch newState
+                            when window.YT.PlayerState.ENDED
+                                @onPlaybackEnd()
+                            else
+
+                    onError: $.noop
+            )
+            return
+
+            onPlaybackEnd: (ev) ->
+                App.vent.trigger "videoEnded", ev, this
+                return
+
+
+    ###
     View responsible for the "Hero Area"
     (e.g. Shop-the-look, featured, or just a plain div)
 
@@ -283,8 +365,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         getTemplate: ->
             # if the model has a template, let the PreviewContent try to render it
             # otherwise, assume its just hero images
-            if @model.attributes.template
-                return "#shopthelook_template"
+            if @model and @model.attributes.template
+                if @model.attributes.template.indexOf("hero") == -1
+                    return "#shopthelook_template"
+                else
+                    return "##{@model.attributes.template}_template"
             else
                 return "#hero_template"
         
@@ -312,7 +397,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                         
             @deferred.done((tile) =>
-                @model = new module.Tile(tile)
+                if @getTemplate() == "#shopthelook_template"
+                    @model = new module.Tile(tile)
+                else
+                    @model = new module.HeroTile(tile)
                 @listenTo(App.vent, "windowResize", =>
                     App.heroArea.show @
                 )
@@ -326,7 +414,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @deferred.done(=>
                 contentOpts = model: @model
                 contentInstance = undefined
-                contentInstance = new module.PreviewContent(contentOpts)
+                if @getTemplate() == "#shopthelook_template"
+                    contentInstance = new module.PreviewContent(contentOpts)
+                else
+                    contentInstance = new module.HeroContent(contentOpts)
                 @content.show(contentInstance)
                 return
             )

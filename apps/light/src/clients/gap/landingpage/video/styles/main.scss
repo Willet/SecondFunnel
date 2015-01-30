@@ -10,8 +10,8 @@ $icon-font-path: "/static/light/fonts/";
 }
 
 body {
-  background-color: white;
-  background: url('/static/light/landingpage/images/gradient.png') top center repeat-y;
+  background: none;
+  background-color: #fff;
 }
 
 .tile {
@@ -23,27 +23,36 @@ body {
 
 #main {
   max-width: 1024px; // don't let it overhang onto grey gradient in background
+  padding: 0 0;
 }
 .navbar > div {
-  max-width: 970px; // don't let it overhang onto grey gradient in background
+  max-width: 1026px; // don't let it overhang onto grey gradient in background
+  padding: 0 0;
 }
 
 div.header {
     /* if your navbar has the 'navbar-fixed-top' class, this offset is required. */
-    padding: 47px 0 10px 0;
+    padding: 47px 0 4px 0;
+}
+
+.nav > li > a.find-nav {
+    display: inline;
+    padding: 15px 0;
 }
 
 .navbar {
-    background: url('/static/light/gap/landingpage/default/images/gap-rebar.png') repeat-x;
+    background: url('/static/light/gap/landingpage/video/images/gap-rebar.png') repeat-x;
     background-color: #fff;
+    height: 51px;
 }
 
 .navbar .navbar-brand {
-    background: url('/static/light/gap/landingpage/default/images/universal_bar_sprites.png') top left no-repeat;
+    background: url('/static/light/gap/landingpage/video/images/universal_bar_sprites.png') top left no-repeat;
     width: 64px;
-    height: 56px;
+    height: 51px;
     margin: 0;
     padding: 0;
+    overflow-y: hidden;
 }
 
 .nav.navbar-nav.navbar-left {
@@ -83,7 +92,7 @@ div.header {
 }
 
 .navbar li .dropdown-toggle {
-    background: url('/static/light/gap/landingpage/default/images/logo_sprite.png') no-repeat top left;
+    background: url('/static/light/gap/landingpage/video/images/logo_sprite.png') no-repeat top left;
     background-size: auto 350px; /* control ratio */
     width: 77px;
 }
@@ -94,7 +103,7 @@ div.header {
     top: 0;
     z-index: 100;
     width: 69px;
-    height: 56px;
+    height: 51px;
     background-color: #fff;
 }
 
@@ -106,7 +115,7 @@ div.header {
 }
 
 .navbar .stay-connected .dropdown-toggle {
-    background: no-repeat top left url('/static/light/gap/landingpage/default/images/stay_connected.png');
+    background: no-repeat top left url('/static/light/gap/landingpage/video/images/stay_connected.png');
     background-size: auto 55px;
     background-position: 0 0;
 }
@@ -133,7 +142,7 @@ div.header {
 }
 
 .sharing .icon {
-    background:  url('/static/light/gap/landingpage/default/images/Website-stay-connected-icons.png') top left no-repeat;
+    background:  url('/static/light/gap/landingpage/video/images/Website-stay-connected-icons.png') top left no-repeat;
     padding-right: 1px;
 }
 
@@ -166,7 +175,7 @@ div.header {
 .dropdown-menu .pinterest,
 .dropdown-menu .instagram,
 .dropdown-menu .tumblr {
-    background: url('/static/light/gap/landingpage/default/images/Social+Subscribe+-+Mobile.png') no-repeat top left;
+    background: url('/static/light/gap/landingpage/video/images/Social+Subscribe+-+Mobile.png') no-repeat top left;
     background-size: 24px auto;
     padding-left: 30px;
 }
@@ -197,8 +206,83 @@ div.header {
     background-image: none;
 }
 
-#hero-area .hero-image-wrapper {
+#hero-area .hero-video-wrapper {
     position: relative;
+    overflow: hidden;
+    margin-bottom: 15px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#hero-area .hero-video-wrapper .hero-banner-image {
+    width: 384px;
+    height: 360px;
+    display: inline-block;
+    float: left;
+    background-size: cover;
+    background-position: top left;
+}
+
+#hero-area .hero-video-wrapper .hero-video {
+    width: 640px;
+    height: 360px;
+    display: inline-block;
+    float: left;
+}
+
+#hero-area .hero-video-wrapper .hero-video .img-responsive {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center center;
+}
+
+#hero-area .hero-video-wrapper .hero-video div.video-thumbnail:before {
+    background-image: url('/static/light/landingpage/images/youtube-play-button-small.png');
+    content: "";
+    width: 71px;
+    height: 51px;
+    position: absolute;
+    background-repeat: no-repeat;
+    left: 50%;
+    top: 50%;
+    background-position: 0 0;
+    margin: -35.5px 0 0 -35.5px;
+}
+
+#hero-area .hero-thumbnail {
+    max-width: 1028px;
+    height: 111px;
+    margin-bottom: 20px;
+    text-align: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+}
+
+#hero-area .hero-thumbnail .thumbnail-item {
+    width: 120px;
+    height: 111px;
+    display: inline-block;
+    margin: 0 3px;
+}
+
+#hero-area .hero-thumbnail .thumbnail-item > img {
+    width: 120px;
+    height: 90px;
+}
+
+#hero-area .hero-thumbnail .thumbnail-item > p {
+    margin: 0;
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 13px;
+    line-height: 19px;
+}
+
+#hero-area .hero-thumbnail .thumbnail-item .overlay:hover {
+    opacity: 0;
+    background: #3e3e3e;
+    transition: opacity 0.25s ease-in-out;
 }
 
 #hero-area {
@@ -243,33 +327,33 @@ div.header {
 }
 
 #hero-area .overlay .buttons .facebook-button {
-    background-image: url('/static/light/gap/landingpage/default/images/facebookicon.png');
+    background-image: url('/static/light/gap/landingpage/video/images/facebookicon.png');
 }
 #hero-area .overlay .buttons .twitter-button {
-    background-image: url('/static/light/gap/landingpage/default/images/twittericon.png');
+    background-image: url('/static/light/gap/landingpage/video/images/twittericon.png');
 }
 #hero-area .overlay .buttons .email-button {
-    background-image: url('/static/light/gap/landingpage/default/images/emailicon.png');
+    background-image: url('/static/light/gap/landingpage/video/images/emailicon.png');
 }
 
 #hero-area .overlay.black .buttons .facebook-button {
-    background-image: url('/static/light/gap/landingpage/default/images/facebookicon_black.png');
+    background-image: url('/static/light/gap/landingpage/video/images/facebookicon_black.png');
 }
 #hero-area .overlay.black .buttons .twitter-button {
-    background-image: url('/static/light/gap/landingpage/default/images/twittericon_black.png');
+    background-image: url('/static/light/gap/landingpage/video/images/twittericon_black.png');
 }
 #hero-area .overlay.black .buttons .email-button {
-    background-image: url('/static/light/gap/landingpage/default/images/emailicon_black.png');
+    background-image: url('/static/light/gap/landingpage/video/images/emailicon_black.png');
 }
 
 #hero-area .overlay.white .buttons .facebook-button {
-    background-image: url('/static/light/gap/landingpage/default/images/facebookicon_white.png');
+    background-image: url('/static/light/gap/landingpage/video/images/facebookicon_white.png');
 }
 #hero-area .overlay.white .buttons .twitter-button {
-    background-image: url('/static/light/gap/landingpage/default/images/twittericon_white.png');
+    background-image: url('/static/light/gap/landingpage/video/images/twittericon_white.png');
 }
 #hero-area .overlay.white .buttons .email-button {
-    background-image: url('/static/light/gap/landingpage/default/images/emailicon_white.png');
+    background-image: url('/static/light/gap/landingpage/video/images/emailicon_white.png');
 }
 
 #hero-area .buttons {
@@ -328,7 +412,7 @@ div.header {
 }
 
 .tile.wide.youtube div.thumbnail:before {
-    background-image: url('/static/light/gap/landingpage/default/images/Video-playbutton.png');
+    background-image: url('/static/light/gap/landingpage/video/images/Video-playbutton.png');
     width: 66px;  /* dimensions of the thumbnail image (which should be cropped to size) */
     height: 66px;
     margin: -33px 0 0 -33px;
@@ -456,21 +540,25 @@ div.header {
 }
 
 .previewContainer .main-image-container .gallery-swipe-left {
-    background-image: url('/static/light/gap/landingpage/default/images/arrow-left.png');
+    background-image: url('/static/light/gap/landingpage/video/images/arrow-left.png');
     left: 0px;
 }
 
 .previewContainer .main-image-container .gallery-swipe-left.grey {
-    background-image: url('/static/light/gap/landingpage/default/images/arrow-grey-left.png');
+    background-image: url('/static/light/gap/landingpage/video/images/arrow-grey-left.png');
 }
 
 .previewContainer .main-image-container .gallery-swipe-right {
-    background-image: url('/static/light/gap/landingpage/default/images/arrow-right.png');
+    background-image: url('/static/light/gap/landingpage/video/images/arrow-right.png');
     right: 0px;
 }
 
 .previewContainer .main-image-container .gallery-swipe-right.grey {
-    background-image: url('/static/light/gap/landingpage/default/images/arrow-grey-right.png');
+    background-image: url('/static/light/gap/landingpage/video/images/arrow-grey-right.png');
+}
+
+.jumbotron {
+    margin-top: 0;
 }
 
 @media screen and (max-width: 768px) {
@@ -521,33 +609,33 @@ div.header {
     }
 
     #hero-area .overlay.mobile-orange .buttons .facebook-button {
-        background-image: url('/static/light/gap/landingpage/default/images/facebookicon_orange.png');
+        background-image: url('/static/light/gap/landingpage/video/images/facebookicon_orange.png');
     }
     #hero-area .overlay.mobile-orange .buttons .twitter-button {
-        background-image: url('/static/light/gap/landingpage/default/images/twittericon_orange.png');
+        background-image: url('/static/light/gap/landingpage/video/images/twittericon_orange.png');
     }
     #hero-area .overlay.mobile-orange .buttons .email-button {
-        background-image: url('/static/light/gap/landingpage/default/images/emailicon_orange.png');
+        background-image: url('/static/light/gap/landingpage/video/images/emailicon_orange.png');
     }
 
     #hero-area .overlay.mobile-black .buttons .facebook-button {
-        background-image: url('/static/light/gap/landingpage/default/images/facebookicon_black.png');
+        background-image: url('/static/light/gap/landingpage/video/images/facebookicon_black.png');
     }
     #hero-area .overlay.mobile-black .buttons .twitter-button {
-        background-image: url('/static/light/gap/landingpage/default/images/twittericon_black.png');
+        background-image: url('/static/light/gap/landingpage/video/images/twittericon_black.png');
     }
     #hero-area .overlay.mobile-black .buttons .email-button {
-        background-image: url('/static/light/gap/landingpage/default/images/emailicon_black.png');
+        background-image: url('/static/light/gap/landingpage/video/images/emailicon_black.png');
     }
 
     #hero-area .overlay.mobile-blue .buttons .facebook-button {
-        background-image: url('/static/light/gap/landingpage/default/images/facebookicon.png');
+        background-image: url('/static/light/gap/landingpage/video/images/facebookicon.png');
     }
     #hero-area .overlay.mobile-blue .buttons .twitter-button {
-        background-image: url('/static/light/gap/landingpage/default/images/twittericon.png');
+        background-image: url('/static/light/gap/landingpage/video/images/twittericon.png');
     }
     #hero-area .overlay.mobile-blue .buttons .email-button {
-        background-image: url('/static/light/gap/landingpage/default/images/emailicon.png');
+        background-image: url('/static/light/gap/landingpage/video/images/emailicon.png');
     }
 
     .navbar .gap,

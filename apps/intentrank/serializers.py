@@ -448,6 +448,22 @@ class ProductTileSerializer(TileSerializer):
         return data
 
 
+class HeroTileSerializer(TileSerializer):
+    def get_dump_object(self, hero_tile):
+        data = super(HeroTileSerializer, self).get_dump_object(hero_tile)
+        contents = []
+        for content in hero_tile.content.select_subclasses():
+            contents.append(content.serializer().get_dump_object(content))
+        data["contents"] = contents    
+        return data
+
+
+class HerovideoTileSerializer(HeroTileSerializer):
+    def get_dump_object(self, herovideo_tile):
+        data = super(HerovideoTileSerializer, self).get_dump_object(herovideo_tile)
+        data["thumbnails"] = herovideo_tile.attributes.thumbnails
+        return data
+
 class ContentTileSerializer(TileSerializer):
     serializer_model = ContentSerializer
     
