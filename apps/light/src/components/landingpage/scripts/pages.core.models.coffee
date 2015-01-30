@@ -364,7 +364,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             url: "http://placehold.it/2048&text=blank"
             "dominant-color": "transparent"
 
-        initialize: ->
+        initialize: (attributes, options) ->
 
             # add a name, colour, and a sized url to each size datum
             self = this
@@ -372,7 +372,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # the template needs something simpler.
             @color = color
-            @url = @width(App.feed.width())
+            if options and options["suppress_resize"]
+                @url = @get("url")
+            else
+                @url = @width(App.feed.width())
+
             return
 
         sync: ->
@@ -395,11 +399,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 options.height = height
             unless width or height
                 options.width = App.feed.width()
-            # resized.url = App.utils.getResizedImage(@get("url"), options)
-            # if obj
-            #     return resized
-            # resized.url
-            return resized
+            resized.url = App.utils.getResizedImage(@get("url"), options)
+            if obj
+                return resized
+            resized.url
 
         width: (width, obj) ->
             # get url by min width
@@ -477,7 +480,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             video = undefined
             bannerImage = undefined
             if attributes.image
-                bannerImage = new module.Image($.extend(true, {}, attributes.image))
+                bannerImage = new module.Image($.extend(true, {}, attributes.image), {"suppress_resize": true})
 
             @set
                 image: bannerImage
