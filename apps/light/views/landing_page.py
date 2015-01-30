@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404
 from django.template import RequestContext, loader
 from django.views.decorators.cache import cache_page, cache_control
 from django.views.decorators.vary import vary_on_headers
+from django.utils.safestring import SafeString
 
 from apps.assets.models import Page, Store, Product, Tile
 from apps.intentrank.serializers import PageConfigSerializer
@@ -21,14 +22,14 @@ from apps.light.utils import get_store_from_request, get_algorithm
 @cache_control(must_revalidate=True, max_age=(1 * 60))
 @cache_page(60 * 1, key_prefix="landingpage-")  # a minute
 @vary_on_headers('Accept-Encoding')
-def landing_page(request, page_slug, identifier='id', identifier_value=''):
+def landing_page(request, page_slug, identifier='', identifier_value=''):
     """Used to render a page using only its name.
 
-    If two pages have the same name (which was possible in CG), then django
-    decides which page to render.
-
-    :param identifier: selects the featured product.
-           allowed values: 'id', 'sku', or 'tile' (whitelisted to prevent abuse)
+    :param identifier:
+        'id', 'sku' - a product that will be loaded into the hero area
+        'tile' - a tile that will be loaded into the hero area
+        'preview' - a tile that will be previewed
+        'category' - category to load to
     :param identifier_value: the product or tile's id or sku, respectively
     """
     #
@@ -37,6 +38,7 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
     #
 
     # get the subdomain which should equal the store's slug
+    print "identifier=%s\nidentifier_value=%s" % (identifier, identifier_value)
     store_slug = request.get_host().split('.')[0]
 
     try:
@@ -65,57 +67,52 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
         return HttpResponseRedirect(url)
     
     #
-    # Lookup Product for Shop-The-Look style pages
+    # If the page has a state, look it up
     #
-
-    product = None
-    product_id = request.GET.get('product_id', None)
-    product_sku = request.GET.get('product_sku', None)
-    if product_id:
-        product = Product.objects.get(product_id)
-    elif product_sku:
-        product = Product.objects.get(sku=product_sku)
-
     tile = None
-    tile_id = request.GET.get('tile_id', None)
-    if tile_id:
-        tile = Tile.objects.get(tile_id)
-    elif product:
-        tile = Tile.objects.filter(feed__id=page.feed_id, products__id=product.id).order_by('-template')[0]
+    category = None
 
-    # if necessary, get tile
-    # livedin/sku/123
-    lookup_map = {identifier: identifier_value}
-    if request.GET.get('product_id'):  # livedin?product_id=123
-        lookup_map = {'id': request.GET.get('product_id')}
-    lookup_map['store'] = store
+    # /summersales/tile/123 or /fallishere/preview/456
+    if identifier in ['tile', 'preview']:
+        tiles = Tile.objects.filter(id=identifier_value)
+        if len(tiles):
+            tile = tiles[0]
 
-    if not tile and identifier in ['id', 'sku']:
+    # /livedin/id/789 or /dressnormal/sku/012
+    elif identifier in ['id', 'sku']:
         try:
+            # NOTE: I'm not sure why this more complicated query is required
+            # leaving it commented in case we run into problems and need it
             # if a store has two or more products with the same sku,
             # assume the one the user wanted is the one with
             # - the most tiles
             # - has at least a tile
-            product = (Product.objects.filter(**lookup_map)
-                              .annotate(num_tiles=Count('tiles'))
-                              .filter(num_tiles__gt=0)
-                              .order_by('-num_tiles')[0])
+            #lookup_map = {
+            #   identifier: identifier_value,
+            #   'store': store,
+            #}
+            #product = (Product.objects.filter(**lookup_map)
+            #                  .annotate(num_tiles=Count('tiles'))
+            #                  .filter(num_tiles__gt=0)
+            #                  .order_by('-num_tiles')[0])
+            product = None
+            lookup_map = {
+                identifier: identifier_value,
+            }
+            product = Product.objects.get(**lookup_map)
             if not product:
                 tile = None
             else:
                 tile = product.tiles.all()[0]
         except (Product.DoesNotExist, IndexError, ValueError):
             tile = None
-    elif not tile and identifier == 'tile':
-        tiles = Tile.objects.filter(id=identifier_value)
-        if len(tiles):
-            tile = tiles[0]
+
+    elif identifier in ['category']:
+        category = identifier_value
 
     tests = page.get('test')
 
-    algorithm = request.GET.get('algorithm', page.feed.feed_algorithm or 'generic')
-    if request.GET.get('popular', None) == '':  # handle ?popular
-        algorithm = 'popular'
+    algorithm = request.GET.get('algorithm', page.feed.feed_algorithm or 'magic')
 
     #
     # Build rendering context
@@ -123,15 +120,13 @@ def landing_page(request, page_slug, identifier='id', identifier_value=''):
 
     render_context = {}
     render_context['store'] = store
-    render_context['product'] = product
     render_context['test'] = tests
     render_context['algorithm'] = algorithm
     render_context['ir_base_url'] = '/intentrank'
-
-    if tile:
-        render_context['tile'] = tile.to_json()
-    else:
-        render_context['tile'] = None
+    render_context['tile'] = tile.to_json() if tile else {}
+    render_context['hero'] = tile['tile-id'] if (identifier == 'tile') else None
+    render_context['preview'] = tile['tile-id'] if (identifier == 'preview') else None
+    render_context['category'] = category
 
     return HttpResponse(render_landing_page(request, page, render_context))
 
@@ -142,6 +137,11 @@ def render_landing_page(request, page, render_context):
     """
     store = page.store
     tile = render_context.get('tile', None)
+    initial_state = {
+        'category': render_context.get('category', None),
+        'hero': render_context.get('hero', None),
+        'preview': render_context.get('preview', None),
+    }
 
     tests = []
     if page.get('tests'):
@@ -151,9 +151,9 @@ def render_landing_page(request, page, render_context):
 
     algorithm = get_algorithm(request=request, page=page)
     PAGES_INFO = PageConfigSerializer.to_json(request=request, page=page,
-        feed=page.feed, store=store, algorithm=algorithm, featured_tile=tile,
+        feed=page.feed, store=store, algorithm=algorithm, init=initial_state,
         other={'tile_set': ''})
-
+    
     initial_results = []  # JS now fetches its own initial results
 
     # TODO: structure this
@@ -163,16 +163,11 @@ def render_landing_page(request, page, render_context):
         "campaign": page or 'undefined',
         "columns": range(4),
         "column_width": page.column_width or store.get('column-width', ''),
-        "desktop_hero_image": page.desktop_hero_image,
         "enable_tracking": page.enable_tracking,  # jsbool
         "environment": settings.ENVIRONMENT,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
-        "image_tile_wide": page.image_tile_wide,
         "initial_results": initial_results,
         "keen_io": settings.KEEN_CONFIG,
-        "legal_copy": page.legal_copy or '',
-        "mobile_hero_image": page.mobile_hero_image,
-        "open_tile_in_popup": "true" if page.get("open_tile_in_popup") else "false",
         "PAGES_INFO": PAGES_INFO,
         "preview": False,  # TODO: was this need to fix: not page.live,
         "pub_date": datetime.now().isoformat(),

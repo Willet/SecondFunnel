@@ -118,7 +118,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         Before the View is rendered. this.$el is still an empty div.
         ###
         onBeforeRender: ->
-            normalTileWidth = App.layoutEngine.width()
+            normalTileWidth = App.feed.width()
             wideableTemplates = _.extend({}, @defaultWideableTemplates, App.option("wideableTemplates", {}))
             columnDetails =
                 1: ""
