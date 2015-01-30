@@ -395,10 +395,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 options.height = height
             unless width or height
                 options.width = App.feed.width()
-            resized.url = App.utils.getResizedImage(@get("url"), options)
-            if obj
-                return resized
-            resized.url
+            # resized.url = App.utils.getResizedImage(@get("url"), options)
+            # if obj
+            #     return resized
+            # resized.url
+            return resized
 
         width: (width, obj) ->
             # get url by min width
