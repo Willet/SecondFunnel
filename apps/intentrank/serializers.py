@@ -470,6 +470,7 @@ class HerovideoTileSerializer(HeroTileSerializer):
         data["thumbnails"] = herovideo_tile.attributes.thumbnails
         return data
 
+
 class ContentTileSerializer(TileSerializer):
     serializer_model = ContentSerializer
     
