@@ -30,46 +30,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         });
     };
 
-    /* 
-     * Attempt to retrieve tile, then execute success_cb or failure_cb
-     *   tileId - <string>
-     *   success_cb - <function> (<Tile>)
-     *   failure_cb - <function>: ()
-     */
-    var get_tile = function (tileId, success_cb, failure_cb) {
-    	var isNumber = /^\d+$/.test(tileId);
-
-        if (isNumber) {
-        	if (App.option('debug', false)) {
-                console.warn('Router getting tile: '+tileId);
-            }
-            var tile = App.discovery && App.discovery.collection ?
-                App.discovery.collection.tiles[tileId] :
-                undefined;
-
-            if (tile !== undefined) {
-                success_cb(tile);
-                return;
-            }
-
-            console.debug('tile not found, fetching from IR.');
-
-            tile = new App.core.Tile({
-                'tile-id': tileId
-            });
-
-            tile.fetch().done(function () {
-                var TileClass = App.utils.findClass('Tile',
-                        tile.get('type') || tile.get('template'), App.core.Tile);
-                tile = new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()));
-
-                success_cb(tile);
-            }).fail(failure_cb);
-        } else {
-        	failure_cb();
-        }
-	};
-
 	// Hook to add routes before initialization
 	module.AppRouter = Backbone.Router.extend({
 		routes: {
@@ -101,6 +61,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	        }
 
 	        App.previewArea.close();
+	        App.previewLoadingScreen.hide();
 	        App.intentRank.changeCategory('');
 	    },
 	    tile: function (tileId) {
@@ -118,7 +79,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	        // Ensure any preview area is closed
 	        App.previewArea.close();
 	        App.previewLoadingScreen.hide();
-	        get_tile(tileId, feature_tile, return_home);
+	        App.core.Tile.getTileById(tileId, feature_tile, return_home);
 	    },
 	    preview: function (tileId) {
 	    	// Load tile in pop-up preview
@@ -135,7 +96,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             };
 
             App.previewLoadingScreen.show();
-            get_tile(tileId, preview_tile, return_home);
+            App.core.Tile.getTileById(tileId, preview_tile, return_home);
 	    },
 	    category: function (category) {
 	    	// Load category
@@ -145,6 +106,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	        }));
 	        // Ensure any preview area is closed
 	        App.previewArea.close();
+	        App.previewLoadingScreen.hide();
 
 			if (category) {
 		        if (App.option('debug', false)) {
@@ -169,6 +131,9 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 		App.router = new module.AppRouter();
 
 		// Start history
-	   	Backbone.history.start();
+	   	Backbone.history.start({
+	   		'pushState': true,
+	   		'root': '/' + App.option('page:slug')
+	   	});
 	};
 };

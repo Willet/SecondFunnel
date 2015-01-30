@@ -62,8 +62,10 @@ class PageSerializer(IRSerializer):
             'categories':           may_be_json(page, 'categories', list),
             'mobileCategories':     may_be_json(page, 'mobileCategories', list),
             'stickyCategories':     getattr(page, 'stickyCategories', False),
-            # a string indicating if there should be a home button & category home is
-            'categoryHome':         getattr(page, 'categoryHome', ''),
+            'home': {
+                'hero':             getattr(page, 'setup', {}).get('hero', None),
+                'category':         getattr(page, 'setup', {}).get('category', ''),
+            },
             # expected format: ["facebook", "twitter", "pinterest", "tumblr"]
             'socialButtons':        may_be_json(page, 'socialButtons', list),
             'showSharingCount':     getattr(page, 'showSharingCount', False),
@@ -111,7 +113,7 @@ class PageConfigSerializer(object):
     """
     @staticmethod
     def to_json(request, page, feed=None, store=None, algorithm=None,
-                featured_tile=None, other=None):
+                init={}, other=None):
         """
         keys in other:
         - tile_set ('product', 'content', '')
@@ -170,9 +172,6 @@ class PageConfigSerializer(object):
             # minimum height a Cloudinary image can have  TODO: magic number
             'minImageHeight': getattr(page, 'minImageHeight', 100),
 
-            # default: undefined
-            'featured': featured_tile,
-
             # DEPRECATED (use intentRank:results)
             'IRResultsCount': 10,
             # DEPRECATED (use intentRank:url)
@@ -190,6 +189,13 @@ class PageConfigSerializer(object):
             'keen': {
                 'projectId': settings.KEEN_CONFIG['projectId'],
                 'writeKey': settings.KEEN_CONFIG['writeKey'],
+            },
+            # init is for loading pages with content specified in the url
+            # values are specified by a view handler
+            'init': {
+                'category': getattr(init, 'category', None),
+                'hero':     getattr(init, 'hero', None),
+                'preview':  getattr(init, 'preview', None),
             },
 
             # {[tileId: num,]}

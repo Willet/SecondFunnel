@@ -680,19 +680,6 @@
                         _pq.push(['track', 'PopUp']);
                         _pq.push(['trackProduct', feedId]);
                     } catch(err) {}
-
-                    {% comment %}
-                    Adroll's retargeting is less sophisticated with regard to
-                    including and excluding visitors. To avoid any problems,
-                    only allow retargeting for the livedin campaign.
-                    {% endcomment %}
-                    {% ifequal campaign.url_slug "livedin" %}
-                    try {
-                        __adroll.record_user({"adroll_segments": segment});
-                        __adroll.record_user({"adroll_segments": 'PopUp'});
-                        __adroll.record_user({"product_id": feedId});
-                    } catch(err) {}
-                    {% endifequal %}
                 }
             });
 
