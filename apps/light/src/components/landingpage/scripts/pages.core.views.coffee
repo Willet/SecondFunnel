@@ -117,7 +117,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     infoItem: key
                 )
                 return
-            App.utils.runWidgets this
+            App.utils.runWidgets(@)
             @resizeContainer()
             return
 
@@ -178,7 +178,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 index = App.option("heroGalleryIndex", 0)
 
             @$(".stl-look").each ->
-                $(this).find(".stl-item").eq(index).addClass("selected")
+                $(@).find(".stl-item").eq(index).addClass("selected")
                 return
 
             if @model.get("tagged-products") and @model.get("tagged-products").length
@@ -256,7 +256,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             #  So, for now, only add no-scroll if the device is NOT an android.
             #
             unless App.support.mobile()
-                width = Marionette.getOption(this, "width")
+                width = Marionette.getOption(@, "width")
                 if width
                     @$(".content").css("width", width + "px")
                 else if App.support.mobile()
@@ -378,9 +378,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         the featured product.
         ###
         initialize: (data) ->
-            # TODO Refactor to utilize default coming from 'page:setup'
-            # and remove App.option("featured")
-            tile = if not _.isEmpty(data) then data else App.option("featured")
+            tile = if not _.isEmpty(data) then data else App.option("page:home:hero")
             if tile
                 @deferred = $.when(tile)
             # Try to get it from intentRank if its setup
@@ -402,7 +400,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 else
                     @model = new module.HeroTile(tile)
                 @listenTo(App.vent, "windowResize", =>
-                    App.heroArea.show @
+                    App.heroArea.show(@)
                 )
                 return
             )
@@ -570,8 +568,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                 # handle results that got loaded while the discovery
                 # area has an undefined height.
-                App.layoutEngine.layout(App.discovery)
-                App.layoutEngine.masonry.resize()
+                App.feed.layout(App.discovery)
+                App.feed.masonry.resize()
             return
 
 

@@ -8,6 +8,8 @@ imagesLoaded = require('imagesLoaded')
 module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.FeedView extends Marionette.CollectionView
+        # Cache of tile JSON index by tile-id's shared amongst all feeds
+        @tilecache = {}
 
         constructor: () ->
             @collection = new App.core.TileCollection()
@@ -36,22 +38,26 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @collection.add initialResults
                     App.intentRank.addResultsShown initialResults
 
-            $(window).scrollStopped =>
-                App.vent.trigger 'scrollStopped', @
-
-            @listenTo @collection, 'request', =>
+            $(window).scrollStopped(=>
+                App.vent.trigger('scrollStopped', @)
+            )
+            
+            @listenTo(@collection, 'request', (=>
                 @isLoading = true
+            ))
 
-            @listenTo @collection, 'sync', =>
+            @listenTo(@collection, 'sync', (=>
                 @isLoading = false
+            ))
 
-            @listenTo @collection, 'error', =>
+            @listenTo(@collection, 'error', (=>
                 @isLoading = false
+            ))
 
             @collection.offset = 0
 
-            App.discovery = @
-            @
+            App.feed = @
+            return @
 
         onShow: ->
             @attachListeners()
@@ -172,9 +178,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @recently_added = []
             @layoutInProgress = false
 
-            App.vent.trigger 'layoutEngineInitialized', @, options
-            App.layoutEngine = @ # this is the layout engine now-a-days
-            @
+            App.vent.trigger('feedInitialized', @, options)
+            return @
 
         onRender: ->
             @layout()
@@ -186,18 +191,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             if not @img_load
                 @img_load = imagesLoaded(@$el)
-                @img_load.on 'always', (=> @imagesLoaded())
+                @img_load.on('always', (=> @imagesLoaded()))
 
         setupMasonry: ->
             @options.columnWidth = $('.tile-sizer')[0]
             if @options.forceGrid and @options.tileAspectRatio
-                if App.option 'debug', false
-                    console.warn "Using GridMasonry"
-                @masonry = new GridMasonry @$el[0], @options
+                if App.option('debug', false)
+                    console.warn("Using GridMasonry")
+                @masonry = new GridMasonry(@$el[0], @options)
             else
-                if App.option 'debug', false
-                    console.warn "Using Masonry"
-                @masonry = new Masonry @$el[0], @options
+                if App.option('debug', false)
+                    console.warn("Using Masonry")
+                @masonry = new Masonry(@$el[0], @options)
             @masonry.bindResize()
             @masonry.layout()
 
@@ -208,13 +213,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if @masonry
                 @masonry.reloadItems()
             @layout()
-            @
+            return @
 
         appendHtml: (view, itemview) ->
             @add(itemview.$el)
 
         add: ($fragment) ->
-            @recently_added.push $fragment[0]
+            @recently_added.push($fragment[0])
             @addItems()
 
         removeTiles: (tileViews) ->
@@ -225,26 +230,26 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @masonry.on 'removeComplete', removeComplete
             @masonry.remove(_.map(tileViews, (view) -> view.$el[0]))
 
-        addItems: _.debounce (->
+        addItems: _.debounce((->
             recently_added = @recently_added
             @recently_added = []
             @layoutInProgress = true
 
             imageLoadedCallback = (=>
                 @$el.append(recently_added)
-                @masonry.appended recently_added
+                @masonry.appended(recently_added)
                 @layoutInProgress = false
-                App.vent.trigger 'layoutCompleted', @
+                App.vent.trigger('layoutCompleted', @)
             )
 
             # need to wait for images to load on these items
             item_imagesloaded = imagesLoaded(recently_added)
             item_imagesloaded.on('always', imageLoadedCallback)
-        ), 250, false
+        ), 250, false)
 
-        imagesLoaded: _.debounce (->
+        imagesLoaded: _.debounce((->
             @masonry.layout()
-        ), 500
+        ), 500)
 
         empty: ->
             if @masonry
