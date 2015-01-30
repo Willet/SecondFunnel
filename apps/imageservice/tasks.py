@@ -134,7 +134,7 @@ def process_gif(source, path='', sizes=None, remove_background=False):
     @return: object
     """
     data = process_image(source, path, sizes=sizes, remove_background=remove_background)
-    s3_url = upload_gif_to_s3(path, source)
+    s3_url = "http://" + upload_gif_to_s3(path, source)
     data.update({ 'gif_url': s3_url })
 
     return data
