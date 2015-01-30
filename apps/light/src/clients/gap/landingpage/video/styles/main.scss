@@ -22,11 +22,11 @@ body {
 }
 
 #main {
-  max-width: 1024px; // don't let it overhang onto grey gradient in background
+  max-width: 1024px; // to fit hero video
   padding: 0 0;
 }
 .navbar > div {
-  max-width: 1026px; // don't let it overhang onto grey gradient in background
+  max-width: 1153px; // aligning with hero area
   padding: 0 0;
 }
 
@@ -131,7 +131,7 @@ div.header {
 
 .sharing ul {
     display: inline-block;
-    padding-left: 10px;
+    padding: 0 7px 0 10px;
 }
 
 .sharing .icon, .sharing .icon a {
@@ -206,7 +206,15 @@ div.header {
     background-image: none;
 }
 
-#hero-area .hero-video-wrapper {
+#hero-area #hero-container {
+    position: absolute;
+    width: 1150px;
+    left: -63px;
+    top: 0px;
+}
+
+#hero-area #hero-container .hero-video-wrapper {
+    width: 100%;
     position: relative;
     overflow: hidden;
     margin-bottom: 15px;
@@ -214,8 +222,8 @@ div.header {
     margin-right: auto;
 }
 
-#hero-area .hero-video-wrapper .hero-banner-image {
-    width: 384px;
+#hero-area #hero-container .hero-video-wrapper .hero-banner-image {
+    width: 510px;
     height: 360px;
     display: inline-block;
     float: left;
@@ -223,35 +231,32 @@ div.header {
     background-position: top left;
 }
 
-#hero-area .hero-video-wrapper .hero-video {
+#hero-area #hero-container .hero-video-wrapper .hero-video {
     width: 640px;
     height: 360px;
     display: inline-block;
     float: left;
 }
 
-#hero-area .hero-video-wrapper .hero-video .img-responsive {
+#hero-area #hero-container .hero-video-wrapper .hero-video .img-responsive {
     width: 100%;
     height: 100%;
     background-size: cover;
     background-position: center center;
 }
 
-#hero-area .hero-video-wrapper .hero-video div.video-thumbnail:before {
-    background-image: url('/static/light/landingpage/images/youtube-play-button-small.png');
+#hero-area #hero-container .hero-video-wrapper .hero-video div.video-thumbnail:before {
+    background-image: url('/static/light/gap/landingpage/video/images/Video-playbutton.png');
     content: "";
-    width: 71px;
-    height: 51px;
+    width: 66px;
+    height: 66px;
     position: absolute;
     background-repeat: no-repeat;
-    left: 50%;
-    top: 50%;
-    background-position: 0 0;
-    margin: -35.5px 0 0 -35.5px;
+    margin: 147px 0 0 287px;
 }
 
-#hero-area .hero-thumbnail {
-    max-width: 1028px;
+#hero-area #hero-container .hero-thumbnail {
+    max-width: 1150px;
     height: 111px;
     margin-bottom: 20px;
     text-align: center;
@@ -260,35 +265,48 @@ div.header {
     white-space: nowrap;
 }
 
-#hero-area .hero-thumbnail .thumbnail-item {
+#hero-area #hero-container .hero-thumbnail .thumbnail-item {
     width: 120px;
     height: 111px;
     display: inline-block;
     margin: 0 3px;
 }
 
-#hero-area .hero-thumbnail .thumbnail-item > img {
-    width: 120px;
-    height: 90px;
-}
-
-#hero-area .hero-thumbnail .thumbnail-item > p {
+#hero-area #hero-container .hero-thumbnail .thumbnail-item > p {
     margin: 0;
     font-family: "Helvetica", "Arial", sans-serif;
     font-size: 13px;
     line-height: 19px;
 }
 
-#hero-area .hero-thumbnail .thumbnail-item .overlay:hover {
-    opacity: 0;
-    background: #3e3e3e;
-    transition: opacity 0.25s ease-in-out;
+#hero-area #hero-container .hero-thumbnail .thumbnail-item div.thumbnail-image {
+    width: 120px;
+    height: 90px;
+    background-size: contain;
+}
+
+#hero-area #hero-container .hero-thumbnail .thumbnail-item div.thumbnail-image:before {
+    background-image: url('/static/light/gap/landingpage/video/images/Video-playbutton.png');
+    background-size: 30% 40%;
+    background-position: center;
+    content: "";
+    width: 120px;
+    height: 90px;
+    position: absolute;
+    background-repeat: no-repeat;
+    margin: 0 40px 0 -60px;
+    box-shadow: inset 0 0 200px #6e6e6e
+}
+
+#hero-area #hero-container .hero-thumbnail .thumbnail-item div.thumbnail-image.playing:before {
+    box-shadow: none;
 }
 
 #hero-area {
     position: relative;
     font-family: "Helvetica Neue Light", "Arial", sans-serif;
     font-size: 15px;
+    height: 506px;
 }
 
 #hero-area .overlay {
@@ -411,6 +429,7 @@ div.header {
     width: auto;
 }
 
+.tile.youtube div.thumbnail:before,
 .tile.wide.youtube div.thumbnail:before {
     background-image: url('/static/light/gap/landingpage/video/images/Video-playbutton.png');
     width: 66px;  /* dimensions of the thumbnail image (which should be cropped to size) */

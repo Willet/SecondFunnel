@@ -254,7 +254,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         options = {};
 
         // Do NOT transform animated gifs
-        if (url.indexOf('.gif') > -1) {
+        if (!_.isString(url) || url.indexOf('.gif') > -1) {
             return url;
         }
 

@@ -274,7 +274,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @constructor
     @type {ItemView}
     ###
-    class module.HeroContent extends Marionette.Layout
+    class module.HeroContent extends Marionette.ItemView
         template: "#herovideo_template"
         templates: ->
             templateRules = [
