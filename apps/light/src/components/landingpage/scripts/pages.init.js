@@ -70,7 +70,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                     App.core.Tile.getTileById(tileId,
                         function (tile) {
                             // Found tile, load it up!
-                            App.heroArea.show(new App.core.HeroAreaView(tile));
+                            App.heroArea.show(new App.core.HeroAreaView(tile.attributes));
                         },
                         function () {
                             // Could not find tile
