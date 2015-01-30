@@ -117,7 +117,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     infoItem: key
                 )
                 return
-            App.utils.runWidgets this
+            App.utils.runWidgets(@)
             @resizeContainer()
             return
 
@@ -178,7 +178,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 index = App.option("heroGalleryIndex", 0)
 
             @$(".stl-look").each ->
-                $(this).find(".stl-item").eq(index).addClass("selected")
+                $(@).find(".stl-item").eq(index).addClass("selected")
                 return
 
             if @model.get("tagged-products") and @model.get("tagged-products").length
@@ -256,7 +256,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             #  So, for now, only add no-scroll if the device is NOT an android.
             #
             unless App.support.mobile()
-                width = Marionette.getOption(this, "width")
+                width = Marionette.getOption(@, "width")
                 if width
                     @$(".content").css("width", width + "px")
                 else if App.support.mobile()
@@ -266,6 +266,88 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 unless @$el.parents("#hero-area").length
                     @trigger("scroll:disable")
             return
+
+
+    ###
+    View responsible for Hero-specific things
+
+    @constructor
+    @type {ItemView}
+    ###
+    class module.HeroContent extends Marionette.ItemView
+        template: "#herovideo_template"
+        templates: ->
+            templateRules = [
+                "#<%= options.store.slug %>_<%= data.template %>_template"
+                "#<%= data.template %>_template"
+                "#herovideo_template" #fallback
+                "#hero_template" # fallback
+            ]
+            unless App.support.mobile()
+
+                # remove mobile templates if it isn't mobile, since they take
+                # higher precedence by default
+                templateRules = _.reject(templateRules, (t) ->
+                    t.indexOf("mobile") > -1
+                )
+            templateRules
+
+        events:
+            "click .video-thumbnail": "onClick"
+
+        onRender: ->
+            # hide discovery, then show this window as a page.
+            if App.support.mobile()
+                @trigger("swap:feed", @$el) # out of scope
+                @trigger("feed:swapped")
+            App.vent.trigger("previewRendered", @)
+            return
+
+        onShow: ->
+            if @$el.parents("#hero-area").length
+                index = App.option("heroGalleryIndex", 0)
+                if not Modernizr.csspositionsticky
+                    $(".stick-bottom", @$el).addClass("stuck").waypoint("sticky",
+                        offset: "bottom-in-view"
+                        direction: "up"
+                    )
+            
+            return
+
+        onClick: (ev) ->
+            video = @model.attributes.video
+            thumbId = "thumb-#{@model.cid}"
+            $thumb = @$("div.video-thumbnail")
+            if window.YT is undefined
+                console.warn "Youtube Player could not load. Opening link to youtube.com"
+                App.utils.openUrl video.get("original-url")
+                return
+            $thumb.attr("id", thumbId).wrap "<div class=\"video-container\" />"
+            player = new window.YT.Player(thumbId,
+                width: $thumb.width()
+                height: $thumb.height()
+                videoId: video.attributes["original-id"] or video.id
+                playerVars:
+                    wmode: "opaque"
+                    autoplay: 1
+                    controls: false
+
+                events:
+                    onReady: $.noop
+                    onStateChange: (newState) =>
+                        App.tracker.videoStateChange @model.attributes.video["original-id"] or @model.attributes.video.id, newState
+                        switch newState
+                            when window.YT.PlayerState.ENDED
+                                @onPlaybackEnd()
+                            else
+
+                    onError: $.noop
+            )
+            return
+
+            onPlaybackEnd: (ev) ->
+                App.vent.trigger "videoEnded", ev, this
+                return
 
 
     ###
@@ -283,8 +365,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         getTemplate: ->
             # if the model has a template, let the PreviewContent try to render it
             # otherwise, assume its just hero images
-            if @model.attributes.template
-                return "#shopthelook_template"
+            if @model and @model.attributes.template
+                if @model.attributes.template.indexOf("hero") == -1
+                    return "#shopthelook_template"
+                else
+                    return "##{@model.attributes.template}_template"
             else
                 return "#hero_template"
         
@@ -293,9 +378,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         the featured product.
         ###
         initialize: (data) ->
-            # TODO Refactor to utilize default coming from 'page:setup'
-            # and remove App.option("featured")
-            tile = if not _.isEmpty(data) then data else App.option("featured")
+            tile = if not _.isEmpty(data) then data else App.option("page:home:hero")
             if tile
                 @deferred = $.when(tile)
             # Try to get it from intentRank if its setup
@@ -312,9 +395,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                         
             @deferred.done((tile) =>
-                @model = new module.Tile(tile)
+                if @getTemplate() == "#shopthelook_template"
+                    @model = new module.Tile(tile)
+                else
+                    @model = new module.HeroTile(tile)
                 @listenTo(App.vent, "windowResize", =>
-                    App.heroArea.show @
+                    App.heroArea.show(@)
                 )
                 return
             )
@@ -326,7 +412,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @deferred.done(=>
                 contentOpts = model: @model
                 contentInstance = undefined
-                contentInstance = new module.PreviewContent(contentOpts)
+                if @getTemplate() == "#shopthelook_template"
+                    contentInstance = new module.PreviewContent(contentOpts)
+                else
+                    contentInstance = new module.HeroContent(contentOpts)
                 @content.show(contentInstance)
                 return
             )
@@ -479,8 +568,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                 # handle results that got loaded while the discovery
                 # area has an undefined height.
-                App.layoutEngine.layout(App.discovery)
-                App.layoutEngine.masonry.resize()
+                App.feed.layout(App.discovery)
+                App.feed.masonry.resize()
             return
 
 
@@ -631,11 +720,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return @
         
         onRender: ->
-            if App.intentRank.currentCategory
+            if App.intentRank.currentCategory()?
                 @selectCategory(App.intentRank.currentCategory())
             else
                 App.vent.once('intentRankInitialized', =>
-                    if App.intentRank.currentCategory
+                    if App.intentRank.currentCategory()?
                         @selectCategory (App.intentRank.currentCategory())
                 )
             return @

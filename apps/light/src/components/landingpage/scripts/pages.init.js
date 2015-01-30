@@ -24,6 +24,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         App.previewLoadingScreen = $('#preview-loading');
         
         App.addInitializer(function () {
+            var tileId;
+
             // set its width to whatever it began with.
             App.options.initialWidth = $(window).width();
             if (App.optimizer) { // TODO: move to optimizer
@@ -46,14 +48,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 delete App.discovery;
             }
 
-            // Initialize IntentRank
-            // will create new discovery feed
-            // TODO: refactor intentRank options
-            App.intentRank.initialize({
-                'category': '',
-                'trigger': true
-            });
-
             // Prevent categories from reloading
             if (!App.categoryArea.currentView) {
                 var categoriesView = new App.core.CategoryCollectionView();
@@ -62,13 +56,56 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 App.categories = categoriesView.collection;
             }
 
+            // Initialize IntentRank
+            // will create new discovery feed
+            App.intentRank.initialize({
+                'category': App.option('page:init:category', App.option('page:home:category', '')),
+                'trigger': true
+            });
+
             // Prevent hero image from resetting to first category on reload
             if (!App.heroArea.currentView) {
-                // load the category or default hero image
-                App.heroArea.show(new App.core.HeroAreaView());
+                tileId = App.option('page:init:hero', App.option('page:home:hero', null));
+                if (tileId) {
+                    App.core.Tile.getTileById(tileId,
+                        function (tile) {
+                            // Found tile, load it up!
+                            App.heroArea.show(new App.core.HeroAreaView(tile));
+                        },
+                        function () {
+                            // Could not find tile
+                            App.heroArea.show(new App.core.HeroAreaView());
+                        }); 
+                } else {
+                    // load the category or default hero image
+                    App.heroArea.show(new App.core.HeroAreaView());
+                }
+            }
+
+            if (App.option('page:init:preview')) {
+                tileId = App.option('page:init:preview');
+                var preview_tile = function (tile) {
+                    var preview = new App.core.PreviewWindow({
+                        'model': tile
+                    });
+                    App.previewArea.show(preview);
+                };
+                var close_preview = function () {
+                    App.previewLoadingScreen.hide();
+                };
+                App.previewLoadingScreen.show();
+                App.core.Tile.getTileById(tileId, preview_tile, close_preview);
             }
 
             App.vent.trigger('afterInit', App.options, App);
+        });
+
+        App.vent.on('beforeInit', function () {
+            // Preload data
+            if (window.PRELOAD && _.isObject(window.PRELOAD.tile) && window.PRELOAD.tile['tile-id']) {
+                var tile = window.PRELOAD.tile;
+                App.core.FeedView.tilecache[tile['tile-id']] = tile;
+            }
         });
 
         App.vent.on('afterInit', function () {

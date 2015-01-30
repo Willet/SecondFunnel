@@ -254,7 +254,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         options = {};
 
         // Do NOT transform animated gifs
-        if (url.indexOf('.gif') > -1) {
+        if (!_.isString(url) || url.indexOf('.gif') > -1) {
             return url;
         }
 
@@ -265,7 +265,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         } else if ((height && !width) || height > width) {
             options.height = Math.ceil(height / 100.0) * 100;
         } else {
-            options.width = App.layoutEngine.width() * ratio;
+            options.width = App.feed.width() * ratio;
         }
 
         options = _.extend({

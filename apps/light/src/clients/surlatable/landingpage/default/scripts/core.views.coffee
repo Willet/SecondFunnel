@@ -54,7 +54,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             content: ".content"
 
         generateHeroArea: ->
-            category = App.intentRank.currentCategory() || App.option('categoryHome')
+            category = App.intentRank.currentCategory() || App.option('page:home:category')
             catObj = App.categories.findModelByName(category)
 
             # If category can't be found, default to 'The Chef'

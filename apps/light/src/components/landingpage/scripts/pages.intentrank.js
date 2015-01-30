@@ -268,7 +268,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
     /**
      * Changes the intentRank category and updates the discovery area
-     * Fire 'change:category' event (optional)
+     * Fire 'change:category' event (can be silenced with silent=true)
      *
      * @param {String} category
      * @param {Boolean} silent
@@ -284,11 +284,11 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             if (!(category === '') && App.option('debug', false)) {
                 console.error("Invalid category '"+category+"', attempting to load home category");
             }
-            // try the categoryHome
-            if (App.option("page:categoryHome")) {
-                category = App.option("page:categoryHome");
+            // try the home category
+            if (App.option("page:home:category")) {
+                category = App.option("page:home:category");
             } else {
-                // categoryHome is no beuno, lets go with empty string
+                // home category is no beuno, lets go with empty string
                 if (App.option('debug', false)) {
                     console.warn("No home category, loading feed without category");
                 }

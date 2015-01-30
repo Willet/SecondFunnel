@@ -2,4 +2,7 @@
 
 <script>
     window.PAGES_INFO = {{ PAGES_INFO|jsonify }};
+    window.PRELOAD = {
+    	{% if tile %}'tile': {{ tile|jsonify }}{% endif %}
+    };
 </script>

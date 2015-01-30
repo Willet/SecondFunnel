@@ -164,8 +164,55 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.Tile extends Backbone.Model
-        defaults:
+        ###
+        Attempt to retrieve tile and instantiate it as the correct Tile subclass,
+        then execute success_cb or failure_cb
+        @param tileId - <string>
+        @param success_cb - <function> (<Tile>)
+        @param failure_cb - <function>: ()
+        ###
+        @getTileById = (tileId, success_cb, failure_cb) ->
+            isNumber = /^\d+$/.test(tileId);
 
+            if isNumber
+                if App.option('debug', false)
+                    console.warn('Router getting tile: '+tileId)
+
+                # Check cache
+                tileJson = if (App.discovery and App.discovery.tilecache) then App.discovery.tilecache[tileId] else undefined
+                if tileJson?
+                    tile = @selectTileSubclass(tileJson)
+                # Check current feed
+                if not tile?
+                    tile = if (App.discovery and App.discovery.collection) then App.discovery.collection.tiles[tileId] else undefined
+                if tile?
+                    success_cb(tile)
+                    return
+
+                console.debug('tile not found, fetching from IR.')
+
+                tile = new App.core.Tile(
+                    'tile-id': tileId
+                )
+                tile.fetch().done(=>
+                    tile = @selectTileSubclass(tile)
+                    success_cb(tile)
+                ).fail(failure_cb)
+            else
+                failure_cb()
+            return
+
+        ###
+        Creates tile from tileJson or {Tile}, infering correct Tile subclass
+        @param tile - {Tile}
+        @returns {_*_Tile}
+        ###
+        @selectTileSubclass = (tile) ->
+            TileClass = App.utils.findClass('Tile',
+                tile.get('type') || tile.get('template'), App.core.Tile)
+            return new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()))
+
+        defaults:
             # Default product tile settings, some tiles don't
             # come specifying a type or caption
             caption: ""
@@ -229,7 +276,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             App.vent.trigger "tileModelInitialized", this
             return
 
-
         ###
         @param byImgId     if omitted, the default image id
         @returns {module.Image}
@@ -263,7 +309,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else if defImg instanceof module.Image
                 return defImg
             new module.Image(defImg)
-
 
         getDefaultImageId: ->
             try
@@ -327,7 +372,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # the template needs something simpler.
             @color = color
-            @url = @width(App.layoutEngine.width())
+            @url = @width(App.feed.width())
             return
 
         sync: ->
@@ -349,7 +394,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if height > 0
                 options.height = height
             unless width or height
-                options.width = App.layoutEngine.width()
+                options.width = App.feed.width()
             resized.url = App.utils.getResizedImage(@get("url"), options)
             if obj
                 return resized
@@ -406,6 +451,39 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if attrs['original-id'] and not attrs["thumbnail"]
                 attrs["thumbnail"] = "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
             attrs
+
+
+    class module.HeroTile extends module.Tile
+        type: "hero"
+
+        parse: (resp, options) ->
+            for content in resp["contents"]
+                content["template"] = content.type
+                resp[content.type] = content
+            super(resp, options)
+
+    class module.HerovideoTile extends module.HeroTile
+        type: "hero"
+
+        parse: (resp, options) ->
+            for content in resp["contents"]
+                if content.type == "video" and content["original-id"] and not content["thumbnail"]
+                    resp["thumbnail"] = "http://i.ytimg.com/vi/#{content["original-id"]}/hqdefault.jpg"
+                resp[content.type] = content
+            super(resp, options)
+
+        initialize: (attributes, options) ->
+            video = undefined
+            bannerImage = undefined
+            if attributes.image
+                bannerImage = new module.Image($.extend(true, {}, attributes.image))
+
+            @set
+                image: bannerImage
+                images: [bannerImage]
+                defaultImage: bannerImage
+            App.vent.trigger "tileModelInitialized", this
+            return
 
 
     ###
