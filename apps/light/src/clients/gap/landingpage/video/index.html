@@ -201,16 +201,16 @@
             <div id="hero-container">
                 <div class="hero-video-wrapper">
                     <div class="hero-banner-image"
-                         style="background-image: url('<%= obj.image.url %>');">
+                         style="background-image: url('<%= image.url %>');">
                         
                     </div>
                     <div class="hero-video">
                         <!--<div class="img-responsive video-thumbnail"
-                             style="background-image: url('<%= obj.thumbnail || obj.image.url %>');">
+                             style="background-image: url('<%= thumbnail || image.url %>');">
                           &nbsp;
                           <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
                         </div>-->
-                        <iframe width="640" height="360" src="https://www.youtube.com/embed/pXsVlwyolSY?showinfo=0" frameborder="0"></iframe>
+                        <iframe width="640" height="360" src="https://www.youtube.com/embed/<%- video['original-id'] %>?showinfo=0&autoplay=1" frameborder="0"></iframe>
                     </div>
                 </div>
                 <div class="hero-thumbnail">
@@ -237,11 +237,19 @@
                             <% /* "Shop product" is actually wanted for the tile overlay */ %>
                             <div class="title">
                                 <% var products = obj['tagged-products'] ? obj['tagged-products'] : []; %>
-                                <% if (obj.title || obj.name || obj.caption) { %>
-                                    <%= (obj.title || obj.name || obj.caption) %>
+                                <% if (obj.title || obj.name || obj.caption || obj.hoverText) { %>
+                                    <span><%= (obj.title || obj.name || obj.caption || obj.hoverText) %></span>
+                                    <% if (products.length > 0) { %>
+                                    <br />
+                                    <span class='shop-products'>shop now</span>
+                                    <br />
+                                        <% _.each(products, function (related) { %>
+                                            <span class='shop-products'><%= related.title || related.name || related.caption %></span>
+                                        <% }); %>
+                                    <% } %>
                                 <% } else if (products.length > 0) { %>
                                     <span>Shop Product<% if (products.length > 1) { %>s<% } %></span>
-                                    <br/>
+                                    <br />
                                     <% _.each(products, function (related) { %>
                                         <span class='shop-products'><%= related.title || related.name || related.caption %></span>
                                     <% }); %>
