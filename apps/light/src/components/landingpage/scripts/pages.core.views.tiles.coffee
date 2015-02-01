@@ -119,7 +119,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         onBeforeRender: ->
             normalTileWidth = App.feed.width()
-            wideableTemplates = _.extend({}, @defaultWideableTemplates, App.option("wideableTemplates", {}))
+            wideableTemplates = _.extend({}, @defaultWideableTemplates, App.option("page:tiles:wideableTemplates", {}))
             columnDetails =
                 1: ""
                 2: "wide"
