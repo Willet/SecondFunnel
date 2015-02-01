@@ -77,6 +77,7 @@ class PageSerializer(IRSerializer):
                 'wideableTemplates':    getattr(page, 'tiles', {}).get('wideableTemplates', None),
                 # image tile width can be randomized
                 'imageTileWideProb':    getattr(page, 'tiles', {}).get('imageTileWideProb', 0.5),
+                'allowRepeats':         getattr(page, 'tiles', {}).get('allowRepeats', True),
             },
             'masonry': {
                 'transitionDuration': getattr(page, 'masonry', {}).get('transitionDuration', '0.4s'),

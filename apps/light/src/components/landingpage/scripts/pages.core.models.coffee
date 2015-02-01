@@ -511,75 +511,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         config: {}
         loading: false
 
-        # {[tileId: maxShow,]}
-        # if tileId is in initial results and you want it shown only once,
-        # set maxShow to 0.
-        # TILES THAT LOOK THE SAME FOR TWO PAGES CAN HAVE DIFFERENT TILE IDS
-        resultsThreshold: App.option("resultsThreshold", {})
-
-        ###
-        reorder landscape tiles to only appear after a multiple-of-2
-        products has appeared, allowing gapless layouts in two-col ads.
-
-        this method requires state to be maintained in the tempTiles variable;
-        it is not idempotent.
-
-        TODO: this belongs to the layout engine.
-
-        @param {object} resp an array of tile json
-        @returns {object} an array of tile json
-        ###
-        reorderTiles: (resp) ->
-            if @currentNonFilledRows is undefined
-                @currentNonFilledRows = []
-            columnCount = 2 # the number of columns (should get from masonry...)
-            respBuilder = [] # new resp after filter(s)
-
-            orientation_column_widths = { # column(s) wide
-                "portrait": 1
-                "landscape": 2
-            }
-
-            # default to portrait
-            _.each resp, (tile) ->
-                unless tile.orientation
-                    tile.orientation = "portrait"
-
-            # only do this for iframe versions
-            #unless App.utils.isIframe()
-            #    return resp
-
-            _.each resp, (tile) =>
-                tileAdded = false
-                tileColWidth = orientation_column_widths[tile.orientation]
-
-                # tile is an entire row, can just add it right away
-                if tileColWidth == columnCount
-                    respBuilder.push(tile)
-                    return
-
-                # check existing non-filled rows
-                @currentNonFilledRows = _.filter @currentNonFilledRows, (row) ->
-                    return true if tileAdded
-                    rowColWidth = _.reduce(row, ((memo, tile) -> memo + orientation_column_widths[tile.orientation]), 0)
-                    if rowColWidth + tileColWidth <= columnCount
-                        # fits in the row, add it to the row
-                        row.push tile
-
-                    if rowColWidth + tileColWidth == columnCount
-                        # row is now full, "remove" from nonfilled rows and add it to response
-                        _.each(row, (tile) -> respBuilder.push(tile))
-                        tileAdded = true
-                        return false # filter it out
-                    return true # let the row remain
-
-                unless tileAdded
-                    # couldn't find place for tile, add as a new row
-                    newRow = [tile]
-                    @currentNonFilledRows.push(newRow)
-            respBuilder
-
-
         ###
         process common attributes, then delegate the collection's parsing
         method to their individual tiles.
@@ -589,41 +520,20 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @returns {Array}
         ###
         parse: (resp, options) ->
-
-            # this = the instance
             tileIds = App.intentRank.getTileIds()
 
-            # reorder landscape tiles to only appear after a multiple-of-2
-            # products has appeared, allowing gapless layouts in two-col ads.
-            resp = @reorderTiles(resp)
-
-            respBuilder = []
-            i = 0
-            _.each(resp, (tile) =>
-                tileId = tile["tile-id"]
-                unless tileId # is this a tile???
-                    console.warn("WAS NOT A TILE", tile)
-                    return
-
-                # decrement the allowed displays of each shown tile.
-
-                # tile has been disabled by its per-page threshold
-                if @resultsThreshold[tileId] isnt undefined and --@resultsThreshold[tileId] < 0
-                    return
-
-                # if algorithm is finite but a dupe is about to occur,
-                # issue a warning but display anyway
-                if App.option("IRAlgo", "generic").indexOf("finite") > -1
-                    if _.indexOf(tileIds, tileId) > -1
-                        console.warn "Tile " + tileId + " is already on the page!"
-                        unless App.option("allowTileRepeats", false)
-                            return
-                respBuilder.push tile # this tile passes
+            respBuilder = _.filter(resp, (tile) =>
+                if tile["tile-id"]
+                    return true
+                else
+                    console.warn("Rejected tile during parse because it has no tile-id: #{tile}")
+                    return false
             )
-            tiles = _.map respBuilder, (jsonEntry) ->
+            tiles = _.map(respBuilder, (jsonEntry) ->
                 TileClass = App.utils.findClass("Tile", jsonEntry.template or jsonEntry.type, module.Tile)
-                new TileClass(jsonEntry, parse: true)
-            tiles
+                return new TileClass(jsonEntry, parse: true)
+            )
+            return tiles
 
 
 
@@ -636,23 +546,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         fetch: App.intentRank.fetch
 
         ###
-        Interact with IR using the built-in Backbone thingy.
+        Interact with IR using the built-in Backbone handler
 
         @returns {Function|String}
         ###
         url: ->
-            url = undefined
             category = App.intentRank.currentCategory()
             url = "#{@config.apiUrl}/page/#{@config.campaign}/getresults?results=#{@config.results}"
             if category
-                return url + "&category=" + encodeURIComponent(category)
-            url
+                url += "&category=#{encodeURIComponent(category)}"
+            return url
 
         initialize: (arrayOfData, url, campaign, results) ->
-            @setup url, campaign, results # if necessary
+            @setup(url, campaign, results) # if necessary
             @tiles = {}
-            @on "add", @itemAdded, @
-            App.vent.trigger "tileCollectionInitialized", @
+            @on("add", @itemAdded, @)
+            App.vent.trigger("tileCollectionInitialized", @)
             return
 
 

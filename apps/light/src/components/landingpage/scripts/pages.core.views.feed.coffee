@@ -9,6 +9,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.FeedView extends Marionette.CollectionView
         # Cache of tile JSON index by tile-id's shared amongst all feeds
+        # Currently only used by tiles inserted at page caching
         @tilecache = {}
 
         constructor: () ->
@@ -220,7 +221,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         add: ($fragment) ->
             @recently_added.push($fragment[0])
+            @reorderTiles()
             @addItems()
+
+        # Hook for re-ordering tiles before being rendered by the feed
+        # Used by Ad
+        reorderTiles: ->
+            return
 
         removeTiles: (tileViews) ->
             removeComplete = (masonry, removedItems) =>
