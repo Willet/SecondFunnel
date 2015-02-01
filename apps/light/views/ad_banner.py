@@ -29,7 +29,8 @@ def ad_banner(request, page_id):
 
     # grab required assets
     store = page.store
-    tile = None  # this is fine
+    initial_state = {}
+    tile = None
 
     tests = []
     if page.get('tests'):
@@ -39,7 +40,7 @@ def ad_banner(request, page_id):
 
     algorithm = get_algorithm(request=request, page=page)
     PAGES_INFO = PageConfigSerializer.to_json(request=request, page=page,
-        feed=page.feed, store=store, algorithm=algorithm, featured_tile=tile,
+        feed=page.feed, store=store, algorithm=algorithm, init=initial_state,
         other={'tile_set': 'content'})
 
     ir = IntentRank(page=page)
@@ -50,13 +51,12 @@ def ad_banner(request, page_id):
     attributes = {
         "algorithm": algorithm,
         "campaign": page,
-        "columns": range(4),
+        "columns": range(2),
         "column_width": page.column_width or 150,  # 150 = 300 / 2
         "conditional_social_buttons": "{}",
         "enable_tracking": True,
         "environment": settings.ENVIRONMENT,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
-        "image_tile_wide": page.image_tile_wide,
         "initial_results": json.dumps(initial_results),
         "ir_base_url": ir_base_url,
         "keen_io": settings.KEEN_CONFIG,
