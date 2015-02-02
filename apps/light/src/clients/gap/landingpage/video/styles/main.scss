@@ -30,6 +30,10 @@ body {
   padding: 0 0;
 }
 
+.jumbotron {
+    width: 1150px;
+}
+
 div.header {
     /* if your navbar has the 'navbar-fixed-top' class, this offset is required. */
     padding: 47px 0 4px 0;
@@ -204,6 +208,13 @@ div.header {
 .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {
     background-color: #acacac;
     background-image: none;
+}
+
+#hero-area .hero-image-wrapper {
+    position: absolute;
+    width: 1150px;
+    left: -63px;
+    top: 0px;
 }
 
 #hero-area #hero-container {
@@ -468,8 +479,8 @@ div.header {
 }
 
 .previewContainer .content {
-    padding-top: 50px;
-    width: 100%;
+    position: inherit;
+    padding: 0 !important;
 }
 
 .previewContainer .close {
@@ -581,6 +592,11 @@ div.header {
 }
 
 @media screen and (max-width: 768px) {
+
+    .header {
+        display: none;
+    }
+
     .tile {
       width: 50%;
       &.wide {
@@ -595,6 +611,130 @@ div.header {
         width: 100% !important;
         display: none;
     }
+
+    #hero-area .stv {
+        font-family: "Helvetica-Bold";
+        font-size: 13px;
+        color: #020d41;
+        line-height: 16px;
+        text-align: center;
+    }
+
+    #hero-area .stv > p {
+        margin: 0;
+    }
+
+    #hero-area .stv #down-arrow {
+        width: 20px;
+        height: 8px;
+        background-image: url('/static/light/gap/landingpage/video/images/down-arrow.png');
+        background-repeat: no-repeat;
+        display: inline-block;
+    }
+
+    #hero-area #hero-container {
+        position: relative;
+        width: 100%;
+        height: auto;
+        left: 0;
+    }
+
+    #hero-area #hero-container .hero-video-wrapper {
+        margin-bottom: 10px;
+    }
+
+    #hero-area #hero-container .hero-video-wrapper .hero-banner-image {
+        width: 100%;
+        height: auto;
+        background: none;
+    }
+
+    #hero-area #hero-container .hero-thumbnail {
+        max-width: 100%;
+        height: auto;
+        margin: 10px;
+        padding: 0 15px;
+        text-align: left;
+        border: 1px solid #979797;
+        border-radius: 4px;
+    }
+
+    #hero-area #hero-container .hero-thumbnail .thumbnail-table {
+        font-family: "HelveticaNeue";
+        color: #000000;
+        margin-bottom: 15px;
+        width: 100%;
+    }
+
+    #hero-area #hero-container .hero-thumbnail .thumbnail-table #more-button {
+        font-family: "HelveticaNeue";
+        font-size: 14px;
+        color: #4a4a4a;
+        line-height: 15px;
+        border: 1px solid #979797;
+        border-radius: 2px;
+        background-color: #ccc;
+        padding: 10px 15px;
+    }
+
+    #hero-area #hero-container .hero-thumbnail .thumbnail-table #thumbnail-header {
+        padding: 15px 0;
+        border-bottom: 1px solid #979797;
+    }
+
+    #hero-area #hero-container .hero-thumbnail .thumbnail-table .thumbnail-item {
+        margin: 0;
+        padding: 10px 0;
+        width: 100%;
+        height: auto;
+        overflow: hidden;
+        display: block;
+        border-top: 1px solid #979797;
+    }
+
+    #hero-area #hero-container .hero-thumbnail .thumbnail-item > p {
+        margin: 5px 0 0 5px;
+        font-family: "HelveticaNeue";
+        font-size: 14px;
+        color: #000000;
+        line-height: 16px;
+        display: inline-block;
+    }
+
+    #hero-area #hero-container .hero-thumbnail .thumbnail-item div.thumbnail-image {
+        width: 120px;
+        height: 67px;
+        background-size: cover;
+        background-position: top center;
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    #hero-area #hero-container .hero-thumbnail .thumbnail-item div.thumbnail-image:before {
+        background-image: url('/static/light/gap/landingpage/video/images/Video-playbutton.png');
+        background-size: 44% 80%;
+        background-position: center;
+        content: "";
+        width: 120px;
+        height: 67px;
+        position: absolute;
+        background-repeat: no-repeat;
+        margin: 0 40px 0 0;
+        box-shadow: inset 0 0 200px #6e6e6e
+    }
+
+    #hero-area #hero-container .hero-thumbnail .thumbnail-item div.thumbnail-image.playing:before {
+        box-shadow: none;
+    }
+
+    #hero-area {
+        position: relative;
+        font-family: "Helvetica Neue Light", "Arial", sans-serif;
+        font-size: 15px;
+        height: auto;
+    }
+
+    // end of hero video content
 
     #hero-area .overlay {
         position: static;

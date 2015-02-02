@@ -280,7 +280,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             templateRules = [
                 "#<%= options.store.slug %>_<%= data.template %>_template"
                 "#<%= data.template %>_template"
-                "#herovideo_template" #fallback
                 "#hero_template" # fallback
             ]
             unless App.support.mobile()
@@ -293,7 +292,24 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             templateRules
 
         events:
-            "click .video-thumbnail": "onClick"
+            'click #more-button': ->
+                @$("#more-button").attr("style", "display: none;")
+                table = @$(".thumbnail-table")[0]
+                if table
+                    for thumbnail, i in @model.attributes.thumbnails when i >= 2
+                        imageElem = document.createElement("div")
+                        imageElem.className = "thumbnail-image"
+                        imageElem.style.backgroundImage = "url(#{thumbnail.url})"
+                        captionElem = document.createElement("p")
+                        captionElem.innerHTML = "Episode #{i + 1} <br>#{thumbnail.date}"
+                        thumbElem = document.createElement("div")
+                        thumbElem.className = "thumbnail-item"
+                        thumbElem.appendChild(imageElem)
+                        thumbElem.appendChild(captionElem)
+                        column = document.createElement("td")
+                        column.appendChild(thumbElem)
+                        table.insertRow(-1).appendChild(column)
+                return
 
         onRender: ->
             # hide discovery, then show this window as a page.
@@ -314,41 +330,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             
             return
 
-        onClick: (ev) ->
-            video = @model.attributes.video
-            thumbId = "thumb-#{@model.cid}"
-            $thumb = @$("div.video-thumbnail")
-            if window.YT is undefined
-                console.warn "Youtube Player could not load. Opening link to youtube.com"
-                App.utils.openUrl video.get("original-url")
-                return
-            $thumb.attr("id", thumbId).wrap "<div class=\"video-container\" />"
-            player = new window.YT.Player(thumbId,
-                width: $thumb.width()
-                height: $thumb.height()
-                videoId: video.attributes["original-id"] or video.id
-                playerVars:
-                    wmode: "opaque"
-                    autoplay: 1
-                    controls: false
-
-                events:
-                    onReady: $.noop
-                    onStateChange: (newState) =>
-                        App.tracker.videoStateChange @model.attributes.video["original-id"] or @model.attributes.video.id, newState
-                        switch newState
-                            when window.YT.PlayerState.ENDED
-                                @onPlaybackEnd()
-                            else
-
-                    onError: $.noop
-            )
-            return
-
-            onPlaybackEnd: (ev) ->
-                App.vent.trigger "videoEnded", ev, this
-                return
-
 
     ###
     View responsible for the "Hero Area"
@@ -359,19 +340,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.HeroAreaView extends Marionette.Layout
         className: "previewContainer"
+        template: "#hero_container_template"
         regions:
             content: ".content"
-
-        getTemplate: ->
-            # if the model has a template, let the PreviewContent try to render it
-            # otherwise, assume its just hero images
-            if @model and @model.attributes.template
-                if @model.attributes.template.indexOf("hero") == -1
-                    return "#shopthelook_template"
-                else
-                    return "##{@model.attributes.template}_template"
-            else
-                return "#hero_template"
         
         ###
         @param data normal product data, or, if omitted,
@@ -395,10 +366,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                         
             @deferred.done((tile) =>
-                if @getTemplate() == "#shopthelook_template"
-                    @model = new module.Tile(tile)
+                if tile.template and tile.template.indexOf("hero") > -1
+                    if tile.template == "herovideo"
+                        @model = new module.HerovideoTile(tile)
+                    else
+                        @model = new module.HeroTile(tile)
                 else
-                    @model = new module.HeroTile(tile)
+                    @model = new module.Tile(tile)
                 @listenTo(App.vent, "windowResize", =>
                     App.heroArea.show(@)
                 )
@@ -412,10 +386,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @deferred.done(=>
                 contentOpts = model: @model
                 contentInstance = undefined
-                if @getTemplate() == "#shopthelook_template"
-                    contentInstance = new module.PreviewContent(contentOpts)
-                else
+                if contentOpts.model.get("template", "").indexOf("hero") > -1
                     contentInstance = new module.HeroContent(contentOpts)
+                else
+                    contentInstance = new module.PreviewContent(contentOpts)
                 @content.show(contentInstance)
                 return
             )

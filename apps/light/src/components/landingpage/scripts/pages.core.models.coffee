@@ -477,15 +477,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             super(resp, options)
 
         initialize: (attributes, options) ->
-            video = undefined
-            bannerImage = undefined
-            if attributes.image
-                bannerImage = new module.Image($.extend(true, {}, attributes.image), {"suppress_resize": true})
+            desktopHeroImage = undefined
+            mobileHeroImage = undefined
+            if attributes.desktopHeroImage
+                desktopHeroImage = new module.Image($.extend(true, {}, { "url" : attributes.desktopHeroImage }), {"suppress_resize": true})
+            if attributes.mobileHeroImage
+                mobileHeroImage = new module.Image($.extend(true, {}, { "url" : attributes.mobileHeroImage }), {"suppress_resize": true})
 
             @set
-                image: bannerImage
-                images: [bannerImage]
-                defaultImage: bannerImage
+                image: desktopHeroImage
+                images: [desktopHeroImage, mobileHeroImage]
+                defaultImage: desktopHeroImage
             App.vent.trigger "tileModelInitialized", this
             return
 
