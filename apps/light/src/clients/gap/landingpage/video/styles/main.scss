@@ -207,7 +207,6 @@ div.header {
     background-position: 4px -109px;
 }
 
-
 .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {
     background-color: #acacac;
     background-image: none;
@@ -219,20 +218,16 @@ div.header {
     font-size: 15px;
     height: 506px;
     .hero-image-wrapper {
-        position: absolute;
-        width: 1150px;
-        left: -63px;
-        top: 0px;
+        position: relative;
+        width: 100%;
     }
-
     #hero-container {
-        position: absolute;
-        width: 1150px;
-        left: -63px;
-        top: 0px;
+        position: relative;
+        width: 100%;
     
         .hero-video-wrapper {
             width: 100%;
+            display: table;
             position: relative;
             overflow: hidden;
             margin-bottom: 15px;
@@ -240,19 +235,35 @@ div.header {
             margin-right: auto;
         
             .hero-banner-image {
-                width: 510px;
-                height: 360px;
+                width: 100%;
+                height: auto;
                 display: inline-block;
-                float: left;
                 background-size: cover;
                 background-position: top left;
+                img {
+                    width: 44.4%;
+                }
             }
 
             .hero-video {
-                width: 640px;
-                height: 360px;
+                position: absolute;
+                overflow:hidden;
+                padding-bottom: 31.35%;
+                height: 0;
+                width: 56%;
                 display: inline-block;
-                float: left;
+                right: 0;
+                .responsive-video {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    iframe {
+                        width: 100%;
+                        height: 100%;
+                    }
+                }
             
                 .img-responsive {
                     width: 100%;
@@ -290,7 +301,7 @@ div.header {
             
                 p {
                     margin: 0;
-                    font-family: $gap-font
+                    font-family: $gap-font;
                     font-size: 13px;
                     line-height: 19px;
                 }
@@ -594,6 +605,27 @@ div.header {
     margin-top: 0;
 }
 
+@media (min-width:1150px) {
+    #hero-area {
+        #hero-container {
+            position: absolute;
+            width: 1150px;
+            left: -63px;
+            top: 0px;
+            .hero-video-wrapper {
+                width: 100%;
+                .hero-banner-image {
+                    width: 510px;
+                    height: 360px;
+                }
+                .hero-video {
+                    width: 640px;
+                    height: 360px;
+                }
+            }
+        }
+    }
+}
 @media screen and (max-width: 768px) {
 
     .header {
@@ -620,7 +652,15 @@ div.header {
         font-family: "Helvetica Neue Light", "Arial", sans-serif;
         font-size: 15px;
         height: auto;
-        
+        .hero-video-wrapper {
+            width: 100%;
+            .hero-banner-image {
+                width: 100%;
+                img {
+                    width: 44.4%;
+                }
+            }
+        }
         .stv {
             font-family: "Helvetica-Bold";
             font-size: 13px;
