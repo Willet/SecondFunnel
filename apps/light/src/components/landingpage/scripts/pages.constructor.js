@@ -29,30 +29,9 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     // relays current page parameters to all outgoing link clicks.
     // combines PAGES_INFO.urlParams (default to nothing) with the params
     // in the page url right now.
-    // remove leading '?' before deparamaterizing (note: empty search str -> {})
-    var pageParams = $.deparam( window.location.search.substr(1) ),
-        campaignParams = App.options.urlParams || {};
-
-    // On click of last resort, only if event bubbles all the way to document
-    App.options.urlParams = $.extend({}, pageParams, campaignParams);
 
     $(document).on('click', 'a', function (ev) {
-        var $target = $(ev.target),
-            href = $target.attr('href'),
-            parts = App.utils.urlParse(href),
-            params = $.extend({}, deparam(parts.search), App.options.urlParams || {}),
-            paramStr = $.param(params);
-
-        if (paramStr) {
-            paramStr = "?" + paramStr;
-        }
-
-        href = parts.protocol +  // http://
-               parts.host +      // google.com:80
-               parts.pathname +  // /foobar?
-               paramStr +   // baz=kek
-               parts.hash;  // #hello
-        $target.attr('href', href);
+        App.utils.openUrl(ev.target.href);
     });
 }(document));
 

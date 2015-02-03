@@ -404,8 +404,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             "utm_medium":   "ReferringDomains",
             "utm_campaign": "online gift guide"
         };
-        return module.urlAddParams(url, params);
         */
-        return url;
+        return module.urlAddParams(url, App.options.urlParams);
     };
 };
