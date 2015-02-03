@@ -248,24 +248,22 @@
         <script type="text/template" id="herovideo_template">
             <div id="hero-container">
                 <div class="hero-video-wrapper">
-                    <% if (App.support.mobile()) { %>
-                        <div class="hero-banner-image">
-                            <img src="<%= images[1].url %>" />
+                    <div class="hero-banner-image mobile-only">
+                        <img src="<%= images[1].url %>" />
+                    </div>
+                    <div class="hero-banner-image desktop-only">
+                         <img src="<%= images[0].url %>" />
+                    </div>
+                    <div class="hero-video">
+                        <div class="responsive-video">
+                            <iframe id="hero_youtube" src="https://www.youtube.com/embed/<%- video['original-id'] %>?showinfo=0&autoplay=1&enablejsapi=1&controls=0&modestbranding=1&rel=0" frameborder="0"></iframe>
                         </div>
-                    <% } else { %>
-                        <div class="hero-banner-image">
-                             <img src="<%= images[0].url %>" />
-                        </div>
-                        <div class="hero-video">
-                            <div class="responsive-video">
-                                <iframe id="hero_youtube" src="https://www.youtube.com/embed/<%- video['original-id'] %>?showinfo=0&autoplay=1&enablejsapi=1&controls=0&modestbranding=1&rel=0" frameborder="0"></iframe>
-                            </div>
-                        </div>
-                    <% } %>
+                    </div>
                 </div>
                 <div class="hero-thumbnail">
                     <% var thumbnails = (obj["thumbnails"] || []); %>
-                    <% var numThumbnails = (thumbnails.length > 2 ? 2 : thumbnails.length); %>
+                    <% var numDefaultThumbnails = 1; %>
+                    <% var numThumbnails = (Math.min(thumbnails.length, numDefaultThumbnails)); %>
                     <% if (App.support.mobile()) { %>
                             <table class="thumbnail-table">
                                 <thead>
@@ -287,7 +285,7 @@
                                             </div>
                                         </td></tr>
                                     <% } %>
-                                    <% if (thumbnails.length > 2) { %>
+                                    <% if (thumbnails.length > numDefaultThumbnails) { %>
                                         <tfoot>
                                             <tr><td>
                                                 <button id="more-button">More</button>
@@ -308,7 +306,7 @@
                     <% } %>
                 </div>
             </div>
-            <div class="stv">
+            <div class="stv mobile-only">
                 <p>shop the looks</p>
                 <div id="down-arrow"></div>
             </div>
