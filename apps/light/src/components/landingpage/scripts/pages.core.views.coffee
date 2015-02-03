@@ -360,8 +360,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                         
             @deferred.done((tile) =>
-                TileClass = module.Tile.selectTileSubclass(tile)
-                @model = new module.TileClass(tile)
+                @model = module.Tile.selectTileSubclass(tile)
                 @listenTo(App.vent, "windowResize", =>
                     App.heroArea.show(@)
                 )
