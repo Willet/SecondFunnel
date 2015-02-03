@@ -295,20 +295,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             'click #more-button': ->
                 @$("#more-button").attr("style", "display: none;")
                 table = @$(".thumbnail-table")[0]
+                thumbnailTemplate = "<td><div class='thumbnail-item'>
+                        <div class='thumbnail-image' style='background-image: url(\"<%= thumbnail.url %>\");'></div>
+                        <p>Episode <%= i + 1 %> <br><%= thumbnail.date %></p>
+                    </div></td>"
                 if table
                     for thumbnail, i in @model.attributes.thumbnails when i >= 2
-                        imageElem = document.createElement("div")
-                        imageElem.className = "thumbnail-image"
-                        imageElem.style.backgroundImage = "url(#{thumbnail.url})"
-                        captionElem = document.createElement("p")
-                        captionElem.innerHTML = "Episode #{i + 1} <br>#{thumbnail.date}"
-                        thumbElem = document.createElement("div")
-                        thumbElem.className = "thumbnail-item"
-                        thumbElem.appendChild(imageElem)
-                        thumbElem.appendChild(captionElem)
-                        column = document.createElement("td")
-                        column.appendChild(thumbElem)
-                        table.insertRow(-1).appendChild(column)
+                        thumbnailElem = _.template(thumbnailTemplate, { "thumbnail" : thumbnail, "i" : i })
+                        table.insertRow(-1).innerHTML = thumbnailElem
                 return
 
         onRender: ->
@@ -366,13 +360,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                         
             @deferred.done((tile) =>
-                if tile.template and tile.template.indexOf("hero") > -1
-                    if tile.template == "herovideo"
-                        @model = new module.HerovideoTile(tile)
-                    else
-                        @model = new module.HeroTile(tile)
-                else
-                    @model = new module.Tile(tile)
+                TileClass = module.Tile.selectTileSubclass(tile)
+                @model = new module.TileClass(tile)
                 @listenTo(App.vent, "windowResize", =>
                     App.heroArea.show(@)
                 )
@@ -386,7 +375,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @deferred.done(=>
                 contentOpts = model: @model
                 contentInstance = undefined
-                if contentOpts.model.get("template", "").indexOf("hero") > -1
+                if _.contains(contentOpts.model.get("type", ""), "hero")
                     contentInstance = new module.HeroContent(contentOpts)
                 else
                     contentInstance = new module.PreviewContent(contentOpts)

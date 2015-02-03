@@ -208,9 +208,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @returns {_*_Tile}
         ###
         @selectTileSubclass = (tile) ->
-            TileClass = App.utils.findClass('Tile',
-                tile.get('type') || tile.get('template'), App.core.Tile)
-            return new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()))
+            if tile instanceof module.Tile
+                TileClass = App.utils.findClass('Tile',
+                    tile.get('type') || tile.get('template'), App.core.Tile)
+                tile = tile.toJSON()
+            else
+                # assume tile is json
+                TileClass = App.utils.findClass('Tile',
+                    tile.type || tile.template, App.core.Tile)
+
+            return new TileClass(TileClass.prototype.parse.call(this, tile))
 
         defaults:
             # Default product tile settings, some tiles don't
