@@ -230,16 +230,33 @@ App.start();
             }
         });
     });
-    // Fraser: Not my finest code
-    window.onYouTubePlayerReady = function (playerId) {
-        ytplayer = document.getElementById("hero_youtube");
-        recordEvent('video_play', 'video', 'video play', App.heroArea.currentView.model.attributes.video['original-id']);
+    var YT, YTPlayer;
 
-        ytplayer.addEventListener("onStateChange", function (state) {
-            if (state === 0) {
-                // video ended
-                recordEvent('video_complete', 'video', 'video complete', App.heroArea.currentView.model.video['original-id']);
+    var onPlayerStateChange = function (event) {
+        switch (event.data) {
+            // 19 - video starts
+            case YT.PlayerState.PLAYING:
+                recordEvent('video_play', 'video', 'video play', YTPlayer.getVideoData()['video_id']);
+                break;
+            // 20 - video completes
+            case YT.PlayerState.ENDED:
+                recordEvent('video_complete', 'video', 'video complete', YTPlayer.getVideoData()['video_id']);
+                break;
+        }
+    };
+    window.onYouTubeIframeAPIReady = function () {
+        YT = window.YT;
+        YTPlayer = window.YTPlayer = new YT.Player('hero_youtube', {
+            events: {
+                'onPlayerReady': onPlayerStateChange,
+                'onStateChange': onPlayerStateChange
             }
         });
-    };
+    }
+
+    // Load Youtube API
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 }());
