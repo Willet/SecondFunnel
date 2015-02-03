@@ -19,8 +19,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      *
      * @returns {string} url
      */
-    module.generateAdClickUrl = function (url) {
-        var click_url, redirect_url, dest_url,
+    module.generateAdClickUrl = function (dest_url) {
+        var click_url, redirect_url,
             windowParams = $.extend({}, $.deparam( window.location.search.substr(1) ));
         
         if (windowParams['click']) {

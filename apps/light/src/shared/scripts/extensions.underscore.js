@@ -6,7 +6,7 @@
  *
  */
 module.exports = function (module, App, Backhone, Marionette, $, _) {
-
+    var collectionContains = _.contains;
     _.mixin({
         'buffer': function (fn, wait) {
         // a variant of _.debounce, whose called function receives an array
@@ -62,10 +62,14 @@ module.exports = function (module, App, Backhone, Marionette, $, _) {
             }
             return s;
         },
-        'contains': function(str, needle) {
-            if (needle === '') return true;
-            if (str == null) str = '' + str;
-            return str.indexOf(needle) !== -1;
+        // overloads contains to handle {String} and {Obj}
+        'contains': function(collection_or_str, needle) {
+            if (_.isString(collection_or_str)) {
+                if (needle === '') return true;
+                return collection_or_str.indexOf(needle) !== -1;
+            } else {
+                return collectionContains(collection_or_str, needle);
+            }
         }
     });
 };
