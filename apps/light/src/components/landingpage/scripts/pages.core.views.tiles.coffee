@@ -272,10 +272,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.VideoTileView extends module.TileView
         template: "#video_tile_template"
 
-        initialize: ->
-            @$el.addClass "wide"
-            super(@)
-
         onClick: ->
             if @model.get("url")
                 App.utils.openUrl @model.get("url")

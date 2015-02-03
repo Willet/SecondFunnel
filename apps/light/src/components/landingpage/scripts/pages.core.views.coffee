@@ -276,6 +276,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.HeroContent extends Marionette.ItemView
         template: "#herovideo_template"
+        #regions:
+        #    video: ".hero-video"
         templates: ->
             templateRules = [
                 "#<%= options.store.slug %>_<%= data.template %>_template"
@@ -291,29 +293,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
             templateRules
 
-        events:
-            'click #more-button': ->
-                @$("#more-button").attr("style", "display: none;")
-                table = @$(".thumbnail-table")[0]
-                thumbnailTemplate = "<td><div class='thumbnail-item'>
-                        <div class='thumbnail-image' style='background-image: url(\"<%= thumbnail.url %>\");'></div>
-                        <p>Episode <%= i + 1 %> <br><%= thumbnail.date %></p>
-                    </div></td>"
-                if table
-                    for thumbnail, i in @model.attributes.thumbnails when i >= 2
-                        thumbnailElem = _.template(thumbnailTemplate, { "thumbnail" : thumbnail, "i" : i })
-                        table.insertRow(-1).innerHTML = thumbnailElem
-                return
-
         onRender: ->
             # hide discovery, then show this window as a page.
             if App.support.mobile()
                 @trigger("swap:feed", @$el) # out of scope
                 @trigger("feed:swapped")
-            App.vent.trigger("previewRendered", @)
+            App.vent.trigger("heroRendered", @)
             return
 
         onShow: ->
+            # Add parameter for autoplay? Client-specific code?
+            #if @model.attributes.video
+            #    @video.show(new module.VideoTileView(@model.attributes.video))
+
             if @$el.parents("#hero-area").length
                 index = App.option("heroGalleryIndex", 0)
                 if not Modernizr.csspositionsticky
@@ -333,7 +325,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {Layout}
     ###
     class module.HeroAreaView extends Marionette.Layout
-        className: "previewContainer"
+        className: "heroContainer"
         template: "#hero_container_template"
         regions:
             content: ".content"
