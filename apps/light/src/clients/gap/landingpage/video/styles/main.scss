@@ -617,6 +617,9 @@ div.header {
                 .hero-banner-image {
                     width: 510px;
                     height: 360px;
+                    img {
+                        width: inherit;
+                    }
                 }
                 .hero-video {
                     width: 640px;
