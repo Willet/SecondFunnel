@@ -480,9 +480,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             desktopHeroImage = undefined
             mobileHeroImage = undefined
             if attributes.desktopHeroImage
-                desktopHeroImage = new module.Image($.extend(true, {}, { "url" : attributes.desktopHeroImage }), {"suppress_resize": true})
+                desktopHeroImage = new module.Image({ "url" : attributes.desktopHeroImage }, {"suppress_resize": true})
             if attributes.mobileHeroImage
-                mobileHeroImage = new module.Image($.extend(true, {}, { "url" : attributes.mobileHeroImage }), {"suppress_resize": true})
+                mobileHeroImage = new module.Image({ "url" : attributes.mobileHeroImage }, {"suppress_resize": true})
 
             @set
                 image: desktopHeroImage
