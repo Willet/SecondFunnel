@@ -197,33 +197,118 @@
 
     <div>
         <!-- Custom templates here -->
+        <script type="text/template" id="hero_template">
+            <% var heroId = 1 + Math.floor(Math.random() * 3); %>
+            <div class="hero-image-wrapper">
+                <div class="visible-xs jumbotron">
+                    <img src="http://res.cloudinary.com/secondfunnel/image/upload/v1422463531/5f03da7dce5c3233.jpg" alt="Hero" />
+                </div>
+                <div class="visible-sm visible-lg visible-md jumbotron">
+                    <img src="http://res.cloudinary.com/secondfunnel/image/upload/v1422463447/2a7849c967e6534a.jpg" alt="Hero" />
+                </div>
+                <div class="overlay <%- App.option('overlayButtonColor') %> <% if ( App.option('overlayMobileButtonColor')) { %>mobile-<%- App.option('overlayMobileButtonColor') %><% } %>">
+                    <span class='find'>
+                        <% if (!App.support.mobile()) { %>
+                            <a href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
+                        <% } else { %>
+                            <a href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
+                        <% } %>
+                    </span>
+                    <div class='buttons'>
+                        <%
+                            var share = App.option("page.description", "");
+                            var src = top.location.href;
+                            var fbLink = 'http://www.facebook.com/sharer/sharer.php?'
+                                + 's=100'
+                                + '&p[title]=Gap'
+                                + '&p[summary]=' + share.replace(' ', '+')
+                                + '&p[url]=' + encodeURIComponent(src)
+                                + '&p[images][0]={{ desktop_hero_image }}';
+
+                            var twtLink = 'http://twitter.com/share?'
+                                + 'url=' + encodeURIComponent(src)
+                                + '&text=' + encodeURIComponent(share);
+
+                            var mailLink = 'mailto:?'
+                                + 'body=' + encodeURIComponent(share);
+                        %>
+                        <a href='<%= fbLink %>' target='_blank' class="facebook-button"></a>
+                        <a href='<%= twtLink %>' target='_blank' class="twitter-button"></a>
+                        <a href='<%= mailLink %>' target='_blank' class="email-button"></a>
+                    </div>
+                </div>
+            </div>
+            {% if legal_copy %}
+                <div class="legal us">
+                    {{ legal_copy }}
+                </div>
+            {% endif %}
+        </script>
+
         <script type="text/template" id="herovideo_template">
             <div id="hero-container">
                 <div class="hero-video-wrapper">
-                    <div class="hero-banner-image"
-                         style="background-image: url('<%= image.url %>');">
-                        
-                    </div>
-                    <div class="hero-video">
-                        <!--<div class="img-responsive video-thumbnail"
-                             style="background-image: url('<%= thumbnail || image.url %>');">
-                          &nbsp;
-                          <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
-                        </div>-->
-                        <iframe width="640" height="360" src="https://www.youtube.com/embed/<%- video['original-id'] %>?showinfo=0&autoplay=1" frameborder="0"></iframe>
-                    </div>
-                </div>
-                <div class="hero-thumbnail">
-                    <% var thumbnails = (obj["thumbnails"] || []) %>
-                    <% for(i = 0; i < thumbnails.length; i++) { %>
-                        <div class="thumbnail-item" data-index="<%- i %>">
-                            <div class="thumbnail-image <% if (i == 0) { %>playing<% } %>"
-                                style="background-image: url('<%= thumbnails[i].url %>');">
-                            </div>
-                            <p>Ep.<%= i + 1 %> - <%= thumbnails[i].date %></p>
+                    <% if (App.support.mobile()) { %>
+                        <div class="hero-banner-image">
+                            <img src="<%= images[1].url %>" />
+                        </div>
+                    <% } else { %>
+                        <div class="hero-banner-image"
+                             style="background-image: url('<%= images[0].url %>');">
+                        </div>
+                        <div class="hero-video">
+                            <iframe width="640" height="360" src="https://www.youtube.com/embed/<%- video['original-id'] %>?showinfo=0&autoplay=1" frameborder="0"></iframe>
                         </div>
                     <% } %>
                 </div>
+                <div class="hero-thumbnail">
+                    <% var thumbnails = (obj["thumbnails"] || []); %>
+                    <% var numThumbnails = (thumbnails.length > 2 ? 2 : thumbnails.length); %>
+                    <% if (App.support.mobile()) { %>
+                            <table class="thumbnail-table">
+                                <thead>
+                                    <tr>
+                                        <th id="thumbnail-header">a 12-part microseries.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% for(i = 0; i < numThumbnails; i++) { %>
+                                        <tr><td>
+                                            <div class="thumbnail-item" data-index="<%- i %>">
+                                                <div class="thumbnail-image <% if (i == 0) { %>playing<% } %>"
+                                                    style="background-image: url('<%= thumbnails[i].url %>');">
+                                                </div>
+                                                <p>
+                                                    Episode <%= i + 1 %><br>
+                                                    <%= thumbnails[i].date %>
+                                                </p>
+                                            </div>
+                                        </td></tr>
+                                    <% } %>
+                                    <% if (thumbnails.length > 2) { %>
+                                        <tfoot>
+                                            <tr><td>
+                                                <button id="more-button">More</button>
+                                            </td></tr>
+                                        </tfoot>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                    <% } else { %>
+                        <% for(i = 0; i < thumbnails.length; i++) { %>
+                            <div class="thumbnail-item" data-index="<%- i %>">
+                                <div class="thumbnail-image <% if (i == 0) { %>playing<% } %>"
+                                    style="background-image: url('<%= thumbnails[i].url %>');">
+                                </div>
+                                <p>Ep.<%= i + 1 %> - <%= thumbnails[i].date %></p>
+                            </div>
+                        <% } %>
+                    <% } %>
+                </div>
+            </div>
+            <div class="stv">
+                <p>shop the looks</p>
+                <div id="down-arrow"></div>
             </div>
         </script>
 
