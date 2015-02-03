@@ -61,6 +61,11 @@ module.exports = function (module, App, Backhone, Marionette, $, _) {
                 s = s.substr(0, s.length - 3) + '...';
             }
             return s;
+        },
+        'contains': function(str, needle) {
+            if (needle === '') return true;
+            if (str == null) str = '' + str;
+            return str.indexOf(needle) !== -1;
         }
     });
 };
