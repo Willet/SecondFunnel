@@ -286,7 +286,7 @@ div.header {
 
         .hero-thumbnail {
             max-width: 1150px;
-            height: 111px;
+            height: 125px;
             margin-bottom: 20px;
             text-align: center;
             overflow-x: auto;
@@ -319,9 +319,9 @@ div.header {
                     content: "";
                     width: 120px;
                     height: 90px;
-                    position: absolute;
+                    position: relative;
+                    display: inline-block;
                     background-repeat: no-repeat;
-                    margin: 0 40px 0 -60px;
                     box-shadow: inset 0 0 200px #6e6e6e
                 }
 
@@ -775,10 +775,10 @@ div.header {
                             content: "";
                             width: 120px;
                             height: 67px;
-                            position: absolute;
+                            position: relative;
+                            display: inline-block;
                             background-repeat: no-repeat;
-                            margin: 0 40px 0 0;
-                            box-shadow: inset 0 0 200px #6e6e6e
+                            box-shadow: inset 0 0 150px #6e6e6e
                         }
 
                         div.thumbnail-image.playing:before {
