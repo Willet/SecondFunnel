@@ -32,6 +32,7 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
     $(document).on('click', 'a', function (ev) {
         App.utils.openUrl(ev.target.href);
+        return false; // stop default action
     });
 }(document));
 
