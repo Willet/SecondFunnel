@@ -493,8 +493,8 @@ div.header {
 }
 
 .previewContainer .content {
-    position: inherit;
-    padding: 0 !important;
+    padding-top: 50px;
+    width: 100%;
 }
 
 .previewContainer .close {
@@ -697,6 +697,10 @@ div.header {
                     width: 100%;
                     height: auto;
                     background: none;
+
+                    img {
+                        width: 100%;
+                    }
                 }
             }
 
