@@ -691,7 +691,7 @@ div.header {
             left: 0;
 
             .hero-video-wrapper {
-                margin-bottom: 10px;
+                margin-bottom: 5px;
             
                 .hero-banner-image {
                     width: 100%;
@@ -713,7 +713,7 @@ div.header {
             .hero-thumbnail {
                 max-width: 100%;
                 height: auto;
-                margin: 10px;
+                margin: 5px;
                 padding: 0 15px;
                 text-align: left;
                 border: 1px solid $gap-grey;
@@ -722,7 +722,7 @@ div.header {
                 .thumbnail-table {
                     font-family: $gap-font;
                     color: #000000;
-                    margin-bottom: 15px;
+                    margin-bottom: 10px;
                     width: 100%;
 
                     #more-button {
@@ -733,17 +733,17 @@ div.header {
                         border: 1px solid $gap-grey;
                         border-radius: 2px;
                         background-color: #ccc;
-                        padding: 10px 15px;
+                        padding: 7px 15px;
                     }
 
                     #thumbnail-header {
-                        padding: 15px 0;
+                        padding: 5px 0;
                         border-bottom: 1px solid $gap-grey;
                     }
 
                     .thumbnail-item {
                         margin: 0;
-                        padding: 10px 0;
+                        padding: 7px 0;
                         width: 100%;
                         height: auto;
                         overflow: hidden;
