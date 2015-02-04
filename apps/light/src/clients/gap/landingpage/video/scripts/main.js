@@ -172,7 +172,7 @@ App.start();
             }
         },
         // 18 - Lifestyle Feed Video
-        'click #hero-area .overlay .find a': function() {
+        'click .navbar a.find-nav': function() {
             recordEvent('find_store', 'main visual', 'store locator', 'find a store');
         },
         // Perfect Audience
@@ -230,33 +230,19 @@ App.start();
             }
         });
     });
-    var YT, YTPlayer;
 
-    var onPlayerStateChange = function (event) {
-        switch (event.data) {
-            // 19 - video starts
-            case YT.PlayerState.PLAYING:
-                recordEvent('video_play', 'video', 'video play', YTPlayer.getVideoData()['video_id']);
-                break;
-            // 20 - video completes
-            case YT.PlayerState.ENDED:
-                recordEvent('video_complete', 'video', 'video complete', YTPlayer.getVideoData()['video_id']);
-                break;
+    App.vent.on({
+        // 19 - video play
+        'tracking:videoPlay': function (videoId) {
+            recordEvent('video_play', 'video', 'video play', videoId);
+        },
+        // 20 - video complete
+        'tracking:videoFinish': function (videoId) {
+            recordEvent('video_complete', 'video', 'video complete', videoId);
+        },
+        // 21 - choose a video
+        'tracking:videoClick': function (videoId) {
+            recordEvent('video_choose', 'video', 'choose a video', videoId);
         }
-    };
-    window.onYouTubeIframeAPIReady = function () {
-        YT = window.YT;
-        YTPlayer = window.YTPlayer = new YT.Player('hero_youtube', {
-            events: {
-                'onPlayerReady': onPlayerStateChange,
-                'onStateChange': onPlayerStateChange
-            }
-        });
-    }
-
-    // Load Youtube API
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    });
 }());

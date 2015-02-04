@@ -315,8 +315,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
             return
 
+
     class module.HeroTileView extends module.TileView
         template: "#hero_template"
 
+
     class module.HerovideoTileView extends module.HeroTileView
         template: "#herovideo_template"
+
