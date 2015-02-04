@@ -172,7 +172,7 @@ App.start();
             }
         },
         // 18 - Lifestyle Feed Video
-        'click #hero-area .overlay .find a': function() {
+        'click .navbar a.find-nav': function() {
             recordEvent('find_store', 'main visual', 'store locator', 'find a store');
         },
         // Perfect Audience
