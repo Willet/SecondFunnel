@@ -375,6 +375,25 @@ div.loading {
     vertical-align: middle;
 }
 
+.youtube-container {
+    position: relative;
+    overflow:hidden;
+    padding-bottom: 56.25%;
+    height: 0;
+    width: 100%;
+    .responsive-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        iframe {
+            width: 100%;
+            height: 100%;
+        }
+    }
+}
+
 .preview-loading {
     top: 0;
     left: 0;

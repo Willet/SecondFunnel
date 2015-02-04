@@ -172,7 +172,7 @@ App.start();
             }
         },
         // 18 - Lifestyle Feed Video
-        'click #hero-area .overlay .find a': function() {
+        'click .navbar a.find-nav': function() {
             recordEvent('find_store', 'main visual', 'store locator', 'find a store');
         },
         // Perfect Audience
@@ -230,16 +230,19 @@ App.start();
             }
         });
     });
-    // Fraser: Not my finest code
-    window.onYouTubePlayerReady = function (playerId) {
-        ytplayer = document.getElementById("hero_youtube");
-        recordEvent('video_play', 'video', 'video play', App.heroArea.currentView.model.attributes.video['original-id']);
 
-        ytplayer.addEventListener("onStateChange", function (state) {
-            if (state === 0) {
-                // video ended
-                recordEvent('video_complete', 'video', 'video complete', App.heroArea.currentView.model.video['original-id']);
-            }
-        });
-    };
+    App.vent.on({
+        // 19 - video play
+        'tracking:videoPlay': function (videoId) {
+            recordEvent('video_play', 'video', 'video play', videoId);
+        },
+        // 20 - video complete
+        'tracking:videoFinish': function (videoId) {
+            recordEvent('video_complete', 'video', 'video complete', videoId);
+        },
+        // 21 - choose a video
+        'tracking:videoClick': function (videoId) {
+            recordEvent('video_choose', 'video', 'choose a video', videoId);
+        }
+    });
 }());

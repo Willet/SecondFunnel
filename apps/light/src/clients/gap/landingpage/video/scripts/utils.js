@@ -37,8 +37,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         // Track destination url
         App.vent.trigger("tracking:click", dest_url);
 
-        click_url = module.generateAdClickUrl(dest_url);
-        window.open(click_url, "_blank");
+        //click_url = module.generateAdClickUrl(dest_url);
+        window.open(dest_url, "_blank");
         return;
     };
 };

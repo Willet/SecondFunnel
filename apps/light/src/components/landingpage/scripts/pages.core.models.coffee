@@ -441,8 +441,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.GifTile extends module.ImageTile
         parse: (resp, options) ->
             # images field will contain gif object as JSON
-            super(resp, options)
+            super
 
+
+    class module.Video extends Backbone.Model
+    
 
     ###
     automatically subclassed by TileCollection's model() method
@@ -481,7 +484,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if content.type == "video" and content["original-id"] and not content["thumbnail"]
                     resp["thumbnail"] = "http://i.ytimg.com/vi/#{content["original-id"]}/hqdefault.jpg"
                 resp[content.type] = content
-            super(resp, options)
+            super
 
         initialize: (attributes, options) ->
             desktopHeroImage = undefined
@@ -492,6 +495,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 mobileHeroImage = new module.Image({ "url" : attributes.mobileHeroImage }, {"suppress_resize": true})
 
             @set
+                video: attributes['video']
                 image: desktopHeroImage
                 images: [desktopHeroImage, mobileHeroImage]
                 defaultImage: desktopHeroImage

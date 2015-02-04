@@ -324,8 +324,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
      * @param event {Object}        a youtube event object.
      * @returns undefined
      */
-    this.videoStateChange = function (videoId, event) {
-        App.vent.trigger('videoStateChange', videoId, event, this);
+    this.videoPlay = function (videoId, event) {
 
         // TODO: Do we only want to measure one event per video?
         if (videosPlayed.indexOf(videoId) > -1) {
@@ -339,7 +338,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
             trackEvent({
                 'category': 'Content',
                 'action': 'Video Play',
-                'label': VIDEO_BASE_URL + videoId //Youtube URL
+                'label': videoId
             });
         }
     };
@@ -693,7 +692,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
         'tracking:trackTileClick': trackTileClick,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,
         'tracking:registerFacebookListeners': this.registerFacebookListeners,
-        'tracking:videoStateChange': this.videoStateChange,
+        'tracking:videoPlay': this.videoPlay,
         'tracking:changeCampaign': this.changeCampaign
     });
 };

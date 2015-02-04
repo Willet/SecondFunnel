@@ -55,7 +55,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
         'loadSocial': _.once(function (callback) {
             $.getScripts([
-                '//www.youtube.com/iframe_api',
                 '//assets.pinterest.com/js/pinit.js',
                 '//platform.twitter.com/widgets.js'
             ], callback);
