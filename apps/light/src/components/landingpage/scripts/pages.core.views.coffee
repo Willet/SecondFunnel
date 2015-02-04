@@ -27,6 +27,64 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     ###
+    View responsible for Youtube videos in heros / previews
+    
+    @constructor
+    @type {ItemView}
+    ###
+    class module.YoutubeVideoView extends Marionette.ItemView
+        template: "#youtube_video_template"
+
+        # default options
+        defaultPlayerOptions:
+            showinfo: 0
+            autoplay: 1
+            enablejsapi: 1
+            controls: 0
+            modestbranding: 1
+            rel: 0
+
+        initialize: (video) ->
+            @model = video
+            @playerOptions = _.extend({}, @defaultPlayerOptions, video.get('options', {}))
+
+        onShow: () ->
+            playerId = "yt-container-#{@cid}"
+            @$el.find('div.yt-placeholder').attr('id',playerId)
+            if not playerId? or window.YT is undefined
+                if App.option('debug', false)
+                    if not playerId?
+                        console.warn("YoutubeVideoView: template has no iframe container for video")
+                    else
+                        console.warn("YoutubeVideoViewTile: Youtube Player could not load, missing Youtube API")
+                return
+            else
+                YT = window.YT
+
+            onPlayerStateChange = (event) =>
+                switch event.data
+                    when YT.PlayerState.PLAYING
+                        App.vent.trigger('tracking:videoPlay', @model.get('original-id'), event)
+                    when YT.PlayerState.ENDED
+                        App.vent.trigger('tracking:videoFinish', @model.get('original-id'), event)
+
+            @player = new YT.Player(playerId,
+                videoId: @model.get('original-id')
+                events:
+                    'onPlayerReady': onPlayerStateChange
+                    'onStateChange': onPlayerStateChange
+                playerVars: @playerOptions
+            )
+
+        onBeforeDestroy: () ->
+            App.vent.trigger('tracking:videoStopped', @model.get('original-id'),
+                target: @
+                data: 2
+            )
+            @player.destroy()
+
+
+    ###
     A Shop The Look
 
     @constructor
@@ -274,10 +332,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @constructor
     @type {ItemView}
     ###
-    class module.HeroContent extends Marionette.ItemView
+    class module.HeroContent extends Marionette.Layout
         template: "#herovideo_template"
-        #regions:
-        #    video: ".hero-video"
+        regions:
+            video: ".hero-video"
         templates: ->
             templateRules = [
                 "#<%= options.store.slug %>_<%= data.template %>_template"
@@ -302,18 +360,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onShow: ->
-            # Add parameter for autoplay? Client-specific code?
-            #if @model.attributes.video
-            #    @video.show(new module.VideoTileView(@model.attributes.video))
-
-            if @$el.parents("#hero-area").length
-                index = App.option("heroGalleryIndex", 0)
-                if not Modernizr.csspositionsticky
-                    $(".stick-bottom", @$el).addClass("stuck").waypoint("sticky",
-                        offset: "bottom-in-view"
-                        direction: "up"
-                    )
-            
+            video = @model.get('video')
+            if video?
+                video = new module.Video(video)
+                videoInstance = new module.YoutubeVideoView(video)
+                @video.show(videoInstance)
             return
 
 

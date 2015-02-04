@@ -16,13 +16,13 @@
 
 <script type="text/template" id="herovideo_template">
     <div class="hero-video-wrapper">
-        <div class="hero-banner-image"
-             style="background-image: url('<%= image.url %>');">
-            
+        <div class="hero-banner-image mobile-only">
+            <img src="<%= images[1].url %>" />
         </div>
-        <div class="hero-video">
-            <iframe width="640" height="360" src="https://www.youtube.com/embed/<%- video['original-id'] %>?showinfo=0&autoplay=1" frameborder="0"></iframe>
+        <div class="hero-banner-image desktop-only">
+             <img src="<%= images[0].url %>" />
         </div>
+        <div class="hero-video"></div>
     </div>
     <% var thumbnails = (obj["thumbnails"] || []) %>
     <% if (thumbnails.length) { %>
@@ -37,6 +37,14 @@
             <% } %>
         </div>
     <% } %>
+</script>
+
+<script type="text/template" id="youtube_video_template">
+    <div class="youtube-container">
+        <div class="responsive-video">
+            <div class="yt-placeholder"></div>
+        </div>
+    </div>
 </script>
 
 <script type="text/template" id="tile_preview_template">
