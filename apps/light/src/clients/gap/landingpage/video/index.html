@@ -256,52 +256,52 @@
                     </div>
                     <div class="hero-video"></div>
                 </div>
-                <div class="hero-thumbnail">
+                <div class="hero-thumbnail mobile-only">
                     <% var thumbnails = (obj["thumbnails"] || []); %>
-                    <% var numThumbnails = (thumbnails.length > 2 ? 2 : thumbnails.length); %>
-                    <% if (App.support.mobile()) { %>
-                            <table class="thumbnail-table">
-                                <thead>
-                                    <tr>
-                                        <th id="thumbnail-header">a 12-part microseries.</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% for(i = 0; i < numThumbnails; i++) { %>
-                                        <tr><td>
-                                            <div class="thumbnail-item" data-index="<%- i %>">
-                                                <div class="thumbnail-image <% if (i == 0) { %>playing<% } %>"
-                                                    style="background-image: url('<%= thumbnails[i].url %>');">
-                                                </div>
-                                                <p>
-                                                    Episode <%= i + 1 %><br>
-                                                    <%= thumbnails[i].date %>
-                                                </p>
-                                            </div>
-                                        </td></tr>
-                                    <% } %>
-                                    <% if (thumbnails.length > 2) { %>
-                                        <tfoot>
-                                            <tr><td>
-                                                <button id="more-button">More</button>
-                                            </td></tr>
-                                        </tfoot>
-                                    <% } %>
-                                </tbody>
-                            </table>
-                    <% } else { %>
-                        <% for(i = 0; i < thumbnails.length; i++) { %>
-                            <div class="thumbnail-item" data-index="<%- i %>">
-                                <div class="thumbnail-image <% if (i == 0) { %>playing<% } %>"
-                                    style="background-image: url('<%= thumbnails[i].url %>');">
-                                </div>
-                                <p>Ep.<%= i + 1 %> - <%= thumbnails[i].date %></p>
+                    <% var numDefaultThumbnails = 1; %>
+                    <% var numThumbnails = (Math.min(thumbnails.length, numDefaultThumbnails)); %>
+                    <table class="thumbnail-table">
+                        <thead>
+                            <tr>
+                                <th id="thumbnail-header">a 12-part microseries.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% for(i = 0; i < numThumbnails; i++) { %>
+                                <tr><td>
+                                    <div class="thumbnail-item" data-index="<%- i %>">
+                                        <div class="thumbnail-image <% if (i == 0) { %>playing<% } %>"
+                                            style="background-image: url('<%= thumbnails[i].url %>');">
+                                        </div>
+                                        <p>
+                                            Episode <%= i + 1 %><br>
+                                            <%= thumbnails[i].date %>
+                                        </p>
+                                    </div>
+                                </td></tr>
+                            <% } %>
+                            <% if (thumbnails.length > numDefaultThumbnails) { %>
+                                <tfoot>
+                                    <tr><td>
+                                        <button id="more-button">More</button>
+                                    </td></tr>
+                                </tfoot>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="hero-thumbnail desktop-only">
+                    <% for(i = 0; i < thumbnails.length; i++) { %>
+                        <div class="thumbnail-item" data-index="<%- i %>">
+                            <div class="thumbnail-image <% if (i == 0) { %>playing<% } %>"
+                                style="background-image: url('<%= thumbnails[i].url %>');">
                             </div>
-                        <% } %>
+                            <p>Ep.<%= i + 1 %> - <%= thumbnails[i].date %></p>
+                        </div>
                     <% } %>
                 </div>
             </div>
-            <div class="stv">
+            <div class="stv mobile-only">
                 <p>shop the looks</p>
                 <div id="down-arrow"></div>
             </div>
