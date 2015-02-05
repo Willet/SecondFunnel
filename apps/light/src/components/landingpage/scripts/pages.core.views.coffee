@@ -43,10 +43,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             controls: 0
             modestbranding: 1
             rel: 0
+            origin: window.location.origin
 
         # Multiple YouTube videos can be queued to load after the API loads
         @loadOnYouTubeAPIReady = []
-        @onYouTubeAPIReady = () ->
+        @onYouTubeAPIReady = () =>
             _.each(@loadOnYouTubeAPIReady, (cb) ->
                 cb()
             )
@@ -80,7 +81,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if window.YT is undefined
                 if not window.onYouTubeIframeAPIReady
                     window.onYouTubeIframeAPIReady = @constructor.onYouTubeAPIReady
-                @constructor.loadOnYouTubeAPIReady.push(@loadYouTubePlayer)
+                @constructor.loadOnYouTubeAPIReady.push(=> @loadYouTubePlayer())
             else
                 @loadYouTubePlayer()
             return
