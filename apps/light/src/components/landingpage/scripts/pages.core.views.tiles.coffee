@@ -104,10 +104,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # open tile in hero area
             else if App.option("page:tiles:openTileInHero", false)
-                App.router.navigate "tile/#{String(tile.get('tile-id'))}", trigger: true
+                App.router.navigate("tile/#{String(tile.get('tile-id'))}", trigger: true)
             # open tile in popup
             else
-                App.router.navigate "preview/#{String(tile.get('tile-id'))}", trigger: true
+                App.router.navigate("preview/#{String(tile.get('tile-id'))}", trigger: true)
             
             return
 
@@ -168,16 +168,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onRender occurs between beforeRender and show.
         ###
         onRender: ->
-            model = @model
-            tileImage = model.get("image") # assigned by onBeforeRender
+            tileImage = @model.get("image") # assigned by onBeforeRender
             $tileImg = @$("img.focus")
             hexColor = undefined
             rgbaColor = undefined
 
             # set dominant colour on tile, and set the height of the tile
             # so it looks like it is all-ready
-            if model.get("dominant-color")
-                hexColor = model.get("dominant-color")
+            if @model.get("dominant-color")
+                hexColor = @model.get("dominant-color")
                 rgbaColor = App.utils.hex2rgba(hexColor, 0.5)
                 $tileImg.css "background-color": rgbaColor
 
@@ -188,11 +187,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @close()
                     return
 
-            if App.sharing and App.option("conditionalSocialButtons", {})[model.get("colspan")]
+            if App.sharing and App.option("conditionalSocialButtons", {})[@model.get("colspan")]
                 socialButtons = $(".socialButtons", @$el)
                 buttons = new App.sharing.SocialButtons(
-                    model: model
-                    buttonTypes: App.option("conditionalSocialButtons", {})[model.get("colspan")]
+                    model: @model
+                    buttonTypes: App.option("conditionalSocialButtons", {})[@model.get("colspan")]
                 )
                 socialButtons.append buttons.render().$el
             @$el.addClass @model.get("orientation") or "portrait"
@@ -201,7 +200,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.addClass "full"
 
             # add view to our database
-            App.vent.trigger "tracking:trackTileView", model.get("tile-id")
+            App.vent.trigger "tracking:trackTileView", @model.get("tile-id")
             return
 
 
