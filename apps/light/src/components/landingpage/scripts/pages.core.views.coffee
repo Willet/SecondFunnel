@@ -44,37 +44,47 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             modestbranding: 1
             rel: 0
 
+        # Multiple YouTube videos can be queued to load after the API loads
+        @loadOnYouTubeAPIReady = []
+        @onYouTubeAPIReady = () ->
+            _.each(@loadOnYouTubeAPIReady, (cb) ->
+                cb()
+            )
+
         initialize: (video) ->
             @model = video
             @playerOptions = _.extend({}, @defaultPlayerOptions, video.get('options', {}))
 
-        onShow: () ->
-            playerId = "yt-container-#{@cid}"
-            @$el.find('div.yt-placeholder').attr('id',playerId)
-            if not playerId? or window.YT is undefined
-                if App.option('debug', false)
-                    if not playerId?
-                        console.warn("YoutubeVideoView: template has no iframe container for video")
-                    else
-                        console.warn("YoutubeVideoViewTile: Youtube Player could not load, missing Youtube API")
-                return
-            else
-                YT = window.YT
+        trackVideoState = (event) ->
+            switch event.data
+                when window.YT.PlayerState.PLAYING
+                    App.vent.trigger('tracking:videoPlay', @model.get('original-id'), event)
+                when window.YT.PlayerState.ENDED
+                    App.vent.trigger('tracking:videoFinish', @model.get('original-id'), event)
 
-            onPlayerStateChange = (event) =>
-                switch event.data
-                    when YT.PlayerState.PLAYING
-                        App.vent.trigger('tracking:videoPlay', @model.get('original-id'), event)
-                    when YT.PlayerState.ENDED
-                        App.vent.trigger('tracking:videoFinish', @model.get('original-id'), event)
-
-            @player = new YT.Player(playerId,
+        loadYouTubePlayer: () ->
+            @player = new window.YT.Player(@playerId,
                 videoId: @model.get('original-id')
                 events:
-                    'onPlayerReady': onPlayerStateChange
-                    'onStateChange': onPlayerStateChange
+                    'onPlayerReady': @trackVideoState
+                    'onStateChange': @trackVideoState
                 playerVars: @playerOptions
             )
+
+        onShow: () ->
+            @playerId = "yt-container-#{@cid}"
+            div = @$el.find('div.yt-placeholder').attr('id', @playerId)
+            if not div?
+                @$el.append($("<div>", {'id': @playerId }))
+            # If the YouTube API hasn't loaded yet, queue up this video to load
+            if window.YT is undefined
+                if not window.onYouTubeIframeAPIReady
+                    window.onYouTubeIframeAPIReady = @constructor.onYouTubeAPIReady
+                @constructor.loadOnYouTubeAPIReady.push(@loadYouTubePlayer)
+            else
+                @loadYouTubePlayer()
+            return
+            
 
         onBeforeDestroy: () ->
             App.vent.trigger('tracking:videoStopped', @model.get('original-id'),
