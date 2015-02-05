@@ -42,7 +42,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         regions: # if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
             socialButtons: ".social-buttons"
-            tapIndicator: ".tap-indicator-target"
 
         defaultWideableTemplates:
             image: true
@@ -53,14 +52,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         initialize: (options) ->
             data = options.model.attributes
+            classNames = ['tile', String(data.template)]
 
             # expose tile "types" as classes on the dom
             if data.type
-                @className = data.type.toLowerCase().split().join(' ')
-
-            if data.template
-                @className += " #{data.template}"
-            @className += " tile"
+                classNames.push(data.type.toLowerCase().split())
+            # Eliminate duplicates
+            @className = _.uniq(classNames).join(' ')
 
             # expose model reference in form of id
             @$el.attr
@@ -106,10 +104,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # open tile in hero area
             else if App.option("page:tiles:openTileInHero", false)
-                App.router.navigate "tile/#{String(tile.get('tile-id'))}", trigger: true
+                App.router.navigate("tile/#{String(tile.get('tile-id'))}", trigger: true)
             # open tile in popup
             else
-                App.router.navigate "preview/#{String(tile.get('tile-id'))}", trigger: true
+                App.router.navigate("preview/#{String(tile.get('tile-id'))}", trigger: true)
             
             return
 
@@ -170,16 +168,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onRender occurs between beforeRender and show.
         ###
         onRender: ->
-            model = @model
-            tileImage = model.get("image") # assigned by onBeforeRender
+            tileImage = @model.get("image") # assigned by onBeforeRender
             $tileImg = @$("img.focus")
             hexColor = undefined
             rgbaColor = undefined
 
             # set dominant colour on tile, and set the height of the tile
             # so it looks like it is all-ready
-            if model.get("dominant-color")
-                hexColor = model.get("dominant-color")
+            if @model.get("dominant-color")
+                hexColor = @model.get("dominant-color")
                 rgbaColor = App.utils.hex2rgba(hexColor, 0.5)
                 $tileImg.css "background-color": rgbaColor
 
@@ -190,11 +187,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @close()
                     return
 
-            if App.sharing and App.option("conditionalSocialButtons", {})[model.get("colspan")]
+            if App.sharing and App.option("conditionalSocialButtons", {})[@model.get("colspan")]
                 socialButtons = $(".socialButtons", @$el)
                 buttons = new App.sharing.SocialButtons(
-                    model: model
-                    buttonTypes: App.option("conditionalSocialButtons", {})[model.get("colspan")]
+                    model: @model
+                    buttonTypes: App.option("conditionalSocialButtons", {})[@model.get("colspan")]
                 )
                 socialButtons.append buttons.render().$el
             @$el.addClass @model.get("orientation") or "portrait"
@@ -203,7 +200,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.addClass "full"
 
             # add view to our database
-            App.vent.trigger "tracking:trackTileView", model.get("tile-id")
+            App.vent.trigger "tracking:trackTileView", @model.get("tile-id")
             return
 
 
@@ -282,37 +279,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
 
-    class module.YoutubeTileView extends module.VideoTileView
-        template: ->
+    class module.YoutubeTileView extends module.TileView
+        template: "youtube_tile_template"
+        regions:
+            video: ".youtube-video"
 
         onClick: (ev) ->
             thumbId = "thumb-#{@model.cid}"
             $thumb = @$("div.thumbnail")
-            if window.YT is undefined
-                console.warn "Youtube Player could not load. Opening link to youtube.com"
-                App.utils.openUrl @model.get("original-url")
-                return
-            $thumb.attr("id", thumbId).wrap "<div class=\"video-container\" />"
-            player = new window.YT.Player(thumbId,
-                width: $thumb.width()
-                height: $thumb.height()
-                videoId: @model.attributes["original-id"] or @model.id
-                playerVars:
-                    wmode: "opaque"
-                    autoplay: 1
-                    controls: false
+            $thumb.attr("id", thumbId).wrap($("<div>", {'class': 'youtube-video'}))
 
-                events:
-                    onReady: $.noop
-                    onStateChange: (newState) =>
-                        App.tracker.videoStateChange @model.attributes["original-id"] or @model.id, newState
-                        switch newState
-                            when window.YT.PlayerState.ENDED
-                                @onPlaybackEnd()
-                            else
-
-                    onError: $.noop
-            )
+            video = @model.get('video')
+            if video?
+                video = new module.Video(video)
+                videoInstance = new module.YoutubeVideoView(video)
+                @video.show(videoInstance)
             return
 
 
