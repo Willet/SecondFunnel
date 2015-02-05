@@ -179,17 +179,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     console.warn('Router getting tile: '+tileId)
 
                 # Check cache
-                tileJson = if (App.discovery and App.discovery.tilecache) then App.discovery.tilecache[tileId] else undefined
+                tileJson = if (App.discovery?.tilecache) then App.discovery.tilecache[tileId] else undefined
                 if tileJson?
                     tile = @selectTileSubclass(tileJson)
                 # Check current feed
                 if not tile?
-                    tile = if (App.discovery and App.discovery.collection) then App.discovery.collection.tiles[tileId] else undefined
+                    tile = if (App.discovery?.collection) then App.discovery.collection.tiles[tileId] else undefined
                 if tile?
                     success_cb(tile)
                     return
 
-                console.debug('tile not found, fetching from IR.')
+                console.debug("Tile #{tileId} not found, fetching from IR")
 
                 tile = new App.core.Tile(
                     'tile-id': tileId
@@ -443,8 +443,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # images field will contain gif object as JSON
             super
 
-
+    
     class module.Video extends Backbone.Model
+
+
+    class module.YoutubeVideo extends module.Video
     
 
     ###
@@ -456,51 +459,59 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             type: "video"
 
 
+    ###
+    A YoutubeTile is instantiated with a Youtube model json
+    @type {Tile}
+    ###
     class module.YoutubeTile extends module.VideoTile
-        defaults:
-            type: "video"
-
-        parse: (json) ->
-            attrs = json
+        parse: (attrs, options) ->
             if attrs['original-id'] and not attrs["thumbnail"]
                 attrs["thumbnail"] = "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
-            attrs
+            super
+
+        initialize: (attrs, options) ->
+            @set(
+                video: new module.YoutubeVideo(attrs)
+            )
+            super
 
 
     class module.HeroTile extends module.Tile
         type: "hero"
 
-        parse: (resp, options) ->
-            for content in resp["contents"]
+        parse: (attrs, options) ->
+            # WARNING: this only allows 1 content of each type
+            # ex: Video, Image
+            for content in attrs["contents"]
                 content["template"] = content.type
-                resp[content.type] = content
-            super(resp, options)
-
-    class module.HerovideoTile extends module.HeroTile
-        type: "hero"
-
-        parse: (resp, options) ->
-            for content in resp["contents"]
-                if content.type == "video" and content["original-id"] and not content["thumbnail"]
-                    resp["thumbnail"] = "http://i.ytimg.com/vi/#{content["original-id"]}/hqdefault.jpg"
-                resp[content.type] = content
+                attrs[content.type] = content
             super
 
-        initialize: (attributes, options) ->
+
+    class module.HerovideoTile extends module.HeroTile
+        parse: (attrs, options) ->
+            for content in attrs["contents"]
+                if content.type == "video" and content["original-id"] and not content["thumbnail"]
+                    content["thumbnail"] = "http://i.ytimg.com/vi/#{content["original-id"]}/hqdefault.jpg"
+                content["template"] = content.type
+                attrs[content.type] = content
+            super
+
+        initialize: (attrs, options) ->
             desktopHeroImage = undefined
             mobileHeroImage = undefined
-            if attributes.desktopHeroImage
-                desktopHeroImage = new module.Image({ "url" : attributes.desktopHeroImage }, {"suppress_resize": true})
-            if attributes.mobileHeroImage
-                mobileHeroImage = new module.Image({ "url" : attributes.mobileHeroImage }, {"suppress_resize": true})
+            if attrs.desktopHeroImage
+                desktopHeroImage = new module.Image({ "url" : attrs.desktopHeroImage }, {"suppress_resize": true})
+            if attrs.mobileHeroImage
+                mobileHeroImage = new module.Image({ "url" : attrs.mobileHeroImage }, {"suppress_resize": true})
 
-            @set
-                video: attributes['video']
+            @set(
+                video: new module.YoutubeVideo(attrs['video'])
                 image: desktopHeroImage
                 images: [desktopHeroImage, mobileHeroImage]
                 defaultImage: desktopHeroImage
-            App.vent.trigger "tileModelInitialized", this
-            return
+            )
+            App.vent.trigger("tileModelInitialized", @)
 
 
     ###

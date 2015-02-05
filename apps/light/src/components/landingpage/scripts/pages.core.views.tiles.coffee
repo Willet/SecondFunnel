@@ -88,7 +88,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @socialButtons.show new App.sharing.SocialButtons(model: @model)
 
             # show/hide buttons only if there are buttons
-            if @socialButtons and @socialButtons.$el and @socialButtons.$el.children().length
+            if @socialButtons?.$el?.children()?.length
                 inOrOut = (if (ev.type is "mouseenter") then "cssFadeIn" else "cssFadeOut")
                 @socialButtons.currentView.load()
                 @socialButtons.$el[inOrOut] 200
@@ -281,8 +281,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.YoutubeTileView extends module.TileView
         template: "youtube_tile_template"
-        regions:
-            video: ".youtube-video"
+
+        constructor: () ->
+            @regions = _.extend({}, @regions, 
+                video: ".youtube-video"
+            )
+            super
 
         onClick: (ev) ->
             thumbId = "thumb-#{@model.cid}"
@@ -291,7 +295,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             video = @model.get('video')
             if video?
-                video = new module.Video(video)
                 videoInstance = new module.YoutubeVideoView(video)
                 @video.show(videoInstance)
             return
