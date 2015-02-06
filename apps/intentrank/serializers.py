@@ -153,6 +153,16 @@ class PageConfigSerializer(object):
             'intentRank': IntentRankSerializer().to_json(),
 
         })
+        if init:
+            data['page'].update({
+                # init is for loading pages with content specified in the url
+                # values are specified by a view handler
+                'init': {
+                    'category': getattr(init, 'category', None),
+                    'hero':     getattr(init, 'hero', None),
+                    'preview':  getattr(init, 'preview', None),
+                }
+            })
 
         data.update({
             # DEPRECATED (use page:id)
@@ -191,14 +201,6 @@ class PageConfigSerializer(object):
                 'projectId': settings.KEEN_CONFIG['projectId'],
                 'writeKey': settings.KEEN_CONFIG['writeKey'],
             },
-            # init is for loading pages with content specified in the url
-            # values are specified by a view handler
-            'init': {
-                'category': getattr(init, 'category', None),
-                'hero':     getattr(init, 'hero', None),
-                'preview':  getattr(init, 'preview', None),
-            },
-
             # {[tileId: num,]}
             'resultsThreshold': getattr(page, 'results_threshold', None),
 

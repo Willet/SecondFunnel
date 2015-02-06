@@ -8,10 +8,6 @@ imagesLoaded = require('imagesLoaded')
 module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.FeedView extends Marionette.CollectionView
-        # Cache of tile JSON index by tile-id's shared amongst all feeds
-        # Currently only used by tiles inserted at page caching
-        @tilecache = {}
-
         constructor: () ->
             @collection = new App.core.TileCollection()
             super  # this is magic, it passes forward arguments
