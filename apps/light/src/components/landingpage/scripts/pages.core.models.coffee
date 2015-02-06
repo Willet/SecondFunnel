@@ -171,6 +171,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @param success_cb - <function> (<Tile>)
         @param failure_cb - <function>: ()
         ###
+        # Cache of tile JSON index by tile-id's shared amongst all feeds
+        # Currently only used by tiles inserted at page caching
+        @tilecache = []
         @getTileById = (tileId, success_cb, failure_cb) ->
             isNumber = /^\d+$/.test(tileId);
 
@@ -179,7 +182,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     console.warn('Router getting tile: '+tileId)
 
                 # Check cache
-                tileJson = if (App.discovery?.tilecache) then App.discovery.tilecache[tileId] else undefined
+                tileJson = @tilecache[tileId]
                 if tileJson?
                     tile = @selectTileSubclass(tileJson)
                 # Check current feed

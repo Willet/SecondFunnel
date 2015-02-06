@@ -102,9 +102,10 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
         App.vent.on('beforeInit', function () {
             // Preload data
-            if (window.PRELOAD && _.isObject(window.PRELOAD.tile) && window.PRELOAD.tile['tile-id']) {
-                var tile = window.PRELOAD.tile;
-                App.core.FeedView.tilecache[tile['tile-id']] = tile;
+            if (window.PRELOAD && _.isArray(window.PRELOAD.tiles)) {
+                _.each(window.PRELOAD.tiles, function (tile) {
+                    App.core.Tile.tilecache[Number(tile['tile-id'])] = tile;
+                });
             }
         });
 
