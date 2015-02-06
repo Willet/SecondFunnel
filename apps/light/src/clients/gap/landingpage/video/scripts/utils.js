@@ -10,9 +10,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @returns {string} url
      */
     module.generateAdClickUrl = function (dest_url) {
-        var redirect_url = App.option('clickUrl');
-        redirect_url += encodeURIComponent(dest_url);
-        return redirect_url;
+        return App.option('clickUrl') + dest_url;
     };
 
     /**
@@ -37,8 +35,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         // Track destination url
         App.vent.trigger("tracking:click", dest_url);
 
-        //click_url = module.generateAdClickUrl(dest_url);
-        window.open(dest_url, "_blank");
+        click_url = module.generateAdClickUrl(dest_url);
+        window.open(click_url, "_blank");
         return;
     };
 };

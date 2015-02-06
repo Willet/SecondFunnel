@@ -39,6 +39,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         defaultPlayerOptions:
             showinfo: 0
             autoplay: 1
+            playsinline: 1
             enablejsapi: 1
             controls: 0
             modestbranding: 1
@@ -373,7 +374,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onShow: ->
             video = @model.get('video')
             if video?
-                video = new module.Video(video)
                 videoInstance = new module.YoutubeVideoView(video)
                 @video.show(videoInstance)
             return
