@@ -79,7 +79,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if not div?
                 @$el.append($("<div>", {'id': @playerId }))
             # If the YouTube API hasn't loaded yet, queue up this video to load
-            if window.YT is undefined
+            if not window.YT?.Player?
                 if not window.onYouTubeIframeAPIReady
                     window.onYouTubeIframeAPIReady = @constructor.onYouTubeAPIReady
                 @constructor.loadOnYouTubeAPIReady.push(=> @loadYouTubePlayer())
