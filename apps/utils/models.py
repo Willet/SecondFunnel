@@ -91,3 +91,14 @@ class MemcacheSetting(object):
         cls.settings.append(key)
         cls.settings = list(set(cls.settings))
         cache.set('memcached_keys', ','.join(cls.settings), timeout=10000)
+
+
+class AttrDict(dict):
+    """
+    A wrapper on a dict that allows dict keys to be accessed like obj attributes
+    """
+    def __getattr__(self, attr):
+        return self[attr]
+
+    def __setattr__(self, attr, value):
+        self[attr] = value
