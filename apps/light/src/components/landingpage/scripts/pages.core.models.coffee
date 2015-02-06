@@ -171,8 +171,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @param success_cb - <function> (<Tile>)
         @param failure_cb - <function>: ()
         ###
-        # tilecache stores tile json indexed by tileId
-        # currently used for preloading tile ids
+        # Cache of tile JSON index by tile-id's shared amongst all feeds
+        # Currently only used by tiles inserted at page caching
         @tilecache = []
         @getTileById = (tileId, success_cb, failure_cb) ->
             isNumber = /^\d+$/.test(tileId);
