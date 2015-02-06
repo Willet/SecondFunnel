@@ -17,6 +17,7 @@ from django.utils.safestring import SafeString
 from apps.assets.models import Page, Store, Product, Tile
 from apps.intentrank.serializers import PageConfigSerializer
 from apps.light.utils import get_store_from_request, get_algorithm
+from apps.utils.models import AttrDict
 
 
 @cache_control(must_revalidate=True, max_age=(1 * 60))
@@ -106,9 +107,9 @@ def landing_page(request, page_slug, identifier='', identifier_value=''):
         'test': tests,
         'algorithm': algorithm,
         'ir_base_url': '/intentrank',
-        'tile': (tile.to_json() if tile else {}),
-        'hero': (tile['tile-id'] if (identifier == 'tile') else None),
-        'preview': (tile['tile-id'] if (identifier == 'preview') else None),
+        'tile': (tile.to_json() if getattr(tile, 'to_json', False) else {}),
+        'hero': (getattr(tile, 'id', None) if (identifier == 'tile') else None),
+        'preview': (getattr(tile, 'id', None) if (identifier == 'preview') else None),
         'category': category,
     }
 
@@ -121,11 +122,11 @@ def render_landing_page(request, page, render_context):
     """
     store = page.store
     tile = render_context.get('tile', None)
-    initial_state = {
+    initial_state = AttrDict({
         'category': render_context.get('category', None),
         'hero': render_context.get('hero', None),
         'preview': render_context.get('preview', None),
-    }
+    })
 
     tests = []
     if page.get('tests'):
@@ -138,7 +139,7 @@ def render_landing_page(request, page, render_context):
         feed=page.feed, store=store, algorithm=algorithm, init=initial_state,
         other={'tile_set': ''})
     
-    initial_results = []  # JS now fetches its own initial results
+    initial_results = [] # JS now fetches its own initial results
 
     # TODO: structure this
     #       and escape: simplejson.dumps(s1, cls=simplejson.encoder.JSONEncoderForHTML)
