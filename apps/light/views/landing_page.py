@@ -66,20 +66,28 @@ def landing_page(request, page_slug, identifier='', identifier_value=''):
             url = '//' + url
         return HttpResponseRedirect(url)
     
-    #
     # If the page has a state, look it up
-    #
-    tile = None
-    category = None
+    # Also, cache the initial state & a hero tile
+    tile = category = None
+    tiles = []
+    tile_ids = []
+    hero_tile = getattr(page, 'home', {}).get('hero', None)
 
     # /summersales/tile/123 or /fallishere/preview/456
     if identifier in ['tile', 'preview']:
-        tiles = Tile.objects.filter(id=identifier_value)
-        if len(tiles):
-            tile = tiles[0]
+        tile_ids.append(identifier_value)
+
+    if hero_tile:
+        tile_ids.append(hero_tile)
+
+    if len(tile_ids):
+        # get tiles for caching
+        tiles = Tile.objects.filter(id__in=tile_ids)
+        # 
+        tile = next((tile for tile in tiles if tile.id == identifier_value), None)
 
     # /livedin/id/789 or /dressnormal/sku/012
-    elif identifier in ['id', 'sku']:
+    if identifier in ['id', 'sku']:
         try:
             product = None
             lookup_map = {
@@ -98,15 +106,14 @@ def landing_page(request, page_slug, identifier='', identifier_value=''):
 
     algorithm = request.GET.get('algorithm', page.feed.feed_algorithm or 'magic')
 
-    #
     # Build rendering context
-    #
     render_context = {
         'store': store,
         'test': tests,
         'algorithm': algorithm,
         'ir_base_url': '/intentrank',
         'tile': (tile.to_json() if tile else {}),
+        'tiles': [ tile.to_json() for tile in tiles ],
         'hero': (tile['tile-id'] if (identifier == 'tile') else None),
         'preview': (tile['tile-id'] if (identifier == 'preview') else None),
         'category': category,
@@ -158,7 +165,7 @@ def render_landing_page(request, page, render_context):
         "session_id": request.session.session_key,
         "store": store,
         "tests": tests,
-        "tile": tile,
+        "tiles": [ tile ] if tile else [],
         "url": page.get('url', ''),
         "url_params": json.dumps(page.get("url_params", {})),
     }
