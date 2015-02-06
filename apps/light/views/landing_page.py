@@ -84,7 +84,7 @@ def landing_page(request, page_slug, identifier='', identifier_value=''):
     if len(tile_ids):
         # get tiles for caching
         tiles = Tile.objects.filter(id__in=tile_ids)
-        # 
+        # tile is just the one specified in the url
         tile = next((tile for tile in tiles if tile.id == identifier_value), None)
 
     # /livedin/id/789 or /dressnormal/sku/012
