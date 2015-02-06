@@ -57,7 +57,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @model = video
             @playerOptions = _.extend({}, @defaultPlayerOptions, video.get('options', {}))
 
-        trackVideoState = (event) ->
+        trackVideoState: (event) ->
             switch event.data
                 when window.YT.PlayerState.PLAYING
                     App.vent.trigger('tracking:videoPlay', @model.get('original-id'), event)
@@ -68,8 +68,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @player = new window.YT.Player(@playerId,
                 videoId: @model.get('original-id')
                 events:
-                    'onPlayerReady': @trackVideoState
-                    'onStateChange': @trackVideoState
+                    'onPlayerReady': (ev) => @trackVideoState(ev)
+                    'onStateChange': (ev) => @trackVideoState(ev)
                 playerVars: @playerOptions
             )
 
