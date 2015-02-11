@@ -5,9 +5,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         'click #more-button': ->
             numDefaultThumbnails = 1
             @$("#more-button").attr("style", "display: none;")
-            table = @$(".thumbnail-table")[0]
-            thumbnailTemplate = "<td><div class='thumbnail-item'>
-                    <div class='thumbnail-image' style='background-image: url(\"<%= thumbnail.url %>\");'></div>
+            table = @$(".thumbnail-table>tbody")[0]
+            thumbnailTemplate = "<td><div class='thumbnail-item' data-index='<%- i %>'>
+                    <div class='thumbnail-image<% if (thumbnail.youtubeId) { %> playing<% } %>' style='background-image: url(\"<%= thumbnail.url %>\");'></div>
                     <p>Episode <%= i + 1 %> <br><%= thumbnail.date %></p>
                 </div></td>"
             if table
