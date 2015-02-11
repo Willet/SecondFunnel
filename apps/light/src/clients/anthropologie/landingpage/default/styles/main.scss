@@ -67,136 +67,139 @@ body > .container {
     margin-top: 5px;
 }
 
-.previewContainer .close {
-    padding: 6px;
-    color: rgba(93, 96, 117, 0.5);
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: normal;
-}
-.previewContainer .close:hover {
-    color: rgba(150, 0, 74, 0.5);
-}
-
-#hero-area .previewContainer .content {
+#hero-area .heroContainer .content {
     max-width: 1024px;
 }
 
-.previewContainer .content {
-    padding: 50px 30px;
-    background-image: url('/static/light/anthropologie/landingpage/default/images/body_background.png');
-    background-position: center top;
+.previewContainer,
+.heroContainer {
+    .close {
+        padding: 6px;
+        color: rgba(93, 96, 117, 0.5);
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: normal;
+        &:hover {
+            color: rgba(150, 0, 74, 0.5);
+        }
+    }
+
+    .content {
+        padding: 50px 30px;
+        background-image: url('/static/light/anthropologie/landingpage/default/images/body_background.png');
+        background-position: center top;
+    }
+
+    .cell {
+        padding: 0 10px;
+        &.info {
+            text-align: left;
+            font-family: "ClarendonBT-Light", Georgia, serif;
+            font-weight: 100;
+        }
+    }
+
+    .image-with-tagged-products .cell.shop {
+        width: 135px;
+    }
+
+    .info {
+        .title {
+            font-family: "FilosofiaRegularRegular", Georgia, serif;
+            font-size: 21px;
+            margin-bottom: 0px;
+            color: #143752;
+        }
+        .price {
+            font-size: 14px;
+            color: rgb(93, 154, 178);
+            margin-top: 0px;
+        }
+    }
+
+    .product .cell .buy {
+        margin: 30px 0;
+    }
+
+    .buy .button {
+        padding: 15px 27px;
+        font-size: 14px;
+        background-color: #5D6075;
+        text-transform: uppercase;
+        box-shadow: -1px 4px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .cell {
+        .stl-title {
+            margin-bottom: 0;
+            background-color: transparent;
+        }
+
+        .stl-look {
+            margin-top: 0;
+            max-height: 625px;
+            text-transform: uppercase;
+            color: #666;
+            font-size: 10px;
+        }
+    }
+
+    .stl-look .stl-item img {
+        margin: 10px auto;
+    }
+
+    .gallery,
+    .gallery-dots {
+        white-space: nowrap;
+        overflow: auto;
+    }
+
+    .gallery {
+        text-align: left;
+        img {
+            width: 64px;
+        }
+    }
+
+    .gallery-dots {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        .item {
+            background-color: #5D6075;
+        }
+    }
+
+    .main-image-container {
+        .polaroid {
+            display: inline-block;
+            padding: 20px 35px 40px 35px;
+            background-image: url('/static/light/anthropologie/landingpage/default/images/polaroid.png');
+            background-size: cover;
+            background-position: center top;
+        }
+
+        .gallery-swipe-left,
+        .gallery-swipe-right {
+            width: 36px;
+            height: 52px;
+            background-repeat: no-repeat;
+            background-position: center;
+            margin-top: -13px;
+            border: none;
+        }
+        .gallery-swipe-left {
+            background-image: url('/static/light/anthropologie/landingpage/default/images/left_arrow.png');
+            left: -4px;
+        }
+        .gallery-swipe-right {
+            background-image: url('/static/light/anthropologie/landingpage/default/images/right_arrow.png');
+            right: -4px;
+        }
+    }
 }
 
-.previewContainer .cell {
-    padding: 0 10px;
-}
-
-.previewContainer .image-with-tagged-products .cell.shop {
-    width: 135px;
-}
-
-.previewContainer .cell.info {
-    text-align: left;
-    font-family: "ClarendonBT-Light", Georgia, serif;
-    font-weight: 100;
-}
-
-.previewContainer .info .title {
-    font-family: "FilosofiaRegularRegular", Georgia, serif;
-    font-size: 21px;
-    margin-bottom: 0px;
-    color: #143752;
-}
-
-.previewContainer .info .price {
-    font-size: 14px;
-    color: rgb(93, 154, 178);
-    margin-top: 0px;
-}
-
-.previewContainer .product .cell .buy {
-    margin: 30px 0;
-}
-
-.previewContainer .buy .button {
-    padding: 15px 27px;
-    font-size: 14px;
-    background-color: #5D6075;
-    text-transform: uppercase;
-    box-shadow: -1px 4px 4px rgba(0, 0, 0, 0.2);
-}
-
-.previewContainer .cell .stl-title {
-    margin-bottom: 0;
-    background-color: transparent;
-}
-
-.previewContainer .cell .stl-look {
-    margin-top: 0;
-    max-height: 625px;
-    text-transform: uppercase;
-    color: #666;
-    font-size: 10px;
-}
-
-.previewContainer .stl-look .stl-item img {
-    margin: 10px auto;
-}
-
-.previewContainer .gallery,
-.previewContainer .gallery-dots {
-    white-space: nowrap;
-    overflow: auto;
-}
-
-.previewContainer .gallery {
-    text-align: left;
-}
-
-.previewContainer .gallery-dots {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-}
-
-.previewContainer .gallery img {
-    width: 64px;
-}
-
-.previewContainer .gallery-dots .item {
-    background-color: #5D6075;
-}
-
-.previewContainer .main-image-container .polaroid {
-    display: inline-block;
-    padding: 20px 35px 40px 35px;
-    background-image: url('/static/light/anthropologie/landingpage/default/images/polaroid.png');
-    background-size: cover;
-    background-position: center top;
-}
-
-.previewContainer .main-image-container .gallery-swipe-left,
-.previewContainer .main-image-container .gallery-swipe-right {
-    width: 36px;
-    height: 52px;
-    background-repeat: no-repeat;
-    background-position: center;
-    margin-top: -13px;
-    border: none;
-}
-
-.previewContainer .main-image-container .gallery-swipe-left {
-    background-image: url('/static/light/anthropologie/landingpage/default/images/left_arrow.png');
-    left: -4px;
-}
-
-.previewContainer .main-image-container .gallery-swipe-right {
-    background-image: url('/static/light/anthropologie/landingpage/default/images/right_arrow.png');
-    right: -4px;
-}
-
-#hero-area .previewContainer .stick-bottom.stuck {
+#hero-area .heroContainer .stick-bottom.stuck {
     background-color: #FFF;
     background-image: url('/static/light/anthropologie/landingpage/default/images/body_background.png');
     background-position: center;
@@ -211,61 +214,60 @@ body > .container {
         position: static;
     }
 
-    .previewContainer .content {
-        padding: 0;
-        padding-bottom: 20px;
-    }
+    .previewContainer,
+    .heroContainer {
+        .content {
+            padding: 0;
+            padding-bottom: 20px;
+        }
 
-    .previewContainer .cell {
-        padding: 5px 0;
-    }
+        .cell {
+            padding: 5px 0;
+            .stl-look {
+                max-height: none;
+            }
+            .stl-title img {
+                margin-top: 10px;
+            }
+        }
 
-    .previewContainer .cell .stl-look {
-        max-height: none;
-    }
+        .info {
+            .title {
+                padding: 0 10px;
+            }
+            .price {
+                margin-bottom: 5px;
+                padding: 0 10px;
+            }
+            .buy {
+                padding: 0 10px;
+            }
+            .description {
+                padding: 0 10px;
+            }
+            .relative {
+                margin-top: 5px;
+            }
+        }
 
-    .previewContainer .info .title {
-        padding: 0 10px;
-    }
+        .product .cell .buy {
+            margin: 10px 0;
+        }
 
-    .previewContainer .info .price {
-        margin-bottom: 5px;
-        padding: 0 10px;
-    }
+        .buy .button {
+            padding: 15px 13px;
+        }
 
-    .previewContainer .product .cell .buy {
-        margin: 10px 0;
-    }
+        .relative .buy {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 50px;
+            text-align: center;
+        }
 
-    .previewContainer .info .buy {
-        padding: 0 10px;
-    }
-
-    .previewContainer .buy .button {
-        padding: 15px 13px;
-    }
-
-    .previewContainer .info .description {
-        padding: 0 10px;
-    }
-
-    .previewContainer .info .relative {
-        margin-top: 5px;
-    }
-
-    .previewContainer .relative .buy {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 50px;
-        text-align: center;
-    }
-
-    .previewContainer .cell .stl-title img {
-        margin-top: 10px;
-    }
-
-    .previewContainer .image-with-tagged-products .gallery-dots {
-        bottom: 105px;
+        .image-with-tagged-products .gallery-dots {
+            bottom: 105px;
+        }
     }
 }

@@ -270,7 +270,7 @@
                             <% for(i = 0; i < numThumbnails; i++) { %>
                                 <tr><td>
                                     <div class="thumbnail-item" data-index="<%- i %>">
-                                        <div class="thumbnail-image <% if (i == 0) { %>playing<% } %>"
+                                        <div class="thumbnail-image <% if (thumbnails[i]['youtubeId']) { %>playing<% } %>"
                                             style="background-image: url('<%= thumbnails[i].url %>');">
                                         </div>
                                         <p>
@@ -293,7 +293,7 @@
                 <div class="hero-thumbnail desktop-only">
                     <% for(i = 0; i < thumbnails.length; i++) { %>
                         <div class="thumbnail-item" data-index="<%- i %>">
-                            <div class="thumbnail-image <% if (i == 0) { %>playing<% } %>"
+                            <div class="thumbnail-image <% if (thumbnails[i]['youtubeId']) { %>playing<% } %>"
                                 style="background-image: url('<%= thumbnails[i].url %>');">
                             </div>
                             <p>Ep.<%= i + 1 %> - <%= thumbnails[i].date %></p>
