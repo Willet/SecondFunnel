@@ -79,9 +79,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onHover: (ev) ->
 
             # Trigger tile hover event with event and tile
-            App.vent.trigger "tileHover", ev, this
+            App.vent.trigger "tileHover", ev, @
             if App.support.mobile() or App.support.touch() # don't need buttons here
-                return this
+                return @
 
             # load buttons for this tile only if it hasn't already been loaded
             if not @socialButtons.$el
@@ -92,11 +92,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 inOrOut = (if (ev.type is "mouseenter") then "cssFadeIn" else "cssFadeOut")
                 @socialButtons.currentView.load()
                 @socialButtons.$el[inOrOut] 200
-            this
+            return @
 
         onClick: (ev) ->
-            tile = @model
-
             # clicking on social buttons is not clicking on the tile
             # this is a dirty check
             if $(ev.target).parents(".button").length
@@ -104,10 +102,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # open tile in hero area
             else if App.option("page:tiles:openTileInHero", false)
-                App.router.navigate("tile/#{String(tile.get('tile-id'))}", trigger: true)
+                App.router.navigate("tile/#{String(@model.get('tile-id'))}", trigger: true)
             # open tile in popup
             else
-                App.router.navigate("preview/#{String(tile.get('tile-id'))}", trigger: true)
+                App.router.navigate("preview/#{String(@model.get('tile-id'))}", trigger: true)
             
             return
 
