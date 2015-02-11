@@ -397,11 +397,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         the featured product.
         ###
         initialize: (data) ->
+            # BUG? App.option("page:home:hero") returns tile-id, not tileJson
+            # then gets passed into module.Tile.selectTileSubclass ?
+            # BUG? carefully check tile extists before App.heroArea.show()
             tile = if not _.isEmpty(data) then data else App.option("page:home:hero")
             if tile
                 @deferred = $.when(tile)
             # Try to get it from intentRank if its setup
-            else if App.intentRank.currentCategory
+            else if App.intentRank?.currentCategory?
                 tile = @getCategoryHeroImages(App.intentRank.currentCategory())
                 @deferred = $.when(tile)
             # Get category from intentRank when its ready
@@ -414,6 +417,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                         
             @deferred.done((tile) =>
+                # PSUEDO CODE: if not tile, close
                 @model = module.Tile.selectTileSubclass(tile)
                 @listenTo(App.vent, "windowResize", =>
                     App.heroArea.show(@)
@@ -421,32 +425,43 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
             )
 
-            @listenTo(App.vent, "change:category", @updateCategoryHeroImage)
+            @listenTo(App.vent, "change:category", @updateCategoryHeroImages)
             return
 
         onShow: ->
             @deferred.done(=>
-                contentOpts = model: @model
-                contentInstance = undefined
-                if _.contains(contentOpts.model.get("type", ""), "hero")
-                    contentInstance = new module.HeroContent(contentOpts)
-                else
-                    contentInstance = new module.PreviewContent(contentOpts)
-                @content.show(contentInstance)
+                if @model?
+                    contentOpts = model: @model
+                    contentInstance = undefined
+                    if _.contains(contentOpts.model.get("type", ""), "hero")
+                        contentInstance = new module.HeroContent(contentOpts)
+                    else
+                        contentInstance = new module.PreviewContent(contentOpts)
+                    @content.show(contentInstance)
                 return
             )
 
-        updateCategoryHeroImage: (category) ->
+        updateCategoryHeroImages: (category) ->
             @model.destroy()
-            @model = new module.Tile(@getCategoryHeroImages(category))
-            App.heroArea.show(@)
+            heroImagesModel = @getCategoryHeroImages(category)
+            if heroImagesModel
+                @model = new module.Tile(heroImagesModel)
+                App.heroArea.show(@)
+            else
+                # could not find hero images
+                @model = undefined
+                App.heroArea.close()
 
         getCategoryHeroImages: (category='') ->
             catObj = (App.categories.findModelByName(category) or {})
             heroImages =
                 "desktopHeroImage": (catObj['desktopHeroImage'] or App.option('page:desktopHeroImage'))
                 "mobileHeroImage": (catObj['mobileHeroImage'] or App.option('page:mobileHeroImage'))
-            return heroImages
+            # PSUEDO CODE
+            if not desktopHeroImage and mobileHeroImage
+                return undefined
+            else
+                return heroImages
 
 
     ###
@@ -489,8 +504,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if App.initialPage == ''
                     Backbone.history.history.back()
                 else
-                    App.router.navigate("category/#{App.intentRank.currentCategory()}",
-                        trigger: true
+                    App.previewArea.close()
+                    category = App.intentRank.currentCategory()
+                    route = if category then "category/#{category}" else ""
+                    App.router.navigate(route,
+                        trigger: false
                         replace: true
                     )
                 return
@@ -568,7 +586,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.css("top", Math.max(windowMiddle - (@$el.height() / 2), 0))
 
         onShow: ->
-            @img_load = imagesLoaded(@$el)
+            @image_load = imagesLoaded(@$el)
             @listenTo(@image_load, 'always', =>
                 @positionWindow()
             )
