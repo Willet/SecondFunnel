@@ -482,14 +482,18 @@
                 <% if (obj['tagged-products'].length > 1) { %>
                     <div class="cell desktop-only shop landscape">
                         <div class="stl-title">shop the look</div>
-                        <div class="stl-look">
-                            <% var related = obj['tagged-products']; %>
-                            <% for (var i = 0; i < related.length; i++) { %>
-                                <div class="stl-item" data-index="<%- i %>">
-                                    <img src="<%- related[i].images[0].url %>" class="image"/>
-                                    <%- related[i].name %>
-                                </div>
-                            <% } %>
+                        <div class="stl-look-container">
+                            <div class="stl-swipe-left"></div>
+                            <div class="stl-swipe-right"></div>
+                            <div class="stl-look">
+                                <% var related = obj['tagged-products']; %>
+                                <% for (var i = 0; i < related.length; i++) { %>
+                                    <div class="stl-item" data-index="<%- i %>">
+                                        <img src="<%- related[i].images[0].url %>" class="image"/>
+                                        <%- related[i].name %>
+                                    </div>
+                                <% } %>
+                            </div>
                         </div>
                     </div>
                 <% } %>
