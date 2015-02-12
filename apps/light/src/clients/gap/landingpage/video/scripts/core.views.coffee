@@ -20,12 +20,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $ev = $(ev.target)
             if not $ev.hasClass('thumbnail-item')
                 $ev = $ev.parent('.thumbnail-item')
-            i = $ev.data('index')
-            thumbnails = @model.get('thumbnails')
-            if i? and thumbnails? and _.isObject(thumbnails[i])
+            try
+                i = $ev.data('index')
+                thumbnails = @model.get('thumbnails')
                 youtubeId = thumbnails[i]['youtubeId']
-                if youtubeId
-                    @video?.currentView?.player?.cueVideoById(String(youtubeId))?.playVideo()
+            catch error
+                return
+            finally
+                unless youtubeId?
+                    return
+            # Youtube player may not yet be initialized
+            player = @video?.currentView?.player
+            if player?.cueVideoById
+                @video.currentView.player.cueVideoById(String(youtubeId))?.playVideo()
+            else
+                App.vent.once('tracking:videoPlay', (videoId, event) ->
+                    event.target.cueVideoById(String(youtubeId))?.playVideo()
+                )
 
     App.vent.once('tracking:videoFinish', (videoId, event) ->
         event.target.cuePlaylist(
