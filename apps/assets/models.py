@@ -359,7 +359,12 @@ class ProductImage(BaseModel):
 
     @property
     def orientation(self):
-        return "landscape" if self.width > self.height else "portrait"
+        if self.width > self.height:
+            return "landscape"
+        elif self.width == self.height:
+            return "square"
+        else:
+            return "portrait"
 
     def save(self, *args, **kwargs):
         """For whatever reason, ProductImages have separate width and height
@@ -482,7 +487,12 @@ class Image(Content):
 
     @property
     def orientation(self):
-        return "landscape" if self.width > self.height else "portrait"
+        if self.width > self.height:
+            return "landscape"
+        elif self.width == self.height:
+            return "square"
+        else:
+            return "portrait"
 
     def save(self, *args, **kwargs):
         """For whatever reason, Images have separate width and height
