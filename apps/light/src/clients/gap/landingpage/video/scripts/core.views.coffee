@@ -45,7 +45,35 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         )
     )
 
-    _.extend(module.ExpandedContent.prototype.events,
+    module.ExpandedContent.prototype.events =
+        "click .stl-look .stl-item": (event) ->
+            unless App.support.mobile()
+                $el = @$el
+                $ev = $(event.target)
+                $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
+                
+                $targetEl.addClass("selected").siblings().removeClass "selected"
+                index = $targetEl.data("index")
+                product = @model.get("tagged-products")[index]
+                productModel = new module.Product(product)
+
+                if $el.parents("#hero-area").length
+                    # this is a featured content area
+                    App.options.heroGalleryIndex = index
+                    App.options.heroGalleryIndexPage = 0
+                else
+                    # likely a pop-up
+                    App.options.galleryIndex = index
+                    App.options.galleryIndexPage = 0
+                if product.images.length is 1
+                    $el.find(".gallery, .gallery-dots").addClass "hide"
+                else
+                    $el.find(".gallery, .gallery-dots").removeClass "hide"
+                if App.support.mobile()
+                    $('body').scrollTo ".cell.info", 500
+                @renderSubregions productModel
+            return
+
         'click .stl-swipe-down, .stl-swipe-up': (ev) ->
             stlItems = @$el.find(".stl-item")
             stlContainer = @$el.find(".stl-look-container")
@@ -103,7 +131,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     if lastItemWidth < stlContainer.offset().left + stlContainer.width() then rightArrow.hide() else rightArrow.show()
                 )
             return
-    )
 
     module.ExpandedContent::arrangeStlItemsVertical = (element) ->
         upArrow = element.find(".stl-swipe-up")
@@ -217,5 +244,32 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return
                 ), 1
             return
+
+        return
+
+    module.ExpandedContent::onShow = ->
+        unless App.support.mobile()
+            product = undefined
+            index = App.option("galleryIndex", 0)
+            if @$el.parents("#hero-area").length
+                index = App.option("heroGalleryIndex", 0)
+
+            @$(".stl-look").each ->
+                $(@).find(".stl-item").eq(index).addClass("selected")
+                return
+
+            if @model.get("tagged-products") and @model.get("tagged-products").length
+                product = new module.Product(@model.get("tagged-products")[index])
+                @renderSubregions(product)
+            else if @model.get("template", "") is "product"
+                @renderSubregions(@model)
+            else
+                @resizeContainer()
+
+        if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
+            $(".stick-bottom", @$el).addClass("stuck").waypoint("sticky",
+                offset: "bottom-in-view"
+                direction: "up"
+            )
 
         return

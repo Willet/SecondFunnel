@@ -502,34 +502,45 @@
         </script>
 
         <script type="text/template" id="mobile_tagged_products">
-            <div class="cell">
-                <img src="<%= image_src %>" alt="image"/>
+            <div class="cell look-image mobile-only">
+                <div class="look-image-container" style="background-image: url('<%= image_src %>');"></div>
             </div>
-            <div class="cell info">
-                <div>
-                    <div class='title'></div>
-                    <div class='price'></div>
-                </div>
-                <div class="relative">
-                    <div class="gallery-main-image"></div>
-                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                </div>
-                <div class='cell buy'></div>
-            </div>
-            <div class="cell mobile-only">
-                <% if (obj['tagged-products'].length > 1) { %>
-                    <div class="landscape">
-                        <div class="stl-title">shop the look</div>
-                        <div class="stl-look">
-                            <% var  related = obj['tagged-products'] %>
-                            <% for (var i = 0; i < related.length; i++) { %>
-                                <div class="stl-item" data-index="<%- i %>">
-                                    <img src="<%- related[i].images[0].url %>" />
-                                </div>
-                            <% } %>
+            <div class="cell info mobile-only">
+                <div class="stl-title">shop the look</div>
+                <div class="stl-look">
+                <% var related = obj['tagged-products']; %>
+                <% for (var i = 0; i < related.length; i++) { %>
+                    <% var product = related[i]; %>
+                    <div class="tagged-product" data-index='<%- i %>'>
+                        <div class="product-info">
+                            <div class='product-title'>
+                                <%- product.title || product.name %>
+                            </div>
+                            <div class='product-price'>
+                                <% if (product.sale_price) { %>
+                                    <strike><%- product.price %></strike><br />
+                                    <b>NOW:</b> <%- product.sale_price %>
+                                <% } else { %>
+                                    <%- product.price %>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class="product-image-gallery">
+                            <div class="product-swipe-left"></div>
+                            <div class="product-swipe-right"></div>
+                            <div class="product-image-container">
+                                <% for (var j = 0; j < product.images.length; j++) { %>
+                                    <div class="image" style="background-image: url('<%= product.images[j].url %>');"></div>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class='cell buy'>
+                            <a class='button in-store' href='<%- product.url %>' target='_blank'>Shop on Gap.com</a>
+                            <a class="button find-store" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
                         </div>
                     </div>
                 <% } %>
+                </div>
             </div>
         </script>
 
