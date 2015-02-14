@@ -175,7 +175,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         # Currently only used by tiles inserted at page caching
         @tilecache = []
         @getTileById = (tileId, success_cb, failure_cb) ->
-            if _.isNumber(tileId)
+            isNumber = /^\d+$/.test(tileId)
+
+            if isNumber
                 if App.option('debug', false)
                     console.warn('Router getting tile: '+tileId)
 
@@ -680,7 +682,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         Note: filters can be arbitrarily chained
         ###
         findModelByName: (name) ->
-            if not @nameModelMap
+            if not @nameModelMap?
                 # This seems like a perfect piece of code to be in Model.initialization
                 # except Backbone won't let you hook in *after* the Collection has been set up...
                 @generateNameModelMap()

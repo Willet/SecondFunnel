@@ -10,7 +10,11 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @returns {string} url
      */
     module.generateAdClickUrl = function (dest_url) {
-        return App.option('clickUrl') + dest_url;
+        if (dest_url.indexOf('www.gap.com') > -1) {
+            return App.option('clickUrl') + dest_url;
+        } else {
+            return dest_url;
+        }
     };
 
     /**

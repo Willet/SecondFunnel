@@ -58,11 +58,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @playerOptions = _.extend({}, @defaultPlayerOptions, video.get('options', {}))
 
         trackVideoState: (event) ->
+            playerUrlParams = $.deparam(App.utils.urlParse(@player.getVideoUrl())?.search?.substr(1))
+            videoId = if playerUrlParams then playerUrlParams.v else undefined
+
             switch event.data
                 when window.YT.PlayerState.PLAYING
-                    App.vent.trigger('tracking:videoPlay', @model.get('original-id'), event)
+                    App.vent.trigger('tracking:videoPlay', videoId, event)
                 when window.YT.PlayerState.ENDED
-                    App.vent.trigger('tracking:videoFinish', @model.get('original-id'), event)
+                    App.vent.trigger('tracking:videoFinish', videoId, event)
 
         loadYouTubePlayer: () ->
             @player = new window.YT.Player(@playerId,
@@ -447,12 +450,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
 
         updateCategoryHeroImages: (category) ->
-            @model.destroy()
+            @model?.destroy()
             heroImagesModel = @getCategoryHeroImages(category)
-            @model = if heroImages then new module.Tile(heroImages) else undefined
+            @model = if heroImagesModel then new module.Tile(heroImagesModel) else undefined
             App.heroArea.show(@)
 
         getCategoryHeroImages: (category='') ->
+            category = if category? then category else App.option('page:home:category')
             catObj = (App.categories.findModelByName(category) or {})
             desktopHeroImage = (catObj['desktopHeroImage'] or App.option('page:desktopHeroImage'))
             mobileHeroImage = (catObj['mobileHeroImage'] or App.option('page:mobileHeroImage'))
