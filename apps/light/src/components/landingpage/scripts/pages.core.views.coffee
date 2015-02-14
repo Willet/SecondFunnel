@@ -393,32 +393,35 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             content: ".content"
         
         ###
-        @param data normal product data, or, if omitted,
-        the featured product.
+        @param data - can be an {object} (tileJson) or a {number} (tile-id)
         ###
         initialize: (data) ->
-            # BUG? App.option("page:home:hero") returns tile-id, not tileJson
-            # then gets passed into module.Tile.selectTileSubclass ?
-            # BUG? carefully check tile extists before App.heroArea.show()
-            tile = if not _.isEmpty(data) then data else App.option("page:home:hero")
-            if tile
-                @deferred = $.when(tile)
-            # Try to get it from intentRank if its setup
+            tile = if _.isObject(data) and not _.isEmpty(data) then data else undefined
+            tileId = if _.isNumber(data) then data else App.option("page:home:hero")
+            
+            # data can be an object (tileJson)
+            if tile?
+                @tileLoaded = $.when(tile)
+            # data can be a number (tile-id)
+            else if tileId?
+                @tileLoaded = $.Deferred()
+                tileLoadedResolve = =>
+                    @tileLoaded.resolve(arguments)
+                module.Tile.getTileById(tileId, tileLoadedResolve, tileLoadedResolve)
+            # data didn't work, try to get category from intentRank if its setup
             else if App.intentRank?.currentCategory?
                 tile = @getCategoryHeroImages(App.intentRank.currentCategory())
-                @deferred = $.when(tile)
-            # Get category from intentRank when its ready
+                @tileLoaded = $.when(tile)
+            # get category from intentRank when its ready
             else 
-                @deferred = $.Deferred()
+                @tileLoaded = $.Deferred()
                 App.vent.once('intentRankInitialized', =>
-                    @deferred.resolve(=>
-                        return @updateCategoryHeroImages(App.intentRank.currentCategory())
-                    )
+                    tileJson = @updateCategoryHeroImages(App.intentRank.currentCategory())
+                    @tileLoaded.resolve(tileJson)
                 )
-                        
-            @deferred.done((tile) =>
-                # PSUEDO CODE: if not tile, close
-                @model = module.Tile.selectTileSubclass(tile)
+            # tile can be a {Tile} or {object} tileJson
+            @tileLoaded.done((tile) =>
+                @model = if _.isObject(tile) and not _.isEmpty(tile) then module.Tile.selectTileSubclass(tile) else undefined
                 @listenTo(App.vent, "windowResize", =>
                     App.heroArea.show(@)
                 )
@@ -429,7 +432,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onShow: ->
-            @deferred.done(=>
+            @tileLoaded.done(=>
                 if @model?
                     contentOpts = model: @model
                     contentInstance = undefined
@@ -438,30 +441,28 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     else
                         contentInstance = new module.PreviewContent(contentOpts)
                     @content.show(contentInstance)
+                else
+                    @content.close()
                 return
             )
 
         updateCategoryHeroImages: (category) ->
             @model.destroy()
             heroImagesModel = @getCategoryHeroImages(category)
-            if heroImagesModel
-                @model = new module.Tile(heroImagesModel)
-                App.heroArea.show(@)
-            else
-                # could not find hero images
-                @model = undefined
-                App.heroArea.close()
+            @model = if heroImages then new module.Tile(heroImages) else undefined
+            App.heroArea.show(@)
 
         getCategoryHeroImages: (category='') ->
             catObj = (App.categories.findModelByName(category) or {})
-            heroImages =
-                "desktopHeroImage": (catObj['desktopHeroImage'] or App.option('page:desktopHeroImage'))
-                "mobileHeroImage": (catObj['mobileHeroImage'] or App.option('page:mobileHeroImage'))
-            # PSUEDO CODE
-            if not desktopHeroImage and mobileHeroImage
-                return undefined
+            desktopHeroImage = (catObj['desktopHeroImage'] or App.option('page:desktopHeroImage'))
+            mobileHeroImage = (catObj['mobileHeroImage'] or App.option('page:mobileHeroImage'))
+            if desktopHeroImage
+                heroImages =
+                    "desktopHeroImage": desktopHeroImage
+                    "mobileHeroImage": mobileHeroImage or desktopHeroImage
             else
-                return heroImages
+                heroImages = undefined
+            return heroImages
 
 
     ###

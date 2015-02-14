@@ -167,7 +167,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         Attempt to retrieve tile and instantiate it as the correct Tile subclass,
         then execute success_cb or failure_cb
-        @param tileId - <string>
+        @param tileId - <number>
         @param success_cb - <function> (<Tile>)
         @param failure_cb - <function>: ()
         ###
@@ -175,9 +175,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         # Currently only used by tiles inserted at page caching
         @tilecache = []
         @getTileById = (tileId, success_cb, failure_cb) ->
-            isNumber = /^\d+$/.test(tileId);
-
-            if isNumber
+            if _.isNumber(tileId)
                 if App.option('debug', false)
                     console.warn('Router getting tile: '+tileId)
 
