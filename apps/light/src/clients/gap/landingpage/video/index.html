@@ -507,40 +507,7 @@
             </div>
             <div class="cell info mobile-only">
                 <div class="stl-title">shop the look</div>
-                <div class="stl-look">
-                <% var related = obj['tagged-products']; %>
-                <% for (var i = 0; i < related.length; i++) { %>
-                    <% var product = related[i]; %>
-                    <div class="tagged-product" data-index='<%- i %>'>
-                        <div class="product-info">
-                            <div class='product-title'>
-                                <%- product.title || product.name %>
-                            </div>
-                            <div class='product-price'>
-                                <% if (product.sale_price) { %>
-                                    <strike><%- product.price %></strike><br />
-                                    <b>NOW:</b> <%- product.sale_price %>
-                                <% } else { %>
-                                    <%- product.price %>
-                                <% } %>
-                            </div>
-                        </div>
-                        <div class="product-image-gallery">
-                            <div class="product-swipe-left"></div>
-                            <div class="product-swipe-right"></div>
-                            <div class="product-image-container">
-                                <% for (var j = 0; j < product.images.length; j++) { %>
-                                    <div class="image" style="background-image: url('<%= product.images[j].url %>');"></div>
-                                <% } %>
-                            </div>
-                        </div>
-                        <div class='cell buy'>
-                            <a class='button in-store' href='<%- product.url %>' target='_blank'>Shop on Gap.com</a>
-                            <a class="button find-store" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
-                        </div>
-                    </div>
-                <% } %>
-                </div>
+                <div class="gallery"></div>
             </div>
         </script>
 
@@ -583,6 +550,46 @@
                     </a>
                 </div>
             <% } %>
+        </script>
+
+        <script type="text/template" id="product_info_template">
+            <div class="tagged-product">
+                <div class="product-info">
+                    <div class='product-title'>
+                        <%- obj.title || obj.name %>
+                    </div>
+                    <div class='product-price'>
+                        <% if (obj.sale_price) { %>
+                            <strike><%- obj.price %></strike><br />
+                            <b>NOW:</b> <%- obj.sale_price %>
+                        <% } else { %>
+                            <%- obj.price %>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="product-image-gallery">
+                    <% if (obj.images.length > 1) { %>
+                        <div class="product-swipe-left"></div>
+                        <div class="product-swipe-right"></div>
+                    <% } %>
+                    <div class="product-image-container">
+                        <div class="main-image">
+                            <% for (var j = 0; j < obj.images.length; j++) { %>
+                                <div class="image" style="background-image: url('<%= obj.images[j].url %>');"></div>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="gallery-dots <% if (obj.images.length < 2) { %> hide <% } %>">
+                        <% for (var i = 0; i < obj.images.length; i++) { %>
+                            <div class="item"></div>
+                        <% } %>
+                    </div>
+                </div>
+                <div class='cell buy'>
+                    <a class='button in-store' href='<%- obj.url %>' target='_blank'>Shop on Gap.com</a>
+                    <a class="button find-store" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
+                </div>
+            </div>
         </script>
 
         <script type="text/template" id="product_galleryMainImage_template">

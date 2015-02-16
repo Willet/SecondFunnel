@@ -817,7 +817,7 @@ div.header {
             .stl-look:last-child {
                 margin-bottom: 0 !important;
             }
-            .stl-look, .tagged-product {
+            .tagged-product {
                 display: block;
                 width: 100%;
                 margin-bottom: 10px;
@@ -825,7 +825,7 @@ div.header {
                     display: inline-block;
                     vertical-align: top;
                     text-align: left;
-                    width: 90px;
+                    width: 29%;
                     .product-title, .product-price {
                         font-family: $gap-helvetica-neue;
                         font-size: 10px;
@@ -839,28 +839,47 @@ div.header {
                 }
                 .product-image-gallery {
                     display: inline-block;
-                    overflow: hidden;
-                    width: 115px;
+                    width: 38%;
                     margin: 0 5.5px;
                     position: relative;
                     .product-image-container {
                         width: 80%;
                         height: 126px;
+                        position: relative;
                         margin: auto;
-                        .image {
+                        overflow: hidden;
+                        .main-image {
                             width: 100%;
                             height: 100%;
-                            display: inline-block;
-                            background-size: contain;
-                            background-position: center;
-                            background-repeat: no-repeat;
+                            white-space: nowrap;
+                            font-size: 0;
+                            .image {
+                                width: 100%;
+                                height: 100%;
+                                display: inline-block;
+                                background-size: contain;
+                                background-position: top center;
+                                background-repeat: no-repeat;
+                            }
+                        }
+                    }
+                    .gallery-dots {
+                        position: relative;
+                        font-size: 10px;
+                        line-height: normal;
+                        height: 15px;
+                        bottom: 0;
+                        .item {
+                            width: 4px;
+                            height: 4px;
+                            margin: 0 3px;
                         }
                     }
                 }
                 .buy {
                     float: none;
                     display: inline-block;
-                    width: 80px;
+                    width: 26%;
                     padding: 0;
                     margin-top: 0 !important;
                     .button {
@@ -929,9 +948,10 @@ div.header {
         top: 35%;
     }
     .product-swipe-left, .product-swipe-right {
-        width: 8px;
-        height: 20px;
-        top: 35%;
+        width: 30px;
+        height: 30px;
+        top: 40%;
+        background-size: 30%;
     }
     .stl-swipe-up {
         background-image: url('/static/light/gap/landingpage/video/images/up-image-arrow.png');
@@ -943,10 +963,12 @@ div.header {
     }
     .stl-swipe-left, .product-swipe-left {
         background-image: url('/static/light/gap/landingpage/video/images/prev-image-arrow.png');
+        background-position: center left;
         left: 0;
     }
     .stl-swipe-right, .product-swipe-right {
         background-image: url('/static/light/gap/landingpage/video/images/next-image-arrow.png');
+        background-position: center right;
         right: 0;
     }
 }

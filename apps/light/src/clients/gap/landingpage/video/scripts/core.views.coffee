@@ -1,6 +1,69 @@
 "use strict"
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
+    class module.ProductCollection extends Backbone.Collection
+        model: module.Product
+
+    class module.ProductView extends Marionette.ItemView
+        template: "#product_info_template"
+
+        events:
+            'click .product-swipe-left, .product-swipe-right': (ev) ->
+                if ev.target.className is 'product-swipe-left'
+                    @galleryIndex--
+                    @updateGallery()
+                else 
+                    @galleryIndex++
+                    @updateGallery()
+                return
+
+        initialize: ->
+            @numberOfImages = @model.get('images')?.length
+            @galleryIndex = 0
+            @duration = 0.3
+            return
+
+        onShow: ->
+            @leftArrow = @$el.find('.product-swipe-left')
+            @rightArrow = @$el.find('.product-swipe-right')
+            if @numberOfImages > 1
+                @updateGallery()
+            return
+
+        updateGallery: ->
+            mainImage = @$el.find('.main-image')
+            @$el.find('.item')
+                .removeClass('selected')
+                .eq(@galleryIndex)
+                .addClass('selected')
+            if @galleryIndex is 0
+                @leftArrow.hide()
+            else if @galleryIndex is @numberOfImages - 1
+                @rightArrow.hide()
+            else
+                @leftArrow.show()
+                @rightArrow.show()
+            if App.support.isLessThanIe9()
+                mainImage.css
+                    'position': 'relative',
+                    'left': mainImage.width() * @galleryIndex * -1
+            else
+                mainImage.css
+                    '-webkit-transition-duration': @duration + 's',
+                    'transition-duration': @duration + 's',
+                    '-webkit-transform': 'translate3d(' + mainImage.width() * @galleryIndex * -1 + 'px, 0px, 0px)',
+                    '-ms-transform': 'translateX(' + mainImage.width() * @galleryIndex * -1 + 'px)',
+                    'transform': 'translate3d(' + mainImage.width() * @galleryIndex * -1 + 'px, 0px, 0px)'
+            return
+
+    class module.ProductCollectionView extends Marionette.CollectionView
+        className: "product-collection"
+        itemView: module.ProductView
+
+        initialize: (products) ->
+            @collection = new module.ProductCollection(products)
+            return
+
     module.HeroContent.prototype.events =
         'click #more-button': ->
             numDefaultThumbnails = 1
@@ -48,35 +111,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         )
     )
 
-    module.ExpandedContent.prototype.events =
-        "click .stl-look .stl-item": (event) ->
-            unless App.support.mobile()
-                $el = @$el
-                $ev = $(event.target)
-                $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
-                
-                $targetEl.addClass("selected").siblings().removeClass "selected"
-                index = $targetEl.data("index")
-                product = @model.get("tagged-products")[index]
-                productModel = new module.Product(product)
-
-                if $el.parents("#hero-area").length
-                    # this is a featured content area
-                    App.options.heroGalleryIndex = index
-                    App.options.heroGalleryIndexPage = 0
-                else
-                    # likely a pop-up
-                    App.options.galleryIndex = index
-                    App.options.galleryIndexPage = 0
-                if product.images.length is 1
-                    $el.find(".gallery, .gallery-dots").addClass "hide"
-                else
-                    $el.find(".gallery, .gallery-dots").removeClass "hide"
-                if App.support.mobile()
-                    $('body').scrollTo ".cell.info", 500
-                @renderSubregions productModel
-            return
-
+    _.extend(module.ExpandedContent.prototype.events,
         'click .stl-swipe-down, .stl-swipe-up': (ev) ->
             stlItems = @$el.find(".stl-item")
             stlContainer = @$el.find(".stl-look-container")
@@ -134,6 +169,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     if lastItemWidth < stlContainer.offset().left + stlContainer.width() then rightArrow.hide() else rightArrow.show()
                 )
             return
+    )
 
     module.ExpandedContent::arrangeStlItemsVertical = (element) ->
         upArrow = element.find(".stl-swipe-up")
@@ -251,7 +287,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::onShow = ->
-        unless App.support.mobile()
+        if App.support.mobile() and @model.get("tagged-products")?.length > 0
+            productsInstance = new module.ProductCollectionView(@model.get("tagged-products"))
+            @gallery.show(productsInstance)
+        else
             product = undefined
             index = App.option("galleryIndex", 0)
             if @$el.parents("#hero-area").length
@@ -274,5 +313,4 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 offset: "bottom-in-view"
                 direction: "up"
             )
-
         return
