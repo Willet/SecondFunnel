@@ -167,7 +167,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         Attempt to retrieve tile and instantiate it as the correct Tile subclass,
         then execute success_cb or failure_cb
-        @param tileId - <string>
+        @param tileId - <number>
         @param success_cb - <function> (<Tile>)
         @param failure_cb - <function>: ()
         ###
@@ -175,7 +175,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         # Currently only used by tiles inserted at page caching
         @tilecache = []
         @getTileById = (tileId, success_cb, failure_cb) ->
-            isNumber = /^\d+$/.test(tileId);
+            isNumber = /^\d+$/.test(tileId)
 
             if isNumber
                 if App.option('debug', false)
@@ -682,7 +682,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         Note: filters can be arbitrarily chained
         ###
         findModelByName: (name) ->
-            if not @nameModelMap
+            if not @nameModelMap?
                 # This seems like a perfect piece of code to be in Model.initialization
                 # except Backbone won't let you hook in *after* the Collection has been set up...
                 @generateNameModelMap()

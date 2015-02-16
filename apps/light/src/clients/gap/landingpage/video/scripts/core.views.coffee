@@ -29,6 +29,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             finally
                 unless youtubeId?
                     return
+
+            App.vent.trigger("tracking:videoChoose", youtubeId)
+
             # Youtube player may not yet be initialized
             player = @video?.currentView?.player
             if player?.cueVideoById
