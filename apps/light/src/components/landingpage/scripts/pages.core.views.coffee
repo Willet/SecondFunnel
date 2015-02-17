@@ -195,26 +195,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         resizeContainer: ->
-            ###
-            Returns a callback that sizes the preview container.
-            ###
-            shrinkContainer = ($element) ->
+            shrinkContainer = (element) ->
                 ->
                     unless App.support.mobile()
-                        container = $element.closest(".fullscreen")
-                        containedItem = $element.closest(".content")
+                        container = element.closest(".fullscreen")
+                        containedItem = element.closest(".content")
                         if --imageCount isnt 0
                             return
 
                         # no container to shrink
                         unless container and container.length
                             return
-                        container.css(
+                        container.css
                             top: "0"
                             bottom: "0"
                             left: "0"
                             right: "0"
-                        )
+
                         heightReduction = $(window).height()
                         widthReduction = container.outerWidth()
                         heightReduction -= containedItem.outerHeight()
@@ -225,12 +222,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         widthReduction /= 2
                         if widthReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
                             widthReduction = "0"
-                        container.css(
+                        container.css
                             top: heightReduction
                             bottom: heightReduction
                             left: widthReduction
                             right: widthReduction
-                        )
                     return
 
             imageCount = $("img.main-image, img.image", @$el).length
