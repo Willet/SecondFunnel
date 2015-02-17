@@ -68,6 +68,13 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             }
         }
     });
+    
+    /**
+     * @returns <boolean> true if test is an integer or a string containing only numerals
+     */
+    module.isNumber = function (test) {
+        return /^\d+$/.test(test);
+    }
 
     module.postExternalMessage = function (message) {
         window.parent.postMessage(message, '*');

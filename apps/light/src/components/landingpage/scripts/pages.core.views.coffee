@@ -404,7 +404,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         initialize: (data) ->
             tile = if _.isObject(data) and not _.isEmpty(data) then data else undefined
-            tileId = if _.isNumber(data) then data else App.option("page:home:hero")
+            tileId = if App.utils.isNumber(data) then data else App.option("page:home:hero")
             
             # data can be an object (tileJson)
             if tile?
@@ -468,6 +468,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 heroImages =
                     "desktopHeroImage": desktopHeroImage
                     "mobileHeroImage": mobileHeroImage or desktopHeroImage
+                    "template": "hero"
+                    "type": "hero"
             else
                 heroImages = undefined
             return heroImages
