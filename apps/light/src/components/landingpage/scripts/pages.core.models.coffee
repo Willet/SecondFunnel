@@ -175,9 +175,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         # Currently only used by tiles inserted at page caching
         @tilecache = []
         @getTileById = (tileId, success_cb, failure_cb) ->
-            isNumber = /^\d+$/.test(tileId)
-
-            if isNumber
+            if App.utils.isNumber(tileId)
                 if App.option('debug', false)
                     console.warn('Router getting tile: '+tileId)
 
