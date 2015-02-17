@@ -1,5 +1,7 @@
 "use strict"
 
+swipe = require('jquery-touchswipe')
+
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.ProductCollection extends Backbone.Collection
         model: module.Product
@@ -11,49 +13,77 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             'click .product-swipe-left, .product-swipe-right': (ev) ->
                 if ev.target.className is 'product-swipe-left'
                     @galleryIndex--
-                    @updateGallery()
                 else 
                     @galleryIndex++
-                    @updateGallery()
+                @scrollImages(@mainImage.width()*@galleryIndex)
+                @updateGallery
                 return
 
         initialize: ->
-            @numberOfImages = @model.get('images')?.length
+            @numberOfImages = @model.get('images')?.length or 0
             @galleryIndex = 0
-            @duration = 0.3
             return
 
         onShow: ->
             @leftArrow = @$el.find('.product-swipe-left')
             @rightArrow = @$el.find('.product-swipe-right')
+            @mainImage = @$el.find('.main-image')
             if @numberOfImages > 1
-                @updateGallery()
+                @updateGallery
+                @mainImage.swipe({
+                        triggerOnTouchEnd: true,
+                        swipeStatus: _.bind(@swipeStatus, @),
+                        allowPageScroll: 'vertical'
+                    })
+            return
+
+        swipeStatus: (event, phase, direction, distance, fingers, duration) ->
+            focusWidth = @mainImage.width
+            offset = focusWidth * @galleryIndex
+
+            if phase is 'move'
+                if direction is 'left'
+                    @scrollImages(distance + offset, duration)
+                else if direction is 'right'
+                    @scrollImages(offset - distance, duration)
+            else if phase is 'end'
+                if direction is 'right'
+                    @galleryIndex = Math.max(@galleryIndex - 1, 0)
+                else if direction is 'left'
+                    @galleryIndex = Math.min(@galleryIndex + 1, @numberOfImages - 1)
+                @scrollImages(focusWidth * @galleryIndex, duration)
+                @updateGallery
+            else if phase is 'cancel'
+                @scrollImages(focusWidth * @galleryIndex, duration)
+            return @
+
+        scrollImages: (distance, duration = 250) ->
+            distance *= -1
+            if App.support.isLessThanIe9
+                @mainImage.css
+                    'position': 'relative',
+                    'left': distance
+            else
+                @mainImage.css
+                    '-webkit-transition-duration': (duration / 1000).toFixed(1) + 's',
+                    'transition-duration': (duration / 1000).toFixed(1) + 's',
+                    '-webkit-transform': 'translate3d(' + distance + 'px, 0px, 0px)',
+                    '-ms-transform': 'translateX(' + distance+ 'px)',
+                    'transform': 'translate3d(' + distance + 'px, 0px, 0px)'
             return
 
         updateGallery: ->
-            mainImage = @$el.find('.main-image')
             @$el.find('.item')
                 .removeClass('selected')
                 .eq(@galleryIndex)
                 .addClass('selected')
             if @galleryIndex is 0
-                @leftArrow.hide()
+                @leftArrow.hide
             else if @galleryIndex is @numberOfImages - 1
-                @rightArrow.hide()
+                @rightArrow.hide
             else
-                @leftArrow.show()
-                @rightArrow.show()
-            if App.support.isLessThanIe9()
-                mainImage.css
-                    'position': 'relative',
-                    'left': mainImage.width() * @galleryIndex * -1
-            else
-                mainImage.css
-                    '-webkit-transition-duration': @duration + 's',
-                    'transition-duration': @duration + 's',
-                    '-webkit-transform': 'translate3d(' + mainImage.width() * @galleryIndex * -1 + 'px, 0px, 0px)',
-                    '-ms-transform': 'translateX(' + mainImage.width() * @galleryIndex * -1 + 'px)',
-                    'transform': 'translate3d(' + mainImage.width() * @galleryIndex * -1 + 'px, 0px, 0px)'
+                @leftArrow.show
+                @rightArrow.show
             return
 
     class module.ProductCollectionView extends Marionette.CollectionView
@@ -219,6 +249,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     table = element.find(".table")
                     container = element.closest(".fullscreen")
                     containedItem = element.closest(".content")
+                    # must wait for all images to load
                     if --imageCount isnt 0
                         return
 
