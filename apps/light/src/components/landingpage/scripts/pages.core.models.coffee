@@ -483,7 +483,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         parse: (attrs, options) ->
             # WARNING: this only allows 1 content of each type
             # ex: Video, Image
-            for content in attrs["contents"]
+            for content in _.get(attrs, "contents", [])
                 content["template"] = content.type
                 attrs[content.type] = content
             super
@@ -491,7 +491,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.HerovideoTile extends module.HeroTile
         parse: (attrs, options) ->
-            for content in attrs["contents"]
+            for content in _.get(attrs, "contents", [])
                 if content.type == "video" and content["original-id"] and not content["thumbnail"]
                     content["thumbnail"] = "http://i.ytimg.com/vi/#{content["original-id"]}/hqdefault.jpg"
                 content["template"] = content.type

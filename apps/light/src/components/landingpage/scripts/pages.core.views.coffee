@@ -464,6 +464,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 heroImages =
                     "desktopHeroImage": desktopHeroImage
                     "mobileHeroImage": mobileHeroImage or desktopHeroImage
+                    "template": "hero"
+                    "type": "hero"
             else
                 heroImages = undefined
             return heroImages
