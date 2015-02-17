@@ -624,6 +624,9 @@ div.header {
             padding: 0 10px;
             border-top: 1px solid $gap-grey;
             border-right: none;
+            position: absolute;
+            bottom: 0;
+            left: 0;
             .stl-title {
                 margin: 12px 0;
             }

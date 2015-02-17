@@ -211,8 +211,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         containerHeight = stlContainer.offset().top + stlContainer.height()
         for item, i in stlItems
             itemHeight = $(item).offset().top + $(item).height()
-            if itemHeight > containerHeight - 20 ## position of down arrow at 20px ##
-                unless $(item).offset().top is stlContainer.offset().top + stlContainer.height() + 20
+            if itemHeight > (containerHeight - 20) ## position of down arrow at 20px ##
+                unless $(item).offset().top is (stlContainer.offset().top + stlContainer.height() + 20)
                     $(item).css(
                         ## position of arrow + padding ##
                         "margin-top": stlContainer.offset().top + stlContainer.height() - $(item).offset().top + 50
@@ -232,8 +232,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         containerWidth = stlContainer.offset().left + stlContainer.width()
         for item, i in stlItems
             itemWidth = $(item).offset().left + $(item).width()
-            if itemWidth > containerWidth - 15
-                unless $(item).offset().left is stlContainer.offset().left + stlContainer.width() + 15
+            if itemWidth > (containerWidth - 15)
+                unless $(item).offset().left is (stlContainer.offset().left + stlContainer.width() + 15)
                     $(item).css(
                         "margin-left": stlContainer.offset().left + stlContainer.width() - $(item).offset().left + 35
                     )
