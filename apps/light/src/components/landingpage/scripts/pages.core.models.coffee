@@ -167,7 +167,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         Attempt to retrieve tile and instantiate it as the correct Tile subclass,
         then execute success_cb or failure_cb
-        @param tileId - <number>
+        @param tileId - <string>
         @param success_cb - <function> (<Tile>)
         @param failure_cb - <function>: ()
         ###
@@ -660,6 +660,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 subCatMemo = _.reduce(cat.attributes.subCategories, (subMemo, subcat) ->
                         if subcat.name.charAt(0) == '|'
                             subMemo[cat.attributes.name + subcat.name] = _.extend {}, subcat,
+                                desktopHeroImage: subcat.desktopHeroImage or cat.attributes.desktopHeroImage
+                                mobileHeroImage: subcat.mobileHeroImage or cat.attributes.mobileHeroImage
                                 subCategory: subcat.name
                                 category: cat
                         else
