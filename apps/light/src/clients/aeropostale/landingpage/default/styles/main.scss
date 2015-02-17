@@ -34,6 +34,13 @@ body {
     height: 100%;
 }
 
+#hero-area {
+    .content {
+        max-width: inherit;
+        padding: 0px;
+    }
+}
+
 #category-area {
     display: none;
     padding: 12px 0;
