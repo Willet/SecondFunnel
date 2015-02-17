@@ -30,11 +30,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @mainImage = @$el.find('.main-image')
             if @numberOfImages > 1
                 @updateGallery
-                @mainImage.swipe({
+                @mainImage.swipe(
                         triggerOnTouchEnd: true,
                         swipeStatus: _.bind(@swipeStatus, @),
                         allowPageScroll: 'vertical'
-                    })
+                )
             return
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
@@ -203,11 +203,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
     )
 
-    module.ExpandedContent::arrangeStlItemsVertical = (element) ->
-        upArrow = element.find(".stl-swipe-up")
-        downArrow = element.find(".stl-swipe-down")
-        stlItems = element.find(".stl-item")
-        stlContainer = element.find(".stl-look-container")
+    module.ExpandedContent::arrangeStlItemsVertical = ($element) ->
+        upArrow = $element.find(".stl-swipe-up")
+        downArrow = $element.find(".stl-swipe-down")
+        stlItems = $element.find(".stl-item")
+        stlContainer = $element.find(".stl-look-container")
         containerHeight = stlContainer.offset().top + stlContainer.height()
         for item, i in stlItems
             itemHeight = $(item).offset().top + $(item).height()
@@ -224,11 +224,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if lastItemHeight < stlContainer.offset().top + stlContainer.height() then downArrow.hide() else downArrow.show()
         return
 
-    module.ExpandedContent::arrangeStlItemsHorizontal = (element) ->
-        leftArrow = element.find(".stl-swipe-left")
-        rightArrow = element.find(".stl-swipe-right")
-        stlItems = element.find(".stl-item")
-        stlContainer = element.find(".stl-look")
+    module.ExpandedContent::arrangeStlItemsHorizontal = ($element) ->
+        leftArrow = $element.find(".stl-swipe-left")
+        rightArrow = $element.find(".stl-swipe-right")
+        stlItems = $element.find(".stl-item")
+        stlContainer = $element.find(".stl-look")
         containerWidth = stlContainer.offset().left + stlContainer.width()
         for item, i in stlItems
             itemWidth = $(item).offset().left + $(item).width()
@@ -248,12 +248,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::resizeContainer = ->
-        shrinkContainer = (element) =>
+        ###
+        Returns a callback that sizes the preview container.
+        ###
+        shrinkContainer = ($element) =>
             =>
                 unless App.support.mobile()
-                    table = element.find(".table")
-                    container = element.closest(".fullscreen")
-                    containedItem = element.closest(".content")
+                    table = $element.find(".table")
+                    container = $element.closest(".fullscreen")
+                    containedItem = $element.closest(".content")
                     # must wait for all images to load
                     if --imageCount isnt 0
                         return
@@ -268,7 +271,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         right: "0"
                     )
                     tableHeight = undefined
-                    numImages = element.find("img.image").length
+                    numImages = $element.find("img.image").length
                     unless tileType == "product"
                         if (orientation == "landscape" and numImages > 1) or orientation == "portrait"
                             tableHeight = container.height()
@@ -295,9 +298,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         right: widthReduction
                     )
                     if orientation == "landscape"
-                        @.arrangeStlItemsHorizontal(element)
+                        @arrangeStlItemsHorizontal($element)
                     else
-                        @.arrangeStlItemsVertical(element)
+                        @arrangeStlItemsVertical($element)
                 return
 
         imageCount = $("img.main-image, img.image", @$el).length
@@ -306,9 +309,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if @model.get("sizes")?.master
             width = @model.get("sizes").master.width
             height = @model.get("sizes").master.height
-            if width > height
-                orientation = "landscape"
-            else if width == height
+            if Math.abs((height-width)/width)) <= 0.02
+                orientation = "square"
+            else if width > height
                 orientation = "square"
 
         # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached

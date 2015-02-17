@@ -359,10 +359,10 @@ class ProductImage(BaseModel):
 
     @property
     def orientation(self):
-        if self.width > self.height:
-            return "landscape"
-        elif self.width == self.height:
+        if abs((self.width - self.height)/self.width) <= 0.02:
             return "square"
+        elif self.width > self.height:
+            return "landscape"
         else:
             return "portrait"
 
@@ -487,10 +487,10 @@ class Image(Content):
 
     @property
     def orientation(self):
-        if self.width > self.height:
-            return "landscape"
-        elif self.width == self.height:
+        if abs((self.width - self.height)/self.width) <= 0.02:
             return "square"
+        elif self.width > self.height:
+            return "landscape"
         else:
             return "portrait"
 
