@@ -60,16 +60,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         scrollImages: (distance, duration = 250) ->
             distance *= -1
             if App.support.isLessThanIe9
-                @mainImage.css
+                @mainImage.css(
                     'position': 'relative',
                     'left': distance
+                )
             else
-                @mainImage.css
+                @mainImage.css(
                     '-webkit-transition-duration': (duration / 1000).toFixed(1) + 's',
                     'transition-duration': (duration / 1000).toFixed(1) + 's',
                     '-webkit-transform': 'translate3d(' + distance + 'px, 0px, 0px)',
                     '-ms-transform': 'translateX(' + distance+ 'px)',
                     'transform': 'translate3d(' + distance + 'px, 0px, 0px)'
+                )
             return
 
         updateGallery: ->
@@ -211,9 +213,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             itemHeight = $(item).offset().top + $(item).height()
             if itemHeight > containerHeight - 20 ## position of down arrow at 20px ##
                 unless $(item).offset().top is stlContainer.offset().top + stlContainer.height() + 20
-                    $(item).css
+                    $(item).css(
                         ## position of arrow + padding ##
-                        "margin-top": stlContainer.offset().top + stlContainer.height() - $(item).offset().top + 50 
+                        "margin-top": stlContainer.offset().top + stlContainer.height() - $(item).offset().top + 50
+                    )
                 containerHeight += stlContainer.height()    
         lastItemHeight = stlItems.last().offset().top + stlItems.last().height()
         firstItemHeight = stlItems.first().offset().top + stlItems.first().height()
@@ -231,10 +234,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             itemWidth = $(item).offset().left + $(item).width()
             if itemWidth > containerWidth - 15
                 unless $(item).offset().left is stlContainer.offset().left + stlContainer.width() + 15
-                    $(item).css
+                    $(item).css(
                         "margin-left": stlContainer.offset().left + stlContainer.width() - $(item).offset().left + 35
-                stlContainer.css
+                    )
+                stlContainer.css(
                     "text-align": "left"
+                )
                 containerWidth += stlContainer.width()
         lastItemWidth = stlItems.last().offset().left + stlItems.last().width()
         firstItemWidth = stlItems.first().offset().left + stlItems.first().width()
@@ -243,8 +248,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::resizeContainer = ->
-        shrinkContainer = (element) ->
-            ->
+        shrinkContainer = (element) =>
+            =>
                 unless App.support.mobile()
                     table = element.find(".table")
                     container = element.closest(".fullscreen")
@@ -256,12 +261,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     # no container to shrink
                     unless container and container.length
                         return
-                    container.css
+                    container.css(
                         top: "0"
                         bottom: "0"
                         left: "0"
                         right: "0"
-
+                    )
                     tableHeight = undefined
                     numImages = element.find("img.image").length
                     unless tileType == "product"
@@ -269,8 +274,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             tableHeight = container.height()
                         else
                             tableHeight = container.width()*0.496
-                        table.css
+                        table.css(
                             height: tableHeight
+                        )
 
                     heightReduction = $(window).height()
                     widthReduction = $(window).width()
@@ -282,21 +288,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     widthReduction /= 2
                     if widthReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
                         widthReduction = "0"
-                    container.css
+                    container.css(
                         top: heightReduction
                         bottom: heightReduction
                         left: widthReduction
                         right: widthReduction
+                    )
                     if orientation == "landscape"
-                        _this.arrangeStlItemsHorizontal(element)
+                        @.arrangeStlItemsHorizontal(element)
                     else
-                        _this.arrangeStlItemsVertical(element)
+                        @.arrangeStlItemsVertical(element)
                 return
 
         imageCount = $("img.main-image, img.image", @$el).length
         tileType = @model.get("template")
         orientation = @model.get("orientation")
-        _this = @
         if @model.get("sizes")?.master
             width = @model.get("sizes").master.width
             height = @model.get("sizes").master.height
