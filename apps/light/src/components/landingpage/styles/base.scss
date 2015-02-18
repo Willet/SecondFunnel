@@ -428,6 +428,7 @@ div.loading {
         box-shadow: 0px 10px 30px 0px #CECECE;
         padding: 20px;
         min-height: 240px;
+        max-width: 900px;
     }
 }
 #hero-area {
@@ -519,7 +520,6 @@ div.loading {
         margin: auto;
         position: relative;
         background: #fff;
-        max-width: 900px;
     }
     .close {
         position: absolute;
