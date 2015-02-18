@@ -163,7 +163,7 @@ class PageConfigSerializer(object):
                     'preview':  getattr(init, 'preview', None),
                 }
             })
-
+        
         data.update({
             # DEPRECATED (use page:id)
             'campaign': getattr(page, 'intentrank_id', page.id),

@@ -68,7 +68,7 @@ body > .container {
 }
 
 #hero-area .heroContainer .content {
-    max-width: 1024px;
+    max-width: 920px;
 }
 
 .previewContainer,
@@ -84,7 +84,6 @@ body > .container {
     }
 
     .content {
-        padding: 50px 30px;
         background-image: url('/static/light/anthropologie/landingpage/default/images/body_background.png');
         background-position: center top;
     }
@@ -204,7 +203,11 @@ body > .container {
     background-image: url('/static/light/anthropologie/landingpage/default/images/body_background.png');
     background-position: center;
 }
-
+@media screen and (max-width: 991px) {
+    #hero-area .cell.image-cell {
+        width: 42%;
+    }
+}
 @media screen and (max-width: 768px) {
     body > .container {
         padding-top: 0;
@@ -216,7 +219,7 @@ body > .container {
 
     .previewContainer,
     .heroContainer {
-        .content {
+        .content>div {
             padding: 0;
             padding-bottom: 20px;
         }

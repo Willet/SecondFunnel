@@ -108,30 +108,26 @@
         <script type="text/template" id="product_preview_template">
             <div class="table product">
                 <div class='content-wrapper row'>
-                    <% if (!App.support.mobile()) { %>
-                        <div class='cell info'>
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <div class='description'></div>
-                            <div class='buy'></div>
-                            <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
-                        </div>
-                    <% } %>
+                    <div class='cell info desktop-only'>
+                        <div class='title'></div>
+                        <div class='price'></div>
+                        <div class='description'></div>
+                        <div class='buy'></div>
+                        <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
+                    </div>
                     <div class='cell image-cell'>
                         <div class='relative'>
                             <div class="gallery-main-image"></div>
-                            <% if (obj.images.length > 1 && App.support.mobile()) { %>
-                                <div class='gallery-dots'></div>
+                            <% if (obj.images.length > 1) { %>
+                                <div class='gallery-dots mobile-only'></div>
                             <% } %>
                         </div>
                     </div>
-                    <% if (App.support.mobile()) { %>
-                        <div class='cell info'>
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <div class='buy'></div>
-                        </div>
-                    <% } %>
+                    <div class='cell info mobile-only'>
+                        <div class='title'></div>
+                        <div class='price'></div>
+                        <div class='buy'></div>
+                    </div>
                 </div>
             </div>
         </script>
@@ -172,7 +168,7 @@
                     </div>
                 </div>
             <% } %>
-            <div class="cell info">
+            <div class="cell desktop-only info">
                 <div class='relative'>
                     <div class="gallery-main-image"></div>
                     <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
@@ -187,7 +183,7 @@
             <div class="cell mobile-only">
                 <img src="<%= image_src %>" alt="image"/>
             </div>
-            <div class="cell info">
+            <div class="cell mobile-only info">
                 <div class='title'></div>
                 <div class='price'></div>
                 <div class='relative'>
