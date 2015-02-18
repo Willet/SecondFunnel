@@ -339,6 +339,7 @@ div.header {
     position: inherit;
     padding: 0;
     max-width: 100%;
+    height: 100%;
 }
 #hero-area .overlay {
     position: absolute;
@@ -501,7 +502,7 @@ div.header {
 .previewContainer,
 .heroContainer {
     height: 100%;
-    
+
     .fullscreen {
         max-width: 1024px;
         max-height: 760px;
@@ -510,9 +511,9 @@ div.header {
     }
 
     .content {
-        padding: 0;
+        padding: 0 !important;
         width: 100%;
-        max-width: 1024px;
+        max-width: 1024px !important;
         max-height: 100%;
         overflow: hidden;
     }
@@ -540,7 +541,6 @@ div.header {
     }
 
     .table {
-        height: 760px;
         max-height: 760px;
         display: block;
     }
@@ -591,8 +591,8 @@ div.header {
                 font-family: "Helvetica-Bold", sans-serif;
                 font-size: 14px;
                 color: $gap-blue;
-                line-height: 18px;
-                max-height: 36px;
+                line-height: 14px;
+                max-height: 28px;
                 overflow: hidden;
             }
             .stl-look-container {
@@ -631,26 +631,26 @@ div.header {
             bottom: 0;
             left: 0;
             .stl-title {
-                margin: 12px 0;
+                margin: 10px 0;
             }
             .stl-look-container {
-                height: auto;
+                height: 80%;
             }
             .stl-look {
                 margin: 0;
                 white-space: nowrap;
                 max-width: 100%;
-                height: 80%;
+                height: 100%;
                 text-align: center;
             }
             .stl-item {
                 margin: 0 12px 25px;
-                height: 167px;
+                height: 85%;
                 width: 125px;
                 white-space: normal;
                 img {
                     height: 95%;
-                    width: auto;
+                    width: auto !important;
                     margin: 0 auto;
                 }
             }
@@ -700,11 +700,11 @@ div.header {
             display: inline-block;
             position: relative;
             width: 100%;
-            height: 70%;
+            height: 63%;
         }
         .product-image-container {
             width: 76%;
-            height: 90%;
+            height: 95%;
             margin: auto;
             overflow: hidden;
             position: relative;
@@ -724,8 +724,9 @@ div.header {
             }
         }
         .gallery-dots {
-            height: 20px;
-            margin: 6px 0 0 !important;
+            margin: 6px 0 !important;
+            width: 100%;
+            font-size: 12px;
             .item {
                 background-color: $gap-blue;
                 width: 6px;
@@ -1291,6 +1292,10 @@ div.header {
             &:first-child {
                 margin-top: 0;
             }
+        }
+
+        .gallery, .tagged-product {
+            height: auto;
         }
 
         .gallery-dots {

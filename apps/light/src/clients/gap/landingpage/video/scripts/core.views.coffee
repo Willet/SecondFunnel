@@ -155,16 +155,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             index = $targetEl.data("index")
             product = @model.get("tagged-products")[index]
             productModel = new module.Product(product)
+            productInstance = new module.ProductView(
+                model: productModel
+            )
+            @gallery.show(productInstance)  
 
             if $el.parents("#hero-area").length
                 # this is a featured content area
                 App.options.heroGalleryIndex = index
                 App.options.heroGalleryIndexPage = 0
-            else
-                productInstance = new module.ProductView(
-                    model: productModel
-                )
-                @gallery.show(productInstance)            
+            productInstance = new module.ProductView(
+                model: productModel
+            )
+            @gallery.show(productInstance)            
             return
 
         'click .stl-swipe-down, .stl-swipe-up': (ev) ->
@@ -208,7 +211,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if itemWidth < containerWidth
                     index = i
                     if ev.target.className is "stl-swipe-left"
-                        margin = 15 unless index is 0 ## 30px padding ##
+                        margin = 15 unless index is 0
                     else
                         margin = stlContainer.width()*(-1)
                     break
@@ -257,7 +260,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if itemWidth > (containerWidth - 15)
                 unless $(item).offset().left is (stlContainer.offset().left + stlContainer.width() + 15)
                     $(item).css(
-                        "margin-left": stlContainer.offset().left + stlContainer.width() - $(item).offset().left + 35
+                        "margin-left": stlContainer.offset().left + stlContainer.width() - $(item).offset().left + 45
                     )
                 stlContainer.css(
                     "text-align": "left"
@@ -363,8 +366,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 model: new module.Product(@model.get("tagged-products")[0])
             )
             @gallery.show(productInstance)
-        unless App.support.mobile()
-            @resizeContainer()
+        @resizeContainer()
 
         if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
             $(".stick-bottom", @$el).addClass("stuck").waypoint("sticky",
