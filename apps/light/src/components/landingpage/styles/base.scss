@@ -426,6 +426,8 @@ div.loading {
     .content {
         z-index: 1002;
         box-shadow: 0px 10px 30px 0px #CECECE;
+        padding: 20px;
+        min-height: 240px;
     }
 }
 #hero-area {
@@ -434,7 +436,6 @@ div.loading {
     .content {
         overflow: hidden;
     }
-
     .close {
         display: none;
     }
@@ -517,8 +518,6 @@ div.loading {
         overflow-x: hidden;
         margin: auto;
         position: relative;
-        padding: 20px;
-        min-height: 240px;
         background: #fff;
         max-width: 900px;
     }
@@ -954,7 +953,8 @@ div.spinner {
         }
     }
 
-    .previewContainer {
+    .previewContainer,
+    .heroContainer {
         display: block;
         height: auto;
         position: relative;
@@ -1023,6 +1023,9 @@ div.spinner {
 }
 
 @media screen and (min-width: 769px) {
+    .container {
+        width: 100%;
+    }
     .mobile-only {
         display: none !important;
     }
