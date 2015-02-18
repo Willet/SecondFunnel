@@ -301,7 +301,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         // Check the category differs from the current category
         if (module._category === category) {
             if (App.option('debug', false)) {
-                console.warn("Could not change category to '"+category+"'': category already selected");
+                console.warn("Could not change category to '"+category+"': category already selected");
             }
         } else {
             // Change to valid category
