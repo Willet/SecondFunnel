@@ -84,7 +84,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 .addClass('selected')
             if @galleryIndex is 0
                 @leftArrow.hide()
+                @rightArrow.show()
             else if @galleryIndex is @numberOfImages - 1
+                @leftArrow.show()
                 @rightArrow.hide()
             else
                 @leftArrow.show()
@@ -288,8 +290,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                     tableHeight = undefined
                     numImages = $element.find("img.image").length
-                    unless tileType == "product"
-                        if (orientation == "landscape" and numImages > 1) or orientation == "portrait"
+                    unless @model.get("template") == "product"
+                        if (@model.get("orientation") == "landscape" and numImages > 1) or @model.get("orientation") == "portrait"
                             tableHeight = if container.height() then container.height() else containedItem.height()
                         else
                             tableHeight = (if container.width() then container.width() else containedItem.width())*0.496
@@ -299,7 +301,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                     # loading hero area
                     unless container and container.length
-                        if orientation == "landscape"
+                        if @model.get("orientation") == "landscape"
                             $element.find('#hero-area')
                             @arrangeStlItemsHorizontal($element)
                         else
@@ -328,22 +330,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         left: widthReduction
                         right: widthReduction
                     )
-                    if orientation == "landscape"
+                    if @model.get("orientation") == "landscape"
                         @arrangeStlItemsHorizontal($element)
                     else
                         @arrangeStlItemsVertical($element)
                 return
 
         imageCount = $("img.main-image, img.image", @$el).length
-        tileType = @model.get("template")
-        orientation = @model.get("orientation")
-        if @model.get("sizes")?.master
-            width = @model.get("sizes").master.width
-            height = @model.get("sizes").master.height
-            if Math.abs((height-width)/width) <= 0.02
-                orientation = "square"
-            else if width > height
-                orientation = "landscape"
 
         # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
         $("img.main-image, img.image", @$el).one("load", shrinkContainer(@$el)).each ->
@@ -358,6 +351,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::onShow = ->
+        if @model.get("sizes")?.master
+            width = @model.get("sizes").master.width
+            height = @model.get("sizes").master.height
+            if Math.abs((height-width)/width) <= 0.02
+                @model.attributes.orientation = "square"
+            else if width > height
+                @model.attributes.orientation = "landscape"
+            else
+                @model.attributes.orientation = "portrait"
         if App.support.mobile() and @model.get("tagged-products")?.length > 0
             productsInstance = new module.ProductCollectionView(@model.get("tagged-products"))
             @gallery.show(productsInstance)

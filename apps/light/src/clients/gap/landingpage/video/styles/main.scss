@@ -508,6 +508,12 @@ div.header {
         max-height: 760px;
         width: 100%;
         height: 100%;
+        .table {
+            height: 760px; /* initial height for desktop, fixed later onShow */
+            &.square {
+                height: 507px;
+            }
+        }
     }
 
     .content {
@@ -604,6 +610,7 @@ div.header {
                 overflow: hidden;
             }
             .stl-look {
+                width: 90%;
                 height: 100%;
                 overflow: visible;
                 margin: 0 auto;
@@ -932,7 +939,7 @@ div.header {
     .stl-swipe-up, .stl-swipe-down,
     .stl-swipe-left, .stl-swipe-right,
     .product-swipe-left, .product-swipe-right {
-        display: block;
+        display: none;
         background-repeat: no-repeat;
         background-position: center;
         border: none;
