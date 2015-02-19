@@ -184,9 +184,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if itemHeight < containerHeight
                     index = i
                     if ev.target.className is "stl-swipe-up"
+                        @stlGalleryIndex--
                         margin = 30 unless index is 0 ## 30px padding ##
-                    else
-                        margin = stlContainer.height()*(-1)
+                    else        
+                        @stlGalleryIndex++
+                        margin = stlContainer.height()*@stlGalleryIndex*(-1)
                     break
             unless index is undefined
                 upArrow = @$el.find(".stl-swipe-up")
@@ -204,33 +206,29 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         'click .stl-swipe-left, .stl-swipe-right': (ev) ->
             stlItems = @$el.find(".stl-item")
-            stlContainer = @$el.find(".stl-look-container")
-            containerWidth = stlContainer.offset().left + stlContainer.width()
-            index = undefined
-            margin = 0
-            for item, i in stlItems
-                itemWidth = $(item).offset().left + $(item).width()
-                if itemWidth < containerWidth
-                    index = i
-                    if ev.target.className is "stl-swipe-left"
-                        margin = 15 unless index is 0
-                    else
-                        margin = stlContainer.width()*(-1)
-                    break
-            unless index is undefined
-                leftArrow = @$el.find(".stl-swipe-left")
-                rightArrow = @$el.find(".stl-swipe-right")
-                leftArrow.hide()
-                rightArrow.hide()
-                $(stlItems[index]).animate({"marginLeft": margin}, 250, "swing", =>
-                    lastItemWidth = stlItems.last().offset().left + stlItems.last().width()
-                    firstItemWidth = stlItems.first().offset().left + stlItems.first().width()
-                    if firstItemWidth > stlContainer.offset().left then leftArrow.hide() else leftArrow.show()
-                    if lastItemWidth < stlContainer.offset().left + stlContainer.width() then rightArrow.hide() else rightArrow.show()
-                )
+            stlContainer = @$el.find(".stl-look")
+            if ev.target.className is "stl-swipe-left"
+                @stlGalleryIndex--
+                margin = stlContainer.outerWidth()*@stlGalleryIndex
+            else    
+                @stlGalleryIndex++
+                margin = stlContainer.outerWidth()*@stlGalleryIndex*(-1)
+            leftArrow = @$el.find(".stl-swipe-left")
+            rightArrow = @$el.find(".stl-swipe-right")
+            stlContainer.css(
+                '-webkit-transition-duration': (250 / 1000).toFixed(1) + 's',
+                'transition-duration': (250 / 1000).toFixed(1) + 's',
+                '-webkit-transform': 'translate3d(' + margin + 'px, 0px, 0px)',
+                '-ms-transform': 'translateX(' + margin+ 'px)',
+                'transform': 'translate3d(' + margin + 'px, 0px, 0px)'
+            )
+            if @stlGalleryIndex is 0 then leftArrow.hide() else leftArrow.show()
+            if @stlGalleryIndex is @stlGalleryCount then rightArrow.hide() else rightArrow.show()
             return
 
     module.ExpandedContent::arrangeStlItemsVertical = ($element) ->
+        @stlGalleryIndex = 0
+        @stlGalleryCount = 0
         upArrow = $element.find(".stl-swipe-up")
         downArrow = $element.find(".stl-swipe-down")
         stlItems = $element.find(".stl-item")
@@ -242,8 +240,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 unless $(item).offset().top is (stlContainer.offset().top + stlContainer.height() + 20)
                     $(item).css(
                         ## position of arrow + padding ##
-                        "margin-top": stlContainer.offset().top + stlContainer.height() - $(item).offset().top + 50
+                        "margin-top": containerHeight - $(item).offset().top + 50
                     )
+                @stlGalleryCount++
                 containerHeight += stlContainer.height()    
         lastItemHeight = stlItems.last().offset().top + stlItems.last().height()
         firstItemHeight = stlItems.first().offset().top + stlItems.first().height()
@@ -252,22 +251,25 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::arrangeStlItemsHorizontal = ($element) ->
+        @stlGalleryIndex = 0
+        @stlGalleryCount = 0
         leftArrow = $element.find(".stl-swipe-left")
         rightArrow = $element.find(".stl-swipe-right")
         stlItems = $element.find(".stl-item")
         stlContainer = $element.find(".stl-look")
-        containerWidth = stlContainer.offset().left + stlContainer.width()
+        containerWidth = stlContainer.offset().left + stlContainer.outerWidth()
         for item, i in stlItems
             itemWidth = $(item).offset().left + $(item).width()
             if itemWidth > (containerWidth - 15)
-                unless $(item).offset().left is (stlContainer.offset().left + stlContainer.width() + 15)
+                unless $(item).offset().left is (containerWidth + 15)
                     $(item).css(
-                        "margin-left": stlContainer.offset().left + stlContainer.width() - $(item).offset().left + 45
+                        "margin-left": containerWidth - $(item).offset().left + 30
                     )
                 stlContainer.css(
                     "text-align": "left"
                 )
-                containerWidth += stlContainer.width()
+                @stlGalleryCount++
+                containerWidth += stlContainer.outerWidth()
         lastItemWidth = stlItems.last().offset().left + stlItems.last().width()
         firstItemWidth = stlItems.first().offset().left + stlItems.first().width()
         if firstItemWidth > stlContainer.offset().left then leftArrow.hide() else leftArrow.show()
