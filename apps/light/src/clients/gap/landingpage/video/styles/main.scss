@@ -687,7 +687,7 @@ div.header {
             color: #4e5c85;
             line-height: 18px;
             width: 97%;
-            height: 36px;
+            height: auto;
             text-align: left;
             margin: 0px;
         }
@@ -697,11 +697,14 @@ div.header {
             color: $gap-blue;
             text-align: left;
             line-height: 13px;
-            height: 26px;
+            height: auto;
             margin: 0 0 6px 0 !important;
         }
         .gallery, .tagged-product {
             height: 100%;
+        }
+        .tagged-product .product-info {
+            height: 54px;
         }
         .product-image-gallery {
             display: inline-block;
@@ -835,14 +838,14 @@ div.header {
                     display: inline-block;
                     vertical-align: top;
                     text-align: left;
-                    width: 29%;
+                    width: 24%;
                     .title, .price {
                         font-family: $gap-helvetica-neue;
                         font-size: 10px;
                         line-height: 12px;
                         padding: 0;
                         color: $gap-blue;
-                        height: 36px;
+                        height: auto;
                         overflow: hidden;
                         margin-bottom: 5px !important;
                     }
@@ -870,6 +873,7 @@ div.header {
                                 background-size: contain;
                                 background-position: top center;
                                 background-repeat: no-repeat;
+                                background-color: white;
                             }
                         }
                     }
@@ -896,13 +900,14 @@ div.header {
                     padding: 0;
                     margin-top: 0 !important;
                     vertical-align: top;
+                    margin-left: 5%;
                     .button {
                         width: 100%;
-                        text-transform: uppercase;
+                        text-transform: lowercase;
                         font-size: 10px;
                         letter-spacing: 0px;
                         line-height: 10px;
-                        padding: 5px 20%;
+                        padding: 10px 10%;
                         white-space: normal;
                     }
                 }
