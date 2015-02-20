@@ -174,34 +174,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         'click .stl-swipe-down, .stl-swipe-up': (ev) ->
             stlItems = @$el.find(".stl-item")
-            stlContainer = @$el.find(".stl-look-container")
+            stlContainer = @$el.find(".stl-look")
             containerHeight = stlContainer.offset().top + stlContainer.height()
-            index = undefined
-            margin = 0
-            for item, i in stlItems
-                itemHeight = $(item).offset().top + $(item).height()
-                ## Find first visible item ##
-                if itemHeight < containerHeight
-                    index = i
-                    if ev.target.className is "stl-swipe-up"
-                        @stlGalleryIndex--
-                        margin = 30 unless index is 0 ## 30px padding ##
-                    else        
-                        @stlGalleryIndex++
-                        margin = stlContainer.height()*@stlGalleryIndex*(-1)
-                    break
-            unless index is undefined
-                upArrow = @$el.find(".stl-swipe-up")
-                downArrow = @$el.find(".stl-swipe-down")
-                upArrow.hide()
-                downArrow.hide()
-                $(stlItems[index]).animate({"marginTop": margin}, 250, "swing", =>
-                    ## TODO: May want to turn this into a private method? ##
-                    lastItemHeight = stlItems.last().offset().top + stlItems.last().height()
-                    firstItemHeight = stlItems.first().offset().top + stlItems.first().height()
-                    if firstItemHeight > stlContainer.offset().top then upArrow.hide() else upArrow.show()
-                    if lastItemHeight < stlContainer.offset().top + stlContainer.height() then downArrow.hide() else downArrow.show()
-                )
+            if ev.target.className is "stl-swipe-up"
+                @stlGalleryIndex--
+                distance = if @stlGalleryIndex > 0 then 30 + stlContainer.height*@stlGalleryIndex*(-1) else 0 ## 30px padding ##
+            else        
+                @stlGalleryIndex++
+                distance = stlContainer.height()*@stlGalleryIndex*(-1)
+            upArrow = @$el.find(".stl-swipe-up")
+            downArrow = @$el.find(".stl-swipe-down")
+            @updateStlGalleryPosition(distance)
+            if @stlGalleryIndex is 0 then upArrow.hide() else upArrow.show()
+            if @stlGalleryIndex is @stlGalleryCount then downArrow.hide() else downArrow.show()
             return
 
         'click .stl-swipe-left, .stl-swipe-right': (ev) ->
@@ -209,22 +194,32 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             stlContainer = @$el.find(".stl-look")
             if ev.target.className is "stl-swipe-left"
                 @stlGalleryIndex--
-                margin = stlContainer.outerWidth()*@stlGalleryIndex
+                distance = stlContainer.outerWidth()*@stlGalleryIndex*(-1)
             else    
                 @stlGalleryIndex++
-                margin = stlContainer.outerWidth()*@stlGalleryIndex*(-1)
+                distance = stlContainer.outerWidth()*@stlGalleryIndex*(-1)
             leftArrow = @$el.find(".stl-swipe-left")
             rightArrow = @$el.find(".stl-swipe-right")
-            stlContainer.css(
-                '-webkit-transition-duration': (250 / 1000).toFixed(1) + 's',
-                'transition-duration': (250 / 1000).toFixed(1) + 's',
-                '-webkit-transform': 'translate3d(' + margin + 'px, 0px, 0px)',
-                '-ms-transform': 'translateX(' + margin+ 'px)',
-                'transform': 'translate3d(' + margin + 'px, 0px, 0px)'
-            )
+            @updateStlGalleryPosition(distance)
             if @stlGalleryIndex is 0 then leftArrow.hide() else leftArrow.show()
             if @stlGalleryIndex is @stlGalleryCount then rightArrow.hide() else rightArrow.show()
             return
+
+    module.ExpandedContent::updateStlGalleryPosition = (distance) ->
+        if @model.get('orientation') is "landscape"
+            translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
+            translate = 'translateX(' + distance + 'px)'
+        else
+            translate3d = 'translate3d(0px, ' + distance + 'px, 0px)'
+            translate = 'translateY(' + distance + 'px)'
+        @$el.find('.stl-look').css(
+            '-webkit-transition-duration': '0.3s',
+            'transition-duration': '0.3s',
+            '-webkit-transform': translate3d,
+            '-ms-transform': translate,
+            'transform': translate3d
+        )
+        return
 
     module.ExpandedContent::arrangeStlItemsVertical = ($element) ->
         @stlGalleryIndex = 0
@@ -232,22 +227,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         upArrow = $element.find(".stl-swipe-up")
         downArrow = $element.find(".stl-swipe-down")
         stlItems = $element.find(".stl-item")
-        stlContainer = $element.find(".stl-look-container")
+        stlContainer = $element.find(".stl-look")
         containerHeight = stlContainer.offset().top + stlContainer.height()
         for item, i in stlItems
             itemHeight = $(item).offset().top + $(item).height()
-            if itemHeight > (containerHeight - 20) ## position of down arrow at 20px ##
-                unless $(item).offset().top is (stlContainer.offset().top + stlContainer.height() + 20)
+            if itemHeight > (containerHeight - 15) ## position of down arrow at 15px ##
+                unless $(item).offset().top is (containerHeight + 15)
                     $(item).css(
                         ## position of arrow + padding ##
-                        "margin-top": containerHeight - $(item).offset().top + 50
+                        "margin-top": containerHeight - $(item).offset().top + 45
                     )
+                downArrow.show()
                 @stlGalleryCount++
                 containerHeight += stlContainer.height()    
-        lastItemHeight = stlItems.last().offset().top + stlItems.last().height()
-        firstItemHeight = stlItems.first().offset().top + stlItems.first().height()
-        if firstItemHeight > stlContainer.offset().top then upArrow.hide() else upArrow.show()
-        if lastItemHeight < stlContainer.offset().top + stlContainer.height() then downArrow.hide() else downArrow.show()
+        @updateStlGalleryPosition(0)
+        upArrow.hide()
         return
 
     module.ExpandedContent::arrangeStlItemsHorizontal = ($element) ->
@@ -268,12 +262,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 stlContainer.css(
                     "text-align": "left"
                 )
+                rightArrow.show()
                 @stlGalleryCount++
                 containerWidth += stlContainer.outerWidth()
-        lastItemWidth = stlItems.last().offset().left + stlItems.last().width()
-        firstItemWidth = stlItems.first().offset().left + stlItems.first().width()
-        if firstItemWidth > stlContainer.offset().left then leftArrow.hide() else leftArrow.show()
-        if lastItemWidth < stlContainer.offset().left + stlContainer.width() then rightArrow.hide() else rightArrow.show()
+        @updateStlGalleryPosition(0)
+        leftArrow.hide()
         return
 
     module.ExpandedContent::resizeContainer = ->
@@ -304,7 +297,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     # loading hero area
                     unless container and container.length
                         if @model.get("orientation") == "landscape"
-                            $element.find('#hero-area')
                             @arrangeStlItemsHorizontal($element)
                         else
                             @arrangeStlItemsVertical($element)
@@ -320,11 +312,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     widthReduction = $(window).width()
                     heightReduction -= containedItem.outerHeight()
                     heightReduction /= 2 # Split over top and bottom
-                    if heightReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                    if heightReduction <= 0 # String because jQuery checks for falsey values
                         heightReduction = "0"
                     widthReduction -= containedItem.outerWidth()
                     widthReduction /= 2
-                    if widthReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                    if widthReduction <= 0 # String because jQuery checks for falsey values
                         widthReduction = "0"
                     container.css(
                         top: heightReduction
