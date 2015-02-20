@@ -523,9 +523,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             "click .buy": (event) ->
                 $target = $(event.target)
                 # Over-write addUrlTrackingParameters for each customer
-                url = App.utils.addUrlTrackingParameters( $target.find('.button').attr('href') )
+                url = App.utils.addUrlTrackingParameters( $target.attr('href') )
                 App.utils.openUrl(url)
-                return
+                return false
 
         initialize: (options) ->
             @options = options
