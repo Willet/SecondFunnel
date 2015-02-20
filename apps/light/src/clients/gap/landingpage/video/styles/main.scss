@@ -1257,6 +1257,9 @@ div.header {
         .fullscreen {
             max-height: none;
             max-width: 100%;
+            .table {
+                height: auto;
+            }
         }
 
         .close {
