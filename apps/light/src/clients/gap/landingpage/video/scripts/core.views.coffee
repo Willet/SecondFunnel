@@ -10,8 +10,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#product_info_template"
 
         events:
-            'click .product-swipe-left, .product-swipe-right': (ev) ->
-                if ev.target.className is 'product-swipe-left'
+            'click .gallery-swipe-left, .gallery-swipe-right': (ev) ->
+                if ev.target.className is 'gallery-swipe-left'
                     @galleryIndex = Math.max(@galleryIndex - 1, 0)
                 else 
                     @galleryIndex = Math.min(@galleryIndex + 1, @numberOfImages - 1)
@@ -28,8 +28,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @setElement(@$el.children())
 
         onShow: ->
-            @leftArrow = @$el.find('.product-swipe-left')
-            @rightArrow = @$el.find('.product-swipe-right')
+            @leftArrow = @$el.find('.gallery-swipe-left')
+            @rightArrow = @$el.find('.gallery-swipe-right')
             @mainImage = @$el.find('.main-image')
             if @numberOfImages > 1
                 @updateGallery()
@@ -160,7 +160,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productInstance = new module.ProductView(
                 model: productModel
             )
-            @gallery.show(productInstance)  
+            @productInfo.show(productInstance)  
 
             if $el.parents("#hero-area").length
                 # this is a featured content area
@@ -169,7 +169,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productInstance = new module.ProductView(
                 model: productModel
             )
-            @gallery.show(productInstance)            
+            @productInfo.show(productInstance)            
             return
 
         'click .stl-swipe-down, .stl-swipe-up': (ev) ->
@@ -356,12 +356,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @model.attributes.orientation = "portrait"
         if App.support.mobile() and @model.get("tagged-products")?.length > 0
             productsInstance = new module.ProductCollectionView(@model.get("tagged-products"))
-            @gallery.show(productsInstance)
+            @productInfo.show(productsInstance)
         else if @model.get("tagged-products")?.length > 0
             productInstance = new module.ProductView(
                 model: new module.Product(@model.get("tagged-products")[0])
             )
-            @gallery.show(productInstance)
+            @productInfo.show(productInstance)
         @resizeContainer()
 
         if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky

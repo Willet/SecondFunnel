@@ -469,7 +469,7 @@
                 </div>
             <% } %>
             <div class="cell info <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
-                <div class='gallery'></div>
+                <div class="product-info"></div>
             </div>
             <img class="image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" style="visibility:hidden"/>
         </script>
@@ -480,7 +480,7 @@
             </div>
             <div class="cell info mobile-only">
                 <div class="stl-title">shop the look</div>
-                <div class="gallery"></div>
+                <div class="product-info"></div>
             </div>
         </script>
 
@@ -521,7 +521,7 @@
 
         <script type="text/template" id="product_info_template">
             <div class="tagged-product">
-                <div class="product-info">
+                <div class="product-details">
                     <div class='title'>
                         <%- obj.title || obj.name %>
                     </div>
@@ -534,12 +534,12 @@
                         <% } %>
                     </div>
                 </div>
-                <div class="product-image-gallery">
+                <div class="gallery-main-image">
                     <% if (obj.images.length > 1) { %>
-                        <div class="product-swipe-left"></div>
-                        <div class="product-swipe-right"></div>
+                        <div class="gallery-swipe-left"></div>
+                        <div class="gallery-swipe-right"></div>
                     <% } %>
-                    <div class="product-image-container">
+                    <div class="main-image-container">
                         <div class="main-image">
                             <% for (var j = 0; j < obj.images.length; j++) { %>
                                 <div class="image" style="background-image: url('<%= obj.images[j].url %>');"></div>

@@ -83,24 +83,69 @@
     @@include('shared/campaign_body.html')
 
     <div>
-        <script type="text/template" id="product_buy_template">
-            <a class='button' href='<%= obj.url %>' target='_blank'>
-                Shop on Anthropologie
-            </a>
-        </script>
-
-        <script type="text/template" id="product_galleryMainImage_template">
-            <div class="main-image-container">
-                <% if (obj.images.length > 1) { %>
-                    <div class="gallery-swipe-left"></div>
-                    <div class="gallery-swipe-right"></div>
-                <% } %>
-                <div class="main-image">
-                    <% for (var i = 0; i < obj.images.length; i++) { %>
-                        <div class="polaroid">
-                            <img class="image" src="<%- obj.images[i].url %>" />
+        <script type="text/template" id="product_info_template">
+            <div class="tagged-product">
+                <div class="product-details mobile-only">
+                    <div class='title'>
+                        <%- obj.title || obj.name %>
+                    </div>
+                    <div class='price'>
+                        <% if (obj.sale_price) { %>
+                            <div class="strike inline">
+                                <%- obj.price %>
+                            </div>
+                            <%- obj.sale_price %>
+                        <% } else { %>
+                            <%- obj.price %>
+                        <% } %>
+                    </div>
+                </div>
+                <div class='relative'>
+                    <div class="gallery-main-image">
+                        <div class="main-image-container">
+                            <% if (obj.images.length > 1) { %>
+                                <div class="gallery-swipe-left"></div>
+                                <div class="gallery-swipe-right"></div>
+                            <% } %>
+                            <div class="main-image">
+                                <% for (var i = 0; i < obj.images.length; i++) { %>
+                                    <div class="polaroid">
+                                        <img class="image" src="<%- obj.images[i].url %>" />
+                                    </div>
+                                <% } %>
+                            </div>
                         </div>
-                    <% } %>
+                    </div>
+                    <div class="gallery-dots <% if (obj.images.length < 2) { %> hide <% } %>">
+                        <% for (var i = 0; i < obj.images.length; i++) { %>
+                            <div class="item"></div>
+                        <% } %>
+                    </div>
+                    <div class='buy mobile-only'>
+                        <a class='button' href='<%= obj.url %>' target='_blank'>
+                            Shop on Anthropologie
+                        </a>
+                    </div>
+                </div>
+                <div class="product-details desktop-only">
+                    <div class='title'>
+                        <%- obj.title || obj.name %>
+                    </div>
+                    <div class='price'>
+                        <% if (obj.sale_price) { %>
+                            <div class="strike inline">
+                                <%- obj.price %>
+                            </div>
+                            <%- obj.sale_price %>
+                        <% } else { %>
+                            <%- obj.price %>
+                        <% } %>
+                    </div>
+                </div>
+                <div class='buy desktop-only'>
+                    <a class='button' href='<%= obj.url %>' target='_blank'>
+                        Shop on Anthropologie
+                    </a>
                 </div>
             </div>
         </script>
@@ -169,13 +214,7 @@
                 </div>
             <% } %>
             <div class="cell desktop-only info">
-                <div class='relative'>
-                    <div class="gallery-main-image"></div>
-                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                </div>
-                <div class='title'></div>
-                <div class='price'></div>
-                <div class='buy'></div>
+                <div class="product-info"></div>
             </div>
         </script>
 
@@ -184,6 +223,7 @@
                 <img src="<%= image_src %>" alt="image"/>
             </div>
             <div class="cell mobile-only info">
+                <div class="product-info"></div>
                 <div class='title'></div>
                 <div class='price'></div>
                 <div class='relative'>
