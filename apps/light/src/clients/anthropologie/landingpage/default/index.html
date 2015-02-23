@@ -85,6 +85,82 @@
     <div>
         <script type="text/template" id="product_info_template">
             <div class="tagged-product">
+                <div class="cell info desktop-only">
+                    <div class='title'>
+                        <%- obj.title || obj.name %>
+                    </div>
+                    <div class='price'>
+                        <% if (obj.sale_price) { %>
+                            <div class="strike inline">
+                                <%- obj.price %>
+                            </div>
+                            <%- obj.sale_price %>
+                        <% } else { %>
+                            <%- obj.price %>
+                        <% } %>
+                    </div>
+                    <div class="description">
+                        <%= obj.description %>
+                    </div>
+                    <div class='buy'>
+                        <a class='button' href='<%= obj.url %>' target='_blank'>
+                            Shop on Anthropologie
+                        </a>
+                    </div>
+                    <div class="gallery">
+                        <% for (var i = 0; i < obj.images.length; i++) { %>
+                            <img class="item" src="<%- obj.images[i].url %>" />
+                        <% } %>
+                    </div>
+                </div>
+                <div class="cell image-cell">
+                    <div class='relative'>
+                        <div class="gallery-main-image">
+                            <div class="main-image-container">
+                                <% if (obj.images.length > 1) { %>
+                                    <div class="gallery-swipe-left"></div>
+                                    <div class="gallery-swipe-right"></div>
+                                <% } %>
+                                <div class="main-image">
+                                    <% for (var i = 0; i < obj.images.length; i++) { %>
+                                        <div class="polaroid">
+                                            <img class="image" src="<%- obj.images[i].url %>" />
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gallery-dots <% if (obj.images.length < 2) { %> hide <% } %>">
+                            <% for (var i = 0; i < obj.images.length; i++) { %>
+                                <div class="item"></div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="cell info mobile-only">
+                    <div class='title'>
+                        <%- obj.title || obj.name %>
+                    </div>
+                    <div class='price'>
+                        <% if (obj.sale_price) { %>
+                            <div class="strike inline">
+                                <%- obj.price %>
+                            </div>
+                            <%- obj.sale_price %>
+                        <% } else { %>
+                            <%- obj.price %>
+                        <% } %>
+                    </div>
+                    <div class='buy'>
+                        <a class='button' href='<%= obj.url %>' target='_blank'>
+                            Shop on Anthropologie
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </script>
+        <script type="text/template" id="image_info_template">
+            <div class="tagged-product">
                 <div class="product-details mobile-only">
                     <div class='title'>
                         <%- obj.title || obj.name %>
@@ -150,29 +226,14 @@
             </div>
         </script>
 
+        <script type="text/template" id="gif_info_template">
+            <% include('image_info_template') %>
+        </script>
+
         <script type="text/template" id="product_preview_template">
             <div class="table product">
                 <div class='content-wrapper row'>
-                    <div class='cell info desktop-only'>
-                        <div class='title'></div>
-                        <div class='price'></div>
-                        <div class='description'></div>
-                        <div class='buy'></div>
-                        <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
-                    </div>
-                    <div class='cell image-cell'>
-                        <div class='relative'>
-                            <div class="gallery-main-image"></div>
-                            <% if (obj.images.length > 1) { %>
-                                <div class='gallery-dots mobile-only'></div>
-                            <% } %>
-                        </div>
-                    </div>
-                    <div class='cell info mobile-only'>
-                        <div class='title'></div>
-                        <div class='price'></div>
-                        <div class='buy'></div>
-                    </div>
+                    <div class="product-info"></div>
                 </div>
             </div>
         </script>
@@ -224,13 +285,6 @@
             </div>
             <div class="cell mobile-only info">
                 <div class="product-info"></div>
-                <div class='title'></div>
-                <div class='price'></div>
-                <div class='relative'>
-                    <div class="gallery-main-image"></div>
-                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                    <div class='buy'></div>
-                </div>
             </div>
             <% if (obj['tagged-products'].length > 1) { %>
                 <div class="cell mobile-only">

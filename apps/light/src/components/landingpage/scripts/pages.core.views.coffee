@@ -11,6 +11,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.ProductView extends Marionette.ItemView
         template: "#product_info_template"
+        templates: ->
+            templateRules = [
+                # supported contexts: options, data
+                "#<%= data.type %>_info_template"
+                "#image_info_template"
+                "#product_info_template"
+            ]
+            unless App.support.mobile()
+                # remove mobile templates if it isn't mobile, since they take
+                # higher precedence by default
+                templateRules = _.reject(templateRules, (t) ->
+                    t.indexOf("mobile") > -1
+                )
+            templateRules
+
 
         events:
             'click .gallery-swipe-left, .gallery-swipe-right': (ev) ->
@@ -29,6 +44,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onRender: ->
             @setElement(@$el.children())
+            return
 
         onShow: ->
             @leftArrow = @$el.find('.gallery-swipe-left')
@@ -309,6 +325,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if @model.get("tagged-products")?.length > 0
                 productInstance = new module.ProductView(
                     model: new module.Product(@model.get("tagged-products")[0])
+                )
+                @productInfo.show(productInstance)
+            else if @model.get("template") == "product"
+                productInstance = new module.ProductView(
+                    model: new module.Product(@model.attributes)
                 )
                 @productInfo.show(productInstance)
             @resizeContainer()
