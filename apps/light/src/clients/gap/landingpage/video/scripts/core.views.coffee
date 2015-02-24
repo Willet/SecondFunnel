@@ -151,6 +151,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         productInfo: ".product-info"
 
     module.ExpandedContent.prototype.events =
+        "click .look-image": (event) ->
+            image = @lookImage.find(".look-image-container")
+            image.toggleClass("full-image")
+            return
+
+        "click .look-thumbnail": (event) ->
+            @lookImage.show()
+            @lookThumbnail.hide()
+            @productDetails.hide()
+            return
+
         "click .stl-look .stl-item": (event) ->
             $el = @$el
             $ev = $(event.target)
@@ -172,7 +183,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productInstance = new module.ProductView(
                 model: productModel
             )
-            @productInfo.show(productInstance)            
+            @productInfo.show(productInstance)
+            if App.support.mobile()
+                @lookImage.hide()
+                @lookThumbnail.show()
+                @productDetails.show()
             return
 
         'click .stl-swipe-down, .stl-swipe-up': (ev) ->
@@ -348,6 +363,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::onShow = ->
+        if App.support.mobile()
+            @lookImage = @$el.find('.look-image')
+            @lookThumbnail = @$el.find('.look-thumbnail')
+            @productDetails = @$el.find('.info')
+            @lookThumbnail.hide()
+            @productDetails.hide()
         if @model.get("sizes")?.master
             width = @model.get("sizes").master.width
             height = @model.get("sizes").master.height

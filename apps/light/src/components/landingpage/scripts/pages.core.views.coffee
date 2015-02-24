@@ -165,6 +165,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: ->
             @$el.attr
                 id: "preview-#{@model.cid}"
+                class: "preview-container"
             return
 
         close: ->

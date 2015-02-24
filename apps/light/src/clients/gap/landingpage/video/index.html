@@ -551,11 +551,16 @@
                         <% } %>
                     </div>
                 </div>
-                <div class="product-image-gallery">
+                <div class="gallery-main-image">
                     <% if (obj.images.length > 1) { %>
                         <div class="product-swipe-left"></div>
                         <div class="product-swipe-right"></div>
                     <% } %>
+                <% if (obj.images.length > 1) { %>
+                    <div class="product-swipe-left"></div>
+                    <div class="product-swipe-right"></div>
+                <% } %>
+                <div class="product-image-gallery">
                     <div class="product-image-container">
                         <div class="main-image">
                             <% for (var j = 0; j < obj.images.length; j++) { %>
@@ -563,11 +568,11 @@
                             <% } %>
                         </div>
                     </div>
-                    <div class="gallery-dots <% if (obj.images.length < 2) { %> hide <% } %>">
-                        <% for (var i = 0; i < obj.images.length; i++) { %>
-                            <div class="item"></div>
-                        <% } %>
-                    </div>
+                </div>
+                <div class="gallery-dots <% if (obj.images.length < 2) { %> hide <% } %>">
+                    <% for (var i = 0; i < obj.images.length; i++) { %>
+                        <div class="item"></div>
+                    <% } %>
                 </div>
                 <div class='buy'>
                     <a class="button find-store" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
