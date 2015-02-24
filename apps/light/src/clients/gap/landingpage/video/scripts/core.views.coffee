@@ -147,7 +147,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         )
     )
 
+    module.ExpandedContent.prototype.regions =
+        productInfo: ".product-info"
+
     module.ExpandedContent.prototype.events =
+        "click .look-image": (event) ->
+            image = @lookImage.find(".look-image-container")
+            image.toggleClass("full-image")
+            return
+
+        "click .look-thumbnail": (event) ->
+            @lookImage.show()
+            @lookThumbnail.hide()
+            @productDetails.hide()
+            return
+
         "click .stl-look .stl-item": (event) ->
             $el = @$el
             $ev = $(event.target)
@@ -160,7 +174,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productInstance = new module.ProductView(
                 model: productModel
             )
-            @gallery.show(productInstance)  
+            @productInfo.show(productInstance)  
 
             if $el.parents("#hero-area").length
                 # this is a featured content area
@@ -169,7 +183,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productInstance = new module.ProductView(
                 model: productModel
             )
-            @gallery.show(productInstance)            
+            @productInfo.show(productInstance)
+            if App.support.mobile()
+                @lookImage.hide()
+                @lookThumbnail.show()
+                @productDetails.show()
             return
 
         'click .stl-swipe-down, .stl-swipe-up': (ev) ->
@@ -221,13 +239,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         )
         return
 
-    module.ExpandedContent::arrangeStlItemsVertical = ($element) ->
+    module.ExpandedContent::arrangeStlItemsVertical = ->
         @stlGalleryIndex = 0
         @stlGalleryCount = 0
-        upArrow = $element.find(".stl-swipe-up")
-        downArrow = $element.find(".stl-swipe-down")
-        stlItems = $element.find(".stl-item")
-        stlContainer = $element.find(".stl-look")
+        upArrow = @$el.find(".stl-swipe-up")
+        downArrow = @$el.find(".stl-swipe-down")
+        stlItems = @$el.find(".stl-item")
+        stlContainer = @$el.find(".stl-look")
         containerHeight = stlContainer.offset().top + stlContainer.height()
         for item, i in stlItems
             itemHeight = $(item).offset().top + $(item).height()
@@ -244,12 +262,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         upArrow.hide()
         return
 
-    module.ExpandedContent::arrangeStlItemsHorizontal = ($element) ->
+    module.ExpandedContent::arrangeStlItemsHorizontal = ->
         @stlGalleryIndex = 0
         @stlGalleryCount = 0
-        leftArrow = $element.find(".stl-swipe-left")
-        rightArrow = $element.find(".stl-swipe-right")
-        stlItems = $element.find(".stl-item")
+        leftArrow = @$el.find(".stl-swipe-left")
+        rightArrow = @$el.find(".stl-swipe-right")
+        stlItems = @$el.find(".stl-item")
         stlContainer = $element.find(".stl-look")
         containerWidth = stlContainer.offset().left + stlContainer.outerWidth()
         for item, i in stlItems
@@ -297,9 +315,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     # loading hero area
                     unless container and container.length
                         if @model.get("orientation") == "landscape"
-                            @arrangeStlItemsHorizontal($element)
+                            @arrangeStlItemsHorizontal()
                         else
-                            @arrangeStlItemsVertical($element)
+                            @arrangeStlItemsVertical()
                         return
                     container.css(
                         top: "0"
@@ -325,9 +343,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         right: widthReduction
                     )
                     if @model.get("orientation") == "landscape"
-                        @arrangeStlItemsHorizontal($element)
+                        @arrangeStlItemsHorizontal()
                     else
-                        @arrangeStlItemsVertical($element)
+                        @arrangeStlItemsVertical()
                 return
 
         imageCount = $("img.main-image, img.image", @$el).length
@@ -345,6 +363,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::onShow = ->
+        if App.support.mobile()
+            @lookImage = @$el.find('.look-image')
+            @lookThumbnail = @$el.find('.look-thumbnail')
+            @productDetails = @$el.find('.info')
+            @lookThumbnail.hide()
+            @productDetails.hide()
+            if App.utils.landscape()
+                @$el.closest(".previewContainer").addClass("landscape")
+            else
+                @$el.closest(".previewContainer").removeClass("landscape")
         if @model.get("sizes")?.master
             width = @model.get("sizes").master.width
             height = @model.get("sizes").master.height
@@ -354,14 +382,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @model.attributes.orientation = "landscape"
             else
                 @model.attributes.orientation = "portrait"
-        if App.support.mobile() and @model.get("tagged-products")?.length > 0
-            productsInstance = new module.ProductCollectionView(@model.get("tagged-products"))
-            @gallery.show(productsInstance)
-        else if @model.get("tagged-products")?.length > 0
+        if @model.get("tagged-products")?.length > 0
             productInstance = new module.ProductView(
                 model: new module.Product(@model.get("tagged-products")[0])
             )
-            @gallery.show(productInstance)
+            @productInfo.show(productInstance)
         @resizeContainer()
 
         if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky

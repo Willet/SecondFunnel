@@ -114,8 +114,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             
             App.router.initialize();
 
-            // Making sure we know where we came from.
-            App.initialPage = window.location.hash;
+            // Making sure we know where we came from
+            App.initialPage = App.utils.getRoute();
             if (App.initialPage !== '' && App.support.mobile()) {
                 // If on mobile push the state to the history stack
                 if ('replaceState' in window.history) {
