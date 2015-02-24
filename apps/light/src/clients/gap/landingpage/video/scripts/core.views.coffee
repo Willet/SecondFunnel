@@ -369,6 +369,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @productDetails = @$el.find('.info')
             @lookThumbnail.hide()
             @productDetails.hide()
+            if App.utils.landscape()
+                @$el.closest(".previewContainer").addClass("landscape")
+            else
+                @$el.closest(".previewContainer").removeClass("landscape")
         if @model.get("sizes")?.master
             width = @model.get("sizes").master.width
             height = @model.get("sizes").master.height
