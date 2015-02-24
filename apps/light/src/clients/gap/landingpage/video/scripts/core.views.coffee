@@ -147,6 +147,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         )
     )
 
+    module.ExpandedContent.prototype.regions =
+        productInfo: ".product-info"
+
     module.ExpandedContent.prototype.events =
         "click .stl-look .stl-item": (event) ->
             $el = @$el
@@ -160,7 +163,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productInstance = new module.ProductView(
                 model: productModel
             )
-            @gallery.show(productInstance)  
+            @productInfo.show(productInstance)  
 
             if $el.parents("#hero-area").length
                 # this is a featured content area
@@ -169,7 +172,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productInstance = new module.ProductView(
                 model: productModel
             )
-            @gallery.show(productInstance)            
+            @productInfo.show(productInstance)            
             return
 
         'click .stl-swipe-down, .stl-swipe-up': (ev) ->
@@ -354,14 +357,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @model.attributes.orientation = "landscape"
             else
                 @model.attributes.orientation = "portrait"
-        if App.support.mobile() and @model.get("tagged-products")?.length > 0
-            productsInstance = new module.ProductCollectionView(@model.get("tagged-products"))
-            @gallery.show(productsInstance)
-        else if @model.get("tagged-products")?.length > 0
+        if @model.get("tagged-products")?.length > 0
             productInstance = new module.ProductView(
                 model: new module.Product(@model.get("tagged-products")[0])
             )
-            @gallery.show(productInstance)
+            @productInfo.show(productInstance)
         @resizeContainer()
 
         if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky

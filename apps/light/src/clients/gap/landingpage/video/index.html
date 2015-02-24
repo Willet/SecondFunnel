@@ -469,7 +469,7 @@
                 </div>
             <% } %>
             <div class="cell info <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
-                <div class='gallery'></div>
+                <div class='product-info'></div>
             </div>
             <img class="image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" style="visibility:hidden"/>
         </script>
@@ -479,8 +479,25 @@
                 <div class="look-image-container" style="background-image: url('<%= image_src %>');"></div>
             </div>
             <div class="cell info mobile-only">
+                <div class="product-info"></div>
+            </div>
+            <div class="cell shop mobile-only">
                 <div class="stl-title">shop the look</div>
-                <div class="gallery"></div>
+                <div class="stl-look-container">
+                    <div class="stl-swipe-left"></div>
+                    <div class="stl-swipe-right"></div>
+                    <div class="stl-look">
+                        <div class="look-thumbnail">
+                            <img src="<%= image_src %>" class="image"/>
+                        </div>
+                        <% var related = obj['tagged-products']; %>
+                        <% for (var i = 0; i < related.length; i++) { %>
+                            <div class="stl-item" data-index="<%- i %>">
+                                <img src="<%- related[i].images[0].url %>" class="image"/>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
             </div>
         </script>
 
@@ -521,7 +538,7 @@
 
         <script type="text/template" id="product_info_template">
             <div class="tagged-product">
-                <div class="product-info">
+                <div class="product-details">
                     <div class='title'>
                         <%- obj.title || obj.name %>
                     </div>
@@ -553,8 +570,8 @@
                     </div>
                 </div>
                 <div class='buy'>
-                    <a class='button in-store' href='<%- obj.url %>' target='_blank'>Shop on Gap.com</a>
                     <a class="button find-store" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
+                    <a class='button in-store' href='<%- obj.url %>' target='_blank'>Shop on Gap.com</a>
                 </div>
             </div>
         </script>
