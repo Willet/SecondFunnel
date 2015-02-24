@@ -293,6 +293,24 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     /**
+     * Returns the current page route iff App.option('page:slug') is defined
+     * '' is a valid response
+     */
+    module.getRoute = function () {
+        var path = window.location.pathname,
+            slug = App.option('page:slug'),
+            slugIndex = path.indexOf(slug);
+
+        if (_.isString(slug) && !_.isEmpty(slug) && slugIndex !== -1) {
+            route = path.substring(slugIndex + slug.length);
+            route = (route.indexOf('/') === 1) ? route.substring(0) : route;
+            return route;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * ALL CLICKS TO EXTERNAL URLS SHOULD GO THROUGH THIS FUNCTION
      * 
      * Opens url in correct window w/ tracking parameters appended & Emits tracking event
