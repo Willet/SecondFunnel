@@ -221,13 +221,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         )
         return
 
-    module.ExpandedContent::arrangeStlItemsVertical = ($element) ->
+    module.ExpandedContent::arrangeStlItemsVertical = ->
         @stlGalleryIndex = 0
         @stlGalleryCount = 0
-        upArrow = $element.find(".stl-swipe-up")
-        downArrow = $element.find(".stl-swipe-down")
-        stlItems = $element.find(".stl-item")
-        stlContainer = $element.find(".stl-look")
+        upArrow = @$el.find(".stl-swipe-up")
+        downArrow = @$el.find(".stl-swipe-down")
+        stlItems = @$el.find(".stl-item")
+        stlContainer = @$el.find(".stl-look")
         containerHeight = stlContainer.offset().top + stlContainer.height()
         for item, i in stlItems
             itemHeight = $(item).offset().top + $(item).height()
@@ -244,12 +244,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         upArrow.hide()
         return
 
-    module.ExpandedContent::arrangeStlItemsHorizontal = ($element) ->
+    module.ExpandedContent::arrangeStlItemsHorizontal = ->
         @stlGalleryIndex = 0
         @stlGalleryCount = 0
-        leftArrow = $element.find(".stl-swipe-left")
-        rightArrow = $element.find(".stl-swipe-right")
-        stlItems = $element.find(".stl-item")
+        leftArrow = @$el.find(".stl-swipe-left")
+        rightArrow = @$el.find(".stl-swipe-right")
+        stlItems = @$el.find(".stl-item")
         stlContainer = $element.find(".stl-look")
         containerWidth = stlContainer.offset().left + stlContainer.outerWidth()
         for item, i in stlItems
@@ -297,9 +297,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     # loading hero area
                     unless container and container.length
                         if @model.get("orientation") == "landscape"
-                            @arrangeStlItemsHorizontal($element)
+                            @arrangeStlItemsHorizontal()
                         else
-                            @arrangeStlItemsVertical($element)
+                            @arrangeStlItemsVertical()
                         return
                     container.css(
                         top: "0"
@@ -325,9 +325,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         right: widthReduction
                     )
                     if @model.get("orientation") == "landscape"
-                        @arrangeStlItemsHorizontal($element)
+                        @arrangeStlItemsHorizontal()
                     else
-                        @arrangeStlItemsVertical($element)
+                        @arrangeStlItemsVertical()
                 return
 
         imageCount = $("img.main-image, img.image", @$el).length
