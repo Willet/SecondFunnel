@@ -580,7 +580,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.css(
                     height: (if App.support.mobile() then heightMultiplier * $window.height() else "")
                 )
-                @content.show(new module.PreviewContent(contentOpts))
+                @content.show(contentInstance,
+                    forceShow: true
+                )
                 return
             )
             return
