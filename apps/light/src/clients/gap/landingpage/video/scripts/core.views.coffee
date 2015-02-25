@@ -21,11 +21,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         initialize: ->
             @numberOfImages = @model.get('images')?.length or 0
-            @galleryIndex = App.option("galleryIndexPage", 0)
+            @galleryIndex = 0
             return
 
         onRender: ->
             @setElement(@$el.children())
+            return
 
         onShow: ->
             @leftArrow = @$el.find('.product-swipe-left')
@@ -79,7 +80,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         updateGallery: ->
-            App.options.galleryIndexPage = @galleryIndex
             @$el.find('.item')
                 .removeClass('selected')
                 .eq(@galleryIndex)
@@ -168,24 +168,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $el = @$el
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
-            
             $targetEl.addClass("selected").siblings().removeClass "selected"
-            index = $targetEl.data("index")
-            product = @model.get("tagged-products")[index]
+            @productIndex = $targetEl.data("index")
+            product = @model.get("tagged-products")[@productIndex]
             productModel = new module.Product(product)
-            productInstance = new module.ProductView(
-                model: productModel
-            )
-            @productInfo.show(productInstance)  
-
-            if $el.parents("#hero-area").length
-                # this is a featured content area
-                App.options.heroGalleryIndex = index
-                App.options.heroGalleryIndexPage = 0
-            else
-                # likely a pop-up
-                App.options.galleryIndex = index
-                App.options.galleryIndexPage = 0
             productInstance = new module.ProductView(
                 model: productModel
             )
@@ -373,14 +359,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @lookImage = @$el.find('.look-image')
             @lookThumbnail = @$el.find('.look-thumbnail')
             @productDetails = @$el.find('.info')
-            if App.options.galleryIndex is undefined
+            if @productIndex is undefined
                 @lookImage.show()
                 @lookThumbnail.hide()
                 @productDetails.hide()
-            else
-                @lookImage.hide()
-                @lookThumbnail.show()
-                @productDetails.show()
             if App.utils.landscape()
                 @$el.closest(".previewContainer").addClass("landscape")
             else
@@ -395,10 +377,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else
                 @model.attributes.orientation = "portrait"
         if @model.get("tagged-products")?.length > 0
-            unless App.support.mobile() and App.options.galleryIndex is undefined
-                App.options.galleryIndex = App.option("galleryIndex", 0)
+            unless App.support.mobile()
+                @productIndex = 0 if @productIndex is undefined
                 productInstance = new module.ProductView(
-                    model: new module.Product(@model.get("tagged-products")[App.options.galleryIndex])
+                    model: new module.Product(@model.get("tagged-products")[@productIndex])
                 )
                 @productInfo.show(productInstance)
         @resizeContainer()
