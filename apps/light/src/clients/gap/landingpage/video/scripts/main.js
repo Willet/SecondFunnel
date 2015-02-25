@@ -24,11 +24,11 @@ App.start();
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
         // mobile
         App.options.urlParams.tid = "gpem000067";
-        App.options.clickUrl = "http://ad.doubleclick.net/ddm/clk/288205600;115211941;r?"
+        App.options.clickUrl = "http://ad.doubleclick.net/ddm/clk/288205600;115211941;r?";
     } else {
         // desktop
         App.options.urlParams.tid = "gpem000066";
-        App.options.clickUrl = "http://ad.doubleclick.net/ddm/clk/288199394;115211941;n?"
+        App.options.clickUrl = "http://ad.doubleclick.net/ddm/clk/288199394;115211941;n?";
     }
 
     // Shorthand for pushing data to Google Analytics
