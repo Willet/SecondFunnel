@@ -603,8 +603,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onClose: ->
-            App.options.galleryIndex = 0
-            App.options.galleryIndexPage = 0
+            App.options.galleryIndex = undefined
+            App.options.galleryIndexPage = undefined
 
             # hide this, then restore discovery.
             if @feedSwapped
