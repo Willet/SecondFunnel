@@ -26,12 +26,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onRender: ->
             @setElement(@$el.children())
+            return
 
         onShow: ->
             @leftArrow = @$el.find('.product-swipe-left')
             @rightArrow = @$el.find('.product-swipe-right')
             @mainImage = @$el.find('.main-image')
             if @numberOfImages > 1
+                @scrollImages(@mainImage.width()*@galleryIndex, 0)
                 @updateGallery()
                 @mainImage.swipe(
                         triggerOnTouchEnd: true,
@@ -166,20 +168,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $el = @$el
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
-            
             $targetEl.addClass("selected").siblings().removeClass "selected"
-            index = $targetEl.data("index")
-            product = @model.get("tagged-products")[index]
+            @productIndex = $targetEl.data("index")
+            product = @model.get("tagged-products")[@productIndex]
             productModel = new module.Product(product)
-            productInstance = new module.ProductView(
-                model: productModel
-            )
-            @productInfo.show(productInstance)  
-
-            if $el.parents("#hero-area").length
-                # this is a featured content area
-                App.options.heroGalleryIndex = index
-                App.options.heroGalleryIndexPage = 0
             productInstance = new module.ProductView(
                 model: productModel
             )
@@ -268,7 +260,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         leftArrow = @$el.find(".stl-swipe-left")
         rightArrow = @$el.find(".stl-swipe-right")
         stlItems = @$el.find(".stl-item")
-        stlContainer = $element.find(".stl-look")
+        stlContainer = @$el.find(".stl-look")
         containerWidth = stlContainer.offset().left + stlContainer.outerWidth()
         for item, i in stlItems
             itemWidth = $(item).offset().left + $(item).width()
@@ -291,18 +283,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         Returns a callback that sizes the preview container.
         ###
-        shrinkContainer = ($element) =>
+        shrinkContainer = =>
             =>
                 unless App.support.mobile()
-                    table = $element.find(".table")
-                    container = $element.closest(".fullscreen")
-                    containedItem = $element.closest(".content")
+                    table = @$el.find(".table")
+                    container = @$el.closest(".fullscreen")
+                    containedItem = @$el.closest(".content")
                     # must wait for all images to load
                     if --imageCount isnt 0
                         return
 
                     tableHeight = undefined
-                    numImages = $element.find("img.image").length
+                    numImages = @$el.find("img.image").length
                     unless @model.get("template") == "product"
                         if (@model.get("orientation") == "landscape" and numImages > 1) or @model.get("orientation") == "portrait"
                             tableHeight = if container.height() then container.height() else containedItem.height()
@@ -351,7 +343,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         imageCount = $("img.main-image, img.image", @$el).length
 
         # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
-        $("img.main-image, img.image", @$el).one("load", shrinkContainer(@$el)).each ->
+        $("img.main-image, img.image", @$el).one("load", shrinkContainer()).each ->
             if @complete
                 # Without the timeout the box may not be rendered. This lets the onShow method return
                 setTimeout (=>
@@ -367,8 +359,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @lookImage = @$el.find('.look-image')
             @lookThumbnail = @$el.find('.look-thumbnail')
             @productDetails = @$el.find('.info')
-            @lookThumbnail.hide()
-            @productDetails.hide()
+            if @productIndex is undefined
+                @lookImage.show()
+                @lookThumbnail.hide()
+                @productDetails.hide()
             if App.utils.landscape()
                 @$el.closest(".previewContainer").addClass("landscape")
             else
@@ -383,10 +377,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else
                 @model.attributes.orientation = "portrait"
         if @model.get("tagged-products")?.length > 0
-            productInstance = new module.ProductView(
-                model: new module.Product(@model.get("tagged-products")[0])
-            )
-            @productInfo.show(productInstance)
+            unless App.support.mobile()
+                @productIndex = 0 if @productIndex is undefined
+                productInstance = new module.ProductView(
+                    model: new module.Product(@model.get("tagged-products")[@productIndex])
+                )
+                @productInfo.show(productInstance)
         @resizeContainer()
 
         if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
