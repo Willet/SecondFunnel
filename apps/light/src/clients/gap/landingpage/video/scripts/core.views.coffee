@@ -395,12 +395,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else
                 @model.attributes.orientation = "portrait"
         if @model.get("tagged-products")?.length > 0
-                unless App.support.mobile() and App.options.galleryIndex is undefined
-                    App.options.galleryIndex = App.option("galleryIndex", 0)
-                    productInstance = new module.ProductView(
-                        model: new module.Product(@model.get("tagged-products")[App.options.galleryIndex])
-                    )
-                    @productInfo.show(productInstance)
+            unless App.support.mobile() and App.options.galleryIndex is undefined
+                App.options.galleryIndex = App.option("galleryIndex", 0)
+                productInstance = new module.ProductView(
+                    model: new module.Product(@model.get("tagged-products")[App.options.galleryIndex])
+                )
+                @productInfo.show(productInstance)
         @resizeContainer()
 
         if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
