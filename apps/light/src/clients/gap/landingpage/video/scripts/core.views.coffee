@@ -26,12 +26,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onRender: ->
             @setElement(@$el.children())
+            return
 
         onShow: ->
             @leftArrow = @$el.find('.product-swipe-left')
             @rightArrow = @$el.find('.product-swipe-right')
             @mainImage = @$el.find('.main-image')
             if @numberOfImages > 1
+                @scrollImages(@mainImage.width()*@galleryIndex, 0)
                 @updateGallery()
                 @mainImage.swipe(
                         triggerOnTouchEnd: true,
@@ -166,20 +168,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $el = @$el
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
-            
             $targetEl.addClass("selected").siblings().removeClass "selected"
-            index = $targetEl.data("index")
-            product = @model.get("tagged-products")[index]
+            @productIndex = $targetEl.data("index")
+            product = @model.get("tagged-products")[@productIndex]
             productModel = new module.Product(product)
-            productInstance = new module.ProductView(
-                model: productModel
-            )
-            @productInfo.show(productInstance)  
-
-            if $el.parents("#hero-area").length
-                # this is a featured content area
-                App.options.heroGalleryIndex = index
-                App.options.heroGalleryIndexPage = 0
             productInstance = new module.ProductView(
                 model: productModel
             )
@@ -367,8 +359,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @lookImage = @$el.find('.look-image')
             @lookThumbnail = @$el.find('.look-thumbnail')
             @productDetails = @$el.find('.info')
-            @lookThumbnail.hide()
-            @productDetails.hide()
+            if @productIndex is undefined
+                @lookImage.show()
+                @lookThumbnail.hide()
+                @productDetails.hide()
             if App.utils.landscape()
                 @$el.closest(".previewContainer").addClass("landscape")
             else
@@ -383,10 +377,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else
                 @model.attributes.orientation = "portrait"
         if @model.get("tagged-products")?.length > 0
-            productInstance = new module.ProductView(
-                model: new module.Product(@model.get("tagged-products")[0])
-            )
-            @productInfo.show(productInstance)
+            unless App.support.mobile()
+                @productIndex = 0 if @productIndex is undefined
+                productInstance = new module.ProductView(
+                    model: new module.Product(@model.get("tagged-products")[@productIndex])
+                )
+                @productInfo.show(productInstance)
         @resizeContainer()
 
         if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky

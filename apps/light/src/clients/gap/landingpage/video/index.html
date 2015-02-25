@@ -363,32 +363,6 @@
             <div class="mask"></div>
         </script>
 
-        <script type="text/template" id="product_price_template">
-            <div class="price-wrapper">
-                <% if (obj.sale_price) { %>
-                    <strike><%- obj.price %></strike><br />
-                    <b>NOW:</b> <%- obj.sale_price %>
-                <% } else { %>
-                    <%- obj.price %>
-                <% } %>
-            </div>
-        </script>
-
-        <script type="text/template" id="product_buy_template">
-            <% if (!App.support.mobile()) { %>
-                <a class="button find-store" href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
-            <% } else { %>
-                <a class="button find-store" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
-            <% } %>
-            <a class='button in-store' href='<%- obj.url %>' target='_blank'>
-                <% if (App.support.mobile()) { %>
-                    Shop Now
-                <% } else { %>
-                    Shop on Gap.com
-                <% } %>
-            </a>
-        </script>
-
         <script type="text/template" id="product_description_template">
             <div class='desc-title'>Overview</div>
             <% var description = (obj.description || ""); %>
@@ -544,7 +518,7 @@
                     </div>
                     <div class='price'>
                         <% if (obj.sale_price) { %>
-                            <strike><%- obj.price %></strike><br />
+                            <strike><%- obj.price %></strike> 
                             <b>NOW:</b> <%- obj.sale_price %>
                         <% } else { %>
                             <%- obj.price %>

@@ -809,7 +809,7 @@ div.header {
 
     .cell.mobile-only {
         &.look-image, &.info {
-            border-bottom: 2px solid $gap-grey;
+            border-bottom: 1px solid #000;
         }
 
         &.look-image {
@@ -875,7 +875,7 @@ div.header {
                 .product-details {
                     text-align: left;
                     width: 75%;
-                    height: auto;
+                    height: 36px;
                     padding: 5px;
                     .title, .price {
                         font-family: $gap-helvetica-neue;
@@ -883,7 +883,8 @@ div.header {
                         line-height: 12px;
                         padding: 0;
                         color: $gap-blue;
-                        height: auto;
+                        height: 12px;
+                        overflow: hidden;
                     }
                     .price {
                         font-size: 10px !important;
@@ -926,11 +927,11 @@ div.header {
                     height: 15px;
                     bottom: 45px;
                     .item {
-                        width: 5px;
-                        height: 5px;
+                        width: 4px;
+                        height: 4px;
                         margin: 0 3px;
                         border: 1px solid $gap-blue;
-                        border-radius: 5px;
+                        border-radius: 4px;
                         background-color: #ccc;
                         &.selected {
                             border-color: $gap-grey;
@@ -1329,7 +1330,7 @@ div.header {
                     width: 20%;
                     height: 100%;
                     float: left;
-                    border-right: 2px solid $gap-grey;
+                    border-right: 1px solid #000;
                     .stl-look {
                         height: 100%;
                         white-space: normal;
@@ -1378,7 +1379,7 @@ div.header {
             max-width: 100%;
             position: fixed;
             .table {
-                height: 100%;
+                height: 100% !important;
             }
         }
 
