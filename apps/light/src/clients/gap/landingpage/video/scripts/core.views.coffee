@@ -274,7 +274,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         leftArrow = @$el.find(".stl-swipe-left")
         rightArrow = @$el.find(".stl-swipe-right")
         stlItems = @$el.find(".stl-item")
-        stlContainer = $element.find(".stl-look")
+        stlContainer = @$el.find(".stl-look")
         containerWidth = stlContainer.offset().left + stlContainer.outerWidth()
         for item, i in stlItems
             itemWidth = $(item).offset().left + $(item).width()
@@ -297,18 +297,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         Returns a callback that sizes the preview container.
         ###
-        shrinkContainer = ($element) =>
+        shrinkContainer = =>
             =>
                 unless App.support.mobile()
-                    table = $element.find(".table")
-                    container = $element.closest(".fullscreen")
-                    containedItem = $element.closest(".content")
+                    table = @$el.find(".table")
+                    container = @$el.closest(".fullscreen")
+                    containedItem = @$el.closest(".content")
                     # must wait for all images to load
                     if --imageCount isnt 0
                         return
 
                     tableHeight = undefined
-                    numImages = $element.find("img.image").length
+                    numImages = @$el.find("img.image").length
                     unless @model.get("template") == "product"
                         if (@model.get("orientation") == "landscape" and numImages > 1) or @model.get("orientation") == "portrait"
                             tableHeight = if container.height() then container.height() else containedItem.height()
@@ -357,7 +357,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         imageCount = $("img.main-image, img.image", @$el).length
 
         # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
-        $("img.main-image, img.image", @$el).one("load", shrinkContainer(@$el)).each ->
+        $("img.main-image, img.image", @$el).one("load", shrinkContainer()).each ->
             if @complete
                 # Without the timeout the box may not be rendered. This lets the onShow method return
                 setTimeout (=>
