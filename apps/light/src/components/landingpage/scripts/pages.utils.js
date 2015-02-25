@@ -302,7 +302,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             slugIndex = path.indexOf(slug);
 
         if (_.isString(slug) && !_.isEmpty(slug) && slugIndex !== -1) {
-            route = path.substring(slugIndex + slug.length);
+            var route = path.substring(slugIndex + slug.length);
             route = (route.indexOf('/') === 1) ? route.substring(0) : route;
             return route;
         } else {
