@@ -102,14 +102,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 .eq(@galleryIndex)
                 .addClass('selected')
             if @galleryIndex is 0
-                @leftArrow.hide()
-                @rightArrow.show()
+                @leftArrow.addClass("grey")
+                @rightArrow.removeClass("grey")
             else if @galleryIndex is @numberOfImages - 1
-                @leftArrow.show()
-                @rightArrow.hide()
+                @leftArrow.removeClass("grey")
+                @rightArrow.addClass("grey")
             else
-                @leftArrow.show()
-                @rightArrow.show()
+                @leftArrow.removeClass("grey")
+                @rightArrow.removeClass("grey")
             return
 
 
@@ -133,7 +133,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         # default options
         defaultPlayerOptions:
             showinfo: 0
-            autoplay: 0
+            autoplay: 1
             playsinline: 1
             enablejsapi: 1
             controls: 0

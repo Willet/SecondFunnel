@@ -140,20 +140,6 @@
             </div>
         </script>
 
-        <script type="text/template" id="product_galleryMainImage_template">
-            <% if (obj.images.length > 1) { %>
-                <div class="gallery-swipe-left"></div>
-                <div class="gallery-swipe-right"></div>
-            <% } %>
-            <div class="main-image-container">
-                <div class="main-image">
-                    <% for (var i = 0; i < obj.images.length; i++) { %>
-                        <img class="image" src="<%- obj.images[i].url %>" />
-                    <% } %>
-                </div>
-            </div>
-        </script>
-
         <!-- content is overlayed on tile creation -->
         <script type="text/template" id="grooveshark_tile_template">
             <div class='grooveshark-placeholder'></div>
@@ -238,16 +224,7 @@
                 </div>
             <% } %>
             <div class="cell info">
-                <div class='relative'>
-                    <div class="gallery-main-image"></div>
-                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                </div>
-                <div>
-                    <div class='title'></div>
-                    <div class='price'></div>
-                </div>
-                <div class='buy'></div>
-                <div class='description'></div>
+                <div class="product-info"></div>
             </div>
         </script>
 
@@ -275,13 +252,7 @@
                 </div>
             <% } %>
             <div class="cell info">
-                <div class='title'></div>
-                <div class='price'></div>
-                <div class='relative'>
-                    <div class="gallery-main-image"></div>
-                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                    <div class='buy'></div>
-                </div>
+                <div class="product-info"></div>
             </div>
         </script>
 
@@ -300,11 +271,57 @@
                 </div>
             </div>
         </script>
-        
-        <script type="text/template" id="product_buy_template">
-            <a class='button' href='<%= obj.url %>'>
-                Shop Now
-            </a>
+
+        <script type="text/template" id="image_info_template">
+            <div class="tagged-product">
+                <div class="product-details">
+                    <div class='title'>
+                        <%- obj.title || obj.name %>
+                    </div>
+                    <div class='price'>
+                    <% if (obj.sale_price) { %>
+                        <span class="strike">
+                            <%- obj.price %>
+                        </span>
+                        Now <%- obj.sale_price %>
+                    <% } else { %>
+                        <%- obj.price %>
+                    <% } %>
+                    </div>
+                </div>
+                <div class='relative'>
+                    <div class="gallery-main-image">
+                    <% if (obj.images.length > 1) { %>
+                        <div class="gallery-swipe-left"></div>
+                        <div class="gallery-swipe-right"></div>
+                    <% } %>
+                        <div class="main-image-container">
+                            <div class="main-image">
+                            <% for (var i = 0; i < obj.images.length; i++) { %>
+                                <img class="image" src="<%- obj.images[i].url %>" />
+                            <% } %>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'>
+                        <% for (var i = 0; i < obj.images.length; i++) { %>
+                            <div class="item"></div>
+                        <% } %>
+                    </div>
+                </div>
+                <div class='buy'>
+                    <a class='button' href='<%= obj.url %>'>
+                        Shop Now
+                    </a>
+                </div>
+                <div class='description desktop-only'>
+                    <%= obj.description %>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="gif_info_template">
+            <% include("image_info_template") %>
         </script>
     </div>
 
