@@ -297,12 +297,13 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * '' is a valid response
      */
     module.getRoute = function () {
-        var path = window.location.pathname,
+        var route,
+            path = window.location.pathname,
             slug = App.option('page:slug'),
             slugIndex = path.indexOf(slug);
 
         if (_.isString(slug) && !_.isEmpty(slug) && slugIndex !== -1) {
-            var route = path.substring(slugIndex + slug.length);
+            route = path.substring(slugIndex + slug.length);
             route = (route.indexOf('/') === 1) ? route.substring(0) : route;
             return route;
         } else {
