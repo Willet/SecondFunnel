@@ -297,7 +297,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * '' is a valid response
      */
     module.getRoute = function () {
-        var path = window.location.pathname,
+        var route,
+            path = window.location.pathname,
             slug = App.option('page:slug'),
             slugIndex = path.indexOf(slug),
             route = path.substring(slugIndex + slug.length);
