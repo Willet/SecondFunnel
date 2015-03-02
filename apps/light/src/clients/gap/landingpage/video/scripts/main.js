@@ -149,19 +149,6 @@ App.start();
                 recordEvent('lifestyle_share', 'lifestyle pop-up', social_network + ' share', productName);
             }
         },
-        // 15 - Find Lifestyle Product in Store
-        'click .image-with-tagged-products a.button.find-store, .image-without-tagged-products a.button.find-store': function () {
-            if (productName) {
-                recordEvent('lifestyle_find in store', 'lifestyle pop-up', 'find in store', productName);
-            }
-        },
-        // 16 - Buy Lifestyle Product Online
-        'click .image-with-tagged-products a.button.in-store, .image-without-tagged-products a.button.in-store \
-            .image-with-tagged-products a.buy, .image-without-tagged-products a.buy': function () {
-            if (productName) {
-                recordEvent('lifestyle_buy online', 'lifestyle pop-up', 'buy online', productName);
-            }
-        },
         // 17 - Lifestyle Feed Video
         'click .tile.youtube.wide': function () {
             var cid = $(this).attr('id'),
@@ -174,39 +161,25 @@ App.start();
         // 18 - Lifestyle Feed Video
         'click .navbar a.find-nav': function() {
             recordEvent('find_store', 'main visual', 'store locator', 'find a store');
+        }
+    });
+    
+    // Update product name when stl item is clicked
+    App.vent.on({
+        'tracking:stlItemClick': function (product) {
+            productName = product ? product.name || null : null;
         },
-        // Perfect Audience
-        'click .tile.image, .tile.product': function() {
-            var cid = $(this).attr('id'),
-                obj = App.discovery.collection.get(cid),
-                product, pageId, storeSlug, feedId,
-                segment, analyticsTile, analyticsProduct, related,
-                analyticsPage, tileId;
-
-            tileId = obj.get('tile-id');
-            pageId = App.options.page.id;
-            storeSlug = App.options.store.slug;
-
-            // Needs to match the RSS
-            feedId = storeSlug + 'P' + pageId + 'T' + tileId;
-
-            if ($(this).hasClass('image')) {
-                segment = 'ImagePopUp';
-            } else if ($(this).hasClass('product')) {
-                segment = 'ProductPopUp';
+        // 15 - Find Lifestyle Product in Store
+        'tracking:product:findStore': function (product) {
+            if (product && product.name) {
+                recordEvent('lifestyle_find in store', 'lifestyle pop-up', 'find in store', product.name);
             }
-
-            try {
-                _pq.push(['track', segment]);
-                _pq.push(['track', 'PopUp']);
-                _pq.push(['trackProduct', feedId]);
-            } catch(err) {}
-
-            try {
-                __adroll.record_user({"adroll_segments": segment});
-                __adroll.record_user({"adroll_segments": 'PopUp'});
-                __adroll.record_user({"product_id": feedId});
-            } catch(err) {}
+        },
+        // 16 - Buy Lifestyle Product Online
+        'tracking:product:buyOnline': function (product) {
+            if (product && product.name) {
+                recordEvent('lifestyle_buy online', 'lifestyle pop-up', 'buy online', product.name);
+            }
         }
     });
 
