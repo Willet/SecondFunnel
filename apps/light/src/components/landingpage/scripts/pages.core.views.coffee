@@ -522,6 +522,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
 
             "click .buy": (event) ->
+                ###
+                DEPRECATED BY PRODUCT VIEW, ONLY USED BY WIDGETS
+                REMOVE WITH WIDGETS
+                ###
                 $target = $(event.target)
                 # Over-write addUrlTrackingParameters for each customer
                 url = App.utils.addUrlTrackingParameters( $target.attr('href') )
