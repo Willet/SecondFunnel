@@ -175,6 +175,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @lookImage.show()
             @lookThumbnail.hide()
             @productDetails.hide()
+            @stlItems = Math.max(0, @stlItems - 1)
             if App.utils.landscape() then @arrangeStlItemsVertical() else @arrangeStlItemsHorizontal()
             return
 
@@ -191,6 +192,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
             @productInfo.show(productInstance)
             if App.support.mobile()
+                unless @lookThumbnail.is(":visible")
+                    @stlIndex = Math.min($(".stl-look").children(":visible").length, @stlIndex + 1)
                 @lookImage.hide()
                 @lookThumbnail.show()
                 @productDetails.show()
@@ -250,51 +253,54 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @updateStlGalleryPosition(distance, "landscape")
             return
 
-    module.ExpandedContent::updateStlGalleryPosition = (distance, orientation) ->
+    module.ExpandedContent::updateStlGalleryPosition = (distance, orientation, duration=0.3) ->
         leftArrow = @leftArrow
         rightArrow = @rightArrow
         upArrow = @upArrow
         downArrow = @downArrow
+        height = "95%"
+        top = "0"
         if orientation is "landscape"
             translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
             translate = 'translateX(' + distance + 'px)'
-            @$el.find('.stl-look-container').css(
-                "height": "100%"
-            )
         else
             translate3d = 'translate3d(0px, ' + distance + 'px, 0px)'
             translate = 'translateY(' + distance + 'px)'
-            if distance is 0
-                @$el.find('.stl-look-container').css(
-                    "height": "95%"
-                    "top": "0"
-                )
-            else
-                @$el.find('.stl-look-container').css(
-                    "height": "90%"
-                    "top": @upArrow.height()
-                )
+            unless @stlIndex is 0
+                height = "90%"
+                top = @upArrow.height()
+        if App.support.mobile()
+            @$el.find(".stl-look-container").css(
+                "height": height
+                "top": top
+            )
         @$el.find('.stl-look').css(
-            '-webkit-transition-duration': '0.3s',
-            'transition-duration': '0.3s',
+            '-webkit-transition-duration': duration + 's',
+            'transition-duration': duration + 's',
             '-webkit-transform': translate3d,
             '-ms-transform': translate,
             'transform': translate3d
         ).one('webkitTransitionEnd msTransitionEnd transitionend', ->
             stlItems = $(@).children(":visible")
             stlContainer = $(@).closest(".stl-look-container")
-            if distance is 0
-                leftArrow.hide()
-                upArrow.hide()
-            else
-                leftArrow.show() if orientation is "landscape"
-                upArrow.show() if orientation isnt "landscape"
             if orientation is "landscape"
+                upArrow.hide()
+                downArrow.hide()
+                if stlItems.first().offset().left >= stlContainer.offset().left
+                    leftArrow.hide()
+                else
+                    leftArrow.show()
                 if stlItems.last().offset().left + stlItems.last().width() <= stlContainer.offset().left + stlContainer.width()
                     rightArrow.hide()
                 else
                     rightArrow.show()
             else
+                leftArrow.hide()
+                rightArrow.hide()
+                if stlItems.first().offset().top >= stlContainer.offset().top
+                    upArrow.hide()
+                else
+                    upArrow.show()
                 if stlItems.last().offset().top + stlItems.last().outerHeight() <= stlContainer.offset().top + stlContainer.height()
                     downArrow.hide()
                 else
@@ -304,16 +310,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::arrangeStlItemsVertical = ->
+        if App.support.mobile()
+            height = "95%"
+            top = "0"
+            unless @stlIndex is 0
+                height = "90%"
+                top = @upArrow.height()
+            @$el.find(".stl-look-container").css(
+                "height": height
+                "top": top
+            )
         @leftArrow.hide()
         @rightArrow.hide()
         stlLook = @$el.find(".stl-look")
         stlItems = stlLook.children(":visible")
         totalItemHeight = 0
-        for item in stlItems
-            totalItemHeight += $(item).outerHeight()
-        if totalItemHeight > stlLook.height()
-            @downArrow.show() 
-        @updateStlGalleryPosition(0, "portrait")
+        distance = stlLook.offset().top - $(stlItems[@stlIndex]).offset().top
+        @updateStlGalleryPosition(distance, "portrait", 0.01)
         return
 
     module.ExpandedContent::arrangeStlItemsHorizontal = ->
@@ -322,11 +335,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         stlLook = @$el.find(".stl-look")
         stlItems = stlLook.children(":visible")
         totalItemWidth = 0
-        for item in stlItems
-            totalItemWidth += $(item).width()
-        if totalItemWidth > stlLook.width()
-            @rightArrow.show() 
-        @updateStlGalleryPosition(0, "landscape")
+        distance = stlLook.offset().left - $(stlItems[@stlIndex]).offset().left
+        @updateStlGalleryPosition(distance, "landscape", 0.01)
         return
 
     module.ExpandedContent::resizeContainer = ->
@@ -412,6 +422,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::onShow = ->
+        @stlIndex = 0
         @leftArrow = @$el.find('.stl-swipe-left')
         @rightArrow = @$el.find('.stl-swipe-right')
         @upArrow = @$el.find(".stl-swipe-up")
