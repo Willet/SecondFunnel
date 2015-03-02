@@ -19,6 +19,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @updateGallery()
                 return
 
+            'click .buy': (ev) ->
+                $target = $(ev.target)
+                if $target.hasClass('in-store')
+                    App.vent.trigger('tracking:product:buyOnline', @model)
+                else if $target.hasClass('find-store')
+                    App.vent.trigger('tracking:product:findStore', @model)
+
+                # Over-write addUrlTrackingParameters for each customer
+                url = App.utils.addUrlTrackingParameters( $target.attr('href') )
+                App.utils.openUrl(url)
+                # Stop propogation to avoid double-opening url
+                return false
+
         initialize: ->
             @numberOfImages = @model.get('images')?.length or 0
             @galleryIndex = 0
@@ -180,6 +193,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @lookImage.hide()
                 @lookThumbnail.show()
                 @productDetails.show()
+            App.vent.trigger('tracking:stlItemClick', product)
             return
 
         'click .stl-swipe-down, .stl-swipe-up': (ev) ->
