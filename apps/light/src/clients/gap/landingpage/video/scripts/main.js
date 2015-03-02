@@ -171,14 +171,14 @@ App.start();
         },
         // 15 - Find Lifestyle Product in Store
         'tracking:product:findStore': function (product) {
-            if (product && product.name) {
-                recordEvent('lifestyle_find in store', 'lifestyle pop-up', 'find in store', product.name);
+            if (_.isObject(product) && _.isFunction(product.get) && product.get('name')) {
+                recordEvent('lifestyle_find in store', 'lifestyle pop-up', 'find in store', product.get('name'));
             }
         },
         // 16 - Buy Lifestyle Product Online
         'tracking:product:buyOnline': function (product) {
-            if (product && product.name) {
-                recordEvent('lifestyle_buy online', 'lifestyle pop-up', 'buy online', product.name);
+            if (_.isObject(product) && _.isFunction(product.get) && product.get('name')) {
+                recordEvent('lifestyle_buy online', 'lifestyle pop-up', 'buy online', product.get('name'));
             }
         }
     });
