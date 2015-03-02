@@ -422,7 +422,7 @@
                     <div class="stl-title">
                         shop the look
                     </div>
-                    <div class="stl-look-container">
+                    <div class="stl-carousel">
                     <% if (orientation !== 'landscape') { %>
                         <div class="stl-swipe-up"></div>
                         <div class="stl-swipe-down"></div>
@@ -430,14 +430,16 @@
                         <div class="stl-swipe-left"></div>
                         <div class="stl-swipe-right"></div>
                     <% } %>
-                        <div class="stl-look">
-                            <% var related = obj['tagged-products']; %>
-                            <% for (var i = 0; i < related.length; i++) { %>
-                                <div class="stl-item" data-index="<%- i %>">
-                                    <img src="<%- related[i].images[0].url %>" class="image"/>
-                                    <%- related[i].name %>
-                                </div>
-                            <% } %>
+                        <div class="stl-look-container">
+                            <div class="stl-look">
+                                <% var related = obj['tagged-products']; %>
+                                <% for (var i = 0; i < related.length; i++) { %>
+                                    <div class="stl-item" data-index="<%- i %>">
+                                        <img src="<%- related[i].images[0].url %>" class="image"/>
+                                        <%- related[i].name %>
+                                    </div>
+                                <% } %>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -457,19 +459,23 @@
             </div>
             <div class="cell shop mobile-only">
                 <div class="stl-title">shop the look</div>
-                <div class="stl-look-container">
+                <div class="stl-carousel">
                     <div class="stl-swipe-left"></div>
                     <div class="stl-swipe-right"></div>
-                    <div class="stl-look">
-                        <div class="look-thumbnail">
-                            <img src="<%= image_src %>" class="image"/>
-                        </div>
-                        <% var related = obj['tagged-products']; %>
-                        <% for (var i = 0; i < related.length; i++) { %>
-                            <div class="stl-item" data-index="<%- i %>">
-                                <img src="<%- related[i].images[0].url %>" class="image"/>
+                    <div class="stl-swipe-up"></div>
+                    <div class="stl-swipe-down"></div>
+                    <div class="stl-look-container">
+                        <div class="stl-look">
+                            <div class="look-thumbnail">
+                                <img src="<%= image_src %>" class="image"/>
                             </div>
-                        <% } %>
+                            <% var related = obj['tagged-products']; %>
+                            <% for (var i = 0; i < related.length; i++) { %>
+                                <div class="stl-item" data-index="<%- i %>">
+                                    <img src="<%- related[i].images[0].url %>" class="image"/>
+                                </div>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
             </div>

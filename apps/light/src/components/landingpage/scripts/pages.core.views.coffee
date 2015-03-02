@@ -584,6 +584,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @$el.closest(".previewContainer").addClass("landscape")
                 else
                     @$el.closest(".previewContainer").removeClass("landscape")
+                @content.currentView.resizeContainer()
                 if @content.currentView?.productInfo?.currentView
                     productRegion = @content.currentView.productInfo
                     productRegion.show(productRegion.currentView,

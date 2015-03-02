@@ -162,6 +162,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @lookImage.show()
             @lookThumbnail.hide()
             @productDetails.hide()
+            if App.utils.landscape() then @arrangeStlItemsVertical() else @arrangeStlItemsHorizontal()
             return
 
         "click .stl-look .stl-item": (event) ->
@@ -180,103 +181,138 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @lookImage.hide()
                 @lookThumbnail.show()
                 @productDetails.show()
+                if App.utils.landscape() then @arrangeStlItemsVertical() else @arrangeStlItemsHorizontal()
             return
 
         'click .stl-swipe-down, .stl-swipe-up': (ev) ->
-            stlItems = @$el.find(".stl-item")
-            stlContainer = @$el.find(".stl-look")
-            containerHeight = stlContainer.offset().top + stlContainer.height()
+            stlContainer = @$el.find(".stl-look-container")
+            stlLook = @$el.find(".stl-look")
+            stlItems = stlLook.children(":visible")
+            distance = stlLook.offset().top
             if ev.target.className is "stl-swipe-up"
-                @stlGalleryIndex--
-                distance = if @stlGalleryIndex > 0 then 30 + stlContainer.height*@stlGalleryIndex*(-1) else 0 ## 30px padding ##
-            else        
-                @stlGalleryIndex++
-                distance = stlContainer.height()*@stlGalleryIndex*(-1)
-            upArrow = @$el.find(".stl-swipe-up")
-            downArrow = @$el.find(".stl-swipe-down")
-            @updateStlGalleryPosition(distance)
-            if @stlGalleryIndex is 0 then upArrow.hide() else upArrow.show()
-            if @stlGalleryIndex is @stlGalleryCount then downArrow.hide() else downArrow.show()
+                topMostItem = stlItems[@stlIndex]
+                unless topMostItem is undefined
+                    # number of pixels needed to move leftmost item to the end of carousel
+                    difference = stlContainer.height()
+                    @stlIndex = _.findIndex(stlItems, (item) ->
+                        # true if item is visible after moving leftmost item
+                        return ($(item).outerHeight() + $(item).offset().top + difference) > stlContainer.offset().top
+                    )
+                    distance -= $(stlItems[@stlIndex]).offset().top
+            else
+                @stlIndex = _.findIndex(stlItems, (item) ->
+                    # true if item is only partially visible
+                    return ($(item).outerHeight() + $(item).offset().top) > (stlContainer.height() + stlContainer.offset().top)
+                )
+                distance -= $(stlItems[@stlIndex]).offset().top
+            @upArrow.hide()
+            @downArrow.hide()
+            @updateStlGalleryPosition(distance, "portrait")
             return
 
         'click .stl-swipe-left, .stl-swipe-right': (ev) ->
-            stlItems = @$el.find(".stl-item")
-            stlContainer = @$el.find(".stl-look")
+            stlContainer = @$el.find(".stl-look-container")
+            stlLook = @$el.find(".stl-look")
+            stlItems = stlLook.children(":visible")
+            distance = stlLook.offset().left
             if ev.target.className is "stl-swipe-left"
-                @stlGalleryIndex--
-                distance = stlContainer.outerWidth()*@stlGalleryIndex*(-1)
-            else    
-                @stlGalleryIndex++
-                distance = stlContainer.outerWidth()*@stlGalleryIndex*(-1)
-            leftArrow = @$el.find(".stl-swipe-left")
-            rightArrow = @$el.find(".stl-swipe-right")
-            @updateStlGalleryPosition(distance)
-            if @stlGalleryIndex is 0 then leftArrow.hide() else leftArrow.show()
-            if @stlGalleryIndex is @stlGalleryCount then rightArrow.hide() else rightArrow.show()
+                leftMostItem = stlItems[@stlIndex]
+                unless leftMostItem is undefined
+                    # number of pixels needed to move leftmost item to the end of carousel
+                    difference = stlContainer.width()
+                    @stlIndex = _.findIndex(stlItems, (item) ->
+                        # true if item is visible after moving leftmost item
+                        return ($(item).width() + $(item).offset().left + difference) > stlContainer.offset().left
+                    )
+                    distance -= $(stlItems[@stlIndex]).offset().left
+            else
+                @stlIndex = _.findIndex(stlItems, (item) ->
+                    # true if item is only partially visible
+                    return ($(item).width() + $(item).offset().left) > (stlContainer.width() + stlContainer.offset().left)
+                )
+                distance -= $(stlItems[@stlIndex]).offset().left
+            @leftArrow.hide()
+            @rightArrow.hide()
+            @updateStlGalleryPosition(distance, "landscape")
             return
 
-    module.ExpandedContent::updateStlGalleryPosition = (distance) ->
-        if @model.get('orientation') is "landscape"
+    module.ExpandedContent::updateStlGalleryPosition = (distance, orientation) ->
+        leftArrow = @leftArrow
+        rightArrow = @rightArrow
+        upArrow = @upArrow
+        downArrow = @downArrow
+        if orientation is "landscape"
             translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
             translate = 'translateX(' + distance + 'px)'
+            @$el.find('.stl-look-container').css(
+                "height": "100%"
+            )
         else
             translate3d = 'translate3d(0px, ' + distance + 'px, 0px)'
             translate = 'translateY(' + distance + 'px)'
+            if distance is 0
+                @$el.find('.stl-look-container').css(
+                    "height": "95%"
+                    "top": "0"
+                )
+            else
+                @$el.find('.stl-look-container').css(
+                    "height": "90%"
+                    "top": @upArrow.height()
+                )
         @$el.find('.stl-look').css(
             '-webkit-transition-duration': '0.3s',
             'transition-duration': '0.3s',
             '-webkit-transform': translate3d,
             '-ms-transform': translate,
             'transform': translate3d
+        ).one('webkitTransitionEnd msTransitionEnd transitionend', ->
+            stlItems = $(@).children(":visible")
+            stlContainer = $(@).closest(".stl-look-container")
+            if distance is 0
+                leftArrow.hide()
+                upArrow.hide()
+            else
+                leftArrow.show() if orientation is "landscape"
+                upArrow.show() if orientation isnt "landscape"
+            if orientation is "landscape"
+                if stlItems.last().offset().left + stlItems.last().width() <= stlContainer.offset().left + stlContainer.width()
+                    rightArrow.hide()
+                else
+                    rightArrow.show()
+            else
+                if stlItems.last().offset().top + stlItems.last().outerHeight() <= stlContainer.offset().top + stlContainer.height()
+                    downArrow.hide()
+                else
+                    downArrow.show()
+            return
         )
         return
 
     module.ExpandedContent::arrangeStlItemsVertical = ->
-        @stlGalleryIndex = 0
-        @stlGalleryCount = 0
-        upArrow = @$el.find(".stl-swipe-up")
-        downArrow = @$el.find(".stl-swipe-down")
-        stlItems = @$el.find(".stl-item")
-        stlContainer = @$el.find(".stl-look")
-        containerHeight = stlContainer.offset().top + stlContainer.height()
-        for item, i in stlItems
-            itemHeight = $(item).offset().top + $(item).height()
-            if itemHeight > (containerHeight - 15) ## position of down arrow at 15px ##
-                unless $(item).offset().top is (containerHeight + 15)
-                    $(item).css(
-                        ## position of arrow + padding ##
-                        "margin-top": containerHeight - $(item).offset().top + 45
-                    )
-                downArrow.show()
-                @stlGalleryCount++
-                containerHeight += stlContainer.height()    
-        @updateStlGalleryPosition(0)
-        upArrow.hide()
+        @leftArrow.hide()
+        @rightArrow.hide()
+        stlLook = @$el.find(".stl-look")
+        stlItems = stlLook.children(":visible")
+        totalItemHeight = 0
+        for item in stlItems
+            totalItemHeight += $(item).outerHeight()
+        if totalItemHeight > stlLook.height()
+            @downArrow.show() 
+        @updateStlGalleryPosition(0, "portrait")
         return
 
     module.ExpandedContent::arrangeStlItemsHorizontal = ->
-        @stlGalleryIndex = 0
-        @stlGalleryCount = 0
-        leftArrow = @$el.find(".stl-swipe-left")
-        rightArrow = @$el.find(".stl-swipe-right")
-        stlItems = @$el.find(".stl-item")
-        stlContainer = @$el.find(".stl-look")
-        containerWidth = stlContainer.offset().left + stlContainer.outerWidth()
-        for item, i in stlItems
-            itemWidth = $(item).offset().left + $(item).width()
-            if itemWidth > (containerWidth - 15)
-                unless $(item).offset().left is (containerWidth + 15)
-                    $(item).css(
-                        "margin-left": containerWidth - $(item).offset().left + 30
-                    )
-                stlContainer.css(
-                    "text-align": "left"
-                )
-                rightArrow.show()
-                @stlGalleryCount++
-                containerWidth += stlContainer.outerWidth()
-        @updateStlGalleryPosition(0)
-        leftArrow.hide()
+        @upArrow.hide()
+        @downArrow.hide()
+        stlLook = @$el.find(".stl-look")
+        stlItems = stlLook.children(":visible")
+        totalItemWidth = 0
+        for item in stlItems
+            totalItemWidth += $(item).width()
+        if totalItemWidth > stlLook.width()
+            @rightArrow.show() 
+        @updateStlGalleryPosition(0, "landscape")
         return
 
     module.ExpandedContent::resizeContainer = ->
@@ -285,59 +321,66 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         shrinkContainer = =>
             =>
-                unless App.support.mobile()
-                    table = @$el.find(".table")
-                    container = @$el.closest(".fullscreen")
-                    containedItem = @$el.closest(".content")
-                    # must wait for all images to load
-                    if --imageCount isnt 0
-                        return
+                table = @$el.find(".table")
+                container = @$el.closest(".fullscreen")
+                containedItem = @$el.closest(".content")
+                # must wait for all images to load
+                if --imageCount isnt 0
+                    return
 
-                    tableHeight = undefined
-                    numImages = @$el.find("img.image").length
-                    unless @model.get("template") == "product"
-                        if (@model.get("orientation") == "landscape" and numImages > 1) or @model.get("orientation") == "portrait"
-                            tableHeight = if container.height() then container.height() else containedItem.height()
-                        else
-                            tableHeight = (if container.width() then container.width() else containedItem.width())*0.496
-                        table.css(
-                            height: tableHeight
-                        )
+                if App.support.mobile()
+                    if App.utils.landscape()
+                        @arrangeStlItemsVertical()
+                    else
+                        @arrangeStlItemsHorizontal()
+                    return
 
-                    # loading hero area
-                    unless container and container.length
-                        if @model.get("orientation") == "landscape"
-                            @arrangeStlItemsHorizontal()
-                        else
-                            @arrangeStlItemsVertical()
-                        return
-                    container.css(
-                        top: "0"
-                        bottom: "0"
-                        left: "0"
-                        right: "0"
+                tableHeight = undefined
+                numImages = @$el.find("img.image").length
+                unless @model.get("template") == "product"
+                    if (@model.get("orientation") == "landscape" and numImages > 1) or @model.get("orientation") == "portrait"
+                        tableHeight = if container.height() then container.height() else containedItem.height()
+                    else
+                        tableHeight = (if container.width() then container.width() else containedItem.width())*0.496
+                    table.css(
+                        height: tableHeight
                     )
 
-                    heightReduction = $(window).height()
-                    widthReduction = $(window).width()
-                    heightReduction -= containedItem.outerHeight()
-                    heightReduction /= 2 # Split over top and bottom
-                    if heightReduction <= 0 # String because jQuery checks for falsey values
-                        heightReduction = "0"
-                    widthReduction -= containedItem.outerWidth()
-                    widthReduction /= 2
-                    if widthReduction <= 0 # String because jQuery checks for falsey values
-                        widthReduction = "0"
-                    container.css(
-                        top: heightReduction
-                        bottom: heightReduction
-                        left: widthReduction
-                        right: widthReduction
-                    )
+                # loading hero area
+                unless container and container.length
                     if @model.get("orientation") == "landscape"
                         @arrangeStlItemsHorizontal()
                     else
                         @arrangeStlItemsVertical()
+                    return
+                container.css(
+                    top: "0"
+                    bottom: "0"
+                    left: "0"
+                    right: "0"
+                )
+
+                heightReduction = $(window).height()
+                widthReduction = $(window).width()
+                heightReduction -= containedItem.outerHeight()
+                heightReduction /= 2 # Split over top and bottom
+                if heightReduction <= 0 # String because jQuery checks for falsey values
+                    heightReduction = "0"
+                widthReduction -= containedItem.outerWidth()
+                widthReduction /= 2
+                if widthReduction <= 0 # String because jQuery checks for falsey values
+                    widthReduction = "0"
+                container.css(
+                    top: heightReduction
+                    bottom: heightReduction
+                    left: widthReduction
+                    right: widthReduction
+                )
+                if @model.get("orientation") == "landscape"
+                    @arrangeStlItemsHorizontal()
+                else
+                    @arrangeStlItemsVertical()
+
                 return
 
         imageCount = $("img.main-image, img.image", @$el).length
@@ -355,14 +398,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::onShow = ->
+        @leftArrow = @$el.find('.stl-swipe-left')
+        @rightArrow = @$el.find('.stl-swipe-right')
+        @upArrow = @$el.find(".stl-swipe-up")
+        @downArrow = @$el.find(".stl-swipe-down")
         if App.support.mobile()
             @lookImage = @$el.find('.look-image')
             @lookThumbnail = @$el.find('.look-thumbnail')
             @productDetails = @$el.find('.info')
-            if @productIndex is undefined
-                @lookImage.show()
-                @lookThumbnail.hide()
-                @productDetails.hide()
+            @lookImage.show()
+            @lookThumbnail.hide()
+            @productDetails.hide()
             if App.utils.landscape()
                 @$el.closest(".previewContainer").addClass("landscape")
             else
