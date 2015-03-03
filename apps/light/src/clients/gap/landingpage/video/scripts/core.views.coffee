@@ -48,11 +48,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if @numberOfImages > 1
                 @scrollImages(@mainImage.width()*@galleryIndex, 0)
                 @updateGallery()
-                @mainImage.swipe(
-                        triggerOnTouchEnd: true,
-                        swipeStatus: _.bind(@swipeStatus, @),
-                        allowPageScroll: 'vertical'
-                )
             return
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
@@ -175,7 +170,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @lookImage.show()
             @lookThumbnail.hide()
             @productDetails.hide()
-            @stlItems = Math.max(0, @stlItems - 1)
+            @stlIndex = Math.max(@stlIndex - 1, 0)
+            @lookProductIndex = -1
             if App.utils.landscape() then @arrangeStlItemsVertical() else @arrangeStlItemsHorizontal()
             return
 
@@ -183,22 +179,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $el = @$el
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
-            $targetEl.addClass("selected").siblings().removeClass "selected"
-            @productIndex = $targetEl.data("index")
-            product = @model.get("tagged-products")[@productIndex]
-            productModel = new module.Product(product)
-            productInstance = new module.ProductView(
-                model: productModel
-            )
-            @productInfo.show(productInstance)
-            if App.support.mobile()
-                unless @lookThumbnail.is(":visible")
-                    @stlIndex = Math.min($(".stl-look").children(":visible").length, @stlIndex + 1)
-                @lookImage.hide()
-                @lookThumbnail.show()
-                @productDetails.show()
-                if App.utils.landscape() then @arrangeStlItemsVertical() else @arrangeStlItemsHorizontal()
-            App.vent.trigger('tracking:stlItemClick', product)
+            @lookProductIndex = $targetEl.data("index")
+            @updateCarousel()
+            App.vent.trigger('tracking:stlItemClick', @model.get("tagged-products")[@lookProductIndex])
             return
 
         'click .stl-swipe-down, .stl-swipe-up': (ev) ->
@@ -253,11 +236,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @updateStlGalleryPosition(distance, "landscape")
             return
 
-    module.ExpandedContent::updateStlGalleryPosition = (distance, orientation, duration=0.3) ->
-        leftArrow = @leftArrow
-        rightArrow = @rightArrow
-        upArrow = @upArrow
-        downArrow = @downArrow
+    module.ExpandedContent::updateStlGalleryPosition = (distance, orientation, duration=300) ->
+        stlContainer = @$el.find(".stl-look-container")
+        stlLook = @$el.find(".stl-look")
         height = "95%"
         top = "0"
         if orientation is "landscape"
@@ -270,43 +251,45 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 height = "90%"
                 top = @upArrow.height()
         if orientation is "portrait"
-            @$el.find(".stl-look-container").css(
+            stlContainer.css(
                 "height": height
                 "top": top
             )
-        @$el.find('.stl-look').css(
-            '-webkit-transition-duration': duration + 's',
-            'transition-duration': duration + 's',
+        stlLook.css(
+            '-webkit-transition-duration': (duration / 1000).toFixed(2) + 's',
+            'transition-duration': (duration / 1000).toFixed(2) + 's',
             '-webkit-transform': translate3d,
             '-ms-transform': translate,
             'transform': translate3d
-        ).one('webkitTransitionEnd msTransitionEnd transitionend', ->
-            stlItems = $(@).children(":visible")
-            stlContainer = $(@).closest(".stl-look-container")
-            if orientation is "landscape"
-                upArrow.hide()
-                downArrow.hide()
-                if stlItems.first().offset().left >= stlContainer.offset().left
-                    leftArrow.hide()
-                else
-                    leftArrow.show()
-                if stlItems.last().offset().left + stlItems.last().width() <= stlContainer.offset().left + stlContainer.width()
-                    rightArrow.hide()
-                else
-                    rightArrow.show()
-            else
-                leftArrow.hide()
-                rightArrow.hide()
-                if stlItems.first().offset().top >= stlContainer.offset().top
-                    upArrow.hide()
-                else
-                    upArrow.show()
-                if stlItems.last().offset().top + stlItems.last().outerHeight() <= stlContainer.offset().top + stlContainer.height()
-                    downArrow.hide()
-                else
-                    downArrow.show()
-            return
         )
+        duration += 100
+        @transitionTimer = setTimeout( =>
+            stlItems = stlLook.children(":visible")
+            if orientation is "landscape"
+                @upArrow.hide()
+                @downArrow.hide()
+                if stlItems.first().offset().left >= stlContainer.offset().left
+                    @leftArrow.hide()
+                else
+                    @leftArrow.show()
+                if stlItems.last().offset().left + stlItems.last().width() <= stlContainer.offset().left + stlContainer.width()
+                    @rightArrow.hide()
+                else
+                    @rightArrow.show()
+            else
+                @leftArrow.hide()
+                @rightArrow.hide()
+                if stlItems.first().offset().top >= stlContainer.offset().top
+                    @upArrow.hide()
+                else
+                    @upArrow.show()
+                if stlItems.last().offset().top + stlItems.last().outerHeight() <= stlContainer.offset().top + stlContainer.height()
+                    @downArrow.hide()
+                else
+                    @downArrow.show()
+            clearTimeout(@transitionTimer)
+            return
+        , duration)
         return
 
     module.ExpandedContent::arrangeStlItemsVertical = ->
@@ -324,9 +307,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @rightArrow.hide()
         stlLook = @$el.find(".stl-look")
         stlItems = stlLook.children(":visible")
-        totalItemHeight = 0
         distance = stlLook.offset().top - $(stlItems[@stlIndex]).offset().top
-        @updateStlGalleryPosition(distance, "portrait", 0.01)
+        @updateStlGalleryPosition(distance, "portrait", 0)
         return
 
     module.ExpandedContent::arrangeStlItemsHorizontal = ->
@@ -335,11 +317,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         stlLook = @$el.find(".stl-look")
         stlItems = stlLook.children(":visible")
         totalItemWidth = 0
-        if not App.support.mobile() and @stlIndex is 0
+        for item in stlItems
+            totalItemWidth += $(item).outerWidth()
+        if totalItemWidth <= @$el.find(".stl-look-container").width()
+            @leftArrow.hide()
+            @rightArrow.hide()
             distance = 0
         else
             distance = stlLook.offset().left - $(stlItems[@stlIndex]).offset().left
-        @updateStlGalleryPosition(distance, "landscape", 0.01)
+        @updateStlGalleryPosition(distance, "landscape", 0)
         return
 
     module.ExpandedContent::resizeContainer = ->
@@ -355,11 +341,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if --imageCount isnt 0
                     return
 
+                if @productInfo.currentView is undefined
+                    @updateCarousel()
                 if App.support.mobile()
-                    if App.utils.landscape()
-                        @arrangeStlItemsVertical()
-                    else
+                    if App.utils.portrait()
                         @arrangeStlItemsHorizontal()
+                    else
+                        @arrangeStlItemsVertical()
                     return
 
                 tableHeight = undefined
@@ -425,22 +413,29 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::onShow = ->
-        @stlIndex = 0
-        @leftArrow = @$el.find('.stl-swipe-left')
-        @rightArrow = @$el.find('.stl-swipe-right')
-        @upArrow = @$el.find(".stl-swipe-up")
-        @downArrow = @$el.find(".stl-swipe-down")
         if App.support.mobile()
             @lookImage = @$el.find('.look-image')
             @lookThumbnail = @$el.find('.look-thumbnail')
             @productDetails = @$el.find('.info')
-            @lookImage.show()
+            @lookProductCarousel = @$el.find(".look-product-carousel")
             @lookThumbnail.hide()
             @productDetails.hide()
             if App.utils.landscape()
                 @$el.closest(".previewContainer").addClass("landscape")
             else
                 @$el.closest(".previewContainer").removeClass("landscape")
+            @lookProductCarousel.swipe(
+                triggerOnTouchEnd: true,
+                swipeStatus: _.bind(@swipeStatus, @),
+                allowPageScroll: 'vertical'
+            )
+        if @model.get("tagged-products")?.length > 0
+            @stlIndex = 0
+            @lookProductIndex = if App.support.mobile() then -1 else 0
+            @leftArrow = @$el.find('.stl-swipe-left')
+            @rightArrow = @$el.find('.stl-swipe-right')
+            @upArrow = @$el.find(".stl-swipe-up")
+            @downArrow = @$el.find(".stl-swipe-down")
         if @model.get("sizes")?.master
             width = @model.get("sizes").master.width
             height = @model.get("sizes").master.height
@@ -450,13 +445,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @model.attributes.orientation = "landscape"
             else
                 @model.attributes.orientation = "portrait"
-        if @model.get("tagged-products")?.length > 0
-            unless App.support.mobile()
-                @productIndex = 0 if @productIndex is undefined
-                productInstance = new module.ProductView(
-                    model: new module.Product(@model.get("tagged-products")[@productIndex])
-                )
-                @productInfo.show(productInstance)
         @resizeContainer()
 
         if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
@@ -464,4 +452,48 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 offset: "bottom-in-view"
                 direction: "up"
             )
+        return
+
+    module.ExpandedContent::swipeStatus = (event, phase, direction, distance, fingers, duration) ->
+            productImageIndex = @productInfo.currentView?.galleryIndex or 0
+            numberOfImages = (@productInfo.currentView?.numberOfImages - 1) or 0
+            if @lookProductIndex >= 0
+                unless (direction is 'left' and productImageIndex is numberOfImages) or (direction is 'right' and productImageIndex is 0)
+                    @productInfo.currentView.swipeStatus(event, phase, direction, distance, fingers, duration)
+                    return
+            if phase is 'end'
+                if direction is 'right'
+                    @lookProductIndex--
+                    if (@lookProductIndex < -1 and App.support.mobile()) or (@lookProductIndex < 0 and not App.support.mobile())
+                        @lookProductIndex = @$el.find(".stl-look").children(":visible").length - 1
+                else if direction is 'left'
+                    @lookProductIndex++
+                    if @lookProductIndex is @model.get("tagged-products")?.length
+                        @lookProductIndex = if App.support.mobile() then -1 else 0
+                @updateCarousel()
+            return @
+
+    module.ExpandedContent::updateCarousel = ->
+        if App.support.mobile() and @lookProductIndex < 0
+            if @lookThumbnail.is(":visible")
+                @stlIndex = Math.max(0, @stlIndex - 1)
+            @lookImage.show()
+            @lookThumbnail.hide()
+            @productDetails.hide()
+            @$el.find(".stl-item").removeClass("selected")
+            if App.utils.landscape() then @arrangeStlItemsVertical() else @arrangeStlItemsHorizontal()
+        else
+            @$el.find(".stl-item").filter("[data-index=#{@lookProductIndex}]")
+                .addClass("selected").siblings().removeClass("selected")
+            productInstance = new module.ProductView(
+                model: new module.Product(@model.get("tagged-products")[@lookProductIndex])
+            )
+            @productInfo.show(productInstance)
+            if App.support.mobile()
+                unless @lookThumbnail.is(":visible")
+                    @stlIndex = Math.min($(".stl-look").children(":visible").length - 1, @stlIndex + 1)
+                @lookImage.hide()
+                @lookThumbnail.show()
+                @productDetails.show()
+                if App.utils.landscape() then @arrangeStlItemsVertical() else @arrangeStlItemsHorizontal()
         return
