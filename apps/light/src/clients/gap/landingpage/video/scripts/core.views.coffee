@@ -269,7 +269,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             unless @stlIndex is 0
                 height = "90%"
                 top = @upArrow.height()
-        if App.support.mobile()
+        if orientation is "portrait"
             @$el.find(".stl-look-container").css(
                 "height": height
                 "top": top
@@ -310,7 +310,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::arrangeStlItemsVertical = ->
-        if App.support.mobile()
+        unless not App.support.mobile() and @model.orientation isnt "landscape"
             height = "95%"
             top = "0"
             unless @stlIndex is 0
@@ -335,7 +335,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         stlLook = @$el.find(".stl-look")
         stlItems = stlLook.children(":visible")
         totalItemWidth = 0
-        distance = stlLook.offset().left - $(stlItems[@stlIndex]).offset().left
+        if not App.support.mobile() and @stlIndex is 0
+            distance = 0
+        else
+            distance = stlLook.offset().left - $(stlItems[@stlIndex]).offset().left
         @updateStlGalleryPosition(distance, "landscape", 0.01)
         return
 
