@@ -237,33 +237,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
     module.ExpandedContent::updateStlGalleryPosition = (distance, orientation, duration=300) ->
-        stlContainer = @$el.find(".stl-look-container")
-        stlLook = @$el.find(".stl-look")
-        height = "95%"
-        top = "0"
-        if orientation is "landscape"
-            translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
-            translate = 'translateX(' + distance + 'px)'
-        else
-            translate3d = 'translate3d(0px, ' + distance + 'px, 0px)'
-            translate = 'translateY(' + distance + 'px)'
-            unless @stlIndex is 0
-                height = "90%"
-                top = @upArrow.height()
-        if orientation is "portrait"
-            stlContainer.css(
-                "height": height
-                "top": top
-            )
-        stlLook.css(
-            '-webkit-transition-duration': (duration / 1000).toFixed(2) + 's',
-            'transition-duration': (duration / 1000).toFixed(2) + 's',
-            '-webkit-transform': translate3d,
-            '-ms-transform': translate,
-            'transform': translate3d
-        )
-        duration += 100
-        @transitionTimer = setTimeout( =>
+        updateStlArrows = =>
             stlItems = stlLook.children(":visible")
             if orientation is "landscape"
                 @upArrow.hide()
@@ -287,9 +261,35 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @downArrow.hide()
                 else
                     @downArrow.show()
-            clearTimeout(@transitionTimer)
             return
-        , duration)
+        stlContainer = @$el.find(".stl-look-container")
+        stlLook = @$el.find(".stl-look")
+        height = "95%"
+        top = "0"
+        distance += 0.0001
+        if orientation is "landscape"
+            translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
+            translate = 'translateX(' + distance + 'px)'
+        else
+            translate3d = 'translate3d(0px, ' + distance + 'px, 0px)'
+            translate = 'translateY(' + distance + 'px)'
+            unless @stlIndex is 0
+                height = "90%"
+                top = @upArrow.height()
+        if orientation is "portrait"
+            stlContainer.css(
+                "height": height
+                "top": top
+            )
+        stlLook.css(
+            '-webkit-transition-duration': (duration / 1000).toFixed(1) + 's',
+            'transition-duration': (duration / 1000).toFixed(1) + 's',
+            '-webkit-transform': translate3d,
+            '-ms-transform': translate,
+            'transform': translate3d
+        ).one('webkitTransitionEnd msTransitionEnd transitionend', updateStlArrows)
+        if duration is 0
+            updateStlArrows()
         return
 
     module.ExpandedContent::arrangeStlItemsVertical = ->
@@ -455,23 +455,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::swipeStatus = (event, phase, direction, distance, fingers, duration) ->
-            productImageIndex = @productInfo.currentView?.galleryIndex or 0
-            numberOfImages = (@productInfo.currentView?.numberOfImages - 1) or 0
-            if @lookProductIndex >= 0
-                unless (direction is 'left' and productImageIndex is numberOfImages) or (direction is 'right' and productImageIndex is 0)
-                    @productInfo.currentView.swipeStatus(event, phase, direction, distance, fingers, duration)
-                    return
-            if phase is 'end'
-                if direction is 'right'
-                    @lookProductIndex--
-                    if (@lookProductIndex < -1 and App.support.mobile()) or (@lookProductIndex < 0 and not App.support.mobile())
-                        @lookProductIndex = @$el.find(".stl-look").children(":visible").length - 1
-                else if direction is 'left'
-                    @lookProductIndex++
-                    if @lookProductIndex is @model.get("tagged-products")?.length
-                        @lookProductIndex = if App.support.mobile() then -1 else 0
-                @updateCarousel()
-            return @
+        productImageIndex = @productInfo.currentView?.galleryIndex or 0
+        numberOfImages = (@productInfo.currentView?.numberOfImages - 1) or 0
+        if @lookProductIndex >= 0
+            unless (direction is 'left' and productImageIndex is numberOfImages) or (direction is 'right' and productImageIndex is 0)
+                @productInfo.currentView.swipeStatus(event, phase, direction, distance, fingers, duration)
+                return
+        if phase is 'end'
+            if direction is 'right'
+                @lookProductIndex--
+                if (@lookProductIndex < -1 and App.support.mobile()) or (@lookProductIndex < 0 and not App.support.mobile())
+                    @lookProductIndex = @$el.find(".stl-look").children(":visible").length - 1
+            else if direction is 'left'
+                @lookProductIndex++
+                if @lookProductIndex is @model.get("tagged-products")?.length
+                    @lookProductIndex = if App.support.mobile() then -1 else 0
+            @updateCarousel()
+        return @
 
     module.ExpandedContent::updateCarousel = ->
         if App.support.mobile() and @lookProductIndex < 0
