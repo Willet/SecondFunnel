@@ -352,7 +352,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                 tableHeight = undefined
                 numImages = @$el.find("img.image").length
-                unless @model.get("template") == "product"
+                if @model.get("template") == "image" or @model.get("template") == "gif"
                     if (@model.get("orientation") == "landscape" and numImages > 1) or @model.get("orientation") == "portrait"
                         tableHeight = if container.height() then container.height() else containedItem.height()
                     else
@@ -375,14 +375,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     right: "0"
                 )
 
-                heightReduction = $(window).height()
-                widthReduction = $(window).width()
-                heightReduction -= containedItem.outerHeight()
-                heightReduction /= 2 # Split over top and bottom
+                heightReduction = ($(window).height() - containedItem.outerHeight()) / 2
+                widthReduction = ($(window).width() - containedItem.outerWidth()) / 2
                 if heightReduction <= 0 # String because jQuery checks for falsey values
                     heightReduction = "0"
-                widthReduction -= containedItem.outerWidth()
-                widthReduction /= 2
                 if widthReduction <= 0 # String because jQuery checks for falsey values
                     widthReduction = "0"
                 container.css(
