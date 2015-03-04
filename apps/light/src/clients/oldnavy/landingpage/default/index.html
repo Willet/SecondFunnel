@@ -91,39 +91,78 @@
             </a>
         </script>
 
-        <script type="text/template" id="product_preview_template">
-            <div class="table">
-                <div class='content-wrapper row'>
-                    <% if (App.support.mobile()) { %>
-                        <div class='cell info'>
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <div class='buy'></div>
+        <script type="text/template" id="product_info_template">
+            <div class='tagged-product row'>
+                <% if (App.support.mobile()) { %>
+                    <div class='cell info'>
+                        <div class='title'>
+                            <% include("product_title_template") %>
                         </div>
-                    <% } %>
-                    <div class='cell image-cell'>
-                        <div class="gallery-main-image"></div>
+                        <div class='price'>
+                            <% include("product_price_template") %>
+                        </div>
+                        <div class='buy'>
+                            <% include("product_buy_template") %>
+                        </div>
                     </div>
-                    <% if (obj.images.length > 1 && App.support.mobile()) { %>
-                        <div class='cell'>
-                            <div class='gallery-dots'></div>
+                <% } %>
+                <div class='cell image-cell'>
+                    <div class="gallery-main-image">
+                        <% include("product_galleryMainImage_template") %>
+                    </div>
+                </div>
+                <% if (obj.images.length > 1 && App.support.mobile()) { %>
+                    <div class='cell'>
+                        <div class='gallery-dots'>
+                            <% include("product_galleryDots_template") %>
                         </div>
-                    <% } %>
-                    <% if (!App.support.mobile()) { %>
-                        <div class='cell info'>
-                            <div class='title'></div>
-                            <div class='price'></div>
-                            <div class='buy'></div>
-                            <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
+                    </div>
+                <% } %>
+                <% if (!App.support.mobile()) { %>
+                    <div class='cell info'>
+                        <div class='title'>
+                            <% include("product_title_template") %>
                         </div>
-                    <% } %>
+                        <div class='price'>
+                            <% include("product_price_template") %>
+                        </div>
+                        <div class='buy'>
+                            <% include("product_buy_template") %>
+                        </div>
+                        <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>">
+                            <% include("product_gallery_template") %>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        </script>
+
+        <script type="text/template" id="image_info_template">
+            <div class="tagged-product">
+                <div class='title'>
+                    <% include("product_title_template") %>
+                </div>
+                <div class='price'>
+                    <% include("product_price_template") %>
+                </div>
+                <div class='buy'>
+                    <% include("product_buy_template") %>
+                </div>
+                <div class="gallery-main-image">
+                    <% include("product_galleryMainImage_template") %>
+                </div>
+                <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'>
+                    <% include("product_galleryDots_template") %>
                 </div>
             </div>
         </script>
 
+        <script type="text/template" id="product_preview_template">
+            <div class="product-info table"></div>
+        </script>
+
         <script type="text/template" id="image_preview_template">
             <% if (obj['tagged-products'].length) { %>
-                <% var product = obj['tagged-products'][0]; %>
                 <div class="image-with-tagged-products">
                     <div class="table">
                         <div class="row">
@@ -157,11 +196,7 @@
                                 <% } %>
                             </div>
                             <div class="cell info">
-                                <div class='title'></div>
-                                <div class='price'></div>
-                                <div class='buy'></div>
-                                <div class="gallery-main-image"></div>
-                                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
+                                <div class="product-info"></div>
                             </div>
                             <div class="cell mobile-only">
                                 <img src="<%= obj.images[0].url %>" alt="image"/>

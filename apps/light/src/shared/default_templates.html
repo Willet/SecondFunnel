@@ -212,6 +212,14 @@
     </div>
 </script>
 
+<script type="text/template" id="image_info_template">
+    <% include("product_info_template") %>
+</script>
+
+<script type="text/template" id="gif_info_template">
+    <% include("image_info_template") %>
+</script>
+
 <script type="text/template" id="product_price_template">
     <% if (obj.sale_price) { %>
         <div class="strike inline">
