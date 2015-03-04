@@ -28,13 +28,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
         events:
-            'click .gallery-swipe-left, .gallery-swipe-right': (ev) ->
-                if ev.target.className is 'gallery-swipe-left'
-                    @galleryIndex = Math.max(@galleryIndex - 1, 0)
-                else 
-                    @galleryIndex = Math.min(@galleryIndex + 1, @numberOfImages - 1)
+            'click .item': (ev) ->
+                selectedItem = ev.target
+                @galleryIndex = $(selectedItem).data("index")
                 @scrollImages(@mainImage.width()*@galleryIndex)
                 @updateGallery()
+                return
+
+            'click .gallery-swipe-left, .gallery-swipe-right': (ev) ->
+                unless _.contains(ev.target.className, "grey")
+                    if ev.target.className is 'gallery-swipe-left'
+                        @galleryIndex = Math.max(@galleryIndex - 1, 0)
+                    else
+                        @galleryIndex = Math.min(@galleryIndex + 1, @numberOfImages - 1)
+                    @scrollImages(@mainImage.width()*@galleryIndex)
+                    @updateGallery()
                 return
 
         initialize: ->
@@ -53,9 +61,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if @numberOfImages > 1
                 @updateGallery()
                 @mainImage.swipe(
-                        triggerOnTouchEnd: true,
-                        swipeStatus: _.bind(@swipeStatus, @),
-                        allowPageScroll: 'vertical'
+                    triggerOnTouchEnd: true,
+                    swipeStatus: _.bind(@swipeStatus, @),
+                    allowPageScroll: 'vertical'
                 )
             return
 
@@ -97,10 +105,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         updateGallery: ->
-            @$el.find('.item')
-                .removeClass('selected')
-                .eq(@galleryIndex)
-                .addClass('selected')
+            @$el.find(".item")
+                .removeClass("selected")
+                .filter("[data-index=#{@galleryIndex}]")
+                .addClass("selected")
             if @galleryIndex is 0
                 @leftArrow.addClass("grey")
                 @rightArrow.removeClass("grey")
@@ -328,6 +336,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     model: new module.Product(@model.get("tagged-products")[0])
                 )
                 @productInfo.show(productInstance)
+                @$el.find(".stl-item").filter("[data-index=0]").addClass("selected")
             else if @model.get("template") == "product"
                 productInstance = new module.ProductView(
                     model: new module.Product(@model.attributes)
