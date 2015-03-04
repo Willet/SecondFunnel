@@ -480,6 +480,23 @@ div.loading {
             content: none;
         }
     }
+    .product-info .tagged-product {
+        &:first-child {
+            padding-left: 0;
+        }
+        &:last-child {
+            padding-right: 0;
+        }
+        >div {
+            margin: 10px 0;
+            &:first-child {
+                margin-top: 0;
+            }
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
     .cell {
         display: table-cell;
         vertical-align: top;

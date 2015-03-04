@@ -579,14 +579,16 @@ div.header {
         padding: 10px;
     }
 
-    .previewContainer .buy .button {
-        padding: 10px 30px;
-        font-size: 15px;
-        margin-top: 5px;
-    }
-
-    .previewContainer .buy .button:first-child {
-        margin-top: 0;
+    .previewContainer .buy {
+        text-align: center;
+        .button {
+            padding: 10px 30px;
+            font-size: 15px;
+            margin-top: 5px;
+            &:first-child {
+                margin-top: 0;
+            }
+        }
     }
 
     .previewContainer .gallery-dots {

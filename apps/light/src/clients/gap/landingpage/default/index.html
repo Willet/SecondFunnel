@@ -210,13 +210,8 @@
         <script type="text/template" id="preview_container_template">
             <div class="fullscreen">
                 <div class="content">
-                    <span class="close">
-                        <% if (!App.support.mobile()) { %>
-                            X
-                        <% } else { %>
-                            Back
-                        <% } %>
-                    </span>
+                    <span class="close desktop-only">X</span>
+                    <span class="close mobile-only">Back</span>
                     <div class="scrollable">
                         <div class="template target"></div>
                     </div>
@@ -246,17 +241,13 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <% if (!App.support.mobile()) { %>
-                <a class="button find-store" href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
-            <% } else { %>
-                <a class="button find-store" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
-            <% } %>
-            <a class='button in-store' href='<%- obj.url %>' target='_blank'>
-                <% if (App.support.mobile()) { %>
-                    Shop Now
-                <% } else { %>
-                    Shop on Gap.com
-                <% } %>
+            <a class="button find-store desktop-only" href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
+            <a class="button find-store mobile-only" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
+            <a class='button in-store desktop-only' href='<%- obj.url %>' target='_blank'>
+                Shop on Gap.com
+            </a>
+            <a class='button in-store mobile-only' href='<%- obj.url %>' target='_blank'>
+                Shop Now
             </a>
         </script>
 
@@ -276,41 +267,7 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <div class="table">
-                <div class='content-wrapper row'>
-                    <% if (App.support.mobile()) { %>
-                        <div class='cell info'>
-                            <div class='title'></div>
-                            <div class='price'></div>
-                        </div>
-                    <% } %>
-                    <div class='cell'>
-                        <% if (App.support.mobile()) { %>
-                            <div class='relative'>
-                                <div class="gallery-main-image"></div>
-                                <% if (obj.images.length > 1) { %>
-                                    <div class='gallery-dots'></div>
-                                <% } %>
-                            </div>
-                            <div class='buy'></div>
-                        <% } %>
-                        <% if (!App.support.mobile()) { %>
-                            <div class="gallery-main-image"></div>
-                        <% } %>
-                    </div>
-                    <% if (!App.support.mobile()) { %>
-                        <div class='cell info'>
-                            <div>
-                                <div class='title'></div>
-                                <div class='price'></div>
-                            </div>
-                            <div class='description'></div>
-                            <div class='buy'></div>
-                            <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
-                        </div>
-                    <% } %>
-                </div>
-            </div>
+            <div class="product-info table"></div>
         </script>
 
         <!-- custom templates -->
@@ -350,11 +307,7 @@
                 <% } %>
             </div>
             <div class="cell info">
-                <div class='title'></div>
-                <div class='price'></div>
-                <div class="gallery-main-image"></div>
-                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                <div class='buy'></div>
+                <div class="product-info"></div>
             </div>
         </script>
 
@@ -363,7 +316,8 @@
                 <img src="<%= image_src %>" alt="image"/>
             </div>
             <div class="cell info">
-                <div>
+                <div class="product-info"></div>
+                <!--<div>
                     <div class='title'></div>
                     <div class='price'></div>
                 </div>
@@ -371,7 +325,7 @@
                     <div class="gallery-main-image"></div>
                     <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
                 </div>
-                <div class='cell buy'></div>
+                <div class='cell buy'></div>-->
             </div>
             <div class="cell mobile-only">
                 <% if (obj['tagged-products'].length > 1) { %>
@@ -391,34 +345,29 @@
         </script>
 
         <script type="text/template" id="no_tagged_products">
-            <% if (!App.support.mobile()) { %>
-                <div class="image cell">
-                    <img class="image" src="<%= image_src %>" alt="image"/>
-                </div>
-            <% } %>
+            <div class="image cell desktop-only">
+                <img class="image" src="<%= image_src %>" alt="image"/>
+            </div>
             <div class="cell info">
                 <div class='title'><%= obj.title || obj.name || "Coming soon to Gap!" %></div>
-                <% if (!App.support.mobile()) { %>
-                    <div class="buy">
-                        <a class="button" href="http://gap.com/" target="_blank">
-                            Shop on Gap.com
-                        </a>
-                        <a class="button find-store"
-                           href="http://www.gap.com/customerService/storeLocator.do"
-                           target="_blank">
-                            Find a Store
-                        </a>
-                    </div>
-                    <div class='description'>
-                        <%= App.utils.safeString(obj.caption || obj.description) %>
-                    </div>
-                <% } %>
+                <div class="buy desktop-only">
+                    <a class="button" href="http://gap.com/" target="_blank">
+                        Shop on Gap.com
+                    </a>
+                    <a class="button find-store"
+                       href="http://www.gap.com/customerService/storeLocator.do"
+                       target="_blank">
+                        Find a Store
+                    </a>
+                </div>
+                <div class='description desktop-only'>
+                    <%= App.utils.safeString(obj.caption || obj.description) %>
+                </div>
             </div>
-            <% if (App.support.mobile()) { %>
-                <div class="image cell">
+                <div class="image cell mobile-only">
                     <img class="image" src="<%= image_src %>" alt="image"/>
                 </div>
-                <div class="buy">
+                <div class="buy mobile-only">
                     <a class="button" href="http://m.gap.com/" target="_blank">
                         Shop on Gap.com
                     </a>
@@ -428,7 +377,87 @@
                         Find a Store
                     </a>
                 </div>
-            <% } %>
+        </script>
+
+        <script type="text/template" id="image_info_template">
+            <div class="tagged-product">
+                <div class='title'>
+                    <% include("product_title_template") %>
+                </div>
+                <div class='price'>
+                    <% include("product_price_template") %>
+                </div>
+                <div class="relative mobile-only">
+                    <div class="gallery-main-image">
+                        <% include("product_galleryMainImage_template") %>
+                    </div>
+                    <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'>
+                        <div>
+                            <% include("product_galleryDots_template") %>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-main-image desktop-only">
+                    <% include("product_galleryMainImage_template") %>
+                </div>
+                <div class='gallery-dots desktop-only<% if (obj.images.length < 2) { %> hide<% } %>'>
+                    <% include("product_galleryDots_template") %>
+                </div>
+                <div class='buy'>
+                    <% include("product_buy_template") %>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="product_info_template">
+            <div class="tagged-product row">
+                <div class='cell info mobile-only'>
+                    <div class='title'>
+                        <% include("product_title_template") %>
+                    </div>
+                    <div class='price'>
+                        <% include("product_price_template") %>
+                    </div>
+                </div>
+                <div class='cell'>
+                <% if (App.support.mobile()) { %>
+                    <div class='relative'>
+                        <div class="gallery-main-image">
+                            <% include("product_galleryMainImage_template") %>
+                        </div>
+                        <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'>
+                            <% include("product_galleryDots_template") %>
+                        </div>
+                    </div>
+                    <div class='buy'>
+                        <% include("product_buy_template") %>
+                    </div>
+                <% } else { %>
+                    <div class="gallery-main-image">
+                        <% include("product_galleryMainImage_template") %>
+                    </div>
+                <% } %>
+                </div>
+                <div class='cell info desktop-only'>
+                    <div>
+                        <div class='title'>
+                            <% include("product_title_template") %>
+                        </div>
+                        <div class='price'>
+                            <% include("product_buy_template") %>
+                        </div>
+                    </div>
+                    <div class='description'>
+                        <% include("product_description_template") %>
+                    </div>
+                    <div class='buy'>
+                        <% include("product_buy_template") %>
+                    </div>
+                    <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>">
+                        <% include("product_gallery_template") %>
+                    </div>
+                </div>
+            </div>
         </script>
 
         <script type="text/template" id="hero_template">

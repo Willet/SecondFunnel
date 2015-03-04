@@ -253,13 +253,13 @@
 
 <script type="text/template" id="product_gallery_template">
     <% for (var i = 0; i < obj.images.length; i++) { %>
-        <img class="item" src="<%- obj.images[i].url %>" />
+        <img class="item" data-index="<%- i %>" src="<%- obj.images[i].url %>" />
     <% } %>
 </script>
 
 <script type="text/template" id="product_galleryDots_template">
     <% for (var i = 0; i < obj.images.length; i++) { %>
-        <div class="item"></div>
+        <div class="item" data-index="<%- i %>"></div>
     <% } %>
 </script>
 
