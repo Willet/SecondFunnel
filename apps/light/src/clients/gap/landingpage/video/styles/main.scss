@@ -213,6 +213,27 @@ div.header {
     background-color: #acacac;
     background-image: none;
 }
+#shop-below {
+    width: 100%;
+    height: 30px;
+    text-align: center;
+    margin-top: -5px;
+    z-index: 1;
+    position: relative;
+    span {
+        font-family: $gap-helvetica;
+        color: $gap-blue;
+        font-size: 16px;
+        font-weight: bold;
+        &:after {
+            display: inline-block;
+            width: 20px;
+            height: 8px;
+            content: url('/static/light/gap/landingpage/video/images/down-arrow.png');
+            padding-left: 10px;
+        }
+    }
+}
 
 #hero-area {
     position: relative;
