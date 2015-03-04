@@ -266,7 +266,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         stlLook = @$el.find(".stl-look")
         height = "95%"
         top = "0"
-        distance += 0.0001
+        distance += Math.random() / 1000
         if orientation is "landscape"
             translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
             translate = 'translateX(' + distance + 'px)'
