@@ -172,6 +172,46 @@
         </div>
     </script>
 
+    <script type="text/template" id="image_info_template">
+        <div class="tagged-product">
+            <% if (App.support.mobile()) { %>
+                <div class='title'>
+                    <% include("product_title_template") %>
+                </div>
+                <div class='price'>
+                    <% include("product_price_template") %>
+                </div>
+            <% } %>
+            <div class='relative'>
+                <div class="gallery-main-image">
+                    <% include("product_galleryMainImage_template") %>
+                </div>
+                <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'>
+                    <% include("product_galleryDots_template") %>
+                </div>
+                <div class='buy mobile-only'>
+                    <% include("product_buy_template") %>
+                </div>
+            </div>
+            <% if (!App.support.mobile()) { %>
+                <div>
+                    <div class='title'>
+                        <% include("product_title_template") %>
+                    </div>
+                    <div class='price'>
+                        <% include("product_price_template") %>
+                    </div>
+                </div>
+                <div class='buy desktop-only'>
+                    <% include("product_buy_template") %>
+                </div>
+                <div class='description'>
+                    <% include("product_description_template") %>
+                </div>
+            <% } %>
+        </div>
+    </script>
+
     <script type="text/template" id="image_preview_template">
         <% if (obj['tagged-products'].length) { %>
             <% var product = obj['tagged-products'][0]; %>
@@ -297,25 +337,7 @@
                         <% } %>
                         <% if (obj['tagged-products'].length === 1) { %>
                             <div class="cell info">
-                                <% if (App.support.mobile()) { %>
-                                    <div class='title'></div>
-                                    <div class='price'></div>
-                                <% } %>
-                                <div class='relative'>
-                                    <div class="gallery-main-image"></div>
-                                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                                    <% if (App.support.mobile()) { %>
-                                        <div class='buy'></div>
-                                    <% } %>
-                                </div>
-                                <% if (!App.support.mobile()) { %>
-                                    <div>
-                                        <div class='title'></div>
-                                        <div class='price'></div>
-                                    </div>
-                                    <div class='buy'></div>
-                                    <div class='description'></div>
-                                <% } %>
+                                <div class="product-info"></div>
                             </div>
                         <% } %>
                     </div>
