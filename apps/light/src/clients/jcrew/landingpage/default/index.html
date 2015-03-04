@@ -363,6 +363,32 @@
             <div class="mask"></div>
         </script>
 
+        <script type="text/template" id="product_price_template">
+            <div class="price-wrapper">
+                <% if (obj.sale_price) { %>
+                    <strike><%- obj.price %></strike><br />
+                    <b>NOW:</b> <%- obj.sale_price %>
+                <% } else { %>
+                    <%- obj.price %>
+                <% } %>
+            </div>
+        </script>
+
+        <script type="text/template" id="product_buy_template">
+            <% if (!App.support.mobile()) { %>
+                <a class="button find-store" href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
+            <% } else { %>
+                <a class="button find-store" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
+            <% } %>
+            <a class='button in-store' href='<%- obj.url %>' target='_blank'>
+                <% if (App.support.mobile()) { %>
+                    Shop Now
+                <% } else { %>
+                    Shop on Gap.com
+                <% } %>
+            </a>
+        </script>
+
         <script type="text/template" id="product_description_template">
             <div class='desc-title'>Overview</div>
             <% var description = (obj.description || ""); %>
@@ -518,7 +544,7 @@
                     </div>
                     <div class='price'>
                         <% if (obj.sale_price) { %>
-                            <strike><%- obj.price %></strike> 
+                            <strike><%- obj.price %></strike><br />
                             <b>NOW:</b> <%- obj.sale_price %>
                         <% } else { %>
                             <%- obj.price %>
@@ -526,11 +552,11 @@
                     </div>
                 </div>
                 <% if (obj.images.length > 1) { %>
-                    <div class="gallery-swipe-left"></div>
-                    <div class="gallery-swipe-right"></div>
+                    <div class="product-swipe-left"></div>
+                    <div class="product-swipe-right"></div>
                 <% } %>
-                <div class="gallery-main-image">
-                    <div class="main-image-container">
+                <div class="product-image-gallery">
+                    <div class="product-image-container">
                         <div class="main-image">
                             <% for (var j = 0; j < obj.images.length; j++) { %>
                                 <div class="image" style="background-image: url('<%= obj.images[j].url %>');"></div>
@@ -544,8 +570,7 @@
                     <% } %>
                 </div>
                 <div class='buy'>
-                    <a class="button find-store desktop-only" href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
-                    <a class="button find-store mobile-only" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
+                    <a class="button find-store" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
                     <a class='button in-store' href='<%- obj.url %>' target='_blank'>Shop on Gap.com</a>
                 </div>
             </div>
@@ -572,9 +597,6 @@
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
         <div id="hero-area"></div>
         <div id="category-area"></div>
-        <div id="shop-below" class="desktop-only">
-            <span>shop the looks below</span>
-        </div>
         <div id="discovery-area" class="discovery-area"></div>
         <div class="tile-sizer tile"></div>
         <div class="no-noscript loading"></div>

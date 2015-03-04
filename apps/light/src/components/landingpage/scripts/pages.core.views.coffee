@@ -586,6 +586,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
 
             "click .buy": (event) ->
+                ###
+                DEPRECATED BY PRODUCT VIEW, ONLY USED BY WIDGETS
+                REMOVE WITH WIDGETS
+                ###
                 $target = $(event.target)
                 # Over-write addUrlTrackingParameters for each customer
                 url = App.utils.addUrlTrackingParameters( $target.attr('href') )
@@ -644,9 +648,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.css(
                     height: (if App.support.mobile() then heightMultiplier * $window.height() else "")
                 )
-                @content.show(contentInstance,
-                    forceShow: true
-                )
+                if App.utils.landscape()
+                    @$el.closest(".previewContainer").addClass("landscape")
+                else
+                    @$el.closest(".previewContainer").removeClass("landscape")
+                if @content.currentView?.productInfo?.currentView
+                    productRegion = @content.currentView.productInfo
+                    productRegion.show(productRegion.currentView,
+                        forceShow: true
+                    )
                 return
             )
             return
@@ -667,8 +677,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onClose: ->
-            App.options.galleryIndex = 0
-            App.options.galleryIndexPage = 0
+            App.options.galleryIndex = undefined
+            App.options.galleryIndexPage = undefined
 
             # hide this, then restore discovery.
             if @feedSwapped
