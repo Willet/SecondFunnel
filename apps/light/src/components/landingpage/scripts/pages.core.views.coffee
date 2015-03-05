@@ -22,7 +22,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") > -1
+                    return _.contains(t, "mobile")
                 )
             templateRules
 
@@ -225,18 +225,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 productInstance = new module.ProductView(
                     model: productModel
                 )
-                @productInfo.show(productInstance)  
-
                 if $el.parents("#hero-area").length
                     # this is a featured content area
                     App.options.heroGalleryIndex = index
                     App.options.heroGalleryIndexPage = 0
-                productInstance = new module.ProductView(
-                    model: productModel
-                )
                 @productInfo.show(productInstance)
                 if App.support.mobile()
-                    $('body').scrollTo ".cell.info", 500           
+                    $('body').scrollTo(".cell.info", 500)
                 return
         
         onBeforeRender: ->
@@ -249,9 +244,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 image = image.height(App.utils.getViewportSized(true), true)
 
             if @model.get("tagged-products") and @model.get("tagged-products").length > 1
-                @model.set "tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
+                @model.set("tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
                     -1 * parseFloat((obj.price or "$0").substr(1), 10)
-                )
+                ))
 
             # templates use this as obj.image.url
             @model.set "image", image
@@ -326,11 +321,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 width = @model.get("sizes").master.width
                 height = @model.get("sizes").master.height
                 if Math.abs((height-width)/width) <= 0.02
-                    @model.attributes.orientation = "square"
+                    @model.set("orientation", "square")
                 else if width > height
-                    @model.attributes.orientation = "landscape"
+                    @model.set("orientation", "landscape")
                 else
-                    @model.attributes.orientation = "portrait"
+                    @model.set("orientation", "portrait")
             if @model.get("tagged-products")?.length > 0
                 productInstance = new module.ProductView(
                     model: new module.Product(@model.get("tagged-products")[0])
@@ -374,7 +369,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") > -1
+                    return _.contains(t, "mobile")
                 )
             templateRules
 
@@ -436,7 +431,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") > -1
+                    return _.contains(t, "mobile")
                 )
             templateRules
 
@@ -572,7 +567,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") > -1
+                    return _.contains(t, "mobile")
                 )
             return templateRules
 
@@ -593,17 +588,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         replace: true
                     )
                 return
-
-            "click .buy": (event) ->
-                ###
-                DEPRECATED BY PRODUCT VIEW, ONLY USED BY WIDGETS
-                REMOVE WITH WIDGETS
-                ###
-                $target = $(event.target)
-                # Over-write addUrlTrackingParameters for each customer
-                url = App.utils.addUrlTrackingParameters( $target.attr('href') )
-                App.utils.openUrl(url)
-                return false
 
         initialize: (options) ->
             @options = options
@@ -686,9 +670,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onClose: ->
-            App.options.galleryIndex = undefined
-            App.options.galleryIndexPage = undefined
-
             # hide this, then restore discovery.
             if @feedSwapped
                 @$el.swapWith(App.discoveryArea.$el.parent())
@@ -726,7 +707,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             ]
             unless App.support.mobile()
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") > -1
+                    return _.contains(t, "mobile")
                 )
             templateRules
 
