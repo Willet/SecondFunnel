@@ -93,7 +93,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     difference = $stlContainer.height()
                     @stlIndex = _.findIndex(stlItems, (item) ->
                         # true if item is visible after moving leftmost item
-                        return ($(item).outerHeight() + $(item).offset().top + difference) > stlContainer.offset().top
+                        return ($(item).outerHeight() + $(item).offset().top + difference) > $stlContainer.offset().top
                     )
                     distance -= $(stlItems[@stlIndex]).offset().top
             else
@@ -102,8 +102,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return ($(item).outerHeight() + $(item).offset().top) > ($stlContainer.height() + $stlContainer.offset().top)
                 )
                 distance -= $(stlItems[@stlIndex]).offset().top
-            @upArrow.hide()
-            @downArrow.hide()
             @updateStlGalleryPosition(distance, "portrait")
             return
 
@@ -127,8 +125,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return ($(item).width() + $(item).offset().left) > ($stlContainer.width() + $stlContainer.offset().left)
                 )
                 distance -= $(stlItems[@stlIndex]).offset().left
-            @leftArrow.hide()
-            @rightArrow.hide()
             @updateStlGalleryPosition(distance, "landscape")
             return
 
