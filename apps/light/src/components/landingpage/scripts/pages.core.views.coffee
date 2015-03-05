@@ -1,6 +1,7 @@
 "use strict"
 
 imagesLoaded = require('imagesLoaded')
+swipe = require('jquery-touchswipe')
 require("jquery-scrollto")
 require("jquery-waypoints") # register $.fn.waypoint
 require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
@@ -72,6 +73,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @rightArrow = @$el.find('.gallery-swipe-right')
             @mainImage = @$el.find('.main-image')
             if @numberOfImages > 1
+                @scrollImages(@mainImage.width()*@galleryIndex, 0)
                 @updateGallery()
                 @mainImage.swipe(
                     triggerOnTouchEnd: true,
@@ -242,9 +244,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     # this is a featured content area
                     App.options.heroGalleryIndex = index
                     App.options.heroGalleryIndexPage = 0
-                @productInfo.show(productInstance)
                 if App.support.mobile()
                     $('body').scrollTo(".cell.info", 500)
+                @productInfo.show(productInstance)
                 return
         
         onBeforeRender: ->
