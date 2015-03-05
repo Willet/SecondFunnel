@@ -379,33 +379,7 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <div class="table">
-                <div class='content-wrapper row'>
-                    <div class='cell info mobile-only'>
-                        <div class='title'></div>
-                        <div class='price'></div>
-                    </div>
-                    <div class='cell product-image'>
-                        <div class='relative mobile-only'>
-                            <div class="gallery-main-image"></div>
-                            <% if (obj.images.length > 1) { %>
-                                <div class='gallery-dots'></div>
-                            <% } %>
-                        </div>
-                        <div class='buy mobile-only'></div>
-                        <div class="gallery-main-image desktop-only"></div>
-                    </div>
-                    <div class='cell info desktop-only'>
-                        <div>
-                            <div class='title'></div>
-                            <div class='price'></div>
-                        </div>
-                        <div class='description'></div>
-                        <div class='buy'></div>
-                        <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>"></div>
-                    </div>
-                </div>
-            </div>
+            <div class="product-info table"></div>
             <img class="image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" style="visibility:hidden"/>
         </script>
 
@@ -422,7 +396,7 @@
                     <div class="stl-title">
                         shop the look
                     </div>
-                    <div class="stl-look-container">
+                    <div class="stl-carousel">
                     <% if (orientation !== 'landscape') { %>
                         <div class="stl-swipe-up"></div>
                         <div class="stl-swipe-down"></div>
@@ -430,14 +404,16 @@
                         <div class="stl-swipe-left"></div>
                         <div class="stl-swipe-right"></div>
                     <% } %>
-                        <div class="stl-look">
-                            <% var related = obj['tagged-products']; %>
-                            <% for (var i = 0; i < related.length; i++) { %>
-                                <div class="stl-item" data-index="<%- i %>">
-                                    <img src="<%- related[i].images[0].url %>" class="image"/>
-                                    <%- related[i].name %>
-                                </div>
-                            <% } %>
+                        <div class="stl-look-container">
+                            <div class="stl-look">
+                                <% var related = obj['tagged-products']; %>
+                                <% for (var i = 0; i < related.length; i++) { %>
+                                    <div class="stl-item" data-index="<%- i %>">
+                                        <img src="<%- related[i].images[0].url %>" class="image"/>
+                                        <%- related[i].name %>
+                                    </div>
+                                <% } %>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -449,27 +425,33 @@
         </script>
 
         <script type="text/template" id="mobile_tagged_products">
-            <div class="cell look-image mobile-only">
-                <div class="look-image-container" style="background-image: url('<%= image_src %>');"></div>
-            </div>
-            <div class="cell info mobile-only">
-                <div class="product-info"></div>
+            <div class="look-product-carousel">
+                <div class="cell look-image mobile-only">
+                    <div class="look-image-container" style="background-image: url('<%= image_src %>');"></div>
+                </div>
+                <div class="cell info mobile-only">
+                    <div class="product-info"></div>
+                </div>
             </div>
             <div class="cell shop mobile-only">
                 <div class="stl-title">shop the look</div>
-                <div class="stl-look-container">
+                <div class="stl-carousel">
                     <div class="stl-swipe-left"></div>
                     <div class="stl-swipe-right"></div>
-                    <div class="stl-look">
-                        <div class="look-thumbnail">
-                            <img src="<%= image_src %>" class="image"/>
-                        </div>
-                        <% var related = obj['tagged-products']; %>
-                        <% for (var i = 0; i < related.length; i++) { %>
-                            <div class="stl-item" data-index="<%- i %>">
-                                <img src="<%- related[i].images[0].url %>" class="image"/>
+                    <div class="stl-swipe-up"></div>
+                    <div class="stl-swipe-down"></div>
+                    <div class="stl-look-container">
+                        <div class="stl-look">
+                            <div class="look-thumbnail">
+                                <img src="<%= image_src %>" class="image"/>
                             </div>
-                        <% } %>
+                            <% var related = obj['tagged-products']; %>
+                            <% for (var i = 0; i < related.length; i++) { %>
+                                <div class="stl-item" data-index="<%- i %>">
+                                    <img src="<%- related[i].images[0].url %>" class="image"/>
+                                </div>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -511,18 +493,64 @@
         </script>
 
         <script type="text/template" id="product_info_template">
+            <div class="tagged-product row">
+                <div class='cell info mobile-only'>
+                    <div class='title'>
+                        <% include("product_title_template") %>
+                    </div>
+                    <div class='price'>
+                        <% include("product_price_template") %>
+                    </div>
+                </div>
+                <div class='cell product-image'>
+                <% if (App.support.mobile()) { %>
+                    <div class='relative mobile-only'>
+                        <div class="gallery-main-image">
+                            <% include("product_galleryMainImage_template") %>
+                        </div>
+                        <% if (obj.images.length > 1) { %>
+                            <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'></div>
+                        <% } %>
+                    </div>
+                    <div class='buy'>
+                        <% include("product_buy_template") %>
+                    </div>
+                <% } else { %>
+                    <div class="gallery-main-image">
+                        <% include("product_galleryMainImage_template") %>
+                    </div>
+                <% } %>
+                </div>
+                <div class='cell info desktop-only'>
+                    <div>
+                        <div class='title'>
+                            <% include("product_title_template") %>
+                        </div>
+                        <div class='price'>
+                            <% include("product_price_template") %>
+                        </div>
+                    </div>
+                    <div class='description'>
+                        <% include("product_description_template") %>
+                    </div>
+                    <div class='buy'>
+                        <% include("product_buy_template") %>
+                    </div>
+                    <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>">
+                        <% include("product_gallery_template") %>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="image_info_template">
             <div class="tagged-product">
                 <div class="product-details">
                     <div class='title'>
-                        <%- obj.title || obj.name %>
+                        <% include("product_title_template") %>
                     </div>
                     <div class='price'>
-                        <% if (obj.sale_price) { %>
-                            <strike><%- obj.price %></strike> 
-                            <b>NOW:</b> <%- obj.sale_price %>
-                        <% } else { %>
-                            <%- obj.price %>
-                        <% } %>
+                        <% include("product_price_template") %>
                     </div>
                 </div>
                 <% if (obj.images.length > 1) { %>
@@ -530,41 +558,40 @@
                     <div class="gallery-swipe-right"></div>
                 <% } %>
                 <div class="gallery-main-image">
-                    <div class="main-image-container">
-                        <div class="main-image">
-                            <% for (var j = 0; j < obj.images.length; j++) { %>
-                                <div class="image" style="background-image: url('<%= obj.images[j].url %>');"></div>
-                            <% } %>
-                        </div>
-                    </div>
+                    <% include("product_galleryMainImage_template") %>
                 </div>
                 <div class="gallery-dots <% if (obj.images.length < 2) { %> hide <% } %>">
-                    <% for (var i = 0; i < obj.images.length; i++) { %>
-                        <div class="item"></div>
-                    <% } %>
+                    <% include("product_galleryDots_template") %>
                 </div>
                 <div class='buy'>
-                    <a class="button find-store desktop-only" href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
-                    <a class="button find-store mobile-only" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
-                    <a class='button in-store' href='<%- obj.url %>' target='_blank'>Shop on Gap.com</a>
+                    <% include("product_buy_template") %>
                 </div>
             </div>
         </script>
 
         <script type="text/template" id="product_galleryMainImage_template">
-            <div class="gallery-container">
-                <% if (obj.images.length > 1) { %>
-                    <div class="gallery-swipe-left"></div>
-                    <div class="gallery-swipe-right"></div>
-                <% } %>
-                <div class="main-image-container">
-                    <div class="main-image">
-                        <% for (var i = 0; i < obj.images.length; i++) { %>
-                            <div class="image" style="background-image: url('<%= obj.images[i].url %>');"></div>
-                        <% } %>
-                    </div>
+            <div class="main-image-container">
+                <div class="main-image">
+                    <% for (var j = 0; j < obj.images.length; j++) { %>
+                        <div class="image" style="background-image: url('<%= obj.images[j].url %>');"></div>
+                    <% } %>
                 </div>
             </div>
+        </script>
+
+        <script type="text/template" id="product_buy_template">
+            <a class="button find-store desktop-only" href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
+            <a class="button find-store mobile-only" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
+            <a class='button in-store' href='<%- obj.url %>' target='_blank'>Shop on Gap.com</a>
+        </script>
+
+        <script type="text/template" id="product_price_template">
+            <% if (obj.sale_price) { %>
+                <strike><%- obj.price %></strike> 
+                <b>NOW:</b> <%- obj.sale_price %>
+            <% } else { %>
+                <%- obj.price %>
+            <% } %>
         </script>
     </div>
 

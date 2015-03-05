@@ -584,6 +584,11 @@ div.header {
         height: 100%;
     }
 
+    .look-product-carousel {
+        width: 100%;
+        height: 67%;
+    }
+
     .cell.desktop-only {
         &.look-image {
             padding: 0;
@@ -622,29 +627,38 @@ div.header {
                 max-height: 28px;
                 overflow: hidden;
             }
-            .stl-look-container {
+            .stl-carousel {
+                height: 94%;
                 position: relative;
+            }
+            .stl-look-container {
+                position: absolute;
+                top: 0; left: 0; right: 0;
+                margin: auto;
                 font-family: $gap-helvetica-neue;
                 font-size: 10px;
                 line-height: 12px;
-                height: 95%;
+                height: 90%;
                 overflow: hidden;
             }
             .stl-look {
                 width: 100%;
                 height: 100%;
+                max-width: none;
                 overflow: visible;
-                padding: 0 15px;
             }
             .stl-item {
                 margin-bottom: 25px;
                 width: 100%;
                 position: relative;
+                &:first-child {
+                    margin-left: 0 !important;
+                }
                 img {
-                    width: 100%;
+                    width: 90%;
                     height: auto;
                     opacity: 1 !important;
-                    margin: 0;
+                    margin: 0 auto;
                 }
             }
         }
@@ -652,7 +666,7 @@ div.header {
         &.shop.landscape {
             width: 100%;
             height: 33%;
-            padding: 0 10px;
+            padding: 0;
             border-top: 1px solid $gap-grey;
             border-right: none;
             position: absolute;
@@ -661,13 +675,19 @@ div.header {
             .stl-title {
                 margin: 10px 0;
             }
-            .stl-look-container {
+            .stl-carousel {
+                width: 100%;
                 height: 80%;
+                position: relative;
+            }
+            .stl-look-container {
+                width: 90%;
+                height: 100%;
             }
             .stl-look {
                 margin: 0;
                 white-space: nowrap;
-                max-width: 100%;
+                width: 100%;
                 height: 100%;
                 text-align: center;
             }
@@ -680,6 +700,7 @@ div.header {
                     height: 95%;
                     width: auto !important;
                     margin: 0 auto;
+                    object-fit: contain;
                 }
             }
         }
@@ -835,7 +856,7 @@ div.header {
 
         &.look-image {
             width: 100%;
-            height: 67%;
+            height: 100%;
             padding: 0;
 
             .look-image-container {
@@ -857,36 +878,47 @@ div.header {
             .stl-title {
                 margin: 5px 0;
             }
-            .stl-look-container, .stl-look {
-                height: 95%;
+            .stl-carousel {
+                width: 100%;
+                height: 90%;
+                position: relative;
+            }
+            .stl-look-container {
+                width: 80%;
+                height: 100%;
+                overflow: hidden;
+                padding: 0;
+                margin: 0 auto;
+            }
+            .stl-look {
+                height: 100%;
+                width: 100%;
                 overflow: visible;
                 white-space: nowrap;
-                overflow-x: auto;
-                padding: 0 3px;
-                &::-webkit-scrollbar {
-                    display: none;
-                }
+                padding: 0;
             }
             .look-thumbnail, .stl-item {
                 display: inline-block;
                 height: 95%;
-                width: auto;
-                margin-left: 5px;
-                &:first-child {
-                    margin-left: 0;
+                width: 47%;
+                margin-right: 5px;
+                position: relative;
+                &:last-child {
+                    margin-right: 0 !important;
                 }
                 img {
+                    width: auto;
                     height: 100%;
-                    width: auto !important;
                     opacity: 1 !important;
-                    margin: 0 auto;
+                    margin: auto;
+                    object-fit: contain;
                 }
             }
         }
 
         &.info {
             width: 100%;
-            height: 67%;
+            height: 100%;
             padding: 0px;
             text-align: center;
             .product-info, .tagged-product {
@@ -988,9 +1020,10 @@ div.header {
     }
 }
 
-.mobile-only .tagged-product {
-    .gallery-swipe-left,
-    .gallery-swipe-right {
+.cell.mobile-only .tagged-product,
+.cell.mobile-only .stl-carousel {
+    .gallery-swipe-left, .gallery-swipe-right,
+    .stl-swipe-left, .stl-swipe-right {
         width: 30px;
         height: 100%;
         top: 0;
@@ -1012,11 +1045,11 @@ div.header {
     }
 }
 
-.stl-look-container, .tagged-product {
+.stl-carousel, .tagged-product {
     .stl-swipe-up, .stl-swipe-down,
     .stl-swipe-left, .stl-swipe-right,
     .gallery-swipe-left, .gallery-swipe-right {
-        display: none;
+        display: block;
         background-repeat: no-repeat;
         background-position: center;
         border: none;
@@ -1027,19 +1060,21 @@ div.header {
         background-size: contain;
     }
     .stl-swipe-up, .stl-swipe-down {
-        width: 38px;
-        height: 15px;
-        left: 35%;
+        width: 100%;
+        height: 5%;
+        left: 0;
+        background-size: 25%;
     }
     .stl-swipe-left, .stl-swipe-right {
-        width: 15px;
-        height: 38px;
-        top: 35%;
+        width: 5%;
+        height: 100%;
+        top: 0;
+        background-size: 30%;
     }
     .gallery-swipe-left, .gallery-swipe-right {
         width: 45px;
         height: 45px;
-        top: 45%;
+        top: 40%;
     }
     .stl-swipe-up {
         background-image: url('/static/light/gap/landingpage/video/images/up-image-arrow.png');
@@ -1047,7 +1082,7 @@ div.header {
     }
     .stl-swipe-down {
         background-image: url('/static/light/gap/landingpage/video/images/down-image-arrow.png');
-        bottom: 15px;
+        bottom: 0;
     }
     .stl-swipe-left, .gallery-swipe-left {
         background-image: url('/static/light/gap/landingpage/video/images/prev-image-arrow.png');
@@ -1339,11 +1374,17 @@ div.header {
             height: 100% !important;
 
             .gallery-swipe-left {
-                left: 15%;
+                left: 15% !important;
             }
 
             .gallery-swipe-right {
-                right: 15%;
+                right: 15% !important;
+            }
+
+            .look-product-carousel {
+                width: 80%;
+                height: 100%;
+                float: right;
             }
 
             .cell.mobile-only {
@@ -1352,33 +1393,39 @@ div.header {
                     height: 100%;
                     float: left;
                     border-right: 1px solid #000;
+                    .stl-look-container {
+                        width: 100%;
+                        height: 95%;
+                        position: absolute;
+                        top: 0;
+                    }
                     .stl-look {
                         height: 100%;
                         white-space: normal;
                         padding: 0;
+                        position: absolute;
+                        top: 0;
                         .look-thumbnail, .stl-item {
                             width: 100%;
-                            height: auto;
+                            height: 115px;
                             margin-left: 0;
-                            margin-top: 5px;
-                            &:first-child {
-                                margin-top: 0;
+                            margin-bottom: 5px;
+                            &:last-child {
+                                margin-bottom: 0;
                             }
                             img {
                                 width: auto !important;
-                                height: 140px;
+                                height: 100%;
+                                margin: auto;
                             }
                         }
                     }
                 }
 
                 &.info, &.look-image {
-                    width: 80%;
-                    height: 100%;
                     border-bottom: none;
                     display: inline-block;
-                    float: right;
-                    .gallery-main-image {
+                    .gallery-image-gallery {
                         width: 60%;
                         height: 90%;
                         margin: 0 auto;
