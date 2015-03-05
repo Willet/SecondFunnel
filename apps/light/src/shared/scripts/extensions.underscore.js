@@ -7,6 +7,32 @@
  */
 module.exports = function (module, App, Backhone, Marionette, $, _) {
     var collectionContains = _.contains;
+    var optimizeCb = function(func, context, argCount) {
+        if (context === void 0) return func;
+        switch (argCount == null ? 3 : argCount) {
+          case 1: return function(value) {
+            return func.call(context, value);
+          };
+          case 2: return function(value, other) {
+            return func.call(context, value, other);
+          };
+          case 3: return function(value, index, collection) {
+            return func.call(context, value, index, collection);
+          };
+          case 4: return function(accumulator, value, index, collection) {
+            return func.call(context, accumulator, value, index, collection);
+          };
+        }
+        return function() {
+          return func.apply(context, arguments);
+        };
+    };
+    var cb = function(value, context, argCount) {
+        if (value == null) return _.identity;
+        if (_.isFunction(value)) return optimizeCb(value, context, argCount);
+        if (_.isObject(value)) return _.matcher(value);
+        return _.property(value);
+    };
     _.mixin({
         'buffer': function (fn, wait) {
         // a variant of _.debounce, whose called function receives an array
@@ -70,6 +96,15 @@ module.exports = function (module, App, Backhone, Marionette, $, _) {
             } else {
                 return collectionContains(collection_or_str, needle);
             }
+        },
+        'findIndex': _.findIndex || function(array, predicate, context) {
+            predicate = cb(predicate, context);
+            var length = array != null && array.length;
+            var index = 0;
+            for(; index >= 0 && index < length; index++) {
+                if (predicate(array[index], index, array)) return index;
+            }
+            return -1;
         }
     });
 };
