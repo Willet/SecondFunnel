@@ -86,7 +86,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $stlContainer = @$el.find(".stl-look-container")
             stlItems = @$el.find(".stl-look").children(":visible")
             distance = @$el.find(".stl-look").offset().top
-            if ev.target.className is "stl-swipe-up"
+            if $(ev.target).hasClass("stl-swipe-up")
                 topMostItem = stlItems[@stlIndex]
                 unless topMostItem is undefined
                     # number of pixels needed to move leftmost item to the end of carousel
@@ -109,7 +109,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $stlContainer = @$el.find(".stl-look-container")
             stlItems = @$el.find(".stl-look").children(":visible")
             distance = @$el.find(".stl-look").offset().left
-            if ev.target.className is "stl-swipe-left"
+            if $(ev.target).hasClass("stl-swipe-left")
                 leftMostItem = stlItems[@stlIndex]
                 unless leftMostItem is undefined
                     # number of pixels needed to move leftmost item to the end of carousel
@@ -158,6 +158,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         $stlLook = @$el.find(".stl-look")
         height = "95%"
         top = "0"
+        # Small random number added to ensure transitionend is triggered.
         distance += Math.random() / 1000
         if orientation is "landscape"
             translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'

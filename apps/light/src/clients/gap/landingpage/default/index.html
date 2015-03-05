@@ -387,7 +387,8 @@
                 <div class='price'>
                     <% include("product_price_template") %>
                 </div>
-                <div class="relative mobile-only">
+            <% if (App.support.mobile()) { %>
+                <div class="relative">
                     <div class="gallery-main-image">
                         <% include("product_galleryMainImage_template") %>
                     </div>
@@ -397,12 +398,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="gallery-main-image desktop-only">
+            <% } else { %>
+                <div class="gallery-main-image">
                     <% include("product_galleryMainImage_template") %>
                 </div>
-                <div class='gallery-dots desktop-only<% if (obj.images.length < 2) { %> hide<% } %>'>
+                <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'>
                     <% include("product_galleryDots_template") %>
                 </div>
+            <% } %>
                 <div class='buy'>
                     <% include("product_buy_template") %>
                 </div>

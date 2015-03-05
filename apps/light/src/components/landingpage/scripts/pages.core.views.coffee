@@ -30,15 +30,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         events:
             'click .item': (ev) ->
-                selectedItem = ev.target
-                @galleryIndex = $(selectedItem).data("index")
+                $selectedItem = $(ev.target)
+                @galleryIndex = $selectedItem.data("index")
                 @scrollImages(@mainImage.width()*@galleryIndex)
                 @updateGallery()
                 return
 
             'click .gallery-swipe-left, .gallery-swipe-right': (ev) ->
-                unless _.contains(ev.target.className, "grey")
-                    if ev.target.className is 'gallery-swipe-left'
+                $target = $(ev.target)
+                unless $target.hasClass("grey")
+                    if $target.hasClass("gallery-swipe-left")
                         @galleryIndex = Math.max(@galleryIndex - 1, 0)
                     else
                         @galleryIndex = Math.min(@galleryIndex + 1, @numberOfImages - 1)
@@ -47,11 +48,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
 
             'click .buy': (ev) ->
-                $target = $(ev.target)
-                if $target.hasClass('in-store')
-                    App.vent.trigger('tracking:product:buyOnline', @model)
-                else if $target.hasClass('find-store')
+                $target = if $(ev.target).is("a") then $(ev.target) else $(ev.target).children("a")
+                if $target.hasClass('find-store')
                     App.vent.trigger('tracking:product:findStore', @model)
+                else if $target.hasClass('in-store') or $target.hasClass('button')
+                    App.vent.trigger('tracking:product:buyOnline', @model)
 
                 # Over-write addUrlTrackingParameters for each customer
                 url = App.utils.addUrlTrackingParameters( $target.attr('href') )
@@ -240,10 +241,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 productInstance = new module.ProductView(
                     model: productModel
                 )
-                if $el.parents("#hero-area").length
-                    # this is a featured content area
-                    App.options.heroGalleryIndex = index
-                    App.options.heroGalleryIndexPage = 0
                 if App.support.mobile()
                     $('body').scrollTo(".cell.info", 500)
                 @productInfo.show(productInstance)
