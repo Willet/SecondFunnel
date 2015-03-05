@@ -213,8 +213,6 @@ App.CLOUDINARY_DOMAIN = 'http://' + Cloudinary.SHARED_CDN + '/' + Cloudinary.con
  * Order matters
  */
 App.module('utils', require('pages.utils'));
-// TODO: widgets are messed up dude
-App.utils.registerWidget('gallery', '.gallery, .gallery-dots', require('pages.widget.gallery'));
 App.module('core', require('pages.core'));
 App.module('intentRank', require('pages.intentrank'));
 App.module('core', require('pages.core.models'));

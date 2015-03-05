@@ -7,8 +7,7 @@ require('jquery-deparam');
 module.exports = function (module, App, Backbone, Marionette, $, _) {
 
     var $window = $(window),
-        regions = {},
-        regionWidgets = {};
+        regions = {};
 
     /**
      * Cleans obviously invalid UI strings.
@@ -88,55 +87,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             return false;
         }
         return (window !== top);
-    };
-
-    /**
-     * add a predefined UI component implemented as a region.
-     * @param {string} name of the widget.
-     *                 name must be unique.
-     *                 if registerWidget is called with an existing
-     *                  widget, the old one is overwritten.
-     *
-     * @param {string} selector a jquery selector,
-     * @param {function} functionality the widget function.
-     * @returns true
-     */
-     module.registerWidget = function (name, selector, functionality) {
-        regions[name] = selector;
-        regionWidgets[name] = functionality;
-        App.vent.trigger('widgetRegistered', name, selector, functionality,
-            regions, regionWidgets);
-        return true;  // success
-    };
-
-    /**
-     * process widget regions.
-     * each widget function receives args (the view, the $element, option alias).
-     * TODO: tests
-     *
-     * @param {View} viewObject
-     */
-    module.runWidgets = function (viewObject) {
-        var self = viewObject;
-
-        // process itself (if it is a view)
-        _.each(regions, function (selector, name, list) {
-            var widgetFunc = regionWidgets[name];
-            self.$(selector).each(function (idx, el) {
-                return widgetFunc.call(self, self, $(el), App.option);
-            });
-        });
-
-        // process children regions (if it is a layout)
-        _.each(self.regions, function (selector, name, list) {
-            var isWidget = _.contains(regions, name),
-                widgetFunc = (regionWidgets || {})[name];
-            if (isWidget && widgetFunc) {
-                self.$(selector).each(function (idx, el) {
-                    return widgetFunc.call(self, self, $(el), App.option);
-                });
-            }
-        });
     };
 
     /**

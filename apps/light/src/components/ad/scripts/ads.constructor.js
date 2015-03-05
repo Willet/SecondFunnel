@@ -183,7 +183,6 @@ App.module('optimizer', require('pages.optimizer'));
 App.module('tracker', require('pages.tracker'));
 //App.module('sharing', require('pages.sharing'));
 App.module('viewport', require('pages.viewport'));
-//App.utils.registerWidget('gallery', '.gallery, .gallery-dots', require('pages.widget.gallery'));
 App.module('router', require('pages.router'));
 App.module('init', require('pages.init'));
 
