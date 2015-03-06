@@ -289,7 +289,7 @@
                 </div>
             <% } %>
             <div class="cell desktop-only">
-                <img src="<%= image_src %>" alt="image" class="image"/>
+                <img src="<%= image_src %>" alt="image" class="image look-image"/>
                 <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                     <% if (obj['tagged-products'].length > 1) { %>
                         <div class="landscape">
@@ -313,7 +313,7 @@
 
         <script type="text/template" id="mobile_tagged_products">
             <div class="cell">
-                <img src="<%= image_src %>" alt="image"/>
+                <img src="<%= image_src %>" alt="image" class="image look-image"/>
             </div>
             <div class="cell info">
                 <div class="product-info"></div>
@@ -337,7 +337,7 @@
 
         <script type="text/template" id="no_tagged_products">
             <div class="image cell desktop-only">
-                <img class="image" src="<%= image_src %>" alt="image"/>
+                <img class="image" src="<%= image_src %>" alt="image" class="image look-image"/>
             </div>
             <div class="cell info">
                 <div class='title'><%= obj.title || obj.name || "Coming soon to Gap!" %></div>

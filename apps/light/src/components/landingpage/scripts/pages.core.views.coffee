@@ -73,6 +73,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @leftArrow = @$el.find('.gallery-swipe-left')
             @rightArrow = @$el.find('.gallery-swipe-right')
             @mainImage = @$el.find('.main-image')
+            @resizeProductImages()
             if @numberOfImages > 1
                 @scrollImages(@mainImage.width()*@galleryIndex, 0)
                 @updateGallery()
@@ -81,6 +82,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     swipeStatus: _.bind(@swipeStatus, @),
                     allowPageScroll: 'vertical'
                 )
+            return
+
+        resizeProductImages: ->
+            productImages = @$el.find(".main-image .image")
+            for image, i in productImages
+                if $(image).is("img")
+                    imageUrl = App.utils.getResizedImage($(image).attr("src"),
+                        "originalSize": true
+                    )
+                    $(image).attr("src", imageUrl)
+                else if $(image).is("div")
+                    imageUrl = $(image).css("background-image").replace('url(','').replace(')','')
+                    imageUrl = App.utils.getResizedImage(imageUrl,
+                        "originalSize": true
+                    )
+                    $(image).css("background-image", "url(#{imageUrl})")
             return
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
@@ -282,31 +299,27 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             shrinkContainer = =>
                 =>
                     unless App.support.mobile()
-                        container = @$el.closest(".fullscreen")
-                        containedItem = @$el.closest(".content")
+                        $container = @$el.closest(".fullscreen")
+                        $containedItem = @$el.closest(".content")
                         if --imageCount isnt 0
                             return
 
                         # no container to shrink
-                        unless container and container.length
+                        unless $container?.length
                             return
-                        container.css
+                        $container.css(
                             top: "0"
                             bottom: "0"
                             left: "0"
                             right: "0"
-
-                        heightReduction = $(window).height()
-                        widthReduction = container.outerWidth()
-                        heightReduction -= containedItem.outerHeight()
-                        heightReduction /= 2 # Split over top and bottom
-                        if heightReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                        )
+                        heightReduction = ($window.height() - $containedItem.outerHeight()) / 2
+                        widthReduction = ($container.outerWidth() - $containedItem.outerWidth()) / 2
+                        if heightReduction <= 0 # String because jQuery checks for falsey values
                             heightReduction = "0"
-                        widthReduction -= containedItem.outerWidth()
-                        widthReduction /= 2
-                        if widthReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                        if widthReduction <= 0 # String because jQuery checks for falsey values
                             widthReduction = "0"
-                        container.css(
+                        $container.css(
                             top: heightReduction
                             bottom: heightReduction
                             left: widthReduction
@@ -317,7 +330,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             imageUrl = App.utils.getResizedImage(@model.get("url", ""), 
                                 width : if size?.width then Math.min(size.width, $container.width()) else $container.width()
                             )
-                            @$el.find(".image-cell img").attr("src", imageUrl)
+                            image = @$el.find(".look-image")
+                            image.attr("src", imageUrl) if image.is("img")
+                            image.css("background-image", "url(#{imageUrl})") if image.is("div")
                     return
 
             imageCount = $("img.main-image, img.image", @$el).length

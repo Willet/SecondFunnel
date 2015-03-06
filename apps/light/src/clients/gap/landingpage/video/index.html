@@ -386,8 +386,8 @@
         <script type="text/template" id="desktop_tagged_products">
             <% var orientation = (obj.orientation || "square"); %>
             <% var oneProduct = (obj['tagged-products'].length < 2); %>
-            <div class="cell look-image desktop-only <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
-                <div class="look-image-container"
+            <div class="cell look-image-container desktop-only <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
+                <div class="look-image"
                     style="background-image: url('<%= image_src %>');">
                 </div>
             </div>
@@ -426,8 +426,8 @@
 
         <script type="text/template" id="mobile_tagged_products">
             <div class="look-product-carousel">
-                <div class="cell look-image mobile-only">
-                    <div class="look-image-container" style="background-image: url('<%= image_src %>');"></div>
+                <div class="cell look-image-container mobile-only">
+                    <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
                 </div>
                 <div class="cell info mobile-only">
                     <div class="product-info"></div>
@@ -458,8 +458,8 @@
         </script>
 
         <script type="text/template" id="no_tagged_products">
-            <div class="image cell desktop-only">
-                <img class="image" src="<%= image_src %>" alt="image"/>
+            <div class="look-image-container cell desktop-only">
+                <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
             </div>
             <div class="cell info">
                 <div class='title'><%= obj.title || obj.name || "Coming soon to Gap!" %></div>
@@ -477,8 +477,8 @@
                     <%= App.utils.safeString(obj.caption || obj.description) %>
                 </div>
             </div>
-            <div class="image cell mobile-only">
-                <img class="image" src="<%= image_src %>" alt="image"/>
+            <div class="look-image-container cell mobile-only">
+                <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
             </div>
             <div class="buy mobile-only">
                 <a class="button" href="http://m.gap.com/" target="_blank">

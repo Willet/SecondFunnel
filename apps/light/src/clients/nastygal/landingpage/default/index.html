@@ -278,7 +278,7 @@
                                 </div>
                             <% } %>
                             <div class="cell desktop-only">
-                                <img src="<%= obj.images[0].url %>" alt="image" class="image"/>
+                                <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
                                 <div class='caption'><%= (obj.title || obj.name || obj.caption || "") %></div>
                                 <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                                     <div class="landscape">
@@ -298,7 +298,7 @@
                                 <% } %>
                             </div>
                             <div class="cell mobile-only">
-                                <img src="<%= obj.images[0].url %>" alt="image"/>
+                                <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
                                 <% if (obj['tagged-products'].length > 1) { %>
                                     <div class="stl-title stick-bottom">THE LOOK</div>
                                     <div class="landscape">
@@ -327,7 +327,7 @@
                     <div class="table">
                         <div class="row">
                             <div class="cell">
-                                <img src="<%= obj.images[0].url %>" alt="image" class="main-image" />
+                                <img src="<%= obj.images[0].url %>" alt="image" class="image look-image" />
                             </div>
                             <div class="cell info">
                                 <div class="title">

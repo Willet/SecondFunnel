@@ -7,6 +7,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @leftArrow = @$el.find('.gallery-swipe-left')
         @rightArrow = @$el.find('.gallery-swipe-right')
         @mainImage = @$el.find('.main-image')
+        @resizeProductImages()
         if @numberOfImages > 1
             @scrollImages(@mainImage.width()*@galleryIndex, 0)
             @updateGallery()
@@ -259,10 +260,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         imageUrl = App.utils.getResizedImage(@model.get("url"), 
                             width: if size?.width then Math.min(size.width, $container.width()) else $container.width()
                         )
-                        @$el.find(".look-image-container").css("background-image", "url(#{imageUrl})")
+                        @$el.find(".look-image").css("background-image", "url(#{imageUrl})")
 
                 # loading hero area
-                unless $container and $container.length
+                unless $container?.length
                     if @model.get("orientation") is "landscape"
                         @arrangeStlItemsHorizontal()
                     else
