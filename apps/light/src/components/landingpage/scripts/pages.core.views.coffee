@@ -315,7 +315,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         if @model.get("template") is "image" and @model.get("images")?.length > 0
                             size = @model.get("sizes")?.master
                             imageUrl = App.utils.getResizedImage(@model.get("url", ""), 
-                                width : if size?.width then Math.min(size .width, $container.width()) else $container.width()
+                                width : if size?.width then Math.min(size.width, $container.width()) else $container.width()
                             )
                             @$el.find(".image-cell img").attr("src", imageUrl)
                     return
