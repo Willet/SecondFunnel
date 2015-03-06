@@ -186,38 +186,40 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::arrangeStlItemsVertical = ->
-        if App.support.mobile() or @model.orientation is "landscape"
-            height = "95%"
-            top = "0"
-            unless @stlIndex is 0
-                height = "90%"
-                top = @upArrow.height()
-            @$el.find(".stl-look-container").css(
-                "height": height
-                "top": top
-            )
         @leftArrow.hide()
         @rightArrow.hide()
-        $stlLook = @$el.find(".stl-look")
-        distance = $stlLook.offset().top - $($stlLook.children(":visible")[@stlIndex]).offset().top
-        @updateStlGalleryPosition(distance, "portrait", 0)
+        if @model.get("tagged-products")?.length > 1 or App.support.mobile()
+            if App.support.mobile() or @model.orientation is "landscape"
+                height = "95%"
+                top = "0"
+                unless @stlIndex is 0
+                    height = "90%"
+                    top = @upArrow.height()
+                @$el.find(".stl-look-container").css(
+                    "height": height
+                    "top": top
+                )
+            $stlLook = @$el.find(".stl-look")
+            distance = $stlLook.offset().top - $($stlLook.children(":visible")[@stlIndex]).offset().top
+            @updateStlGalleryPosition(distance, "portrait", 0)
         return
 
     module.ExpandedContent::arrangeStlItemsHorizontal = ->
         @upArrow.hide()
         @downArrow.hide()
-        $stlLook = @$el.find(".stl-look")
-        stlItems = $stlLook.children(":visible")
-        totalItemWidth = 0
-        for item in stlItems
-            totalItemWidth += $(item).outerWidth()
-        if totalItemWidth <= @$el.find(".stl-look-container").width()
-            @leftArrow.hide()
-            @rightArrow.hide()
-            distance = 0
-        else
-            distance = $stlLook.offset().left - $(stlItems[@stlIndex]).offset().left
-        @updateStlGalleryPosition(distance, "landscape", 0)
+        if @model.get("tagged-products")?.length > 1 or App.support.mobile()
+            $stlLook = @$el.find(".stl-look")
+            stlItems = $stlLook.children(":visible")
+            totalItemWidth = 0
+            for item in stlItems
+                totalItemWidth += $(item).outerWidth()
+            if totalItemWidth <= @$el.find(".stl-look-container").width()
+                @leftArrow.hide()
+                @rightArrow.hide()
+                distance = 0
+            else
+                distance = $stlLook.offset().left - $(stlItems[@stlIndex]).offset().left
+            @updateStlGalleryPosition(distance, "landscape", 0)
         return
 
     module.ExpandedContent::resizeContainer = ->
@@ -243,15 +245,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return
 
                 tableHeight = undefined
-                numImages = @$el.find("img.image").length
+                numProducts = @model.get("tagged-products").length
                 if @model.get("template") is "image" or @model.get("template") is "gif"
-                    if (@model.get("orientation") is "landscape" and numImages > 1) or @model.get("orientation") is "portrait"
+                    if (@model.get("orientation") is "landscape" and numProducts > 1) or @model.get("orientation") is "portrait"
                         tableHeight = if $container.height() then $container.height() else $containedItem.height()
                     else
                         tableHeight = (if $container.width() then $container.width() else $containedItem.width())*0.496
                     $table.css(
                         height: tableHeight
                     )
+                    if @model.get("template") is "image" and @model.get("images")?.length > 0
+                        size = @model.get("sizes")?.master
+                        imageUrl = App.utils.getResizedImage(@model.get("url"), 
+                            width: if size?.width then Math.min(size.width, $container.width()) else $container.width()
+                        )
+                        @$el.find(".look-image-container").css("background-image", "url(#{imageUrl})")
 
                 # loading hero area
                 unless $container and $container.length
@@ -283,7 +291,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @arrangeStlItemsHorizontal()
                 else
                     @arrangeStlItemsVertical()
-
                 return
 
         imageCount = $("img.main-image, img.image", @$el).length

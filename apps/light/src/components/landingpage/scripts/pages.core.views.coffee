@@ -261,7 +261,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 ))
 
             # templates use this as obj.image.url
-            @model.set "image", image
+            @model.set("image", image)
             return
 
         initialize: ->
@@ -279,11 +279,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         resizeContainer: ->
-            shrinkContainer = (element) ->
-                ->
+            shrinkContainer = =>
+                =>
                     unless App.support.mobile()
-                        container = element.closest(".fullscreen")
-                        containedItem = element.closest(".content")
+                        container = @$el.closest(".fullscreen")
+                        containedItem = @$el.closest(".content")
                         if --imageCount isnt 0
                             return
 
@@ -306,17 +306,24 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         widthReduction /= 2
                         if widthReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
                             widthReduction = "0"
-                        container.css
+                        container.css(
                             top: heightReduction
                             bottom: heightReduction
                             left: widthReduction
                             right: widthReduction
+                        )
+                        if @model.get("template") is "image" and @model.get("images")?.length > 0
+                            size = @model.get("sizes")?.master
+                            imageUrl = App.utils.getResizedImage(@model.get("url", ""), 
+                                width : if size?.width then Math.min(size .width, $container.width()) else $container.width()
+                            )
+                            @$el.find(".image-cell img").attr("src", imageUrl)
                     return
 
             imageCount = $("img.main-image, img.image", @$el).length
 
             # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
-            $("img.main-image, img.image", @$el).one("load", shrinkContainer(@$el)).each ->
+            $("img.main-image, img.image", @$el).one("load", shrinkContainer()).each ->
                 if @complete
                     # Without the timeout the box may not be rendered. This lets the onShow method return
                     setTimeout (=>
