@@ -745,14 +745,17 @@ div.header {
         .product-info, .tagged-product {
             height: 100%;
             position: relative;
+            > div {
+                margin: 0;
+            }
         }
-        .product-image-gallery {
+        .gallery-main-image {
             display: inline-block;
             position: relative;
             width: 100%;
             height: 70%;
         }
-        .product-image-container {
+        .main-image-container {
             width: 76%;
             height: 100%;
             margin: auto;
@@ -925,6 +928,9 @@ div.header {
                 display: block;
                 position: relative;
                 width: 100%;
+                > div {
+                    margin: 0;
+                }
                 .product-details {
                     text-align: left;
                     width: 75%;
@@ -943,13 +949,13 @@ div.header {
                         font-size: 10px !important;
                     }
                 }
-                .product-image-gallery {
+                .gallery-main-image {
                     display: block;
                     width: 100%;
                     height: 100%;
                     margin: 0;
                     position: relative;
-                    .product-image-container {
+                    .main-image-container {
                         width: 100%;
                         height: 100%;
                         position: relative;
@@ -1022,21 +1028,21 @@ div.header {
 
 .cell.mobile-only .tagged-product,
 .cell.mobile-only .stl-carousel {
-    .product-swipe-left, .product-swipe-right,
+    .gallery-swipe-left, .gallery-swipe-right,
     .stl-swipe-left, .stl-swipe-right {
         width: 30px;
         height: 100%;
         top: 0;
         background-size: 40%;
     }
-    .product-swipe-left {
+    .gallery-swipe-left {
         background-image: url('/static/light/gap/landingpage/video/images/prev-image-arrow.png');
         left: 0px;
         &.grey {
             display: none;
         }
     }
-    .product-swipe-right {
+    .gallery-swipe-right {
         background-image: url('/static/light/gap/landingpage/video/images/next-image-arrow.png');
         right: 0px;
         &.grey {
@@ -1048,8 +1054,8 @@ div.header {
 .stl-carousel, .tagged-product {
     .stl-swipe-up, .stl-swipe-down,
     .stl-swipe-left, .stl-swipe-right,
-    .product-swipe-left, .product-swipe-right {
-        display: none;
+    .gallery-swipe-left, .gallery-swipe-right {
+        display: block;
         background-repeat: no-repeat;
         background-position: center;
         border: none;
@@ -1060,21 +1066,23 @@ div.header {
         background-size: contain;
     }
     .stl-swipe-up, .stl-swipe-down {
+        display: none;
         width: 100%;
         height: 5%;
         left: 0;
         background-size: 25%;
     }
     .stl-swipe-left, .stl-swipe-right {
+        display: none;
         width: 5%;
         height: 100%;
         top: 0;
         background-size: 30%;
     }
-    .product-swipe-left, .product-swipe-right {
+    .gallery-swipe-left, .gallery-swipe-right {
         width: 45px;
         height: 45px;
-        top: 35%;
+        top: 40%;
     }
     .stl-swipe-up {
         background-image: url('/static/light/gap/landingpage/video/images/up-image-arrow.png');
@@ -1084,11 +1092,11 @@ div.header {
         background-image: url('/static/light/gap/landingpage/video/images/down-image-arrow.png');
         bottom: 0;
     }
-    .stl-swipe-left, .product-swipe-left {
+    .stl-swipe-left, .gallery-swipe-left {
         background-image: url('/static/light/gap/landingpage/video/images/prev-image-arrow.png');
         left: 0;
     }
-    .stl-swipe-right, .product-swipe-right {
+    .stl-swipe-right, .gallery-swipe-right {
         background-image: url('/static/light/gap/landingpage/video/images/next-image-arrow.png');
         right: 0;
     }
@@ -1373,11 +1381,11 @@ div.header {
         &.landscape {
             height: 100% !important;
 
-            .product-swipe-left {
+            .gallery-swipe-left {
                 left: 15% !important;
             }
 
-            .product-swipe-right {
+            .gallery-swipe-right {
                 right: 15% !important;
             }
 
@@ -1408,7 +1416,7 @@ div.header {
                         .look-thumbnail, .stl-item {
                             width: 100%;
                             height: 115px;
-                            margin-left: 0;
+                            margin-right: 0;
                             margin-bottom: 5px;
                             &:last-child {
                                 margin-bottom: 0;
@@ -1425,7 +1433,7 @@ div.header {
                 &.info, &.look-image {
                     border-bottom: none;
                     display: inline-block;
-                    .product-image-gallery {
+                    .gallery-image-gallery {
                         width: 60%;
                         height: 90%;
                         margin: 0 auto;

@@ -163,6 +163,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.Product extends Backbone.Model
 
 
+    class module.ProductCollection extends Backbone.Collection
+        model: module.Product
+
+
     class module.Tile extends Backbone.Model
         ###
         Attempt to retrieve tile and instantiate it as the correct Tile subclass,

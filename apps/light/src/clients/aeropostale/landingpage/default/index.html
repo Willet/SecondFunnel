@@ -87,6 +87,37 @@
     @@include('shared/campaign_body.html')
 
     <div>
+        <script type="text/template" id="product_buy_template">
+            <a class='button in-store' href='<%= obj.url %>'>
+                Shop Now
+            </a>
+        </script>
+
+        <script type="text/template" id="product_price_template">
+            <% if (obj.sale_price) { %>
+                <span class="strike">
+                    <%- obj.price %>
+                </span>
+                Now <%- obj.sale_price %>
+            <% } else { %>
+                <%- obj.price %>
+            <% } %>
+        </script>
+
+        <script type="text/template" id="product_galleryMainImage_template">
+            <% if (obj.images.length > 1) { %>
+                <div class="gallery-swipe-left"></div>
+                <div class="gallery-swipe-right"></div>
+            <% } %>
+            <div class="main-image-container">
+                <div class="main-image">
+                    <% for (var i = 0; i < obj.images.length; i++) { %>
+                        <img class="image" src="<%- obj.images[i].url %>" />
+                    <% } %>
+                </div>
+            </div>
+        </script>
+
         <script type="text/template" id="banner_tile_template">
             <div class="tile-border">
                 <div class="image-border">
@@ -98,26 +129,17 @@
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
                 <div class="name">
-                    <%= obj.title || obj.name %>
+                    <% include("product_title_template") %>
                 </div>
                 <div class="price">
-                    <% if (obj.sale_price) { %>
-                        <span class="strike">
-                            <%- obj.price %>
-                        </span>
-                        Now <%- obj.sale_price %>
-                    <% } else { %>
-                        <%- obj.price %>
-                    <% } %>
+                    <% include("product_price_template") %>
                 </div>
             </div>
             <div class="overlay">
                 <div class='table'>
                     <div class='cell'>
                         <div class="buy">
-                            <a class='button' href='<%= obj.url %>'>
-                                Shop Now
-                            </a>
+                            <% include("product_buy_template") %>
                         </div>
                     </div>
                 </div>
@@ -140,20 +162,6 @@
             </div>
         </script>
 
-        <script type="text/template" id="product_galleryMainImage_template">
-            <% if (obj.images.length > 1) { %>
-                <div class="gallery-swipe-left"></div>
-                <div class="gallery-swipe-right"></div>
-            <% } %>
-            <div class="main-image-container">
-                <div class="main-image">
-                    <% for (var i = 0; i < obj.images.length; i++) { %>
-                        <img class="image" src="<%- obj.images[i].url %>" />
-                    <% } %>
-                </div>
-            </div>
-        </script>
-
         <!-- content is overlayed on tile creation -->
         <script type="text/template" id="grooveshark_tile_template">
             <div class='grooveshark-placeholder'></div>
@@ -171,9 +179,7 @@
                 <div class='table'>
                     <div class='cell'>
                         <div class="buy">
-                            <a class='button' href='<%= obj.url %>'>
-                                Shop Now
-                            </a>
+                            <% include("product_buy_template") %>
                         </div>
                     </div>
                 </div>
@@ -238,16 +244,7 @@
                 </div>
             <% } %>
             <div class="cell info">
-                <div class='relative'>
-                    <div class="gallery-main-image"></div>
-                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                </div>
-                <div>
-                    <div class='title'></div>
-                    <div class='price'></div>
-                </div>
-                <div class='buy'></div>
-                <div class='description'></div>
+                <div class="product-info"></div>
             </div>
         </script>
 
@@ -275,13 +272,7 @@
                 </div>
             <% } %>
             <div class="cell info">
-                <div class='title'></div>
-                <div class='price'></div>
-                <div class='relative'>
-                    <div class="gallery-main-image"></div>
-                    <div class='gallery-dots<% if (product.images.length < 2) { %> hide<% } %>'></div>
-                    <div class='buy'></div>
-                </div>
+                <div class="product-info"></div>
             </div>
         </script>
 
@@ -294,17 +285,42 @@
                     Coming soon to Aeropostale!
                 </div>
                 <div class="buy">
-                    <a class='button' href='http://www.aeropostale.com/'>
+                    <a class='button in-store' href='http://www.aeropostale.com/'>
                         Shop On Aeropostale
                     </a>
                 </div>
             </div>
         </script>
-        
-        <script type="text/template" id="product_buy_template">
-            <a class='button' href='<%= obj.url %>'>
-                Shop Now
-            </a>
+
+        <script type="text/template" id="image_info_template">
+            <div class="tagged-product">
+                <div class="product-details">
+                    <div class='title'>
+                        <% include("product_title_template") %>
+                    </div>
+                    <div class='price'>
+                        <% include("product_price_template") %>
+                    </div>
+                </div>
+                <div class='relative'>
+                    <div class="gallery-main-image">
+                        <% include("product_galleryMainImage_template") %>
+                    </div>
+                    <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'>
+                        <% include("product_galleryDots_template") %>
+                    </div>
+                </div>
+                <div class='buy'>
+                    <% include("product_buy_template") %>
+                </div>
+                <div class='description desktop-only'>
+                    <% include("product_description_template") %>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="gif_info_template">
+            <% include("image_info_template") %>
         </script>
     </div>
 

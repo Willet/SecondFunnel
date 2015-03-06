@@ -169,6 +169,38 @@
     <% include("image_preview_template") %>
 </script>
 
+<script type="text/template" id="product_info_template">
+    <div class="tagged-product">
+        <div class="product-details">
+            <div class='title'>
+                <% include("product_title_template") %>
+            </div>
+            <div class='price'>
+                <% include("product_price_template") %>
+            </div>
+        </div>
+        <div class="gallery-main-image">
+            <% include("product_galleryMainImage_template") %>
+            <div class="gallery-dots <% if (obj.images.length < 2) { %> hide <% } %>">
+                <% include("product_galleryDots_template") %>
+            </div>
+        </div>
+        <div class='buy'>
+            <a class='button' href='<%= obj.url %>' target='_blank'>
+                Shop Now
+            </a>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="image_info_template">
+    <% include("product_info_template") %>
+</script>
+
+<script type="text/template" id="gif_info_template">
+    <% include("image_info_template") %>
+</script>
+
 <script type="text/template" id="product_price_template">
     <% if (obj.sale_price) { %>
         <div class="strike inline">
@@ -185,7 +217,7 @@
 </script>
 
 <script type="text/template" id="product_buy_template">
-    <a class='button' href='<%= obj.url %>' target='_blank'>
+    <a class='button in-store' href='<%= obj.url %>' target='_blank'>
         Shop Now
     </a>
 </script>
@@ -210,13 +242,13 @@
 
 <script type="text/template" id="product_gallery_template">
     <% for (var i = 0; i < obj.images.length; i++) { %>
-        <img class="item" src="<%- obj.images[i].url %>" />
+        <img class="item" data-index="<%- i %>" src="<%- obj.images[i].url %>" />
     <% } %>
 </script>
 
 <script type="text/template" id="product_galleryDots_template">
     <% for (var i = 0; i < obj.images.length; i++) { %>
-        <div class="item"></div>
+        <div class="item" data-index="<%- i %>"></div>
     <% } %>
 </script>
 

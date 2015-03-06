@@ -3,112 +3,14 @@
 swipe = require('jquery-touchswipe')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
-    class module.ProductCollection extends Backbone.Collection
-        model: module.Product
-
-    class module.ProductView extends Marionette.ItemView
-        template: "#product_info_template"
-
-        events:
-            'click .product-swipe-left, .product-swipe-right': (ev) ->
-                if ev.target.className is 'product-swipe-left'
-                    @galleryIndex = Math.max(@galleryIndex - 1, 0)
-                else 
-                    @galleryIndex = Math.min(@galleryIndex + 1, @numberOfImages - 1)
-                @scrollImages(@mainImage.width()*@galleryIndex)
-                @updateGallery()
-                return
-
-            'click .buy': (ev) ->
-                $target = $(ev.target)
-                if $target.hasClass('in-store')
-                    App.vent.trigger('tracking:product:buyOnline', @model)
-                else if $target.hasClass('find-store')
-                    App.vent.trigger('tracking:product:findStore', @model)
-
-                # Over-write addUrlTrackingParameters for each customer
-                url = App.utils.addUrlTrackingParameters( $target.attr('href') )
-                App.utils.openUrl(url)
-                # Stop propogation to avoid double-opening url
-                return false
-
-        initialize: ->
-            @numberOfImages = @model.get('images')?.length or 0
-            @galleryIndex = 0
-            return
-
-        onRender: ->
-            @setElement(@$el.children())
-            return
-
-        onShow: ->
-            @leftArrow = @$el.find('.product-swipe-left')
-            @rightArrow = @$el.find('.product-swipe-right')
-            @mainImage = @$el.find('.main-image')
-            if @numberOfImages > 1
-                @scrollImages(@mainImage.width()*@galleryIndex, 0)
-                @updateGallery()
-            return
-
-        swipeStatus: (event, phase, direction, distance, fingers, duration) ->
-            focusWidth = @mainImage.width()
-            offset = focusWidth * @galleryIndex
-
-            if phase is 'move'
-                if direction is 'left'
-                    @scrollImages(distance + offset, duration)
-                else if direction is 'right'
-                    @scrollImages(offset - distance, duration)
-            else if phase is 'end'
-                if direction is 'right'
-                    @galleryIndex = Math.max(@galleryIndex - 1, 0)
-                else if direction is 'left'
-                    @galleryIndex = Math.min(@galleryIndex + 1, @numberOfImages - 1)
-                @scrollImages(focusWidth * @galleryIndex, duration)
-                @updateGallery()
-            else if phase is 'cancel'
-                @scrollImages(focusWidth * @galleryIndex, duration)
-            return @
-
-        scrollImages: (distance, duration = 250) ->
-            distance *= -1
-            if App.support.isLessThanIe9()
-                @mainImage.css(
-                    'position': 'relative',
-                    'left': distance
-                )
-            else
-                @mainImage.css(
-                    '-webkit-transition-duration': (duration / 1000).toFixed(1) + 's',
-                    'transition-duration': (duration / 1000).toFixed(1) + 's',
-                    '-webkit-transform': 'translate3d(' + distance + 'px, 0px, 0px)',
-                    '-ms-transform': 'translateX(' + distance+ 'px)',
-                    'transform': 'translate3d(' + distance + 'px, 0px, 0px)'
-                )
-            return
-
-        updateGallery: ->
-            @$el.find('.item')
-                .removeClass('selected')
-                .eq(@galleryIndex)
-                .addClass('selected')
-            if @galleryIndex is 0
-                @leftArrow.hide()
-                @rightArrow.show()
-            else if @galleryIndex is @numberOfImages - 1
-                @leftArrow.show()
-                @rightArrow.hide()
-            else
-                @leftArrow.show()
-                @rightArrow.show()
-            return
-
-    class module.ProductCollectionView extends Marionette.CollectionView
-        itemView: module.ProductView
-
-        initialize: (products) ->
-            @collection = new module.ProductCollection(products)
-            return
+    module.ProductView::onShow = ->
+        @leftArrow = @$el.find('.gallery-swipe-left')
+        @rightArrow = @$el.find('.gallery-swipe-right')
+        @mainImage = @$el.find('.main-image')
+        if @numberOfImages > 1
+            @scrollImages(@mainImage.width()*@galleryIndex, 0)
+            @updateGallery()
+        return
 
     module.HeroContent.prototype.events =
         'click #more-button': ->
@@ -157,9 +59,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         )
     )
 
-    module.ExpandedContent.prototype.regions =
-        productInfo: ".product-info"
-
     module.ExpandedContent.prototype.events =
         "click .look-image": (event) ->
             $image = @$el.find(".look-image-container")
@@ -187,14 +86,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $stlContainer = @$el.find(".stl-look-container")
             stlItems = @$el.find(".stl-look").children(":visible")
             distance = @$el.find(".stl-look").offset().top
-            if ev.target.className is "stl-swipe-up"
+            if $(ev.target).hasClass("stl-swipe-up")
                 topMostItem = stlItems[@stlIndex]
                 unless topMostItem is undefined
                     # number of pixels needed to move leftmost item to the end of carousel
                     difference = $stlContainer.height()
                     @stlIndex = _.findIndex(stlItems, (item) ->
                         # true if item is visible after moving leftmost item
-                        return ($(item).outerHeight() + $(item).offset().top + difference) > stlContainer.offset().top
+                        return ($(item).outerHeight() + $(item).offset().top + difference) > $stlContainer.offset().top
                     )
                     distance -= $(stlItems[@stlIndex]).offset().top
             else
@@ -203,8 +102,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return ($(item).outerHeight() + $(item).offset().top) > ($stlContainer.height() + $stlContainer.offset().top)
                 )
                 distance -= $(stlItems[@stlIndex]).offset().top
-            @upArrow.hide()
-            @downArrow.hide()
             @updateStlGalleryPosition(distance, "portrait")
             return
 
@@ -212,7 +109,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $stlContainer = @$el.find(".stl-look-container")
             stlItems = @$el.find(".stl-look").children(":visible")
             distance = @$el.find(".stl-look").offset().left
-            if ev.target.className is "stl-swipe-left"
+            if $(ev.target).hasClass("stl-swipe-left")
                 leftMostItem = stlItems[@stlIndex]
                 unless leftMostItem is undefined
                     # number of pixels needed to move leftmost item to the end of carousel
@@ -228,8 +125,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return ($(item).width() + $(item).offset().left) > ($stlContainer.width() + $stlContainer.offset().left)
                 )
                 distance -= $(stlItems[@stlIndex]).offset().left
-            @leftArrow.hide()
-            @rightArrow.hide()
             @updateStlGalleryPosition(distance, "landscape")
             return
 
@@ -263,6 +158,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         $stlLook = @$el.find(".stl-look")
         height = "95%"
         top = "0"
+        # Small random number added to ensure transitionend is triggered.
         distance += Math.random() / 1000
         if orientation is "landscape"
             translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'

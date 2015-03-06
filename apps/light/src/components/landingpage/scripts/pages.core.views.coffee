@@ -1,6 +1,7 @@
 "use strict"
 
 imagesLoaded = require('imagesLoaded')
+swipe = require('jquery-touchswipe')
 require("jquery-scrollto")
 require("jquery-waypoints") # register $.fn.waypoint
 require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
@@ -9,21 +10,139 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     $window = $(window)
     $document = $(document)
 
-    ###
-    Widgets that make up a Product Info in a Expanded Content
+    class module.ProductView extends Marionette.ItemView
+        template: "#product_info_template"
+        templates: ->
+            templateRules = [
+                # supported contexts: options, data
+                "#<%= data.type %>_info_template"
+                "#image_info_template"
+                "#product_info_template"
+            ]
+            unless App.support.mobile()
+                # remove mobile templates if it isn't mobile, since they take
+                # higher precedence by default
+                templateRules = _.reject(templateRules, (t) ->
+                    return _.contains(t, "mobile")
+                )
+            templateRules
 
-    @constructor
-    @type {ItemView}
-    ###
-    class module.ProductInfoView extends Marionette.ItemView
-        initialize: (options) ->
-            unless options.infoItem
-                throw new Error("infoItem is a required property")
-            @options = options
+
+        events:
+            'click .item': (ev) ->
+                $selectedItem = $(ev.target)
+                @galleryIndex = $selectedItem.data("index")
+                @scrollImages(@mainImage.width()*@galleryIndex)
+                @updateGallery()
+                return
+
+            'click .gallery-swipe-left, .gallery-swipe-right': (ev) ->
+                $target = $(ev.target)
+                unless $target.hasClass("grey")
+                    if $target.hasClass("gallery-swipe-left")
+                        @galleryIndex = Math.max(@galleryIndex - 1, 0)
+                    else
+                        @galleryIndex = Math.min(@galleryIndex + 1, @numberOfImages - 1)
+                    @scrollImages(@mainImage.width()*@galleryIndex)
+                    @updateGallery()
+                return
+
+            'click .buy': (ev) ->
+                $target = if $(ev.target).is("a") then $(ev.target) else $(ev.target).children("a")
+                if $target.hasClass('find-store')
+                    App.vent.trigger('tracking:product:findStore', @model)
+                else if $target.hasClass('in-store') or $target.hasClass('button')
+                    App.vent.trigger('tracking:product:buyOnline', @model)
+
+                # Over-write addUrlTrackingParameters for each customer
+                url = App.utils.addUrlTrackingParameters( $target.attr('href') )
+                App.utils.openUrl(url)
+                # Stop propogation to avoid double-opening url
+                return false
+
+        initialize: ->
+            @numberOfImages = @model.get('images')?.length or 0
+            @galleryIndex = 0
             return
 
-        getTemplate: ->
-            "#product_#{@options.infoItem}_template"
+        onRender: ->
+            @setElement(@$el.children())
+            return
+
+        onShow: ->
+            @leftArrow = @$el.find('.gallery-swipe-left')
+            @rightArrow = @$el.find('.gallery-swipe-right')
+            @mainImage = @$el.find('.main-image')
+            if @numberOfImages > 1
+                @scrollImages(@mainImage.width()*@galleryIndex, 0)
+                @updateGallery()
+                @mainImage.swipe(
+                    triggerOnTouchEnd: true,
+                    swipeStatus: _.bind(@swipeStatus, @),
+                    allowPageScroll: 'vertical'
+                )
+            return
+
+        swipeStatus: (event, phase, direction, distance, fingers, duration) ->
+            focusWidth = @mainImage.width()
+            offset = focusWidth * @galleryIndex
+
+            if phase is 'move'
+                if direction is 'left'
+                    @scrollImages(distance + offset, duration)
+                else if direction is 'right'
+                    @scrollImages(offset - distance, duration)
+            else if phase is 'end'
+                if direction is 'right'
+                    @galleryIndex = Math.max(@galleryIndex - 1, 0)
+                else if direction is 'left'
+                    @galleryIndex = Math.min(@galleryIndex + 1, @numberOfImages - 1)
+                @scrollImages(focusWidth * @galleryIndex, duration)
+                @updateGallery()
+            else if phase is 'cancel'
+                @scrollImages(focusWidth * @galleryIndex, duration)
+            return @
+
+        scrollImages: (distance, duration = 250) ->
+            distance *= -1
+            if App.support.isLessThanIe9()
+                @mainImage.css(
+                    'position': 'relative',
+                    'left': distance
+                )
+            else
+                @mainImage.css(
+                    '-webkit-transition-duration': (duration / 1000).toFixed(1) + 's',
+                    'transition-duration': (duration / 1000).toFixed(1) + 's',
+                    '-webkit-transform': 'translate3d(' + distance + 'px, 0px, 0px)',
+                    '-ms-transform': 'translateX(' + distance+ 'px)',
+                    'transform': 'translate3d(' + distance + 'px, 0px, 0px)'
+                )
+            return
+
+        updateGallery: ->
+            @$el.find(".item")
+                .removeClass("selected")
+                .filter("[data-index=#{@galleryIndex}]")
+                .addClass("selected")
+            if @galleryIndex is 0
+                @leftArrow.addClass("grey")
+                @rightArrow.removeClass("grey")
+            else if @galleryIndex is @numberOfImages - 1
+                @leftArrow.removeClass("grey")
+                @rightArrow.addClass("grey")
+            else
+                @leftArrow.removeClass("grey")
+                @rightArrow.removeClass("grey")
+            return
+
+
+    class module.ProductCollectionView extends Marionette.CollectionView
+        itemView: module.ProductView
+
+        initialize: (products) ->
+            @collection = new module.ProductCollection(products)
+            return
 
 
     ###
@@ -107,14 +226,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.ExpandedContent extends Marionette.Layout
         regions:
-            price: ".price"
-            title: ".title"
-            buy: ".buy"
-            description: ".description"
-            galleryMainImage: ".gallery-main-image"
-            gallery: ".gallery"
-            galleryDots: ".gallery-dots"
-            socialButtons: ".social-buttons"
+            productInfo: ".product-info"
 
         events:
             "click .stl-look .stl-item": (event) ->
@@ -126,22 +238,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 index = $targetEl.data("index")
                 product = @model.get("tagged-products")[index]
                 productModel = new module.Product(product)
-
-                if $el.parents("#hero-area").length
-                    # this is a featured content area
-                    App.options.heroGalleryIndex = index
-                    App.options.heroGalleryIndexPage = 0
-                else
-                    # likely a pop-up
-                    App.options.galleryIndex = index
-                    App.options.galleryIndexPage = 0
-                if product.images.length is 1
-                    $el.find(".gallery, .gallery-dots").addClass "hide"
-                else
-                    $el.find(".gallery, .gallery-dots").removeClass "hide"
+                productInstance = new module.ProductView(
+                    model: productModel
+                )
                 if App.support.mobile()
-                    $('body').scrollTo ".cell.info", 500
-                @renderSubregions productModel
+                    $('body').scrollTo(".cell.info", 500)
+                @productInfo.show(productInstance)
                 return
         
         onBeforeRender: ->
@@ -154,9 +256,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 image = image.height(App.utils.getViewportSized(true), true)
 
             if @model.get("tagged-products") and @model.get("tagged-products").length > 1
-                @model.set "tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
+                @model.set("tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
                     -1 * parseFloat((obj.price or "$0").substr(1), 10)
-                )
+                ))
 
             # templates use this as obj.image.url
             @model.set "image", image
@@ -174,25 +276,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $(document.body).removeClass "no-scroll"
 
             @$(".stick-bottom").waypoint "destroy"
-            return
-
-        renderSubregions: (product) ->
-            # SocialButtons are a View
-            if App.option('page:socialButtons') and App.option('page:socialButtons').length
-                @socialButtons.show new App.sharing.SocialButtons model: @model
-
-            # Refactor subregions to be Views/ItemViews
-            # for now, remove socialButtons region and render widgets
-            keys = _.without _.keys(@regions), 'socialButtons'
-
-            _.each keys, (key) =>
-                @[key].show new module.ProductInfoView(
-                    model: product
-                    infoItem: key
-                )
-                return
-            App.utils.runWidgets(@)
-            @resizeContainer()
             return
 
         resizeContainer: ->
@@ -246,30 +329,27 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         # Disable scrolling body when preview is shown
         onShow: ->
-            product = undefined
-            index = App.option("galleryIndex", 0)
-            if @$el.parents("#hero-area").length
-                index = App.option("heroGalleryIndex", 0)
-
-            @$(".stl-look").each ->
-                $(@).find(".stl-item").eq(index).addClass("selected")
-                return
-
-            if @model.get("tagged-products") and @model.get("tagged-products").length
-                product = new module.Product(@model.get("tagged-products")[index])
-                @renderSubregions(product)
-            else if @model.get("template", "") is "product"
-                @renderSubregions(@model)
-            else
-                @resizeContainer()
-
-            if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
-                $(".stick-bottom", @$el).addClass("stuck").waypoint("sticky",
-                    offset: "bottom-in-view"
-                    direction: "up"
+            if @model.get("sizes")?.master
+                width = @model.get("sizes").master.width
+                height = @model.get("sizes").master.height
+                if Math.abs((height-width)/width) <= 0.02
+                    @model.set("orientation", "square")
+                else if width > height
+                    @model.set("orientation", "landscape")
+                else
+                    @model.set("orientation", "portrait")
+            if @model.get("tagged-products")?.length > 0
+                productInstance = new module.ProductView(
+                    model: new module.Product(@model.get("tagged-products")[0])
                 )
-
-            return
+                @productInfo.show(productInstance)
+                @$el.find(".stl-item").filter("[data-index=0]").addClass("selected")
+            else if @model.get("template") == "product"
+                productInstance = new module.ProductView(
+                    model: new module.Product(@model.attributes)
+                )
+                @productInfo.show(productInstance)
+            @resizeContainer()
 
 
     ###
@@ -301,7 +381,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") > -1
+                    return _.contains(t, "mobile")
                 )
             templateRules
 
@@ -363,7 +443,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") > -1
+                    return _.contains(t, "mobile")
                 )
             templateRules
 
@@ -499,7 +579,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # remove mobile templates if it isn't mobile, since they take
                 # higher precedence by default
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") > -1
+                    return _.contains(t, "mobile")
                 )
             return templateRules
 
@@ -520,17 +600,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         replace: true
                     )
                 return
-
-            "click .buy": (event) ->
-                ###
-                DEPRECATED BY PRODUCT VIEW, ONLY USED BY WIDGETS
-                REMOVE WITH WIDGETS
-                ###
-                $target = $(event.target)
-                # Over-write addUrlTrackingParameters for each customer
-                url = App.utils.addUrlTrackingParameters( $target.attr('href') )
-                App.utils.openUrl(url)
-                return false
 
         initialize: (options) ->
             @options = options
@@ -614,9 +683,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onClose: ->
-            App.options.galleryIndex = undefined
-            App.options.galleryIndexPage = undefined
-
             # hide this, then restore discovery.
             if @feedSwapped
                 @$el.swapWith(App.discoveryArea.$el.parent())
@@ -654,7 +720,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             ]
             unless App.support.mobile()
                 templateRules = _.reject(templateRules, (t) ->
-                    t.indexOf("mobile") > -1
+                    return _.contains(t, "mobile")
                 )
             templateRules
 

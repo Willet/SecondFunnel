@@ -82,7 +82,6 @@
     "pages.support": "./src/components/landingpage/scripts/pages.support.js",
     "pages.tracker": "./src/components/landingpage/scripts/pages.tracker.js",
     "pages.viewport": "./src/components/landingpage/scripts/pages.viewport.js",
-    "pages.widget.gallery": "./src/components/landingpage/scripts/pages.widget.gallery.js",
     "pages.utils": "./src/components/landingpage/scripts/pages.utils.js",
     "ad": "./src/components/ad/scripts/ads.constructor.js",
     "ads.core.views": "./src/components/ad/scripts/ads.core.views.coffee",
