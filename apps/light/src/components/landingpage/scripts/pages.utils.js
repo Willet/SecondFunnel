@@ -7,8 +7,7 @@ require('jquery-deparam');
 module.exports = function (module, App, Backbone, Marionette, $, _) {
 
     var $window = $(window),
-        regions = {},
-        regionWidgets = {};
+        regions = {};
 
     /**
      * Cleans obviously invalid UI strings.
@@ -88,55 +87,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             return false;
         }
         return (window !== top);
-    };
-
-    /**
-     * add a predefined UI component implemented as a region.
-     * @param {string} name of the widget.
-     *                 name must be unique.
-     *                 if registerWidget is called with an existing
-     *                  widget, the old one is overwritten.
-     *
-     * @param {string} selector a jquery selector,
-     * @param {function} functionality the widget function.
-     * @returns true
-     */
-     module.registerWidget = function (name, selector, functionality) {
-        regions[name] = selector;
-        regionWidgets[name] = functionality;
-        App.vent.trigger('widgetRegistered', name, selector, functionality,
-            regions, regionWidgets);
-        return true;  // success
-    };
-
-    /**
-     * process widget regions.
-     * each widget function receives args (the view, the $element, option alias).
-     * TODO: tests
-     *
-     * @param {View} viewObject
-     */
-    module.runWidgets = function (viewObject) {
-        var self = viewObject;
-
-        // process itself (if it is a view)
-        _.each(regions, function (selector, name, list) {
-            var widgetFunc = regionWidgets[name];
-            self.$(selector).each(function (idx, el) {
-                return widgetFunc.call(self, self, $(el), App.option);
-            });
-        });
-
-        // process children regions (if it is a layout)
-        _.each(self.regions, function (selector, name, list) {
-            var isWidget = _.contains(regions, name),
-                widgetFunc = (regionWidgets || {})[name];
-            if (isWidget && widgetFunc) {
-                self.$(selector).each(function (idx, el) {
-                    return widgetFunc.call(self, self, $(el), App.option);
-                });
-            }
-        });
     };
 
     /**
@@ -255,39 +205,47 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @returns {Object}
      */
     module.getResizedImage = function (url, options) {
-        var ratio = Math.ceil(window.devicePixelRatio * 2) / 2,
-            width = Math.max(options.width || 0, App.option('minImageWidth')),
-            height = Math.max(options.height || 0, App.option('minImageHeight'));
-        options = {};
-
-        // Do NOT transform animated gifs
-        if (!_.isString(url) || url.indexOf('.gif') > -1) {
-            return url;
-        }
-
-        // Round to the nearest whole hundred pixel dimension;
-        // prevents creating a ridiculous number of images.
-        if ((width && !height) || width > height) {
-            options.width = Math.ceil(width / 100.0) * (100 * ratio);
-        } else if ((height && !width) || height > width) {
-            options.height = Math.ceil(height / 100.0) * 100;
-        } else {
-            options.width = App.feed.width() * ratio;
-        }
-
-        options = _.extend({
-            crop: 'fit',
-            quality: 75
-        }, options);
-
-        if (url.indexOf('c_fit') > -1) {
-            // Transformation has been applied to this url, Cloudinary is not smart
-            // with these, so lets be instead.
+        if (options.originalSize && _.contains(url, "c_fit")) {
             url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, '/');
-        }
+        } else {
+            var ratio = Math.ceil(window.devicePixelRatio * 2) / 2,
+                width = Math.max(options.width || 0, App.option('minImageWidth')),
+                height = Math.max(options.height || 0, App.option('minImageHeight'));
 
-        url = url.replace(App.CLOUDINARY_DOMAIN, ''); // remove absolute uri
-        url = $.cloudinary.url(url, options);
+            // Do NOT transform animated gifs
+            if (!_.isString(url) || _.contains(url, ".gif")) {
+                return url;
+            }
+
+            // Round to the nearest whole hundred pixel dimension;
+            // prevents creating a ridiculous number of images.
+            if (options.width && options.height) {
+                options.width = Math.ceil(width / 100.0) * (100 * ratio);
+                options.height = Math.ceil(height / 100.0) * 100;
+            } else if (options.height) {
+                options.height = Math.ceil(height / 100.0) * 100;
+            } else if (options.width) {
+                options.width = Math.ceil(width / 100.0) * (100 * ratio);
+            } else {
+                options.width = Math.ceil(App.feed.width()) * ratio;
+            }
+
+            options = {
+                crop: 'fit',
+                quality: 75,
+                width: options.width,
+                height: options.height
+            };
+
+            if (_.contains(url, "c_fit")) {
+                // Transformation has been applied to this url, Cloudinary is not smart
+                // with these, so lets be instead.
+                url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, '/');
+            }
+
+            url = url.replace(App.CLOUDINARY_DOMAIN, ''); // remove absolute uri
+            url = $.cloudinary.url(url, options);
+        }
 
         return url;
     };

@@ -147,45 +147,6 @@ if (!window.requestAnimationFrame) {
 
         return this;
     };
-
-    // patch render to always run widgets.
-    _.each(views, function (ViewClass) {
-        var oldRender = ViewClass.prototype.render || $.noop;
-
-        ViewClass.prototype.render = function () {
-            var result;
-            // TODO: uncomment
-            //try {
-                // call the original function
-                result = oldRender.apply(this, arguments);  // usually 'this'
-                /*
-            } catch (err) {
-                // failed... close the view
-                App.vent.trigger('viewRenderError', err, this);
-                console.error('A TEMPLATE DID NOT RENDER');
-                console.error('A TEMPLATE DID NOT RENDER', err, this);
-
-                // If template not found signal error in rendering view.
-                if (err.name &&  err.name === 'NoTemplateError') {
-                    console.warn('Could not find template ' +
-                            this.template + '. View did not render.');
-                    // Trigger methods
-                    this.isClosed = true;
-                    // .triggerMethod only triggers methods defined in prototype
-                    this.triggerMethod('missing:template');
-                } else {
-                    console.warn('Error rendering template: ', this.template, err);
-                    this.triggerMethod('render:error', err);
-                }
-
-                this.close();
-            }
-            */
-
-            // return the return of the original function, pretend nothing happened
-            return result;
-        };
-    });
 }([Marionette.View, Marionette.CompositeView, Marionette.ItemView]));
 
 // Console welcome message
@@ -213,8 +174,6 @@ App.CLOUDINARY_DOMAIN = 'http://' + Cloudinary.SHARED_CDN + '/' + Cloudinary.con
  * Order matters
  */
 App.module('utils', require('pages.utils'));
-// TODO: widgets are messed up dude
-App.utils.registerWidget('gallery', '.gallery, .gallery-dots', require('pages.widget.gallery'));
 App.module('core', require('pages.core'));
 App.module('intentRank', require('pages.intentrank'));
 App.module('core', require('pages.core.models'));

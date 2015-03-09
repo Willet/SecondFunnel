@@ -262,15 +262,12 @@ body > .container {
         }
 
         .relative .buy {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 50px;
             text-align: center;
         }
 
         .image-with-tagged-products .gallery-dots {
-            bottom: 105px;
+            position: relative;
+            padding-bottom: 10px;
         }
     }
 }

@@ -304,6 +304,15 @@ body {
         padding-bottom: 10px;
         padding-right: 10px;
         width: 334px;
+        .product-info .tagged-product > div {
+            margin: 10px 0;
+            &:first-child {
+                margin-top: 0;
+            }
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
     }
     .cell.shop {
         width: 120px;
