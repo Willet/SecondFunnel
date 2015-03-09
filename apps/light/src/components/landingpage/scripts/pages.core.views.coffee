@@ -95,7 +95,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         maxHeight = $container.height()*1.5
                     else
                         maxWidth = App.option("minImageWidth")
-                        maxWidth = App.option("minImageHeight")
+                        maxHeight = App.option("minImageHeight")
                     for image, i in productImages
                         if $(image).is("img")
                             imageUrl = App.utils.getResizedImage($(image).attr("src"),
