@@ -237,7 +237,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 height: options.height
             };
 
-            if (_.contains(url, "cfit")) {
+            if (_.contains(url, "c_fit")) {
                 // Transformation has been applied to this url, Cloudinary is not smart
                 // with these, so lets be instead.
                 url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, '/');
