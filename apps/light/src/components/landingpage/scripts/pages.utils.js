@@ -205,7 +205,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @returns {Object}
      */
     module.getResizedImage = function (url, options) {
-        if (options.originalSize && url.indexOf('c_fit') > -1) {
+        if (options.originalSize && _.contains(url, "c_fit")) {
             url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, '/');
         } else {
             var ratio = Math.ceil(window.devicePixelRatio * 2) / 2,
@@ -213,7 +213,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 height = Math.max(options.height || 0, App.option('minImageHeight'));
 
             // Do NOT transform animated gifs
-            if (!_.isString(url) || url.indexOf('.gif') > -1) {
+            if (!_.isString(url) || _.contains(url, ".gif")) {
                 return url;
             }
 
@@ -237,7 +237,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 height: options.height
             };
 
-            if (url.indexOf('c_fit') > -1) {
+            if (_.contains(url, "cfit")) {
                 // Transformation has been applied to this url, Cloudinary is not smart
                 // with these, so lets be instead.
                 url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, '/');
