@@ -257,10 +257,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     )
                     if @model.get("template") is "image" and @model.get("images")?.length > 0
                         size = @model.get("sizes")?.master
-                        imageUrl = App.utils.getResizedImage(@model.get("url"), 
-                            width: if size?.width then Math.min(size.width, $container.width()) else $container.width()
+                        $lookImage = @$el.find(".look-image")
+                        imageUrl = App.utils.getResizedImage(@model.get("url", ""), 
+                            width: Math.min(size?.width or 0, ($lookImage.width()*1.5)),
+                            height: Math.min(size?.height or 0, ($lookImage.height()*1.5))
                         )
-                        @$el.find(".look-image").css("background-image", "url(#{imageUrl})")
+                        $lookImage.css("background-image", "url(#{imageUrl})")
 
                 # loading hero area
                 unless $container?.length

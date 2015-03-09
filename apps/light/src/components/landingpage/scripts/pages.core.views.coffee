@@ -85,19 +85,45 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         resizeProductImages: ->
+            replaceImages = =>
+                unless App.support.mobile()
+                    unless --productImageCount is 0 or productImages.first().is("div")
+                        return
+                    $container = @$el.find(".main-image-container")
+                    if $container.is(":visible")
+                        maxWidth = $container.width()*1.5
+                        maxHeight = $container.height()*1.5
+                    else
+                        maxWidth = App.option("minImageWidth")
+                        maxWidth = App.option("minImageHeight")
+                    for image, i in productImages
+                        if $(image).is("img")
+                            imageUrl = App.utils.getResizedImage($(image).attr("src"),
+                                width: maxWidth,
+                                height: maxHeight
+                            )
+                            $(image).attr("src", imageUrl)
+                        else if $(image).is("div")
+                            imageUrl = $(image).css("background-image").replace('url(','').replace(')','')
+                            imageUrl = App.utils.getResizedImage(imageUrl,
+                                width: maxWidth,
+                                height: maxHeight
+                            )
+                            $(image).css("background-image", "url(#{imageUrl})")
+                return
             productImages = @$el.find(".main-image .image")
-            for image, i in productImages
-                if $(image).is("img")
-                    imageUrl = App.utils.getResizedImage($(image).attr("src"),
-                        "originalSize": true
-                    )
-                    $(image).attr("src", imageUrl)
-                else if $(image).is("div")
-                    imageUrl = $(image).css("background-image").replace('url(','').replace(')','')
-                    imageUrl = App.utils.getResizedImage(imageUrl,
-                        "originalSize": true
-                    )
-                    $(image).css("background-image", "url(#{imageUrl})")
+            productImageCount = productImages.length
+            if productImageCount > 0 and productImages.first().is("div")
+                replaceImages()
+            else
+                productImages.one("load", replaceImages).each( ->
+                    if @complete
+                        setTimeout( =>
+                            $(@).load()
+                            return
+                        , 1)
+                    return
+                )
             return
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
@@ -327,12 +353,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         )
                         if @model.get("template") is "image" and @model.get("images")?.length > 0
                             size = @model.get("sizes")?.master
+                            $lookImage = @$el.find(".look-image")
                             imageUrl = App.utils.getResizedImage(@model.get("url", ""), 
-                                width : if size?.width then Math.min(size.width, $container.width()) else $container.width()
+                                ## parameters are rounded to nearest 100th, ensure w/h >= than look image container's
+                                width: Math.min(size?.width or 0, $lookImage.width()*1.5),
+                                height: Math.min(size?.height or 0, $lookImage.height()*1.5)
                             )
-                            image = @$el.find(".look-image")
-                            image.attr("src", imageUrl) if image.is("img")
-                            image.css("background-image", "url(#{imageUrl})") if image.is("div")
+                            $lookImage.attr("src", imageUrl) if $lookImage.is("img")
+                            $lookImage.css("background-image", "url(#{imageUrl})") if $lookImage.is("div")
                     return
 
             imageCount = $("img.main-image, img.image", @$el).length

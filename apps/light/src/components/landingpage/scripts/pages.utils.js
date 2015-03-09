@@ -211,7 +211,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             var ratio = Math.ceil(window.devicePixelRatio * 2) / 2,
                 width = Math.max(options.width || 0, App.option('minImageWidth')),
                 height = Math.max(options.height || 0, App.option('minImageHeight'));
-            options = {};
 
             // Do NOT transform animated gifs
             if (!_.isString(url) || url.indexOf('.gif') > -1) {
@@ -220,18 +219,23 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
             // Round to the nearest whole hundred pixel dimension;
             // prevents creating a ridiculous number of images.
-            if ((width && !height) || width > height) {
+            if (options.width && options.height) {
                 options.width = Math.ceil(width / 100.0) * (100 * ratio);
-            } else if ((height && !width) || height > width) {
                 options.height = Math.ceil(height / 100.0) * 100;
+            } else if (options.height) {
+                options.height = Math.ceil(height / 100.0) * 100;
+            } else if (options.width) {
+                options.width = Math.ceil(width / 100.0) * (100 * ratio);
             } else {
                 options.width = Math.ceil(App.feed.width()) * ratio;
             }
 
-            options = _.extend({
+            options = {
                 crop: 'fit',
-                quality: 75
-            }, options);
+                quality: 75,
+                width: options.width,
+                height: options.height
+            };
 
             if (url.indexOf('c_fit') > -1) {
                 // Transformation has been applied to this url, Cloudinary is not smart
