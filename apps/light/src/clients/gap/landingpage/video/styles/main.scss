@@ -590,7 +590,7 @@ div.header {
     }
 
     .cell.desktop-only {
-        &.look-image {
+        &.look-image-container {
             padding: 0;
             &.square,
             &.portrait {
@@ -604,7 +604,7 @@ div.header {
             &.one-product {
                 height: 100% !important;
             }
-            .look-image-container {
+            .look-image {
                 width: 100%;
                 height: 100%;
                 background-size: cover;
@@ -857,12 +857,12 @@ div.header {
             border-bottom: 1px solid #000;
         }
 
-        &.look-image {
+        &.look-image-container {
             width: 100%;
             height: 100%;
             padding: 0;
 
-            .look-image-container {
+            .look-image {
                 width: 100%;
                 height: 100%;
                 background-size: cover;

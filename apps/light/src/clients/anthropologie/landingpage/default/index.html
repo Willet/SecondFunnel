@@ -207,7 +207,7 @@
         
         <script type="text/template" id="desktop_tagged_products">
             <div class="cell desktop-only image-cell">
-                <img src="<%= image_src %>" alt="image" class="image"/>
+                <img src="<%= image_src %>" alt="image" class="image look-image"/>
                 <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                     <div class="landscape">
                         <div class="stl-title">
@@ -248,7 +248,7 @@
 
         <script type="text/template" id="mobile_tagged_products">
             <div class="cell mobile-only">
-                <img src="<%= image_src %>" alt="image"/>
+                <img src="<%= image_src %>" alt="image" class="image look-image"/>
             </div>
             <div class="cell mobile-only info">
                 <div class="product-info"></div>
@@ -273,7 +273,7 @@
 
         <script type="text/template" id="no_tagged_products">
             <div class="cell">
-                <img src="<%- image_src %>" alt="image" class="main-image" />
+                <img src="<%- image_src %>" alt="image" class="image look-image" />
             </div>
             <div class="cell info">
                 <div class="title">

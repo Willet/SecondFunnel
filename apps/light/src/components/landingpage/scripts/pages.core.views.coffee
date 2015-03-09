@@ -73,6 +73,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @leftArrow = @$el.find('.gallery-swipe-left')
             @rightArrow = @$el.find('.gallery-swipe-right')
             @mainImage = @$el.find('.main-image')
+            @resizeProductImages()
             if @numberOfImages > 1
                 @scrollImages(@mainImage.width()*@galleryIndex, 0)
                 @updateGallery()
@@ -80,6 +81,48 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     triggerOnTouchEnd: true,
                     swipeStatus: _.bind(@swipeStatus, @),
                     allowPageScroll: 'vertical'
+                )
+            return
+
+        resizeProductImages: ->
+            replaceImages = =>
+                unless App.support.mobile()
+                    unless --productImageCount is 0 or productImages.first().is("div")
+                        return
+                    $container = @$el.find(".main-image-container")
+                    if $container.is(":visible")
+                        maxWidth = $container.width()*1.5
+                        maxHeight = $container.height()*1.5
+                    else
+                        maxWidth = App.option("minImageWidth")
+                        maxHeight = App.option("minImageHeight")
+                    for image, i in productImages
+                        if $(image).is("img")
+                            imageUrl = App.utils.getResizedImage($(image).attr("src"),
+                                width: maxWidth,
+                                height: maxHeight
+                            )
+                            $(image).attr("src", imageUrl)
+                        else if $(image).is("div")
+                            imageUrl = $(image).css("background-image").replace('url(','').replace(')','')
+                            imageUrl = App.utils.getResizedImage(imageUrl,
+                                width: maxWidth,
+                                height: maxHeight
+                            )
+                            $(image).css("background-image", "url(#{imageUrl})")
+                return
+            productImages = @$el.find(".main-image .image")
+            productImageCount = productImages.length
+            if productImageCount > 0 and productImages.first().is("div")
+                replaceImages()
+            else
+                productImages.one("load", replaceImages).each( ->
+                    if @complete
+                        setTimeout( =>
+                            $(@).load()
+                            return
+                        , 1)
+                    return
                 )
             return
 
@@ -261,7 +304,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 ))
 
             # templates use this as obj.image.url
-            @model.set "image", image
+            @model.set("image", image)
             return
 
         initialize: ->
@@ -279,44 +322,51 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         resizeContainer: ->
-            shrinkContainer = (element) ->
-                ->
+            shrinkContainer = =>
+                =>
                     unless App.support.mobile()
-                        container = element.closest(".fullscreen")
-                        containedItem = element.closest(".content")
+                        $container = @$el.closest(".fullscreen")
+                        $containedItem = @$el.closest(".content")
                         if --imageCount isnt 0
                             return
 
                         # no container to shrink
-                        unless container and container.length
+                        unless $container?.length
                             return
-                        container.css
+                        $container.css(
                             top: "0"
                             bottom: "0"
                             left: "0"
                             right: "0"
-
-                        heightReduction = $(window).height()
-                        widthReduction = container.outerWidth()
-                        heightReduction -= containedItem.outerHeight()
-                        heightReduction /= 2 # Split over top and bottom
-                        if heightReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                        )
+                        heightReduction = ($window.height() - $containedItem.outerHeight()) / 2
+                        widthReduction = ($container.outerWidth() - $containedItem.outerWidth()) / 2
+                        if heightReduction <= 0 # String because jQuery checks for falsey values
                             heightReduction = "0"
-                        widthReduction -= containedItem.outerWidth()
-                        widthReduction /= 2
-                        if widthReduction <= 0 or App.support.mobile() # String because jQuery checks for falsey values
+                        if widthReduction <= 0 # String because jQuery checks for falsey values
                             widthReduction = "0"
-                        container.css
+                        $container.css(
                             top: heightReduction
                             bottom: heightReduction
                             left: widthReduction
                             right: widthReduction
+                        )
+                        if @model.get("template") is "image" and @model.get("images")?.length > 0
+                            size = @model.get("sizes")?.master
+                            $lookImage = @$el.find(".look-image")
+                            imageUrl = App.utils.getResizedImage(@model.get("url", ""), 
+                                ## parameters are rounded to nearest 100th, ensure w/h >= than look image container's
+                                width: Math.min(size?.width or 0, $lookImage.width()*1.5),
+                                height: Math.min(size?.height or 0, $lookImage.height()*1.5)
+                            )
+                            $lookImage.attr("src", imageUrl) if $lookImage.is("img")
+                            $lookImage.css("background-image", "url(#{imageUrl})") if $lookImage.is("div")
                     return
 
             imageCount = $("img.main-image, img.image", @$el).length
 
             # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
-            $("img.main-image, img.image", @$el).one("load", shrinkContainer(@$el)).each ->
+            $("img.main-image, img.image", @$el).one("load", shrinkContainer()).each ->
                 if @complete
                     # Without the timeout the box may not be rendered. This lets the onShow method return
                     setTimeout (=>

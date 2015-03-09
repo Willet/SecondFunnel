@@ -180,7 +180,7 @@
                                 </div>
                             <% } %>
                             <div class="cell desktop-only">
-                                <img src="<%= obj.images[0].url %>" alt="image" class="image"/>
+                                <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
                                     <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
                                     <div class="landscape">
                                         <div class="stl-title">shop the look</div>
@@ -199,7 +199,7 @@
                                 <div class="product-info"></div>
                             </div>
                             <div class="cell mobile-only">
-                                <img src="<%= obj.images[0].url %>" alt="image"/>
+                                <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
                             </div>
                             <% if (obj['tagged-products'].length > 1) { %>
                                 <div class="cell mobile-only">
@@ -222,7 +222,7 @@
                     <div class="table">
                         <div class="row">
                             <div class="cell">
-                                <img src="<%= obj.images[0].url %>" alt="image" class="main-image" />
+                                <img src="<%= obj.images[0].url %>" alt="image" class="image look-image" />
                             </div>
                             <div class="cell info">
                                 <div class="title">
