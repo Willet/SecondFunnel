@@ -62,7 +62,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ExpandedContent.prototype.events =
         "click .look-image": (event) ->
-            $image = @$el.find(".look-image")
+            $image = @$el.find(".look-image-container")
             $image.toggleClass("full-image")
             return
 
