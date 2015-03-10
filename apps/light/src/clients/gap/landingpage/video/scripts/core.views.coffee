@@ -62,14 +62,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ExpandedContent.prototype.events =
         "click .look-image": (event) ->
-            $image = @$el.find(".look-image-container")
+            $image = @$el.find(".look-image")
             $image.toggleClass("full-image")
             return
 
         "click .look-thumbnail": (event) ->
             @lookThumbnail.hide()
             @$el.find('.info').hide()
-            @$el.find('.look-image').show()
+            @$el.find('.look-image-container').show()
             @stlIndex = Math.max(@stlIndex - 1, 0)
             @lookProductIndex = -1
             if App.utils.landscape() then @arrangeStlItemsVertical() else @arrangeStlItemsHorizontal()
@@ -374,7 +374,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @stlIndex = Math.max(0, @stlIndex - 1)
             @lookThumbnail.hide()
             @$el.find('.info').hide()
-            @$el.find('.look-image').show()
+            @$el.find('.look-image-container').show()
             @$el.find(".stl-item").removeClass("selected")
             if App.utils.landscape() then @arrangeStlItemsVertical() else @arrangeStlItemsHorizontal()
         else
@@ -389,6 +389,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @stlIndex = Math.min($(".stl-look").children(":visible").length - 1, @stlIndex + 1)
                 @lookThumbnail.show()
                 @$el.find('.info').show()
-                @$el.find('.look-image').hide()
+                @$el.find('.look-image-container').hide()
                 if App.utils.landscape() then @arrangeStlItemsVertical() else @arrangeStlItemsHorizontal()
         return
