@@ -258,7 +258,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     if @model.get("template") is "image" and @model.get("images")?.length > 0
                         size = @model.get("sizes")?.master
                         $lookImage = @$el.find(".look-image")
-                        imageUrl = App.utils.getResizedImage(@model.get("url", ""), 
+                        imageUrl = App.utils.getResizedImage(@model.get("images")[0].url, 
                             width: Math.min(size?.width or 0, ($lookImage.width()*1.5)),
                             height: Math.min(size?.height or 0, ($lookImage.height()*1.5))
                         )
@@ -331,15 +331,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @rightArrow = @$el.find('.stl-swipe-right')
             @upArrow = @$el.find(".stl-swipe-up")
             @downArrow = @$el.find(".stl-swipe-down")
-        if @model.get("sizes")?.master
-            width = @model.get("sizes").master.width
-            height = @model.get("sizes").master.height
-            if Math.abs((height-width)/width) <= 0.02
-                @model.set("orientation", "square")
-            else if width > height
-                @model.set("orientation", "landscape")
-            else
-                @model.set("orientation", "portrait")
         @resizeContainer()
 
         if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
