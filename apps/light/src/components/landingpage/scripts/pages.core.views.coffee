@@ -91,8 +91,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         return
                     $container = @$el.find(".main-image-container")
                     if $container.is(":visible")
-                        maxWidth = $container.width()*1.5
-                        maxHeight = $container.height()*1.5
+                        maxWidth = $container.width()*1.3
+                        maxHeight = $container.height()*1.3
                     else
                         maxWidth = App.option("minImageWidth")
                         maxHeight = App.option("minImageHeight")
@@ -342,6 +342,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         # no container to shrink
                         unless $container?.length
                             return
+                        if @model.get("template") is "image" and @model.get("images")?.length > 0
+                            $lookImage = @$el.find(".look-image")
+                            imageUrl = App.utils.getResizedImage(@model.get("images")[0].url, 
+                                ## parameters are rounded to nearest 100th, ensure w/h >= than look image container's
+                                width: $lookImage.width()*1.3,
+                                height: $lookImage.height()*1.3
+                            )
+                            $lookImage.attr("src", imageUrl) if $lookImage.is("img")
+                            $lookImage.css("background-image", "url(#{imageUrl})") if $lookImage.is("div")
                         $container.css(
                             top: "0"
                             bottom: "0"
@@ -360,16 +369,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             left: widthReduction
                             right: widthReduction
                         )
-                        if @model.get("template") is "image" and @model.get("images")?.length > 0
-                            size = @model.get("sizes")?.master
-                            $lookImage = @$el.find(".look-image")
-                            imageUrl = App.utils.getResizedImage(@model.get("images")[0].url, 
-                                ## parameters are rounded to nearest 100th, ensure w/h >= than look image container's
-                                width: Math.min(size?.width or 0, $lookImage.width()*1.5),
-                                height: Math.min(size?.height or 0, $lookImage.height()*1.5)
-                            )
-                            $lookImage.attr("src", imageUrl) if $lookImage.is("img")
-                            $lookImage.css("background-image", "url(#{imageUrl})") if $lookImage.is("div")
                     return
 
             imageCount = $("img.main-image, img.image", @$el).length
