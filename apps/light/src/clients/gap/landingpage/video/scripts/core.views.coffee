@@ -256,11 +256,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         height: tableHeight
                     )
                     if @model.get("template") is "image" and @model.get("images")?.length > 0
-                        size = @model.get("sizes")?.master
                         $lookImage = @$el.find(".look-image")
                         imageUrl = App.utils.getResizedImage(@model.get("images")[0].url, 
-                            width: Math.min(size?.width or 0, ($lookImage.width()*1.5)),
-                            height: Math.min(size?.height or 0, ($lookImage.height()*1.5))
+                            width: $lookImage.width()*1.3,
+                            height: $lookImage.height()*1.3
                         )
                         $lookImage.css("background-image", "url(#{imageUrl})")
 
