@@ -1,3 +1,4 @@
+---
 - name: Install Postgres latest
   apt: name={{item}} state=present update_cache=yes
   when: ansible_os_family == 'Debian'
