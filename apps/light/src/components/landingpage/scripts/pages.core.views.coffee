@@ -344,13 +344,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             return
                         if @model.get("template") is "image" and @model.get("images")?.length > 0
                             $lookImage = @$el.find(".look-image")
-                            imageUrl = App.utils.getResizedImage(@model.get("images")[0].url, 
-                                ## parameters are rounded to nearest 100th, ensure w/h >= than look image container's
-                                width: $lookImage.width()*1.3,
-                                height: $lookImage.height()*1.3
-                            )
-                            $lookImage.attr("src", imageUrl) if $lookImage.is("img")
-                            $lookImage.css("background-image", "url(#{imageUrl})") if $lookImage.is("div")
+                            unless $lookImage.is("img")
+                                imageUrl = App.utils.getResizedImage(@model.get("images")[0].url, 
+                                    ## parameters are rounded to nearest 100th, ensure w/h >= than look image container's
+                                    width: $lookImage.width()*1.3,
+                                    height: $lookImage.height()*1.3
+                                )
+                                $lookImage.css("background-image", "url(#{imageUrl})")
                         $container.css(
                             top: "0"
                             bottom: "0"
