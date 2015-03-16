@@ -200,6 +200,15 @@
     @@include('shared/campaign_body.html')
 
     <div>
+        <script type="text/template" id="product_galleryMainImage_template">
+            <div class="main-image-container">
+                <div class="main-image">
+                    <% for (var j = 0; j < obj.images.length; j++) { %>
+                        <div class="image" style="background-image: url('<%= obj.images[j].url %>');"></div>
+                    <% } %>
+                </div>
+            </div>
+        </script>
 
         <script type="text/template" id="hero_template">
             <div class="hero-image-wrapper">
@@ -327,11 +336,9 @@
 
         <script type="text/template" id="image_info_template">
             <div class="tagged-product">
-            <% if (App.support.mobile()) { %>
                 <div class="gallery-main-image">
-                    <% include ("product_galleryMainImage_template") %>
+                    <% include("product_galleryMainImage_template") %>
                 </div>
-            <% } %>
                 <div class='title'>
                     <% include("product_title_template") %>
                 </div>
@@ -341,25 +348,29 @@
                 <div class='buy'>
                     <% include("product_buy_template") %>
                 </div>
-            <% if (!App.support.mobile()) { %>
-                <div class="gallery-main-image">
-                    <% include("product_galleryMainImage_template") %>
-                </div>
-                <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>">
-                    <% include("product_gallery_template") %>
-                </div>
-            <% } %>
             </div>
         </script>
 
         <script type="text/template" id="product_preview_template">
             <div class="product-info table"></div>
+            <img class="image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" style="visibility:hidden"/>
         </script>
 
         <script type="text/template" id="desktop_tagged_products">
-            <% if (obj['tagged-products'].length > 1 && obj.orientation === 'portrait') { %>
-                <div class="cell desktop-only shop">
-                    <div class="stl-title">Related Products</div>
+            <div class="cell title-banner">Classic Carrot Cake Recipe</div>
+            <div class="cell look-image-container">
+                <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
+                <div class="recipe-container">
+                    <div class="title">Classic Carrot Cake Recipe</div>
+                    <div class="recipe"><%= obj['tagged-products'][0].description %></div>
+                </div>
+            </div>
+            <div class="cell info">
+                <div class="product-info"></div>
+            </div>
+            <div class="cell shop">
+                <% if (obj['tagged-products'].length > 0) { %>
+                    <div class="stl-title">Perfect Gifts For This Recipe</div>
                     <div class="stl-look">
                         <% var  related = obj['tagged-products'] %>
                         <% for (var i = 0; i < related.length; i++) { %>
@@ -371,29 +382,7 @@
                             </div>
                         <% } %>
                     </div>
-                </div>
-            <% } %>
-            <div class="cell desktop-only image">
-                <img src="<%= image_src %>" alt="image" class="image look-image"/>
-                <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
-                    <div class="landscape">
-                        <div class="stl-title">Related Products</div>
-                        <div class="stl-look">
-                            <% var  related = obj['tagged-products'] %>
-                            <% for (var i = 0; i < related.length; i++) { %>
-                                <div class="stl-item" data-index="<%- i %>">
-                                    <img src="<%- related[i].images[0].url %>" />
-                                    <div class="name">
-                                        <%- related[i].title || related[i].name %>
-                                    </div>
-                                </div>
-                            <% } %>
-                        </div>
-                    </div>
                 <% } %>
-            </div>
-            <div class="cell info">
-                <div class="product-info"></div>
             </div>
         </script>
 
