@@ -279,7 +279,8 @@
         <script type="text/template" id="preview_container_template">
             <div class="fullscreen">
                 <div class="content">
-                    <span class="close">Close <img src="/static/light/surlatable/landingpage/mothersday/images/close.gif"></span>
+                    <span class="close desktop-only">Close <img src="/static/light/surlatable/landingpage/mothersday/images/close.gif"></span>
+                    <span class="close mobile-only">Back</span>
                     <div class="scrollable">
                         <div class="template target"></div>
                     </div>
@@ -339,6 +340,14 @@
 
         <script type="text/template" id="image_info_template">
             <div class="tagged-product">
+                <div class="product-details mobile-only">
+                    <div class='title'>
+                        <% include("product_title_template") %>
+                    </div>
+                    <div class='price'>
+                        <% include("product_price_template") %>
+                    </div>
+                </div>
                 <div class="gallery-main-image">
                     <% if (obj.images.length > 1) { %>
                         <div class="gallery-swipe-left"></div>
@@ -349,7 +358,10 @@
                         <% include("product_galleryDots_template") %>
                     </div>
                 </div>
-                <div class="product-details">
+                <div class='buy mobile-only'>
+                    <% include("product_buy_template") %>
+                </div>
+                <div class="product-details desktop-only">
                     <div class='title'>
                         <% include("product_title_template") %>
                     </div>
@@ -386,28 +398,55 @@
             <div class="cell shop">
                 <% if (obj['tagged-products'].length > 0) { %>
                     <div class="stl-title">Perfect Gifts For This Recipe</div>
-                    <div class="stl-look">
-                        <div class="look-thumbnail">
-                            <img src="<%= image_src %>" class="image"/>
-                            <div class="name">Classic Carrot Cake Recipe</div>
-                        </div>
-                        <% var  related = obj['tagged-products'] %>
-                        <% for (var i = 0; i < related.length; i++) { %>
-                            <div class="stl-item" data-index="<%- i %>">
-                                <img src="<%- related[i].images[0].url %>" class="image" />
-                                <div class="name">
-                                    <%- related[i].title || related[i].name %>
-                                </div>
+                    <div class="stl-look-container">
+                        <div class="stl-look">
+                            <div class="look-thumbnail">
+                                <img src="<%= image_src %>" class="image"/>
+                                <div class="name">Classic Carrot Cake Recipe</div>
                             </div>
-                        <% } %>
+                            <% var  related = obj['tagged-products'] %>
+                            <% for (var i = 0; i < related.length; i++) { %>
+                                <div class="stl-item" data-index="<%- i %>">
+                                    <img src="<%- related[i].images[0].url %>" class="image" />
+                                    <div class="name">
+                                        <%- related[i].title || related[i].name %>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
                     </div>
                 <% } %>
             </div>
         </script>
 
         <script type="text/template" id="mobile_tagged_products">
+            <div class="cell look-image-container">
+                <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
+                <div class="recipe-container">
+                    <div class="title">Classic Carrot Cake Recipe</div>
+                    <div class="recipe"><%= obj['tagged-products'][0].description %></div>
+                </div>
+            </div>
             <div class="cell info">
                 <div class="product-info"></div>
+            </div>
+            <div class="cell shop">
+                <% if (obj['tagged-products'].length > 0) { %>
+                    <div class="stl-title">Perfect Gifts For This Recipe</div>
+                    <div class="stl-look-container">
+                        <div class="stl-look">
+                            <div class="look-thumbnail">
+                                <img src="<%= image_src %>" class="image"/>
+                            </div>
+                            <% var  related = obj['tagged-products'] %>
+                            <% for (var i = 0; i < related.length; i++) { %>
+                                <div class="stl-item" data-index="<%- i %>">
+                                    <img src="<%- related[i].images[0].url %>" class="image" />
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                <% } %>
             </div>
         </script>
 
