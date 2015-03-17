@@ -1,3 +1,4 @@
+---
 - name: "Pre Configuration"
   hosts: webservers:!building
   remote_user: "{{common_user}}"

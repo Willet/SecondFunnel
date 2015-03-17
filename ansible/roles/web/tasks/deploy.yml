@@ -1,3 +1,4 @@
+---
 - name: Copy deploy key over
   template: src={{item}} dest={{secondfunnel_directory}}/{{item}} mode=0600
   with_items:
@@ -76,6 +77,7 @@
   args:
     chdir: "{{application_directory}}"
   with_items:
+    - "clearsessions"
     - "syncdb --noinput"
     - "migrate --noinput"
   notify: uwsgi reload
