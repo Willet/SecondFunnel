@@ -8,6 +8,7 @@ INCOMING_WEB_HOOK = "https://hooks.slack.com/services/T031KAKT4/B0420LFFU/jt0gDK
 
 def msg(channel, sender, message, level="info"):
     if level not in ['info','warn','error']:
-        level = 'info'
+        level = 'error'
+    print message
     s = slack.SlackLogger(INCOMING_WEB_HOOK, channel, sender)
     getattr(s, level)(message=message)
