@@ -376,10 +376,10 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     /**
      * Returns value of querystring parameter param in url, or null if not found
      *
-     * @param {Object} url parts
-     * @param {object} additional querystring parameters
+     * @param {string} url
+     * @param {string} param - name of parameter
      *
-     * @returns {string} url
+     * @returns {string} questring parameter param or null if not found
      */
     module.urlGetParam = function (url, param) {
         var urlParts,

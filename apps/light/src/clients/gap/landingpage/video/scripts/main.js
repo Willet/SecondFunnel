@@ -27,13 +27,14 @@ App.start();
         App.options.urlParams.tid = "gpem000067";
         App.options.clickUrl = "http://ad.doubleclick.net/ddm/clk/288205600;115211941;r?";
     } else {
+        // desktop
         App.options.clickUrl = "http://ad.doubleclick.net/ddm/clk/288199394;115211941;n?";
         if (adcta === 'watch') {
             App.options.urlParams.tid = "gpem000070";
         } else if (adcta === 'shop') {
             App.options.urlParams.tid = "gpem000071";
         } else {
-            // desktop default
+            // default
             App.options.urlParams.tid = "gpem000072";
         }
     }
