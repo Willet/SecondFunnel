@@ -21,14 +21,21 @@ App.start();
 
 // GAP Google Analytics
 (function initGapAnalytics () {
+    var adcta = App.utils.urlGetParam(window.location.href, 'adcta');
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
         // mobile
         App.options.urlParams.tid = "gpem000067";
         App.options.clickUrl = "http://ad.doubleclick.net/ddm/clk/288205600;115211941;r?";
     } else {
-        // desktop
-        App.options.urlParams.tid = "gpem000066";
         App.options.clickUrl = "http://ad.doubleclick.net/ddm/clk/288199394;115211941;n?";
+        if (adcta === 'watch') {
+            App.options.urlParams.tid = "gpem000070";
+        } else if (adcta === 'shop') {
+            App.options.urlParams.tid = "gpem000071";
+        } else {
+            // desktop default
+            App.options.urlParams.tid = "gpem000072";
+        }
     }
 
     // Shorthand for pushing data to Google Analytics
