@@ -290,12 +290,8 @@
 
         <script type="text/template" id="product_price_template">
             <% if (obj.sale_price) { %>
-                <span class="sale">
-                    Now: <%- obj.sale_price %>
-                </span>
-                <span class="original">
-                    Was: <%- obj.price %>
-                </span>
+                <strike><%- obj.price %></strike> 
+                <b>NOW:</b> <%- obj.sale_price %>
             <% } else { %>
                 <%- obj.price %>
             <% } %>
@@ -303,10 +299,7 @@
 
         <script type="text/template" id="product_buy_template">
             <a class='button' href='<%= obj.url %>' target='_blank'>
-                <span>Add to Cart</span>
-                <div class="line1"></div>
-                <div class="line2"></div>
-                <img src="/static/light/surlatable/landingpage/mothersday/images/shop-now-arrow.png">
+                <span>Buy Now</span>
             </a>
         </script>
 
@@ -314,7 +307,14 @@
             <div class='tagged-product row'>
                 <div class='cell'>
                     <div class="gallery-main-image">
+                        <% if (obj.images.length > 1) { %>
+                            <div class="gallery-swipe-left"></div>
+                            <div class="gallery-swipe-right"></div>
+                        <% } %>
                         <% include("product_galleryMainImage_template") %>
+                        <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'>
+                            <% include("product_galleryDots_template") %>
+                        </div>
                     </div>
                 </div>
                 <div class='cell info'>
@@ -323,6 +323,9 @@
                     </div>
                     <div class='price'>
                         <% include("product_price_template") %>
+                    </div>
+                    <div class='description'>
+                        <% include("product_description_template") %>
                     </div>
                     <div class='buy'>
                         <% include("product_buy_template") %>
@@ -337,16 +340,28 @@
         <script type="text/template" id="image_info_template">
             <div class="tagged-product">
                 <div class="gallery-main-image">
+                    <% if (obj.images.length > 1) { %>
+                        <div class="gallery-swipe-left"></div>
+                        <div class="gallery-swipe-right"></div>
+                    <% } %>
                     <% include("product_galleryMainImage_template") %>
+                    <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'>
+                        <% include("product_galleryDots_template") %>
+                    </div>
                 </div>
-                <div class='title'>
-                    <% include("product_title_template") %>
-                </div>
-                <div class='price'>
-                    <% include("product_price_template") %>
-                </div>
-                <div class='buy'>
-                    <% include("product_buy_template") %>
+                <div class="product-details">
+                    <div class='title'>
+                        <% include("product_title_template") %>
+                    </div>
+                    <div class='price'>
+                        <% include("product_price_template") %>
+                    </div>
+                    <div class='description'>
+                        <% include("product_description_template") %>
+                    </div>
+                    <div class='buy'>
+                        <% include("product_buy_template") %>
+                    </div>
                 </div>
             </div>
         </script>
@@ -372,10 +387,14 @@
                 <% if (obj['tagged-products'].length > 0) { %>
                     <div class="stl-title">Perfect Gifts For This Recipe</div>
                     <div class="stl-look">
+                        <div class="look-thumbnail">
+                            <img src="<%= image_src %>" class="image"/>
+                            <div class="name">Classic Carrot Cake Recipe</div>
+                        </div>
                         <% var  related = obj['tagged-products'] %>
                         <% for (var i = 0; i < related.length; i++) { %>
                             <div class="stl-item" data-index="<%- i %>">
-                                <img src="<%- related[i].images[0].url %>" />
+                                <img src="<%- related[i].images[0].url %>" class="image" />
                                 <div class="name">
                                     <%- related[i].title || related[i].name %>
                                 </div>

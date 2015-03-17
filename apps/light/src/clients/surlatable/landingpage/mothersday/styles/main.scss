@@ -5,6 +5,8 @@ $slt-basic-font: Verdana, Arial, Helvetica, sans-serif;
 $slt-main-color: #405700;
 $slt-xmas-color: #A83731;
 $slt-basic-color: #444444;
+$slt-grey-color: #979797;
+$slt-green-color: #6b8e00;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -486,7 +488,7 @@ body {
         right: 10px;
         left: inherit;
         text-decoration: none;
-        font-size: 0.9em;
+        font-size: 12px;
         font-weight: normal;
         color: #fff;
         &:hover {
@@ -496,29 +498,6 @@ body {
         img {
             vertical-align: -1px;
             margin-left: 7px;
-        }
-    }
-    .gallery img {
-        width: 52px;
-        border: 1px solid #333;
-        margin-left: 2px;
-        margin-right: 2px;
-        margin-top: 5px;
-        opacity: 0.8;
-        filter: alpha(opacity=80);
-        &:nth-child(n+6) {
-            display: none;
-        }
-        &.selected {
-            border-width: 2px;
-            border-color: #F1B747;
-        }
-        &:hover {
-            border-width: 2px;
-            border-color: #F1B747;
-            cursor: pointer;
-            opacity: 1.0;
-            filter: alpha(opacity=100);
         }
     }
     .title-banner {
@@ -543,7 +522,7 @@ body {
     .look-image-container {
         .look-image {
             display: inline-block;
-            width: 63%;
+            width: 57%;
             height: 100%;
             background-size: cover;
             background-position: center;
@@ -553,46 +532,83 @@ body {
         .recipe-container {
             display: inline-block;
             vertical-align: top;
-            width: 36%;
+            width: 42%;
             height: 100%;
             padding: 10px 20px;
             margin: 0;
             .title {
-                font-family: $slt-modern-font;
-                font-size: 27px;
+                font-family: $slt-sans-font;
+                font-size: 20px;
+                line-height: 20px;
+                margin-bottom: 15px;
             }
             .recipe {
-                font-family: $slt-modern-font;
-                font-size: 14px;
+                font-size: 12px;
+                max-height: 92%;
+                overflow: auto;
             }
         }
     }
     .info {
-        text-align: left;
-        overflow: hidden;
-        width: 100%;
-        height: 67%;
-        &.image {
-            width: 300px;
+        .product-info, .tagged-product, .main-image-container, .main-image {
+            width: 100%;
+            height: 100%;
         }
-        .title {
-            font-size: 17px;
-            font-weight: bold;
-            color: $slt-basic-color;
-        }
-        .price {
-            font-size: 19px;
-            font-weight: bold;
-            color: $slt-basic-color;
-            .sale {
-                color: #921E1E;
+        .gallery-main-image {
+            display: inline-block;
+            vertical-align: top;
+            width: 57%;
+            height: 100%;
+            position: relative;
+            .image {
+                display: inline-block;
+                width: 99.95%;
+                height: 100%;
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                border-radius: 10px;
             }
-            .original {
-                color: #aaaaaa;
-                font-size: 13px;
-                text-decoration: line-through;
-                margin-left: 10px;
-                font-weight: normal;
+            .gallery-dots {
+                position: absolute;
+                left: 0;
+                bottom: 20px;
+                width: 100%;
+                .item {
+                    width: 6px;
+                    height: 6px;
+                    border: 1px solid $slt-grey-color;
+                    background-color: white;
+                    &.selected {
+                        background-color: $slt-grey-color;
+                    }
+                }
+            }
+        }
+        .product-details {
+            display: inline-block;
+            vertical-align: top;
+            width: 42%;
+            height: 100%;
+            padding: 10px 20px;
+            margin: 0;
+            .title {
+                line-height: 20px;
+                font-size: 20px;
+                font-family: $slt-sans-font;
+                color: $slt-basic-color;
+                margin-bottom: 15px;
+            }
+            .price {
+                font-size: 12px;
+                color: $slt-basic-color;
+                margin-bottom: 15px;
+            }
+            .description {
+                overflow: auto;
+                max-height: 66%;
+                margin-bottom: 30px;
+                font-size: 12px;
             }
         }
     }
@@ -600,54 +616,27 @@ body {
         width: 100% !important;
         height: 28%;
         padding: 8px;
-        border: 1px solid $slt-basic-color;
+        border: 1px solid $slt-grey-color;
         border-radius: 10px;
     }
-    .buy .button {
-        position: relative;
-        font-size: 14px;
-        text-transform: uppercase;
-        width: 218px;
-        background: linear-gradient(rgb(235,171,38) 25%, rgb(165,98,0) 100%);
-        padding: 3px 18px 3px 0px;
-        font-weight: bold;
-        border-radius: 5px;
-        opacity: 1.0;
-        filter: alpha(opacity=100);
-        &:hover {
-            text-decoration: underline;
-        }
-        .line1 {
-            position: absolute;
-            width: 1px;
-            height: 18px;
-            top: 4px;
-            right: 19px;
-            background: linear-gradient(rgb(222,158,29), rgb(141,80,0), rgb(168,102,0));
-        }
-        .line2 {
-            position: absolute;
-            width: 1px;
-            height: 18px;
-            top: 4px;
-            right: 18px;
-            background: linear-gradient(rgb(229,168,44), rgb(237,214,164), rgb(175,112,0));
-        }
-
-        img {
-            position: absolute;
-            right: 6px;
-            top: 8px;
-        }
-    }
-    .cell.image {
-        vertical-align: middle;
-        padding: 0px 20px 20px 20px;
-        .landscape {
-            padding: 50px 0 0 0;
+    .buy {
+        width: 70%;
+        margin: auto;
+        .button {
+            position: relative;
+            font-size: 18px;
+            font-family: $slt-modern-font;
+            line-height: 40px;
+            width: 100%;
+            border-radius: 10px;
+            background-color: $slt-green-color;
+            &:hover {
+                text-decoration: underline;
+            }
         }
     }
     .stl-title {
+        color: $slt-green-color;
         font-size: 14px;
         background-color: transparent;
     }
@@ -655,19 +644,22 @@ body {
         overflow-x: auto;
         overflow-y: auto;
         width: 100%;
+        height: 100%;
         text-align: center;
-        max-height: 516px;
-        .stl-item {
+        .stl-item, .look-thumbnail {
             display: inline-block;
             margin: 5px;
-            width: auto;
+            width: 150px;
             height: auto;
             text-align: center;
             vertical-align: top;
-            img {
+            img.image {
+                display: inline-block;
                 max-width: 100%;
                 max-height: 100px;
                 width: auto;
+                opacity: 1;
+                margin: 0 0 5px;
             }
             .name {
                 width: 100%;
@@ -697,6 +689,57 @@ body {
             border-top: 15px solid #000;
             display: inline-block;
         }
+    }
+}
+
+.stl-carousel, .tagged-product {
+    .stl-swipe-up, .stl-swipe-down,
+    .stl-swipe-left, .stl-swipe-right,
+    .gallery-swipe-left, .gallery-swipe-right {
+        display: block;
+        background-repeat: no-repeat;
+        background-position: center;
+        border: none;
+        position: absolute;
+        cursor: pointer;
+        z-index: 1;
+        background-color: transparent;
+        background-size: contain;
+    }
+    .stl-swipe-up, .stl-swipe-down {
+        display: none;
+        width: 100%;
+        height: 5%;
+        left: 0;
+        background-size: 25%;
+    }
+    .stl-swipe-left, .stl-swipe-right {
+        display: none;
+        width: 5%;
+        height: 100%;
+        top: 0;
+        background-size: 30%;
+    }
+    .gallery-swipe-left, .gallery-swipe-right {
+        width: 45px;
+        height: 45px;
+        top: 47%;
+    }
+    .stl-swipe-up {
+        background-image: url('/static/light/surlatable/landingpage/mothersday/images/up-image-arrow.png');
+        top: 0;
+    }
+    .stl-swipe-down {
+        background-image: url('/static/light/surlatable/landingpage/mothersday/images/down-image-arrow.png');
+        bottom: 0;
+    }
+    .stl-swipe-left, .gallery-swipe-left {
+        background-image: url('/static/light/surlatable/landingpage/mothersday/images/prev-image-arrow.png');
+        left: 0;
+    }
+    .stl-swipe-right, .gallery-swipe-right {
+        background-image: url('/static/light/surlatable/landingpage/mothersday/images/next-image-arrow.png');
+        right: 0;
     }
 }
 

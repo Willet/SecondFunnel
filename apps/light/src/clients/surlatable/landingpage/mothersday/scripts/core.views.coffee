@@ -336,12 +336,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productInstance = new module.ProductView(
                 model: new module.Product(@model.get("tagged-products")[@lookProductIndex])
             )
-            @productInfo.show(productInstance)
-            unless @lookThumbnail.is(":visible")
-                @stlIndex = Math.min($(".stl-look").children(":visible").length - 1, @stlIndex + 1)
             @lookThumbnail.show()
             @$el.find('.info').show()
             @$el.find('.look-image-container').hide()
+            @productInfo.show(productInstance)
+            unless @lookThumbnail.is(":visible")
+                @stlIndex = Math.min($(".stl-look").children(":visible").length - 1, @stlIndex + 1)
             if App.support.mobile() and App.utils.landscape()
                 @arrangeStlItemsVertical()
             else
