@@ -54,9 +54,11 @@
     - aws_tools
 
 - name: "Clearing Django Sessions from Database"
-  shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py clearsessions --settings=$DJANGO_SETTINGS_MODULE"
+  shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}}"
   args:
     chdir: "{{application_directory}}"
+  with_items:
+    - "clearsessions"
 
 - name: "Setup Servers"
   hosts: launched
