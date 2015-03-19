@@ -92,6 +92,10 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         urls = sel.css('image[url*="touchzoom"]::attr(url)').extract()
         image_urls = set(['{}/{}'.format(response.url.rsplit('/', 1)[0], url.rsplit('/', 1)[1]) for url in urls])
 
+        # For Sur La Table, a product image doubles as a cover image. Choose first image & manually update later
+        url = urls[0]
+        item['attributes']['url'] = '{}/{}'.format(response.url.rsplit('/', 1)[0], url.rsplit('/', 1)[1])
+        
         l.add_value('image_urls', image_urls)
 
         yield l.load_item()
