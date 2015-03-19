@@ -885,9 +885,51 @@ body {
         }
     }
     .previewContainer {
+        max-height: 100%;
+        &.landscape {
+            .close {
+                width: 100px;
+            }
+            .look-image, .product-details {
+                width: calc(100% - 100px);
+            }
+            .info, .look-image-container {
+                float: right;
+                width: 80%;
+                height: 100% !important;
+                .gallery-main-image {
+                    height: 100%;
+                    .gallery-dots {
+                        bottom: 50px;
+                    }
+                    .buy {
+                        position: absolute;
+                        bottom: 5px;
+                        left: 0;
+                        right: 0;
+                    }
+                }
+            }
+            .shop {
+                float: left;
+                width: 20% !important;
+                height: 100%;
+                border-top: none;
+                border-right: 1px solid $slt-grey-color;
+                .stl-title {
+                    padding: 0 15px;
+                }
+                .stl-look-container {
+                    padding: 35px 0 0;
+                }
+                .stl-item, .look-thumbnail {
+                    width: 90% !important;
+                }
+            }
+        }
         .fullscreen {
             position: fixed;
-            max-height: none;
+            max-height: none !important;
         }
         .close {
             width: 25%;
@@ -905,6 +947,7 @@ body {
         }
         .look-image-container {
             height: 72%;
+            position: relative;
             .look-image {
                 width: 75%;
                 height: 65px;
@@ -932,6 +975,7 @@ body {
         .info {
             height: 72% !important;
             padding: 0 !important;
+            position: relative;
         }
         .tagged-product.row .description {
             width: 100%;
@@ -974,6 +1018,9 @@ body {
             margin-bottom: 10px !important;
             .image, .recipe {
                 border-radius: 0;
+                &.full-image {
+                    background-size: contain;
+                }
             }
         }
         .shop {

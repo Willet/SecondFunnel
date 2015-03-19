@@ -11,6 +11,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @galleryIndex = 0
         return
 
+    _.extend module.ProductView.prototype.events =
+        "click .main-image .image": (event) ->
+            $image = $(event.target)
+            $image.toggleClass("full-image")
+            return
+
     # For Sur La Table, the "content" image is the best looking product image
     # Re-order the product images so that image is first
     # For desktop, hide it because the pop-up will show the content image
