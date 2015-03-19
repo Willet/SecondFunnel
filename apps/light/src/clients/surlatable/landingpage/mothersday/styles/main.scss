@@ -454,6 +454,11 @@ body {
 
 .previewContainer,
 .heroContainer {
+    .scrollable, .content, .preview-container, .template.target, .table,
+    .row, .image-with-tagged-products, .image-without-tagged-products {
+        width: 100%;
+        height: 100%;
+    }
     .cell > div,
     .product-info .tagged-product > div {
         margin: 0;
@@ -471,6 +476,13 @@ body {
         max-height: 760px;
         width: 100%;
         height: 100%;
+        &.product {
+            max-height: 640px;
+            .cell.info {
+                height: 100%;
+                padding: 10px 0 0;
+            }
+        }
     }
     .content {
         padding: 40px 10px 10px !important;
@@ -483,8 +495,6 @@ body {
     .table {
         display: block;
         .row {
-            width: 100%;
-            height: 100%;
             display: inline-block;
         }
     }
@@ -511,16 +521,21 @@ body {
         left: 0;
         width: 100%;
         height: 40px;
-        padding: 12px !important;
-        line-height: 13px;
-        color: #fff;
         background-color: $slt-purple-color;
         text-align: left;
         border-radius: 10px 10px 0 0;
+        padding: 12px !important;
+        .title {
+            line-height: 15px;
+            color: #fff;
+            max-width: 90%;
+            height: 15px;
+            overflow: hidden;
+        }
     }
     .info, .look-image-container {
         width: 100%;
-        height: 65%;
+        height: 72%;
         text-align: left;
         padding: 10px 0;
     }
@@ -546,75 +561,87 @@ body {
                 font-size: 20px;
                 line-height: 20px;
                 margin-bottom: 15px;
+                max-height: 60px;
             }
             .recipe {
                 font-size: 12px;
-                max-height: 92%;
+                max-height: 85%;
                 overflow: auto;
             }
         }
     }
-    .info {
-        .product-info, .tagged-product, .main-image-container, .main-image {
-            width: 100%;
-            height: 100%;
-        }
-        .gallery-main-image {
+    .product-info, .tagged-product,
+    .main-image-container, .main-image {
+        width: 100%;
+        height: 100%;
+    }
+    .gallery-main-image {
+        display: inline-block;
+        vertical-align: top;
+        width: 57%;
+        height: 100%;
+        position: relative;
+        .image, .description {
             display: inline-block;
             vertical-align: top;
-            width: 57%;
+            width: 99.955%;
+        }
+        .image {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 10px;
             height: 100%;
-            position: relative;
-            .image {
-                display: inline-block;
-                width: 99.95%;
-                height: 100%;
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
-                border-radius: 10px;
-            }
-            .gallery-dots {
-                position: absolute;
-                left: 0;
-                bottom: 10px;
-                width: 100%;
-                .item {
-                    width: 6px;
-                    height: 6px;
-                    border: 1px solid $slt-grey-color;
-                    background-color: white;
-                    &.selected {
-                        background-color: $slt-grey-color;
-                    }
-                }
+        }
+        .description {
+            font-size: 12px;
+            overflow: hidden;
+            padding: 0 5px 0 40px;
+            text-align: left;
+            max-height: 90%;
+            white-space: normal;
+        }
+    }
+    .gallery-dots {
+        position: absolute;
+        left: 0;
+        bottom: 10px;
+        width: 100%;
+        .item {
+            width: 6px;
+            height: 6px;
+            border: 1px solid $slt-green-color;
+            background-color: white;
+            &.selected {
+                background-color: $slt-green-color;
             }
         }
-        .product-details {
-            display: inline-block;
-            vertical-align: top;
-            width: 42%;
-            height: 100%;
-            padding: 10px 20px;
-            margin: 0 !important;
-            .title {
-                line-height: 20px;
-                font-size: 20px;
-                font-family: $slt-sans-font;
-                color: $slt-basic-color;
-                margin-bottom: 15px;
-            }
-            .price {
-                font-size: 12px;
-                color: $slt-basic-color;
-                margin-bottom: 15px;
-            }
-            .description {
-                overflow: auto;
-                max-height: 66%;
-                margin-bottom: 30px;
-                font-size: 12px;
-            }
+    }
+    .product-details {
+        display: inline-block;
+        vertical-align: top;
+        width: 42%;
+        height: 100%;
+        padding: 10px 20px;
+        margin: 0 !important;
+        text-align: left;
+        .title {
+            line-height: 20px;
+            font-size: 20px;
+            font-family: $slt-sans-font;
+            color: $slt-basic-color;
+            margin-bottom: 15px;
+        }
+        .price {
+            font-size: 12px;
+            color: $slt-basic-color;
+            margin-bottom: 15px;
+        }
+        .description {
+            overflow: hidden;
+            max-height: 66%;
+            margin-bottom: 30px;
+            font-size: 12px;
         }
     }
     .shop {
@@ -752,11 +779,11 @@ body {
         bottom: 0;
     }
     .stl-swipe-left, .gallery-swipe-left {
-        background-image: url('/static/light/surlatable/landingpage/mothersday/images/prev-image-arrow.png');
+        background-image: url('/static/light/surlatable/landingpage/mothersday/images/prev-image-arrow.jpg');
         left: 0;
     }
     .stl-swipe-right, .gallery-swipe-right {
-        background-image: url('/static/light/surlatable/landingpage/mothersday/images/next-image-arrow.png');
+        background-image: url('/static/light/surlatable/landingpage/mothersday/images/next-image-arrow.jpg');
         right: 0;
     }
 }
@@ -860,6 +887,7 @@ body {
     .previewContainer {
         .fullscreen {
             position: fixed;
+            max-height: none;
         }
         .close {
             width: 25%;
@@ -902,40 +930,50 @@ body {
             }
         }
         .info {
-            height: 72%;
-            padding: 0;
-            .product-details {
-                width: 75%;
-                height: 65px;
-                padding: 5px 0 0 5px;
-                position: absolute;
-                top: 0;
-                left: 0;
-                z-index: 10;
-                .title {
-                    line-height: 18px;
-                    font-size: 18px;
-                    font-family: $slt-modern-font;
-                    max-height: 36px;
-                    overflow: hidden;
-                    margin-bottom: 5px;
-                }
-                .price {
-                    line-height: 13px;
-                    font-size: 13px;
-                    font-family: $slt-modern-font;
-                    margin-bottom: 0;
-                }
+            height: 72% !important;
+            padding: 0 !important;
+        }
+        .tagged-product.row .description {
+            width: 100%;
+            height: 28%;
+            overflow: hidden;
+            padding: 0 15px;
+            text-align: left;
+            font-size: 16px;
+            font-family: $slt-modern-font;
+            line-height: 21px;
+        }
+        .product-details {
+            width: 75%;
+            height: 65px;
+            padding: 5px 0 0 5px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            .title {
+                line-height: 18px;
+                font-size: 18px;
+                font-family: $slt-modern-font;
+                max-height: 36px;
+                overflow: hidden;
+                margin-bottom: 5px;
             }
-            .gallery-main-image {
-                width: 100%;
-                height: 85%;
-                padding-top: 65px;
-                margin: 0 !important;
-                margin-bottom: 10px !important;
-                .image {
-                    border-radius: 0;
-                }
+            .price {
+                line-height: 13px;
+                font-size: 13px;
+                font-family: $slt-modern-font;
+                margin-bottom: 0;
+            }
+        }
+        .gallery-main-image {
+            width: 100%;
+            height: 85%;
+            padding-top: 65px;
+            margin: 0 !important;
+            margin-bottom: 10px !important;
+            .image, .recipe {
+                border-radius: 0;
             }
         }
         .shop {

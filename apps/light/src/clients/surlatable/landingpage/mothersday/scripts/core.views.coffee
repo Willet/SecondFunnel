@@ -3,6 +3,14 @@
 # @module core.views
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
+    module.ProductView::initialize = ->
+        @numberOfImages = @model.get('images')?.length or 0
+        # Add one for the recipe slide
+        unless @model.get('type') is "product" or not App.support.mobile()
+            @numberOfImages++
+        @galleryIndex = 0
+        return
+
     # For Sur La Table, the "content" image is the best looking product image
     # Re-order the product images so that image is first
     # For desktop, hide it because the pop-up will show the content image
@@ -33,11 +41,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @resizeContainer()
 
     module.ExpandedContent.prototype.events =
-        "click .look-image": (event) ->
-            $image = @$el.find(".look-image-container")
-            $image.toggleClass("full-image")
-            return
-
         "click .look-thumbnail": (event) ->
             @lookThumbnail.hide()
             @$el.find('.info').hide()
@@ -161,40 +164,42 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::arrangeStlItemsVertical = ->
-        @leftArrow.hide()
-        @rightArrow.hide()
-        if @model.get("tagged-products")?.length > 1 or App.support.mobile()
-            if App.support.mobile() or @model.orientation is "landscape"
-                height = "95%"
-                top = "0"
-                unless @stlIndex is 0
-                    height = "90%"
-                    top = @upArrow.height()
-                @$el.find(".stl-look-container").css(
-                    "height": height
-                    "top": top
-                )
-            $stlLook = @$el.find(".stl-look")
-            distance = $stlLook.offset().top - $($stlLook.children(":visible")[@stlIndex]).offset().top
-            @updateStlGalleryPosition(distance, "portrait", 0)
+        if @model.get("type") is "image" or @model.get("type") is "gif"
+            @leftArrow.hide()
+            @rightArrow.hide()
+            if @model.get("tagged-products")?.length > 1 or App.support.mobile()
+                if App.support.mobile() or @model.orientation is "landscape"
+                    height = "95%"
+                    top = "0"
+                    unless @stlIndex is 0
+                        height = "90%"
+                        top = @upArrow.height()
+                    @$el.find(".stl-look-container").css(
+                        "height": height
+                        "top": top
+                    )
+                $stlLook = @$el.find(".stl-look")
+                distance = $stlLook.offset().top - $($stlLook.children(":visible")[@stlIndex]).offset().top
+                @updateStlGalleryPosition(distance, "portrait", 0)
         return
 
     module.ExpandedContent::arrangeStlItemsHorizontal = ->
-        @upArrow.hide()
-        @downArrow.hide()
-        if @model.get("tagged-products")?.length > 1 or App.support.mobile()
-            $stlLook = @$el.find(".stl-look")
-            stlItems = $stlLook.children(":visible")
-            totalItemWidth = 0
-            for item in stlItems
-                totalItemWidth += $(item).outerWidth()
-            if totalItemWidth <= @$el.find(".stl-look-container").width()
-                @leftArrow.hide()
-                @rightArrow.hide()
-                distance = 0
-            else
-                distance = $stlLook.offset().left - $(stlItems[@stlIndex]).offset().left
-            @updateStlGalleryPosition(distance, "landscape", 0)
+        if @model.get("type") is "image" or @model.get("type") is "gif"
+            @upArrow.hide()
+            @downArrow.hide()
+            if @model.get("tagged-products")?.length > 1 or App.support.mobile()
+                $stlLook = @$el.find(".stl-look")
+                stlItems = $stlLook.children(":visible")
+                totalItemWidth = 0
+                for item in stlItems
+                    totalItemWidth += $(item).outerWidth()
+                if totalItemWidth <= @$el.find(".stl-look-container").width()
+                    @leftArrow.hide()
+                    @rightArrow.hide()
+                    distance = 0
+                else
+                    distance = $stlLook.offset().left - $(stlItems[@stlIndex]).offset().left
+                @updateStlGalleryPosition(distance, "landscape", 0)
         return
 
     module.ExpandedContent::resizeContainer = ->
@@ -218,10 +223,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     else
                         @arrangeStlItemsVertical()
                     return
-
-                $table.css(
-                    height: if $container.height() then $container.height() else $containedItem.height()
-                )
 
                 # loading hero area
                 unless $container?.length
@@ -325,7 +326,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @lookThumbnail.hide()
             @$el.find('.info').hide()
             @$el.find('.look-image-container').show()
-            @$el.find(".stl-item").removeClass("selected")
+            @$el.find('.stl-item').removeClass("selected")
+            @$el.find('.title-banner .title').html("Classic Carrot Cake Recipe")
             if App.support.mobile() and App.utils.landscape()
                 @arrangeStlItemsVertical()
             else
@@ -333,12 +335,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         else
             @$el.find(".stl-item").filter("[data-index=#{@lookProductIndex}]")
                 .addClass("selected").siblings().removeClass("selected")
+            if @model.get("type") is "product"
+                product = new module.Product(@model.attributes)
+            else
+                product = new module.Product(@model.get("tagged-products")[@lookProductIndex])
             productInstance = new module.ProductView(
-                model: new module.Product(@model.get("tagged-products")[@lookProductIndex])
+                model: product
             )
             @lookThumbnail.show()
             @$el.find('.info').show()
             @$el.find('.look-image-container').hide()
+            @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
             @productInfo.show(productInstance)
             unless @lookThumbnail.is(":visible")
                 @stlIndex = Math.min($(".stl-look").children(":visible").length - 1, @stlIndex + 1)
