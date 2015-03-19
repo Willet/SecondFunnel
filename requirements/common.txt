@@ -103,7 +103,6 @@ raven==4.2.0
 
 # Logging
 python-simple-hipchat==0.2
-slackpy==0.2.0
 
 # Scrapy
 Scrapy==0.22.2

@@ -24,11 +24,11 @@ def dump_stats(stats, spider, reason, s3_urls):
     total = float(sum(map(len, stats_collection.values())))
 
     result_codes = {
-        "shutdown": "Spider {} squashed like a bug (ctrl-C).  ",
-        "finished": "Ran spider {}!  "
+        "shutdown": "Spider {} squashed like a bug (ctrl-C)",
+        "finished": "Ran spider {}"
     }
-    unknown_result_msg = "Spider {} died with unknown exit condition.  Investigate!  "
-    message = result_codes.get(reason, unknown_result_msg).format(spider.name.upper())
+    unknown_result_msg = "Spider {} died with unknown exit condition.  Investigate!"
+    title = result_codes.get(reason, unknown_result_msg).format(spider.name.upper())
 
     level = False if reason == 'finished' else 'error'
     report = []
@@ -40,12 +40,13 @@ def dump_stats(stats, spider, reason, s3_urls):
             level = level or lev
     report.append('{} total items scraped'.format(int(total)))
 
-    message += ', '.join([a for a in report if a])
-    message += ' (<a href=http://{}>report</a>)(<a href=http://{}>full log</a>)'.format(*s3_urls)
+    message = ', '.join([a for a in report if a])
+    message += '\n<http://{}|report> | <http://{}|full log>'.format(*s3_urls)
 
     slack.msg(
         channel='#scraper',
         sender='scrapy-{}'.format(settings.ENVIRONMENT),
+        title=title,
         message=message,
         level=(level or 'error'),
     )
