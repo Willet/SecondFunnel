@@ -44,20 +44,29 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('name', 'h1.name::text')
         l.add_css('sku', '#productId::attr(value)', re=r'\d+')
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        l.add_css('description', '.boxsides::text')
+        l.add_css('description', '#description .boxsides')
 
-        # prices are sometimes in the form "$9.95 - $48.96"
+        # prices are sometimes in the forms:
+        #    $9.95 - $48.96
+        #    Now: $99.96 Was: $139.95 Value: $200.00
+        # capture the whole thing
+        attributes['pricing_block'] = sel.css('ul.pricing').extract()[0].replace('\n','').replace('\t','')
         try:
             reg_price = sel.css('.regular label#productPriceValue::text').extract()[0].split('-')[0]
         except IndexError:
             reg_price = sel.css('.price label#productPriceValue::text').extract()[0].split('-')[0]
         else:
-            attributes['sale_price'] = sel.css('.sale label#productPriceValue::text').extract()[0].split('-')[0]
-        l.add_value('price', reg_price.strip('$'))
+            sale_price = sel.css('.sale label#productPriceValue::text').extract()[0].split('-')[0]
+        
+        l.add_value('price', reg_price)
+        if sale_price:
+            l.add_value('sale_price', sale_price)
+
+        l.add_value('attributes', attributes)
+        item = l.load_item()
 
         magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
         xml_path = '/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
-        item = l.load_item()
         request = WebdriverRequest(self.root_url + xml_path, callback=self.parse_images)
 
         request.meta['item'] = item

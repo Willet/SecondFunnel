@@ -374,6 +374,25 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     /**
+     * Returns value of querystring parameter param in url, or null if not found
+     *
+     * @param {string} url
+     * @param {string} param - name of parameter
+     *
+     * @returns {string} questring parameter param or null if not found
+     */
+    module.urlGetParam = function (url, param) {
+        var urlParts,
+            paramsObj = {};
+        if (_.isString(url) && _.isString(param)) {
+            urlParts = module.urlParse( url );
+            // use substr to remove leading '?'. ''.substr(1) returns ''
+            paramsObj = $.deparam(urlParts.search.substr(1));
+        }
+        return paramsObj[param] || null;
+    };
+
+    /**
      * STUB - returns url with client tracking parameters appended
      *
      * @param {string} url
