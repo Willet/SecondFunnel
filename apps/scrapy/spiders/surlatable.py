@@ -1,3 +1,4 @@
+from scrapy import log
 from scrapy.selector import Selector
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
@@ -15,11 +16,17 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     remove_background = False
 
-    # There is no way of making this pretty.  XPaths, my butt.
     rules = [
-        Rule(SgmlLinkExtractor(restrict_xpaths=
-            "//div[contains(@id, 'items')]/div[contains(@class, 'row')]/dl[contains(@class, 'item')]"
-        ), callback="parse_product", follow=False)
+        Rule(SgmlLinkExtractor(allow=[
+            r'/product/PRO-\d+(/.*)?'
+        ]), 'parse_recipe', follow=False),
+        Rule(SgmlLinkExtractor(allow=[
+            r'/product/REC-\d+(/.*)?'
+        ]), 'parse_recipe', follow=False),
+        # Old way, may cover more cases?
+        #Rule(SgmlLinkExtractor(restrict_xpaths=
+        #    "//div[contains(@id, 'items')]/div[contains(@class, 'row')]/dl[contains(@class, 'item')]"
+        #), callback="parse_product", follow=False),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -27,7 +34,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     def is_product_page(self, response):
         sel = Selector(response)
-        return sel.css('label#productPriceValue')
+        return sel.css('#productdetail label#productPriceValue')
 
     def is_sold_out(self, response):
         return False
@@ -49,19 +56,18 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         # prices are sometimes in the forms:
         #    $9.95 - $48.96
         #    Now: $99.96 Was: $139.95 Value: $200.00
-        # capture the whole thing
-        attributes['pricing_block'] = sel.css('ul.pricing').extract()[0].replace('\n','').replace('\t','')
+        price_range = sel.css('meta[property="eb:pricerange"]::attr(content)').extract()[0]
+        if price_range:
+            attributes['price_range'] = price_range
         try:
             reg_price = sel.css('.regular label#productPriceValue::text').extract()[0].split('-')[0]
         except IndexError:
             reg_price = sel.css('.price label#productPriceValue::text').extract()[0].split('-')[0]
         else:
             sale_price = sel.css('.sale label#productPriceValue::text').extract()[0].split('-')[0]
+            l.add_value('sale_price', sale_price)
         
         l.add_value('price', reg_price)
-        if sale_price:
-            l.add_value('sale_price', sale_price)
-
         l.add_value('attributes', attributes)
         item = l.load_item()
 
@@ -72,6 +78,10 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         request.meta['item'] = item
 
         yield request
+
+    def parse_recipe(self, response):
+        #sel = Selector(response)
+        log.msg('scraping recipe!')
 
     def parse_images(self, response):
         sel = Selector(response)
