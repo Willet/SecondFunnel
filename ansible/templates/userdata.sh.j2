@@ -9,7 +9,7 @@ date '+%Y-%m-%d %H:%M:%S'
 
 APP_ENVIRONMENT={{app_environment}}
 GIT_BRANCH={{git_branch}}
-PLAYBOOK_REPO_FILE=ansible/webservers.yml
+PLAYBOOK_REPO_FILE=webservers.yml
 TAGS=deploy
 CHECKOUT_FOLDER={{secondfunnel_directory}}/userdata_checkout
 GIT_REPO=git@github.com:Willet/SecondFunnel.git
@@ -59,8 +59,9 @@ git clone --branch $GIT_BRANCH --single-branch --depth 1 $GIT_REPO $CHECKOUT_FOL
 cd $CHECKOUT_FOLDER
 chmod -R a+rX $CHECKOUT_FOLDER $INVENTORY_FILE
 chown -R willet:willet $CHECKOUT_FOLDER $INVENTORY_FILE
+cd ansible
 sudo -H -u willet /usr/bin/zsh -c "ansible-playbook -i $INVENTORY_FILE -e app_environment=$APP_ENVIRONMENT $PLAYBOOK_REPO_FILE -t $TAGS"
-cd -
+cd {{secondfunnel_directory}}
 
 # cleanup
 rm -rf $CHECKOUT_FOLDER $INVENTORY_FILE

@@ -39,7 +39,7 @@ aws_lb:
 
 aws_lc:
   name: "{{aws_name}}-web-lc {{ansible_date_time.date}}"
-  user_data: "{{lookup('template', 'ansible/templates/userdata.sh.j2')}}"
+  user_data: "{{lookup('template', 'templates/userdata.sh.j2')}}"
 
 aws_asg:
   name: "{{aws_name}}-scaling-group"
