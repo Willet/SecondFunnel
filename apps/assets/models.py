@@ -308,7 +308,7 @@ class Product(BaseModel):
         if self.price and not (isinstance(self.price, decimal.Decimal) or isinstance(self.price, float)):
             raise ValidationError('Product price does not validate')
 
-        sale_price = self.attributes.get('sale_price', float())
+        sale_price = self.get('sale_price', self.attributes.get('sale_price', float()))
         if sale_price and not (isinstance(sale_price, decimal.Decimal) or isinstance(sale_price, float)):
             raise ValidationError('Product price does not validate')
         

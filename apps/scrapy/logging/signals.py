@@ -2,7 +2,7 @@ from scrapy import signals, log
 from StringIO import StringIO
 from django.conf import settings
 
-import notify_hipchat
+import notify_slack
 import upload_to_s3
 
 class Signals(object):
@@ -89,7 +89,7 @@ class Signals(object):
             reason
         ).run()
 
-        notify_hipchat.dump_stats(
+        notify_slack.dump_stats(
             self.crawler.stats.get_stats(),
             spider,
             reason,
