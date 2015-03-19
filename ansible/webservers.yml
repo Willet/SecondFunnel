@@ -45,7 +45,7 @@
       tags: vagrant_data_import
 
 - name: "Bootstrap Servers"
-  serial: 2
+  serial: 3
   hosts: webservers:!building
   remote_user: "{{bootstrap_user}}"
   roles:
@@ -59,7 +59,7 @@
     - { role: db, tags: db }
 
 - name: "Setup Servers"
-  serial: 2
+  serial: 3
   hosts: webservers:!building
   remote_user: "{{common_user}}"
   pre_tasks:
