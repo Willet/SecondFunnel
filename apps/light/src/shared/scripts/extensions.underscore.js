@@ -78,6 +78,9 @@ module.exports = function (module, App, Backhone, Marionette, $, _) {
         'truncate': function (string, n, useWordBoundary, addEllipses) {
             // truncate string at boundary
             // http://stackoverflow.com/questions/1199352/
+            if (!_.isString(string)) {
+                return "";
+            }
             var tooLong = string.length > n,
                 s = tooLong ? string.substr(0, n) : string;
             if (tooLong && useWordBoundary && s.lastIndexOf(' ') > -1) {
