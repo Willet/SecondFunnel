@@ -56,6 +56,7 @@ ITEM_PIPELINES = {
     'apps.scrapy.pipelines.DuplicatesPipeline': 20,
     # 900 - Persistence-related Pipelines
     'apps.scrapy.pipelines.ItemPersistencePipeline': 990,
+    'apps.scrapy.pipelines.TagWithProductsPipeline': 991,
     'apps.scrapy.pipelines.CategoryPipeline': 997,
     'apps.scrapy.pipelines.FeedPipeline': 998,
     'apps.scrapy.pipelines.ProductImagePipeline': 999
