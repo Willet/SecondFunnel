@@ -278,14 +278,13 @@ class ProductSerializer(IRSerializer):
                 except ValueError:
                     pass  # could not find matching product image
         elif product.default_image:
-            # If default imaage is in product_images, move it to front
+            # If default image is in product_images, move it to front
             try:
-                # If present, remove default image from product images
                 idx = product_images.index(product.default_image)
                 product_images = [product.default_image] + \
                                  product_images[:idx] + \
                                  product_images[idx+1:]
-            except ValueError:  # that's right default image not in list
+            except ValueError:  # default image not in list
                 pass  # bail ordering
 
         data["images"] = [image.to_json() for image in product_images]
