@@ -706,6 +706,8 @@ class Feed(BaseModel):
 
             new_tile.save()
             new_tile.content.add(content)
+            product_qs = content.tagged_products.all()
+            new_tile.products.add(*product_qs)
             print "content {0} added to the feed.".format(content.id)
             self.tiles.add(new_tile)
 
