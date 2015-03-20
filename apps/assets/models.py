@@ -279,7 +279,7 @@ class Product(BaseModel):
     default_image = models.ForeignKey('ProductImage', related_name='default_image',
                                       blank=True, null=True, on_delete=models.SET_NULL)
     # product_images is an array of ProductImages (many-to-one relationship)
-
+    
     last_scraped_at = models.DateTimeField(blank=True, null=True)
 
     # keeps track of if/when a product is available but ran out
@@ -914,7 +914,7 @@ class Tile(BaseModel):
 
         if not serializer:  # default
             serializer = ir_serializers.TileSerializer
-
+        
         return serializer().to_str([self], skip_cache=skip_cache)
 
     def update_ir_cache(self):
