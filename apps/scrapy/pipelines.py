@@ -271,8 +271,11 @@ class CategoryPipeline(object):
         category.save()
 
 
-class FeedPipeline(object):
+class TileCreationPipeline(object):
     def process_item(self, item, spider):
+        if item.get('force_skip_tiles', False):
+            return item
+
         feed_ids = getattr(spider, 'feed_ids', [])
 
         for feed_id in feed_ids:

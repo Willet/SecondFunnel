@@ -9,20 +9,21 @@ from apps.scrapy.utils.serializers import store_serializer
 
 # Fields that are not part of a Django model
 # will not be saved; neat :)
+class ScraperBase(DjangoItem):
+    force_skip_tiles = Field()
 
 
 # Also, fields that override existing fields don't *seem* to affect
 # the underlying model field (e.g. `store` below)
-class ScraperProduct(DjangoItem):
+class ScraperProduct(ScraperBase):
     django_model = Product
     image_urls = Field()
     images = Field()
     created = Field()
-
     store = Field(serializer=store_serializer)
 
 
-class ScraperContent(DjangoItem):
+class ScraperContent(ScraperBase):
     django_model = Content
     created = Field()
     tag_with_products = Field()

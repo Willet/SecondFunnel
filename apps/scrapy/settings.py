@@ -58,7 +58,7 @@ ITEM_PIPELINES = {
     'apps.scrapy.pipelines.ItemPersistencePipeline': 990,
     'apps.scrapy.pipelines.TagWithProductsPipeline': 991,
     'apps.scrapy.pipelines.CategoryPipeline': 997,
-    'apps.scrapy.pipelines.FeedPipeline': 998,
+    'apps.scrapy.pipelines.TileCreationPipeline': 998,
     'apps.scrapy.pipelines.ProductImagePipeline': 999
 }
 # Image storage information here:

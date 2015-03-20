@@ -21,7 +21,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         # Recipe page
         Rule(SgmlLinkExtractor(allow=[r'surlatable\.com/product/PRO-\d+(/.*)?'], restrict_xpaths=
             "//div[contains(@id, 'productaccessories')]/*/div[contains(@class, 'itemwrapper')]"
-        ), callback="parse_product", follow=False),
+        ), callback="parse_product", cb_kwargs={'force_skip_tiles':True}, follow=False),
         # Category page
         Rule(SgmlLinkExtractor(allow=[r'surlatable\.com/product/PRO-\d+(/.*)?'], restrict_xpaths=
             "//div[contains(@id, 'items')]/div[contains(@class, 'row')]/dl[contains(@class, 'item')]"
@@ -58,7 +58,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     def is_sold_out(self, response):
         return False
         
-    def parse_product(self, response):
+    def parse_product(self, response, force_skip_tiles=False):
         if not self.is_product_page(response):
             log.msg('Not a product page: {}'.format(response.url))
             return
@@ -68,6 +68,9 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         attributes = {}
         in_stock = True
 
+        # Don't create tiles when gathering products for a recipe
+        l.add_value('force_skip_tiles', force_skip_tiles)
+        
         l.add_css('name', 'h1.name::text')
         l.add_css('sku', '#productId::attr(value)', re=r'\d+')
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
