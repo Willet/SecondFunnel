@@ -247,16 +247,7 @@
             <% } %>
             <div class="name"><%= obj.title || obj.name %></div>
             <div class="price">
-                <% if (obj.sale_price) { %>
-                    <span class="sale">
-                        Now: <%- obj.sale_price %>
-                    </span>
-                    <span class="original">
-                        Was: <%- obj.price %>
-                    </span>
-                <% } else { %>
-                    <%- obj.price %>
-                <% } %>
+                <% include("product_price_template") %>
               </div>
             </script>
 
@@ -305,9 +296,10 @@
         </script>
 
         <script type="text/template" id="product_price_template">
-            <% if (obj.sale_price) { %>
-                <strike><%- obj.price %></strike> 
-                <b>NOW:</b> <%- obj.sale_price %>
+            <% if (obj.price_range) { %>
+                <%- obj.price_range %>
+            <% } else if (obj.sale_price) { %>
+                <%- obj.sale_price %>
             <% } else { %>
                 <%- obj.price %>
             <% } %>
@@ -322,7 +314,9 @@
         <script type="text/template" id="product_info_template">
             <div class='tagged-product row'>
                 <div class="cell title-banner desktop-only">
-                    <div class="title">Classic Carrot Cake Recipe</div>
+                    <div class="title">
+                        <% include("product_title_template") %>
+                    </div>
                 </div>
                 <div class="product-details mobile-only">
                     <div class='title'>
@@ -414,14 +408,18 @@
 
         <script type="text/template" id="desktop_tagged_products">
             <div class="cell title-banner">
-                <div class="title">Classic Carrot Cake Recipe</div>
+                <div class="title">
+                    <% include("product_title_template") %>
+                </div>
             </div>
             <div class="cell look-image-container">
                 <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
                 <div class="recipe-container">
-                    <div class="title">Classic Carrot Cake Recipe</div>
+                    <div class="title">
+                        <% include("product_title_template") %>
+                    </div>
                     <div class="recipe">
-                        <%= obj.description %>
+                        <% include("product_description_template") %>
                     </div>
                 </div>
             </div>
@@ -438,7 +436,9 @@
                             <div class="stl-look">
                                 <div class="look-thumbnail">
                                     <img src="<%= image_src %>" class="image"/>
-                                    <div class="name">Classic Carrot Cake Recipe</div>
+                                    <div class="name">
+                                        <% include("product_title_template") %>
+                                    </div>
                                 </div>
                                 <% var  related = obj['tagged-products'] %>
                                 <% for (var i = 0; i < related.length; i++) { %>
@@ -460,7 +460,9 @@
             <div class="cell look-image-container">
                 <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
                 <div class="recipe-container">
-                    <div class="title">Classic Carrot Cake Recipe</div>
+                    <div class="title">
+                        <% include("product_title_template") %>
+                    </div>
                     <div class="recipe">
                         <%= obj.description %>
                     </div>

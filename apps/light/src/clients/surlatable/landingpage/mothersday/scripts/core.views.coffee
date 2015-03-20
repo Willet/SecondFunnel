@@ -328,7 +328,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.info').hide()
             @$el.find('.look-image-container').show()
             @$el.find('.stl-item').removeClass("selected")
-            @$el.find('.title-banner .title').html("Classic Carrot Cake Recipe")
+            @$el.find('.title-banner .title').html(@model.get('title') or @model.get('name'))
             if App.support.mobile() and App.utils.landscape()
                 @arrangeStlItemsVertical()
             else
