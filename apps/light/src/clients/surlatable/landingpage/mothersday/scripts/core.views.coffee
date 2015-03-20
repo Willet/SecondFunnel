@@ -2,7 +2,7 @@
 
 # @module core.views
 
-char_limit = 470
+char_limit = 243
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.ProductView::onShow = ->
@@ -29,8 +29,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ProductView::onBeforeRender = ->
         inlineLink = "More on #{@model.attributes.name or @model.attributes.title} »"
-        truncatedDescription = _.truncate(@model.get("description"), char_limit - inlineLink.length, true, true)
-        @model.set("description", truncatedDescription + "<a href=#{@model.attributes.url}>#{inlineLink}</a>")
+        truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
+        @model.set("truncated_description", truncatedDescription + "<a href=#{@model.attributes.url}>#{inlineLink}</a>")
         return
 
     _.extend(module.ProductView.prototype.events, 
@@ -40,36 +40,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
     )
 
-    # For Sur La Table, the "content" image is the best looking product image
-    # Re-order the product images so that image is first
-    # For desktop, hide it because the pop-up will show the content image
-    # For mobile, we will show the product image in leui of showing the content image
-    _.extend(module.ExpandedContent.prototype, 
-        reorderProductImages: ->
-            try 
-                imageUrl = @model.attributes.url
-                prodImages = @model.attributes['tagged-products'][0].images
-            catch err
-                # One of the required objects in the accessor chains doesn't exist
-                return
-            if imageUrl and prodImages
-                matchImgObj = _.find prodImages, (imgObj) ->
-                    # Remove Cloudinary url API operations before doing url comparison
-                    # .../upload/c_fit,q_75,w_700/v... -> .../upload/v...
-                    baseImgUrl = imgObj.url.replace /(upload)(.*)(\/v)/, "$1$3"
-                    return  (baseImgUrl == imageUrl)
-
-                if matchImgObj
-                    # prodImages is a reference, will modify product images in place
-                    matchImgObjIndex = prodImages.indexOf(matchImgObj)
-                    matchImgObj = prodImages.splice(matchImgObjIndex, 1)[0]
-                    # Add back as 1st piece of content on mobile because there
-                    # is only one gallery on mobile
-                    if App.support.mobile()
-                        prodImages.unshift(matchImgObj);
-            @resizeContainer()
-    )
-
     module.ExpandedContent.prototype.events =
         "click .look-thumbnail": (event) ->
             @lookThumbnail.hide()
@@ -77,6 +47,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.look-image-container').show()
             @stlIndex = Math.max(@stlIndex - 1, 0)
             @lookProductIndex = -1
+            @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
             if App.support.mobile() and App.utils.landscape()
                 @arrangeStlItemsVertical()
             else
@@ -197,7 +168,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if @model.get("type") is "image" or @model.get("type") is "gif"
             @leftArrow.hide()
             @rightArrow.hide()
-            if @model.get("tagged-products")?.length > 1 or App.support.mobile()
+            if @model.get("tagged-products")?.length > 0 or App.support.mobile()
                 height = "88%"
                 top = "0"
                 unless @stlIndex is 0
@@ -216,7 +187,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if @model.get("type") is "image" or @model.get("type") is "gif"
             @upArrow.hide()
             @downArrow.hide()
-            if @model.get("tagged-products")?.length > 1 or App.support.mobile()
+            if @model.get("tagged-products")?.length > 0 or App.support.mobile()
                 $stlLook = @$el.find(".stl-look")
                 stlItems = $stlLook.children(":visible")
                 totalItemWidth = 0
@@ -328,7 +299,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.info').hide()
             @$el.find('.look-image-container').show()
             @$el.find('.stl-item').removeClass("selected")
-            @$el.find('.title-banner .title').html("Classic Carrot Cake Recipe")
+            @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
             if App.support.mobile() and App.utils.landscape()
                 @arrangeStlItemsVertical()
             else
