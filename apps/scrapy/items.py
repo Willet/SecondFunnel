@@ -24,7 +24,8 @@ class ScraperProduct(DjangoItem):
 
 class ScraperContent(DjangoItem):
     django_model = Content
-
+    created = Field()
+    tag_with_products = Field()
     store = Field(serializer=store_serializer)
 
 
