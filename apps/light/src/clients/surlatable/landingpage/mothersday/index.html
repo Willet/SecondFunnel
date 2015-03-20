@@ -239,7 +239,7 @@
 
         <script type="text/template" id="product_tile_template">
             <div class="img-wrapper">
-                <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj['default-image'].url || obj.images[0].url %>" alt="<%= caption %>" />
                 <div class="quick-view"><span>Quick View</span></div>
             </div>
             <% if (App.option('debug', 0) > 1) { %>
@@ -309,6 +309,10 @@
             <a class='button' href='<%= obj.url %>' target='_blank'>
                 <span>Buy Now</span>
             </a>
+        </script>
+
+        <script type="text/template" id="product_description_template">
+            <%= obj.truncated_description || obj.description %>
         </script>
 
         <script type="text/template" id="product_info_template">

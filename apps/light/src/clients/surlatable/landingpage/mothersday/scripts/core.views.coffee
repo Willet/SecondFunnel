@@ -2,7 +2,7 @@
 
 # @module core.views
 
-char_limit = 470
+char_limit = 243
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.ProductView::onShow = ->
@@ -29,8 +29,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ProductView::onBeforeRender = ->
         inlineLink = "More on #{@model.attributes.name or @model.attributes.title} »"
-        truncatedDescription = _.truncate(@model.get("description"), char_limit - inlineLink.length, true, true)
-        @model.set("description", truncatedDescription + "<a href=#{@model.attributes.url}>#{inlineLink}</a>")
+        truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
+        @model.set("truncated_description", truncatedDescription + "<a href=#{@model.attributes.url}>#{inlineLink}</a>")
         return
 
     _.extend(module.ProductView.prototype.events, 
@@ -77,6 +77,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.look-image-container').show()
             @stlIndex = Math.max(@stlIndex - 1, 0)
             @lookProductIndex = -1
+            @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
             if App.support.mobile() and App.utils.landscape()
                 @arrangeStlItemsVertical()
             else
@@ -197,7 +198,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if @model.get("type") is "image" or @model.get("type") is "gif"
             @leftArrow.hide()
             @rightArrow.hide()
-            if @model.get("tagged-products")?.length > 1 or App.support.mobile()
+            if @model.get("tagged-products")?.length > 0 or App.support.mobile()
                 height = "88%"
                 top = "0"
                 unless @stlIndex is 0
@@ -216,7 +217,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if @model.get("type") is "image" or @model.get("type") is "gif"
             @upArrow.hide()
             @downArrow.hide()
-            if @model.get("tagged-products")?.length > 1 or App.support.mobile()
+            if @model.get("tagged-products")?.length > 0 or App.support.mobile()
                 $stlLook = @$el.find(".stl-look")
                 stlItems = $stlLook.children(":visible")
                 totalItemWidth = 0
@@ -328,7 +329,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.info').hide()
             @$el.find('.look-image-container').show()
             @$el.find('.stl-item').removeClass("selected")
-            @$el.find('.title-banner .title').html(@model.get('title') or @model.get('name'))
+            @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
             if App.support.mobile() and App.utils.landscape()
                 @arrangeStlItemsVertical()
             else

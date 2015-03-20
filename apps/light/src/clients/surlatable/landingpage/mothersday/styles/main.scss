@@ -561,7 +561,6 @@ body {
             padding: 10px 20px;
             margin: 0;
             .title {
-                font-family: $slt-sans-font;
                 font-size: 20px;
                 line-height: 20px;
                 margin-bottom: 15px;
@@ -599,8 +598,9 @@ body {
         }
         .description {
             font-size: 12px;
+            line-height: 22px;
             overflow: hidden;
-            padding: 0 5px 0 40px;
+            padding: 10px 5px 0 45px;
             text-align: left;
             max-height: 90%;
             white-space: normal;
@@ -633,7 +633,6 @@ body {
         .title {
             line-height: 20px;
             font-size: 20px;
-            font-family: $slt-sans-font;
             color: $slt-basic-color;
             margin-bottom: 15px;
         }
@@ -647,6 +646,7 @@ body {
             max-height: 66%;
             margin-bottom: 30px;
             font-size: 12px;
+            line-height: 22px;
         }
     }
     .shop {
@@ -668,7 +668,10 @@ body {
             border-radius: 10px;
             background-color: $slt-green-color;
             &:hover {
-                text-decoration: underline;
+                border: 1px solid $slt-green-color;
+                background-color: #fff;
+                color: $slt-green-color;
+                text-decoration: none;
             }
         }
     }
@@ -970,7 +973,7 @@ body {
             max-height: none !important;
         }
         .close {
-            width: 25%;
+            width: 80px;
             top: 0;
             right: 0;
             line-height: 65px;
@@ -987,7 +990,7 @@ body {
             height: 72%;
             position: relative;
             .look-image {
-                width: 75%;
+                width: calc(100% - 80px);
                 height: 65px;
                 border-radius: 0;
                 position: absolute;
@@ -1002,11 +1005,11 @@ body {
                 .title {
                     line-height: 20px;
                     font-size: 20px;
-                    font-family: $slt-modern-font;
                     margin-bottom: 10px;
+                    max-height: 40px;
                 }
                 .recipe {
-                    max-height: 90%;
+                    max-height: calc(100% - 50px);
                 }
             }
         }
@@ -1019,12 +1022,11 @@ body {
             .description {
                 width: 100%;
                 height: 28%;
-                overflow: hidden;
-                padding: 0 15px;
+                overflow: auto;
+                padding: 0 22pxpx;
                 text-align: left;
-                font-size: 16px;
-                font-family: $slt-modern-font;
-                line-height: 21px;
+                font-size: 12px;
+                line-height: 22px;
             }
             .main-image .description {
                 display: none;
@@ -1034,7 +1036,7 @@ body {
             }
         }
         .product-details {
-            width: 75%;
+            width: calc(100% - 80px);
             height: 65px;
             padding: 5px 0 0 5px;
             position: absolute;
@@ -1044,15 +1046,13 @@ body {
             .title {
                 line-height: 18px;
                 font-size: 18px;
-                font-family: $slt-modern-font;
-                max-height: 36px;
+                height: 36px;
                 overflow: hidden;
                 margin-bottom: 5px;
             }
             .price {
-                line-height: 13px;
-                font-size: 13px;
-                font-family: $slt-modern-font;
+                line-height: 12px;
+                font-size: 12px;
                 margin-bottom: 0;
             }
         }
@@ -1068,7 +1068,7 @@ body {
                 }
             }
             .buy {
-                margin: 10px auto !important;
+                margin: 5px auto !important;
             }
         }
         .shop {
