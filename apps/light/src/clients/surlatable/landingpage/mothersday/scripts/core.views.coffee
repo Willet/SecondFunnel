@@ -2,6 +2,8 @@
 
 # @module core.views
 
+char_limit = 470
+
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.ProductView::onShow = ->
         if App.support.mobile()
@@ -23,6 +25,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 swipeStatus: _.bind(@swipeStatus, @),
                 allowPageScroll: 'vertical'
             )
+        return
+
+    module.ProductView::onBeforeRender = ->
+        inlineLink = "More on #{@model.attributes.name or @model.attributes.title} »"
+        truncatedDescription = _.truncate(@model.get("description"), char_limit - inlineLink.length, true, true)
+        @model.set("description", truncatedDescription + "<a href=#{@model.attributes.url}>#{inlineLink}</a>")
         return
 
     _.extend(module.ProductView.prototype.events, 
