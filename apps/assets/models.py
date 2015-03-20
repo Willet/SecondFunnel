@@ -914,7 +914,7 @@ class Tile(BaseModel):
 
         if not serializer:  # default
             serializer = ir_serializers.TileSerializer
-
+        
         return serializer().to_str([self], skip_cache=skip_cache)
 
     def update_ir_cache(self):
