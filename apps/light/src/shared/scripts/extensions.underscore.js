@@ -75,15 +75,21 @@ module.exports = function (module, App, Backhone, Marionette, $, _) {
                 return x[key];
             });
         },
-        'truncate': function (n, useSentenceBoundary, addEllipses) {
+        'truncate': function (string, n, useWordBoundary, addEllipses) {
             // truncate string at boundary
             // http://stackoverflow.com/questions/1199352/
-            var tooLong = this.length > n,
-                s = tooLong ? this.substr(0, n) : this;
-            if (tooLong && useSentenceBoundary && s.lastIndexOf('. ') > -1) {
-                s = s.substr(0, s.lastIndexOf('. ') + 1);
+            var tooLong = string.length > n,
+                s = tooLong ? string.substr(0, n) : string;
+            if (tooLong && useWordBoundary && s.lastIndexOf(' ') > -1) {
+                if (addEllipses) {
+                    s = s.substr(0, s.length - 3)
+                    s = s.substr(0, s.lastIndexOf(' ')) + '...';
+                }
+                else {
+                    s = s.substr(0, s.lastIndexOf(' ') + 1);
+                }
             }
-            if (tooLong && addEllipses) {
+            else if (tooLong && addEllipses) {
                 s = s.substr(0, s.length - 3) + '...';
             }
             return s;
