@@ -43,9 +43,9 @@ def dump_stats(stats, spider, reason, s3_urls):
     message = ', '.join([a for a in report if a])
     message += '\n<http://{}|report> | <http://{}|full log>'.format(*s3_urls)
 
-    if settings.ENVIRONMENT == 'dev' and settings.get('SLACK_USERNAME', False):
+    if settings.ENVIRONMENT == 'dev' and getattr(settings,'SLACK_USERNAME', False):
         channel = '@{}'.format(settings.SLACK_USERNAME)
-    else
+    else:
         channel="#scraper"
 
     slack.msg(
