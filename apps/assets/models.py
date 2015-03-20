@@ -279,7 +279,7 @@ class Product(BaseModel):
     default_image = models.ForeignKey('ProductImage', related_name='default_image',
                                       blank=True, null=True, on_delete=models.SET_NULL)
     # product_images is an array of ProductImages (many-to-one relationship)
-
+    
     last_scraped_at = models.DateTimeField(blank=True, null=True)
 
     # keeps track of if/when a product is available but ran out

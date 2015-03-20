@@ -258,34 +258,37 @@ class ProductSerializer(IRSerializer):
 
         data.update(product.attributes)
 
+        try:
+            data["default-image"] = product.default_image.to_json()
+            data["orientation"] = product.default_image.orientation
+        except AttributeError:
+            try:
+                # fall back to first image
+                data["default-image"] = product_images[0].to_json()
+                data["orientation"] = product_images[0].orientation
+            except (IndexError, AttributeError):
+                data['orientation'] = "portrait"
+
+        # Order images
         if product.attributes.get('product_images_order'):
-            # if image ordering is explicitly given, use it
+            # If image ordering is explicitly given, use it
             for i in product.attributes.get('product_images_order', []):
                 try:
                     product_images.append(find_where(product_images, i))
                 except ValueError:
                     pass  # could not find matching product image
-        elif hasattr(product, 'default_image_id') and product.default_image_id:
-            # if default image is missing...
-            data["default-image"] = str(product.default_image.id or product.default_image_id)
-            data["orientation"] = product.default_image.orientation
-
+        elif product.default_image:
+            # If default imaage is in product_images, move it to front
             try:
+                # If present, remove default image from product images
                 idx = product_images.index(product.default_image)
                 product_images = [product.default_image] + \
                                  product_images[:idx] + \
                                  product_images[idx+1:]
             except ValueError:  # that's right default image not in list
                 pass  # bail ordering
-        elif len(product_images) > 0:
-            # fall back to first image
-            data["default-image"] = str(product_images[0].id)
-            data["orientation"] = product_images[0].orientation
 
         data["images"] = [image.to_json() for image in product_images]
-
-        if not "orientation" in data:
-            data["orientation"] = "portrait"
 
         for product in product.similar_products.filter(in_stock=True):
             try:
@@ -329,10 +332,7 @@ class ContentSerializer(IRSerializer):
             data['tagged-products'] = []
 
         for product in content.tagged_products.filter(in_stock=True):
-            try:
-                data['tagged-products'].append(product.to_json())
-            except Exception as err:
-                data['-dbg-tagged-products'].append(str(err.message))
+            data['tagged-products'].append(product.to_json())
 
         return data
 

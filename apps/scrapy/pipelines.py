@@ -363,4 +363,3 @@ class ProductImagePipeline(object):
         print image.to_json()
 
         return image
-
