@@ -607,6 +607,7 @@ body {
         left: 0;
         bottom: 10px;
         width: 100%;
+        line-height: 12px;
         .item {
             width: 6px;
             height: 6px;
@@ -647,10 +648,9 @@ body {
     .shop {
         width: 100% !important;
         height: 28%;
-        padding: 0;
+        padding: 12px 0 0 0;
         border: 1px solid $slt-grey-color;
         border-radius: 10px;
-        position: relative;
     }
     .buy {
         width: 70%;
@@ -673,21 +673,26 @@ body {
         font-size: 14px;
         line-height: 14px;
         background-color: transparent;
-        position: absolute;
-        top: 12px;
-        left: 0;
-        right: 0;
+        margin-bottom: 10px !important;
     }
-    .stl-look-container{
+    .stl-carousel {
         width: 100%;
-        height: 100%;
-        padding: 35px 30px 0;
-        overflow: hidden;
+        height: 88%;
+        position: relative;
+        .stl-look-container {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            margin: auto;
+            width: 90%;
+            height: 100%;
+            overflow: hidden;
+        }
         .stl-look {
             overflow: visible;
             width: 100%;
             height: 100%;
             text-align: center;
+            white-space: nowrap;
             .stl-item, .look-thumbnail {
                 display: inline-block;
                 margin: 5px;
@@ -753,9 +758,10 @@ body {
     .stl-swipe-up, .stl-swipe-down {
         display: none;
         width: 100%;
-        height: 5%;
+        height: 10%;
         left: 0;
-        background-size: 25%;
+        background-size: 15%;
+        background-position: center 40%;
     }
     .stl-swipe-left, .stl-swipe-right {
         display: none;
@@ -763,6 +769,7 @@ body {
         height: 100%;
         top: 0;
         background-size: 30%;
+        background-position: center 40%;
     }
     .gallery-swipe-left, .gallery-swipe-right {
         width: 45px;
@@ -771,19 +778,19 @@ body {
         background-size: 40%;
     }
     .stl-swipe-up {
-        background-image: url('/static/light/surlatable/landingpage/mothersday/images/up-image-arrow.png');
+        background-image: url('/static/light/surlatable/landingpage/mothersday/images/up.png');
         top: 0;
     }
     .stl-swipe-down {
-        background-image: url('/static/light/surlatable/landingpage/mothersday/images/down-image-arrow.png');
+        background-image: url('/static/light/surlatable/landingpage/mothersday/images/down.png');
         bottom: 0;
     }
     .stl-swipe-left, .gallery-swipe-left {
-        background-image: url('/static/light/surlatable/landingpage/mothersday/images/prev-image-arrow.jpg');
+        background-image: url('/static/light/surlatable/landingpage/mothersday/images/left.png');
         left: 0;
     }
     .stl-swipe-right, .gallery-swipe-right {
-        background-image: url('/static/light/surlatable/landingpage/mothersday/images/next-image-arrow.jpg');
+        background-image: url('/static/light/surlatable/landingpage/mothersday/images/right.png');
         right: 0;
     }
 }
@@ -890,24 +897,42 @@ body {
             .close {
                 width: 100px;
             }
+            .tagged-product.row {
+                .description {
+                    display: none;
+                }
+                .main-image .description {
+                    display: inline-block;
+                    height: auto;
+                    padding: 10px 15px 0 60px;
+                }
+            }
             .look-image, .product-details {
-                width: calc(100% - 100px);
+                width: calc(100% - 100px) !important;
+            }
+            .image-with-tagged-products {
+                .info, .look-image-container {
+                    float: right;
+                    width: 80%;
+                }
             }
             .info, .look-image-container {
-                float: right;
-                width: 80%;
                 height: 100% !important;
-                .gallery-main-image {
-                    height: 100%;
-                    .gallery-dots {
-                        bottom: 50px;
+            }
+            .gallery-main-image {
+                height: 100%;
+                .gallery-dots {
+                    bottom: 55px;
+                    .description-dot {
+                        display: inline-block !important;
                     }
-                    .buy {
-                        position: absolute;
-                        bottom: 5px;
-                        left: 0;
-                        right: 0;
-                    }
+                }
+                .buy {
+                    position: absolute;
+                    bottom: 10px;
+                    left: 0;
+                    right: 0;
+                    margin: 0 auto !important;
                 }
             }
             .shop {
@@ -920,10 +945,19 @@ body {
                     padding: 0 15px;
                 }
                 .stl-look-container {
-                    padding: 35px 0 0;
+                    width: 100%;
+                    height: 80%;
+                    .stl-look {
+                        white-space: normal;
+                    }
                 }
                 .stl-item, .look-thumbnail {
-                    width: 90% !important;
+                    max-width: 90% !important;
+                    height: 100px !important;
+                    img {
+                        width: 100%;
+                        height: auto;
+                    }
                 }
             }
         }
@@ -977,15 +1011,23 @@ body {
             padding: 0 !important;
             position: relative;
         }
-        .tagged-product.row .description {
-            width: 100%;
-            height: 28%;
-            overflow: hidden;
-            padding: 0 15px;
-            text-align: left;
-            font-size: 16px;
-            font-family: $slt-modern-font;
-            line-height: 21px;
+        .tagged-product.row {
+            .description {
+                width: 100%;
+                height: 28%;
+                overflow: hidden;
+                padding: 0 15px;
+                text-align: left;
+                font-size: 16px;
+                font-family: $slt-modern-font;
+                line-height: 21px;
+            }
+            .main-image .description {
+                display: none;
+            }
+            .gallery-dots .description-dot {
+                display: none;
+            }
         }
         .product-details {
             width: 75%;
@@ -1015,12 +1057,14 @@ body {
             height: 85%;
             padding-top: 65px;
             margin: 0 !important;
-            margin-bottom: 10px !important;
             .image, .recipe {
                 border-radius: 0;
                 &.full-image {
                     background-size: contain;
                 }
+            }
+            .buy {
+                margin: 10px auto !important;
             }
         }
         .shop {
@@ -1031,12 +1075,34 @@ body {
                 top: 5px;
                 font-family: $slt-modern-font;
             }
+            .stl-swipe-left, .stl-swipe-right {
+                width: 10%;
+                background-size: 40%;
+                background-position: center 40%;
+            }
             .stl-look-container {
-                padding: 20px 0 0;
-                .stl-item, .look-thumbnail {
-                    width: 45%;
+                width: 80%;
+                height: 95%;
+                position: absolute;
+                top: 0;
+            }
+            .stl-look {
+                height: 100%;
+                white-space: nowrap;
+                padding: 0;
+                position: absolute;
+                top: 0;
+                .look-thumbnail, .stl-item {
+                    max-width: 45%;
+                    height: 100%;
+                    overflow: hidden;
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
                     img {
-                        max-height: 100% !important;
+                        height: 100%;
+                        max-width: none !important;
+                        max-height: none !important;
                     }
                 }
             }

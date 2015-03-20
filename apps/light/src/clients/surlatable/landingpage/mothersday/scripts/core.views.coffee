@@ -3,25 +3,40 @@
 # @module core.views
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
-    module.ProductView::initialize = ->
-        @numberOfImages = @model.get('images')?.length or 0
-        # Add one for the recipe slide
-        unless @model.get('type') is "product" or not App.support.mobile()
-            @numberOfImages++
-        @galleryIndex = 0
+    module.ProductView::onShow = ->
+        if App.support.mobile()
+            # Add one for description slide unless it's a product popup in portrait mode
+            if @model.get('type') is "product" and App.utils.portrait()
+                @numberOfImages = @model.get('images').length
+            else
+                @numberOfImages = @model.get('images').length + 1
+        @galleryIndex = Math.min(@galleryIndex, @numberOfImages - 1)
+        @leftArrow = @$el.find('.gallery-swipe-left')
+        @rightArrow = @$el.find('.gallery-swipe-right')
+        @mainImage = @$el.find('.main-image')
+        @resizeProductImages()
+        if @numberOfImages > 1
+            @scrollImages(@mainImage.width()*@galleryIndex, 0)
+            @updateGallery()
+            @mainImage.swipe(
+                triggerOnTouchEnd: true,
+                swipeStatus: _.bind(@swipeStatus, @),
+                allowPageScroll: 'vertical'
+            )
         return
 
-    _.extend module.ProductView.prototype.events =
+    _.extend(module.ProductView.prototype.events, 
         "click .main-image .image": (event) ->
             $image = $(event.target)
             $image.toggleClass("full-image")
             return
+    )
 
     # For Sur La Table, the "content" image is the best looking product image
     # Re-order the product images so that image is first
     # For desktop, hide it because the pop-up will show the content image
     # For mobile, we will show the product image in leui of showing the content image
-    _.extend module.ExpandedContent.prototype, 
+    _.extend(module.ExpandedContent.prototype, 
         reorderProductImages: ->
             try 
                 imageUrl = @model.attributes.url
@@ -45,6 +60,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     if App.support.mobile()
                         prodImages.unshift(matchImgObj);
             @resizeContainer()
+    )
 
     module.ExpandedContent.prototype.events =
         "click .look-thumbnail": (event) ->
@@ -140,7 +156,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
         $stlContainer = @$el.find(".stl-look-container")
         $stlLook = @$el.find(".stl-look")
-        height = "95%"
+        height = "88%"
         top = "0"
         # Small random number added to ensure transitionend is triggered.
         distance += Math.random() / 1000
@@ -151,7 +167,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             translate3d = 'translate3d(0px, ' + distance + 'px, 0px)'
             translate = 'translateY(' + distance + 'px)'
             unless @stlIndex is 0
-                height = "90%"
+                height = "80%"
                 top = @upArrow.height()
         if orientation is "portrait"
             $stlContainer.css(
@@ -174,16 +190,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @leftArrow.hide()
             @rightArrow.hide()
             if @model.get("tagged-products")?.length > 1 or App.support.mobile()
-                if App.support.mobile() or @model.orientation is "landscape"
-                    height = "95%"
-                    top = "0"
-                    unless @stlIndex is 0
-                        height = "90%"
-                        top = @upArrow.height()
-                    @$el.find(".stl-look-container").css(
-                        "height": height
-                        "top": top
-                    )
+                height = "88%"
+                top = "0"
+                unless @stlIndex is 0
+                    height = "80%"
+                    top = @upArrow.height()
+                @$el.find(".stl-look-container").css(
+                    "height": height
+                    "top": top
+                )
                 $stlLook = @$el.find(".stl-look")
                 distance = $stlLook.offset().top - $($stlLook.children(":visible")[@stlIndex]).offset().top
                 @updateStlGalleryPosition(distance, "portrait", 0)
@@ -256,10 +271,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     left: widthReduction
                     right: widthReduction
                 )
-                if @model.get("orientation") is "landscape"
-                    @arrangeStlItemsHorizontal()
-                else
-                    @arrangeStlItemsVertical()
+                @arrangeStlItemsHorizontal()
                 return
 
         imageCount = $("img.main-image, img.image", @$el).length
@@ -277,19 +289,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::onShow = ->
-        if App.utils.landscape()
+        if App.support.mobile() and App.utils.landscape()
             @$el.closest(".previewContainer").addClass("landscape")
         else
             @$el.closest(".previewContainer").removeClass("landscape")
         @lookThumbnail = @$el.find('.look-thumbnail')
         @lookThumbnail.hide()
         @$el.find('.info').hide()
-        if App.support.mobile()
-            @$el.find(".look-product-carousel").swipe(
-                triggerOnTouchEnd: true,
-                swipeStatus: _.bind(@swipeStatus, @),
-                allowPageScroll: 'vertical'
-            )
         if @model.get("tagged-products")?.length > 0
             @stlIndex = 0
             @lookProductIndex = -1
@@ -305,25 +311,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 direction: "up"
             )
         return
-
-    module.ExpandedContent::swipeStatus = (event, phase, direction, distance, fingers, duration) ->
-        productImageIndex = @productInfo.currentView?.galleryIndex or 0
-        numberOfImages = (@productInfo.currentView?.numberOfImages - 1) or 0
-        if @lookProductIndex >= 0
-            unless (direction is 'left' and productImageIndex is numberOfImages) or (direction is 'right' and productImageIndex is 0)
-                @productInfo.currentView.swipeStatus(event, phase, direction, distance, fingers, duration)
-                return
-        if phase is 'end'
-            if direction is 'right'
-                @lookProductIndex--
-                if (@lookProductIndex < -1 and App.support.mobile()) or (@lookProductIndex < 0 and not App.support.mobile())
-                    @lookProductIndex = @$el.find(".stl-look").children(":visible").length - 1
-            else if direction is 'left'
-                @lookProductIndex++
-                if @lookProductIndex is @model.get("tagged-products")?.length
-                    @lookProductIndex = if App.support.mobile() then -1 else 0
-            @updateCarousel()
-        return @
 
     module.ExpandedContent::updateCarousel = ->
         if @lookProductIndex < 0
@@ -348,13 +335,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productInstance = new module.ProductView(
                 model: product
             )
-            @lookThumbnail.show()
             @$el.find('.info').show()
             @$el.find('.look-image-container').hide()
             @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
             @productInfo.show(productInstance)
             unless @lookThumbnail.is(":visible")
                 @stlIndex = Math.min($(".stl-look").children(":visible").length - 1, @stlIndex + 1)
+            @lookThumbnail.show()
             if App.support.mobile() and App.utils.landscape()
                 @arrangeStlItemsVertical()
             else
