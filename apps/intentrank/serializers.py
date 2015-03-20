@@ -359,6 +359,10 @@ class ImageSerializer(ContentSerializer):
             }),
             "orientation": getattr(image, "orientation", "portrait"),
         })
+        if image.description:
+            data.update({"description": image.description})
+        if image.name:
+            data.update({"name": image.name})
 
         return data
 
