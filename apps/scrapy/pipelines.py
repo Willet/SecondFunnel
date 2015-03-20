@@ -196,6 +196,8 @@ class TagWithProductsPipeline(object):
     """
     It saves a reference to the first image that passes through the pipeline
     and tags that image with any subsequent products
+
+    Note: there has got to be a better way than saving it every time...
     """
     def __init__(self):
         self.image = None
