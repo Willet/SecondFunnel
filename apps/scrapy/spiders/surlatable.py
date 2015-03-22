@@ -1,3 +1,5 @@
+import re
+
 from scrapy import log
 from scrapy.selector import Selector
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
@@ -18,10 +20,6 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     # URLs will be scraped looking for more links that match these rules
     rules = (
-        # Recipe page
-        Rule(SgmlLinkExtractor(allow=[r'surlatable\.com/product/PRO-\d+(/.*)?'], restrict_xpaths=
-            "//div[contains(@id, 'productaccessories')]/*/div[contains(@class, 'itemwrapper')]"
-        ), callback="parse_product", cb_kwargs={'force_skip_tiles':True}, follow=False),
         # Category page
         Rule(SgmlLinkExtractor(allow=[r'surlatable\.com/product/PRO-\d+(/.*)?'], restrict_xpaths=
             "//div[contains(@id, 'items')]/div[contains(@class, 'row')]/dl[contains(@class, 'item')]"
@@ -40,6 +38,8 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             self._rules = []
             return self.parse_product(response)
         elif self.is_recipe_page(response):
+            self.rules = ()
+            self._rules = []
             return self.parse_recipe(response)
         else:
             self.log("Not a product or recipe page: {}".format(response.url))
@@ -63,10 +63,16 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             log.msg('Not a product page: {}'.format(response.url))
             return
 
+
         sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         attributes = {}
         in_stock = True
+        recipe_id = response.meta.get('recipe_id', False)
+
+        if recipe_id:
+            force_skip_tiles = True
+            l.add_value('content_id_to_tag', recipe_id)
 
         # Don't create tiles when gathering products for a recipe
         l.add_value('force_skip_tiles', force_skip_tiles)
@@ -127,9 +133,11 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             log.msg('Not a recipe page: {}'.format(response.url))
             return
 
+        recipe_id = re.match(r'(?:http://|https://)?www\.surlatable\.com/product/REC-(\d+)(/.*)?', response.url).group(1)
         sel = Selector(response)
 
         l = ScraperContentLoader(item=ScraperImage(), response=response)
+        l.add_value('content_id', recipe_id)
         l.add_value('tag_with_products', True) # Command to TagWithProductsPipeline
         l.add_value('original_url', response.url)
         l.add_value('source', 'Sur La Table')
@@ -137,6 +145,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('description', '#recipedetail .story')
         item = l.load_item()
 
+        # Continue to XML data to get recipe image
         magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
         xml_path = '/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
         request = WebdriverRequest(self.root_url + xml_path, callback=self.parse_one_image)
@@ -145,7 +154,15 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         yield request
 
+        # Scrape associated products
+        url_paths = sel.css('.productinfo .itemwrapper>a::attr(href)').extract()
+        for url_path in url_paths:
+            req = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
+            req.meta['recipe_id'] = recipe_id
+            yield req
+
     def parse_one_image(self, response):
+        # For recipes, grab the recipe image
         sel = Selector(response)
         item = response.meta.get('item', ScraperImage())
         l = ScraperContentLoader(item=item, response=response)
