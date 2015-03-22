@@ -17,7 +17,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     store_slug = name
 
     remove_background = False
-
+    
     # URLs will be scraped looking for more links that match these rules
     rules = (
         # Category page
