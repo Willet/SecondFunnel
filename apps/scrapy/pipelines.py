@@ -2,23 +2,24 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
-from collections import defaultdict
-from django.core.exceptions import ValidationError, MultipleObjectsReturned
-from django.db.models import Model
-from scrapy.contrib.pipeline.images import ImagesPipeline
-from scrapy.exceptions import DropItem
-from urlparse import urlparse
 import cloudinary
 import traceback
 import decimal
 
+from collections import defaultdict
+from django.core.exceptions import ValidationError, MultipleObjectsReturned
+from django.db import transaction
+from django.db.models import Model
+from scrapy.contrib.pipeline.images import ImagesPipeline
+from scrapy.exceptions import DropItem
+from urlparse import urlparse
+
 from apps.assets.models import Store, Product, Category, Feed, ProductImage, Image
+from apps.imageservice.tasks import process_image
+from apps.imageservice.utils import create_image_path
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
 from apps.scrapy.utils.misc import CloudinaryStore, extract_decimal, extract_currency
-
-from apps.imageservice.tasks import process_image
-from apps.imageservice.utils import create_image_path
 
 
 class CloudinaryPipeline(ImagesPipeline):
@@ -194,28 +195,36 @@ class ItemPersistencePipeline(object):
 
 class TagWithProductsPipeline(object):
     """
-    It saves a reference to the first image that passes through the pipeline
-    and tags that image with any subsequent products
-
-    Note: there has got to be a better way than saving it every time...
+    It saves a reference to content that passes through the pipeline
+    and tags that content with any subsequent associated products
     """
     def __init__(self):
-        self.image = None
+        self.images = {}
 
     def process_item(self, item, spider):
-        if isinstance(item, ScraperImage) and item.get('tag_with_products', False) and not self.image:
-            self.image = Image.objects.get(store__slug=spider.store_slug, url=item['url'])
+        if isinstance(item, ScraperImage) and item.get('tag_with_products') and item.get('content_id'):
+            self.images[item.get('content_id')] = Image.objects.get(store__slug=spider.store_slug, url=item['url'])
 
-        if isinstance(item, ScraperProduct) and self.image:
-            product = Product.objects.get(store__slug=spider.store_slug, sku=item['sku'])
-            if product:
-                product_id = product.id
-                tagged_product_ids = self.image.tagged_products.values_list('id', flat=True)
-                if not product_id in tagged_product_ids:
-                    self.image.tagged_products.add(product)
-                    self.image.save()
+        if isinstance(item, ScraperProduct) and item.get('content_id_to_tag'):
+            content_id = item.get('content_id_to_tag')
+            image = self.images.get(content_id)
+            if image:
+                product = Product.objects.get(store__slug=spider.store_slug, sku=item['sku'])
+                if product:
+                    product_id = product.id
+                    tagged_product_ids = image.tagged_products.values_list('id', flat=True)
+                    if not product_id in tagged_product_ids:
+                        spider.log('Tagging Image {} with Product {}'.format(image.id, product_id))
+                        image.tagged_products.add(product)
 
         return item
+
+    def close_spider(self, spider):
+        # Save images in one transaction
+        with transaction.atomic():
+            for id in self.images:
+                self.images[id].save()
+        spider.log('Saved {} tagged images'.format(len(self.images)))
 
 
 class CategoryPipeline(object):

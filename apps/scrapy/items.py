@@ -20,6 +20,7 @@ class ScraperProduct(ScraperBase):
     image_urls = Field()
     images = Field()
     created = Field()
+    content_id_to_tag = Field()
     store = Field(serializer=store_serializer)
 
 
@@ -27,6 +28,7 @@ class ScraperContent(ScraperBase):
     django_model = Content
     created = Field()
     tag_with_products = Field()
+    content_id = Field()
     store = Field(serializer=store_serializer)
 
 
