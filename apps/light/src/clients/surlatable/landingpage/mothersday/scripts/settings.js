@@ -1,7 +1,7 @@
 {
   "tiles":{
-    "imageTileWideProbability":0.2,
-    "widable_templates":{
+    "imageTileWideProb":0.2,
+    "wideableTemplates":{
       "image":true,
       "product": true
     }

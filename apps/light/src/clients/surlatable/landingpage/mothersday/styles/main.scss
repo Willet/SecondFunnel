@@ -3,7 +3,6 @@ $slt-modern-font: MrEavesModern, sans-serif;
 $slt-sans-font: MrEavesSans, sans-serif;
 $slt-basic-font: Verdana, Arial, Helvetica, sans-serif;
 $slt-main-color: #405700;
-$slt-xmas-color: #A83731;
 $slt-basic-color: #444444;
 $slt-grey-color: #979797;
 $slt-green-color: #6b8e00;
@@ -242,10 +241,10 @@ body {
     }
 
     .category {
-        border: 2px solid $slt-xmas-color;
+        border: 2px solid $slt-green-color;
         border-radius: 6px;
         color: #fff;
-        background-color: $slt-xmas-color;
+        background-color: $slt-green-color;
         padding: 0;
         position: relative;
         max-width: 49%;
@@ -274,7 +273,6 @@ body {
             right: 0;
             min-width: 155%;
             display: none;
-            background: white;
             border: none;
             border-radius: 0px 0px 6px 6px;
         }
@@ -282,7 +280,7 @@ body {
             display: inline-block;
             max-width: 180px;
             padding: 10px;
-            color: $slt-xmas-color;
+            color: $slt-green-color;
             border-bottom: none;
             img {
                 width: 140px;
@@ -299,7 +297,7 @@ body {
                 }
             }
             &:hover {
-                color: $slt-xmas-color;
+                color: $slt-green-color;
             }
         }
         &:first-child .sub-categories {
@@ -307,12 +305,12 @@ body {
             right: auto;
         }
         &.selected {
-            background-color: $slt-xmas-color;
+            background-color: $slt-green-color;
             > span {
             }
         }
         &.expanded {
-            color: $slt-xmas-color;
+            color: $slt-green-color;
             background-color: #FFF;
             .sub-categories {
                 display: block;
@@ -321,8 +319,9 @@ body {
                 z-index: 1;
                 .wrap {
                     width: 100%;
-                    border: 2px solid $slt-xmas-color;
+                    border: 2px solid $slt-green-color;
                     border-radius: 6px;
+                    background-color: white;
                 }
             }
             .sub-category,
@@ -904,6 +903,9 @@ body {
             }
             .sub-categories {
                 width: 200%;
+                .sub-category {
+                    width: 49%;
+                }
             }
         }
     }
