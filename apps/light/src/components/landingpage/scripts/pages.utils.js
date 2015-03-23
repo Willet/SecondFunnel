@@ -209,8 +209,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, '/');
         } else {
             var ratio = Math.ceil(window.devicePixelRatio * 2) / 2,
-                width = Math.max(options.width || 0, App.option('minImageWidth')),
-                height = Math.max(options.height || 0, App.option('minImageHeight'));
+                width = Math.max(options.width || 300, App.option('minImageWidth')),
+                height = Math.max(options.height || 300, App.option('minImageHeight'));
 
             // Do NOT transform animated gifs
             if (!_.isString(url) || _.contains(url, ".gif")) {

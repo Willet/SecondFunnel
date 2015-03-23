@@ -22,6 +22,9 @@ scripts/flush.sql
 db.sql
 ghostdriver.log
 
+# Local settings
+secondfunnel/settings/local.py
+
 # Testing directories
 apps/testing/resources
 apps/testing/tests/results

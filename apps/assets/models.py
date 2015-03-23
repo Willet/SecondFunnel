@@ -279,7 +279,7 @@ class Product(BaseModel):
     default_image = models.ForeignKey('ProductImage', related_name='default_image',
                                       blank=True, null=True, on_delete=models.SET_NULL)
     # product_images is an array of ProductImages (many-to-one relationship)
-
+    
     last_scraped_at = models.DateTimeField(blank=True, null=True)
 
     # keeps track of if/when a product is available but ran out
@@ -706,6 +706,8 @@ class Feed(BaseModel):
 
             new_tile.save()
             new_tile.content.add(content)
+            product_qs = content.tagged_products.all()
+            new_tile.products.add(*product_qs)
             print "content {0} added to the feed.".format(content.id)
             self.tiles.add(new_tile)
 
@@ -914,7 +916,7 @@ class Tile(BaseModel):
 
         if not serializer:  # default
             serializer = ir_serializers.TileSerializer
-
+        
         return serializer().to_str([self], skip_cache=skip_cache)
 
     def update_ir_cache(self):

@@ -1,5 +1,11 @@
 from common import *
 
+# Optional private local settings
+try:
+    from local import *
+except:
+    pass
+
 ENVIRONMENT = "dev"
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG

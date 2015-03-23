@@ -2,23 +2,24 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
-from collections import defaultdict
-from django.core.exceptions import ValidationError, MultipleObjectsReturned
-from django.db.models import Model
-from scrapy.contrib.pipeline.images import ImagesPipeline
-from scrapy.exceptions import DropItem
-from urlparse import urlparse
 import cloudinary
 import traceback
 import decimal
 
-from apps.assets.models import Store, Product, Category, Feed, ProductImage
+from collections import defaultdict
+from django.core.exceptions import ValidationError, MultipleObjectsReturned
+from django.db import transaction
+from django.db.models import Model
+from scrapy.contrib.pipeline.images import ImagesPipeline
+from scrapy.exceptions import DropItem
+from urlparse import urlparse
+
+from apps.assets.models import Store, Product, Category, Feed, ProductImage, Image
+from apps.imageservice.tasks import process_image
+from apps.imageservice.utils import create_image_path
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
 from apps.scrapy.utils.misc import CloudinaryStore, extract_decimal, extract_currency
-
-from apps.imageservice.tasks import process_image
-from apps.imageservice.utils import create_image_path
 
 
 class CloudinaryPipeline(ImagesPipeline):
@@ -99,7 +100,7 @@ class DuplicatesPipeline(object):
             sku = item['sku']
 
             if sku in self.ids_seen[spider_name]:
-                raise DropItem("Duplicate item found: {}".format(item))
+                raise DropItem("Duplicate item found here: {}".format(item))
 
             self.ids_seen[spider_name].add(sku)
         if isinstance(item, ScraperContent):
@@ -146,6 +147,33 @@ class ForeignKeyPipeline(object):
         return item
 
 
+class ContentImagePipeline(object):
+    def process_item(self, item, spider):
+        if isinstance(item, ScraperImage):
+            if item.get('source_url', False):
+                item = self.process_image(item['source_url'], item, item['store'])
+        return item
+
+    def process_image(self, source_url, image, store, remove_background=False):
+        if image.get('url', False) and image.get('file_type', False) and image.get('source_url', False):
+            return image
+
+        print '\nprocessing image - ' + source_url
+        data = process_image(source_url, create_image_path(store.id), remove_background=remove_background)
+        image['url'] = data.get('url')
+        image['file_type'] = data.get('format')
+        image['dominant_color'] = data.get('dominant_colour')
+        image['source_url'] = source_url
+        if not image.get('attributes', False):
+            image['attributes'] = {}
+        try:
+            image['attributes']['sizes'] = data['sizes']
+        except KeyError:
+            image['attributes']['sizes'] = {}
+
+        return image
+
+
 # Any changes to the item after this pipeline will not be persisted.
 # It is suggested that this be the last pipeline
 class ItemPersistencePipeline(object):
@@ -163,6 +191,40 @@ class ItemPersistencePipeline(object):
             raise DropItem('DB item validation failed: ({})'.format(e))
 
         return item
+
+
+class TagWithProductsPipeline(object):
+    """
+    It saves a reference to content that passes through the pipeline
+    and tags that content with any subsequent associated products
+    """
+    def __init__(self):
+        self.images = {}
+
+    def process_item(self, item, spider):
+        if isinstance(item, ScraperImage) and item.get('tag_with_products') and item.get('content_id'):
+            self.images[item.get('content_id')] = Image.objects.get(store__slug=spider.store_slug, url=item['url'])
+
+        if isinstance(item, ScraperProduct) and item.get('content_id_to_tag'):
+            content_id = item.get('content_id_to_tag')
+            image = self.images.get(content_id)
+            if image:
+                product = Product.objects.get(store__slug=spider.store_slug, sku=item['sku'])
+                if product:
+                    product_id = product.id
+                    tagged_product_ids = image.tagged_products.values_list('id', flat=True)
+                    if not product_id in tagged_product_ids:
+                        spider.log('Tagging Image {} with Product {}'.format(image.id, product_id))
+                        image.tagged_products.add(product)
+
+        return item
+
+    def close_spider(self, spider):
+        # Save images in one transaction
+        with transaction.atomic():
+            for id in self.images:
+                self.images[id].save()
+        spider.log('Saved {} tagged images'.format(len(self.images)))
 
 
 class CategoryPipeline(object):
@@ -218,8 +280,11 @@ class CategoryPipeline(object):
         category.save()
 
 
-class FeedPipeline(object):
+class TileCreationPipeline(object):
     def process_item(self, item, spider):
+        if item.get('force_skip_tiles', False):
+            return item
+
         feed_ids = getattr(spider, 'feed_ids', [])
 
         for feed_id in feed_ids:
@@ -305,32 +370,5 @@ class ProductImagePipeline(object):
             print '\nimage has already been processed'
 
         print image.to_json()
-
-        return image
-
-
-class ContentImagePipeline(object):
-    def process_item(self, item, spider):
-        if isinstance(item, ScraperImage):
-            if item.get('source_url', False):
-                item = self.process_image(item['source_url'], item, item['store'])
-        return item
-
-    def process_image(self, source_url, image, store, remove_background=False):
-        if image.get('url', False) and image.get('file_type', False) and image.get('source_url', False):
-            return image
-
-        print '\nprocessing image - ' + source_url
-        data = process_image(source_url, create_image_path(store.id), remove_background=remove_background)
-        image['url'] = data.get('url')
-        image['file_type'] = data.get('format')
-        image['dominant_color'] = data.get('dominant_colour')
-        image['source_url'] = source_url
-        if not image.get('attributes', False):
-            image['attributes'] = {}
-        try:
-            image['attributes']['sizes'] = data['sizes']
-        except KeyError:
-            image['attributes']['sizes'] = {}
 
         return image
