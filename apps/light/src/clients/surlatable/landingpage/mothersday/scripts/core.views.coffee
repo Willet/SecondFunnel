@@ -251,6 +251,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     left: widthReduction
                     right: widthReduction
                 )
+                $container.removeClass("loading")
                 @arrangeStlItemsHorizontal()
                 return
 
@@ -273,6 +274,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.closest(".previewContainer").addClass("landscape")
         else
             @$el.closest(".previewContainer").removeClass("landscape")
+            unless App.support.mobile()
+                @$el.closest(".fullscreen").addClass("loading")
         @lookThumbnail = @$el.find('.look-thumbnail')
         @lookThumbnail.hide()
         @$el.find('.info').hide()
