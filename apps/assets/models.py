@@ -2,6 +2,7 @@ import calendar
 import datetime
 import decimal
 import json
+import sys
 import re
 
 from django.conf import settings
@@ -622,7 +623,7 @@ class Feed(BaseModel):
         return self.tiles.exclude(products__in_stock=False)\
             .exclude(content__tagged_products__in_stock=False)
 
-    def add(self, obj, prioritized=False, priority=0):
+    def add(self, obj, prioritized="", priority=0):
         """:raises ValueError"""
         if isinstance(obj, Product):
             return self._add_product(product=obj, prioritized=prioritized,
@@ -684,14 +685,19 @@ class Feed(BaseModel):
         :returns tuple (the tile, the content, whether it was newly added)
         :raises AttributeError
         """
-        content_tiles = [tile for tile in self.tiles.all()
-                         if tile.content.count() > 0]
-        for tile in content_tiles:
-            if Tile.objects.filter(content=content).exists():
-                print "content {0} already exists in feed".format(content.id)
-                return tile, content, False
-
-        else:  # there weren't any tiles with this content in them
+        existing_tile = self.tiles.filter(content=content.id)
+        if len(existing_tile) > 0:
+            # Update tile
+            tile = existing_tile[0]
+            tile.prioritized = prioritized
+            tile.priority = priority
+            product_qs = content.tagged_products.all()
+            tile.products.add(*product_qs)
+            tile.save()
+            print "<Content {0}> already in the feed. Updated <Tile {1}>".format(content.id, tile.id)
+            return tile, content, False
+        else:
+            # Create new tile
             new_tile = Tile(feed=self,
                             template='image',
                             prioritized=prioritized,
@@ -708,7 +714,7 @@ class Feed(BaseModel):
             new_tile.content.add(content)
             product_qs = content.tagged_products.all()
             new_tile.products.add(*product_qs)
-            print "content {0} added to the feed.".format(content.id)
+            print "<Content {0}> added to the feed. Created <Tile {1}".format(content.id, tile.id)
             self.tiles.add(new_tile)
 
             return new_tile, content, True
