@@ -194,6 +194,12 @@ html.no-js .no-noscript {
     margin-top: 0;
 }
 
+img.load-image {
+    visibility: hidden;
+    height: 0;
+    display: inherit;
+}
+
 div.loading {
     background-image: url('/static/light/landingpage/images/ajax-spinner.png');
     background-repeat: no-repeat;
@@ -528,6 +534,9 @@ div.loading {
         transform: translate3d(0,0,0);
         backface-visibility: hidden;
         text-align: center;
+        &.loading {
+            visibility: hidden;
+        }
     }
     .content {
         width: 100%;
