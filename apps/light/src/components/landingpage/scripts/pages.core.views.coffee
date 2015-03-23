@@ -872,11 +872,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         itemView: module.CategoryView
 
         initialize: (options) ->
-            if App.support.mobile() and App.option("page:mobileCategories")
-                catOpt = "page:mobileCategories"
+            mobileCatArr = App.option("page:mobileCategories", [])
+            if App.support.mobile() and _.isArray(mobileCatArr) and not _.isEmpty(mobileCatArr)
+                catArr = mobileCatArr
             else
-                catOpt = "page:categories"
-            categories = for category in App.option(catOpt, [])
+                catArr = App.option("page:categories", [])
+            categories = for category in carArr
                 if typeof(category) is "string"
                     category = {name: category}
                 category
