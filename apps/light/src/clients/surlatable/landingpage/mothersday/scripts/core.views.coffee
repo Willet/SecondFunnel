@@ -49,10 +49,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @stlIndex = Math.max(@stlIndex - 1, 0)
             @lookProductIndex = -1
             @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
-            if App.support.mobile() and App.utils.landscape()
-                @arrangeStlItemsVertical()
-            else
-                @arrangeStlItemsHorizontal()
+            if App.support.mobile()
+                if App.utils.landscape()
+                    @arrangeStlItemsVertical()
+                else
+                    @arrangeStlItemsHorizontal()
             return
 
         "click .stl-look .stl-item": (event) ->
@@ -304,10 +305,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.look-image-container').show()
             @$el.find('.stl-item').removeClass("selected")
             @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
-            if App.support.mobile() and App.utils.landscape()
-                @arrangeStlItemsVertical()
-            else
-                @arrangeStlItemsHorizontal()
+            if App.support.mobile()
+                if App.utils.landscape()
+                    @arrangeStlItemsVertical()
+                else
+                    @arrangeStlItemsHorizontal()
         else
             @$el.find(".stl-item").filter("[data-index=#{@lookProductIndex}]")
                 .addClass("selected").siblings().removeClass("selected")
@@ -326,9 +328,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             unless @lookThumbnail.is(":visible")
                 @stlIndex = Math.min($(".stl-look").children(":visible").length - 1, @stlIndex + 1)
             @lookThumbnail.show()
-            if App.support.mobile() and App.utils.landscape()
-                @arrangeStlItemsVertical()
-            else
-                @arrangeStlItemsHorizontal()
+            if App.support.mobile()
+                if App.utils.landscape()
+                    @arrangeStlItemsVertical()
+                else
+                    @arrangeStlItemsHorizontal()
         return
             
