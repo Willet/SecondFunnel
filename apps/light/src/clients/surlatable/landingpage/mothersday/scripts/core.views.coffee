@@ -31,7 +31,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         inlineLink = "More on #{@model.attributes.name or @model.attributes.title} »"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
-            @model.set("truncated_description", truncatedDescription + "<a href=#{@model.attributes.url}>#{inlineLink}</a>")
+            @model.set("truncated_description", truncatedDescription + " <a href=#{@model.attributes.url}>#{inlineLink}</a>")
         return
 
     _.extend(module.ProductView.prototype.events, 
@@ -42,7 +42,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     )
 
     module.ExpandedContent.prototype.events =
-        "click .look-thumbnail": (event) ->
+        "click .look-thumbnail, .back-to-recipe": (event) ->
             @lookThumbnail.hide()
             @$el.find('.info').hide()
             @$el.find('.look-image-container').show()
@@ -312,6 +312,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 product = new module.Product(@model.attributes)
             else
                 product = new module.Product(@model.get("tagged-products")[@lookProductIndex])
+            product.set("recipe-name", @model.get('name') or @model.get('title'))
             productInstance = new module.ProductView(
                 model: product
             )
