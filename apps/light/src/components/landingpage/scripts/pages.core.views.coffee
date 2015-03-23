@@ -877,7 +877,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 catArr = mobileCatArr
             else
                 catArr = App.option("page:categories", [])
-            categories = for category in carArr
+            categories = for category in catArr
                 if typeof(category) is "string"
                     category = {name: category}
                 category

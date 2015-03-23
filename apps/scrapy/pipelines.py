@@ -216,6 +216,8 @@ class TagWithProductsPipeline(object):
                     if not product_id in tagged_product_ids:
                         spider.log('Tagging Image {} with Product {}'.format(image.id, product_id))
                         image.tagged_products.add(product)
+                    else:
+                        spider.log('Image {} already tagged with Product {}'.format(image.id, product_id))
 
         return item
 
