@@ -189,6 +189,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if @model.get("type") is "image" or @model.get("type") is "gif"
             @upArrow.hide()
             @downArrow.hide()
+            @$el.find(".stl-look-container").css(
+                "height": "95%"
+                "top": "0"
+            )
             if @model.get("tagged-products")?.length > 0 or App.support.mobile()
                 $stlLook = @$el.find(".stl-look")
                 stlItems = $stlLook.children(":visible")
@@ -313,18 +317,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         else
             @$el.find(".stl-item").filter("[data-index=#{@lookProductIndex}]")
                 .addClass("selected").siblings().removeClass("selected")
-            if @model.get("type") is "product"
-                product = new module.Product(@model.attributes)
-            else
-                product = new module.Product(@model.get("tagged-products")[@lookProductIndex])
-            product.set("recipe-name", @model.get('name') or @model.get('title'))
-            productInstance = new module.ProductView(
-                model: product
-            )
             @$el.find('.info').show()
             @$el.find('.look-image-container').hide()
-            @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
-            @productInfo.show(productInstance)
+            if @model.get("type") is "product"
+                product = new module.Product(@model.attributes)
+            else if @model.get("tagged-products").length > 0
+                product = new module.Product(@model.get("tagged-products")[@lookProductIndex])
+            unless product is undefined
+                product.set("recipe-name", @model.get('name') or @model.get('title'))
+                productInstance = new module.ProductView(
+                    model: product
+                )
+                @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
+                @productInfo.show(productInstance)
             unless @lookThumbnail.is(":visible")
                 @stlIndex = Math.min($(".stl-look").children(":visible").length - 1, @stlIndex + 1)
             @lookThumbnail.show()
