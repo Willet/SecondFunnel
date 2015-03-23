@@ -2,7 +2,6 @@ import calendar
 import datetime
 import decimal
 import json
-import sys
 import re
 
 from django.conf import settings
