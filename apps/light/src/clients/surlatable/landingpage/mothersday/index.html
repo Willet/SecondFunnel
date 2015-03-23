@@ -378,6 +378,13 @@
                     <div class='buy'>
                         <% include("product_buy_template") %>
                     </div>
+                    <div class="back-to-recipe">
+                        <% if (obj['recipe-name']) { %>
+                            Back to <%- obj['recipe-name'] %> Recipe
+                        <% } else { %>
+                            Back to Recipe
+                        <% } %>
+                    </div>
                 </div>
             </div>
         </script>
@@ -415,12 +422,6 @@
                         <div class="stl-swipe-right"></div>
                         <div class="stl-look-container">
                             <div class="stl-look">
-                                <div class="look-thumbnail">
-                                    <img src="<%= image_src %>" class="image"/>
-                                    <div class="name">
-                                        <% include("product_title_template") %>
-                                    </div>
-                                </div>
                                 <% var  related = obj['tagged-products'] %>
                                 <% for (var i = 0; i < related.length; i++) { %>
                                     <div class="stl-item" data-index="<%- i %>">
