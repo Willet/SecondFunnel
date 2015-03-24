@@ -648,19 +648,17 @@ class Feed(BaseModel):
         This operation is so common and indirect that it is going
         to stay in models.py.
 
-        TODO: can be faster
-
         :returns tuple (the tile, the product, whether it was newly added)
         :raises AttributeError
         """
-        product_tiles = [tile for tile in self.tiles.all()
-                         if tile.products.count() > 0]
-        for tile in product_tiles:
-            if product in tile.products.all():
-                print "product {0} is already in the feed.".format(product.id)
-
+        existing_tiles = self.tiles.filter(products=product.id)
+        for tile in existing_tiles:
+            if len(tile.products.all()) == 1 and len(tile.content.all()) == 0:
+                # A matching tile is tagged with just this product & no content
+                print "<Product {0}> already in the feed in <Tile {1}>.".format(product.id, tile.id)
                 return tile, product, False
-        else:  # there weren't any tiles with this product in them
+        else:
+            # there weren't any tiles with this product in them
             new_tile = Tile(feed=self,
                             template='product',
                             prioritized=prioritized,
@@ -668,7 +666,7 @@ class Feed(BaseModel):
 
             new_tile.save()
             new_tile.products.add(product)
-            print "product {0} added to the feed.".format(product.id)
+            print "<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id)
             self.tiles.add(new_tile)
 
             return new_tile, product, True
@@ -679,14 +677,14 @@ class Feed(BaseModel):
         This operation is so common and indirect that it is going
         to stay in models.py.
 
-        TODO: can be faster
-
         :returns tuple (the tile, the content, whether it was newly added)
         :raises AttributeError
         """
         existing_tile = self.tiles.filter(content=content.id)
         if len(existing_tile) > 0:
             # Update tile
+            # Could attempt to be smarter about choosing th most appropriate tile to update
+            # It would have just the 1 piece of content
             tile = existing_tile[0]
             tile.prioritized = prioritized
             tile.priority = priority
@@ -713,7 +711,7 @@ class Feed(BaseModel):
             new_tile.content.add(content)
             product_qs = content.tagged_products.all()
             new_tile.products.add(*product_qs)
-            print "<Content {0}> added to the feed. Created <Tile {1}".format(content.id, tile.id)
+            print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)
             self.tiles.add(new_tile)
 
             return new_tile, content, True
