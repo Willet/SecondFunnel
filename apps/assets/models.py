@@ -683,7 +683,7 @@ class Feed(BaseModel):
         existing_tile = self.tiles.filter(content=content.id)
         if len(existing_tile) > 0:
             # Update tile
-            # Could attempt to be smarter about choosing th most appropriate tile to update
+            # Could attempt to be smarter about choosing the most appropriate tile to update
             # It would have just the 1 piece of content
             tile = existing_tile[0]
             tile.prioritized = prioritized
