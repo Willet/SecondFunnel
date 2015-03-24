@@ -283,9 +283,15 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <a class='button' href='<%= obj.url %>' target='_blank'>
-                <span>Buy Now</span>
-            </a>
+            <% if (obj.cj_link) { %>
+                <a class='button' href='<%= obj.cj_link %>' target='_blank'>
+                    <span>Buy Now</span>
+                </a>
+            <% } else { %>
+                <a class='button' href='<%= obj.url %>' target='_blank'>
+                    <span>Buy Now</span>
+                </a>
+            <% } %>
         </script>
 
         <script type="text/template" id="product_description_template">

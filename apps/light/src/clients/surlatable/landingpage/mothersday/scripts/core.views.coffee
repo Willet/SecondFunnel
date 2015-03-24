@@ -29,9 +29,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ProductView::onBeforeRender = ->
         inlineLink = "More on #{@model.attributes.name or @model.attributes.title} »"
+        if @model.attributes.cj_link is undefined
+            inlineLink = "<a href=#{@model.attributes.url}>#{inlineLink}</a>"
+        else
+            inlineLink = "<a href=#{@model.attributes.cj_link}>#{inlineLink}</a>"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
-            @model.set("truncated_description", truncatedDescription + " <a href=#{@model.attributes.url}>#{inlineLink}</a>")
+            @model.set("truncated_description", truncatedDescription + " " + inlineLink)
         return
 
     _.extend(module.ProductView.prototype.events, 
