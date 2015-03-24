@@ -216,6 +216,8 @@ class TagWithProductsPipeline(object):
                     if not product_id in tagged_product_ids:
                         spider.log('Tagging Image {} with Product {}'.format(image.id, product_id))
                         image.tagged_products.add(product)
+                    else:
+                        spider.log('Image {} already tagged with Product {}'.format(image.id, product_id))
 
         return item
 
@@ -254,14 +256,7 @@ class CategoryPipeline(object):
         # then delete the "bad" category.
         categories = Category.objects.filter(**kwargs)
         if len(categories) > 1:
-            print "Killing categories"
-            category = categories[0]
-            print "keeping category", category.name
-            for duplicate_category in categories[1:]:
-                print "\tkilling:", duplicate_category.name
-                category.products.add(*duplicate_category.products.all())
-                print "\ttransferred", duplicate_category.products.all(), "products"
-                duplicate_category.delete()
+            self.compress_duplicate_categories(categories)
         elif len(categories) == 1:
             category = categories[0]
         else:
@@ -278,6 +273,16 @@ class CategoryPipeline(object):
         product, _ = get_or_create(item_model)
         category.products.add(product)
         category.save()
+
+    def compress_duplicate_categories(self, categories):
+        spider.log("Compressing duplicate categories: {}".format(categories))
+        category = categories[0]
+        spider.log("\tKeeping: <Category {} {}>".format(category.id, category.name))
+        for dup in categories[1:]:
+            category.products.add(*dup.products.all())
+            spider.log("\tTansferred {} products".format(dup.products.all()))
+            spider.log("\tDeleting: <Category {} {}>".format(dup.id, dup.name))
+            dup.delete()
 
 
 class TileCreationPipeline(object):

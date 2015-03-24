@@ -3,7 +3,6 @@ $slt-modern-font: MrEavesModern, sans-serif;
 $slt-sans-font: MrEavesSans, sans-serif;
 $slt-basic-font: Verdana, Arial, Helvetica, sans-serif;
 $slt-main-color: #405700;
-$slt-xmas-color: #A83731;
 $slt-basic-color: #444444;
 $slt-grey-color: #979797;
 $slt-green-color: #6b8e00;
@@ -242,10 +241,10 @@ body {
     }
 
     .category {
-        border: 2px solid $slt-xmas-color;
+        border: 2px solid $slt-green-color;
         border-radius: 6px;
         color: #fff;
-        background-color: $slt-xmas-color;
+        background-color: $slt-green-color;
         padding: 0;
         position: relative;
         max-width: 49%;
@@ -274,7 +273,6 @@ body {
             right: 0;
             min-width: 155%;
             display: none;
-            background: white;
             border: none;
             border-radius: 0px 0px 6px 6px;
         }
@@ -282,7 +280,7 @@ body {
             display: inline-block;
             max-width: 180px;
             padding: 10px;
-            color: $slt-xmas-color;
+            color: $slt-green-color;
             border-bottom: none;
             img {
                 width: 140px;
@@ -299,7 +297,7 @@ body {
                 }
             }
             &:hover {
-                color: $slt-xmas-color;
+                color: $slt-green-color;
             }
         }
         &:first-child .sub-categories {
@@ -307,12 +305,12 @@ body {
             right: auto;
         }
         &.selected {
-            background-color: $slt-xmas-color;
+            background-color: $slt-green-color;
             > span {
             }
         }
         &.expanded {
-            color: $slt-xmas-color;
+            color: $slt-green-color;
             background-color: #FFF;
             .sub-categories {
                 display: block;
@@ -321,8 +319,9 @@ body {
                 z-index: 1;
                 .wrap {
                     width: 100%;
-                    border: 2px solid $slt-xmas-color;
+                    border: 2px solid $slt-green-color;
                     border-radius: 6px;
+                    background-color: white;
                 }
             }
             .sub-category,
@@ -546,6 +545,21 @@ body {
         height: 72%;
         text-align: left;
         padding: 10px 0;
+        .back-to-recipe {
+            color: $slt-purple-color;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: $slt-modern-font;
+            text-align: center;
+            margin: 25px 0;
+            &:before {
+                content: '\00ab';
+            }
+            &:hover {
+                text-decoration: underline;
+                cursor: pointer;
+            }
+        }
     }
     .look-image-container {
         .look-image {
@@ -591,7 +605,7 @@ body {
         .image, .description {
             display: inline-block;
             vertical-align: top;
-            width: 99.955%;
+            width: 99.93%;
         }
         .image {
             background-size: cover;
@@ -670,9 +684,9 @@ body {
             line-height: 40px;
             width: 100%;
             border-radius: 10px;
+            border: 1px solid $slt-green-color;
             background-color: $slt-green-color;
             &:hover {
-                border: 1px solid $slt-green-color;
                 background-color: #fff;
                 color: $slt-green-color;
                 text-decoration: none;
@@ -889,6 +903,9 @@ body {
             }
             .sub-categories {
                 width: 200%;
+                .sub-category {
+                    width: 49%;
+                }
             }
         }
     }
@@ -919,7 +936,7 @@ body {
                 }
             }
             .look-image, .product-details {
-                width: calc(100% - 100px) !important;
+                width: calc(100% - 90px) !important;
             }
             .image-with-tagged-products {
                 .info, .look-image-container {
@@ -931,19 +948,23 @@ body {
                 height: 100% !important;
             }
             .gallery-main-image {
-                height: 100%;
-                .gallery-dots {
-                    bottom: 55px;
-                    .description-dot {
-                        display: inline-block !important;
-                    }
+                .main-image-container {
+                    height: 100%;
+                }
+                .gallery-dots .description-dot {
+                    display: inline-block !important;
                 }
                 .buy {
                     position: absolute;
-                    bottom: 10px;
+                    bottom: 8px;
                     left: 0;
                     right: 0;
                     margin: 0 auto !important;
+                    width: 70%;
+                    height: 12%;
+                    .button {
+                        border-radius: 10px;
+                    }
                 }
             }
             .shop {
@@ -994,7 +1015,7 @@ body {
             height: 72%;
             position: relative;
             .look-image {
-                width: calc(100% - 80px);
+                width: calc(100% - 79px);
                 height: 65px;
                 border-radius: 0;
                 position: absolute;
@@ -1062,7 +1083,7 @@ body {
         }
         .gallery-main-image {
             width: 100%;
-            height: 85%;
+            height: 100%;
             padding-top: 65px;
             margin: 0 !important;
             .image, .recipe {
@@ -1071,8 +1092,32 @@ body {
                     background-size: contain;
                 }
             }
+            .main-image-container {
+                height: 85%;
+            }
+            .gallery-dots {
+                bottom: 16%;
+            }
             .buy {
-                margin: 5px auto !important;
+                width: 100%;
+                height: 15%;
+                margin: 0 !important;
+                .button {
+                    font-size: 20px;
+                    border-radius: 0;
+                    line-height: 0;
+                    height: 100%;
+                    span {
+                        position: absolute;
+                        top: 46%;
+                        left: 0;
+                        right: 0;
+                    }
+                }
+                &:hover {
+                    background-color: $slt-green-color;
+                    color: white;
+                }
             }
         }
         .shop {

@@ -31,7 +31,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         inlineLink = "More on #{@model.attributes.name or @model.attributes.title} »"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
-            @model.set("truncated_description", truncatedDescription + "<a href=#{@model.attributes.url}>#{inlineLink}</a>")
+            @model.set("truncated_description", truncatedDescription + " <a href=#{@model.attributes.url}>#{inlineLink}</a>")
         return
 
     _.extend(module.ProductView.prototype.events, 
@@ -42,17 +42,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     )
 
     module.ExpandedContent.prototype.events =
-        "click .look-thumbnail": (event) ->
+        "click .look-thumbnail, .back-to-recipe": (event) ->
             @lookThumbnail.hide()
             @$el.find('.info').hide()
             @$el.find('.look-image-container').show()
             @stlIndex = Math.max(@stlIndex - 1, 0)
             @lookProductIndex = -1
             @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
-            if App.support.mobile() and App.utils.landscape()
-                @arrangeStlItemsVertical()
-            else
-                @arrangeStlItemsHorizontal()
+            if App.support.mobile()
+                if App.utils.landscape()
+                    @arrangeStlItemsVertical()
+                else
+                    @arrangeStlItemsHorizontal()
             return
 
         "click .stl-look .stl-item": (event) ->
@@ -188,6 +189,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if @model.get("type") is "image" or @model.get("type") is "gif"
             @upArrow.hide()
             @downArrow.hide()
+            @$el.find(".stl-look-container").css(
+                "height": "95%"
+                "top": "0"
+            )
             if @model.get("tagged-products")?.length > 0 or App.support.mobile()
                 $stlLook = @$el.find(".stl-look")
                 stlItems = $stlLook.children(":visible")
@@ -251,6 +256,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     left: widthReduction
                     right: widthReduction
                 )
+                $container.removeClass("loading")
                 @arrangeStlItemsHorizontal()
                 return
 
@@ -273,6 +279,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.closest(".previewContainer").addClass("landscape")
         else
             @$el.closest(".previewContainer").removeClass("landscape")
+            unless App.support.mobile()
+                @$el.closest(".fullscreen").addClass("loading")
         @lookThumbnail = @$el.find('.look-thumbnail')
         @lookThumbnail.hide()
         @$el.find('.info').hide()
@@ -301,30 +309,34 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.look-image-container').show()
             @$el.find('.stl-item').removeClass("selected")
             @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
-            if App.support.mobile() and App.utils.landscape()
-                @arrangeStlItemsVertical()
-            else
-                @arrangeStlItemsHorizontal()
+            if App.support.mobile()
+                if App.utils.landscape()
+                    @arrangeStlItemsVertical()
+                else
+                    @arrangeStlItemsHorizontal()
         else
             @$el.find(".stl-item").filter("[data-index=#{@lookProductIndex}]")
                 .addClass("selected").siblings().removeClass("selected")
-            if @model.get("type") is "product"
-                product = new module.Product(@model.attributes)
-            else
-                product = new module.Product(@model.get("tagged-products")[@lookProductIndex])
-            productInstance = new module.ProductView(
-                model: product
-            )
             @$el.find('.info').show()
             @$el.find('.look-image-container').hide()
-            @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
-            @productInfo.show(productInstance)
+            if @model.get("type") is "product"
+                product = new module.Product(@model.attributes)
+            else if @model.get("tagged-products").length > 0
+                product = new module.Product(@model.get("tagged-products")[@lookProductIndex])
+            unless product is undefined
+                product.set("recipe-name", @model.get('name') or @model.get('title'))
+                productInstance = new module.ProductView(
+                    model: product
+                )
+                @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
+                @productInfo.show(productInstance)
             unless @lookThumbnail.is(":visible")
                 @stlIndex = Math.min($(".stl-look").children(":visible").length - 1, @stlIndex + 1)
             @lookThumbnail.show()
-            if App.support.mobile() and App.utils.landscape()
-                @arrangeStlItemsVertical()
-            else
-                @arrangeStlItemsHorizontal()
+            if App.support.mobile()
+                if App.utils.landscape()
+                    @arrangeStlItemsVertical()
+                else
+                    @arrangeStlItemsHorizontal()
         return
             
