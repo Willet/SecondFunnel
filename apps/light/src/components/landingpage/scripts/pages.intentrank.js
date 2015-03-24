@@ -100,7 +100,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         data.algorithm = module.options.IRAlgo;
         data.reqNum = module.options.IRReqNum;
         data.offset = collection.offset || 0;
-        data['tile-set'] = module.options.IRTileSet;
+        data['tile-set'] = module._IRTileSet || module.options.IRTileSet;
 
         if (module.options.IRReset) {
             data['session-reset'] = true;
@@ -277,6 +277,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @return this
      */
     module.changeCategory = function (category, silent) {
+        var catObj;
         silent = silent || false;
 
         // If category doesn't exist
@@ -307,7 +308,13 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             // Change to valid category
             $(".loading").show();
 
+            catObj = App.categories.findModelByName(category) || {};
+
             module._category = category;
+            // tileSet is an optional paramter which can force a category to be
+            // content-only "content" or product-only "products"
+            // generally this should be undefined
+            module._IRTileSet = catObj['tileSet'] || undefined;
             module.options.IRReset = true;
             App.tracker.changeCategory(category);
 

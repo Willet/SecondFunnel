@@ -167,7 +167,11 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         item = response.meta.get('item', ScraperImage())
         l = ScraperContentLoader(item=item, response=response)
 
-        url = sel.css('image[url*="touchzoom"]::attr(url)').extract()[0]
+        try:
+            url = sel.css('image[url*="touchzoom"]::attr(url)').extract()[0]
+        except IndexError:
+            url = sel.css('image[url*="main"]::attr(url)').extract()[0]
+        
         source_url = '{}/{}'.format(response.url.rsplit('/', 1)[0], url.rsplit('/', 1)[1])
         
         l.add_value('source_url', source_url)

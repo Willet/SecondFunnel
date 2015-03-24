@@ -214,10 +214,10 @@ class TagWithProductsPipeline(object):
                     product_id = product.id
                     tagged_product_ids = image.tagged_products.values_list('id', flat=True)
                     if not product_id in tagged_product_ids:
-                        spider.log('Tagging Image {} with Product {}'.format(image.id, product_id))
+                        spider.log('Tagging <Image {}> with <Product {}>'.format(image.id, product_id))
                         image.tagged_products.add(product)
                     else:
-                        spider.log('Image {} already tagged with Product {}'.format(image.id, product_id))
+                        spider.log('<Image {}> already tagged with <Product {}>'.format(image.id, product_id))
 
         return item
 
@@ -237,9 +237,11 @@ class CategoryPipeline(object):
         # if categories are given, add them
         categories = item.get('attributes', {}).get('categories', [])
         for name in categories:
+            spider.log("Adding scraped category '{}'".format(name.strip()))
             self.add_to_category(item, name.strip())
 
         for category in getattr(spider, 'categories', []):
+            spider.log("Adding spider-specified category '{}'".format(category.strip()))
             self.add_to_category(item, category.strip())
 
         return item
@@ -267,7 +269,8 @@ class CategoryPipeline(object):
 
         try:
             item_model = item_to_model(item)
-        except TypeError:
+        except TypeError, e:
+            spider.log.WARNING('Error converting item to model, product not added to category {}:\n\t{}'.format(category.name, e))
             return
 
         product, _ = get_or_create(item_model)
