@@ -589,6 +589,17 @@ body {
                 max-height: 85%;
                 overflow: auto;
             }
+            .scroll-cta {
+                width: 100%;
+                color: $slt-green-color;
+                text-align: center;
+                font-size: 15px;
+                font-family: $slt-modern-font;
+                margin-top: 5px;
+                &:after {
+                    content: url('/static/light/surlatable/landingpage/mothersday/images/scroll-more-arrow.png');
+                }
+            }
         }
     }
     .product-info, .tagged-product,
@@ -1113,10 +1124,10 @@ body {
                         left: 0;
                         right: 0;
                     }
-                }
-                &:hover {
-                    background-color: $slt-green-color;
-                    color: white;
+                    &:hover {
+                        background-color: $slt-green-color;
+                        color: white;
+                    }
                 }
             }
         }

@@ -243,7 +243,7 @@
                                   <br/>
                                   <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
                               <% } else if (obj.template === "image") { %>
-                                  <span>See and Shop the Recipe</span>
+                                  <span>See the Recipe</span>
                                   <br/>
                                   <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
                               <% } else { %>
@@ -283,9 +283,15 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <a class='button' href='<%= obj.url %>' target='_blank'>
-                <span>Buy Now</span>
-            </a>
+            <% if (obj.cj_link) { %>
+                <a class='button' href='<%= obj.cj_link %>' target='_blank'>
+                    <span>Buy Now</span>
+                </a>
+            <% } else { %>
+                <a class='button' href='<%= obj.url %>' target='_blank'>
+                    <span>Buy Now</span>
+                </a>
+            <% } %>
         </script>
 
         <script type="text/template" id="product_description_template">
@@ -409,6 +415,9 @@
                     <div class="recipe">
                         <% include("product_description_template") %>
                     </div>
+                    <div class="scroll-cta">
+                        Scroll to see more
+                    </div>
                 </div>
             </div>
             <div class="cell info">
@@ -447,6 +456,9 @@
                     </div>
                     <div class="recipe">
                         <%= obj.description %>
+                    </div>
+                    <div class="scroll-cta">
+                        Scroll to see more
                     </div>
                 </div>
             </div>

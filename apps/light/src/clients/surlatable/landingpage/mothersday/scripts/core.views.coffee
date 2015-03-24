@@ -29,9 +29,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ProductView::onBeforeRender = ->
         inlineLink = "More on #{@model.attributes.name or @model.attributes.title} »"
+        if @model.attributes.cj_link is undefined
+            inlineLink = "<a href=#{@model.attributes.url}>#{inlineLink}</a>"
+        else
+            inlineLink = "<a href=#{@model.attributes.cj_link}>#{inlineLink}</a>"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
-            @model.set("truncated_description", truncatedDescription + " <a href=#{@model.attributes.url}>#{inlineLink}</a>")
+            @model.set("truncated_description", truncatedDescription + " " + inlineLink)
         return
 
     _.extend(module.ProductView.prototype.events, 
@@ -109,6 +113,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @updateStlGalleryPosition(distance, "landscape")
             return
 
+    module.ExpandedContent::updateScrollCta = ->
+        $recipe = @$el.find(".recipe")
+        unless $recipe.length is 0
+            if ($recipe[0].scrollHeight - $recipe.scrollTop()) is $recipe.outerHeight()
+                $recipe.siblings(".scroll-cta").hide()
+            else
+                $recipe.siblings(".scroll-cta").show()
+        return
+
     module.ExpandedContent::updateStlGalleryPosition = (distance, orientation, duration=300) ->
         updateStlArrows = =>
             stlItems = $stlLook.children(":visible")
@@ -173,6 +186,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if @model.get("tagged-products")?.length > 0 or App.support.mobile()
                 height = "88%"
                 top = "0"
+                # Making room for up arrow
                 unless @stlIndex is 0
                     height = "80%"
                     top = @upArrow.height()
@@ -223,6 +237,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                 if @productInfo.currentView is undefined
                     @updateCarousel()
+                $(".recipe").scroll( =>
+                    @updateScrollCta()
+                    return
+                )
                 if App.support.mobile()
                     if App.utils.portrait()
                         @arrangeStlItemsHorizontal()
@@ -256,7 +274,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     left: widthReduction
                     right: widthReduction
                 )
+                # DOM elements must be visible before calling functions below
                 $container.removeClass("loading")
+                @updateScrollCta()
                 @arrangeStlItemsHorizontal()
                 return
 
@@ -339,4 +359,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 else
                     @arrangeStlItemsHorizontal()
         return
-            
+
+    module.ExpandedContent::close = ->
+        # See NOTE in onShow
+        unless App.support.isAnAndroid()
+            $(document.body).removeClass("no-scroll")
+
+        @$(".stick-bottom").waypoint("destroy")
+        $(".recipe").off()
+        return
