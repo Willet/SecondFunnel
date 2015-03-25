@@ -109,7 +109,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                                 width: maxWidth,
                                 height: maxHeight
                             )
-                            $(image).css("background-image", "'url(#{imageUrl})'")
+                            $(image).css("background-image", "url('#{imageUrl}')")
                 return
             productImages = @$el.find(".main-image .image")
             productImageCount = productImages.length
