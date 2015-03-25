@@ -38,6 +38,49 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @model.set("truncated_description", truncatedDescription + " " + inlineLink)
         return
 
+    module.ProductView::resizeProductImages = ->
+        replaceImages = =>
+            unless App.support.mobile()
+                unless --productImageCount is 0 or productImages.first().is("div")
+                    return
+                $container = @$el.find(".main-image-container")
+                if $container.is(":visible")
+                    maxWidth = $container.width()*1.3
+                    maxHeight = $container.height()*1.3
+                else
+                    maxWidth = App.option("minImageWidth") or 300
+                    maxHeight = App.option("minImageHeight") or 300
+                for image, i in productImages
+                    $cachedImage = $(image).parent()
+                    if $cachedImage.is("img")
+                        imageUrl = App.utils.getResizedImage($cachedImage.attr("src"),
+                            width: maxWidth,
+                            height: maxHeight
+                        )
+                        $(image).attr("src", imageUrl)
+                    else if $cachedImage.is("div")
+                        imageUrl = $cachedImage.css("background-image").replace('url(','').replace(')','')
+                        imageUrl = App.utils.getResizedImage(imageUrl,
+                            width: maxWidth,
+                            height: maxHeight
+                        )
+                        $(image).css("background-image", "url('#{imageUrl}')")
+            return
+        productImages = @$el.find(".main-image .hi-res")
+        productImageCount = productImages.length
+        if productImageCount > 0 and productImages.first().is("div")
+            replaceImages()
+        else
+            productImages.one("load", replaceImages).each( ->
+                if @complete
+                    setTimeout( =>
+                        $(@).load()
+                        return
+                    , 1)
+                return
+            )
+        return
+
     _.extend(module.ProductView.prototype.events, 
         "click .main-image .image": (event) ->
             $image = $(event.target)

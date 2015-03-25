@@ -327,7 +327,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                 # product tiles
                 if @get("default-image")
-                    return @get("default-image")
+                    defaultImageAttr = @get("default-image")
+                    delete @attributes['default-image']
+                    return defaultImageAttr
 
                 # product tiles without a default-image attr, guess it
                 if @get("images") and @get("images").length
