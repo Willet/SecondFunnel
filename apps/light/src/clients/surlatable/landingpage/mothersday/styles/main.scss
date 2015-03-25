@@ -523,7 +523,7 @@ body {
         }
     }
     .title-banner {
-        position: fixed;
+        position: absolute;
         top: 0;
         left: 0;
         width: 100%;
@@ -533,7 +533,7 @@ body {
         border-radius: 10px 10px 0 0;
         padding: 12px !important;
         .title {
-            line-height: 15px;
+            line-height: 12px;
             color: #fff;
             max-width: 90%;
             height: 15px;
