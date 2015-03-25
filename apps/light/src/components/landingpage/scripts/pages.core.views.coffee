@@ -109,7 +109,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                                 width: maxWidth,
                                 height: maxHeight
                             )
-                            $(image).css("background-image", "url(#{imageUrl})")
+                            $(image).css("background-image", "url('#{imageUrl}')")
                 return
             productImages = @$el.find(".main-image .image")
             productImageCount = productImages.length
@@ -325,9 +325,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         close: ->
             # See NOTE in onShow
             unless App.support.isAnAndroid()
-                $(document.body).removeClass "no-scroll"
+                $(document.body).removeClass("no-scroll")
 
-            @$(".stick-bottom").waypoint "destroy"
+            @$(".stick-bottom").waypoint("destroy")
             return
 
         resizeContainer: ->

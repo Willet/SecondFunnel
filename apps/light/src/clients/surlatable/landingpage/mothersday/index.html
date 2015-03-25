@@ -8,7 +8,7 @@
     @@include('shared/campaign_opengraph_tags.html')
     <!-- End Optimizer Tests -->
     <link rel="shortcut icon"
-         href="http://g.etfv.co/http://www.surlatable.com" />
+         href="/static/light/surlatable/landingpage/mothersday/images/surlatable-favicon.png" />
     <link rel="stylesheet" href="/static/light/surlatable/landingpage/mothersday/styles/main.css" />
 
     @@include('shared/campaign_respond.html')
@@ -196,7 +196,7 @@
         </div>
 
         <div class="topNavWrapper topNavHref no-hover">
-            <span class="customColorLink dropdown-label"><a style="color:#961c17" rel="nofollow" href="http://www.surlatable.com/category/cat970426/Easter?cleanSession=true&amp;pCat=cat970426">Easter</a></span>
+            <span class="customColorLink dropdown-label"><a style="color:#961c17" rel="nofollow" href="http://www.surlatable.com/category/cat970426/Easter?cleanSession=true&amp;pCat=cat970426">Easter Sale</a></span>
         </div>
     </div>
 
@@ -215,7 +215,9 @@
             <div class="main-image-container">
                 <div class="main-image">
                     <% for (var j = 0; j < obj.images.length; j++) { %>
-                        <div class="image" style="background-image: url('<%= obj.images[j].url %>');"></div>
+                        <div class="image" style="background-image: url('<%= obj.images[j].url %>');">
+                            <div class="hi-res image"></div>
+                        </div>
                     <% } %>
                     <div class="description mobile-only">
                         <% include("product_description_template") %>
@@ -230,8 +232,7 @@
 
             <script type="text/template" id="image_tile_template">
               <div class='relative'>
-                <% var src = (obj['default-image'] && obj['default-image'].url) ? obj['default-image'].url : obj.images[0].url %>
-                <img class="focus" src="<%= src %>" alt="<%= obj.caption %>" />
+                <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
               </div>
               <div class="overlay">
                   <div class='table'>
@@ -243,7 +244,7 @@
                                   <br/>
                                   <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
                               <% } else if (obj.template === "image") { %>
-                                  <span>See and Shop the Recipe</span>
+                                  <span>See the Recipe</span>
                                   <br/>
                                   <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
                               <% } else { %>
@@ -283,9 +284,15 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <a class='button' href='<%= obj.url %>' target='_blank'>
-                <span>Buy Now</span>
-            </a>
+            <% if (obj.cj_link) { %>
+                <a class='button' href='<%= obj.cj_link %>' target='_blank'>
+                    <span>Buy Now</span>
+                </a>
+            <% } else { %>
+                <a class='button' href='<%= obj.url %>' target='_blank'>
+                    <span>Buy Now</span>
+                </a>
+            <% } %>
         </script>
 
         <script type="text/template" id="product_description_template">
@@ -409,6 +416,9 @@
                     <div class="recipe">
                         <% include("product_description_template") %>
                     </div>
+                    <div class="scroll-cta">
+                        Scroll to see more
+                    </div>
                 </div>
             </div>
             <div class="cell info">
@@ -447,6 +457,9 @@
                     </div>
                     <div class="recipe">
                         <%= obj.description %>
+                    </div>
+                    <div class="scroll-cta">
+                        Scroll to see more
                     </div>
                 </div>
             </div>
@@ -556,6 +569,7 @@
     <div>
         @@include('shared/default_templates.html')
     </div>
+    <script src="http://www.anrdoezrs.net/am/7774943/include/joined/generate/onLoad/am.js" async></script>
     <script type="text/javascript" src="/static/light/surlatable/landingpage/mothersday/scripts/main.js" async></script>
 
 </body>
