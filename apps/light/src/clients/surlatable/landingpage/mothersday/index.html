@@ -215,7 +215,9 @@
             <div class="main-image-container">
                 <div class="main-image">
                     <% for (var j = 0; j < obj.images.length; j++) { %>
-                        <div class="image" style="background-image: url('<%= obj.images[j].url %>');"></div>
+                        <div class="image" style="background-image: url('<%= obj.images[j].url %>');">
+                            <div class="hi-res image"></div>
+                        </div>
                     <% } %>
                     <div class="description mobile-only">
                         <% include("product_description_template") %>
@@ -230,7 +232,7 @@
 
             <script type="text/template" id="image_tile_template">
               <div class='relative'>
-                <% var src = (obj['default-image'] && obj['default-image'].url) ? obj['default-image'].url : obj.images[0].url %>
+                <% var src = (obj.defaultImage && obj.defaultImage.url) ? obj.defaultImage.url : obj.images[0].url %>
                 <img class="focus" src="<%= src %>" alt="<%= obj.caption %>" />
               </div>
               <div class="overlay">
