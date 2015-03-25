@@ -49,8 +49,13 @@ App.start();
 		}
 	});
 
+	// Remove the top level click handler for this page
+	// We want nav links to open in this window
+	$(document).off('click');
+	// Hide categories when something is clicked
 	$(document).click(function () {
 		$topNavWrappers.removeClass('expanded');
 		$categories.removeClass('expanded');
+		return true;
 	});
 }());
