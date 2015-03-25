@@ -91,7 +91,7 @@
         </div>
     </div>
 
-    <div class="second-category-area">
+    <div class="second-nav-area">
 		<div class="topNavWrapper ">
             <span class="dropdown-label"> Gift Registry</span>
             <div class="navDropdown">
@@ -117,8 +117,6 @@
                     <li class="topNavHref "><a href="http://www.surlatable.com/product/GCP-15269/">Traditional Gift Card</a></li>
                     <li class="topNavHref "><a href="http://www.surlatable.com/product/GCP-15271/">Virtual Classes Gift Card</a></li>
                     <li class="topNavHref "><a href="http://www.surlatable.com/product/GCP-15267/">Traditional Classes Gift Card</a></li>
-                    <li class="topNavHref "><a onclick="loadPageFullPathForHeader('http://www.surlatable.com/account/include/acctCheckCardBalanceLookup.jsp',{isFromEditLink:'true'});" href="#">Check Gift Card Balance</a></li>
-                    <li class="topNavHref "><a onclick="loadPageFullPathForHeader('http://www.surlatable.com/account/include/acctHowToRedeemGiftCard.jsp',{isFromEditLink:'true'});" href="#">How to Redeem Gift Card</a></li>
                     <li class="topNavHref "><a href="http://www.surlatable.com/category/CAT-11149/Gift+Cards" rel="nofollow" title="More About Gift Cards">More About&nbsp;Gift Cards</a></li>
                 </ul>
             </div>
@@ -569,8 +567,9 @@
     <div>
         @@include('shared/default_templates.html')
     </div>
-    <script src="http://www.anrdoezrs.net/am/7774943/include/joined/generate/onLoad/am.js" async></script>
-    <script type="text/javascript" src="/static/light/surlatable/landingpage/mothersday/scripts/main.js" async></script>
+    <!-- ORDER MATTERS - main.js deregisters document click events -->
+    <script type="text/javascript" src="/static/light/surlatable/landingpage/mothersday/scripts/main.js"></script>
+    <script src="http://www.anrdoezrs.net/am/7774943/include/joined/generate/onLoad/am.js"></script>
 
 </body>
 </html>
