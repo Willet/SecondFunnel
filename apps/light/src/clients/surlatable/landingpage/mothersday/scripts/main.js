@@ -24,12 +24,22 @@ App.start();
 		$subcategories = $('.sub-categories');
 
 	// Enable drop-down nav categories
-	$topNavWrappers.click(function () {
-		var $this = $(this);
-		$this = $this.hasClass('topNavWrapper') ? $this : $this.parents('.topNavWrapper');
-		if ($this.hasClass('topNavHref')) {
+	$topNavWrappers.click(function (ev) {
+		var $topNavHref,
+			$this = $(this),
+			$target = $(ev.target),
+			$topNavWrapper = $this.hasClass('topNavWrapper') ? $this : $this.parents('.topNavWrapper');
+		// Redirect tab
+		if ($topNavWrapper.hasClass('topNavHref')) {
+			return true;
+		}
+		// Drop-down tab
+		$topNavHref = $target.hasClass('topNavHref') ? $target : $target.parents('.topNavHref');
+		if ($topNavHref.length > 0) {
+			// if the clicked item is part of a topNavHref, then redirect
 			return true;
 		} else {
+			// the topNavWrapper was clicked, expand/hide the drop-down
 			if ($this.hasClass('expanded')) {
 				$this.removeClass('expanded');
 			} else {
