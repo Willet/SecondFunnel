@@ -59,7 +59,8 @@ body {
     font-family: $slt-basic-font;
 }
 .navbar {
-    height: auto;
+    height: 86px;
+    border: none;
     margin-top: 10px;
     .container {
         position: relative;
@@ -68,6 +69,7 @@ body {
             display: inline-block;
             opacity: 1;
             filter: alpha(opacity=100);
+            padding-left: 2px;
             img {
                 width: 260px;
                 &.mobile {
@@ -85,7 +87,7 @@ body {
         }
         .header-links-bar {
             position: absolute;
-            top: 10px;
+            top: 2px;
             right: 0;
             display: inline-block;
             text-align: left;
@@ -108,7 +110,7 @@ body {
     }
 }
 
-.second-category-area {
+.second-nav-area {
     width: 1024px;
     margin: 15px auto 0 auto;
     height: 33px;
@@ -370,9 +372,9 @@ body {
 
 .tile {
     padding: 5px;
-    width: 33%;
+    width: 33.33%;
     &.wide {
-        width: 66%;
+        width: 66.66%;
     }
     .overlay {
         background: rgba(255,255,255,0.80);
