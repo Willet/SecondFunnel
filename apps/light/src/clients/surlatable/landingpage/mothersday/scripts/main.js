@@ -79,6 +79,19 @@ App.start();
 		}
 	});
 
+	// Send search bar inqueries to surlatable.com
+	$('#submit-search').click(function(ev){
+		var searchUrl,
+			$this = $(this),
+			$inputBox = $this.siblings().first(),
+			$topNavSearch = $this.parents('#topNavSearch');
+		if ($topNavSearch.length > 0 && $inputBox.length > 0) {
+			searchUrl = $topNavSearch.data('nonsecureurl') + "?Ntt=" + $inputBox.val();
+			App.utils.openUrl(searchUrl);
+		}
+		return false;
+	});
+
 	// Remove the top level click handler for this page
 	// We want nav links to open in this window
 	$(document).off('click');
