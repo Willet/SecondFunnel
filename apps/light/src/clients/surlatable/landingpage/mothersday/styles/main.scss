@@ -11,47 +11,34 @@ $slt-purple-color: #651e44;
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
 
-@font-face{
+                
+@font-face{ 
     font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-Reg.otf') format("opentype");
-    font-weight: normal;
-    font-style: normal;
+    src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltr-071211005EmigreWebOnly.eot');
+    src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltr-071211005EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
+         url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltr-071211005EmigreWebOnly.woff') format('woff');
 }
-@font-face{
+                
+@font-face{ 
     font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-Bold.otf') format("opentype");
+    src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.eot');
+    src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
+         url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.woff') format('woff');
     font-weight: bold;
-    font-style: normal;
 }
-@font-face{
-    font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-Book.otf') format("opentype");
-    font-weight: 300;
-    font-style: normal;
-}
+
 @font-face{
     font-family: MrEavesModern;
     src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-Light.otf') format("opentype");
     font-weight: 200;
     font-style: normal;
 }
-@font-face{
-    font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-BookItalic.otf') format("opentype");
-    font-weight: 300;
-    font-style: italic;
-}
-@font-face{
-    font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-RegItalic.otf') format("opentype");
-    font-weight: normal;
-    font-style: italic;
-}
-@font-face{
+            
+@font-face{ 
     font-family: MrEavesSans;
-    src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesSansOT-Reg.otf') format("opentype");
-    font-weight: normal;
-    font-style: normal;
+    src: url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.eot');
+    src: url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
+         url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.woff') format('woff');
 }
 
 body {
