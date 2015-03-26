@@ -33,6 +33,13 @@ $slt-purple-color: #651e44;
     font-weight: 200;
     font-style: normal;
 }
+
+@font-face{
+    font-family: MrEavesModern;
+    src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-LightItalic.otf') format("opentype");
+    font-weight: 200;
+    font-style: italic;
+}
             
 @font-face{ 
     font-family: MrEavesSans;
