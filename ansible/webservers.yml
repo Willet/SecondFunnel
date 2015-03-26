@@ -45,7 +45,7 @@
       tags: vagrant_data_import
 
 - name: "Bootstrap Servers"
-  serial: 3
+  serial: 2
   hosts: webservers:!building
   remote_user: "{{bootstrap_user}}"
   roles:
@@ -59,7 +59,7 @@
     - { role: db, tags: db }
 
 - name: "Setup Servers"
-  serial: 3
+  serial: 2
   hosts: webservers:!building
   remote_user: "{{common_user}}"
   pre_tasks:
@@ -75,7 +75,7 @@
         region: "{{aws_region}}"
         state: "absent"
         wait: yes
-        wait_timeout: 120
+        wait_timeout: 330
       ignore_errors: yes
       when: app_environment != "vagrant"
       tags: deploy
@@ -98,7 +98,7 @@
         region: "{{aws_region}}"
         state: "present"
         wait: yes
-        wait_timeout: 120
+        wait_timeout: 330
       ignore_errors: yes
       when: app_environment != "vagrant"
       tags: deploy
