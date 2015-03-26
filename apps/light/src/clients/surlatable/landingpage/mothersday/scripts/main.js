@@ -20,6 +20,7 @@ App.start();
 
 (function () {
 	var $topNavWrappers = $('.topNavWrapper'),
+		$topSecNavWrappers = $('.topSecNavWrapper'),
 		$categories = $('.category'),
 		$subcategories = $('.sub-categories');
 
@@ -42,11 +43,53 @@ App.start();
 			// the topNavWrapper was clicked, expand/hide the drop-down
 			if ($this.hasClass('expanded')) {
 				$this.removeClass('expanded');
+				$this.find('.expanded').removeClass('expanded');
 			} else {
-				$this.addClass('expanded').siblings().removeClass('expanded');
+				$('.topNavWrapper').removeClass('expanded');
+				$this.addClass('expanded');
 			}
 			return false;
 		}
+	});
+
+	// Enable tertiary side tab for 2nd navbar
+	$topSecNavWrappers.click(function (ev) {
+		var $topNavHref,
+			$this = $(this),
+			$target = $(ev.target),
+			$topNavWrapper = $this.hasClass('topNavWrapper') ? $this : $this.parents('.topNavWrapper');
+		// Redirect tab
+		if ($topNavWrapper.hasClass('topNavHref')) {
+			return true;
+		}
+		// Side tab
+		$topNavHref = $target.hasClass('topNavHref') ? $target : $target.parents('.topNavHref');
+		if ($topNavHref.length > 0) {
+			// if the clicked item is part of a topNavHref, then redirect
+			return true;
+		} else {
+			// the topNavWrapper was clicked, expand/hide the drop-down
+			if ($this.hasClass('expanded')) {
+				$this.removeClass('expanded');
+			} else {
+				$('.topSecNavWrapper').removeClass('expanded');
+				$this.addClass('expanded');
+			}
+			return false;
+		}
+	});
+
+	// Send search bar inqueries to surlatable.com
+	$('#submit-search').click(function(ev){
+		var searchUrl,
+			$this = $(this),
+			$inputBox = $this.siblings().first(),
+			$topNavSearch = $this.parents('#topNavSearch');
+		if ($topNavSearch.length > 0 && $inputBox.length > 0) {
+			searchUrl = $topNavSearch.data('nonsecureurl') + "?Ntt=" + $inputBox.val();
+			App.utils.openUrl(searchUrl);
+		}
+		return false;
 	});
 
 	// Remove the top level click handler for this page
