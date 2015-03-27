@@ -1198,7 +1198,7 @@
                           <% /* "Shop product" is actually wanted for the tile overlay */ %>
                           <div class="title">
                               <% if (obj.template === "product") { %>
-                                  <span>Shop Product</span>
+                                  <span>Get Details</span>
                                   <br/>
                                   <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
                               <% } else if (obj.template === "image") { %>
@@ -1206,7 +1206,7 @@
                                   <br/>
                                   <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
                               <% } else { %>
-                                  <span>Shop Product</span>
+                                  <span>Get Details</span>
                               <% } %>
                           </div>
                       </div>
@@ -1244,11 +1244,11 @@
         <script type="text/template" id="product_buy_template">
             <% if (obj.cj_link) { %>
                 <a class='button' href='<%= obj.cj_link %>' target='_blank'>
-                    <span>Buy Now</span>
+                    <span>Shop Now</span>
                 </a>
             <% } else { %>
                 <a class='button' href='<%= obj.url %>' target='_blank'>
-                    <span>Buy Now</span>
+                    <span>Shop Now</span>
                 </a>
             <% } %>
         </script>
