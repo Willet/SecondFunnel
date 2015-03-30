@@ -48,7 +48,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
 
             'click .buy': (ev) ->
-                $target = if $(ev.target).is("a") then $(ev.target) else $(ev.target).children("a")
+                $evTarget = $(ev.target)
+                if $evTarget.is("a")
+                    $target = $evTarget
+                else if $evTarget.children("a").length
+                    $target = $evTarget.children("a")
+                else if $evTarget.parents("a").length
+                    $target = $evTarget.parents("a")
+                else
+                    return false
+
                 if $target.hasClass('find-store')
                     App.vent.trigger('tracking:product:findStore', @model)
                 else if $target.hasClass('in-store') or $target.hasClass('button')

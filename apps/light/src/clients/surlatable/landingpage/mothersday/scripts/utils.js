@@ -10,9 +10,12 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      *
      * @param {string} url
      */
-    module.openUrl = function (targetUrl) {
-        App.vent.trigger("tracking:click", targetUrl);
-        window.open(targetUrl, module.openInWindow());
+    module.openUrl = function (url, target) {
+        if (!_.contains(['_blank','_top','_parent','_self'], target)) {
+            target = module.openInWindow();
+        }
+        App.vent.trigger("tracking:click", url);
+        window.open(url, target);
         return;
     };
 };
