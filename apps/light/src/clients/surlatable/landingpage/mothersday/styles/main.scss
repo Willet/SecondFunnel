@@ -822,7 +822,7 @@ body {
         .image, .description {
             display: inline-block;
             vertical-align: top;
-            width: 99.93%;
+            width: 100%;
         }
         .image {
             background-size: cover;
@@ -1281,7 +1281,7 @@ body {
                 width: 100%;
                 height: 28%;
                 overflow: auto;
-                padding: 0 22pxpx;
+                padding: 4px 14px 0;
                 text-align: left;
                 font-size: 12px;
                 line-height: 22px;
