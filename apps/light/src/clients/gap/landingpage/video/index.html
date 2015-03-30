@@ -290,15 +290,21 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="hero-thumbnail desktop-only">
-                    <% for(i = 0; i < thumbnails.length; i++) { %>
-                        <div class="thumbnail-item" data-index="<%- i %>">
-                            <div class="thumbnail-image <% if (thumbnails[i]['youtubeId']) { %>playing<% } %>"
-                                style="background-image: url('<%= thumbnails[i].url %>');">
-                            </div>
-                            <p>Ep.<%= i + 1 %> - <%= thumbnails[i].date %></p>
+                <div class="hero-thumbnail hero-carousel desktop-only">
+                    <div class="hero-swipe-left"></div>
+                    <div class="hero-swipe-right"></div>
+                    <div class="hero-thumbnail-container">
+                        <div class="hero-thumbnail-main">
+                            <% for(i = 0; i < thumbnails.length; i++) { %>
+                                <div class="thumbnail-item" data-index="<%- i %>">
+                                    <div class="thumbnail-image <% if (thumbnails[i]['youtubeId']) { %>playing<% } %>"
+                                        style="background-image: url('<%= thumbnails[i].url %>');">
+                                    </div>
+                                    <p>Ep.<%= i + 1 %> - <%= thumbnails[i].date %></p>
+                                </div>
+                            <% } %>
                         </div>
-                    <% } %>
+                    </div>
                 </div>
             </div>
             <div class="stv mobile-only">
