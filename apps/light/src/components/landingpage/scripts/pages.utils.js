@@ -267,7 +267,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             return false;
         }
     }
-
+    
     /**
      * ALL CLICKS TO EXTERNAL URLS SHOULD GO THROUGH THIS FUNCTION
      * 
@@ -287,7 +287,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         window.open(url, target);
         return;
     };
-
+    
     /**
      * Returns window target for url redirect
      *
@@ -296,7 +296,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     module.openInWindow = function () {
         return App.option("page:openLinksInNewWindow", true) ? "_blank" : "_self";
     };
-
+    
     /**
      * Returns the url parsed into components
      *

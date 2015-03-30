@@ -64,7 +64,7 @@ App.start();
 		}
 		// Side tab
 		$topNavHref = $target.hasClass('topNavHref') ? $target : $target.parents('.topNavHref');
-		if ($topNavHref.length > 0) {
+		if ($topNavHref.length) {
 			// if the clicked item is part of a topNavHref, then redirect
 			return true;
 		} else {
@@ -85,7 +85,7 @@ App.start();
 			$this = $(this),
 			$inputBox = $this.siblings().first(),
 			$topNavSearch = $this.parents('#topNavSearch');
-		if ($topNavSearch.length > 0 && $inputBox.length > 0) {
+		if ($topNavSearch.length && $inputBox.length) {
 			searchUrl = $topNavSearch.data('nonsecureurl') + "?Ntt=" + $inputBox.val();
 			App.utils.openUrl(searchUrl, "_top");
 		}
