@@ -427,9 +427,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         updateThumbnails = =>
             if --imageCount isnt 0
                 return
-            @thumbnailIndex = 0
             $thumbnailMain = @$el.find(".hero-thumbnail-main")
             thumbnails = $thumbnailMain.children()
+            @thumbnailIndex = thumbnails.length - 1
             totalItemWidth = 0
             for item in thumbnails
                 totalItemWidth += $(item).outerWidth()
@@ -438,7 +438,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @rightArrow.hide()
                 distance = 0
             else
-                distance = $thumbnailMain.offset().left - thumbnails.first().offset().left
+                distance = ($thumbnailMain.offset().left + $thumbnailMain.width()) - (thumbnails.last().offset().left + thumbnails.last().width())
             @updateThumbnailCarousel(distance, 0)
             return
 
@@ -459,11 +459,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         updateHeroArrows = =>
             $thumbnailContainer = @$el.find(".hero-thumbnail-container")
             thumbnails = $thumbnailMain.children(":visible")
-            if thumbnails.first().offset().left >= $thumbnailContainer.offset().left
+            if Math.round(thumbnails.first().offset().left) >= Math.round($thumbnailContainer.offset().left)
                 @leftArrow.hide()
             else
                 @leftArrow.show()
-            if thumbnails.last().offset().left + thumbnails.last().width() <= $thumbnailContainer.offset().left + $thumbnailContainer.width()
+            if Math.round(thumbnails.last().offset().left + thumbnails.last().width()) <= Math.round($thumbnailContainer.offset().left + $thumbnailContainer.width())
                 @rightArrow.hide()
             else
                 @rightArrow.show()
@@ -497,14 +497,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     # true if item is visible after moving leftmost item
                     return ($(item).width() + $(item).offset().left + difference) > $thumbnailContainer.offset().left
                 )
+                if thumbnailIndex > -1
+                    distance -= $(thumbnails[thumbnailIndex]).offset().left
         else
             thumbnailIndex = _.findIndex(thumbnails, (item) ->
                 # true if item is only partially visible
                 return ($(item).width() + $(item).offset().left) > ($thumbnailContainer.width() + $thumbnailContainer.offset().left)
             )
+            if thumbnailIndex > -1
+                distance -= $(thumbnails[thumbnailIndex]).offset().left + $(thumbnails[thumbnailIndex]).width() - $thumbnailMain.width()
         if thumbnailIndex > -1
             @thumbnailIndex = thumbnailIndex
-            distance -= $(thumbnails[@thumbnailIndex]).offset().left
             @updateThumbnailCarousel(distance)
 
     module.HeroContent::swipeStatus = (event, phase, direction, distance, fingers, duration) ->
