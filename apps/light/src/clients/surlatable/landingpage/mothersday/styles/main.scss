@@ -1165,6 +1165,14 @@ body {
             .info, .look-image-container {
                 height: 100% !important;
             }
+            .look-product-carousel {
+                width: 80%;
+                height: 100%;
+                float: right;
+                .info, .look-image-container {
+                    width: 100% !important;
+                }
+            }
             .gallery-main-image {
                 .main-image-container {
                     height: 100%;
@@ -1260,6 +1268,13 @@ body {
             height: 72% !important;
             padding: 0 !important;
             position: relative;
+        }
+        .look-product-carousel {
+            width: 100%;
+            height: 72%;
+            .info, .look-image-container {
+                height: 100% !important;
+            }
         }
         .tagged-product.row {
             .description {

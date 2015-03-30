@@ -20,11 +20,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if @numberOfImages > 1
             @scrollImages(@mainImage.width()*@galleryIndex, 0)
             @updateGallery()
-            @mainImage.swipe(
-                triggerOnTouchEnd: true,
-                swipeStatus: _.bind(@swipeStatus, @),
-                allowPageScroll: 'vertical'
-            )
+            if @model.get('type') is "product"
+                @mainImage.swipe(
+                    triggerOnTouchEnd: true,
+                    swipeStatus: _.bind(@swipeStatus, @),
+                    allowPageScroll: 'vertical'
+                )
         return
 
     module.ProductView::onBeforeRender = ->
@@ -318,7 +319,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     right: widthReduction
                 )
                 # DOM elements must be visible before calling functions below
-                $container.removeClass("loading")
+                $container.removeClass("loading-images")
                 @updateScrollCta()
                 @arrangeStlItemsHorizontal()
                 return
@@ -338,12 +339,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::onShow = ->
-        if App.support.mobile() and App.utils.landscape()
-            @$el.closest(".previewContainer").addClass("landscape")
+        if App.support.mobile()
+            if App.utils.landscape()
+                @$el.closest(".previewContainer").addClass("landscape")
+            else
+                @$el.closest(".previewContainer").removeClass("landscape")
+            @$el.find(".look-product-carousel").swipe(
+                triggerOnTouchEnd: true,
+                swipeStatus: _.bind(@swipeStatus, @),
+                allowPageScroll: 'vertical'
+            )
         else
             @$el.closest(".previewContainer").removeClass("landscape")
-            unless App.support.mobile()
-                @$el.closest(".fullscreen").addClass("loading")
+            @$el.closest(".fullscreen").addClass("loading-images")
         @lookThumbnail = @$el.find('.look-thumbnail')
         @lookThumbnail.hide()
         @$el.find('.info').hide()
@@ -362,6 +370,25 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 direction: "up"
             )
         return
+
+    module.ExpandedContent::swipeStatus = (event, phase, direction, distance, fingers, duration) ->
+        productImageIndex = @productInfo.currentView?.galleryIndex or 0
+        numberOfImages = (@productInfo.currentView?.numberOfImages - 1) or 0
+        if @lookProductIndex >= 0
+            unless (direction is 'left' and productImageIndex is numberOfImages) or (direction is 'right' and productImageIndex is 0)
+                @productInfo.currentView.swipeStatus(event, phase, direction, distance, fingers, duration)
+                return
+        if phase is 'end'
+            if direction is 'right'
+                @lookProductIndex--
+                if @lookProductIndex < -1
+                    @lookProductIndex = @$el.find(".stl-look").children(":visible").length - 1
+            else if direction is 'left'
+                @lookProductIndex++
+                if @lookProductIndex is @model.get("tagged-products")?.length
+                    @lookProductIndex = -1
+            @updateCarousel()
+        return @
 
     module.ExpandedContent::updateCarousel = ->
         if @lookProductIndex < 0

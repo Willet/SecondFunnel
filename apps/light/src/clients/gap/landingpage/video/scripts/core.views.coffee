@@ -289,7 +289,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     left: widthReduction
                     right: widthReduction
                 )
-                $container.removeClass("loading")
+                $container.removeClass("loading-images")
                 if @model.get("orientation") is "landscape"
                     @arrangeStlItemsHorizontal()
                 else
@@ -325,7 +325,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 allowPageScroll: 'vertical'
             )
         else
-            @$el.closest(".fullscreen").addClass("loading")
+            @$el.closest(".fullscreen").addClass("loading-images")
         if @model.get("tagged-products")?.length > 0
             @stlIndex = 0
             @lookProductIndex = if App.support.mobile() then -1 else 0

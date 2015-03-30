@@ -378,7 +378,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             left: widthReduction
                             right: widthReduction
                         )
-                        $container.removeClass("loading")
+                        $container.removeClass("loading-images")
                     return
 
             imageCount = $("img.main-image, img.image", @$el).length
@@ -409,7 +409,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                 @productInfo.show(productInstance)
             unless App.support.mobile()
-                @$el.closest(".fullscreen").addClass("loading")
+                @$el.closest(".fullscreen").addClass("loading-images")
             @resizeContainer()
 
 
