@@ -274,13 +274,17 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * Opens url in correct window w/ tracking parameters appended & Emits tracking event
      *
      * @param {string} url
+     * @param {string} target, optional override ('_blank','_top','_parent','_self')
      */
-    module.openUrl = function (targetUrl) {
+    module.openUrl = function (url, target) {
         var windowParams = $.extend({}, $.deparam( window.location.search.substr(1) )),
-            url = module.urlAddParams(targetUrl, windowParams);
+            url = module.urlAddParams(url, windowParams);
+        if (!_.contains(['_blank','_top','_parent','_self'], target)) {
+            target = module.openInWindow();
+        }
         url = module.addUrlTrackingParameters(url);
         App.vent.trigger("tracking:click", url);
-        window.open(url, module.openInWindow());
+        window.open(url, target);
         return;
     };
 

@@ -87,14 +87,14 @@ App.start();
 			$topNavSearch = $this.parents('#topNavSearch');
 		if ($topNavSearch.length > 0 && $inputBox.length > 0) {
 			searchUrl = $topNavSearch.data('nonsecureurl') + "?Ntt=" + $inputBox.val();
-			App.utils.openUrl(searchUrl);
+			App.utils.openUrl(searchUrl, "_top");
 		}
 		return false;
 	});
 
 	// Remove the top level click handler for this page
 	// We want nav links to open in this window
-	$(document).off('click');
+	//$(document).off('click');
 	// Hide categories when something is clicked
 	$(document).click(function () {
 		$topNavWrappers.removeClass('expanded');
