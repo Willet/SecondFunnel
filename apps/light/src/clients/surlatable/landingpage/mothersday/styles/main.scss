@@ -7,6 +7,7 @@ $slt-basic-color: #444444;
 $slt-grey-color: #a8a8a8;
 $slt-green-color: #6b8e00;
 $slt-purple-color: #651e44;
+$slt-orange-color: #EF842C;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -127,6 +128,7 @@ body {
             border-radius: 5px 5px 0 0;
             box-sizing: content-box;
             margin: 0 1px 0 1px;
+            @include no-select;
         }
         &:hover .dropdown-label {
             color: $slt-main-color;
@@ -169,6 +171,7 @@ body {
                     line-height: 31px;
                     font-family: $slt-modern-font;
                     font-weight: bold;
+                    @include no-select;
                     &:after {
                         content: '\00bb';
                         position: relative;
@@ -192,7 +195,7 @@ body {
     height: 36px;
     background: $slt-green-color;
     margin: auto;
-    margin-bottom: 2px;
+    margin-bottom: 12px;
     border-radius: 5px;
     padding-left: 10px;
     position: relative;
@@ -226,6 +229,7 @@ body {
             font-size: 26px;
             font-weight: bold;
             line-height: 39px;
+            @include no-select;
         }
     }
     .topNavWrapper {
@@ -239,6 +243,7 @@ body {
             background: $slt-green-color;
             margin-right: 0 !important;
             border: 1px solid $slt-green-color !important;
+            @include no-select;
             &:hover {
                 color: $slt-green-color;
                 background: #fff;
@@ -285,6 +290,7 @@ body {
                 content: '' !important
             }
             .sec-dropdown-label {
+                @include no-select;
                 &:hover {
                     color: $slt-main-color;
                     border-bottom: 1px solid $slt-grey-color;
@@ -338,6 +344,7 @@ body {
                     line-height: 24px !important;
                     color: $slt-basic-color;
                     a {
+                        @include no-select;
                         white-space: normal;
                         &:hover{
                             color: $slt-main-color;
@@ -361,6 +368,7 @@ body {
                 padding-top: 10px;
             }
             > p {
+                @include no-select;
                 color: #000;
                 text-transform: none;
                 margin: 0;
@@ -408,6 +416,7 @@ body {
             border-radius: 5px 5px 0px 0px;
             border-top: 1px solid $slt-main-color;
             border-bottom: 1px solid $slt-main-color;
+            @include no-select;
         }
     }
     .category > span:hover, #category-area .category.selected span {
@@ -436,10 +445,10 @@ body {
     }
 
     .category {
-        border: 2px solid $slt-green-color;
+        border: 2px solid $slt-orange-color;
         border-radius: 6px;
-        color: #fff;
-        background-color: $slt-green-color;
+        color: #FFF;
+        background-color: $slt-orange-color;
         padding: 0;
         position: relative;
         max-width: 49%;
@@ -455,6 +464,7 @@ body {
             text-align: center;
             text-transform: none;
             letter-spacing: 0.1em;
+            @include no-select;
             &:after {
                 content: '\00bb';
                 position: relative;
@@ -475,7 +485,7 @@ body {
             display: inline-block;
             max-width: 180px;
             padding: 10px;
-            color: $slt-green-color;
+            color: $slt-orange-color;
             border-bottom: none;
             img {
                 width: 140px;
@@ -484,6 +494,7 @@ body {
                 font-size: 18px;
                 white-space: nowrap;
                 text-transform: uppercase;
+                @include no-select;
                 &:after {
                     content: '\00bb';
                     position: relative;
@@ -492,7 +503,7 @@ body {
                 }
             }
             &:hover {
-                color: $slt-green-color;
+                color: $slt-orange-color;
             }
         }
         &:first-child .sub-categories {
@@ -500,12 +511,12 @@ body {
             right: auto;
         }
         &.selected {
-            background-color: $slt-green-color;
+            background-color: $slt-orange-color;
             > span {
             }
         }
         &.expanded {
-            color: $slt-green-color;
+            color: $slt-orange-color;
             background-color: #FFF;
             .sub-categories {
                 display: block;
@@ -514,9 +525,9 @@ body {
                 z-index: 1;
                 .wrap {
                     width: 100%;
-                    border: 2px solid $slt-green-color;
+                    border: 2px solid $slt-orange-color;
                     border-radius: 6px;
-                    background-color: white;
+                    background-color: #FFF;
                 }
             }
             .sub-category,

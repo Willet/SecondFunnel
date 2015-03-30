@@ -15,48 +15,6 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
             'VISITOR': 1
         },
         VIDEO_BASE_URL = 'http://www.youtube.com/watch?v=',
-        parseUri = function (str) {
-            // parseUri 1.2.2
-            // (c) Steven Levithan <stevenlevithan.com>
-            // MIT License
-            var o = parseUri.options,
-                m = o.parser[o.strictMode ? 'strict'
-                    : 'loose'].exec(str),
-                uri = {},
-                i = 14;
-
-            while (i--) {
-                uri[o.key[i]] = m[i] || '';
-            }
-
-            uri[o.q.name] = {};
-            uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-                if ($1) {
-                    uri[o.q.name][$1] = $2;
-                }
-            });
-
-            return uri;
-        },
-
-        referrerName = function () {
-            var host;
-
-            if (document.referrer === '') {
-                return 'noref';
-            }
-
-            host = parseUri(document.referrer).host;
-            // want top level domain name (i.e. tumblr.com, not site.tumblr.com)
-            host = host.split('.').slice(host.split('.').length - 2,
-                host.split('.').length).join('.');
-
-            if (host === '') {
-                return 'noref';
-            }
-
-            return host;
-        },
 
         addItem = function () {
             // wrap ga to obey our tracking
@@ -555,22 +513,6 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
     $.extend(true, this.defaultEventMap,
              App.option('eventMap', {}));
 
-    parseUri.options = {
-        'strictMode': false,
-        'key': [
-            'source', 'protocol', 'authority', 'userInfo', 'user', 'password',
-            'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'anchor'
-        ],
-        'q': {
-            'name': 'queryKey',
-            'parser': /(?:^|&)([^&=]*)=?([^&]*)/g
-        },
-        'parser': {
-            'strict': /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-            'loose': /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-        }
-    };
-
     /**
      * Add an initializer to fetch Google Analytics
      * asynchronously.
@@ -637,7 +579,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
      *
      */
     this.initialize = function () {
-        var gaAccountNumber = App.option('page:gaAccountNumber', false) || App.option('gaAccountNumber', '');
+        var gaAccountNumber = App.option('store:gaAccountNumber', false) || App.option('page:gaAccountNumber', 'UA-23764505-25');
         addItem('create', gaAccountNumber, 'auto');
 
         // Register custom dimensions in-case they weren't already

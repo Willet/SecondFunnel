@@ -49,7 +49,7 @@ class PageSerializer(IRSerializer):
             'description':          getattr(page, 'description', ''),
             # for verifying the original upload date of a static campaign
             'pubDate':              str(datetime.now().isoformat()),
-            'gaAccountNumber':      getattr(page, 'ga_account_number', settings.GOOGLE_ANALYTICS_PROPERTY),
+            'gaAccountNumber':      getattr(page, 'gaAccountNumber', settings.GOOGLE_ANALYTICS_PROPERTY),
             'desktopHeroImage':     getattr(page, 'desktopHeroImage', ''),
             'mobileHeroImage':      getattr(page, 'mobileHeroImage', ''),
             # categories format: [{
@@ -193,9 +193,6 @@ class PageConfigSerializer(object):
             'IRTileSet': getattr(page, 'IRTileSet', kwargs.get('tile_set', '')),
             # DEPRECATED (use intentRank:reqNum)
             'IRReqNum': 0,
-
-            # DEPRECATED (use page:gaAccountNumber)
-            'gaAccountNumber': getattr(page, 'ga_account_number', settings.GOOGLE_ANALYTICS_PROPERTY),
 
             'keen': {
                 'projectId': settings.KEEN_CONFIG['projectId'],
