@@ -543,7 +543,7 @@ div.loading {
         transform: translate3d(0,0,0);
         backface-visibility: hidden;
         text-align: center;
-        &.loading {
+        &.loading-images {
             visibility: hidden;
         }
     }

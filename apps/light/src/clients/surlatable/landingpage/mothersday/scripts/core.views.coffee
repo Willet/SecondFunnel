@@ -318,7 +318,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     right: widthReduction
                 )
                 # DOM elements must be visible before calling functions below
-                $container.removeClass("loading")
+                $container.removeClass("loading-images")
                 @updateScrollCta()
                 @arrangeStlItemsHorizontal()
                 return
@@ -343,7 +343,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         else
             @$el.closest(".previewContainer").removeClass("landscape")
             unless App.support.mobile()
-                @$el.closest(".fullscreen").addClass("loading")
+                @$el.closest(".fullscreen").addClass("loading-images")
         @lookThumbnail = @$el.find('.look-thumbnail')
         @lookThumbnail.hide()
         @$el.find('.info').hide()
