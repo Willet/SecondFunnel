@@ -307,13 +307,30 @@ div.header {
         }
 
         .hero-thumbnail {
-            max-width: 1150px;
-            height: 125px;
+            width: 100%;
+            height: 115px;
             margin-bottom: 20px;
             text-align: center;
-            overflow-x: auto;
-            overflow-y: hidden;
+            overflow: hidden;
             white-space: nowrap;
+            position: relative;
+
+            .hero-thumbnail-container {
+                position: absolute;
+                top: 0; left: 0; right: 0;
+                margin: auto;
+                width: 93%;
+                height: 100%;
+                overflow: hidden;
+                .hero-thumbnail-main {
+                    overflow: visible;
+                    width: 100%;
+                    height: 100%;
+                    text-align: center;
+                    white-space: nowrap;
+                    position: absolute;
+                }
+            }
         
             .thumbnail-item {
                 width: 120px;
@@ -1050,9 +1067,10 @@ div.header {
     }
 }
 
-.stl-carousel, .tagged-product {
+.stl-carousel, .tagged-product, .hero-carousel {
     .stl-swipe-up, .stl-swipe-down,
     .stl-swipe-left, .stl-swipe-right,
+    .hero-swipe-left, .hero-swipe-right,
     .gallery-swipe-left, .gallery-swipe-right {
         display: block;
         background-repeat: no-repeat;
@@ -1070,6 +1088,13 @@ div.header {
         height: 5%;
         left: 0;
         background-size: 25%;
+    }
+    .hero-swipe-left, .hero-swipe-right {
+        display: none;
+        width: 3.5%;
+        height: 100%;
+        top: 0;
+        background-size: 45%;
     }
     .stl-swipe-left, .stl-swipe-right {
         display: none;
@@ -1097,6 +1122,14 @@ div.header {
     }
     .stl-swipe-right, .gallery-swipe-right {
         background-image: url('/static/light/gap/landingpage/video/images/next-image-arrow.png');
+        right: 0;
+    }
+    .hero-swipe-left {
+        background-image: url('/static/light/gap/landingpage/video/images/prev-video-arrow.png');
+        left: 0;
+    }
+    .hero-swipe-right {
+        background-image: url('/static/light/gap/landingpage/video/images/next-video-arrow.png');
         right: 0;
     }
 }
