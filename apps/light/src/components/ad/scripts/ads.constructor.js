@@ -137,6 +137,7 @@ App.module('core', require('pages.core'));
 App.module('intentRank', require('pages.intentrank'));
 App.module('core', require('pages.core.models'));
 App.module('core', require('pages.core.views.tiles'));
+App.module('core', require('pages.core.views.preview'));
 App.module('core', require('pages.core.views.feed'));
 App.module('core', require('pages.core.views'));
 App.module('support', require('pages.support'));
