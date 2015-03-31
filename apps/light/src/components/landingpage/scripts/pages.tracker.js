@@ -3,10 +3,12 @@
 /**
  * @module tracker
  */
-module.exports = function (tracker, App, Backbone, Marionette, $, _) {
+module.exports = function (module, App, Backbone, Marionette, $, _) {
 
-    var $document = $(document),
+    var eventMap, eventManager,
+        $document = $(document),
         $window = $(window),
+        pagesScrolled = 0,
         videosPlayed = [],
         GA_CUSTOMVAR_SCOPE = {
             'PAGE': 3,
@@ -31,62 +33,6 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
                 return;
             }
             window.ga.apply(window, arguments);
-        },
-
-        /**
-         * Semi-private function for wrapping trackTileClick and trackTileView
-         */
-        trackTile = function (interactionType, tileIds) {
-            if (interactionType === 'view') {
-                for (var i=0; i < tileIds.length; i++) {
-                    try {
-                        var model = App.discovery.collection.findWhere({
-                            'tile-id': tileIds[i]
-                        });
-                        Keen.addEvent('impression', getKeenInfo(model));
-                    } catch(err) {}
-                }
-            }
-
-            return $.ajax({
-                'url': App.option('IRSource') + '/page/' +
-                       App.option('page:id') + '/tile/' + interactionType,
-                'type': 'POST',
-                'data': {
-                    'tile-ids': tileIds.join(',')
-                }
-            });
-        },
-
-        /**
-         * real argument: {int} tileId
-         * waits for a second, then tracks those tile ids
-         */
-        trackTileClick = _.buffer(function (tileIds) {
-            return trackTile('click', tileIds);
-        }, 1000),
-
-        /**
-         * real argument: {int} tileId
-         * waits for a second, then tracks those tile ids
-         */
-        trackTileView = _.buffer(function (tileIds) {
-            return trackTile('view', tileIds);
-        }, 1000),
-
-        trackEvent = function (o) {
-            // category       - type of object that was acted on
-            // action         - type of action that took place (e.g. share, preview)
-            // label          - Data specific to event (e.g. product, URL)
-            // value          - Optional numeric data
-            // nonInteraction - if true, don't count in bounce rate
-            //                  by default, events are interactive
-
-            // https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference
-            var nonInteraction = o.nonInteraction || false;
-
-            addItem('send', 'event', o.category, o.action, o.label,
-                    o.value || undefined, {'nonInteraction': nonInteraction});
         },
 
         getKeenInfo = function(model) {
@@ -141,24 +87,22 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
 
         getTrackingInformation = function (model, isPreview) {
             // Given a model, return information for tracking purposes
-            var category,
-                label;
+            var category, label, name, sku;
 
             if (!model) {
                 throw 'Lost reference to model (check if correct template is used)';
             }
 
-            // Convert model to proper category?
             switch (model.get('template')) {
-            case 'product':
-            case 'combobox':
-                category = 'Product';
-                label = model.get('name');
-                break;
-            default:
-                category = 'Content';
-                label = model.get('id')
-                break;
+                case 'product':
+                    category = 'Product';
+                    sku = model.get('sku');
+                    label = sku ? sku+' '+model.get('name') : model.get('name');
+                    break;
+                default:
+                    category = 'Content';
+                    label = model.get('id')
+                    break;
             }
 
             if (isPreview) {
@@ -171,6 +115,21 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
             };
         };
 
+    module.trackEvent = function (o) {
+        // category       - type of object that was acted on
+        // action         - type of action that took place (e.g. share, preview)
+        // label          - Data specific to event (e.g. product, URL)
+        // value          - Optional numeric data
+        // nonInteraction - if true, don't count in bounce rate
+        //                  by default, events are interactive
+
+        // https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference
+        var nonInteraction = o.nonInteraction || false;
+
+        addItem('send', 'event', o.category, o.action, o.label,
+                o.value || undefined, {'nonInteraction': nonInteraction});
+    };
+
     /**
      * Top-level event binding wrapper. all events bubble up to this level.
      *
@@ -180,14 +139,14 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
      * @constructor
      * @type {*}
      */
-    this.EventManager = Backbone.View.extend({
+    module.EventManager = Backbone.View.extend({
         'el': $window.add($document),
         'initialize': function (bindings) {
-            var self = this;
+            var _this = this;
             _.each(bindings, function (func, key, l) {
                 var event = key.substr(0, key.indexOf(' ')),
                     selectors = key.substr(key.indexOf(' ') + 1);
-                self.$el.on(event, selectors, func);
+                _this.$el.on(event, selectors, func);
                 console.debug('regEvent ' + key);
             });
         }
@@ -201,7 +160,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
      *
      * @returns undefined
      */
-    this.registerFacebookListeners = function () {
+    module.registerFacebookListeners = function () {
         if (!window.FB) {
             return;
         }
@@ -224,7 +183,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
             model = App.discovery.collection.get(modelId);
             trackingInfo = getTrackingInformation(model, isPreview);
 
-            trackEvent({
+            module.trackEvent({
                 'category': trackingInfo.category,
                 'action': 'Facebook',
                 'label': trackingInfo.label
@@ -240,7 +199,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
      *
      * @returns undefined
      */
-    this.registerTwitterListeners = function () {
+    module.registerTwitterListeners = function () {
         if (!window.twttr) {
             return;
         }
@@ -263,7 +222,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
                 model = App.discovery.collection.get(modelId);
                 trackingInfo = getTrackingInformation(model, isPreview);
 
-                trackEvent({
+                module.trackEvent({
                     'category': trackingInfo.category,
                     'action': 'Twitter',
                     'label': trackingInfo.label
@@ -282,7 +241,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
      * @param event {Object}        a youtube event object.
      * @returns undefined
      */
-    this.videoPlay = function (videoId, event) {
+    module.videoPlay = function (videoId, event) {
 
         // TODO: Do we only want to measure one event per video?
         if (videosPlayed.indexOf(videoId) > -1) {
@@ -293,7 +252,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
         if (event.data === window.YT.PlayerState.PLAYING) {
             videosPlayed.push(videoId);
 
-            trackEvent({
+            module.trackEvent({
                 'category': 'Content',
                 'action': 'Video Play',
                 'label': videoId
@@ -307,8 +266,8 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
      * @param category {String}   The category switched to
      * @returns undefined
      */
-    this.changeCategory = function (category) {
-        trackEvent({
+    module.changeCategory = function (category) {
+        module.trackEvent({
             'category': 'category',
             'action': 'select',
             'label': category
@@ -319,17 +278,76 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
             'type': 'dimension',
             'value': category
         });
-
-        App.vent.trigger('trackerChangeCategory', category, this);
     };
+
+    module.findStoreClick = function (model) {
+        var trackingInfo = getTrackingInformation(model, true);
+
+        module.trackEvent({
+            'category': trackingInfo.category,
+            'action': 'Product Find Store',
+            'label': trackingInfo.label
+        });
+    };
+
+    module.buyClick = function (model) {
+        var trackingInfo = getTrackingInformation(model, true);
+
+        module.trackEvent({
+            'category': trackingInfo.category,
+            'action': 'Product Purchase Click',
+            'label': trackingInfo.label
+        });
+    };
+
+    module.thumbnailClick = function (model) {
+        var trackingInfo = getTrackingInformation(model, true),
+            sku = model.get('sku'),
+            label = sku ? sku+' '+model.get('name') : model.get('name');
+
+        module.trackEvent({
+            'category': trackingInfo.category,
+            'action': 'Product Thumbnail Click',
+            'label': label || trackingInfo.label
+        });
+    };
+
+    module.imageView = function (model) {
+        var trackingInfo = getTrackingInformation(model, true);
+
+        module.trackEvent({
+            'category': trackingInfo.category,
+            'action': 'Product Image Click',
+            'label': trackingInfo.label
+        });
+    };
+
+    module.pageScroll = _.throttle(
+        function () {
+            var pageHeight = $(window).innerHeight(),
+                windowTop = $(window).scrollTop(),
+                page = Math.floor(windowTop / pageHeight);
+            
+            if (page > pagesScrolled) {
+                module.trackEvent({
+                    'category': 'Page',
+                    'action': 'scroll',
+                    'label': page
+                });
+            }
+            pagesScrolled = page;
+        }, 2000);
 
     // Generally, we have views handle event tracking on their own.
     // However, it can be expensive to bind events to every single view.
     // So, to avoid the performance penalty, we do most of our tracking via
     // delegated events.
 
+    // Hook to add on tracking events for the page
+    module.pageEventMap = {};
+
     // Backbone format: { '(event) (selectors)': function(ev), ...  }
-    this.defaultEventMap = {
+    module.defaultEventMap = {
         // Events that we care about:
         // Content Preview
         // Product Preview
@@ -354,12 +372,12 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
                 label += ' (Tile ' + tileId + ')';
 
                 // add click to our database
-                App.vent.trigger('tracking:trackTileClick', tileId);
+                App.vent.trigger('tracking:tile:click', tileId);
             } else {
                 console.warn('No tile id present for for tile: ' + label);
             }
 
-            trackEvent({
+            module.trackEvent({
                 'category': trackingInfo.category,
                 'action': $(this).hasClass('banner') ? 'Purchase' : 'Preview',
                 'label': label
@@ -393,7 +411,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
             classes = $(this).getClasses();
             network = _.first(_.without(classes, 'button'));
 
-            trackEvent({
+            module.trackEvent({
                 'category': trackingInfo.category,
                 'action': network,
                 'label': trackingInfo.label
@@ -403,73 +421,13 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
         // Content Play (Video)
         // Note:    Handled by `videoStateChange`
 
-        // Purchase Actions (Buy / Find in Store)
-        // buy now event
-        'click .buy .button': function () {
-            var modelId, model, trackingInfo, $previewContainer, isPreview;
-
-            App.vent.trigger('buyClick');
-
-            // A bit fragile, but should do
-            $previewContainer = $(this).parents('.template.target > div');
-            isPreview = $previewContainer.length > 0;
-
-            if (isPreview) {
-                modelId = $previewContainer.attr('id') || '';
-                modelId = modelId.replace('preview-', ''); // Remove prefix, if present
-            } else {
-                modelId = $(this).parents('.tile').attr('id');
-            }
-
-            model = App.discovery.collection.get(modelId);
-            trackingInfo = getTrackingInformation(model, isPreview);
-
-            trackEvent({
-                'category': trackingInfo.category,
-                'action': 'Purchase',
-                'label': trackingInfo.label
-            });
-        },
-
-        // TODO: Fragile selector
-        'click .find-store, .in-store': function (e) {
-            var modelId, model, trackingInfo, $previewContainer, action,
-                $button = $(e.currentTarget),
-                isFindStore = $button.hasClass('find-store'),
-                isInStore = $button.hasClass('in-store');
-
-            // Honestly, what's the difference between these two?
-            // Is one a purchase? Is one a clickthrough?
-            //      'Find in Store'
-            //      'Shop on GAP.com'
-            if (isFindStore) {
-                App.vent.trigger('findStoreClick', $button);
-                action = 'Find in Store';
-            }
-            if (isInStore) {
-                App.vent.trigger('inStoreClick', $button);
-                action = 'Purchase';
-            }
-
-            $previewContainer = $(this).parents('.template.target > div');
-            model = App.previewArea.currentView.model;
-            trackingInfo = getTrackingInformation(model, true);
-
-            trackEvent({
-                'category': trackingInfo.category,
-                'action': action,
-                'label': trackingInfo.label
-            });
-        },
-
-
         // Content Impressions
         // Product Impressions
 
         // Exit
         'click header a': function (ev) {
             var link = $(this).attr('href');
-            trackEvent({
+            module.trackEvent({
                 'category': 'Header',
                 'action': 'Clickthrough', // Exit?
                 'label': link
@@ -478,47 +436,20 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
 
         'click #hero-area a': function (ev) {
             var link = $(this).attr('href');
-            trackEvent({
+            module.trackEvent({
                 'category': 'Hero Area',
                 'action': 'Clickthrough', // Exit?
                 'label': link
             });
         },
-
-        // Extension Points
-
-        // TODO: Any event below this is likely subject to deletion
-        // reset tracking scope: hover into featured product area
-        'hover .featured': function () {
-            // this = window because that's what $el is
-            App.vent.trigger('featuredHover');
-        },
-
-        'hover .tile': function (ev) {
-            // this = window because that's what $el is
-            App.vent.trigger('tileHover', ev.currentTarget);
-        },
-
-        'click .previewContainer .close': function () {
-            App.vent.trigger('popupClosed');
-        },
-
-        'hover .social-buttons .button': function (e) {
-            var $button = $(e.currentTarget);
-            App.vent.trigger('socialButtonHover', $button);
-        }
     };
-
-    // more events can be declared by the theme without EventManager instances
-    $.extend(true, this.defaultEventMap,
-             App.option('eventMap', {}));
 
     /**
      * Add an initializer to fetch Google Analytics
      * asynchronously.
      *
      */
-    this.addInitializer(function () {
+    module.addInitializer(function () {
         // this (verbatim) code creates window.ga
         /* jshint ignore:start */
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -533,7 +464,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
      * asynchronously.
      *
      */
-    this.addInitializer(function() {
+    module.addInitializer(function() {
         var Keen = window.Keen = Keen || {
             configure: function (e) {
                 this._cf = e;
@@ -578,7 +509,7 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
      * Sets up default tracking events.
      *
      */
-    this.initialize = function () {
+    module.initialize = function () {
         var gaAccountNumber = App.option('store:gaAccountNumber', false) || App.option('page:gaAccountNumber', 'UA-23764505-25');
         addItem('create', gaAccountNumber, 'auto');
 
@@ -619,9 +550,10 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
             'value': App.option('page:id')
         });
 
+        // more events can be declared by the theme without EventManager instances
+        eventMap = $.extend(true, {}, module.defaultEventMap, module.pageEventMap);
         // register event maps
-        var defaults = new this.EventManager(this.defaultEventMap),
-            customs = new this.EventManager(App.option('events'));
+        eventManager = new module.EventManager(eventMap);
 
         App.vent.trigger('trackerInitialized', this);
         // setTrackingDomHooks() on $.ready
@@ -629,12 +561,17 @@ module.exports = function (tracker, App, Backbone, Marionette, $, _) {
 
     // add mediator triggers if the module exists.
     App.vent.on({
-        'tracking:trackEvent': trackEvent,
-        'tracking:trackTileView': trackTileView,
-        'tracking:trackTileClick': trackTileClick,
-        'tracking:registerTwitterListeners': this.registerTwitterListeners,
-        'tracking:registerFacebookListeners': this.registerFacebookListeners,
-        'tracking:videoPlay': this.videoPlay,
-        'tracking:changeCampaign': this.changeCampaign
+        'tracking:trackEvent': module.trackEvent,
+        'tracking:registerTwitterListeners': module.registerTwitterListeners,
+        'tracking:registerFacebookListeners': module.registerFacebookListeners,
+        'tracking:videoPlay': module.videoPlay,
+        'tracking:changeCampaign': module.changeCampaign,
+        'tracking:changeCategory': module.changeCategory,
+        'tracking:product:buyClick': module.buyClick,
+        'tracking:product:findStoreClick': module.findStoreClick,
+        'tracking:product:thumbnailClick': module.thumbnailClick,
+        'tracking:product:imageView': module.imageView,
+        'tracking:feed:scroll': module.pageScroll
+
     });
 };

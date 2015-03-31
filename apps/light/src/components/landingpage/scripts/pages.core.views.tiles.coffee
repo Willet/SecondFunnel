@@ -198,7 +198,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.addClass "full"
 
             # add view to our database
-            App.vent.trigger "tracking:trackTileView", @model.get("tile-id")
+            App.vent.trigger("tracking:tile:view", @model.get("tile-id"))
             return
 
 

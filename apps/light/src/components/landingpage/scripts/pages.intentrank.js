@@ -251,10 +251,11 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     /**
-     * @param {Array} results
+     * Dummy method
+     *
      * @return this
      */
-    this.set = function (results) {
+    module.set = function (results) {
         return module;
     };
 
@@ -316,8 +317,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             // generally this should be undefined
             module._IRTileSet = catObj['tileSet'] || undefined;
             module.options.IRReset = true;
-            App.tracker.changeCategory(category);
-
+            
+            App.vent.trigger('tracking:changeCategory', category);
             if (!silent) {
                 App.vent.trigger('change:category', category, category);
             }
