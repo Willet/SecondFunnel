@@ -23,35 +23,35 @@
   "stickyCategories":false,
   "categories":[
     {
-      "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/allmothersdaygifts_jfrjua.png",
+      "mobileHeroImage":"",
       "subCategories":[
         {
-          "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaytop25giftsmom_bftc2k.png",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaytop25giftsmom_bftc2k.png",
+          "mobileHeroImage":"",
+          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760099/MothersDayTop25GiftsMom_green_j1xeld.jpg",
           "displayName":"Top 25",
           "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/Top25GiftsMom_steamgrill_bnsodg.jpg",
           "name":"top-25",
           "tileSet": "products"
         },
         {
-          "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaygiftsunder50_csj7xu.png",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaygiftsunder50_csj7xu.png",
+          "mobileHeroImage":"",
+          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/MothersDayGiftsUnder50_green_jbn8ad.jpg",
           "displayName":"Under $50",
           "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/GiftsUnder50_apron_glbpne.jpg",
           "name":"under-50",
           "tileSet": "products"
         },
         {
-          "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaygiftsunder100_xib5zg.png",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaygiftsunder100_xib5zg.png",
+          "mobileHeroImage":"",
+          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/MothersDayGiftsUnder100_green_pjny8l.jpg",
           "displayName":"Under $100",
           "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/GiftsUnder100_skillet_hcqjpw.jpg",
           "name":"under-100",
           "tileSet": "products"
         },
         {
-          "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892662/GourmetGiftsforMom_cnevtl.jpg",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892662/GourmetGiftsforMom_cnevtl.jpg",
+          "mobileHeroImage":"",
+          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/GourmetGiftsforMom_green_stnbtt.jpg",
           "displayName":"Gourmet",
           "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/GiftsForMom_kitchenaid_fjhmiz.jpg",
           "name":"gourmet",
@@ -60,23 +60,23 @@
       ],
       "displayName":"<i>Mother\u2019s Day</i> GIFT SHOPS",
       "name":"mothersday",
-      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/allmothersdaygifts_jfrjua.png",
+      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760098/AllMothersDayGifts_green_lrcxtv.jpg",
       "tileSet": "products"
     },
     {
-      "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaybakingrecipes_sgpwf3.png",
+      "mobileHeroImage":"",
       "subCategories":[
         {
-          "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaybakingrecipes_sgpwf3.png",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaybakingrecipes_sgpwf3.png",
+          "mobileHeroImage":"",
+          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/MothersDayBakingRecipes_green_nyjzqq.jpg",
           "displayName":"Baking",
           "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/BakingRecipes_lavender_macarons_ogxrk9.jpg",
           "name":"baking",
           "tileSet": "content"
         },
         {
-          "mobileHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaybrunchrecipes_ccmvso.png",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaybrunchrecipes_ccmvso.png",
+          "mobileHeroImage":"",
+          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/MothersDayBrunchRecipes_green_iz57lz.jpg",
           "displayName":"Brunch",
           "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/BrunchRecipes_eggs_benedict_fat4qs.jpg",
           "name":"brunch",
@@ -85,7 +85,7 @@
       ],
       "displayName":"<i>Mother\u2019s Day</i> RECIPES",
       "name":"recipes",
-      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaybakingrecipes_sgpwf3.png",
+      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760033/all_recipes_ussowd.png",
       "tileSet": "content"
     }
   ]
