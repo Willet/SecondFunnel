@@ -109,6 +109,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
             @lookProductIndex = $targetEl.data("index")
             @updateCarousel()
+            
+            product = new App.core.Product(@model.get("tagged-products")[@lookProductIndex])
+            App.vent.trigger('tracking:product:thumbnailClick', product)
             return
 
         'click .stl-swipe-down, .stl-swipe-up': (ev) ->

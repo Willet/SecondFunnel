@@ -34,6 +34,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @galleryIndex = $selectedItem.data("index")
                 @scrollImages(@mainImage.width()*@galleryIndex)
                 @updateGallery()
+
+                App.vent.trigger("tracking:product:imageView", @model)
                 return
 
             'click .gallery-swipe-left, .gallery-swipe-right': (ev) ->
@@ -45,6 +47,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         @galleryIndex = Math.min(@galleryIndex + 1, @numberOfImages - 1)
                     @scrollImages(@mainImage.width()*@galleryIndex)
                     @updateGallery()
+
+                    App.vent.trigger("tracking:product:imageView", @model)
                 return
 
             'click .buy': (ev) ->
@@ -59,9 +63,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return false
 
                 if $target.hasClass('find-store')
-                    App.vent.trigger('tracking:product:findStore', @model)
-                else if $target.hasClass('in-store') or $target.hasClass('button')
-                    App.vent.trigger('tracking:product:buyOnline', @model)
+                    App.vent.trigger('tracking:product:findStoreClick', @model)
+                else
+                    App.vent.trigger('tracking:product:buyClick', @model)
 
                 # Over-write addUrlTrackingParameters for each customer
                 url = App.utils.addUrlTrackingParameters( $target.attr('href') )
@@ -296,6 +300,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if App.support.mobile()
                     $('body').scrollTo(".cell.info", 500)
                 @productInfo.show(productInstance)
+
+                App.vent.trigger('tracking:product:thumbnailClick', productModel)
                 return
         
         onBeforeRender: ->
