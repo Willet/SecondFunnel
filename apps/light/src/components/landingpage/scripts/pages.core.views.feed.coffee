@@ -91,21 +91,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     pageBottomPos >= documentBottomPos - viewportHeights
                 @fetchTiles()
 
-            # TODO: this is global tracking stuff, really does not need to be on this view
-            # Did the user scroll ever ?
+            # Track scroll
             if $(window).scrollTop() > 0
-                App.vent.trigger 'tracking:trackEvent',
-                    category: 'visit'
-                    action: 'scroll'
-
-            # TODO: this is global tracking stuff, really does not need to be on this view
-            # how many pages did the user scroll
-            if (windowTop / pageHeight) > @pagesScrolled
-                App.vent.trigger 'tracking:trackEvent',
-                    category: 'visit'
-                    action: 'scroll'
-                    label: @pagesScrolled
-                @pagesScrolled++
+                App.vent.trigger('tracking:feed:scroll')
 
             if windowTop > @lastScrollTop
                 App.vent.trigger('scrollDown', @)
@@ -128,7 +116,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # serve orientation change event via vent
             $(window).on 'rotate', globals.orientationChangeHandler
-
+        
         detachListeners: ->
             # detach global listeners
             globals = App._globals

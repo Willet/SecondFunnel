@@ -458,12 +458,12 @@ body {
         > span {
             display: inline-block;
             padding-top: 5px;
-            font-size: 26px;
-            font-style: italic;
+            font-size: 28px;
+            font-weight: lighter;
             white-space: nowrap;
             text-align: center;
             text-transform: none;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.07em;
             @include no-select;
             &:after {
                 content: '\00bb';
@@ -822,7 +822,7 @@ body {
         .image, .description {
             display: inline-block;
             vertical-align: top;
-            width: 99.93%;
+            width: 100%;
         }
         .image {
             background-size: cover;
@@ -1165,6 +1165,14 @@ body {
             .info, .look-image-container {
                 height: 100% !important;
             }
+            .look-product-carousel {
+                width: 80%;
+                height: 100%;
+                float: right;
+                .info, .look-image-container {
+                    width: 100% !important;
+                }
+            }
             .gallery-main-image {
                 .main-image-container {
                     height: 100%;
@@ -1261,12 +1269,19 @@ body {
             padding: 0 !important;
             position: relative;
         }
+        .look-product-carousel {
+            width: 100%;
+            height: 72%;
+            .info, .look-image-container {
+                height: 100% !important;
+            }
+        }
         .tagged-product.row {
             .description {
                 width: 100%;
                 height: 28%;
                 overflow: auto;
-                padding: 0 22pxpx;
+                padding: 4px 14px 0;
                 text-align: left;
                 font-size: 12px;
                 line-height: 22px;

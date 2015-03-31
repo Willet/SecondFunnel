@@ -91,7 +91,7 @@
         </div>
     </div>
 
-    <div class="second-nav-area">
+    <div class="second-nav-area desktop-only">
 		<div class="topNavWrapper ">
             <span class="dropdown-label"> Gift Registry</span>
             <div class="navDropdown">
@@ -198,7 +198,7 @@
         </div>
     </div>
 
-    <div class="topProductPrimNav second-nav-area">
+    <div class="topProductPrimNav second-nav-area desktop-only">
         <!-- begin 1 -->
         <div class="topNavWrapper">
             <span class="dropdown-label">Cooking</span>
@@ -1407,22 +1407,24 @@
         </script>
 
         <script type="text/template" id="mobile_tagged_products">
-            <div class="cell look-image-container">
-                <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
-                <div class="recipe-container">
-                    <div class="title">
-                        <% include("product_title_template") %>
-                    </div>
-                    <div class="recipe">
-                        <%= obj.description %>
-                    </div>
-                    <div class="scroll-cta">
-                        Scroll to see more
+            <div class="look-product-carousel">
+                <div class="cell look-image-container">
+                    <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
+                    <div class="recipe-container">
+                        <div class="title">
+                            <% include("product_title_template") %>
+                        </div>
+                        <div class="recipe">
+                            <%= obj.description %>
+                        </div>
+                        <div class="scroll-cta">
+                            Scroll to see more
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="cell info">
-                <div class="product-info"></div>
+                <div class="cell info">
+                    <div class="product-info"></div>
+                </div>
             </div>
             <div class="cell shop">
                 <% if (obj['tagged-products'].length > 0) { %>
@@ -1477,7 +1479,7 @@
         <script type="text/template" id="category_template">
             <span data-name="<%- obj.name %>">
                 <% if (obj.displayName) { %>
-                    <%- obj.displayName %>
+                    <%= obj.displayName %>
                 <% } else { %>
                     <%- obj.name %>
                 <% } %>
