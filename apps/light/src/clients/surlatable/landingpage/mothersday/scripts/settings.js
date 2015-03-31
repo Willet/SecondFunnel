@@ -58,7 +58,7 @@
           "tileSet": "products"
         }
       ],
-      "displayName":"Gifts for Mom",
+      "displayName":"<i>Mother\u2019s Day</i> GIFT SHOPS",
       "name":"mothersday",
       "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/allmothersdaygifts_jfrjua.png",
       "tileSet": "products"
@@ -83,7 +83,7 @@
           "tileSet": "content"
         }
       ],
-      "displayName":"Mother\u2019s Day Recipes",
+      "displayName":"<i>Mother\u2019s Day</i> RECIPES",
       "name":"recipes",
       "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1426905789/mothersdaybakingrecipes_sgpwf3.png",
       "tileSet": "content"
