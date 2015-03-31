@@ -31,7 +31,9 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     // in the page url right now.
 
     $(document).on('click', 'a', function (ev) {
-        App.utils.openUrl(ev.target.href, ev.target.target);
+        // ev.target can be a child element
+        // this === ev.currentTarget
+        App.utils.openUrl(this.href, this.target);
         return false; // stop default action
     });
 }(document));
