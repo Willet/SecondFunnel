@@ -458,12 +458,12 @@ body {
         > span {
             display: inline-block;
             padding-top: 5px;
-            font-size: 26px;
-            font-style: italic;
+            font-size: 28px;
+            font-weight: lighter;
             white-space: nowrap;
             text-align: center;
             text-transform: none;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.07em;
             @include no-select;
             &:after {
                 content: '\00bb';
