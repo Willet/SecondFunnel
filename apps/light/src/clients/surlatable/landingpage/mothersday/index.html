@@ -1385,23 +1385,7 @@
             <div class="cell shop">
                 <% if (obj['tagged-products'].length > 0) { %>
                     <div class="stl-title">Perfect Gifts For This Recipe</div>
-                    <div class="stl-carousel">
-                        <div class="stl-swipe-left"></div>
-                        <div class="stl-swipe-right"></div>
-                        <div class="stl-look-container">
-                            <div class="stl-look">
-                                <% var  related = obj['tagged-products'] %>
-                                <% for (var i = 0; i < related.length; i++) { %>
-                                    <div class="stl-item" data-index="<%- i %>">
-                                        <img src="<%- related[i].images[0].url %>" class="image" />
-                                        <div class="name">
-                                            <%- related[i].title || related[i].name %>
-                                        </div>
-                                    </div>
-                                <% } %>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="carousel-region"></div>
                 <% } %>
             </div>
         </script>
@@ -1429,26 +1413,30 @@
             <div class="cell shop">
                 <% if (obj['tagged-products'].length > 0) { %>
                     <div class="stl-title">Perfect Gifts For This Recipe</div>
-                    <div class="stl-carousel">
-                        <div class="stl-swipe-left"></div>
-                        <div class="stl-swipe-right"></div>
-                        <div class="stl-swipe-up"></div>
-                        <div class="stl-swipe-down"></div>
-                        <div class="stl-look-container">
-                            <div class="stl-look">
-                                <div class="look-thumbnail">
-                                    <img src="<%= image_src %>" class="image"/>
-                                </div>
-                                <% var  related = obj['tagged-products'] %>
-                                <% for (var i = 0; i < related.length; i++) { %>
-                                    <div class="stl-item" data-index="<%- i %>">
-                                        <img src="<%- related[i].images[0].url %>" class="image" />
-                                    </div>
-                                <% } %>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="carousel-region"></div>
                 <% } %>
+            </div>
+        </script>
+
+        <script type="text/template" id="carousel_template">
+            <div class="stl-carousel carousel-view">
+                <div class="stl-swipe-left carousel-swipe-left"></div>
+                <div class="stl-swipe-right carousel-swipe-right"></div>
+                <div class="stl-swipe-up"></div>
+                <div class="stl-swipe-down"></div>
+                <div class="stl-look-container carousel-container">
+                    <div class="stl-look carousel-slide">
+                        <div class="look-thumbnail">
+                            <img src="<%= obj.attributes['lookImageSrc'] %>" class="image"/>
+                        </div>
+                        <% var  related = obj.items %>
+                        <% for (var i = 0; i < related.length; i++) { %>
+                            <div class="stl-item" data-index="<%- i %>">
+                                <img src="<%- related[i].images[0].url %>" class="image" />
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
             </div>
         </script>
 
