@@ -61,6 +61,8 @@
 - name: Build Node Modules
   npm: path="{{application_directory}}/apps/light"
   sudo: true
+  async: 3600
+  poll: 15
 
 - name: Install Javascript and Light Dependencies
   command: chdir="{{application_directory}}/apps/light" bower install
