@@ -73,6 +73,7 @@
     "pages.core.models": "./src/components/landingpage/scripts/pages.core.models.coffee",
     "pages.core.views": "./src/components/landingpage/scripts/pages.core.views.coffee",
     "pages.core.views.feed": "./src/components/landingpage/scripts/pages.core.views.feed.coffee",
+    "pages.core.views.preview": "./src/components/landingpage/scripts/pages.core.views.preview.coffee",
     "pages.core.views.tiles": "./src/components/landingpage/scripts/pages.core.views.tiles.coffee",
     "pages.init": "./src/components/landingpage/scripts/pages.init.js",
     "pages.intentrank": "./src/components/landingpage/scripts/pages.intentrank.js",

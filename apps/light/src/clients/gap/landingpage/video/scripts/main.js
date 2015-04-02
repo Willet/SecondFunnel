@@ -33,6 +33,8 @@ App.start();
             App.options.urlParams.tid = "gpem000070";
         } else if (adcta === 'shop') {
             App.options.urlParams.tid = "gpem000071";
+        } else if (adcta === 'watchnowfb') {
+            App.options.urlParams.tid = "gpem000075";
         } else {
             // default
             App.options.urlParams.tid = "gpem000072";
