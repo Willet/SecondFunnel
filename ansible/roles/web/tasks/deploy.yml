@@ -63,14 +63,14 @@
   sudo: true
 
 - name: Install Javascript and Light Dependencies
-  command: bower install
-  args:
-    chdir: "{{application_directory}}/apps/light"
+  command: chdir="{{application_directory}}/apps/light" bower install
+  async: 3600
+  poll: 15
 
 - name: Run Gulp to build pages and static assets
-  command: gulp build
-  args:
-    chdir: "{{application_directory}}/apps/light"
+  command: chdir="{{application_directory}}/apps/light" gulp build
+  async: 3600
+  poll: 15
 
 - name: Migration of database, etc
   shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
