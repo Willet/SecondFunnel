@@ -290,17 +290,27 @@ class CategoryPipeline(object):
 
 class TileCreationPipeline(object):
     def process_item(self, item, spider):
-        if item.get('force_skip_tiles', False):
+        recreate_tiles = getattr(spider, 'recreate_tiles', False)
+        skip_tiles = {
+            'spider': getattr(spider, 'skip_tiles', False),
+            'item': item.get('force_skip_tiles', False),
+        }
+
+        if True in skip_tiles:
+            spider.log('Skipping tile creation. \
+                        spider.skip_tiles: {spider}, \
+                        item.force_skip_tiles: {item}'.format(**skip_tiles))
+            return item
+        else:
+            feed_ids = getattr(spider, 'feed_ids', [])
+
+            for feed_id in feed_ids:
+                spider.log("Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
+                self.add_to_feed(item, feed_id, recreate_tiles)
+
             return item
 
-        feed_ids = getattr(spider, 'feed_ids', [])
-
-        for feed_id in feed_ids:
-            self.add_to_feed(item, feed_id)
-
-        return item
-
-    def add_to_feed(self, item, feed_id):
+    def add_to_feed(self, item, feed_id, recreate_tiles=False):
         try:
             feed = Feed.objects.get(id=feed_id)
         except Feed.DoesNotExist:
@@ -311,15 +321,21 @@ class TileCreationPipeline(object):
         except TypeError:
             return
 
-        django_item, _ = get_or_create(item_model)
+        item_obj, created = get_or_create(item_model)
 
-        feed.add(obj=django_item)
+        if not created and recreate_tiles:
+            spider.log("Recreating tile for <{}> {}".format(item_obj, item.get('name')))
+            feed.remove(item_obj)
+
+        feed.add(item_obj)
 
 
 class ProductImagePipeline(object):
     def process_item(self, item, spider):
         remove_background = getattr(spider, 'remove_background', False)
-        if isinstance(item, ScraperProduct):
+        skip_images = getattr(spider, 'skip_images', False)
+
+        if isinstance(item, ScraperProduct) and not skip_images:
             successes = 0
             failures = 0
             for image_url in item.get('image_urls', []):
@@ -341,6 +357,8 @@ class ProductImagePipeline(object):
             spider.log('Processed {} images'.format(successes))
             if failures:
                 spider.log('{} images failed processing'.format(failures))
+        else:
+            spider.log('Skipping product images. item: <{}>, spider.skip_images: {}'.format(item.__class__.__name__, skip_images))
         return item
 
     def process_product_image(self, item, image_url, remove_background=False):
