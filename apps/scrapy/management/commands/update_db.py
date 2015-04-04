@@ -44,8 +44,7 @@ class Command(BaseCommand):
             'skip_images': not options['update_images'],
             'skip_tiles': True,
         }
-
-        # To fully implement the --create-tiles option
+        
         start_urls = []
         for tile in feed.tiles.all():
             if tile.product:
