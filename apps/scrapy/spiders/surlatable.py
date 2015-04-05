@@ -42,7 +42,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             self._rules = []
             return self.parse_recipe(response)
         else:
-            self.log("Not a product or recipe page: {}".format(response.url))
+            self.log(u"Not a product or recipe page: {}".format(response.url))
 
         return []
 
@@ -59,14 +59,14 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         return False
 
     def clean_surlatable_url(self, url):
-        clean_url = re.match(r'(?:http://|https://)?(www\.surlatable\.com/product/(?:REC|PRO)-\d+/).*?',
+        clean_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/product/(?:REC|PRO)-\d+/).*?',
                              url).group(1)
-        log.msg("Cleaned url '{}' into '{}'".format(url, clean_url))
+        log.msg(u"Cleaned url '{}' into '{}'".format(url, clean_url))
         return clean_url
         
     def parse_product(self, response, force_skip_tiles=False, force_skip_images=False):
         if not self.is_product_page(response):
-            log.msg('Not a product page: {}'.format(response.url))
+            log.msg(u"Not a product page: {}".format(response.url))
             return
         
         skip_images = (self.skip_images or force_skip_images)
@@ -96,7 +96,8 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             sku = re.search(r'\d+', prod_id).group()
             l.add_value('sku', sku)
         except (IndexError, AttributeError):
-            raise SoldOut(response.url)
+            #raise SoldOut(response.url)
+            pass
 
         # prices are sometimes in the forms:
         #    $9.95 - $48.96
@@ -152,7 +153,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     def parse_recipe(self, response, force_skip_tiles=False, force_skip_images=False):
         if not self.is_recipe_page(response):
-            log.msg('Not a recipe page: {}'.format(response.url))
+            log.msg(u"Not a recipe page: {}".format(response.url))
             return
         skip_images = (self.skip_images or force_skip_images)
         skip_tiles = (self.skip_tiles or force_skip_tiles)

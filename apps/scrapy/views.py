@@ -62,7 +62,7 @@ def scrape(request, page_slug):
 
         crawler.crawl(spider)
         scrapy_log.start()
-        scrapy_log.msg('Starting spider with options: {}'.format(opts))
+        scrapy_log.msg(u"Starting spider with options: {}".format(opts))
         crawler.start()
 
         reactor.run()

@@ -278,13 +278,13 @@ class CategoryPipeline(object):
         category.save()
 
     def compress_duplicate_categories(self, categories):
-        spider.log("Compressing duplicate categories: {}".format(categories))
+        spider.log(u"Compressing duplicate categories: {}".format(categories))
         category = categories[0]
-        spider.log("\tKeeping: <Category {} {}>".format(category.id, category.name))
+        spider.log(u"\tKeeping: <Category {} {}>".format(category.id, category.name))
         for dup in categories[1:]:
             category.products.add(*dup.products.all())
-            spider.log("\tTansferred {} products".format(dup.products.all()))
-            spider.log("\tDeleting: <Category {} {}>".format(dup.id, dup.name))
+            spider.log(u"\tTansferred {} products".format(dup.products.all()))
+            spider.log(u"\tDeleting: <Category {} {}>".format(dup.id, dup.name))
             dup.delete()
 
 
@@ -297,15 +297,15 @@ class TileCreationPipeline(object):
         }
 
         if True in skip_tiles:
-            spider.log('Skipping tile creation. \
+            spider.log(u"Skipping tile creation. \
                         spider.skip_tiles: {spider}, \
-                        item.force_skip_tiles: {item}'.format(**skip_tiles))
+                        item.force_skip_tiles: {item}".format(**skip_tiles))
             return item
         else:
             feed_ids = getattr(spider, 'feed_ids', [])
 
             for feed_id in feed_ids:
-                spider.log("Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
+                spider.log(u"Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
                 self.add_to_feed(item, feed_id, recreate_tiles)
 
             return item
@@ -324,7 +324,7 @@ class TileCreationPipeline(object):
         item_obj, created = get_or_create(item_model)
 
         if not created and recreate_tiles:
-            spider.log("Recreating tile for <{}> {}".format(item_obj, item.get('name')))
+            spider.log(u"Recreating tile for <{}> {}".format(item_obj, item.get('name')))
             feed.remove(item_obj)
 
         feed.add(item_obj)
@@ -354,11 +354,11 @@ class ProductImagePipeline(object):
                 product.in_stock = False
                 product.save()
 
-            spider.log('Processed {} images'.format(successes))
+            spider.log(u"Processed {} images".format(successes))
             if failures:
-                spider.log('{} images failed processing'.format(failures))
+                spider.log(u"{} images failed processing".format(failures))
         else:
-            spider.log('Skipping product images. item: <{}>, spider.skip_images: {}'.format(item.__class__.__name__, skip_images))
+            spider.log(u"Skipping product images. item: <{}>, spider.skip_images: {}".format(item.__class__.__name__, skip_images))
         return item
 
     def process_product_image(self, item, image_url, remove_background=False):
