@@ -40,21 +40,29 @@ def scrape(request, page_slug):
     page = get_object_or_404(Page, url_slug=page_slug)
     def process(request, store_slug):
         category = request.GET.get('category')
-        urls = json.loads(urlparse.unquote(request.GET.get('urls')))
-        tiles = request.GET.get('tiles')
+        start_urls = json.loads(urlparse.unquote(request.GET.get('urls')))
+        tiles = bool(request.GET.get('tiles') == 'true')
         feeds = [Page.objects.get(url_slug=request.GET.get('page')).feed.id] if tiles else []
+        opts = {
+            'recreate_tiles': False,
+            'skip_images': False,
+            'skip_tiles': not tiles,
+        }
 
+        # set up standard framework for running spider in a script
         settings = get_project_settings()
         crawler = Crawler(settings)
         crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
         crawler.configure()
 
-        spider = crawler.spiders.create(store_slug)
-        spider.start_urls = urls
-        spider.categories = [category]
+        spider = crawler.spiders.create(store_slug, **opts)
+        spider.start_urls = start_urls
+        spider.categories = [category] if category else []
         spider.feed_ids = feeds
+
         crawler.crawl(spider)
         scrapy_log.start()
+        scrapy_log.msg(u"Starting spider with options: {}".format(opts))
         crawler.start()
 
         reactor.run()

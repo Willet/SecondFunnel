@@ -22,6 +22,13 @@ class SecondFunnelScraper(object):
         if kwargs.get('categories'):
             self.categories = kwargs.get('categories').split(',')
 
+        # Recreate existing tiles
+        self.recreate_tiles = kwargs.get('recreate_tiles', False)
+        # Skip creation of new tiles
+        self.skip_tiles = kwargs.get('skip_tiles', False)
+        # Skip processing of images (and if spider supports it, scraping of images)
+        self.skip_images = kwargs.get('skip_images', False)
+
 
 class SecondFunnelCrawlScraper(SecondFunnelScraper):
 
