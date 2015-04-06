@@ -6,7 +6,7 @@ from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy_webdriver.http import WebdriverRequest
 
-from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider, SoldOut
 from apps.scrapy.utils.itemloaders import ScraperContentLoader, ScraperProductLoader
 from apps.scrapy.items import ScraperImage, ScraperProduct
 
@@ -42,7 +42,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             self._rules = []
             return self.parse_recipe(response)
         else:
-            self.log("Not a product or recipe page: {}".format(response.url))
+            self.log(u"Not a product or recipe page: {}".format(response.url))
 
         return []
 
@@ -57,12 +57,20 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     def is_sold_out(self, response):
         return False
-        
-    def parse_product(self, response, force_skip_tiles=False):
-        if not self.is_product_page(response):
-            log.msg('Not a product page: {}'.format(response.url))
-            return
 
+    def clean_surlatable_url(self, url):
+        clean_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/product/(?:REC|PRO)-\d+/).*?',
+                             url).group(1)
+        log.msg(u"Cleaned url '{}' into '{}'".format(url, clean_url))
+        return clean_url
+        
+    def parse_product(self, response, force_skip_tiles=False, force_skip_images=False):
+        if not self.is_product_page(response):
+            log.msg(u"Not a product page: {}".format(response.url))
+            return
+        
+        skip_images = (self.skip_images or force_skip_images)
+        skip_tiles = (self.skip_tiles or force_skip_tiles)
 
         sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
@@ -71,16 +79,24 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         recipe_id = response.meta.get('recipe_id', False)
 
         if recipe_id:
-            force_skip_tiles = True
+            skip_tiles = True
             l.add_value('content_id_to_tag', recipe_id)
 
         # Don't create tiles when gathering products for a recipe
-        l.add_value('force_skip_tiles', force_skip_tiles)
+        l.add_value('force_skip_tiles', skip_tiles)
         
         l.add_css('name', 'h1.name::text')
-        l.add_css('sku', '#productId::attr(value)', re=r'\d+')
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_css('description', '#description .boxsides')
+
+        # If the page doesn't have a sku, the product doesn't exist
+        try:
+            # Product ID usually of form: 'PRO-1220433'
+            prod_id = sel.css('#productId::attr(value)').extract()[0]
+            sku = re.search(r'\d+', prod_id).group()
+            l.add_value('sku', sku)
+        except (IndexError, AttributeError):
+            raise SoldOut(response.url)
 
         # prices are sometimes in the forms:
         #    $9.95 - $48.96
@@ -103,18 +119,24 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_value('in_stock', in_stock)
         l.add_value('price', reg_price)
         l.add_value('attributes', attributes)
-        item = l.load_item()
+        
+        item = l.load_item()  
+        item['url'] = self.clean_surlatable_url(item.get('url'))  
 
-        try:
-            magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
-            xml_path = '/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
-            request = WebdriverRequest(self.root_url + xml_path, callback=self.parse_product_images)
-
-            request.meta['item'] = item
-
-            yield request
-        except IndexError:
+        if skip_images:
             yield item
+        else:
+            try:
+                magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
+                xml_path = '/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
+                request = WebdriverRequest(self.root_url + xml_path, callback=self.parse_product_images)
+
+                request.meta['item'] = item
+
+                yield request
+            except IndexError:
+                yield item
+
 
     def parse_product_images(self, response):
         sel = Selector(response)
@@ -128,15 +150,18 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         yield l.load_item()
 
-    def parse_recipe(self, response):
+    def parse_recipe(self, response, force_skip_tiles=False, force_skip_images=False):
         if not self.is_recipe_page(response):
-            log.msg('Not a recipe page: {}'.format(response.url))
+            log.msg(u"Not a recipe page: {}".format(response.url))
             return
+        skip_images = (self.skip_images or force_skip_images)
+        skip_tiles = (self.skip_tiles or force_skip_tiles)
 
         recipe_id = re.match(r'(?:http://|https://)?www\.surlatable\.com/product/REC-(\d+)(/.*)?', response.url).group(1)
         sel = Selector(response)
 
         l = ScraperContentLoader(item=ScraperImage(), response=response)
+        l.add_value('force_skip_tiles', skip_tiles)
         l.add_value('content_id', recipe_id)
         l.add_value('tag_with_products', True) # Command to TagWithProductsPipeline
         l.add_value('original_url', response.url)
@@ -145,14 +170,17 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('description', '#recipedetail .story')
         item = l.load_item()
 
-        # Continue to XML data to get recipe image
-        magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
-        xml_path = '/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
-        request = WebdriverRequest(self.root_url + xml_path, callback=self.parse_one_image)
+        if skip_images:
+            yield item
+        else:
+            # Continue to XML data to get recipe image
+            magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
+            xml_path = '/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
+            request = WebdriverRequest(self.root_url + xml_path, callback=self.parse_one_image)
 
-        request.meta['item'] = item
+            request.meta['item'] = item
 
-        yield request
+            yield request
 
         # Scrape associated products
         url_paths = sel.css('.productinfo .itemwrapper>a::attr(href)').extract()

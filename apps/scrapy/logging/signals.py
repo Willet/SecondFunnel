@@ -67,6 +67,13 @@ class Signals(object):
         if failure.type.__name__ == "SoldOut":
             # not strictly an error
             self.crawler.stats.inc_value('logging/items out of stock', [response.url], [])
+            try:
+                product = Product.objects.filter(url=response.url)[0]
+                log.msg(u"Setting {} to out-of-stock".format(product))
+                product['in_stock'] = False
+                product.save()
+            except IndexError:
+                pass
             return
 
         errors = self.crawler.stats.get_value('logging/errors', {})
