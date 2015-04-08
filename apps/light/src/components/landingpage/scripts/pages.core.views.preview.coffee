@@ -527,6 +527,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     productRegion.show(productRegion.currentView,
                         forceShow: true
                     )
+                if @content.currentView?.carouselRegion?.currentView
+                    carouselRegion = @content.currentView.carouselRegion
+                    carouselRegion.show(carouselRegion.currentView,
+                        forceShow: true
+                    )
                 return
             )
             return

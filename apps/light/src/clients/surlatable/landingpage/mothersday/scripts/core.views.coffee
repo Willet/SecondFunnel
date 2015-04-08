@@ -3,41 +3,52 @@
 # @module core.views
 
 char_limit = 243
+swipe = require('jquery-touchswipe')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CarouselView extends Marionette.ItemView
         template: "#carousel_template"
 
         events:
-            'click .carousel-swipe-left, .carousel-swipe-right': (ev) ->
+            'click .carousel-swipe-left, .carousel-swipe-right, .carousel-swipe-up, .carousel-swipe-down': (ev) ->
                 if $(ev.target).hasClass("carousel-swipe-left")
                     @scrollHorizontal("left")
-                else
+                else if $(ev.target).hasClass("carousel-swipe-right")
                     @scrollHorizontal("right")
+                else if $(ev.target).hasClass("carousel-swipe-up")
+                    @scrollVertical("up")
+                else
+                    @scrollVertical("down")
                 return
 
         serializeData: ->
             data = {
                 items: @items,
                 index: @index,
-                attributes: @attributes
+                attrs: @attrs
             }
             return data
 
         initialize: (data) ->
-            @items = data['items'] or []
+            @attrs = data['attrs'] or []
             @index = data['index'] or 0
-            @attributes = data['attributes'] or []
+            @items = data['items'] or []
+            return
+
+        onRender: ->
+            @setElement(@$el.children())
             return
 
         onShow: ->
             @container = @$el.find(".carousel-container")
             @leftArrow = @$el.find(".carousel-swipe-left")
             @rightArrow = @$el.find(".carousel-swipe-right")
+            @upArrow = @$el.find(".carousel-swipe-up")
+            @downArrow = @$el.find(".carousel-swipe-down")
             @slide = @$el.find(".carousel-slide")
-            @$el.find(".carousel-main").swipe(
+            @slide.swipe(
                 triggerOnTouchEnd: true,
-                swipeStatus: _.bind(@swipeStatus, @),
+                swipeStatus: _.bind(@swipeStatus, @)
                 allowPageScroll: 'auto'
             )
             @arrangeCarousel()
@@ -45,27 +56,55 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
             if phase is 'end'
-                # flip direction for 'natural' scroll
-                direction = if direction is 'left' then 'right' else 'left'
-                @scrollHorizontal(direction)
+                if App.utils.portrait()
+                    # flip direction for 'natural' scroll
+                    direction = if direction is 'left' then 'right' else 'left'
+                    @scrollHorizontal(direction)
+                else
+                    direction = if direction is 'up' then 'down' else 'up'
+                    @scrollVertical(direction)
             return @
 
-        updateCarousel: (distance, duration=300) ->
+        updateCarousel: (distance, orientation, duration=300) ->
             updateArrows = =>
-                $items = @slide.children()
-                if Math.round($items.first().offset().left) >= Math.round(@container.offset().left)
-                    @leftArrow.hide()
+                $items = @slide.children(":visible")
+                if orientation is "landscape"
+                    if Math.round($items.first().offset().left) >= Math.round(@container.offset().left)
+                        @leftArrow.hide()
+                    else
+                        @leftArrow.show()
+                    if Math.round($items.last().offset().left + $items.last().width()) <= Math.round(@container.offset().left + @container.width())
+                        @rightArrow.hide()
+                    else
+                        @rightArrow.show()
                 else
-                    @leftArrow.show()
-                if Math.round($items.last().offset().left + $items.last().width()) <= Math.round(@container.offset().left + @container.width())
-                    @rightArrow.hide()
-                else
-                    @rightArrow.show()
+                    if Math.round($items.first().offset().top) >= Math.round(@container.offset().top)
+                        @upArrow.hide()
+                    else
+                        @upArrow.show()
+                    if Math.round($items.last().offset().top + $items.last().outerHeight()) <= Math.round(@container.offset().top + @container.height())
+                        @downArrow.hide()
+                    else
+                        @downArrow.show()
                 return
             # Small random number added to ensure transitionend is triggered.
             distance += Math.random() / 1000
-            translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
-            translate = 'translateX(' + distance + 'px)'
+            if orientation is "landscape"
+                translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
+                translate = 'translateX(' + distance + 'px)'
+            else
+                translate3d = 'translate3d(0px, ' + distance + 'px, 0px)'
+                translate = 'translateY(' + distance + 'px)'
+                if @index is 0
+                    height: "88%"
+                    top: "0"
+                else
+                    height = "80%"
+                    top = @upArrow.height()
+                @container.css(
+                    "height": height
+                    "top": top
+                )
             @slide.css(
                 '-webkit-transition-duration': (duration / 1000).toFixed(1) + 's',
                 'transition-duration': (duration / 1000).toFixed(1) + 's',
@@ -78,7 +117,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         scrollHorizontal: (direction) ->
-            $items = @slide.children()
+            $container = @container
+            $items = @slide.children(":visible")
             distance = @slide.offset().left
             if direction is 'left'
                 leftMostItem = $items[@index]
@@ -87,37 +127,87 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     difference = @container.width()
                     index = _.findIndex($items, (item) ->
                         # true if item is visible after moving leftmost item
-                        return ($(item).width() + $(item).offset().left + difference) > @container.offset().left
+                        return ($(item).width() + $(item).offset().left + difference) > $container.offset().left
                     )
-                    if index > -1
-                        distance -= $items.get(index).offset().left
             else
                 index = _.findIndex($items, (item) ->
                     # true if item is only partially visible
-                    return ($(item).width() + $(item).offset().left) > (@container.width() + @container.offset().left)
+                    return ($(item).width() + $(item).offset().left) > ($container.width() + $container.offset().left)
                 )
-                if index > -1
-                    distance -= $items.get(index).offset().left + $items.get(index).width() - @slide.width()
             if index > -1
                 @index = index
-                @updateCarousel(distance)
+                distance -= $($items.get(@index)).offset().left
+                @updateCarousel(distance, "landscape")
+            return
+
+        scrollVertical: (direction) ->
+            $container = @container
+            $items = @slide.children(":visible")
+            distance = @slide.offset().top
+            if direction is "up"
+                topMostItem = $items[@index]
+                unless topMostItem is undefined
+                    # number of pixels needed to move leftmost item to the end of carousel (while still being partially visible)
+                    difference = @container.height() * 0.60
+                    index = _.findIndex($items, (item) ->
+                        # true if item is visible after moving leftmost item
+                        return ($(item).outerHeight() + $(item).offset().top + difference) > $container.offset().top
+                    )
+            else
+                index = _.findIndex($items, (item) ->
+                    # true if item is only partially visible
+                    return ($(item).outerHeight() + $(item).offset().top) > ($container.height() + $container.offset().top)
+                )
+            if index > -1
+                @index = index
+                distance -= $($items[@index]).offset().top
+                @updateCarousel(distance, "portrait")
+
+        arrangeHorizontal: ->
+            @upArrow.hide()
+            @downArrow.hide()
+            @container.css(
+                "height": "95%"
+                "top": "0"
+            )
+            $items = @slide.children(":visible")
+            totalItemWidth = 0
+            for item in $items
+                totalItemWidth += $(item).outerWidth()
+            if totalItemWidth <= @container.width()
+                @leftArrow.hide()
+                @rightArrow.hide()
+                distance = 0
+            else
+                distance = @slide.offset().left - $($items.get(@index)).offset().left
+            @updateCarousel(distance, "landscape", 0)
+            return
+
+        arrangeVertical: ->
+            @leftArrow.hide()
+            @rightArrow.hide()
+            height = "88%"
+            top = "0"
+            # Making room for up arrow
+            unless @index is 0
+                height = "80%"
+                top = @upArrow.height()
+            @container.css(
+                "height": height
+                "top": top
+            )
+            distance = @slide.offset().top - $(@slide.children(":visible").get(@index)).offset().top
+            @updateCarousel(distance, "portrait", 0)
             return
 
         arrangeCarousel: ->
             calculateDistance = =>
                 if --imageCount isnt 0
                     return
-                $items = @slide.children()
-                totalItemWidth = 0
-                for item in $items
-                    totalItemWidth += $(item).outerWidth()
-                if totalItemWidth <= @container.width()
-                    @leftArrow.hide()
-                    @rightArrow.hide()
-                    distance = 0
+                if App.support.mobile() and App.utils.landscape()
+                    @arrangeVertical()
                 else
-                    distance = (@slide.offset().left + @slide.width()) - ($items.last().offset().left + $items.last().width())
-                @updateCarousel(distance, 0)
+                    @arrangeHorizontal()
                 return
 
             imageCount = $("img", @$el).length
@@ -222,17 +312,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ExpandedContent.prototype.events =
         "click .look-thumbnail, .back-to-recipe": (event) ->
-            @lookThumbnail.hide()
+            @$el.find('.look-thumbnail').hide()
             @$el.find('.info').hide()
             @$el.find('.look-image-container').show()
-            @stlIndex = Math.max(@stlIndex - 1, 0)
+            @carouselRegion.currentView.index = Math.max(@carouselRegion.currentView.index - 1, 0)
             @lookProductIndex = -1
             @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
             if App.support.mobile()
                 if App.utils.landscape()
-                    @arrangeStlItemsVertical()
+                    @carouselRegion.currentView.arrangeVertical()
                 else
-                    @arrangeStlItemsHorizontal()
+                    @carouselRegion.currentView.arrangeHorizontal()
             return
 
         "click .stl-look .stl-item": (event) ->
@@ -245,54 +335,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             App.vent.trigger('tracking:product:thumbnailClick', product)
             return
 
-    module.ExpandedContent::scrollStlVertical = (direction) ->
-        # $stlContainer = @$el.find(".stl-look-container")
-        # stlItems = @$el.find(".stl-look").children(":visible")
-        # distance = @$el.find(".stl-look").offset().top
-        # if direction is "up"
-        #     topMostItem = stlItems[@stlIndex]
-        #     unless topMostItem is undefined
-        #         # number of pixels needed to move leftmost item to the end of carousel (while still being partially visible)
-        #         difference = $stlContainer.height() * 0.60
-        #         stlIndex = _.findIndex(stlItems, (item) ->
-        #             # true if item is visible after moving leftmost item
-        #             return ($(item).outerHeight() + $(item).offset().top + difference) > $stlContainer.offset().top
-        #         )
-        # else
-        #     stlIndex = _.findIndex(stlItems, (item) ->
-        #         # true if item is only partially visible
-        #         return ($(item).outerHeight() + $(item).offset().top) > ($stlContainer.height() + $stlContainer.offset().top)
-        #     )
-        # if stlIndex > -1
-        #     @stlIndex = stlIndex
-        #     distance -= $(stlItems[@stlIndex]).offset().top
-        #     @updateStlGalleryPosition(distance, "portrait")
-        return
-
-    module.ExpandedContent::scrollStlHorizontal = (direction) ->
-        # $stlContainer = @$el.find(".stl-look-container")
-        # stlItems = @$el.find(".stl-look").children(":visible")
-        # distance = @$el.find(".stl-look").offset().left
-        # if direction is "left"
-        #     leftMostItem = stlItems[@stlIndex]
-        #     unless leftMostItem is undefined
-        #         # number of pixels needed to move leftmost item to the end of carousel (while still being partially visible)
-        #         difference = $stlContainer.width() * 0.60
-        #         stlIndex = _.findIndex(stlItems, (item) ->
-        #             # true if item is visible after moving leftmost item
-        #             return ($(item).width() + $(item).offset().left + difference) > $stlContainer.offset().left
-        #         )
-        # else
-        #     stlIndex = _.findIndex(stlItems, (item) ->
-        #         # true if item is only partially visible
-        #         return ($(item).width() + $(item).offset().left) > ($stlContainer.width() + $stlContainer.offset().left)
-        #     )
-        # if stlIndex > -1
-        #     @stlIndex = stlIndex
-        #     distance -= $(stlItems[@stlIndex]).offset().left
-        #     @updateStlGalleryPosition(distance, "landscape")
-        return
-
     module.ExpandedContent::updateScrollCta = ->
         $recipe = @$el.find(".recipe")
         unless $recipe.length is 0
@@ -300,106 +342,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $recipe.siblings(".scroll-cta").hide()
             else
                 $recipe.siblings(".scroll-cta").show()
-        return
-
-    module.ExpandedContent::updateStlGalleryPosition = (distance, orientation, duration=300) ->
-        # updateStlArrows = =>
-        #     stlItems = $stlLook.children(":visible")
-        #     if orientation is "landscape"
-        #         @upArrow.hide()
-        #         @downArrow.hide()
-        #         if stlItems.first().offset().left >= $stlContainer.offset().left
-        #             @leftArrow.hide()
-        #         else
-        #             @leftArrow.show()
-        #         if stlItems.last().offset().left + stlItems.last().width() <= $stlContainer.offset().left + $stlContainer.width()
-        #             @rightArrow.hide()
-        #         else
-        #             @rightArrow.show()
-        #     else
-        #         @leftArrow.hide()
-        #         @rightArrow.hide()
-        #         if stlItems.first().offset().top >= $stlContainer.offset().top
-        #             @upArrow.hide()
-        #         else
-        #             @upArrow.show()
-        #         if stlItems.last().offset().top + stlItems.last().outerHeight() <= $stlContainer.offset().top + $stlContainer.height()
-        #             @downArrow.hide()
-        #         else
-        #             @downArrow.show()
-        #     return
-        # $stlContainer = @$el.find(".stl-look-container")
-        # $stlLook = @$el.find(".stl-look")
-        # height = "88%"
-        # top = "0"
-        # # Small random number added to ensure transitionend is triggered.
-        # distance += Math.random() / 1000
-        # if orientation is "landscape"
-        #     translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
-        #     translate = 'translateX(' + distance + 'px)'
-        # else
-        #     translate3d = 'translate3d(0px, ' + distance + 'px, 0px)'
-        #     translate = 'translateY(' + distance + 'px)'
-        #     unless @stlIndex is 0
-        #         height = "80%"
-        #         top = @upArrow.height()
-        # if orientation is "portrait"
-        #     $stlContainer.css(
-        #         "height": height
-        #         "top": top
-        #     )
-        # $stlLook.css(
-        #     '-webkit-transition-duration': (duration / 1000).toFixed(1) + 's',
-        #     'transition-duration': (duration / 1000).toFixed(1) + 's',
-        #     '-webkit-transform': translate3d,
-        #     '-ms-transform': translate,
-        #     'transform': translate3d
-        # ).one('webkitTransitionEnd msTransitionEnd transitionend', updateStlArrows)
-        # if duration is 0
-        #     updateStlArrows()
-        return
-
-    module.ExpandedContent::arrangeStlItemsVertical = ->
-        # if @model.get("type") is "image" or @model.get("type") is "gif"
-        #     @leftArrow.hide()
-        #     @rightArrow.hide()
-        #     if @model.get("tagged-products")?.length > 0 or App.support.mobile()
-        #         height = "88%"
-        #         top = "0"
-        #         # Making room for up arrow
-        #         unless @stlIndex is 0
-        #             height = "80%"
-        #             top = @upArrow.height()
-        #         @$el.find(".stl-look-container").css(
-        #             "height": height
-        #             "top": top
-        #         )
-        #         $stlLook = @$el.find(".stl-look")
-        #         distance = $stlLook.offset().top - $($stlLook.children(":visible")[@stlIndex]).offset().top
-        #         @updateStlGalleryPosition(distance, "portrait", 0)
-        return
-
-    module.ExpandedContent::arrangeStlItemsHorizontal = ->
-        # if @model.get("type") is "image" or @model.get("type") is "gif"
-        #     @upArrow.hide()
-        #     @downArrow.hide()
-        #     @$el.find(".stl-look-container").css(
-        #         "height": "95%"
-        #         "top": "0"
-        #     )
-        #     if @model.get("tagged-products")?.length > 0 or App.support.mobile()
-        #         $stlLook = @$el.find(".stl-look")
-        #         stlItems = $stlLook.children(":visible")
-        #         totalItemWidth = 0
-        #         for item in stlItems
-        #             totalItemWidth += $(item).outerWidth()
-        #         if totalItemWidth <= @$el.find(".stl-look-container").width()
-        #             @leftArrow.hide()
-        #             @rightArrow.hide()
-        #             distance = 0
-        #         else
-        #             distance = $stlLook.offset().left - $(stlItems[@stlIndex]).offset().left
-        #         @updateStlGalleryPosition(distance, "landscape", 0)
         return
 
     module.ExpandedContent::resizeContainer = ->
@@ -421,20 +363,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @updateScrollCta()
                     return
                 )
-                # if App.support.mobile()
-                #     if App.utils.portrait()
-                #         @arrangeStlItemsHorizontal()
-                #     else
-                #         @arrangeStlItemsVertical()
-                #     return
-
-                # loading hero area
-                unless $container?.length
-                    if @model.get("orientation") is "landscape"
-                        @arrangeStlItemsHorizontal()
-                    else
-                        @arrangeStlItemsVertical()
-                    return
                 $container.css(
                     top: "0"
                     bottom: "0"
@@ -457,7 +385,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # DOM elements must be visible before calling functions below
                 $container.removeClass("loading-images")
                 @updateScrollCta()
-                @arrangeStlItemsHorizontal()
                 return
 
         imageCount = $("img.main-image, img.image", @$el).length
@@ -486,24 +413,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     swipeStatus: _.bind(@swipeStatus, @),
                     allowPageScroll: 'vertical'
                 )
-                carouselInstance = new module.CarouselView(
-                    items: @model.get('tagged-products')
-                    attributes: { 'lookImageSrc': @model.get('images')[0].url }
-                )
-                @carouselRegion.show(carouselInstance)
         else
             @$el.closest(".previewContainer").removeClass("landscape")
             @$el.closest(".fullscreen").addClass("loading-images")
-        @lookThumbnail = @$el.find('.look-thumbnail')
-        @lookThumbnail.hide()
+        carouselInstance = new module.CarouselView(
+            items: @model.get('tagged-products'),
+            attrs: { 'lookImageSrc': @model.get('images')[0].url }
+        )
+        @carouselRegion.show(carouselInstance)
+        @$el.find('.look-thumbnail').hide()
         @$el.find('.info').hide()
         if @model.get("tagged-products")?.length > 0
-            @stlIndex = 0
             @lookProductIndex = -1
-            @leftArrow = @$el.find('.stl-swipe-left')
-            @rightArrow = @$el.find('.stl-swipe-right')
-            @upArrow = @$el.find(".stl-swipe-up")
-            @downArrow = @$el.find(".stl-swipe-down")
         @resizeContainer()
 
         if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
@@ -514,48 +435,39 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::swipeStatus = (event, phase, direction, distance, fingers, duration) ->
-        if $(event.target).parents(".look-product-carousel").length > 0
-            productImageIndex = @productInfo.currentView?.galleryIndex or 0
-            numberOfImages = (@productInfo.currentView?.numberOfImages - 1) or 0
-            if @lookProductIndex >= 0
-                unless (direction is 'left' and productImageIndex is numberOfImages) or (direction is 'right' and productImageIndex is 0)
-                    @productInfo.currentView.swipeStatus(event, phase, direction, distance, fingers, duration)
-                    return
-            if phase is 'end'
-                if direction is 'right'
-                    @lookProductIndex--
-                    if @lookProductIndex < -1
-                        @lookProductIndex = @$el.find(".stl-look").children(":visible").length - 1
-                else if direction is 'left'
-                    @lookProductIndex++
-                    if @lookProductIndex is @model.get("tagged-products")?.length
-                        @lookProductIndex = -1
-                @updateCarousel()
-        else if $(event.target).parents(".stl-carousel").length > 0
-            if phase is 'end'
-                if App.utils.portrait()
-                    # flip direction for 'natural' scroll
-                    direction = if direction is 'left' then 'right' else 'left'
-                    @scrollStlHorizontal(direction)
-                else
-                    direction = if direction is 'up' then 'down' else 'up'
-                    @scrollStlVertical(direction)
+        productImageIndex = @productInfo.currentView?.galleryIndex or 0
+        numberOfImages = (@productInfo.currentView?.numberOfImages - 1) or 0
+        if @lookProductIndex > -1
+            # delegate swipe to product view to swipe through images
+            unless (direction is 'left' and productImageIndex is numberOfImages) or (direction is 'right' and productImageIndex is 0)
+                @productInfo.currentView.swipeStatus(event, phase, direction, distance, fingers, duration)
+                return
+        if phase is 'end'
+            if direction is 'right'
+                @lookProductIndex--
+                if @lookProductIndex < -1
+                    @lookProductIndex = @$el.find(".stl-look").children(":visible").length - 1
+            else if direction is 'left'
+                @lookProductIndex++
+                if @lookProductIndex is @model.get("tagged-products")?.length
+                    @lookProductIndex = -1
+            @updateCarousel()
         return @
 
     module.ExpandedContent::updateCarousel = ->
         if @lookProductIndex < 0
-            if @lookThumbnail.is(":visible")
-                @stlIndex = Math.max(0, @stlIndex - 1)
-            @lookThumbnail.hide()
+            if @$el.find('.look-thumbnail').is(":visible")
+                @carouselRegion.currentView.index = Math.max(0, @carouselRegion.currentView.index - 1)
+            @$el.find('.look-thumbnail').hide()
             @$el.find('.info').hide()
             @$el.find('.look-image-container').show()
             @$el.find('.stl-item').removeClass("selected")
             @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
             if App.support.mobile()
                 if App.utils.landscape()
-                    @arrangeStlItemsVertical()
+                    @carouselRegion.currentView.arrangeVertical()
                 else
-                    @arrangeStlItemsHorizontal()
+                    @carouselRegion.currentView.arrangeHorizontal()
         else
             @$el.find(".stl-item").filter("[data-index=#{@lookProductIndex}]")
                 .addClass("selected").siblings().removeClass("selected")
@@ -572,14 +484,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                 @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
                 @productInfo.show(productInstance)
-            unless @lookThumbnail.is(":visible")
-                @stlIndex = Math.min($(".stl-look").children(":visible").length - 1, @stlIndex + 1)
-            @lookThumbnail.show()
+            unless @$el.find('.look-thumbnail').is(":visible")
+                @carouselRegion.currentView.index = Math.min($(".stl-look").children(":visible").length - 1, @carouselRegion.currentView.index + 1)
+            @$el.find('.look-thumbnail').show()
             if App.support.mobile()
                 if App.utils.landscape()
-                    @arrangeStlItemsVertical()
+                    @carouselRegion.currentView.arrangeVertical()
                 else
-                    @arrangeStlItemsHorizontal()
+                    @carouselRegion.currentView.arrangeHorizontal()
         return
 
     module.ExpandedContent::close = ->
