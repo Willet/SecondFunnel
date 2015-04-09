@@ -672,7 +672,38 @@ div.loading {
             }
         }
     }
-
+    .carousel-region {
+        width: 100%;
+        height: 88%;
+        position: relative;
+        .carousel-view {
+            width: 100%;
+            height: 100%;
+        }
+        .carousel-container {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            margin: auto;
+            width: 90%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .carousel-slide {
+            overflow: visible;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            white-space: nowrap;
+            .item {
+                display: inline-block;
+                margin: 5px;
+                width: 150px;
+                height: auto;
+                text-align: center;
+                vertical-align: top;
+            }
+        }
+    }
     .stl-title {
         text-align: center;
         font-size: 18px;
