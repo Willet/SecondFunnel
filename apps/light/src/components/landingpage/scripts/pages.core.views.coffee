@@ -108,6 +108,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     else
                         @downArrow.show()
                 return
+            @upArrow.hide()
+            @downArrow.hide()
+            @leftArrow.hide()
+            @rightArrow.hide()
             # Small random number added to ensure transitionend is triggered.
             distance += Math.random() / 1000
             # Must resize container if switching from landscape to portrait on mobile (% based on initial style).
@@ -196,7 +200,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 topMostItem = $items[@index]
                 unless topMostItem is undefined
                     # number of pixels needed to move leftmost item to the end of carousel (while still being partially visible)
-                    difference = @container.height() * 0.60
+                    difference = @container.height()
                     index = _.findIndex($items, (item) ->
                         # true if item is visible after moving leftmost item
                         return ($(item).outerHeight() + $(item).offset().top + difference) > $container.offset().top
@@ -216,7 +220,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @updateCarousel(distance, "portrait")
             return
 
-        # Calculates distance after DOM elements are loaded.
+        ###
+        Calculates distance after DOM elements are loaded. Assumes carousel is vertical on mobile-landscape,
+        and horizontal otherwise (desktop, mobile-portrait).
+        ###
         calculateDistanceOnLoad: ->
             calculateDistance = =>
                 if --imageCount isnt 0

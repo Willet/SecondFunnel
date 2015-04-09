@@ -90,10 +90,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
     )
 
-    _.extend(module.ExpandedContent.prototype.regions,
-        carouselRegion: ".carousel-region"
-    )
-
     module.ExpandedContent.prototype.events =
         "click .look-thumbnail, .back-to-recipe": (event) ->
             @$el.find('.look-thumbnail').hide()
@@ -144,6 +140,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # product view must be initialized after elements load so that the banner can be updated
                 if @productInfo.currentView is undefined
                     @updateCarousel()
+
+                if @model.get("type") is "image" or @model.get("type") is "gif"
+                    if @lookProductIndex > -1
+                        @$el.find(".look-thumbnail").show()
+                    else
+                        @$el.find(".look-thumbnail").hide()
                 $(".recipe").scroll( =>
                     @updateScrollCta()
                     return
@@ -167,15 +169,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     left: widthReduction
                     right: widthReduction
                 )
-                # DOM elements must be visible before calling functions below
                 $container.removeClass("loading-images")
                 @updateScrollCta()
                 return
 
-        imageCount = $("img.main-image, img.image", @$el).length
+        imageCount = $("img.load-image", @$el).length
 
         # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
-        $("img.main-image, img.image", @$el).one("load", shrinkContainer()).each ->
+        $("img.load-image", @$el).one("load", shrinkContainer()).each ->
             if @complete
                 # Without the timeout the box may not be rendered. This lets the onShow method return
                 setTimeout (=>
@@ -263,7 +264,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else if @model.get("tagged-products")?.length > 0
                 product = new module.Product(@model.get("tagged-products")[@lookProductIndex])
                 unless @$el.find('.look-thumbnail').is(":visible")
-                    @carouselRegion.currentView.index = Math.min($(".stl-look").children(":visible").length - 1, @carouselRegion.currentView.index + 1)
+                    @carouselRegion.currentView.index = Math.min($(".stl-look").children().length - 1, @carouselRegion.currentView.index + 1)
                 @$el.find('.look-thumbnail').show()
             unless product is undefined
                 product.set("recipe-name", @model.get('name') or @model.get('title'))

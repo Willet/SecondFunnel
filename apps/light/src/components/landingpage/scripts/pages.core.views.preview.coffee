@@ -210,6 +210,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.ExpandedContent extends Marionette.Layout
         regions:
             productInfo: ".product-info"
+            carouselRegion: ".carousel-region"
 
         events:
             "click .stl-look .stl-item": (event) ->
