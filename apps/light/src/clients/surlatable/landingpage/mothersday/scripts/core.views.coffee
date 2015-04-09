@@ -141,6 +141,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if --imageCount isnt 0
                     return
 
+                # product view must be initialized after elements load so that the banner can be updated
                 if @productInfo.currentView is undefined
                     @updateCarousel()
                 $(".recipe").scroll( =>
@@ -200,15 +201,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         else
             @$el.closest(".previewContainer").removeClass("landscape")
             @$el.closest(".fullscreen").addClass("loading-images")
-        carouselInstance = new module.CarouselView(
-            items: @model.get('tagged-products'),
-            attrs: { 'lookImageSrc': @model.get('images')[0].url }
-        )
-        @carouselRegion.show(carouselInstance)
-        @$el.find('.look-thumbnail').hide()
         @$el.find('.info').hide()
         if @model.get("tagged-products")?.length > 0
             @lookProductIndex = -1
+            carouselInstance = new module.CarouselView(
+                items: @model.get('tagged-products'),
+                attrs: { 'lookImageSrc': @model.get('images')[0].url }
+            )
+            @carouselRegion.show(carouselInstance)
+        @$el.find('.look-thumbnail').hide()
         @resizeContainer()
 
         if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
@@ -247,7 +248,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.look-image-container').show()
             @$el.find('.stl-item').removeClass("selected")
             @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
-            if App.support.mobile()
+            if App.support.mobile() and @model.get("tagged-products")?.length > 0
                 if App.utils.landscape()
                     @carouselRegion.currentView.calculateVerticalPosition()
                 else
@@ -259,8 +260,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.look-image-container').hide()
             if @model.get("type") is "product"
                 product = new module.Product(@model.attributes)
-            else if @model.get("tagged-products").length > 0
+            else if @model.get("tagged-products")?.length > 0
                 product = new module.Product(@model.get("tagged-products")[@lookProductIndex])
+                unless @$el.find('.look-thumbnail').is(":visible")
+                    @carouselRegion.currentView.index = Math.min($(".stl-look").children(":visible").length - 1, @carouselRegion.currentView.index + 1)
+                @$el.find('.look-thumbnail').show()
             unless product is undefined
                 product.set("recipe-name", @model.get('name') or @model.get('title'))
                 productInstance = new module.ProductView(
@@ -268,10 +272,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                 @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
                 @productInfo.show(productInstance)
-            unless @$el.find('.look-thumbnail').is(":visible")
-                @carouselRegion.currentView.index = Math.min($(".stl-look").children(":visible").length - 1, @carouselRegion.currentView.index + 1)
-            @$el.find('.look-thumbnail').show()
-            if App.support.mobile()
+            
+            if App.support.mobile() and @model.get("tagged-products")?.length > 0
                 if App.utils.landscape()
                     @carouselRegion.currentView.calculateVerticalPosition()
                 else
@@ -285,4 +287,5 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         @$(".stick-bottom").waypoint("destroy")
         $(".recipe").off()
+        @$el.find(".look-product-carousel").swipe("destroy")
         return

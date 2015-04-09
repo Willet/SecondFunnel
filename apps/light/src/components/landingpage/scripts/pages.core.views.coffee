@@ -2,6 +2,7 @@
 
 require("jquery-waypoints") # register $.fn.waypoint
 require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
+swipe = require('jquery-touchswipe')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     $window = $(window)
@@ -58,11 +59,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @upArrow = @$el.find(".carousel-swipe-up")
             @downArrow = @$el.find(".carousel-swipe-down")
             @slide = @$el.find(".carousel-slide")
-            @slide.swipe(
-                triggerOnTouchEnd: true,
-                swipeStatus: _.bind(@swipeStatus, @)
-                allowPageScroll: 'auto'
-            )
+            if App.support.mobile()
+                @slide.swipe(
+                    triggerOnTouchEnd: true,
+                    swipeStatus: _.bind(@swipeStatus, @)
+                    allowPageScroll: 'auto'
+                )
             @calculateDistanceOnLoad()
             return
 
@@ -207,6 +209,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         return
                     ), 1
                 return
+            return
+
+        close: ->
+            @slide.swipe("destroy")
             return
 
     ###

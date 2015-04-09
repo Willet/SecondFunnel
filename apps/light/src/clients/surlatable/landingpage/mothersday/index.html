@@ -1425,13 +1425,16 @@
                 <div class="stl-swipe-down carousel-swipe-down"></div>
                 <div class="stl-look-container carousel-container">
                     <div class="stl-look carousel-slide">
-                        <div class="look-thumbnail">
+                        <div class="look-thumbnail mobile-only">
                             <img src="<%= obj.attrs['lookImageSrc'] %>" class="image" />
                         </div>
                         <% var related = obj.items; %>
                         <% for (var i = 0; i < related.length; i++) { %>
                             <div class="stl-item" data-index="<%- i %>">
                                 <img src="<%- related[i].images[0].url %>" class="image" />
+                                <div class="name desktop-only">
+                                    <%- related[i].title || related[i].name %>
+                                </div>
                             </div>
                         <% } %>
                     </div>
