@@ -9,7 +9,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     $document = $(document)
 
     ###
-    View that provides carousel animations/swipe gestures
+    View that provides carousel animations/swipe gestures.
     
     @constructor
     @type {ItemView}
@@ -39,7 +39,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         ###
         @param attrs : array of extra attributes (e.g. lookImageSrc from ExpandedContent)
-        @param index : index of item that is initially visible in the carousel
+        @param index : index of leftmost/topmost item in the carousel
         @param items : array of items to display in the carousel
         ###
         initialize: (data) ->
@@ -79,6 +79,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @calculateVerticalPosition(direction)
             return @
 
+        ###
+        Moves carousel and shows/hides arrows based on updated carousel position.
+
+        @param distance    : number of pixels to move carousel, set by @calculateHorizontalPosition/@calculateVerticalPosition
+        @param orientation : landscape or portrait
+        @param duration    : duration of animation in milliseconds
+        ###
         updateCarousel: (distance, orientation, duration=300) ->
             updateArrows = =>
                 $items = @slide.children(":visible")
@@ -103,6 +110,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
             # Small random number added to ensure transitionend is triggered.
             distance += Math.random() / 1000
+            # Must resize container if switching from landscape to portrait on mobile (% based on initial style).
             height = "95%"
             top = "0"
             if orientation is "landscape"
@@ -114,6 +122,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if @index is 0
                     height = "88%"
                 else
+                    # Making room for up arrow.
                     height = "80%"
                     top = @upArrow.height()
             @container.css(
@@ -131,6 +140,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 updateArrows()
             return
 
+        ###
+        Calculates number of pixels to translate the carousel slide horizontally based on direction and @index.
+
+        @param direction : left  -> after moving the leftmost item to the end of the carousel, finds the first
+                                   (partially) visible item from the left and sets it as the leftmost item.
+                           none  -> sets item at @index as the leftmost item in the carousel.
+                           right -> finds the first item that is cut off on the right (or not visible) and sets
+                                    it as the leftmost item.
+        ###
         calculateHorizontalPosition: (direction='none') ->
             $container = @container
             $items = @slide.children(":visible")
@@ -162,6 +180,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @updateCarousel(distance, "landscape")
             return
 
+        ###
+        Calculates number of pixels to translate the carousel slide vertically based on direction and @index.
+
+        @param direction : down -> finds the first item that is cut off on the bottom (or not visible) and sets
+                                   it as the topmost item.
+                           none -> sets item at @index as the topmost item in the carousel.
+                           up   -> after moving the topmost item to the end of the carousel, finds the first
+                                   (partially) visible item from the top and sets it as the topmost item.
+        ###
         calculateVerticalPosition: (direction='none') ->
             $container = @container
             $items = @slide.children(":visible")
@@ -189,6 +216,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @updateCarousel(distance, "portrait")
             return
 
+        # Calculates distance after DOM elements are loaded.
         calculateDistanceOnLoad: ->
             calculateDistance = =>
                 if --imageCount isnt 0
