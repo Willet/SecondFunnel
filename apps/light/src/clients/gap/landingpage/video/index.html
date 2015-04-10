@@ -290,26 +290,32 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="hero-thumbnail hero-carousel desktop-only">
-                    <div class="hero-swipe-left"></div>
-                    <div class="hero-swipe-right"></div>
-                    <div class="hero-thumbnail-container">
-                        <div class="hero-thumbnail-main">
-                            <% for(i = 0; i < thumbnails.length; i++) { %>
-                                <div class="thumbnail-item" data-index="<%- i %>">
-                                    <div class="thumbnail-image <% if (thumbnails[i]['youtubeId']) { %>playing<% } %>"
-                                        style="background-image: url('<%= thumbnails[i].url %>');">
-                                    </div>
-                                    <p>Ep.<%= i + 1 %> - <%= thumbnails[i].date %></p>
-                                </div>
-                            <% } %>
-                        </div>
-                    </div>
-                </div>
+                <div class="hero-carousel-region desktop-only"></div>
             </div>
             <div class="stv mobile-only">
                 <p>shop the looks</p>
                 <div id="down-arrow"></div>
+            </div>
+        </script>
+
+        <script type="text/template" id="herovideo_carousel_template">
+            <div class="hero-thumbnail hero-carousel desktop-only">
+                <div class="hero-swipe-left carousel-swipe-left"></div>
+                <div class="hero-swipe-right carousel-swipe-right"></div>
+                <div class="hero-thumbnail-container carousel-container">
+                    <div class="hero-thumbnail-main carousel-slide">
+                        <% var thumbnails = obj.items; %>
+                        <% for(i = 0; i < thumbnails.length; i++) { %>
+                            <div class="thumbnail-item" data-index="<%- i %>">
+                                <div class="thumbnail-image <% if (thumbnails[i]['youtubeId']) { %>playing<% } %>"
+                                    style="background-image: url('<%= thumbnails[i].url %>');">
+                                </div>
+                                <p>Ep.<%= i + 1 %> - <%= thumbnails[i].date %></p>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+                <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
             </div>
         </script>
 

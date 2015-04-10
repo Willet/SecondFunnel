@@ -37,6 +37,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             }
             return data
 
+        getTemplate: ->
+            if @attrs.type
+                return "##{@attrs.type}_carousel_template"
+            else
+                return "#carousel_template"
+
         ###
         @param attrs : array of extra attributes (e.g. lookImageSrc from ExpandedContent)
         @param index : index of leftmost/topmost item in the carousel
@@ -332,6 +338,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#herovideo_template"
         regions:
             video: ".hero-video"
+            carouselRegion: ".hero-carousel-region"
         templates: ->
             templateRules = [
                 "#<%= options.store.slug %>_<%= data.template %>_template"

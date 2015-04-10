@@ -12,6 +12,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @calculateVerticalPosition()
                 else
                     @calculateHorizontalPosition()
+            else if @attrs['type'] is "herovideo"
+                @calculateHorizontalPosition()
             else if @attrs['orientation'] is "landscape"
                 @calculateHorizontalPosition()
             else if @attrs['orientation'] is "portrait"
@@ -28,6 +30,46 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return
                 ), 1
             return
+        return
+
+    module.CarouselView::calculateHorizontalPosition = (direction='none') ->
+        $container = @container
+        $items = @slide.children(":visible")
+        if direction is 'left'
+            leftMostItem = $items[@index]
+            unless leftMostItem is undefined
+                # number of pixels needed to move leftmost item to the end of carousel
+                difference = @container.width()
+                index = _.findIndex($items, (item) ->
+                    # true if item is visible after moving leftmost item
+                    return Math.round($(item).width() + $(item).offset().left + difference) > Math.round($container.offset().left)
+                )
+        else if direction is "right"
+            index = _.findIndex($items, (item) ->
+                # true if item is only partially visible
+                return Math.round($(item).width() + $(item).offset().left) > Math.round($container.width() + $container.offset().left)
+            )
+        else
+            # reposition only if items overflow
+            totalItemWidth = _.reduce($items, (sum, item) ->
+                return sum + $(item).outerWidth()
+            , 0)
+            if totalItemWidth > @container.width()
+                if @attrs['type'] is "herovideo"
+                    distance = (@slide.offset().left + @slide.width()) - ($($items.get(@index)).offset().left + $($items.get(@index)).width())
+                else
+                    distance = @slide.offset().left - $($items.get(@index)).offset().left
+            else
+                distance = 0
+            @updateCarousel(distance, "landscape", 0)
+            return
+        if index > -1
+            @index = index
+            if direction is "right" and @attrs['type'] is "herovideo"
+                distance = (@slide.offset().left + @slide.width()) - ($($items.get(@index)).offset().left + $($items.get(@index)).width())
+            else
+                distance = @slide.offset().left - $($items.get(@index)).offset().left
+            @updateCarousel(distance, "landscape")
         return
 
     module.ProductView::onShow = ->
@@ -280,108 +322,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @carouselRegion.currentView.calculateHorizontalPosition()
         return
 
-    _.extend(module.HeroContent.prototype.events, 
-        "click .hero-swipe-left, .hero-swipe-right": (event) ->
-            if $(event.target).hasClass("hero-swipe-left")
-                @scrollThumbnails('left')
-            else
-                @scrollThumbnails('right')
-            return
-    )
-
-    module.HeroContent::arrangeThumbnails = ->
-        updateThumbnails = =>
-            if --imageCount isnt 0
-                return
-            $thumbnailMain = @$el.find(".hero-thumbnail-main")
-            thumbnails = $thumbnailMain.children()
-            @thumbnailIndex = thumbnails.length - 1
-            totalItemWidth = 0
-            for item in thumbnails
-                totalItemWidth += $(item).outerWidth()
-            if totalItemWidth <= @$el.find(".hero-thumbnail-container").width()
-                @leftArrow.hide()
-                @rightArrow.hide()
-                distance = 0
-            else
-                distance = ($thumbnailMain.offset().left + $thumbnailMain.width()) - (thumbnails.last().offset().left + thumbnails.last().width())
-            @updateThumbnailCarousel(distance, 0)
-            return
-
-        imageCount = $("img", @$el).length
-
-        # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
-        $("img", @$el).one("load", updateThumbnails).each ->
-            if @complete
-                # Without the timeout the box may not be rendered. This lets the onShow method return
-                setTimeout (=>
-                    $(@).load()
-                    return
-                ), 1
-            return
-        return
-
-    module.HeroContent::updateThumbnailCarousel = (distance, duration=300) ->
-        updateHeroArrows = =>
-            $thumbnailContainer = @$el.find(".hero-thumbnail-container")
-            thumbnails = $thumbnailMain.children(":visible")
-            if Math.round(thumbnails.first().offset().left) >= Math.round($thumbnailContainer.offset().left)
-                @leftArrow.hide()
-            else
-                @leftArrow.show()
-            if Math.round(thumbnails.last().offset().left + thumbnails.last().width()) <= Math.round($thumbnailContainer.offset().left + $thumbnailContainer.width())
-                @rightArrow.hide()
-            else
-                @rightArrow.show()
-            return
-        $thumbnailMain = @$el.find(".hero-thumbnail-main")
-        # Small random number added to ensure transitionend is triggered.
-        distance += Math.random() / 1000
-        translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
-        translate = 'translateX(' + distance + 'px)'
-        $thumbnailMain.css(
-            '-webkit-transition-duration': (duration / 1000).toFixed(1) + 's',
-            'transition-duration': (duration / 1000).toFixed(1) + 's',
-            '-webkit-transform': translate3d,
-            '-ms-transform': translate,
-            'transform': translate3d
-        ).one('webkitTransitionEnd msTransitionEnd transitionend', updateHeroArrows)
-        if duration is 0
-            updateHeroArrows()
-
-    module.HeroContent::scrollThumbnails = (direction) ->
-        $thumbnailContainer = @$el.find(".hero-thumbnail-container")
-        $thumbnailMain = @$el.find(".hero-thumbnail-main")
-        thumbnails = $thumbnailMain.children()
-        distance = $thumbnailMain.offset().left
-        if direction is 'left'
-            leftMostItem = thumbnails[@thumbnailIndex]
-            unless leftMostItem is undefined
-                # number of pixels needed to move leftmost item to the end of carousel
-                difference = $thumbnailContainer.width()
-                thumbnailIndex = _.findIndex(thumbnails, (item) ->
-                    # true if item is visible after moving leftmost item
-                    return ($(item).width() + $(item).offset().left + difference) > $thumbnailContainer.offset().left
-                )
-                if thumbnailIndex > -1
-                    distance -= $(thumbnails[thumbnailIndex]).offset().left
-        else
-            thumbnailIndex = _.findIndex(thumbnails, (item) ->
-                # true if item is only partially visible
-                return ($(item).width() + $(item).offset().left) > ($thumbnailContainer.width() + $thumbnailContainer.offset().left)
-            )
-            if thumbnailIndex > -1
-                distance -= $(thumbnails[thumbnailIndex]).offset().left + $(thumbnails[thumbnailIndex]).width() - $thumbnailMain.width()
-        if thumbnailIndex > -1
-            @thumbnailIndex = thumbnailIndex
-            @updateThumbnailCarousel(distance)
-
-    module.HeroContent::swipeStatus = (event, phase, direction, distance, fingers, duration) ->
-        if phase is 'end'
-            # flip direction for 'natural' scroll
-            direction = if direction is 'left' then 'right' else 'left'
-            @scrollThumbnails(direction)
-
     module.HeroContent::onShow = ->
         video = @model.get('video')
         if video?
@@ -390,12 +330,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         unless App.support.mobile()
             @leftArrow = @$el.find('.hero-swipe-left')
             @rightArrow = @$el.find('.hero-swipe-right')
-            @heroCarousel = @$el.find('.hero-carousel')
-            if @heroCarousel.length > 0
-                @heroCarousel.swipe(
-                    triggerOnTouchEnd: true,
-                    swipeStatus: _.bind(@swipeStatus, @),
-                    allowPageScroll: 'vertical'
-                )
-                @arrangeThumbnails()
+            carouselInstance = new module.CarouselView(
+                index: @model.get('thumbnails').length - 1,
+                items: @model.get('thumbnails'),
+                attrs:
+                    'type': @model.get('type')
+            )
+            @carouselRegion.show(carouselInstance)
         return
