@@ -255,6 +255,28 @@
     <% } %>
 </script>
 
+<script type="text/template" id="carousel_template">
+    <div class="carousel-view">
+        <div class="carousel-swipe-left"></div>
+        <div class="carousel-swipe-right"></div>
+        <div class="carousel-swipe-up"></div>
+        <div class="carousel-swipe-down"></div>
+        <div class="carousel-container">
+            <div class="carousel-slide">
+                <% include("carousel_items_template") %>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="carousel_items_template">
+    <% for (var i = 0; i < obj.items.length; i++) { %>
+        <div class="item" data-index="<%- i %>">
+            <img src="<%= obj.items[i].url %>" class="image" />
+        </div>
+    <% } %>
+</script>
+
 <script type="text/template" id="facebook_social_button_template">
     <div class='button facebook'>
         <iframe src="//www.facebook.com/plugins/like.php?href=<%= url %>&amp;width&amp;layout=button&amp;action=like&amp;show_faces=false&amp;share=false&amp;height=35" scrolling="no" frameborder="0" style="border:none; overflow:hidden; height:35px;" allowTransparency="true"></iframe>

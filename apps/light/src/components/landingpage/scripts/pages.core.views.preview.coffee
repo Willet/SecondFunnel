@@ -210,6 +210,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.ExpandedContent extends Marionette.Layout
         regions:
             productInfo: ".product-info"
+            carouselRegion: ".carousel-region"
 
         events:
             "click .stl-look .stl-item": (event) ->
@@ -525,6 +526,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if @content.currentView?.productInfo?.currentView
                     productRegion = @content.currentView.productInfo
                     productRegion.show(productRegion.currentView,
+                        forceShow: true
+                    )
+                if @content.currentView?.carouselRegion?.currentView
+                    carouselRegion = @content.currentView.carouselRegion
+                    carouselRegion.show(carouselRegion.currentView,
                         forceShow: true
                     )
                 return
