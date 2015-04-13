@@ -131,7 +131,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ExpandedContent.prototype.events =
         "click .look-image": (event) ->
-            $image = @$el.find(".look-image-container")
+            $image = $(event.target)
             $image.toggleClass("full-image")
             return
 
@@ -255,6 +255,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 attrs:
                     'lookImageSrc': @model.get('images')[0].url
                     'orientation': @model.get('orientation')
+                    'landscape':
+                        'height': '95%'
+                    'portrait':
+                        'fullHeight': '95%'
+                        'reducedHeight': '90%'
             )
             @carouselRegion.show(carouselInstance)
             @$el.find('.look-thumbnail').hide()

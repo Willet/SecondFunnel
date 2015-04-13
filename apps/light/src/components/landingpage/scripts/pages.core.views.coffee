@@ -120,20 +120,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @rightArrow.hide()
             # Small random number added to ensure transitionend is triggered.
             distance += Math.random() / 1000
-            # Must resize container if switching from landscape to portrait on mobile (% based on initial style).
-            height = "95%"
-            top = "0"
+            
             if orientation is "landscape"
                 translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
                 translate = 'translateX(' + distance + 'px)'
+                # Must resize container if switching from landscape to portrait on mobile (% based on initial style).
+                height =  @attrs.landscape?.height or "95%"
+                top = "0"
             else
                 translate3d = 'translate3d(0px, ' + distance + 'px, 0px)'
                 translate = 'translateY(' + distance + 'px)'
                 if @index is 0
-                    height = "88%"
+                    height = @attrs.portrait?.fullHeight or "88%"
+                    top = "0"
                 else
                     # Making room for up arrow.
-                    height = "80%"
+                    height = @attrs.portrait?.reducedHeight or @attrs.portrait?.fullHeight or "80%"
                     top = @upArrow.height()
             @container.css(
                 "height": height
