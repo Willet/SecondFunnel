@@ -2,10 +2,261 @@
 
 require("jquery-waypoints") # register $.fn.waypoint
 require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
+swipe = require('jquery-touchswipe')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     $window = $(window)
     $document = $(document)
+
+    ###
+    View that provides carousel animations/swipe gestures.
+    
+    @constructor
+    @type {ItemView}
+    ###
+    class module.CarouselView extends Marionette.ItemView
+        template: "#carousel_template"
+
+        events:
+            'click .carousel-swipe-left, .carousel-swipe-right, .carousel-swipe-up, .carousel-swipe-down': (ev) ->
+                if $(ev.target).hasClass("carousel-swipe-left")
+                    @calculateHorizontalPosition("left")
+                else if $(ev.target).hasClass("carousel-swipe-right")
+                    @calculateHorizontalPosition("right")
+                else if $(ev.target).hasClass("carousel-swipe-up")
+                    @calculateVerticalPosition("up")
+                else
+                    @calculateVerticalPosition("down")
+                return
+
+        serializeData: ->
+            data = {
+                items: @items,
+                index: @index,
+                attrs: @attrs
+            }
+            return data
+
+        getTemplate: ->
+            if @attrs.type
+                return "##{@attrs.type}_carousel_template"
+            else
+                return "#carousel_template"
+
+        ###
+        @param attrs : array of extra attributes (e.g. lookImageSrc from ExpandedContent)
+        @param index : index of leftmost/topmost item in the carousel
+        @param items : array of items to display in the carousel
+        ###
+        initialize: (data) ->
+            @attrs = data['attrs'] or []
+            @index = data['index'] or 0
+            @items = data['items'] or []
+            return
+
+        onRender: ->
+            @setElement(@$el.children())
+            return
+
+        onShow: ->
+            @container = @$el.find(".carousel-container")
+            @leftArrow = @$el.find(".carousel-swipe-left")
+            @rightArrow = @$el.find(".carousel-swipe-right")
+            @upArrow = @$el.find(".carousel-swipe-up")
+            @downArrow = @$el.find(".carousel-swipe-down")
+            @slide = @$el.find(".carousel-slide")
+            if App.support.mobile()
+                @slide.swipe(
+                    triggerOnTouchEnd: true,
+                    swipeStatus: _.bind(@swipeStatus, @)
+                    allowPageScroll: 'auto'
+                )
+            @calculateDistanceOnLoad()
+            return
+
+        swipeStatus: (event, phase, direction, distance, fingers, duration) ->
+            if phase is 'end'
+                if App.utils.portrait()
+                    # flip direction for 'natural' scroll
+                    direction = if direction is 'left' then 'right' else 'left'
+                    @calculateHorizontalPosition(direction)
+                else
+                    direction = if direction is 'up' then 'down' else 'up'
+                    @calculateVerticalPosition(direction)
+            return @
+
+        ###
+        Moves carousel and shows/hides arrows based on updated carousel position.
+
+        @param distance    : number of pixels to move carousel, set by @calculateHorizontalPosition/@calculateVerticalPosition
+        @param orientation : landscape or portrait
+        @param duration    : duration of animation in milliseconds
+        ###
+        updateCarousel: (distance, orientation, duration=300) ->
+            updateArrows = =>
+                $items = @slide.children(":visible")
+                if orientation is "landscape"
+                    if Math.round($items.first().offset().left) >= Math.round(@container.offset().left)
+                        @leftArrow.hide()
+                    else
+                        @leftArrow.show()
+                    if Math.round($items.last().offset().left + $items.last().width()) <= Math.round(@container.offset().left + @container.width())
+                        @rightArrow.hide()
+                    else
+                        @rightArrow.show()
+                else
+                    if Math.round($items.first().offset().top) >= Math.round(@container.offset().top)
+                        @upArrow.hide()
+                    else
+                        @upArrow.show()
+                    if Math.round($items.last().offset().top + $items.last().outerHeight()) <= Math.round(@container.offset().top + @container.height())
+                        @downArrow.hide()
+                    else
+                        @downArrow.show()
+                return
+            @upArrow.hide()
+            @downArrow.hide()
+            @leftArrow.hide()
+            @rightArrow.hide()
+            # Small random number added to ensure transitionend is triggered.
+            distance += Math.random() / 1000
+            
+            if orientation is "landscape"
+                translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
+                translate = 'translateX(' + distance + 'px)'
+                # Must resize container if switching from landscape to portrait on mobile (% based on initial style).
+                height =  @attrs.landscape?.height or "95%"
+                top = "0"
+            else
+                translate3d = 'translate3d(0px, ' + distance + 'px, 0px)'
+                translate = 'translateY(' + distance + 'px)'
+                if @index is 0
+                    height = @attrs.portrait?.fullHeight or "88%"
+                    top = "0"
+                else
+                    # Making room for up arrow.
+                    height = @attrs.portrait?.reducedHeight or @attrs.portrait?.fullHeight or "80%"
+                    top = @upArrow.height()
+            @container.css(
+                "height": height
+                "top": top
+            )
+            @slide.css(
+                '-webkit-transition-duration': (duration / 1000).toFixed(1) + 's',
+                'transition-duration': (duration / 1000).toFixed(1) + 's',
+                '-webkit-transform': translate3d,
+                '-ms-transform': translate,
+                'transform': translate3d
+            ).one('webkitTransitionEnd msTransitionEnd transitionend', updateArrows)
+            if duration is 0
+                updateArrows()
+            return
+
+        ###
+        Calculates number of pixels to translate the carousel slide horizontally based on direction and @index.
+
+        @param direction : left  -> after moving the leftmost item to the end of the carousel, finds the first
+                                   (partially) visible item from the left and sets it as the leftmost item.
+                           none  -> sets item at @index as the leftmost item in the carousel.
+                           right -> finds the first item that is cut off on the right (or not visible) and sets
+                                    it as the leftmost item.
+        ###
+        calculateHorizontalPosition: (direction='none') ->
+            $container = @container
+            $items = @slide.children(":visible")
+            if direction is 'left'
+                leftMostItem = $items[@index]
+                unless leftMostItem is undefined
+                    # number of pixels needed to move leftmost item to the end of carousel
+                    difference = @container.width()
+                    index = _.findIndex($items, (item) ->
+                        # true if item is visible after moving leftmost item
+                        return ($(item).width() + $(item).offset().left + difference) > $container.offset().left
+                    )
+            else if direction is "right"
+                index = _.findIndex($items, (item) ->
+                    # true if item is only partially visible
+                    return ($(item).width() + $(item).offset().left) > ($container.width() + $container.offset().left)
+                )
+            else
+                # reposition only if items overflow
+                totalItemWidth = _.reduce($items, (sum, item) ->
+                    return sum + $(item).outerWidth()
+                , 0)
+                distance = if totalItemWidth <= @container.width() then 0 else @slide.offset().left - $($items.get(@index)).offset().left 
+                @updateCarousel(distance, "landscape", 0)
+                return
+            if index > -1
+                @index = index
+                distance = @slide.offset().left - $($items.get(@index)).offset().left
+                @updateCarousel(distance, "landscape")
+            return
+
+        ###
+        Calculates number of pixels to translate the carousel slide vertically based on direction and @index.
+
+        @param direction : down -> finds the first item that is cut off on the bottom (or not visible) and sets
+                                   it as the topmost item.
+                           none -> sets item at @index as the topmost item in the carousel.
+                           up   -> after moving the topmost item to the end of the carousel, finds the first
+                                   (partially) visible item from the top and sets it as the topmost item.
+        ###
+        calculateVerticalPosition: (direction='none') ->
+            $container = @container
+            $items = @slide.children(":visible")
+            if direction is "up"
+                topMostItem = $items[@index]
+                unless topMostItem is undefined
+                    # number of pixels needed to move leftmost item to the end of carousel (while still being partially visible)
+                    difference = @container.height()
+                    index = _.findIndex($items, (item) ->
+                        # true if item is visible after moving leftmost item
+                        return ($(item).outerHeight() + $(item).offset().top + difference) > $container.offset().top
+                    )
+            else if direction is "down"
+                index = _.findIndex($items, (item) ->
+                    # true if item is only partially visible
+                    return ($(item).outerHeight() + $(item).offset().top) > ($container.height() + $container.offset().top)
+                )
+            else
+                distance = @slide.offset().top - $($items[@index]).offset().top
+                @updateCarousel(distance, "portrait", 0)
+                return
+            if index > -1
+                @index = index
+                distance = @slide.offset().top - $($items[@index]).offset().top
+                @updateCarousel(distance, "portrait")
+            return
+
+        ###
+        Calculates distance after DOM elements are loaded. Assumes carousel is vertical on mobile-landscape,
+        and horizontal otherwise (desktop, mobile-portrait).
+        ###
+        calculateDistanceOnLoad: ->
+            calculateDistance = =>
+                if --imageCount isnt 0
+                    return
+                if App.support.mobile() and App.utils.landscape()
+                    @calculateVerticalPosition()
+                else
+                    @calculateHorizontalPosition()
+                return
+
+            imageCount = $("img", @$el).length
+            # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
+            $("img", @$el).one("load", calculateDistance).each ->
+                if @complete
+                    # Without the timeout the box may not be rendered. This lets the onShow method return
+                    setTimeout (=>
+                        $(@).load()
+                        return
+                    ), 1
+                return
+            return
+
+        close: ->
+            @slide.swipe("destroy")
+            return
 
     ###
     View responsible for Youtube videos in heros / previews
@@ -89,6 +340,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#herovideo_template"
         regions:
             video: ".hero-video"
+            carouselRegion: ".hero-carousel-region"
         templates: ->
             templateRules = [
                 "#<%= options.store.slug %>_<%= data.template %>_template"

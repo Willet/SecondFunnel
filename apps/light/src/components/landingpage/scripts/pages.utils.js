@@ -224,11 +224,11 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 options.height = Math.ceil(height / 100.0) * 100;
             } else if (options.height) {
                 options.height = Math.ceil(height / 100.0) * 100;
-            } else if (options.width) {
-                options.width = Math.ceil(width / 100.0) * (100 * ratio);
-            } else {
+            } else if (App.feed.width() > 0 && !options.width) {
                 options.width = Math.ceil(App.feed.width()) * ratio;
-            }
+            } else {
+                options.width = Math.ceil(width / 100.0) * (100 * ratio);
+            } 
 
             options = {
                 crop: 'fit',
