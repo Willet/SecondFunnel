@@ -140,9 +140,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.info').hide()
             @$el.find('.look-image-container').show()
             @carouselRegion.currentView.index = Math.max(@carouselRegion.currentView.index - 1, 0)
-            # @stlIndex = Math.max(@stlIndex - 1, 0)
             @lookProductIndex = -1
-            # if App.utils.landscape() then @arrangeStlItemsVertical() else @arrangeStlItemsHorizontal()
             if App.utils.landscape()
                 @carouselRegion.currentView.calculateVerticalPosition()
             else
@@ -153,6 +151,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
             @lookProductIndex = $targetEl.data("index")
+            unless @$el.find('.look-thumbnail').is(':visible')
+                @carouselRegion.currentView.index = Math.min($('.stl-look').children(':visible').length - 1, @carouselRegion.currentView.index + 1)
             @updateCarousel()
             App.vent.trigger('tracking:stlItemClick', @model.get("tagged-products")[@lookProductIndex])
             return
@@ -281,25 +281,38 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         productImageIndex = @productInfo.currentView?.galleryIndex or 0
         numberOfImages = (@productInfo.currentView?.numberOfImages - 1) or 0
         if @lookProductIndex >= 0
+            # delegate swipe to ProductView to swipe through images
             unless (direction is 'left' and productImageIndex is numberOfImages) or (direction is 'right' and productImageIndex is 0)
                 @productInfo.currentView.swipeStatus(event, phase, direction, distance, fingers, duration)
                 return
         if phase is 'end'
             if direction is 'right'
                 @lookProductIndex--
-                if (@lookProductIndex < -1 and App.support.mobile()) or (@lookProductIndex < 0 and not App.support.mobile())
-                    @lookProductIndex = @$el.find(".stl-look").children(":visible").length - 1
+                # swipe from look image to last product
+                if @lookProductIndex < -1
+                    @lookProductIndex = @model.get('tagged-products').length - 1
+                    if App.support.mobile()
+                        @carouselRegion.currentView.index = Math.min($('.stl-look').children().length - 1, @carouselRegion.currentView.index + 1)
+                # swipe from first product to look image
+                else if @lookProductIndex is -1 and App.support.mobile()
+                    @carouselRegion.currentView.index = Math.max(@carouselRegion.currentView.index - 1, 0)
             else if direction is 'left'
                 @lookProductIndex++
+                # swipe from last product to look image
                 if @lookProductIndex is @model.get("tagged-products")?.length
-                    @lookProductIndex = if App.support.mobile() then -1 else 0
+                    if App.support.mobile()
+                        @lookProductIndex = -1
+                        @carouselRegion.currentView.index = Math.max(@carouselRegion.currentView.index - 1, 0)
+                    else
+                        @lookProductIndex = 0
+                # swipe from look image to first product
+                else if @lookProductIndex is 0 and App.support.mobile()
+                    @carouselRegion.currentView.index = Math.min($('.stl-look').children(':visible').length - 1, @carouselRegion.currentView.index + 1)
             @updateCarousel()
         return @
 
     module.ExpandedContent::updateCarousel = ->
         if App.support.mobile() and @lookProductIndex < 0
-            if @$el.find('.look-thumbnail').is(":visible")
-                @carouselRegion.currentView.index = Math.max(0, @carouselRegion.currentView.index - 1)
             @$el.find('.look-thumbnail').hide()
             @$el.find('.info').hide()
             @$el.find('.look-image-container').show()
@@ -316,8 +329,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
             @productInfo.show(productInstance)
             if App.support.mobile()
-                unless @$el.find('.look-thumbnail').is(":visible")
-                    @carouselRegion.currentView.index = Math.min($(".stl-look").children().length - 1, @carouselRegion.currentView.index + 1)
                 @$el.find('.look-thumbnail').show()
                 @$el.find('.info').show()
                 @$el.find('.look-image-container').hide()
