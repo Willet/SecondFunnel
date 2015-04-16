@@ -596,10 +596,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # Watch for updates to feed, generally from intentRank
             @listenTo(App.vent, "change:category", @selectCategory)
 
-            # Enable sticky category bar
-            if App.option("page:stickyCategories")
-                $('#category-area').waypoint('sticky')
-
             return @
         
         onRender: ->
@@ -615,6 +611,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         # Remove the 'selected' class from all category and sub-category elements
         unselectCategories: ->
             @$el.find('.selected').removeClass('selected')
+            return @
+
+        onShow: ->
+            # Enable sticky category bar
+            sticky = App.option("page:stickyCategories")
+            if _.isString(sticky)
+                if sticky == 'desktop-only' and not App.support.mobile()
+                    @$el.parent().waypoint('sticky')
+                else if sticky == 'mobile-only' and App.support.mobile()
+                    @$el.parent().waypoint('sticky')
+            else if _.isBoolean(sticky) and sticky
+                @$el.parent().waypoint('sticky')
+
             return @
 
         ###

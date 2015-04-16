@@ -20,7 +20,7 @@
     "forceGrid":true
   },
   "minImageWidth":675,
-  "stickyCategories":true,
+  "stickyCategories":"desktop-only",
   "categories":[
     {
       "mobileHeroImage":"",

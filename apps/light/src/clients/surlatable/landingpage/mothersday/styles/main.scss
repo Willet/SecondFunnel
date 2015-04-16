@@ -456,6 +456,7 @@ body {
         background-color: transparent;
         display: block;
         height: 140px;
+        padding-top: 4px;
     }
 
     .category {
@@ -473,13 +474,13 @@ body {
         font-family: $slt-modern-font;
         overflow: hidden;
         &.selected, &:hover {
-            border-bottom: 1px solid $slt-orange-color;
+            border-bottom: 2px solid $slt-orange-color;
         }
         img {
             height: auto;
-            min-height: 121px;
-            width: 121px;
-            margin-bottom: 4px;
+            min-height: 111px;
+            width: 111px;
+            margin-bottom: 7px;
         }
         > span {
             display: block;
@@ -1098,10 +1099,6 @@ body {
         background-color: transparent;
         table-layout: fixed;
         display: table;
-        &.stuck {
-            width: 100%;
-            box-shadow: 1px 1px 2px #AAA;
-        }
         .category-area {
             background-color: #FFF;
             display: table-row;
