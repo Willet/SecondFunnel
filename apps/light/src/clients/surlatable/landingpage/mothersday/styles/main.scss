@@ -52,6 +52,9 @@ $slt-orange-color: #EF842C;
 body {
     background: none;
     font-family: $slt-basic-font;
+    &.no-scroll {
+        padding-right: 15px;
+    }
 }
 .container {
     position: relative;
@@ -495,6 +498,12 @@ body {
     }
     &:last-child .category {
         margin-right: 0;
+    }
+    &.stuck {
+        position: fixed;
+        top: 0;
+        margin: 0;
+        max-width: 1024px;
     }
 }
 

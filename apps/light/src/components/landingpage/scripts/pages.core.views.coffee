@@ -598,8 +598,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # Enable sticky category bar
             if App.option("page:stickyCategories")
-                @$el.parent().waypoint('sticky')
-            
+                $('#category-area').waypoint('sticky')
+
             return @
         
         onRender: ->
