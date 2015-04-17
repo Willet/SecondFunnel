@@ -61,6 +61,7 @@ class PageSerializer(IRSerializer):
             #                   { ... }]
             'categories':           may_be_json(page, 'categories', list),
             'mobileCategories':     may_be_json(page, 'mobileCategories', list),
+            # sticky categories can be: <bool> or <string> "desktop-only", "mobile-only"
             'stickyCategories':     getattr(page, 'stickyCategories', False),
             'home': {
                 'hero':             getattr(page, 'home', {}).get('hero', None),

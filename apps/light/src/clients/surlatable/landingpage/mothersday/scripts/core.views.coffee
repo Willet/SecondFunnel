@@ -297,3 +297,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         $(".recipe").off()
         @$el.find(".look-product-carousel").swipe("destroy")
         return
+
+    module.CategoryCollectionView::onShow = ->
+        # Enable sticky category bar
+        sticky = App.option("page:stickyCategories")
+        if _.isString(sticky)
+            if sticky == 'desktop-only' and not App.support.mobile()
+                @$el.parent().waypoint('sticky',
+                    offset: '-111px'
+                )
+            else if sticky == 'mobile-only' and App.support.mobile()
+                @$el.parent().waypoint('sticky',
+                    offest: '-111px'
+                )
+        else if _.isBoolean(sticky) and sticky
+            @$el.parent().waypoint('sticky',
+                offest: '-111px'
+            )
+
+        return @
