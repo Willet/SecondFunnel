@@ -290,7 +290,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ExpandedContent::close = ->
         # See NOTE in onShow
-        unless App.support.isAnAndroid()
+        unless App.support.mobile()
             $(document.body).removeClass("no-scroll")
 
         @$(".stick-bottom").waypoint("destroy")
