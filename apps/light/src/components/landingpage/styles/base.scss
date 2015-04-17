@@ -759,7 +759,7 @@ div.loading {
     max-width: 100%;
     display: table;
     text-align: center;
-    .stuck {
+    &.stuck {
         top: 0;
         width: inherit;
         position: fixed;
