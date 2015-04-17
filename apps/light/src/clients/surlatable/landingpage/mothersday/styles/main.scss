@@ -58,7 +58,7 @@ body {
 .sticky-wrapper {
     display: block !important;
     height: 140px !important;
-    margin: 15px 0;
+    margin: 15px 0 0 0;
 }
 
 .container {
@@ -644,6 +644,7 @@ body {
     font-size: 17px;
     font-style: italic;
     font-family: $slt-sans-font;
+    font-weight: bold;
     color: $slt-purple-color;
     &:after {
         content: '\25be';
