@@ -30,11 +30,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ProductView::onBeforeRender = ->
-        inlineLink = "More on #{@model.attributes.name or @model.attributes.title} »"
-        if @model.attributes.cj_link is undefined
-            inlineLink = "<a href=#{@model.attributes.url}>#{inlineLink}</a>"
-        else
-            inlineLink = "<a href=#{@model.attributes.cj_link}>#{inlineLink}</a>"
+        linkName = "More on #{@model.attributes.name or @model.attributes.title} »"
+        inlineLink = "<a href='#{@model.attributes.cj_link or @model.attributes.url}'>#{linkName}</a>"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
             @model.set("truncated_description", truncatedDescription + " " + inlineLink)
@@ -290,7 +287,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ExpandedContent::close = ->
         # See NOTE in onShow
-        unless App.support.isAnAndroid()
+        unless App.support.mobile()
             $(document.body).removeClass("no-scroll")
 
         @$(".stick-bottom").waypoint("destroy")
