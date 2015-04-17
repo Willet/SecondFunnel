@@ -1241,15 +1241,9 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <% if (obj.cj_link) { %>
-                <a class='button' href='<%= obj.cj_link %>' target='_blank'>
-                    <span>Shop Now</span>
-                </a>
-            <% } else { %>
-                <a class='button' href='<%= obj.url %>' target='_blank'>
-                    <span>Shop Now</span>
-                </a>
-            <% } %>
+            <a class='button' href='<%= obj.cj_link || obj.url %>' target='_blank'>
+                <span>Shop Now</span>
+            </a>
         </script>
 
         <script type="text/template" id="product_description_template">
