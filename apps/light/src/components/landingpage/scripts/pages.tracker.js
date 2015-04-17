@@ -338,6 +338,14 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             pagesScrolled = page;
         }, 2000);
 
+    module.pageClickout = function (url, target) {
+        module.trackEvent({
+            'category': 'Exit',
+            'action': url,
+            'label': target
+        });
+    };
+
     // Generally, we have views handle event tracking on their own.
     // However, it can be expensive to bind events to every single view.
     // So, to avoid the performance penalty, we do most of our tracking via
@@ -567,11 +575,11 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         'tracking:videoPlay': module.videoPlay,
         'tracking:changeCampaign': module.changeCampaign,
         'tracking:changeCategory': module.changeCategory,
+        'tracking:page:scroll': module.pageScroll,
+        'tracking:page:externalUrlClick': module.pageClickout,
         'tracking:product:buyClick': module.buyClick,
         'tracking:product:findStoreClick': module.findStoreClick,
         'tracking:product:thumbnailClick': module.thumbnailClick,
-        'tracking:product:imageView': module.imageView,
-        'tracking:feed:scroll': module.pageScroll
-
+        'tracking:product:imageView': module.imageView
     });
 };

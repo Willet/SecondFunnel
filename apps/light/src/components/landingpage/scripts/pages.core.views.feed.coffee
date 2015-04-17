@@ -93,7 +93,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # Track scroll
             if $(window).scrollTop() > 0
-                App.vent.trigger('tracking:feed:scroll')
+                App.vent.trigger('tracking:page:scroll')
 
             if windowTop > @lastScrollTop
                 App.vent.trigger('scrollDown', @)

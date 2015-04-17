@@ -33,6 +33,7 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     $(document).on('click', 'a', function (ev) {
         // ev.target can be a child element
         // this === ev.currentTarget
+        App.vent.trigger("tracking:page:externalUrlClick", this.href, String(this.classList));
         App.utils.openUrl(this.href, this.target);
         return false; // stop default action
     });
