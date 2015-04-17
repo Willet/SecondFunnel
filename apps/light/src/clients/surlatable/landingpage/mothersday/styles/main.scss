@@ -8,6 +8,7 @@ $slt-grey-color: #a8a8a8;
 $slt-green-color: #6b8e00;
 $slt-purple-color: #651e44;
 $slt-orange-color: #EF842C;
+$slt-thumbnail-height: 111px;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -58,7 +59,9 @@ body {
 }
 
 .sticky-wrapper {
-    height: auto !important;
+    display: block !important;
+    height: 140px !important;
+    margin: 15px 0;
 }
 
 .container {
@@ -456,12 +459,12 @@ body {
     table-layout: fixed;
     background-color: #FFF;
     z-index: 2;
-    margin: 106px 0 15px;
+    overflow-y: hidden;
+
     .category-area {
         background-color: transparent;
         display: block;
         height: 140px;
-        padding-top: 4px;
     }
 
     .category {
@@ -485,13 +488,13 @@ body {
         }
         img {
             height: auto;
-            min-height: 111px;
+            height: $slt-thumbnail-height;
             width: 111px;
         }
         .name {
             display: inline;
-            font-size: 14px;
-            line-height: 14px;
+            font-size: 16px;
+            line-height: 16px;
             white-space: nowrap;
             text-transform: uppercase;
             @include no-select;
@@ -507,19 +510,14 @@ body {
         margin-right: 0;
     }
     &.stuck {
-        margin: 0;
         .category-area {
             height: auto;
-        }
-        img {
-            display: none;
+            margin-top: (-$slt-thumbnail-height);
         }
     }
 }
 
 #hero-area {
-    position: absolute;
-    top: 0;
     .jumbotron {
         position: relative;
         height: 104px; /* 2px + 100px + 2px */
@@ -596,6 +594,9 @@ body {
                 width: 100%;
                 text-align: center;
                 -webkit-transition: top 0.5s;
+                -moz-transition: top 0.5s;
+                -ms-transition: top 0.5s;
+                -o-transition: top 0.5s;
                 transition: top 0.5s;
                 transition-timing-function: ease-in-out;
                 span {
