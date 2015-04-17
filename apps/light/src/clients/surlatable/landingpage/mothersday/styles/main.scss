@@ -53,9 +53,6 @@ $slt-thumbnail-height: 111px;
 body {
     background: none;
     font-family: $slt-basic-font;
-    &.no-scroll {
-        padding-right: 15px;
-    }
 }
 
 .sticky-wrapper {
