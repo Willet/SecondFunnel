@@ -484,7 +484,6 @@ body {
             }
         }
         img {
-            height: auto;
             height: $slt-thumbnail-height;
             width: 111px;
         }
@@ -1103,25 +1102,23 @@ body {
         z-index: 10;
         /* overlap above clickable element with a margin to reduce fat finger clicks */
         margin: -20px 0 0;
-        padding-top: 20px;
+        padding-top: 22px;
         background-color: transparent;
-        table-layout: fixed;
-        display: table;
+        overflow: visible;
         .category-area {
             background-color: #FFF;
-            display: table-row;
             width: 100%;
+            height: 46px !important;
         }
         .category {
-            display: table-cell !important;
+            vertical-align: top;
             border: 2px solid $slt-orange-color;
             border-radius: 6px;
             color: #FFF !important;
             background-color: $slt-orange-color !important;
-            width: 100px;
-            max-width: 49%;
+            width: 49%;
             line-height: 40px;
-            margin-right: 0;
+            margin-right: 2px;
             &.selected {
                 border-bottom: 2px solid $slt-orange-color;
                 background-color: $slt-orange-color;
@@ -1157,7 +1154,8 @@ body {
                 color: $slt-orange-color;
                 border-bottom: none;
                 img {
-                    width: 100%;
+                    width: 77%;
+                    height: auto;
                 }
                 > span {
                     font-size: 15px;
