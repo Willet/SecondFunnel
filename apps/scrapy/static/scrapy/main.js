@@ -1,30 +1,10 @@
-var prioritize = function(cat) {
-    console.log('prioritizing: ' + cat.name);
-    $.ajax({
-        url: 'prioritize',
-        type: 'GET',
-        data: {
-            cat: encodeURIComponent(JSON.stringify(cat))
-        },
-        success: function(data, status) {
-            console.log('prioritize succeeded with status: ' + status);
-        },
-        error: function(obj, status, error) {
-            console.warn('prioritize failed with status: ' + status);
-            console.warn(obj);
-        }
-    });
-};
-
-// callback for "run" button
-var run = function() {
+var get_data = function () {
     var csv = $('#pseudo-spreadsheet').val();
     var lines = csv.split('\n');
     lines = lines.filter(function(x){
         return x.trim().length > 0;
     });
     var delim = $('#delimiter').val();
-    var create_tiles = $('#create-tiles').prop('checked');
     var categories = {};
 
     // will get some text in red letters if data doesn't validate
@@ -37,7 +17,7 @@ var run = function() {
         // validation
         if (line.length != 3) {
             warning.text("<- Look you fool");
-            return;
+            return false;
         }
 
         var url = line[0].trim(),
@@ -49,27 +29,62 @@ var run = function() {
         categories[cat].urls.push(url);
         categories[cat].priorities.push(priority);
     }
-    console.log('running');
 
-    // run each category separately (spiders only take one set of categories at a time)
-    for (cat in categories) {
-        console.log('category: ' + cat);
+    return categories;
+};
+
+// callback for "run" button
+var scrape = function() {
+    var categories = get_data();
+    var create_tiles = $('#create-tiles').prop('checked');
+
+    if (!categories) {
+        console.log('error validating data, see warning')
+    } else {
+        console.log('scraping');
+
+        // run each category separately (spiders only take one set of categories at a time)
+        for (cat in categories) {
+            console.log('category: ' + cat);
+            $.ajax({
+                url: 'scrape',
+                type: 'GET',
+                data: {
+                    'category': cat,
+                    'urls': encodeURIComponent(JSON.stringify(categories[cat].urls)),
+                    'page': page,
+                    'tiles': create_tiles
+                },
+                success: function(data, status) {
+                    console.log('scrape succeeded with status: ' + status);
+                },
+                error: function(obj, status, error) {
+                    console.warn('scrape failed with status: ' + status);
+                    console.warn(obj);
+                }
+            });
+        }
+    }
+};
+
+// callback for "prioritize" button
+var prioritize = function() {
+    var categories = get_data();
+    if (!categories) {
+        console.log('error validating data, see warning')
+    } else {
+        console.log('prioritizing: ' + cat.name);
         $.ajax({
-            url: 'scrape',
+            url: 'prioritize',
             type: 'GET',
             data: {
-                'category': cat,
-                'urls': encodeURIComponent(JSON.stringify(categories[cat].urls)),
-                'page': page,
-                'tiles': create_tiles
+                cat: encodeURIComponent(JSON.stringify(cat))
             },
             success: function(data, status) {
-                console.log('scrape succeeded with status: ' + status);
-                // if it worked, run priorities
-                prioritize(categories[cat]);
+                console.log('prioritize succeeded with status: ' + status);
             },
             error: function(obj, status, error) {
-                console.warn('scrape failed with status: ' + status);
+                console.warn('prioritize failed with status: ' + status);
                 console.warn(obj);
             }
         });

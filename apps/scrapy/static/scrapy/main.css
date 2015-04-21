@@ -56,7 +56,7 @@
     margin-left: 12;
 }
 
-.options #run {
+.options #scrape, .options #prioritize {
     width: 140;
     font-size: 40;
 }
