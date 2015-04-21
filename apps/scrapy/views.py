@@ -39,10 +39,11 @@ def scrape(request, page_slug):
 
     page = get_object_or_404(Page, url_slug=page_slug)
     def process(request, store_slug):
-        category = request.GET.get('category')
-        start_urls = json.loads(urlparse.unquote(request.GET.get('urls')))
-        tiles = bool(request.GET.get('tiles') == 'true')
-        feeds = [Page.objects.get(url_slug=request.GET.get('page')).feed.id] if tiles else []
+        cat = json.loads(urlparse.unquote(request.POST.get('cat')))
+        category = cat['name']
+        start_urls = cat['urls']
+        tiles = bool(request.POST.get('tiles') == 'true')
+        feeds = [Page.objects.get(url_slug=request.POST.get('page')).feed.id] if tiles else []
         opts = {
             'recreate_tiles': False,
             'skip_images': False,
@@ -67,6 +68,9 @@ def scrape(request, page_slug):
 
         reactor.run()
 
+        if cat['priorities'] and len(cat['priorities']) > 0:
+            prioritize(request, page_slug)
+
     p = Process(target=process, args=[request, page.store.slug])
     p.start()
     p.join()
@@ -76,7 +80,7 @@ def scrape(request, page_slug):
 def prioritize(request, page_slug):
     """callback for prioritizing tiles, if applicable"""
 
-    cat = json.loads(urlparse.unquote(request.GET.get('cat')))
+    cat = json.loads(urlparse.unquote(request.POST.get('cat')))
     urls = cat['urls']
     priorities = cat['priorities']
     for i, url in enumerate(urls):
