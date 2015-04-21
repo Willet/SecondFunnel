@@ -85,7 +85,7 @@ def prioritize(request, page_slug):
             for tile in prod.tiles.all():
                 tile.priority = priorities[i]
                 tile.save()
-    return HttpResponse(status=404)
+    return HttpResponse(status=204)
 
 def log(request, page_slug, filename=None):
     return HttpResponse("<html><body>asdf3</body></html")

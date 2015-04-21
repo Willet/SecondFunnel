@@ -18,8 +18,11 @@
 - command: mv "{{application_directory}}" "{{application_directory}}-rollback"
   when: app_environment != 'vagrant' and codebase.stat.exists
 
+- name: Ping server before connecting
+  ping:
+
 - name: Create Directory for Application
-  file: state=directory path="{{application_directory}}" mode=0777 owner={{common_user}} group={{common_user}}
+  file: state=directory path="{{application_directory}}" mode=0777 owner="{{common_user}}" group="{{common_user}}"
   sudo: true
 
 - name: Sync latest version of repository
@@ -36,15 +39,15 @@
   pip: requirements={{ application_directory }}/requirements/dev.txt virtualenv={{virtualenv_directory}}
   when: "'vagrant' in groups"
   async: 3600
-  poll: 15
+  poll: 10
 
 - name: Install Python Application Requirements (non-dev)
   pip: requirements={{ application_directory }}/requirements.txt virtualenv={{virtualenv_directory}}
   when: "'vagrant' not in groups and git_repo|changed"
   async: 3600
-  poll: 15
+  poll: 10
 
-- name: Remove any existing node_modules or bower_libs if they exist
+- name: Determine if node_modules or bower_libs exist
   stat: path="{{item.src}}"
   register: shared_libs_stat
   with_items: linked_directories
@@ -62,17 +65,17 @@
   npm: path="{{application_directory}}/apps/light"
   sudo: true
   async: 3600
-  poll: 15
+  poll: 10
 
 - name: Install Javascript and Light Dependencies
   command: chdir="{{application_directory}}/apps/light" bower install
   async: 3600
-  poll: 15
+  poll: 10
 
 - name: Run Gulp to build pages and static assets
   command: chdir="{{application_directory}}/apps/light" gulp build
   async: 3600
-  poll: 15
+  poll: 10
 
 - name: Migration of database, etc
   shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
