@@ -108,7 +108,7 @@ var prioritize = function() {
                 },
                 error: function(obj, status, error) {
                     $results.addClass('warning');
-                    $results.html('\Prioritize failed with status: ' + status);
+                    $results.html('\nPrioritize failed with status: ' + status);
                     console.warn('Prioritize failed with status: ' + status);
                     console.warn(obj);
                 }
