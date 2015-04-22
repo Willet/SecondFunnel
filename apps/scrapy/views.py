@@ -8,6 +8,7 @@ from django.shortcuts import render, get_object_or_404
 
 from apps.assets.models import Page, Store, Product
 from apps.scrapy.tasks import scrape_task
+from apps.utils.tasks import get_celery_worker_status
 
 stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
 
@@ -40,26 +41,27 @@ def scrape(request, page_slug):
     if not request.session.get('jobs', False):
         request.session['jobs'] = {}
 
+    # Delayed task!
+    # Could add some validation here before starting process
+    # Job will be updated in the session by the task
+    task = scrape_task.delay(category= cat['name'],
+                             start_urls= cat['urls'],
+                             create_tiles= bool(request.GET.get('tiles') == 'true'),
+                             page_slug= request.GET.get('page'),
+                             session_key= request.session.session_key)
+
     job = {
-        'id': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'id': task.task_id,
+        'started': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'complete': False,
         'log_url': '',
         'summary_url': '',
         'summary': '',
     }
+
     # Use job start time as unique id
     request.session['jobs'].update({ job['id']: job })
     request.session.save()
-
-    # Delayed task!
-    # Could add some validation here before starting process
-    # Job will be updated in the session by the task
-    scrape_task.delay(category= cat['name'],
-                      start_urls= cat['urls'],
-                      create_tiles= bool(request.GET.get('tiles') == 'true'),
-                      page_slug= request.GET.get('page'),
-                      session_key= request.session.session_key,
-                      job_id= job['id'])
 
     return HttpResponse(json.dumps(job), content_type="application/json")
 
@@ -90,3 +92,7 @@ def summary(request, page_slug, job_id):
         return HttpResponse(json.dumps(job), content_type="application/json")
     except KeyError:
         return HttpResponse(status=400)
+
+def status(request, page_slug):
+    celery_status = get_celery_worker_status()
+    return HttpResponse(json.dumps(celery_status), content_type="application/json")

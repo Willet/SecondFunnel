@@ -16,8 +16,8 @@ from apps.assets.models import Page
 SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
 celery = Celery()
 
-@celery.task
-def scrape_task(category, start_urls, create_tiles, page_slug, session_key, job_id):
+@celery.task(bind=True)
+def scrape_task(self, category, start_urls, create_tiles, page_slug, session_key=False):
     page = Page.objects.get(url_slug=page_slug)
     feeds = [page.feed.id] if create_tiles else []
     opts = {
@@ -45,11 +45,15 @@ def scrape_task(category, start_urls, create_tiles, page_slug, session_key, job_
     reactor.run(installSignalHandlers=False)
 
     # Update session with results
-    session = SessionStore(session_key=session_key)
-    session['jobs'][job_id].update({
-        'complete': True,
-        'log_url': crawler.stats.get_value('log_url', ''),
-        'summary_url': crawler.stats.get_value('summary_url', ''),
-        'summary': crawler.stats.get_value('summary', ''),
-    })
-    session.save()
+    if (session_key):
+        session = SessionStore(session_key=session_key)
+        try:
+            session['jobs'][self.id].update({
+                'complete': True,
+                'log_url': crawler.stats.get_value('log_url', ''),
+                'summary_url': crawler.stats.get_value('summary_url', ''),
+                'summary': crawler.stats.get_value('summary', ''),
+            })
+            session.save()
+        except KeyError:
+            pass

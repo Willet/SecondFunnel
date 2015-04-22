@@ -4,6 +4,7 @@ urlpatterns = patterns(
     'apps.scrapy.views',
     url(r'^$', 'index'),
     url(r'^(?P<page_slug>[-\w]+)/$', 'page'),
+    url(r'^(?P<page_slug>[-\w]+)/status$', 'status'),
     url(r'^(?P<page_slug>[-\w]+)/log$', 'log'),
     url(r'^(?P<page_slug>[-\w]+)/log/(?P<job_id>.+)/$', 'log'),
     url(r'^(?P<page_slug>[-\w]+)/summary$', 'summary'),
