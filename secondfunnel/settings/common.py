@@ -438,7 +438,7 @@ STALE_TILE_QUEUE_NAME = 'tiles-worker-test-queue'
 
 CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
 
-CELERY_IMPORTS = ('apps.utils.tasks', )
+CELERY_IMPORTS = ('apps.utils.tasks','apps.scrapy.tasks' )
 
 API_LIMIT_PER_PAGE = 20
 

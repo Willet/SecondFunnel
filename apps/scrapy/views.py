@@ -1,18 +1,13 @@
 import json
 import urlparse
-from multiprocessing import Process
 
+from datetime import datetime
 from django.http import HttpResponse, Http404
 from django.conf import settings as django_settings
 from django.shortcuts import render, get_object_or_404
-from twisted.internet import reactor
-
-from scrapy import log as scrapy_log, signals
-from scrapy.crawler import Crawler
-from scrapy.settings import CrawlerSettings
-from scrapy.utils.project import get_project_settings
 
 from apps.assets.models import Page, Store, Product
+from apps.scrapy.tasks import scrape_task
 
 stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
 
@@ -35,43 +30,36 @@ def page(request, page_slug):
     return render(request, 'page.html', data)
 
 def scrape(request, page_slug):
-    """callback for running a spider"""
+    """Async request to run a spider"""
 
     page = get_object_or_404(Page, url_slug=page_slug)
-    def process(request, store_slug):
-        category = request.GET.get('category')
-        start_urls = json.loads(urlparse.unquote(request.GET.get('urls')))
-        tiles = bool(request.GET.get('tiles') == 'true')
-        feeds = [Page.objects.get(url_slug=request.GET.get('page')).feed.id] if tiles else []
-        opts = {
-            'recreate_tiles': False,
-            'skip_images': False,
-            'skip_tiles': not tiles,
-        }
+    # Ensure session is set up
+    if not request.session.exists(request.session.session_key):
+        request.session.create() 
+    if not request.session.get('jobs', False):
+        request.session['jobs'] = {}
 
-        # set up standard framework for running spider in a script
-        settings = get_project_settings()
-        crawler = Crawler(settings)
-        crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
-        crawler.configure()
+    job = {
+        'id': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'complete': False,
+        'log_url': '',
+        'summary_url': '',
+        'summary': '',
+    }
+    # Use job start time as unique id
+    request.session['jobs'].update({ job['id']: job })
 
-        spider = crawler.spiders.create(store_slug, **opts)
-        spider.start_urls = start_urls
-        spider.categories = [category] if category else []
-        spider.feed_ids = feeds
+    # Delayed task!
+    # Could add some validation here before starting process
+    # Job will be updated in the session by the task
+    scrape_task.delay(category= request.GET.get('category'),
+                      start_urls= json.loads(urlparse.unquote(request.GET.get('urls'))),
+                      create_tiles= bool(request.GET.get('tiles') == 'true'),
+                      page_slug= request.GET.get('page'),
+                      session_key= request.session.session_key,
+                      job_id= job['id'])
 
-        crawler.crawl(spider)
-        scrapy_log.start()
-        scrapy_log.msg(u"Starting spider with options: {}".format(opts))
-        crawler.start()
-
-        reactor.run()
-
-    p = Process(target=process, args=[request, page.store.slug])
-    p.start()
-    p.join()
-
-    return HttpResponse(status=204)
+    return HttpResponse(json.dumps(job), content_type="application/json")
 
 def prioritize(request, page_slug):
     """callback for prioritizing tiles, if applicable"""
@@ -87,8 +75,16 @@ def prioritize(request, page_slug):
                 tile.save()
     return HttpResponse(status=204)
 
-def log(request, page_slug, filename=None):
-    return HttpResponse("<html><body>asdf3</body></html")
+def log(request, page_slug, job_id):
+    try:
+        job = request.session['jobs'].get(job_id, None)
+        return HttpResponse(json.dumps(job), content_type="application/json")
+    except KeyError:
+        return HttpResponse(status=400)
 
-def summary(request, page_slug, filename=None):
-    return HttpResponse("<html><body>asdf4</body></html")
+def summary(request, page_slug, job_id):
+    try:
+        job = request.session['jobs'].get(job_id, None)
+        return HttpResponse(json.dumps(job), content_type="application/json")
+    except KeyError:
+        return HttpResponse(status=400)
