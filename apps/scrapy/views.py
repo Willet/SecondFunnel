@@ -64,7 +64,7 @@ def scrape(request, page_slug):
 def prioritize(request, page_slug):
     """callback for prioritizing tiles, if applicable"""
 
-    cat = json.loads(urlparse.unquote(request.GET.get('cat')))
+    cat = json.loads(urlparse.unquote(request.POST.get('cat')))
     urls = cat['urls']
     priorities = cat['priorities']
     for i, url in enumerate(urls):
