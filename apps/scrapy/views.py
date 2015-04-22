@@ -32,6 +32,7 @@ def page(request, page_slug):
 def scrape(request, page_slug):
     """Async request to run a spider"""
 
+    cat = json.loads(urlparse.unquote(request.GET.get('cat')))
     page = get_object_or_404(Page, url_slug=page_slug)
     # Ensure session is set up
     if not request.session.exists(request.session.session_key):
@@ -48,12 +49,13 @@ def scrape(request, page_slug):
     }
     # Use job start time as unique id
     request.session['jobs'].update({ job['id']: job })
+    request.session.save()
 
     # Delayed task!
     # Could add some validation here before starting process
     # Job will be updated in the session by the task
-    scrape_task.delay(category= request.GET.get('category'),
-                      start_urls= json.loads(urlparse.unquote(request.GET.get('urls'))),
+    scrape_task.delay(category= cat['name'],
+                      start_urls= cat['urls'],
                       create_tiles= bool(request.GET.get('tiles') == 'true'),
                       page_slug= request.GET.get('page'),
                       session_key= request.session.session_key,
@@ -64,7 +66,7 @@ def scrape(request, page_slug):
 def prioritize(request, page_slug):
     """callback for prioritizing tiles, if applicable"""
 
-    cat = json.loads(urlparse.unquote(request.POST.get('cat')))
+    cat = json.loads(urlparse.unquote(request.GET.get('cat')))
     urls = cat['urls']
     priorities = cat['priorities']
     for i, url in enumerate(urls):

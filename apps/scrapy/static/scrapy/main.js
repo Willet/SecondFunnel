@@ -44,7 +44,7 @@ var scrape = function() {
         $results.html("Error validating data, see warning.");
         console.log("Error validating data, see warning.");
     } else {
-        $results.html("Scraping...");
+        $results.html("Scraping...please be patient. May take up to 30mins.");
         console.log('Scraping...');
 
         // run each category separately (spiders only take one set of categories at a time)
@@ -53,18 +53,55 @@ var scrape = function() {
             console.log('Category: ' + cat);
             $.ajax({
                 url: 'scrape',
-                type: 'POST',
+                type: 'GET',
                 data: {
                     'cat': encodeURIComponent(JSON.stringify(categories[cat])),
                     'page': page,
                     'tiles': create_tiles
                 },
                 success: function(data, status) {
-                    if (!$results.hasClass('warning')) {
-                        $results.addClass('success');
-                    }
-                    $results.html($results.html() + '\nScrape succeeded with status: ' + status);
-                    console.log('Scrape succeeded with status: ' + status);
+                    var counter = 1;
+                    // polling every 30s for summary
+                    var summaryInterval = setInterval(function() {
+                        console.log("Polling attempt #" + counter);
+                        $.ajax({
+                            url: 'summary/' + data.id,
+                            type: 'GET',
+                            data: {
+                                'job_id': data.id,
+                                'page': page
+                            },
+                            success: function(data, status) {
+                                if (data.summary.length > 0) {
+                                    clearInterval(summaryInterval);
+                                    if (!$results.hasClass('warning')) {
+                                        $results.addClass('success');
+                                    }
+                                    $results.html($results.html() + '\nSuccess! Summary: \n' + data.summary);
+                                    console.log('Scrape succeeded with status: ' + status);
+                                } else {
+                                    console.log('Still waiting for summary...');
+                                }
+                            },
+                            error: function(obj, status, error) {
+                                clearInterval(summaryInterval);
+                                $results.addClass('warning');
+                                $results.html('\nFailed to grab summary with status: ' + status);
+                                console.warn('Failed to grab summary with status: ' + status);
+                                console.warn(obj);
+                            }
+                        });
+                        // stop polling after 30m
+                        if (counter == 60) {
+                            clearInterval(summaryInterval);
+                            $results.addClass('warning');
+                            $results.html('\nScrape task incomplete within 30m time limit, could not grab summary.');
+                            console.warn('Scrape task incomplete within 30m time limit, could not grab summary.');
+                        } else {
+                            counter++;
+                        }
+                    }, 30000);
+                    console.log(data);
                 },
                 error: function(obj, status, error) {
                     $results.addClass('warning');
@@ -94,7 +131,7 @@ var prioritize = function() {
             console.log('Category: ' + cat);
             $.ajax({
                 url: 'prioritize',
-                type: 'POST',
+                type: 'GET',
                 data: {
                     'cat': encodeURIComponent(JSON.stringify(categories[cat])),
                     'page': page
