@@ -1,6 +1,6 @@
 var summaryInterval;
 
-var get_data = function () {
+var getData = function () {
     var csv = $('#pseudo-spreadsheet').val();
     var lines = csv.split('\n');
     lines = lines.filter(function(x){
@@ -35,9 +35,63 @@ var get_data = function () {
     return categories;
 };
 
+var scrapeReq = {
+    success: function(data, status) {
+        var counter = 1;
+        // polling every 30s for summary
+        var summaryInterval = setInterval(function() {
+            console.log("Polling attempt #" + counter);
+            $.ajax({
+                url: 'summary/' + data.id,
+                type: 'GET',
+                success: summaryReq.success,
+                error: summaryReq.error
+            });
+            // stop polling after 30m
+            if (counter == 60) {
+                clearInterval(summaryInterval);
+                $results.addClass('warning');
+                $results.html('\nScrape task incomplete within 30m time limit, could not grab summary.');
+                console.warn('Scrape task incomplete within 30m time limit, could not grab summary.');
+            } else {
+                counter++;
+            }
+        }, 30000);
+        console.log(data);
+    },
+    error: function(obj, status, error) {
+        $results.addClass('warning');
+        $results.html('\nScrape failed with status: ' + status);
+        console.warn('Scrape failed with status: ' + status);
+        console.warn(obj);
+    }
+}
+
+var summaryReq = {
+    success: function(data, status) {
+        if (data.summary.length > 0) {
+            clearInterval(summaryInterval);
+            if (!$results.hasClass('warning')) {
+                $results.addClass('success');
+            }
+            $results.html('Success! Summary: \n' + data.summary);
+            console.log('Scrape succeeded with status: ' + status);
+        } else {
+            console.log('Still waiting for summary...');
+        }
+    },
+    error: function(obj, status, error) {
+        clearInterval(summaryInterval);
+        $results.addClass('warning');
+        $results.html('\nFailed to grab summary with status: ' + status);
+        console.warn('Failed to grab summary with status: ' + status);
+        console.warn(obj);
+    }
+}
+
 // callback for "run" button
 var scrape = function() {
-    var categories = get_data();
+    var categories = getData();
     var skip_tiles = $('#data-only').prop('checked');
     var $results = $('.results').removeClass('success').removeClass('warning');
 
@@ -64,52 +118,8 @@ var scrape = function() {
                     'page': page,
                     'tiles': !skip_tiles
                 },
-                success: function(data, status) {
-                    var counter = 1;
-                    // polling every 30s for summary
-                    var summaryInterval = setInterval(function() {
-                        console.log("Polling attempt #" + counter);
-                        $.ajax({
-                            url: 'summary/' + data.id,
-                            type: 'GET',
-                            success: function(data, status) {
-                                if (data.summary.length > 0) {
-                                    clearInterval(summaryInterval);
-                                    if (!$results.hasClass('warning')) {
-                                        $results.addClass('success');
-                                    }
-                                    $results.html('Success! Summary: \n' + data.summary);
-                                    console.log('Scrape succeeded with status: ' + status);
-                                } else {
-                                    console.log('Still waiting for summary...');
-                                }
-                            },
-                            error: function(obj, status, error) {
-                                clearInterval(summaryInterval);
-                                $results.addClass('warning');
-                                $results.html('\nFailed to grab summary with status: ' + status);
-                                console.warn('Failed to grab summary with status: ' + status);
-                                console.warn(obj);
-                            }
-                        });
-                        // stop polling after 30m
-                        if (counter == 60) {
-                            clearInterval(summaryInterval);
-                            $results.addClass('warning');
-                            $results.html('\nScrape task incomplete within 30m time limit, could not grab summary.');
-                            console.warn('Scrape task incomplete within 30m time limit, could not grab summary.');
-                        } else {
-                            counter++;
-                        }
-                    }, 30000);
-                    console.log(data);
-                },
-                error: function(obj, status, error) {
-                    $results.addClass('warning');
-                    $results.html('\nScrape failed with status: ' + status);
-                    console.warn('Scrape failed with status: ' + status);
-                    console.warn(obj);
-                }
+                success: scrapeReq.success,
+                error: scrapeReq.error
             });
         }
     }
@@ -117,7 +127,7 @@ var scrape = function() {
 
 // callback for "prioritize" button
 var prioritize = function() {
-    var categories = get_data();
+    var categories = getData();
     var $results = $('.results').removeClass('success').removeClass('warning');
 
     if (!categories) {

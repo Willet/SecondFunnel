@@ -49,7 +49,7 @@ def scrape(request, page_slug):
                              create_tiles= bool(request.GET.get('tiles') == 'true'),
                              page_slug= request.GET.get('page'),
                              session_key= request.session.session_key)
-    
+
     job = {
         'id': task.task_id,
         'started': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -58,11 +58,11 @@ def scrape(request, page_slug):
         'summary_url': '',
         'summary': '',
     }
-    
+
     # Use job start time as unique id
     request.session['jobs'].update({ job['id']: job })
     request.session.save()
-    
+
     return HttpResponse(json.dumps(job), content_type="application/json")
 
 def prioritize(request, page_slug):
@@ -79,20 +79,9 @@ def prioritize(request, page_slug):
                 tile.save()
     return HttpResponse(status=204)
 
-def log(request, page_slug, job_id):
+def result(request, page_slug, job_id):
     try:
         job = request.session['jobs'].get(job_id, None)
         return HttpResponse(json.dumps(job), content_type="application/json")
     except KeyError:
         return HttpResponse(status=400)
-
-def summary(request, page_slug, job_id):
-    try:
-        job = request.session['jobs'].get(job_id, None)
-        return HttpResponse(json.dumps(job), content_type="application/json")
-    except KeyError:
-        return HttpResponse(status=400)
-
-def status(request, page_slug):
-    celery_status = get_celery_worker_status()
-    return HttpResponse(json.dumps(celery_status), content_type="application/json")
