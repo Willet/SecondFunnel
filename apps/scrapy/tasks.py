@@ -16,7 +16,7 @@ from apps.assets.models import Page
 SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
 celery = Celery()
 
-@celery.task(bind=True)
+@celery.task(bind=True, ignore_result=True, max_retries=1)
 def scrape_task(self, category, start_urls, create_tiles, page_slug, session_key=False):
     page = Page.objects.get(url_slug=page_slug)
     feeds = [page.feed.id] if create_tiles else []
@@ -48,7 +48,7 @@ def scrape_task(self, category, start_urls, create_tiles, page_slug, session_key
     if (session_key):
         session = SessionStore(session_key=session_key)
         try:
-            session['jobs'][self.id].update({
+            session['jobs'][self.request.id].update({
                 'complete': True,
                 'log_url': crawler.stats.get_value('log_url', ''),
                 'summary_url': crawler.stats.get_value('summary_url', ''),

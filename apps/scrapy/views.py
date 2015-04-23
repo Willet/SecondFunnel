@@ -49,7 +49,7 @@ def scrape(request, page_slug):
                              create_tiles= bool(request.GET.get('tiles') == 'true'),
                              page_slug= request.GET.get('page'),
                              session_key= request.session.session_key)
-
+    
     job = {
         'id': task.task_id,
         'started': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -58,11 +58,11 @@ def scrape(request, page_slug):
         'summary_url': '',
         'summary': '',
     }
-
+    
     # Use job start time as unique id
     request.session['jobs'].update({ job['id']: job })
     request.session.save()
-
+    
     return HttpResponse(json.dumps(job), content_type="application/json")
 
 def prioritize(request, page_slug):

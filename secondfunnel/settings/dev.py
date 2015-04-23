@@ -86,7 +86,7 @@ BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 BROKER_TRANSPORT_OPTIONS = {
 
 }
-
+#CELERY_RESULT_BACKEND = 'db+postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{NAME}'.format(**DATABASES['default'])
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 # dict of queues by region to poll regularly, using celery beat.

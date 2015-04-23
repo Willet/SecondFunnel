@@ -1,3 +1,5 @@
+var summaryInterval;
+
 var get_data = function () {
     var csv = $('#pseudo-spreadsheet').val();
     var lines = csv.split('\n');
@@ -36,8 +38,11 @@ var get_data = function () {
 // callback for "run" button
 var scrape = function() {
     var categories = get_data();
-    var create_tiles = $('#create-tiles').prop('checked');
+    var skip_tiles = $('#data-only').prop('checked');
     var $results = $('.results').removeClass('success').removeClass('warning');
+
+    // First, clear any existing interval
+    clearInterval(summaryInterval);
 
     if (!categories) {
         $results.addClass("warning");
@@ -57,7 +62,7 @@ var scrape = function() {
                 data: {
                     'cat': encodeURIComponent(JSON.stringify(categories[cat])),
                     'page': page,
-                    'tiles': create_tiles
+                    'tiles': !skip_tiles
                 },
                 success: function(data, status) {
                     var counter = 1;
@@ -67,17 +72,13 @@ var scrape = function() {
                         $.ajax({
                             url: 'summary/' + data.id,
                             type: 'GET',
-                            data: {
-                                'job_id': data.id,
-                                'page': page
-                            },
                             success: function(data, status) {
                                 if (data.summary.length > 0) {
                                     clearInterval(summaryInterval);
                                     if (!$results.hasClass('warning')) {
                                         $results.addClass('success');
                                     }
-                                    $results.html($results.html() + '\nSuccess! Summary: \n' + data.summary);
+                                    $results.html('Success! Summary: \n' + data.summary);
                                     console.log('Scrape succeeded with status: ' + status);
                                 } else {
                                     console.log('Still waiting for summary...');
