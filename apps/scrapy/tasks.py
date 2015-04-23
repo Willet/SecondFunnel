@@ -44,9 +44,6 @@ def scrape_task(self, category, start_urls, priorities, create_tiles, page_slug,
 
     reactor.run(installSignalHandlers=False)
 
-    if len(priorities) > 0:
-        prioritize_task(start_urls, priorities)
-
     # Update session with results
     if (session_key):
         session = SessionStore(session_key=session_key)
@@ -61,10 +58,28 @@ def scrape_task(self, category, start_urls, priorities, create_tiles, page_slug,
         except KeyError:
             pass
 
-def prioritize_task(urls, priorities):
-    for i, url in enumerate(urls):
+    if len(priorities) > 0:
+        prioritize_task.delay(start_urls= start_urls,
+                              priorities= priorities)
+
+@celery.task(bind=True, ignore_result=True, max_retries=1)
+def prioritize_task(self, start_urls, priorities, session_key=False):
+    summaryText = ""
+    for i, url in enumerate(start_urls):
         prods = Product.objects.filter(url=url)
         for prod in prods:
             for tile in prod.tiles.all():
                 tile.priority = priorities[i]
                 tile.save()
+                summaryText += "- Updated {} with priority {} for product {}. \n\n".format(tile, priorities[i], url)
+
+    if (session_key):
+        session = SessionStore(session_key=session_key)
+        try:
+            session['jobs'][self.request.id].update({
+                'complete': True,
+                'summary': summaryText,
+            })
+            session.save()
+        except KeyError:
+            pass

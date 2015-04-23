@@ -69,11 +69,22 @@ def prioritize(request, page_slug):
     """callback for prioritizing tiles, if applicable"""
 
     cat = json.loads(urlparse.unquote(request.POST.get('cat')))
-    urls = cat['urls']
-    priorities = cat['priorities']
-    prioritize_task(urls, priorities)
+    task = prioritize_task.delay(start_urls= cat['urls'],
+                                 priorities= cat['priorities'],
+                                 session_key= request.session.session_key)
 
-    return HttpResponse(status=204)
+    job = {
+        'id': task.task_id,
+        'started': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'complete': False,
+        'summary': '',
+    }
+
+    # Use job start time as unique id
+    request.session['jobs'].update({ job['id']: job })
+    request.session.save()
+
+    return HttpResponse(json.dumps(job), content_type="application/json")
 
 def result(request, page_slug, job_id):
     try:
