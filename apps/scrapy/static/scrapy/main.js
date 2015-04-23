@@ -38,11 +38,12 @@ var getData = function () {
 var scrapeReq = {
     success: function(data, status) {
         var counter = 1;
+        var $results = $('.results').removeClass('success').removeClass('warning');
         // polling every 30s for summary
-        var summaryInterval = setInterval(function() {
+        summaryInterval = setInterval(function() {
             console.log("Polling attempt #" + counter);
             $.ajax({
-                url: 'summary/' + data.id,
+                url: 'result/' + data.id,
                 type: 'GET',
                 success: summaryReq.success,
                 error: summaryReq.error
@@ -60,6 +61,7 @@ var scrapeReq = {
         console.log(data);
     },
     error: function(obj, status, error) {
+        var $results = $('.results').removeClass('success').removeClass('warning');
         $results.addClass('warning');
         $results.html('\nScrape failed with status: ' + status);
         console.warn('Scrape failed with status: ' + status);
@@ -69,6 +71,7 @@ var scrapeReq = {
 
 var summaryReq = {
     success: function(data, status) {
+        var $results = $('.results').removeClass('success').removeClass('warning');
         if (data.summary.length > 0) {
             clearInterval(summaryInterval);
             if (!$results.hasClass('warning')) {
@@ -81,6 +84,7 @@ var summaryReq = {
         }
     },
     error: function(obj, status, error) {
+        var $results = $('.results').removeClass('success').removeClass('warning');
         clearInterval(summaryInterval);
         $results.addClass('warning');
         $results.html('\nFailed to grab summary with status: ' + status);
@@ -112,7 +116,7 @@ var scrape = function() {
             console.log('Category: ' + cat);
             $.ajax({
                 url: 'scrape',
-                type: 'GET',
+                type: 'POST',
                 data: {
                     'cat': encodeURIComponent(JSON.stringify(categories[cat])),
                     'page': page,
@@ -142,7 +146,7 @@ var prioritize = function() {
             console.log('Category: ' + cat);
             $.ajax({
                 url: 'prioritize',
-                type: 'GET',
+                type: 'POST',
                 data: {
                     'cat': encodeURIComponent(JSON.stringify(categories[cat])),
                     'page': page

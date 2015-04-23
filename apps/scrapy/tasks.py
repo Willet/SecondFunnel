@@ -11,13 +11,13 @@ from scrapy.crawler import Crawler
 from scrapy.settings import CrawlerSettings
 from scrapy.utils.project import get_project_settings
 
-from apps.assets.models import Page
+from apps.assets.models import Page, Product, Tile
 
 SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
 celery = Celery()
 
 @celery.task(bind=True, ignore_result=True, max_retries=1)
-def scrape_task(self, category, start_urls, create_tiles, page_slug, session_key=False):
+def scrape_task(self, category, start_urls, priorities, create_tiles, page_slug, session_key=False):
     page = Page.objects.get(url_slug=page_slug)
     feeds = [page.feed.id] if create_tiles else []
     opts = {
@@ -44,6 +44,9 @@ def scrape_task(self, category, start_urls, create_tiles, page_slug, session_key
 
     reactor.run(installSignalHandlers=False)
 
+    if len(priorities) > 0:
+        prioritize_task(start_urls, priorities)
+
     # Update session with results
     if (session_key):
         session = SessionStore(session_key=session_key)
@@ -57,3 +60,11 @@ def scrape_task(self, category, start_urls, create_tiles, page_slug, session_key
             session.save()
         except KeyError:
             pass
+
+def prioritize_task(urls, priorities):
+    for i, url in enumerate(urls):
+        prods = Product.objects.filter(url=url)
+        for prod in prods:
+            for tile in prod.tiles.all():
+                tile.priority = priorities[i]
+                tile.save()

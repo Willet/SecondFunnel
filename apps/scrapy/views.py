@@ -7,8 +7,7 @@ from django.conf import settings as django_settings
 from django.shortcuts import render, get_object_or_404
 
 from apps.assets.models import Page, Store, Product
-from apps.scrapy.tasks import scrape_task
-from apps.utils.tasks import get_celery_worker_status
+from apps.scrapy.tasks import scrape_task, prioritize_task
 
 stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
 
@@ -33,7 +32,7 @@ def page(request, page_slug):
 def scrape(request, page_slug):
     """Async request to run a spider"""
 
-    cat = json.loads(urlparse.unquote(request.GET.get('cat')))
+    cat = json.loads(urlparse.unquote(request.POST.get('cat')))
     page = get_object_or_404(Page, url_slug=page_slug)
     # Ensure session is set up
     if not request.session.exists(request.session.session_key):
@@ -46,8 +45,9 @@ def scrape(request, page_slug):
     # Job will be updated in the session by the task
     task = scrape_task.delay(category= cat['name'],
                              start_urls= cat['urls'],
-                             create_tiles= bool(request.GET.get('tiles') == 'true'),
-                             page_slug= request.GET.get('page'),
+                             priorities= cat['priorities'],
+                             create_tiles= bool(request.POST.get('tiles') == 'true'),
+                             page_slug= request.POST.get('page'),
                              session_key= request.session.session_key)
 
     job = {
@@ -68,15 +68,11 @@ def scrape(request, page_slug):
 def prioritize(request, page_slug):
     """callback for prioritizing tiles, if applicable"""
 
-    cat = json.loads(urlparse.unquote(request.GET.get('cat')))
+    cat = json.loads(urlparse.unquote(request.POST.get('cat')))
     urls = cat['urls']
     priorities = cat['priorities']
-    for i, url in enumerate(urls):
-        prods = Product.objects.filter(url=url)
-        for prod in prods:
-            for tile in prod.tiles.all():
-                tile.priority = priorities[i]
-                tile.save()
+    prioritize_task(urls, priorities)
+
     return HttpResponse(status=204)
 
 def result(request, page_slug, job_id):
