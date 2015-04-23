@@ -35,7 +35,7 @@ var getData = function () {
     return categories;
 };
 
-var scrapeReq = {
+var taskReq = {
     success: function(data, status) {
         var counter = 1;
         var $results = $('.results').removeClass('success').removeClass('warning');
@@ -52,8 +52,8 @@ var scrapeReq = {
             if (counter == 60) {
                 clearInterval(summaryInterval);
                 $results.addClass('warning');
-                $results.html('\nScrape task incomplete within 30m time limit, could not grab summary.');
-                console.warn('Scrape task incomplete within 30m time limit, could not grab summary.');
+                $results.html('\nTask incomplete within 30m time limit, could not grab summary.');
+                console.warn('Task incomplete within 30m time limit, could not grab summary.');
             } else {
                 counter++;
             }
@@ -63,8 +63,8 @@ var scrapeReq = {
     error: function(obj, status, error) {
         var $results = $('.results').removeClass('success').removeClass('warning');
         $results.addClass('warning');
-        $results.html('\nScrape failed with status: ' + status);
-        console.warn('Scrape failed with status: ' + status);
+        $results.html('\nTask failed with status: ' + status);
+        console.warn('Task failed with status: ' + status);
         console.warn(obj);
     }
 }
@@ -77,10 +77,11 @@ var summaryReq = {
             if (!$results.hasClass('warning')) {
                 $results.addClass('success');
             }
-            $results.html('Success! Summary: \n' + data.summary);
-            console.log('Scrape succeeded with status: ' + status);
+            $results.html('\n\nTask succeeded! Summary: \n' + data.summary);
+            console.log('Task succeeded with status: ' + status);
         } else {
             console.log('Still waiting for summary...');
+            console.log(data);
         }
     },
     error: function(obj, status, error) {
@@ -122,8 +123,8 @@ var scrape = function() {
                     'page': page,
                     'tiles': !skip_tiles
                 },
-                success: scrapeReq.success,
-                error: scrapeReq.error
+                success: taskReq.success,
+                error: taskReq.error
             });
         }
     }
@@ -151,19 +152,8 @@ var prioritize = function() {
                     'cat': encodeURIComponent(JSON.stringify(categories[cat])),
                     'page': page
                 },
-                success: function(data, status) {
-                    if (!$results.hasClass('warning')) {
-                        $results.addClass('success');
-                    }
-                    $results.html($results.html() + '\nPrioritize succeeded with status:' + status);
-                    console.log('Prioritize succeeded with status: ' + status);
-                },
-                error: function(obj, status, error) {
-                    $results.addClass('warning');
-                    $results.html('\nPrioritize failed with status: ' + status);
-                    console.warn('Prioritize failed with status: ' + status);
-                    console.warn(obj);
-                }
+                success: taskReq.success,
+                error: taskReq.error
             });
         }
     }
