@@ -1,6 +1,7 @@
 .sidebar {
-    float: left;
+    display: inline-block;
     width: 300;
+    vertical-align: top;
 }
 
 .sidebar .page-list li {
@@ -8,7 +9,8 @@
 }
 
 .content-area {
-    margin-left: 300;
+    display: inline-block;
+    width: calc(99% - 300px);
 }
 
 .header .title {
@@ -29,12 +31,12 @@
 }
 
 .content {
-    position: relative;
+    width: 100%;
 }
 .content .csv {
     display: inline-block;
-    width: 600;
-    padding: 0px 60px 0px 0px;
+    width: 55%;
+    padding-right: 20px;
 }
 .csv #pseudo-spreadsheet {
     height: 500;
@@ -43,8 +45,9 @@
 }
 
 .content .options {
-    position: absolute;
     display: inline-block;
+    width: calc(44% - 20px);
+    vertical-align: top;
 }
 
 .options #delimiter {
@@ -59,6 +62,14 @@
 .options #scrape, .options #prioritize {
     width: 140;
     font-size: 40;
+}
+
+.results {
+    white-space: pre-wrap;
+}
+
+.success {
+    color: green;
 }
 
 .warning {

@@ -37,29 +37,39 @@ var get_data = function () {
 var scrape = function() {
     var categories = get_data();
     var create_tiles = $('#create-tiles').prop('checked');
+    var $results = $('.results').removeClass('success').removeClass('warning');
 
     if (!categories) {
-        console.log('error validating data, see warning')
+        $results.addClass("warning");
+        $results.html("Error validating data, see warning.");
+        console.log("Error validating data, see warning.");
     } else {
-        console.log('scraping');
+        $results.html("Scraping...");
+        console.log('Scraping...');
 
         // run each category separately (spiders only take one set of categories at a time)
         for (cat in categories) {
-            console.log('category: ' + cat);
+            $results.html($results.html() + "\n Category: " + cat);
+            console.log('Category: ' + cat);
             $.ajax({
                 url: 'scrape',
-                type: 'GET',
+                type: 'POST',
                 data: {
-                    'category': cat,
-                    'urls': encodeURIComponent(JSON.stringify(categories[cat].urls)),
+                    'cat': encodeURIComponent(JSON.stringify(categories[cat])),
                     'page': page,
                     'tiles': create_tiles
                 },
                 success: function(data, status) {
-                    console.log('scrape succeeded with status: ' + status);
+                    if (!$results.hasClass('warning')) {
+                        $results.addClass('success');
+                    }
+                    $results.html($results.html() + '\nScrape succeeded with status: ' + status);
+                    console.log('Scrape succeeded with status: ' + status);
                 },
                 error: function(obj, status, error) {
-                    console.warn('scrape failed with status: ' + status);
+                    $results.addClass('warning');
+                    $results.html('\nScrape failed with status: ' + status);
+                    console.warn('Scrape failed with status: ' + status);
                     console.warn(obj);
                 }
             });
@@ -70,24 +80,36 @@ var scrape = function() {
 // callback for "prioritize" button
 var prioritize = function() {
     var categories = get_data();
+    var $results = $('.results').removeClass('success').removeClass('warning');
+
     if (!categories) {
-        console.log('error validating data, see warning');
+        $results.addClass("warning");
+        $results.html("Error validating data, see warning.");
+        console.log('Error validating data, see warning.');
     } else {
-        console.log('prioritizing');
-        console.log(categories);
+        $results.html('Prioritizing...');
+        console.log('Prioritizing...');
         for (cat in categories) {
-            console.log('category: ' + cat);
+            $results.html($results.html() + "\n Category: " + cat);
+            console.log('Category: ' + cat);
             $.ajax({
                 url: 'prioritize',
-                type: 'GET',
+                type: 'POST',
                 data: {
-                    'cat': encodeURIComponent(JSON.stringify(categories[cat]))
+                    'cat': encodeURIComponent(JSON.stringify(categories[cat])),
+                    'page': page
                 },
                 success: function(data, status) {
-                    console.log('prioritize succeeded with status: ' + status);
+                    if (!$results.hasClass('warning')) {
+                        $results.addClass('success');
+                    }
+                    $results.html($results.html() + '\nPrioritize succeeded with status:' + status);
+                    console.log('Prioritize succeeded with status: ' + status);
                 },
                 error: function(obj, status, error) {
-                    console.warn('prioritize failed with status: ' + status);
+                    $results.addClass('warning');
+                    $results.html('\nPrioritize failed with status: ' + status);
+                    console.warn('Prioritize failed with status: ' + status);
                     console.warn(obj);
                 }
             });

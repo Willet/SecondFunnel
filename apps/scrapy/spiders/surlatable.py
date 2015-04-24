@@ -30,10 +30,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         super(SurLaTableSpider, self).__init__(*args, **kwargs)
 
     def parse_start_url(self, response):
-        if self.is_sold_out(response):
-            # typically on rescraping a product
-            raise SoldOut(response.url)
-        elif self.is_product_page(response):
+        if self.is_product_page(response):
             self.rules = ()
             self._rules = []
             return self.parse_product(response)
@@ -42,9 +39,8 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             self._rules = []
             return self.parse_recipe(response)
         else:
-            self.log(u"Not a product or recipe page: {}".format(response.url))
-
-        return []
+            log.msg(u"Not a product or recipe page: {}".format(response.url))
+            return []
 
     def is_product_page(self, response):
         #sel = Selector(response)
