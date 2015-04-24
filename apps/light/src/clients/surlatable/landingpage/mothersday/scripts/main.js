@@ -91,6 +91,12 @@ App.start();
 		}
 		return false;
 	});
+	$('#searchQuestionDisplayed').keypress(function(ev) {
+		// Enter button
+		if(event.keyCode == 13){
+        	$('#submit-search').click();
+    	}
+	});
 	
 	// Hide categories when something is clicked
 	$(document).click(function () {
