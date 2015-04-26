@@ -632,13 +632,15 @@ class Feed(BaseModel):
         bulk_delete_content = []
 
         for tile in tiles:
+            # Queye products & content for deletion if they are ONLY tagged in
+            # Tiles that will be delete
             for p in tile.products.all():
                 if set(p.tiles.values_list('pk', flat=True)).issubset(tiles_set):
                     bulk_delete_products.append(p)
             for c in tile.content.all():
                 if set(c.tiles.values_list('pk', flat=True)).issubset(tiles_set):
                     bulk_delete_content.append(c)
-
+        
         Product.objects.filter(pk__in=bulk_delete_products).delete()
         Content.objects.filter(pk__in=bulk_delete_content).delete()
         self.delete() # Cascades to tiles
