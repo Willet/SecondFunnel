@@ -624,26 +624,19 @@ class Feed(BaseModel):
         return self
 
     def deepdelete(self):
-        """Will delete the feed, its tiles, and all product & content that is not
+        """Delete the feed, its tiles, and all product & content that is not
         tagged in any other tile"""
-        tiles = self.tiles.all()
-        tiles_set = set(self.tiles.values_list('pk', flat=True))
-        bulk_delete_products = []
-        bulk_delete_content = []
-
-        for tile in tiles:
-            # Queye products & content for deletion if they are ONLY tagged in
-            # Tiles that will be delete
-            for p in tile.products.all():
-                if set(p.tiles.values_list('pk', flat=True)).issubset(tiles_set):
-                    bulk_delete_products.append(p)
-            for c in tile.content.all():
-                if set(c.tiles.values_list('pk', flat=True)).issubset(tiles_set):
-                    bulk_delete_content.append(c)
-        
-        Product.objects.filter(pk__in=bulk_delete_products).delete()
-        Content.objects.filter(pk__in=bulk_delete_content).delete()
+        self._deepdelete_tiles(self.tiles.all())
         self.delete() # Cascades to tiles
+
+    def clear_category(self, category, deepdelete=False):
+        """Delete all feed tiles tagged only with category
+
+        Option: deepdelete - if True, delete all product & content that is not tagged
+        in any other tile"""
+        cat = Category.objects.get(name=category) if isinstance(category, str) else category
+        tiles = self.tiles.filter(category__id=category.id)
+        self._delete_tiles(tiles)
 
     def find_tiles(self, content=None, product=None):
         """:returns list of tiles with this product/content (if given)"""
@@ -699,6 +692,28 @@ class Feed(BaseModel):
         tile.products = products
 
         return tile
+
+    def _deepdelete_tiles(self, tiles):
+        """
+        Tiles is a <QuerySet> (ex: Feed.tiles.objects.all())"""
+        tiles_set = set(tiles.values_list('pk', flat=True))
+        bulk_delete_products = []
+        bulk_delete_content = []
+
+        for tile in tiles:
+            # Queye products & content for deletion if they are ONLY tagged in
+            # Tiles that will be delete
+            for p in tile.products.all():
+                if set(p.tiles.values_list('pk', flat=True)).issubset(tiles_set):
+                    bulk_delete_products.append(p)
+            for c in tile.content.all():
+                if set(c.tiles.values_list('pk', flat=True)).issubset(tiles_set):
+                    bulk_delete_content.append(c)
+
+        Product.objects.filter(pk__in=bulk_delete_products).delete()
+        Content.objects.filter(pk__in=bulk_delete_content).delete()
+
+        tiles.delete()
 
     def _add_product(self, product, prioritized=False, priority=0):
         """Adds (if not present) a tile with this product to the feed.
