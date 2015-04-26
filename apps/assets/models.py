@@ -264,7 +264,7 @@ class Store(BaseModel):
 
 
 class Product(BaseModel):
-    store = models.ForeignKey(Store, related_name='products')
+    store = models.ForeignKey(Store, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=1024, default="")
     description = models.TextField(blank=True, null=True, default="")
     # point form stuff like <li>hand wash</li> that isn't in the description already
@@ -279,6 +279,7 @@ class Product(BaseModel):
     default_image = models.ForeignKey('ProductImage', related_name='default_image',
                                       blank=True, null=True, on_delete=models.SET_NULL)
     # product_images is an array of ProductImages (many-to-one relationship)
+    # tiles is an array of Tiles (many-to-many relationship)
     
     last_scraped_at = models.DateTimeField(blank=True, null=True)
 
@@ -291,7 +292,8 @@ class Product(BaseModel):
     # - product_set
     attributes = JSONField(blank=True, null=True, default={})
 
-    similar_products = models.ManyToManyField('self', related_name='reverse_similar_products', symmetrical=False, null=True, blank=True)
+    similar_products = models.ManyToManyField('self', related_name='reverse_similar_products',
+                                              symmetrical=False, null=True, blank=True)
 
     serializer = ir_serializers.ProductSerializer
     cg_serializer = cg_serializers.ProductSerializer
@@ -328,7 +330,8 @@ class ProductImage(BaseModel):
     a product, rather than any other kind.
     """
     product = models.ForeignKey(Product, related_name="product_images",
-                                blank=True, null=True, default=None)
+                                on_delete=models.CASCADE, blank=True, null=True,
+                                default=None)
 
     url = models.TextField()  # store/.../.jpg
     original_url = models.TextField()  # gap.com/.jpg
@@ -389,7 +392,7 @@ class ProductImage(BaseModel):
 class Category(BaseModel):
     products = models.ManyToManyField(Product, related_name='categories')
 
-    store = models.ForeignKey(Store, related_name='categories')
+    store = models.ForeignKey(Store, related_name='categories', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
 
     url = models.TextField(blank=True, null=True)
@@ -405,7 +408,7 @@ class Content(BaseModel):
     # Content.objects object for deserializing Content models as subclasses
     objects = InheritanceManager()
 
-    store = models.ForeignKey(Store, related_name='content')
+    store = models.ForeignKey(Store, related_name='content', on_delete=models.CASCADE)
 
     url = models.TextField()  # 2f.com/.jpg
     source = models.CharField(max_length=255)
@@ -414,6 +417,7 @@ class Content(BaseModel):
 
     tagged_products = models.ManyToManyField(Product, null=True, blank=True,
                                              related_name='content')
+    # tiles is an array of Tiles (many-to-many relationship)
 
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
@@ -590,6 +594,7 @@ class Theme(BaseModel):
 
 class Feed(BaseModel):
     source_urls = models.TextField(null=True, blank=True)
+    # tiles = is an array of Tiles (many-to-one relationship)
 
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
@@ -606,6 +611,37 @@ class Feed(BaseModel):
             return u'Feed (#%s)' % self.id
         except:
             return u'(Unsaved Feed)'
+
+    def deepcopy(self):
+        """Creates a duplicate of the feed & its tiles
+        :returns new feed"""
+        tiles = self.tiles.all()
+        self.pk = None
+        self.id = None
+        self.save()
+        for tile in tiles:
+            self._copy_tile(tile)
+        return self
+
+    def deepdelete(self):
+        """Will delete the feed, its tiles, and all product & content that is not
+        tagged in any other tile"""
+        tiles = self.tiles.all()
+        tiles_set = set(self.tiles.values_list('pk', flat=True))
+        bulk_delete_products = []
+        bulk_delete_content = []
+
+        for tile in tiles:
+            for p in tile.products.all():
+                if set(p.tiles.values_list('pk', flat=True)).issubset(tiles_set):
+                    bulk_delete_products.append(p)
+            for c in tile.content.all():
+                if set(c.tiles.values_list('pk', flat=True)).issubset(tiles_set):
+                    bulk_delete_content.append(c)
+
+        Product.objects.filter(pk__in=bulk_delete_products).delete()
+        Content.objects.filter(pk__in=bulk_delete_content).delete()
+        self.delete() # Cascades to tiles
 
     def find_tiles(self, content=None, product=None):
         """:returns list of tiles with this product/content (if given)"""
@@ -642,6 +678,26 @@ class Feed(BaseModel):
         raise ValueError("remove() accepts either Product or Content; "
                          "got {}".format(obj.__class__))
 
+    def _copy_tile(self, tile, prioritized=False, priority=0):
+        """Creates a copy of a tile to this feed
+        :returns <Tile> copy"""
+        prioritized = prioritized or tile.prioritized
+        priority = priority or tile.priority
+        content = tile.content.all()
+        products = tile.products.all()
+
+        tile.pk = None
+        tile.id = None
+        tile.feed = self
+        tile.prioritized = prioritized
+        tile.priority = priority
+        tile.save()
+        # save ManyToMany relations:
+        tile.content = content
+        tile.products = products
+
+        return tile
+
     def _add_product(self, product, prioritized=False, priority=0):
         """Adds (if not present) a tile with this product to the feed.
 
@@ -655,19 +711,21 @@ class Feed(BaseModel):
         for tile in existing_tiles:
             if len(tile.products.all()) == 1 and len(tile.content.all()) == 0:
                 # A matching tile is tagged with just this product & no content
-                print "<Product {0}> already in the feed in <Tile {1}>.".format(product.id, tile.id)
+                # Update
+                tile.prioritized = prioritized
+                tile.priority = priority
+                tile.save()
+                print "<Product {0}> already in the feed. Updated <Tile {1}>.".format(product.id, tile.id)
                 return tile, product, False
         else:
             # there weren't any tiles with this product in them
-            new_tile = Tile(feed=self,
-                            template='product',
-                            prioritized=prioritized,
-                            priority=priority)
-
-            new_tile.save()
+            new_tile = self.tiles.create(feed=self,
+                                         template='product',
+                                         prioritized=prioritized,
+                                         priority=priority)
             new_tile.products.add(product)
+            new_tile.save()
             print "<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id)
-            self.tiles.add(new_tile)
 
             return new_tile, product, True
 
@@ -695,10 +753,10 @@ class Feed(BaseModel):
             return tile, content, False
         else:
             # Create new tile
-            new_tile = Tile(feed=self,
-                            template='image',
-                            prioritized=prioritized,
-                            priority=priority)
+            new_tile = self.tiles.create(feed=self,
+                                         template='image',
+                                         prioritized=prioritized,
+                                         priority=priority)
 
             # content template adjustments. should probably be somewhere else
             if isinstance(content, Video):
@@ -707,12 +765,11 @@ class Feed(BaseModel):
                 else:
                     new_tile.template = 'video'
 
-            new_tile.save()
             new_tile.content.add(content)
             product_qs = content.tagged_products.all()
             new_tile.products.add(*product_qs)
+            new_tile.save()
             print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)
-            self.tiles.add(new_tile)
 
             return new_tile, content, True
 
@@ -748,10 +805,11 @@ class Feed(BaseModel):
 
 
 class Page(BaseModel):
-    store = models.ForeignKey(Store, related_name='pages')
+    store = models.ForeignKey(Store, related_name='pages', on_delete=models.CASCADE)
 
     name = models.CharField(max_length=256)  # e.g. Lived In
-    theme = models.ForeignKey(Theme, related_name='page', blank=True, null=True)
+    theme = models.ForeignKey(Theme, related_name='page', on_delete=models.SET_NULL,
+                              blank=True, null=True)
 
     # attributes named differently
     theme_settings = JSONField(blank=True, null=True)
@@ -766,7 +824,8 @@ class Page(BaseModel):
     ]
 
     dashboard_settings = JSONField(default={}, blank=True)
-    campaign = models.ForeignKey('dashboard.Campaign', null=True, blank=True)
+    campaign = models.ForeignKey('dashboard.Campaign', on_delete=models.SET_NULL,
+                                 blank=True, null=True)
 
     description = models.TextField(blank=True, null=True)
     url_slug = models.CharField(max_length=128)  # e.g. livedin
@@ -774,7 +833,8 @@ class Page(BaseModel):
 
     last_published_at = models.DateTimeField(blank=True, null=True)
 
-    feed = models.ForeignKey(Feed, related_name='page')
+    feed = models.ForeignKey(Feed, related_name='page', on_delete=models.SET_NULL,
+                             blank=True, null=True)
 
     _attribute_map = BaseModel._attribute_map + (
         # (cg attribute name, python attribute name)
@@ -808,6 +868,47 @@ class Page(BaseModel):
         except KeyError:
             return super(Page, self).__getattribute__(name)
 
+    def copy(self):
+        """Duplicates the page, points to existing feed & associated tiles
+        returns: page"""
+        self.pk = None
+        self.id = None
+        self.save()
+        return self
+
+    def deepcopy(self):
+        """Duplicates the page, feed & associated tiles
+        returns: page
+        """
+        self.pk = None
+        self.id = None
+        self.feed = deepcopy(self.feed)
+        self.save()
+        return self
+
+    def deepdelete(self):
+        """Attempts to delete all database elements associated with this page iff
+           those elements are not associated with any other page:
+           - Feed (if only associated with this page)
+           - Tiles (if associated with Feed)
+           - Products (if only tagged in Tiles to be deleted)
+           - Contents (if only tagged in Tiles to be deleted)
+
+           :returns bool - True if deleted Feed & related items, False if only deleted Page
+        """
+        if not self.feed:
+            self.delete()
+            return False
+        elif self.feed.page.count() > 1:
+            # This Feed is associated with other pages, can't deep delete
+            self.delete()
+            return False
+        else:
+            # Get all product tiles & content tiles
+            self.feed.deepdelete() # Will remove tiles too
+            self.delete()
+            return True
+
     def get(self, key, default=None):
         """Duck-type a <dict>'s get() method to make CG transition easier.
 
@@ -836,10 +937,14 @@ class Page(BaseModel):
         return instance
 
     def add(self, obj, prioritized=False, priority=0):
+        """Alias for Page.feed.add
+        """
         return self.feed.add(obj=obj, prioritized=prioritized,
                              priority=priority)
 
     def remove(self, obj):
+        """Alias for Page.feed.remove
+        """
         return self.feed.remove(obj=obj)
 
 
@@ -854,7 +959,7 @@ class Tile(BaseModel):
         return status
 
     # <Feed>.tiles.all() gives you... all its tiles
-    feed = models.ForeignKey(Feed, related_name='tiles')
+    feed = models.ForeignKey(Feed, related_name='tiles', on_delete=models.CASCADE)
 
     template = models.CharField(max_length=128)
 
