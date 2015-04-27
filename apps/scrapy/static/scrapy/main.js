@@ -73,12 +73,15 @@ var summaryReq = {
     success: function(data, status) {
         var $results = $('.results').removeClass('success').removeClass('warning');
         if (data.summary.length > 0) {
-            clearInterval(summaryInterval);
+            if (data.complete) {
+                clearInterval(summaryInterval);
+            }
             if (!$results.hasClass('warning')) {
                 $results.addClass('success');
             }
-            $results.html('\n\nTask succeeded! Summary: \n' + data.summary);
+            $results.html('Task succeeded! Summary: \n' + data.summary);
             console.log('Task succeeded with status: ' + status);
+            console.log(data);
         } else {
             console.log('Still waiting for summary...');
             console.log(data);

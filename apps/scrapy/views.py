@@ -7,7 +7,7 @@ from django.conf import settings as django_settings
 from django.shortcuts import render, get_object_or_404
 
 from apps.assets.models import Page, Store, Product
-from apps.scrapy.tasks import scrape_task, prioritize_task
+from apps.scrapy.tasks import scrape_task, prioritize_task, chained_prioritize_task
 
 stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
 
@@ -43,12 +43,16 @@ def scrape(request, page_slug):
     # Delayed task!
     # Could add some validation here before starting process
     # Job will be updated in the session by the task
-    task = scrape_task.delay(category= cat['name'],
-                             start_urls= cat['urls'],
-                             priorities= cat['priorities'],
-                             create_tiles= bool(request.POST.get('tiles') == 'true'),
-                             page_slug= request.POST.get('page'),
-                             session_key= request.session.session_key)
+    prioritizing = chained_prioritize_task.s(start_urls= cat['urls'], 
+                                             priorities= cat['priorities'],
+                                             session_key=request.session.session_key)
+    task = scrape_task.apply_async((cat['name'],
+                                    cat['urls'],
+                                    bool(len(cat['priorities']) == 0),
+                                    bool(request.POST.get('tiles') == 'true'),
+                                    request.POST.get('page'),
+                                    request.session.session_key),
+                                    link=prioritizing)
 
     job = {
         'id': task.task_id,
