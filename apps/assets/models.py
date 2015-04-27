@@ -626,7 +626,7 @@ class Feed(BaseModel):
     def deepdelete(self):
         """Delete the feed, its tiles, and all product & content that is not
         tagged in any other tile"""
-        self._deepdelete_tiles(self.tiles.all())
+        self._deepdelete_tiles(self.tiles.select_related('products','content').all())
         self.delete() # Cascades to tiles
 
     def clear_category(self, category, deepdelete=False):
@@ -635,8 +635,11 @@ class Feed(BaseModel):
         Option: deepdelete - if True, delete all product & content that is not tagged
         in any other tile"""
         cat = Category.objects.get(name=category) if isinstance(category, str) else category
-        tiles = self.tiles.filter(category__id=category.id)
-        self._delete_tiles(tiles)
+        if deepdelete:
+            tiles = self.tiles.select_related('products','content').filter(category__id=category.id)
+            self._deepdelete_tiles(tiles)
+        else:
+            tiles = self.tiles.filter(category__id=category.id).delete()
 
     def find_tiles(self, content=None, product=None):
         """:returns list of tiles with this product/content (if given)"""
@@ -661,16 +664,21 @@ class Feed(BaseModel):
         elif isinstance(obj, Content):
             return self._add_content(content=obj, prioritized=prioritized,
                                      priority=priority)
-        raise ValueError("add() accepts either Product or Content; "
+        elif isinstance(obj, Tile):
+            return self._copy_tile(tile=obj, prioritized=prioritized,
+                                     priority=priority)
+        raise ValueError("add() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
 
-    def remove(self, obj):
+    def remove(self, obj, deepdelete=False):
         """:raises ValueError"""
         if isinstance(obj, Product):
-            return self._remove_product(product=obj)
+            return self._remove_product(product=obj, deepdelete=deepdelete)
         elif isinstance(obj, Content):
-            return self._remove_content(content=obj)
-        raise ValueError("remove() accepts either Product or Content; "
+            return self._remove_content(content=obj, deepdelete=deepdelete)
+        elif isinstance(obj, Tile):
+            return self._deepdelete_tiles(tiles=self.tiles.get(id=obj.id)) if deepdelete else obj.delete()
+        raise ValueError("remove() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
 
     def _copy_tile(self, tile, prioritized=False, priority=0):
@@ -694,14 +702,13 @@ class Feed(BaseModel):
         return tile
 
     def _deepdelete_tiles(self, tiles):
-        """
-        Tiles is a <QuerySet> (ex: Feed.tiles.objects.all())"""
+        """Tiles is a <QuerySet> (ex: Feed.tiles.objects.all())"""
         tiles_set = set(tiles.values_list('pk', flat=True))
         bulk_delete_products = []
         bulk_delete_content = []
 
         for tile in tiles:
-            # Queye products & content for deletion if they are ONLY tagged in
+            # Queue products & content for deletion if they are ONLY tagged in
             # Tiles that will be delete
             for p in tile.products.all():
                 if set(p.tiles.values_list('pk', flat=True)).issubset(tiles_set):
@@ -790,35 +797,29 @@ class Feed(BaseModel):
 
             return new_tile, content, True
 
-    def _remove_product(self, product):
-        """Removes (if present) tiles with this product from the feed that
-        belongs to this page.
+    def _remove_product(self, product, deepdelete=False):
+        """Removes (if present) product tiles with this product from the feed.
 
-        This operation is so common and indirect that it is going
-        to stay in models.py.
-
-        TODO: can be faster
+        If deepdelete, product will be deleted too (wiping tagging associations)
 
         :raises AttributeError
         """
-        for tile in self.tiles.all():
-            if tile.products.filter(id=product.id).exists():
-                tile.delete()
+        tiles = self.tiles.filter(products__contains=product, template='product')
+        tiles.delete()
+        if deepdelete:
+            product.delete()
 
-    def _remove_content(self, content):
+    def _remove_content(self, content, deepdelete=False):
         """Removes (if present) tiles with this content from the feed that
         belongs to this page.
 
-        This operation is so common and indirect that it is going
-        to stay in models.py.
-
-        TODO: can be faster
+        If deepdelete, tries to delete other products & content associated with
+        this content (will not delete them if they are in other tiles.
 
         :raises AttributeError
         """
-        for tile in self.tiles.all():
-            if tile.content.filter(id=content.id).exists():
-                tile.delete()
+        tiles = self.tiles.filter(content__contains=content)
+        self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
 
 
 class Page(BaseModel):
@@ -890,6 +891,7 @@ class Page(BaseModel):
         returns: page"""
         self.pk = None
         self.id = None
+        self.url_slug = self._get_incremented_url_slug()
         self.save()
         return self
 
@@ -899,6 +901,7 @@ class Page(BaseModel):
         """
         self.pk = None
         self.id = None
+        self.url_slug = self._get_incremented_url_slug()
         self.feed = deepcopy(self.feed)
         self.save()
         return self
@@ -925,6 +928,21 @@ class Page(BaseModel):
             self.feed.deepdelete() # Will remove tiles too
             self.delete()
             return True
+
+    def replace(self, page, deepdelete=False):
+        """Replaces page with self & deletes page.  If deepdelete, then deepdelete page
+
+        :returns bool - True if deleted Feed & related items, False if only deleted Page
+        """
+        self.url_slug = page.url_slug
+        page.url_slug = ''
+        page.save()
+        self.save()
+        if deepdelete:
+            return page.deepdelete()
+        else:
+            page.delete()
+            return False
 
     def get(self, key, default=None):
         """Duck-type a <dict>'s get() method to make CG transition easier.
@@ -953,6 +971,19 @@ class Page(BaseModel):
             setattr(instance, field, json_data[field])
         return instance
 
+    def _get_incremented_url_slug(self):
+        """Returns
+        - "url_slug_1" for "url_slug"
+        - "url_slug_2" for "url_slug_1
+        """
+        url_slug = self.url_slug
+        m = re.match(r"^(.*_)(\d+)$", url_slug)
+        if m:
+            url_slug = m.group(1) + str(int(m.group(2)) + 1)
+        else:
+            url_slug += "_1"
+        return url_slug
+
     def add(self, obj, prioritized=False, priority=0):
         """Alias for Page.feed.add
         """
@@ -963,6 +994,7 @@ class Page(BaseModel):
         """Alias for Page.feed.remove
         """
         return self.feed.remove(obj=obj)
+
 
 
 class Tile(BaseModel):
@@ -1013,6 +1045,23 @@ class Tile(BaseModel):
     views = models.PositiveIntegerField(default=0)
 
     cg_serializer = cg_serializers.TileSerializer
+
+    def deepdelete(self):
+        bulk_delete_products = []
+        bulk_delete_content = []
+
+        # Queue products & content for deletion if they are ONLY tagged in
+        # this single Tile
+        for p in tile.products.all():
+            if p.tiles.count() == 1:
+                bulk_delete_products.append(p)
+        for c in tile.content.all():
+            if c.tiles.count() == 1:
+                bulk_delete_content.append(c)
+        Product.objects.filter(pk__in=bulk_delete_products).delete()
+        Content.objects.filter(pk__in=bulk_delete_content).delete()
+
+        self.delete()
 
     def full_clean(self, exclude=None, validate_unique=True):
         # south turns False into string 'false', which isn't what we wanted.
