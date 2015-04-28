@@ -833,8 +833,8 @@ class Page(BaseModel):
     store = models.ForeignKey(Store, related_name='pages', on_delete=models.CASCADE)
 
     name = models.CharField(max_length=256)  # e.g. Lived In
-    theme = models.ForeignKey(Theme, related_name='pages', on_delete=models.SET_NULL,
-                              blank=True, null=True)
+    theme = models.ForeignKey(Theme, related_name='pages', blank=True, null=True)
+            #on_delete=models.SET_NULL,
 
     # attributes named differently
     theme_settings = JSONField(blank=True, null=True)
@@ -849,8 +849,8 @@ class Page(BaseModel):
     ]
 
     dashboard_settings = JSONField(default={}, blank=True)
-    campaign = models.ForeignKey('dashboard.Campaign', on_delete=models.SET_NULL,
-                                 blank=True, null=True)
+    campaign = models.ForeignKey('dashboard.Campaign', blank=True, null=True)
+               #on_delete=models.SET_NULL,
 
     description = models.TextField(blank=True, null=True)
     url_slug = models.CharField(max_length=128)  # e.g. livedin
@@ -858,8 +858,8 @@ class Page(BaseModel):
 
     last_published_at = models.DateTimeField(blank=True, null=True)
 
-    feed = models.ForeignKey(Feed, related_name='page', on_delete=models.SET_NULL,
-                                 blank=True, null=True)
+    feed = models.ForeignKey(Feed, related_name='page', blank=True, null=True)
+           #on_delete=models.SET_NULL, 
 
     _attribute_map = BaseModel._attribute_map + (
         # (cg attribute name, python attribute name)
