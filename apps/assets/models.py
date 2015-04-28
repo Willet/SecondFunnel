@@ -93,7 +93,7 @@ class BaseModel(models.Model, SerializableMixin):
             obj_id=self.pk)
 
     @classmethod
-    def _copy(cls, obj, update_fields, exclude_fields=[]):
+    def _copy(cls, obj, update_fields={}, exclude_fields=[]):
         """Copies fields over to new instance of class
 
         """
@@ -104,7 +104,7 @@ class BaseModel(models.Model, SerializableMixin):
         local_update = dict([(k,v) for k,v in update_fields.iteritems() if k in local_fields])
         m2m_upate = dict([(k,v) for k,v in update_fields.iteritems() if k in m2m_fields])
 
-        autofields = [f.name for f in fields if isinstance(f, models.Autofield)]
+        autofields = [f.name for f in fields if isinstance(f, models.AutoField)]
         exclude = list(set(exclude_fields + autofields + default_exclude))
         
         local_kwargs = dict([(f.name, getattr(obj, f.name)) \
