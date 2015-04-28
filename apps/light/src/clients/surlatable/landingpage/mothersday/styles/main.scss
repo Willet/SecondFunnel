@@ -1019,7 +1019,7 @@ body {
         width: 5%;
         height: 100%;
         top: 0;
-        background-size: 30%;
+        background-size: 50%;
         background-position: center 40%;
     }
     .gallery-swipe-left, .gallery-swipe-right {
@@ -1038,9 +1038,11 @@ body {
     }
     .stl-swipe-left, .gallery-swipe-left {
         background-image: url('/static/light/surlatable/landingpage/mothersday/images/left.png');
+        left: 0;
     }
     .stl-swipe-right, .gallery-swipe-right {
         background-image: url('/static/light/surlatable/landingpage/mothersday/images/right.png');
+        right: 0;
     }
 }
 
