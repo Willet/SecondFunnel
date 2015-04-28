@@ -10,7 +10,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import models
 from django_extensions.db.fields import CreationDateTimeField
-from exceptions import NotImplmenetedError
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
@@ -92,14 +91,6 @@ class BaseModel(models.Model, SerializableMixin):
         return u'{class_name} #{obj_id}'.format(
             class_name=self.__class__.__name__,
             obj_id=self.pk)
-
-########
-#######
-######
-#####
-####
-##
-#
 
     @classmethod
     def _copy(cls, obj, update_fields, exclude_fields=[]):
@@ -656,7 +647,7 @@ class Feed(BaseModel):
         """A shallow copy of a feed does not include tiles. It is highly unlikely that that
         was the intention.  Force conscious use of deepcopy
         """
-        raise NotImplmenetedError
+        raise NotImplementedError
 
     def __deepcopy__(self, memo={}):
         """Creates a duplicate of the feed & its tiles
