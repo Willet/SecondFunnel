@@ -4,6 +4,7 @@ import decimal
 import json
 import re
 
+from copy import deepcopy
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
@@ -595,7 +596,7 @@ class Theme(BaseModel):
 class Feed(BaseModel):
     source_urls = models.TextField(null=True, blank=True)
     # tiles = is an array of Tiles (many-to-one relationship)
-
+    # pages = is an array of Pages (many-to-one relationship)
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
@@ -612,16 +613,22 @@ class Feed(BaseModel):
         except:
             return u'(Unsaved Feed)'
 
-    def deepcopy(self):
+    def __deepcopy__(self, memo={}):
         """Creates a duplicate of the feed & its tiles
         :returns new feed"""
+        print self
         tiles = self.tiles.all()
         self.pk = None
         self.id = None
         self.save()
+        print self
         for tile in tiles:
             self._copy_tile(tile)
         return self
+
+    def deepcopy(self):
+        """feed.deepcopy() is alias for deepcopy(feed)"""
+        return self.__deepcopy__()
 
     def deepdelete(self):
         """Delete the feed, its tiles, and all product & content that is not
@@ -826,7 +833,7 @@ class Page(BaseModel):
     store = models.ForeignKey(Store, related_name='pages', on_delete=models.CASCADE)
 
     name = models.CharField(max_length=256)  # e.g. Lived In
-    theme = models.ForeignKey(Theme, related_name='page', on_delete=models.SET_NULL,
+    theme = models.ForeignKey(Theme, related_name='pages', on_delete=models.SET_NULL,
                               blank=True, null=True)
 
     # attributes named differently
@@ -851,8 +858,8 @@ class Page(BaseModel):
 
     last_published_at = models.DateTimeField(blank=True, null=True)
 
-    feed = models.ForeignKey(Feed, related_name='page', on_delete=models.SET_NULL,
-                             blank=True, null=True)
+    feed = models.ForeignKey(Feed, related_name='pages', on_delete=models.SET_NULL,
+                             blank=True, null=True, unique=False, default=None)
 
     _attribute_map = BaseModel._attribute_map + (
         # (cg attribute name, python attribute name)
@@ -886,7 +893,7 @@ class Page(BaseModel):
         except KeyError:
             return super(Page, self).__getattribute__(name)
 
-    def copy(self):
+    def __copy__(self):
         """Duplicates the page, points to existing feed & associated tiles
         returns: page"""
         self.pk = None
@@ -895,16 +902,25 @@ class Page(BaseModel):
         self.save()
         return self
 
-    def deepcopy(self):
+    def __deepcopy__(self, memo={}):
         """Duplicates the page, feed & associated tiles
         returns: page
         """
+        feed = self.feed # unsetting pk, id 
         self.pk = None
         self.id = None
         self.url_slug = self._get_incremented_url_slug()
-        self.feed = deepcopy(self.feed)
+        self.feed = deepcopy(feed, memo)
         self.save()
         return self
+
+    def copy(self):
+        """page.copy() is alias for copy(page)"""
+        return self.__copy__()
+
+    def deepcopy(self):
+        """page.deepcopy() is alias for deepcopy(page)"""
+        return self.__deepcopy__()
 
     def deepdelete(self):
         """Attempts to delete all database elements associated with this page iff
@@ -930,7 +946,9 @@ class Page(BaseModel):
             return True
 
     def replace(self, page, deepdelete=False):
-        """Replaces page with self & deletes page.  If deepdelete, then deepdelete page
+        """Replaces page with self (assuming its url_slug) & deletes page.
+
+        If deepdelete, then deepdelete page
 
         :returns bool - True if deleted Feed & related items, False if only deleted Page
         """
