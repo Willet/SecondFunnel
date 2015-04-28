@@ -97,28 +97,26 @@ class BaseModel(models.Model, SerializableMixin):
         """Copies fields over to new instance of class
 
         """
-        default_exclude = ['ir_cache']
+        default_exclude = ['id', 'ir_cache']
         fields = [f.name for f in obj._meta.fields]
         local_fields = [f.name for f in obj._meta.local_fields]
         m2m_fields = [f.name for f in obj._meta.many_to_many]
-        local_update = dict([(k,v) for k,v in update_fields.iteritems() if k in local_fields])
-        m2m_upate = dict([(k,v) for k,v in update_fields.iteritems() if k in m2m_fields])
+        local_update = { k:v for (k,v) in update_fields.iteritems() if k in local_fields }
+        m2m_update = { k:v for (k,v) in update_fields.iteritems() if k in m2m_fields }
 
         autofields = [f.name for f in fields if isinstance(f, models.AutoField)]
         exclude = list(set(exclude_fields + autofields + default_exclude))
         
-        local_kwargs = dict([(f.name, getattr(obj, f.name)) \
-                        for f in local_fields if f.name not in exclude])
-        m2m_kwargs = dict([(f.name, getattr(obj, f.name)) \
-                        for f in m2m_fields if f.name not in exclude])
+        local_kwargs = { k:getattr(obj,k) for k in local_fields if k not in exclude }
+        m2m_kwargs = { k:getattr(obj,k) for k in m2m_fields if k not in exclude }
 
         local_kwargs.update(local_update)
         m2m_kwargs.update(m2m_update)
 
-        new_obj = cls(**new_local_kwargs)
+        new_obj = cls(**local_kwargs)
         new_obj.save()
         # m2m fields require instance id, so set after saving
-        new_obj.update(**new_m2m_kwargs)
+        new_obj.update(**m2m_kwargs)
         new_obj.save()
         return new_obj
 
@@ -938,7 +936,8 @@ class Page(BaseModel):
         returns: page"""
         feed = deepcopy(self.feed, memo)
         return self.__class__._copy(self, update_fields= {'url_slug': self._get_incremented_url_slug(),
-                                                          'feed': feed })
+                                                          'feed': feed },
+                                          exclude_fields= ['_theme_settings'])
 
     def copy(self):
         """page.copy() is alias for copy(page)"""
