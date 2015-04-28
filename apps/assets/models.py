@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import models
 from django_extensions.db.fields import CreationDateTimeField
+from exceptions import NotImplmenetedError
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
@@ -91,6 +92,44 @@ class BaseModel(models.Model, SerializableMixin):
         return u'{class_name} #{obj_id}'.format(
             class_name=self.__class__.__name__,
             obj_id=self.pk)
+
+########
+#######
+######
+#####
+####
+##
+#
+
+    @classmethod
+    def _copy(cls, obj, update_fields, exclude_fields=[]):
+        """Copies fields over to new instance of class
+
+        """
+        default_exclude = ['ir_cache']
+        fields = [f.name for f in obj._meta.fields]
+        local_fields = [f.name for f in obj._meta.local_fields]
+        m2m_fields = [f.name for f in obj._meta.many_to_many]
+        local_update = dict([(k,v) for k,v in update_fields.iteritems() if k in local_fields])
+        m2m_upate = dict([(k,v) for k,v in update_fields.iteritems() if k in m2m_fields])
+
+        autofields = [f.name for f in fields if isinstance(f, models.Autofield)]
+        exclude = list(set(exclude_fields + autofields + default_exclude))
+        
+        local_kwargs = dict([(f.name, getattr(obj, f.name)) \
+                        for f in local_fields if f.name not in exclude])
+        m2m_kwargs = dict([(f.name, getattr(obj, f.name)) \
+                        for f in m2m_fields if f.name not in exclude])
+
+        local_kwargs.update(local_update)
+        m2m_kwargs.update(m2m_update)
+
+        new_obj = cls(**new_local_kwargs)
+        new_obj.save()
+        # m2m fields require instance id, so set after saving
+        new_obj.update(**new_m2m_kwargs)
+        new_obj.save()
+        return new_obj
 
     def _cg_attribute_name_to_python_attribute_name(self, cg_attribute_name):
         """(method name can be shorter, but something about PEP 20)
@@ -613,18 +652,19 @@ class Feed(BaseModel):
         except:
             return u'(Unsaved Feed)'
 
+    def __copy__(self):
+        """A shallow copy of a feed does not include tiles. It is highly unlikely that that
+        was the intention.  Force conscious use of deepcopy
+        """
+        raise NotImplmenetedError
+
     def __deepcopy__(self, memo={}):
         """Creates a duplicate of the feed & its tiles
-        :returns new feed
-
-        WARNING: SIDE-EFFECT - in-memory instance becomes copied instance"""
-        tiles = self.tiles.all()
-        self.pk = None
-        self.id = None
-        self.save()
-        for tile in tiles:
-            self._copy_tile(tile)
-        return self
+        :returns new feed"""
+        feed = self.__class__._copy(self)
+        for tile in self.tiles.all():
+            feed._copy_tile(tile)
+        return feed
 
     def deepcopy(self):
         """feed.deepcopy() is alias for deepcopy(feed)"""
@@ -899,27 +939,15 @@ class Page(BaseModel):
 
     def __copy__(self):
         """Duplicates the page, points to existing feed & associated tiles
-        returns: page
-
-        WARNING: SIDE-EFFECT - in-memory instance becomes copied instance"""
-        self.pk = None
-        self.id = None
-        self.url_slug = self._get_incremented_url_slug()
-        self.save()
-        return self
+        returns: page"""
+        return self.__class__._copy(self, update_fields= {'url_slug': self._get_incremented_url_slug()})
 
     def __deepcopy__(self, memo={}):
         """Duplicates the page, feed & associated tiles
-        returns: page
-        
-        WARNING: SIDE-EFFECT - in-memory instance becomes copied instance"""
-        feed = self.feed # unsetting pk, id 
-        self.pk = None
-        self.id = None
-        self.url_slug = self._get_incremented_url_slug()
-        self.feed = deepcopy(feed, memo)
-        self.save()
-        return self
+        returns: page"""
+        feed = deepcopy(self.feed, memo)
+        return self.__class__._copy(self, update_fields= {'url_slug': self._get_incremented_url_slug(),
+                                                          'feed': feed })
 
     def copy(self):
         """page.copy() is alias for copy(page)"""
