@@ -6,6 +6,7 @@ $slt-main-color: #405700;
 $slt-basic-color: #444444;
 $slt-grey-color: #a8a8a8;
 $slt-green-color: #6b8e00;
+$slt-pastel-green-color: #829253;
 $slt-purple-color: #651e44;
 $slt-orange-color: #EF842C;
 $slt-thumbnail-height: 111px;
@@ -257,12 +258,13 @@ body {
             padding: 0 18px;
             background: transparent;
             margin-right: 0 !important;
-            border: 1px solid transparent !important;
+            border: none !important;
+            border-top: 1px solid $slt-green-color !important;
+            border-bottom: 1px solid $slt-pastel-green-color !important;
             @include no-select;
             &:hover {
                 color: $slt-green-color;
                 background: #fff;
-                border: 1px solid $slt-green-color !important;
             }
         }
         &.expanded .dropdown-label {
@@ -277,9 +279,10 @@ body {
     }
     .topProductSecNav {
         width: 210px;
-        height: 640px;
+        height: auto;
         color: #000;
-        border-top: none !important;
+        border: none !important;
+        box-shadow: 0 0 5px rgba(0,0,0,.5);
         top: 36px !important;
         padding: 10px !important;
         font-size: 16px !important;
@@ -331,14 +334,14 @@ body {
             top: 0;
             left: 228px;
             width: 218px;
-            height: 640px;
+            height: auto;
             padding: 10px;
             display: none;
             float: left;
-            border-right: 1px solid $slt-main-color;
-            border-bottom: 1px solid $slt-main-color;
+            border: none;
             background: #fff;
             text-transform: none;
+            box-shadow: 2px 2px 5px -2px rgba(0,0,0,.5);
             border-radius: 0px 0px 5px 0px;
             &.doubleWideNav {
                 width: 436px !important;
@@ -348,9 +351,7 @@ body {
                 width: 200px !important;
                 height: 100%;
                 padding-left: 15px !important;
-                &:first-child {
-                    border-left: 1px solid $slt-basic-color;
-                }
+                box-sizing: content-box;
                 li {
                     list-style: none;
                     cursor: pointer;
@@ -362,7 +363,7 @@ body {
                     a {
                         @include no-select;
                         white-space: normal;
-                        &:hover{
+                        &:hover {
                             color: $slt-main-color;
                             text-decoration: none;
                             border-bottom: 1px solid $slt-grey-color;
@@ -372,14 +373,18 @@ body {
             }
         }
         .topProductSecNavPromo {
-            position: absolute;
+            position: relative;
+            display: block;
             bottom: 10px;
             padding: 0 5px;
             margin-top: 10px;
             width: 200px;
-            height: 330px;
+            height: auto;
             overflow:hidden;
             border-top: 1px solid $slt-grey-color;
+            &:hover {
+                text-decoration: none !important;
+            }
             img {
                 padding-top: 10px;
             }
@@ -405,6 +410,10 @@ body {
                     font-size: 16px;
                     position: relative;
                     top: -1px;
+                    text-decoration: none !important;
+                }
+                &:hover {
+                    text-decoration: underline;
                 }
             }
         }
@@ -1010,14 +1019,14 @@ body {
         width: 5%;
         height: 100%;
         top: 0;
-        background-size: 30%;
+        background-size: 50%;
         background-position: center 40%;
     }
     .gallery-swipe-left, .gallery-swipe-right {
         width: 45px;
         height: 100%;
         top: 0;
-        background-size: 40%;
+        background-size: 70%;
     }
     .stl-swipe-up {
         background-image: url('/static/light/surlatable/landingpage/mothersday/images/up.png');
