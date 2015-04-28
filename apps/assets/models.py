@@ -615,7 +615,9 @@ class Feed(BaseModel):
 
     def __deepcopy__(self, memo={}):
         """Creates a duplicate of the feed & its tiles
-        :returns new feed"""
+        :returns new feed
+
+        WARNING: SIDE-EFFECT - in-memory instance becomes copied instance"""
         tiles = self.tiles.all()
         self.pk = None
         self.id = None
@@ -637,14 +639,18 @@ class Feed(BaseModel):
     def clear_category(self, category, deepdelete=False):
         """Delete all feed tiles tagged only with category
 
-        Option: deepdelete - if True, delete all product & content that is not tagged
-        in any other tile"""
+        :param category - can be str (name field of category) or Category instance
+
+        :option deepdelete - if True, delete all product & content that is not tagged
+        in any other tile
+        """
         cat = category if isinstance(category, Category) else Category.objects.get(name=category)
+        cat_products = Product.objects.filter(categories__in=[cat])
         if deepdelete:
-            tiles = self.tiles.select_related('products','content').filter(category__id=cat.id)
+            tiles = self.tiles.select_related('products','content').filter(products__in=cat_products)
             self._deepdelete_tiles(tiles)
         else:
-            tiles = self.tiles.filter(category__id=cat.id).delete()
+            self.tiles.filter(products__in=cat_products).delete()
 
     def find_tiles(self, content=None, product=None):
         """:returns list of tiles with this product/content (if given)"""
@@ -893,7 +899,9 @@ class Page(BaseModel):
 
     def __copy__(self):
         """Duplicates the page, points to existing feed & associated tiles
-        returns: page"""
+        returns: page
+
+        WARNING: SIDE-EFFECT - in-memory instance becomes copied instance"""
         self.pk = None
         self.id = None
         self.url_slug = self._get_incremented_url_slug()
@@ -903,7 +911,8 @@ class Page(BaseModel):
     def __deepcopy__(self, memo={}):
         """Duplicates the page, feed & associated tiles
         returns: page
-        """
+        
+        WARNING: SIDE-EFFECT - in-memory instance becomes copied instance"""
         feed = self.feed # unsetting pk, id 
         self.pk = None
         self.id = None
@@ -944,21 +953,22 @@ class Page(BaseModel):
             return True
 
     def replace(self, page, deepdelete=False):
-        """Replaces page with self (assuming its url_slug) & deletes page.
+        """Replaces page with self (assuming its url_slug) & deletes page.  If the feed
+        is only related to this page, it is deleted too.
 
-        If deepdelete, then deepdelete page
+        If deepdelete, then deepdelete page & feed.
 
         :returns bool - True if deleted Feed & related items, False if only deleted Page
         """
         self.url_slug = page.url_slug
-        page.url_slug = ''
-        page.save()
-        self.save()
         if deepdelete:
             return page.deepdelete()
         else:
+            if page.feed.page.count() == 1:
+                page.feed.delete()
             page.delete()
             return False
+        self.save()
 
     def get(self, key, default=None):
         """Duck-type a <dict>'s get() method to make CG transition easier.
