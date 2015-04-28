@@ -17,7 +17,7 @@ SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
 celery = Celery()
 
 @celery.task(bind=True, ignore_result=True, max_retries=1)
-def scrape_task(self, category, start_urls, no_priorities, create_tiles, page_slug, session_key=False):
+def scrape_task(self, category, start_urls, no_priorities, create_tiles, page_slug, job_id, session_key=False):
     page = Page.objects.get(url_slug=page_slug)
     feeds = [page.feed.id] if create_tiles else []
     opts = {
@@ -48,7 +48,7 @@ def scrape_task(self, category, start_urls, no_priorities, create_tiles, page_sl
     if (session_key):
         session = SessionStore(session_key=session_key)
         try:
-            session['jobs'][self.request.id].update({
+            session['jobs'][job_id].update({
                 'complete': no_priorities,
                 'log_url': crawler.stats.get_value('log_url', ''),
                 'summary_url': crawler.stats.get_value('summary_url', ''),
@@ -57,38 +57,30 @@ def scrape_task(self, category, start_urls, no_priorities, create_tiles, page_sl
             session.save()
         except KeyError:
             pass
-        return self.request.id
 
 @celery.task(bind=True, ignore_result=True, max_retries=1)
-def chained_prioritize_task(self, request_id, *args, **kwargs):
-    kwargs['request_id'] = request_id
-    prioritize(*args, **kwargs)
+def prioritize_task(self, start_urls, priorities, job_id, session_key=False):
+    if len(priorities) > 0:
+        summaryText = u"\n\n<b>----------------------- PRIORITIES -----------------------</b>\n\n"
+        for i, url in enumerate(start_urls):
+            prods = Product.objects.filter(url=url)
+            for prod in prods:
+                summaryText += u"- Updated tiles for <b>{}</b> with priority <b>{}</b>:\n".format(prod, priorities[i])
+                for tile in prod.tiles.all():
+                    tile.priority = priorities[i]
+                    tile.save()
+                    summaryText += u"    * <b>{}</b>\n".format(tile)
+            summaryText += u"<a href='{}'>{}</a>\n".format(url, url)
 
-@celery.task(bind=True, ignore_result=True, max_retries=1)
-def prioritize_task(self, start_urls, priorities, session_key=False):
-    prioritize(start_urls= start_urls, priorities= priorities, request_id= self.request.id, session_key= session_key)
-
-def prioritize(start_urls, priorities, request_id, session_key=False):
-    summaryText = u"\n\n<b>----------------------- PRIORITIES -----------------------</b>\n\n"
-    for i, url in enumerate(start_urls):
-        prods = Product.objects.filter(url=url)
-        for prod in prods:
-            summaryText += u"- Updated tiles for <b>{}</b> with priority <b>{}</b>:\n".format(prod, priorities[i])
-            for tile in prod.tiles.all():
-                tile.priority = priorities[i]
-                tile.save()
-                summaryText += u"    * <b>{}</b>\n".format(tile)
-        summaryText += u"<a href='{}'>{}</a>\n".format(url, url)
-
-    if (session_key):
-        session = SessionStore(session_key=session_key)
-        try:
-            session_job = session['jobs'][request_id]
-            summaryText = session_job['summary'] + summaryText
-            session_job.update({
-                'complete': True,
-                'summary': summaryText,
-            })
-            session.save()
-        except KeyError:
-            pass
+        if (session_key):
+            session = SessionStore(session_key=session_key)
+            try:
+                session_job = session['jobs'][job_id]
+                summaryText = session_job['summary'] + summaryText
+                session_job.update({
+                    'complete': True,
+                    'summary': summaryText,
+                })
+                session.save()
+            except KeyError:
+                pass
