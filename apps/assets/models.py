@@ -616,12 +616,10 @@ class Feed(BaseModel):
     def __deepcopy__(self, memo={}):
         """Creates a duplicate of the feed & its tiles
         :returns new feed"""
-        print self
         tiles = self.tiles.all()
         self.pk = None
         self.id = None
         self.save()
-        print self
         for tile in tiles:
             self._copy_tile(tile)
         return self
@@ -641,12 +639,12 @@ class Feed(BaseModel):
 
         Option: deepdelete - if True, delete all product & content that is not tagged
         in any other tile"""
-        cat = Category.objects.get(name=category) if isinstance(category, str) else category
+        cat = category if isinstance(category, Category) else Category.objects.get(name=category)
         if deepdelete:
-            tiles = self.tiles.select_related('products','content').filter(category__id=category.id)
+            tiles = self.tiles.select_related('products','content').filter(category__id=cat.id)
             self._deepdelete_tiles(tiles)
         else:
-            tiles = self.tiles.filter(category__id=category.id).delete()
+            tiles = self.tiles.filter(category__id=cat.id).delete()
 
     def find_tiles(self, content=None, product=None):
         """:returns list of tiles with this product/content (if given)"""
