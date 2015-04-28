@@ -858,8 +858,7 @@ class Page(BaseModel):
 
     last_published_at = models.DateTimeField(blank=True, null=True)
 
-    feed = models.ForeignKey(Feed, related_name='pages', on_delete=models.SET_NULL,
-                             blank=True, null=True, unique=False, default=None)
+    feed = models.ForeignKey(Feed, related_name='pages', blank=True, null=True, default=None)
 
     _attribute_map = BaseModel._attribute_map + (
         # (cg attribute name, python attribute name)
