@@ -21,6 +21,7 @@ App.start();
 (function () {
     var $topNavWrappers = $('.topNavWrapper'),
         $topSecNavWrappers = $('.topSecNavWrapper'),
+        $topProductSecNavPromo = $('.topProductSecNavPromo'),
         $categories = $('.category'),
         $subcategories = $('.sub-categories');
 
@@ -77,6 +78,11 @@ App.start();
             }
             return false;
         }
+    });
+
+    $topProductSecNavPromo.click(function (ev) {
+        App.utils.openUrl(this.href, "_top");
+        return false;
     });
 
     // Send search bar inqueries to surlatable.com
