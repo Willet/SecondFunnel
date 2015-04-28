@@ -363,7 +363,7 @@ body {
                     a {
                         @include no-select;
                         white-space: normal;
-                        &:hover{
+                        &:hover {
                             color: $slt-main-color;
                             text-decoration: none;
                             border-bottom: 1px solid $slt-grey-color;
@@ -374,6 +374,7 @@ body {
         }
         .topProductSecNavPromo {
             position: relative;
+            display: block;
             bottom: 10px;
             padding: 0 5px;
             margin-top: 10px;
@@ -381,6 +382,9 @@ body {
             height: auto;
             overflow:hidden;
             border-top: 1px solid $slt-grey-color;
+            &:hover {
+                text-decoration: none !important;
+            }
             img {
                 padding-top: 10px;
             }
@@ -406,6 +410,10 @@ body {
                     font-size: 16px;
                     position: relative;
                     top: -1px;
+                    text-decoration: none !important;
+                }
+                &:hover {
+                    text-decoration: underline;
                 }
             }
         }
@@ -1018,7 +1026,7 @@ body {
         width: 45px;
         height: 100%;
         top: 0;
-        background-size: 40%;
+        background-size: 70%;
     }
     .stl-swipe-up {
         background-image: url('/static/light/surlatable/landingpage/mothersday/images/up.png');
@@ -1030,11 +1038,9 @@ body {
     }
     .stl-swipe-left, .gallery-swipe-left {
         background-image: url('/static/light/surlatable/landingpage/mothersday/images/left.png');
-        left: 0;
     }
     .stl-swipe-right, .gallery-swipe-right {
         background-image: url('/static/light/surlatable/landingpage/mothersday/images/right.png');
-        right: 0;
     }
 }
 
