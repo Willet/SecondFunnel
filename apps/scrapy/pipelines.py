@@ -9,7 +9,8 @@ import decimal
 from collections import defaultdict
 from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.db import transaction
-from django.db.models import Model
+from django.db.models import Model, Q
+from scrapy import log
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from urlparse import urlparse
@@ -51,12 +52,34 @@ class ValidationPipeline(object):
 
     def process_product(self, item, spider):
         # Drop items missing required fields
-        required = ['sku', 'name']
-        empty_fields = [k for (k, v) in item.items() if not v and k in required]
-        if empty_fields:
-            raise DropItem('Product fields cannot be blank: ({})'.format(
-                ', '.join(empty_fields)
-            ))
+        required = set(['sku', 'name'])
+        missing_fields = required - set([k for (k,v) in item.items()])
+        empty_fields = [k for (k, v) in item.items() if k in required and not v]
+        if missing_fields or empty_fields:
+            # If we are missing required fields, attempt to find the product & mark it as out of stock
+            sku = item.get('sku', None)
+            url = item.get('url', None)
+
+            store_slug = getattr(spider, 'store_slug', '')
+            store = Store.objects.get(slug=store_slug)
+
+            query = Q(sku=sku, store=store)|Q(url=url, store=store) if sku and url else \
+                    Q(sku=sku, store=store) if sku else \
+                    Q(url=url, store=store) if url else None
+
+            try:
+                product = Product.objects.get(query)
+                product.in_stock = False
+                product.save()
+
+                raise DropItem('OutOfStock')
+            except (Product.DoesNotExist, TypeError):
+                # TypeError happens if the query includes Q(None)
+                # This item doesn't exist yet
+                raise DropItem('Required fields missing ({}) or empty ({})'.format(
+                    ', '.join(missing_fields),
+                    ', '.join(empty_fields)
+                ))
 
         return item
 
