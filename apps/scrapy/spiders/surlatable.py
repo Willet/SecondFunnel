@@ -6,7 +6,7 @@ from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import Rule
 from scrapy_webdriver.http import WebdriverRequest
 
-from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider, SoldOut
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperContentLoader, ScraperProductLoader
 from apps.scrapy.items import ScraperImage, ScraperProduct
 
@@ -92,7 +92,8 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             sku = re.search(r'\d+', prod_id).group()
             l.add_value('sku', sku)
         except (IndexError, AttributeError):
-            raise SoldOut(response.url)
+            # An item with a missing sku will not validate
+            l.add_value('sku', '')
 
         # prices are sometimes in the forms:
         #    $9.95 - $48.96
@@ -116,8 +117,8 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_value('price', reg_price)
         l.add_value('attributes', attributes)
         
-        item = l.load_item()  
-        item['url'] = self.clean_surlatable_url(item.get('url'))  
+        item = l.load_item()
+        item['url'] = self.clean_surlatable_url(item.get('url', response.url))
 
         if skip_images:
             yield item

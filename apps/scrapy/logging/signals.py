@@ -5,6 +5,7 @@ from django.conf import settings
 import notify_slack
 import upload_to_s3
 
+
 class Signals(object):
     """
     Record progress of spider for use in logging, using scrapy signal hooks.
@@ -53,29 +54,20 @@ class Signals(object):
 
 
     def item_dropped(self, item, spider, exception):
-        dropped_items = self.crawler.stats.get_value('logging/items dropped', {})
-
         msg = str(exception).split(':')[0]
-        items = dropped_items.get(msg, [])
-        items.append(item.get('url'))
-        dropped_items[msg] = items
 
-        self.crawler.stats.set_value('logging/items dropped', dropped_items)
+        if msg == 'OutOfStock':
+            self.crawler.stats.inc_value('logging/items out of stock', [item['url']], [])
+        else:
+            dropped_items = self.crawler.stats.get_value('logging/items dropped', {})
+            items = dropped_items.get(msg, [])
+            items.append(item.get('url'))
+            dropped_items[msg] = items
+
+            self.crawler.stats.set_value('logging/items dropped', dropped_items)
 
 
     def spider_error(self, failure, response, spider):
-        if failure.type.__name__ == "SoldOut":
-            # not strictly an error
-            self.crawler.stats.inc_value('logging/items out of stock', [response.url], [])
-            try:
-                product = Product.objects.filter(url=response.url)[0]
-                log.msg(u"Setting {} to out-of-stock".format(product))
-                product['in_stock'] = False
-                product.save()
-            except IndexError:
-                pass
-            return
-
         errors = self.crawler.stats.get_value('logging/errors', {})
 
         msg = failure.getErrorMessage()
