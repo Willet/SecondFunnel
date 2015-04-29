@@ -4,8 +4,6 @@ from scrapy.spider import Spider
 from scrapy.utils.spider import iterate_spider_output
 from scrapy_webdriver.http import WebdriverRequest, WebdriverResponse
 
-class SoldOut(Exception):
-    pass
 
 class SecondFunnelScraper(object):
     def __init__(self, *args, **kwargs):
@@ -36,10 +34,6 @@ class SecondFunnelCrawlScraper(SecondFunnelScraper):
     remove_background = '#FFF'
 
     def parse_start_url(self, response):
-        if self.is_sold_out(response):
-            # typically on rescraping a product
-            raise SoldOut(response.url)
-
         if self.is_product_page(response):
             self.rules = ()
             self._rules = []
@@ -50,9 +44,6 @@ class SecondFunnelCrawlScraper(SecondFunnelScraper):
         return []
 
     def is_product_page(self, response):
-        raise NotImplementedError
-
-    def is_sold_out(self, response):
         raise NotImplementedError
 
     def parse_product(self, response):
@@ -73,6 +64,8 @@ class WebdriverCrawlSpider(Spider):
     Note: Since we've duplicated core code, if we ever update,
     we lose the benefit of the updates. It would be best for us to contibute
     to the project to make the request / response configurable somehow.
+
+    NOTE: Webdriver dies on spiders throwing exceptions: https://github.com/brandicted/scrapy-webdriver/issues/5
     """
 
     rules = ()
@@ -99,20 +92,12 @@ class WebdriverCrawlSpider(Spider):
                 r.meta.update(rule=n, link_text=link.text)
                 yield rule.process_request(r)
 
-    # There is an unresolved bug in scrapy-webdriver that doesn't
-    # handle exceptions when parsing a page. In our case, we will
-    # log an exception then move on.
-    #   https://github.com/brandicted/scrapy-webdriver/issues/5
     def _parse_response(self, response, callback, cb_kwargs, follow=True):
         if callback:
             cb_res = callback(response, **cb_kwargs) or ()
             cb_res = self.process_results(response, cb_res)
-            try:
-                for requests_or_item in iterate_spider_output(cb_res):
-                    yield requests_or_item
-            except Exception as e:
-                # Why are these not showing in the logs?
-                self.log(repr(e), level=log.ERROR)
+            for requests_or_item in iterate_spider_output(cb_res):
+                yield requests_or_item
 
         if follow and self._follow_links:
             for request_or_item in self._requests_to_follow(response):
