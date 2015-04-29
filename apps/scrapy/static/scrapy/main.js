@@ -45,6 +45,9 @@ var taskReq = {
             $.ajax({
                 url: 'result/' + data.id,
                 type: 'GET',
+                data: {
+                    'timestamp': Date.now()
+                },
                 success: summaryReq.success,
                 error: summaryReq.error
             });
