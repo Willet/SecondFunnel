@@ -752,7 +752,7 @@ class Feed(BaseModel):
         """Creates a copy of a tile to this feed
 
         TODO: refactor to use _copy
-        
+
         :returns <Tile> copy"""
         prioritized = prioritized or tile.prioritized
         priority = priority or tile.priority
@@ -769,7 +769,7 @@ class Feed(BaseModel):
         tile.content = content
         tile.products = products
 
-        tile.update_ir_cache
+        tile.update_ir_cache()
         tile.save()
 
         return tile
