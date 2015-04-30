@@ -6,6 +6,7 @@ from datetime import datetime
 from django.http import HttpResponse, Http404
 from django.conf import settings as django_settings
 from django.shortcuts import render, get_object_or_404
+from apps.api.decorators import check_login
 from django.views.decorators.cache import never_cache
 
 
@@ -14,6 +15,7 @@ from apps.scrapy.tasks import scrape_task, prioritize_task
 
 stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
 
+@check_login
 def index(request):
     """"Home" page.  does nothing."""
 
@@ -22,6 +24,7 @@ def index(request):
     }
     return render(request, 'index.html', data)
 
+@check_login
 def page(request, page_slug):
     """This page is where scrapers are run from"""
 
@@ -32,6 +35,7 @@ def page(request, page_slug):
     }
     return render(request, 'page.html', data)
 
+@check_login
 @never_cache
 def scrape(request, page_slug):
     """Async request to run a spider"""
@@ -76,6 +80,7 @@ def scrape(request, page_slug):
 
     return HttpResponse(json.dumps(job), content_type="application/json")
 
+@check_login
 @never_cache
 def prioritize(request, page_slug):
     """callback for prioritizing tiles, if applicable"""
@@ -100,6 +105,7 @@ def prioritize(request, page_slug):
 
     return HttpResponse(json.dumps(job), content_type="application/json")
 
+@check_login
 @never_cache
 def result(request, page_slug, job_id):
     try:
