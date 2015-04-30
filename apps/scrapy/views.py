@@ -32,6 +32,7 @@ def page(request, page_slug):
     }
     return render(request, 'page.html', data)
 
+@never_cache
 def scrape(request, page_slug):
     """Async request to run a spider"""
 
@@ -51,7 +52,7 @@ def scrape(request, page_slug):
         'complete': False,
         'log_url': '',
         'summary_url': '',
-        'summary': '',
+        'summary': {},
     }
     request.session['jobs'].update({ job['id']: job })
     request.session.save()
@@ -75,6 +76,7 @@ def scrape(request, page_slug):
 
     return HttpResponse(json.dumps(job), content_type="application/json")
 
+@never_cache
 def prioritize(request, page_slug):
     """callback for prioritizing tiles, if applicable"""
 
@@ -85,7 +87,7 @@ def prioritize(request, page_slug):
     job = {
         'id': job_id,
         'complete': False,
-        'summary': '',
+        'summary': {},
     }
     request.session['jobs'].update({ job['id']: job })
     request.session.save()

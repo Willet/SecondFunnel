@@ -52,7 +52,7 @@ def scrape_task(self, category, start_urls, no_priorities, create_tiles, page_sl
                 'complete': no_priorities,
                 'log_url': crawler.stats.get_value('log_url', ''),
                 'summary_url': crawler.stats.get_value('summary_url', ''),
-                'summary': crawler.stats.get_value('summary', ''),
+                'summary': json.loads(crawler.stats.get_value('summary', '{}')),
             })
             session.save()
         except KeyError:
@@ -61,25 +61,24 @@ def scrape_task(self, category, start_urls, no_priorities, create_tiles, page_sl
 @celery.task(bind=True, ignore_result=True, max_retries=1)
 def prioritize_task(self, start_urls, priorities, job_id, session_key=False):
     if len(priorities) > 0:
-        summaryText = u"\n\n<b>--- PRIORITIES ---</b>\n\n"
+        updated_list = []
         for i, url in enumerate(start_urls):
             prods = Product.objects.filter(url=url)
             for prod in prods:
-                summaryText += u"- Updated tiles for <b>{}</b> with priority <b>{}</b>:\n".format(prod, priorities[i])
+                item = "{}, {}".format(url, priorities[i])
+                updated_list.append(item)
                 for tile in prod.tiles.all():
                     tile.priority = priorities[i]
                     tile.save()
-                    summaryText += u"    * <b>{}</b>\n".format(tile)
-            summaryText += u"<a href='{}'>{}</a>\n".format(url, url)
 
         if (session_key):
             session = SessionStore(session_key=session_key)
             try:
-                session_job = session['jobs'][job_id]
-                summaryText = session_job['summary'] + summaryText
-                session_job.update({
+                new_summary = session['jobs'][job_id]['summary']
+                new_summary['prioritized items'] = updated_list
+                session['jobs'][job_id].update({
                     'complete': True,
-                    'summary': summaryText,
+                    'summary': new_summary,
                 })
                 session.save()
             except KeyError:

@@ -39,6 +39,42 @@ var getData = function () {
     return categories;
 };
 
+var formattedSummary = function(summary) {
+    summaryText = "";
+    if (summary['updated items']) {
+        summaryText += '\nUpdated items: \n';
+        for (i = 0; i < summary['updated items'].length; i++) {
+            summaryText += '   - ' + summary['updated items'][i] + '\n';
+        }
+    }
+    if (summary['new items']) {
+        summaryText += '\nNew items: \n';
+        for (i = 0; i < summary['new items'].length; i++) {
+            summaryText += '   - ' + summary['new items'][i] + '\n';
+        }
+    }
+    if (summary['out of stock']) {
+        summaryText += '\nOut of stock: \n';
+        for (i = 0; i < summary['out of stock'].length; i++) {
+            summaryText += '   - ' + summary['out of stock'][i] + '\n';
+        }
+    }
+    if (summary['dropped items']) {
+        summaryText += '\nDropped items: \n';
+        for (i = 0; i < summary['dropped items'].length; i++) {
+            summaryText += '   - ' + summary['dropped items'][i] + '\n';
+        }
+    }
+    if (summary['prioritized items']) {
+        summaryText += '\nPrioritized items: \n';
+        for (i = 0; i < summary['prioritized items'].length; i++) {
+            summaryText += '   - ' + summary['prioritized items'][i] + '\n';
+        }
+    }
+
+    return summaryText;
+};
+
 var taskReq = {
     success: function(data, status) {
         var counter = 1;
@@ -76,14 +112,15 @@ var taskReq = {
 var summaryReq = {
     success: function(data, status) {
         var $results = $('.results').removeClass('success').removeClass('warning');
-        if (data.summary.length > 0) {
+        // check if summary is empty
+        if (Object.keys(data.summary).length > 0) {
             if (data.complete) {
                 clearInterval(summaryInterval);
             }
             if (!$results.hasClass('warning')) {
                 $results.addClass('success');
             }
-            $results.html('Task succeeded! Summary: \n' + data.summary);
+            $results.html('Task succeeded!\n' + formattedSummary(data.summary));
             console.log('Task succeeded with status: ' + status);
             console.log(data);
         } else {
