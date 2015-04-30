@@ -104,6 +104,7 @@ class BaseModel(models.Model, SerializableMixin):
 
         :return copied instance
         """
+        # NOTE: _meta API updated in Django 1.8, will need to re-implement
         default_exclude = ['id', 'ir_cache']
         autofields = [f.name for f in obj._meta.fields if isinstance(f, models.AutoField)]
         exclude = list(set(exclude_fields + autofields + default_exclude)) # eliminate duplicates
@@ -128,7 +129,7 @@ class BaseModel(models.Model, SerializableMixin):
 
         # m2m fields require instance id, so set after saving
         for (k,v) in m2m_kwargs.iteritems():
-            setattr(new_obj,k,v.all())
+            setattr(new_obj, k, v.all())
 
         new_obj.save()
 
