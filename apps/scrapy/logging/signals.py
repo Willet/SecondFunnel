@@ -82,11 +82,12 @@ class Signals(object):
         if settings.ENVIRONMENT == 'dev':
             pass # return
 
-        summary_url, log_url = upload_to_s3.S3Logger(
+        logger = upload_to_s3.S3Logger(
             self.crawler.stats.get_stats(),
             spider,
             reason
-        ).run()
+        )
+        summary_url, log_url = logger.run()
 
         notify_slack.dump_stats(
             self.crawler.stats.get_stats(),
@@ -96,5 +97,6 @@ class Signals(object):
         )
 
         # to be returned to the web page
+        self.crawler.stats.set_value('summary', logger._format_report())
         self.crawler.stats.set_value('summary_url', summary_url)
         self.crawler.stats.set_value('log_url', log_url)

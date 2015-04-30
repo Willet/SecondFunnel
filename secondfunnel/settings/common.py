@@ -438,7 +438,11 @@ STALE_TILE_QUEUE_NAME = 'tiles-worker-test-queue'
 
 CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
 
-CELERY_IMPORTS = ('apps.utils.tasks', )
+CELERY_IMPORTS = ('apps.utils.tasks','apps.scrapy.tasks')
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+# Restart worker after every task because scrapy utilizes twisted's reactor which can not be restarted
+CELERYD_MAX_TASKS_PER_CHILD = 1
 
 API_LIMIT_PER_PAGE = 20
 

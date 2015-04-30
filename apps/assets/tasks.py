@@ -10,8 +10,6 @@ from apps.api.decorators import (validate_json_deserializable,
                                  require_keys_for_message)
 from apps.assets.models import Tile, Product, Content, ProductImage
 
-from apps.contentgraph.models import TileConfigObject
-
 
 celery = Celery()
 logger = get_task_logger(__name__)
