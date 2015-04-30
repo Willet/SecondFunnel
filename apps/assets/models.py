@@ -122,12 +122,14 @@ class BaseModel(models.Model, SerializableMixin):
         
         local_kwargs.update(local_update)
         m2m_kwargs.update(m2m_update)
+
         new_obj = cls(**local_kwargs)
         new_obj.save()
 
         # m2m fields require instance id, so set after saving
-        for k,v in m2m_kwargs:
-            setattr(new_obj,k,v)
+        for (k,v) in m2m_kwargs.iteritems():
+            setattr(new_obj,k,v.all())
+
         new_obj.save()
 
         return new_obj
@@ -751,28 +753,14 @@ class Feed(BaseModel):
     def _copy_tile(self, tile, prioritized=False, priority=0):
         """Creates a copy of a tile to this feed
 
-        TODO: refactor to use _copy
-
         :returns <Tile> copy"""
-        prioritized = prioritized or tile.prioritized
-        priority = priority or tile.priority
-        content = tile.content.all()
-        products = tile.products.all()
+        new_tile = Tile._copy(tile, update_fields= {'feed': self,
+                                                    'prioritized': prioritized or tile.prioritized,
+                                                    'priority': priority or tile.priority })
+        new_tile.update_ir_cache()
+        new_tile.save()
 
-        tile.pk = None
-        tile.id = None
-        tile.feed = self
-        tile.prioritized = prioritized
-        tile.priority = priority
-        tile.save()
-        # save ManyToMany relations:
-        tile.content = content
-        tile.products = products
-
-        tile.update_ir_cache()
-        tile.save()
-
-        return tile
+        return new_tile
 
     def _deepdelete_tiles(self, tiles):
         """Tiles is a <QuerySet> (ex: Feed.tiles.objects.all())"""
