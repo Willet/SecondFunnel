@@ -61,7 +61,7 @@ def scrape_task(self, category, start_urls, no_priorities, create_tiles, page_sl
 @celery.task(bind=True, ignore_result=True, max_retries=1)
 def prioritize_task(self, start_urls, priorities, job_id, session_key=False):
     if len(priorities) > 0:
-        summaryText = u"\n\n<b>----------------------- PRIORITIES -----------------------</b>\n\n"
+        summaryText = u"\n\n<b>--- PRIORITIES ---</b>\n\n"
         for i, url in enumerate(start_urls):
             prods = Product.objects.filter(url=url)
             for prod in prods:

@@ -1,6 +1,7 @@
 var summaryInterval;
 
 var getData = function () {
+    var task = this.event.target.id;
     var csv = $('#pseudo-spreadsheet').val();
     var lines = csv.split('\n');
     lines = lines.filter(function(x){
@@ -16,20 +17,23 @@ var getData = function () {
     for (var i=0; i < lines.length; i++) {
         line = lines[i].split(delim);
 
-        // validation
-        if (line.length != 3) {
+        // validation with optional priority column
+        if ((line.length !== 2 && line.length !== 3 && task === 'scrape') || (line.length !== 3 && task === 'prioritize')) {
             warning.text("<- Look you fool");
             return false;
         }
 
-        var url = line[0].trim(),
-            cat = line[1].trim(),
-            priority = line[2].trim();
-
+        var priority,
+            url = line[0].trim(),
+            cat = line[1].trim();
         // assemble the CSV into a js object to pass to server side handlers
         categories[cat] = categories[cat] || {urls: [], priorities: [], name: cat};
         categories[cat].urls.push(url);
-        categories[cat].priorities.push(priority);
+
+        if (line.length === 3) {
+            priority = line[2].trim();
+            categories[cat].priorities.push(priority);
+        }
     }
 
     return categories;
@@ -45,9 +49,6 @@ var taskReq = {
             $.ajax({
                 url: 'result/' + data.id,
                 type: 'GET',
-                data: {
-                    'timestamp': Date.now()
-                },
                 success: summaryReq.success,
                 error: summaryReq.error
             });
