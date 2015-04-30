@@ -94,30 +94,41 @@ class BaseModel(models.Model, SerializableMixin):
 
     @classmethod
     def _copy(cls, obj, update_fields={}, exclude_fields=[]):
-        """Copies fields over to new instance of class
+        """Copies fields over to new instance of class & saves it
+        Note: Fields 'id' and 'ir_cache' are excluded by default
 
+        :param obj - instance to copy
+        :param update_fields - dict of key,values of fields to update
+        :param exclude_fields - list of field names to exclude from copying
+
+        :return copied instance
         """
         default_exclude = ['id', 'ir_cache']
-        fields = [f.name for f in obj._meta.fields]
+        autofields = [f.name for f in obj._meta.fields if isinstance(f, models.AutoField)]
+        exclude = list(set(exclude_fields + autofields + default_exclude)) # eliminate duplicates
+
+        # local fields + many-to-many fields = all fields (assumption!)
         local_fields = [f.name for f in obj._meta.local_fields]
         m2m_fields = [f.name for f in obj._meta.many_to_many]
-        local_update = { k:v for (k,v) in update_fields.iteritems() if k in local_fields }
-        m2m_update = { k:v for (k,v) in update_fields.iteritems() if k in m2m_fields }
 
-        autofields = [f.name for f in fields if isinstance(f, models.AutoField)]
-        exclude = list(set(exclude_fields + autofields + default_exclude))
-        
+        # Remove excluded fields from fields that are copied
         local_kwargs = { k:getattr(obj,k) for k in local_fields if k not in exclude }
         m2m_kwargs = { k:getattr(obj,k) for k in m2m_fields if k not in exclude }
 
+        # Separate update_fields into local & m2m
+        local_update = { k:v for (k,v) in update_fields.iteritems() if k in local_fields }
+        m2m_update = { k:v for (k,v) in update_fields.iteritems() if k in m2m_fields }
+        
         local_kwargs.update(local_update)
         m2m_kwargs.update(m2m_update)
-
         new_obj = cls(**local_kwargs)
         new_obj.save()
+
         # m2m fields require instance id, so set after saving
-        new_obj.update(**m2m_kwargs)
+        for k,v in m2m_kwargs:
+            setattr(new_obj,k,v)
         new_obj.save()
+
         return new_obj
 
     def _cg_attribute_name_to_python_attribute_name(self, cg_attribute_name):
@@ -910,7 +921,7 @@ class Page(BaseModel):
     cg_serializer = cg_serializers.PageSerializer
 
     def __init__(self, *args, **kwargs):
-        super(Page, self).__init__(*args, **kwargs)
+        super(self.__class__, self).__init__(*args, **kwargs)
         # self._theme_settings is a merged theme_settings with defaults
         if not self.theme_settings:
             self._theme_settings = { key: default for (key, default) in self.theme_settings_fields }
@@ -922,9 +933,10 @@ class Page(BaseModel):
 
     def __getattr__(self, name):
         try:
-            return self._theme_settings[name]
-        except KeyError:
-            return super(Page, self).__getattribute__(name)
+            # Need to use parent __getattribute__ to avoid infinite loop
+            return super(self.__class__, self).__getattribute__('_theme_settings')[name]
+        except (AttributeError, KeyError):
+            return super(self.__class__, self).__getattribute__(name)
 
     def __copy__(self):
         """Duplicates the page, points to existing feed & associated tiles
@@ -934,10 +946,10 @@ class Page(BaseModel):
     def __deepcopy__(self, memo={}):
         """Duplicates the page, feed & associated tiles
         returns: page"""
-        feed = deepcopy(self.feed, memo)
+        feed = self.feed.deepcopy()
+        feed.save() # ensure feed is saved
         return self.__class__._copy(self, update_fields= {'url_slug': self._get_incremented_url_slug(),
-                                                          'feed': feed },
-                                          exclude_fields= ['_theme_settings'])
+                                                          'feed': feed })
 
     def copy(self):
         """page.copy() is alias for copy(page)"""
