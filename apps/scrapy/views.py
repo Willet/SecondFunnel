@@ -44,6 +44,7 @@ def scrape(request, page_slug):
         request.session['jobs'] = {}
 
     # Use job start time as unique id
+    # Must define job before task is initialized to avoid race condition
     job_id = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     job = {
         'id': job_id,
@@ -79,6 +80,7 @@ def prioritize(request, page_slug):
 
     cat = json.loads(urlparse.unquote(request.POST.get('cat')))
     # Use job start time as unique id
+    # Must define job before task is initialized to avoid race condition
     job_id = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     job = {
         'id': job_id,
