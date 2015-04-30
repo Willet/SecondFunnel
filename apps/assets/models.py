@@ -96,6 +96,7 @@ class BaseModel(models.Model, SerializableMixin):
     def _copy(cls, obj, update_fields={}, exclude_fields=[]):
         """Copies fields over to new instance of class & saves it
         Note: Fields 'id' and 'ir_cache' are excluded by default
+        Warning: not tested with all related fields
 
         :param obj - instance to copy
         :param update_fields - dict of key,values of fields to update
