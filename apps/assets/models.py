@@ -132,6 +132,21 @@ class BaseModel(models.Model, SerializableMixin):
 
         return new_obj
 
+    def update_ir_cache(self):
+        """Generates and/or updates the IR cache for the current object.
+
+        :returns (the cache, whether it was updated)
+        """
+        old_ir_cache = self.ir_cache
+        self.ir_cache = ''  # force tile to regenerate itself
+        new_ir_cache = self.to_str(skip_cache=True)
+
+        if new_ir_cache == old_ir_cache:
+            return new_ir_cache, False
+
+        self.ir_cache = new_ir_cache
+        return new_ir_cache, True
+
     def _cg_attribute_name_to_python_attribute_name(self, cg_attribute_name):
         """(method name can be shorter, but something about PEP 20)
 
@@ -735,6 +750,9 @@ class Feed(BaseModel):
 
     def _copy_tile(self, tile, prioritized=False, priority=0):
         """Creates a copy of a tile to this feed
+
+        TODO: refactor to use _copy
+
         :returns <Tile> copy"""
         prioritized = prioritized or tile.prioritized
         priority = priority or tile.priority
@@ -750,6 +768,9 @@ class Feed(BaseModel):
         # save ManyToMany relations:
         tile.content = content
         tile.products = products
+
+        tile.update_ir_cache()
+        tile.save()
 
         return tile
 
@@ -968,7 +989,7 @@ class Page(BaseModel):
            - Products (if only tagged in Tiles to be deleted)
            - Contents (if only tagged in Tiles to be deleted)
 
-           :returns bool - True if deleted Feed & related items, False if only deleted Page
+        :returns bool - True if deleted Feed & related items, False if only deleted Page
         """
         if not self.feed:
             self.delete()
@@ -1149,22 +1170,6 @@ class Tile(BaseModel):
             serializer = ir_serializers.TileSerializer
         
         return serializer().to_str([self], skip_cache=skip_cache)
-
-    def update_ir_cache(self):
-        """Generates and/or updates the IR cache for the current object.
-        This method is generic; BaseModel might benefit later.
-
-        :returns (the cache, whether it was updated)
-        """
-        old_ir_cache = self.ir_cache
-        self.ir_cache = ''  # force tile to regenerate itself
-        new_ir_cache = self.to_str(skip_cache=True)
-
-        if new_ir_cache == old_ir_cache:
-            return new_ir_cache, False
-
-        self.ir_cache = new_ir_cache
-        return new_ir_cache, True
 
     @property
     def tile_config(self):
