@@ -113,7 +113,7 @@ var summaryReq = {
     success: function(data, status) {
         var $results = $('.results').removeClass('success').removeClass('warning');
         // check if summary is empty
-        if (Object.keys(data.summary).length > 0) {
+        if (! _.isEmpty(data.summary)) {
             if (data.complete) {
                 clearInterval(summaryInterval);
             }
