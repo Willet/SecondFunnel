@@ -1,5 +1,8 @@
+import sys
+
 from fabric.api import run, cd, execute, settings, env, sudo, hide, task
 from fabric.colors import green, yellow, red
+from fabric.contrib.files import exists
 
 from aws.api import get_ec2_connection
 from aws.utils import flatten_reservations
@@ -17,12 +20,12 @@ def get_workers(cluster_type):
 
 
 @task
-def launch_worker(cluster_type, branch):
+def launch_worker(cluster_type="test", branch="master"):
     """Launches a new celery worker, adding it to an appropriate cluster"""
     ec2 = get_ec2_connection()
 
     # our celery worker AMI
-    ami_id = 'ami-c00c98f0'
+    ami_id = 'ami-e7d1e7d7'
 
     reservations = ec2.run_instances(
         ami_id,
@@ -161,25 +164,32 @@ def deploy_celery(cluster_type, branch):
     print green("Deploying '{0}' to celery worker in {1} cluster".format(
         branch, cluster_type))
 
-    env_path = "/home/ec2-user/pinpoint/env"
+    env_path = "/home/ec2-user"
     project_path = "{0}/SecondFunnel".format(env_path)
+    key_path = "{0}/ansible/roles/common/files/public_keys".format(project_path)
     git_path = "ssh://git@github.com/Willet/SecondFunnel.git"
 
     print green("Pulling latest code")
-    with cd(env_path):
-        with settings(hide('warnings'), warn_only=True):
-            run("git clone {0}".format(git_path))
+
+    if not exists(project_path, verbose=True):
+        print green("Cloning repository")
+        with cd(env_path):
+            run("git clone {0}".format(git_path), stdout=sys.stdout, stderr=sys.stderr)
 
     with cd(project_path):
+        print green("Fetching changes")
         run("git fetch")
         run("git checkout {0}".format(branch))
         run("git pull".format(branch))
 
         print green("Updating SSH keys")
-        run("cat ./ssh_keys > /home/ec2-user/.ssh/authorized_keys")
+        pubs = run('ls {0}'.format(key_path))
+        pub_files = pubs.split()
+        for p in pub_files:
+            run("cat {0}/{1} >> /home/ec2-user/.ssh/authorized_keys".format(key_path,p))
 
         print green("Installing required libraries")
-        run("source ../bin/activate && pip install -r requirements.txt")
+        sudo("pip install -r requirements.txt")
 
         print green("Configuring supervisord")
         sudo("cp scripts/celeryconf/supervisord.initd /etc/init.d/supervisord")
