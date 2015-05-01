@@ -16,26 +16,26 @@
 
 <div class="csv">
     <p>Put the contents of a CSV file here.</p>
-    <p>Format: URL, category, priority <span class="warning"></span></p>
+    <p>Format: [URL, category, priority] <span class="warning"></span></p>
     <textarea id="pseudo-spreadsheet"></textarea>
 </div>
 
 <div class="options">
     <p>Choose delimiter: <input id="delimiter" type="text" name="delimiter" value="," /></p>
     <p>
-        Scrape data only?
-        <input id="data-only" type="checkbox" name="data-only" value="false" />
+        Create tiles?
+        <input id="create-tiles" type="checkbox" name="create-tiles" value="false" />
         <br />
-        Note: Products will not be added to feed.
-        <br />
+        Note: Tiles will not be created if they already exist.
         Note: Prioritization only effects existing tiles.
     </p>
     <input id="scrape" type="button" onclick="scrape()" value="SCRAPE" />
     <input id="prioritize" type="button" onclick="prioritize()" value="PRIORITIZE" />
-    <div class="message">
-        <h3>RESULTS:</h3>
-        <div class="results">Ready to scrape!</div>
-    </div>
+</div>
+
+<div class="message">
+    <h3>RESULTS:</h3>
+    <div class="results">Ready to scrape!</div>
 </div>
 
 {% endblock %}
