@@ -1,4 +1,4 @@
-from fabric.api import task
+from fabric.api import run, cd, execute, settings, env, sudo, hide, task
 from fabric.colors import green, yellow, red
 
 from aws.api import get_ec2_connection
@@ -8,7 +8,7 @@ def get_workers(cluster_type):
     """Gets Celery workers belonging to specified cluster type"""
     ec2 = get_ec2_connection()
     res = ec2.get_all_instances(filters={
-        'tag:Name': 'CeleryWorkerNG',
+        'tag:Name': 'CeleryWorker',
         'tag:ClusterType': cluster_type
     })
 
@@ -22,7 +22,7 @@ def launch_worker(cluster_type, branch):
     ec2 = get_ec2_connection()
 
     # our celery worker AMI
-    ami_id = 'ami-d6432ee6'
+    ami_id = 'ami-c00c98f0'
 
     reservations = ec2.run_instances(
         ami_id,
@@ -46,7 +46,7 @@ def launch_worker(cluster_type, branch):
     if status == "running":
         print green("Instance is running. Tagging it...")
         ec2.create_tags([launched_instance.id], {
-            "Name": "CeleryWorkerNG",
+            "Name": "CeleryWorker",
             "ClusterType": cluster_type
         })
 
@@ -148,7 +148,7 @@ def cluster_size(cluster_type, number_of_instances=None, branch='master'):
 
 
 @task
-def deploy(cluster_type, branch):
+def deploy_celery(cluster_type, branch):
     """Deploys new code to celery workers and restarts them"""
     print
     # we only support two cluster types
