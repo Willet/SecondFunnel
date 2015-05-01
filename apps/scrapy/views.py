@@ -1,23 +1,21 @@
 import json
 import urlparse
+from multiprocessing import Process
 
-from celery import chain
-from datetime import datetime
 from django.http import HttpResponse, Http404
 from django.conf import settings as django_settings
 from django.shortcuts import render, get_object_or_404
-from apps.api.decorators import check_login, request_methods
-from django.views.decorators.cache import never_cache
-from django.contrib.auth.decorators import login_required
+from twisted.internet import reactor
 
+from scrapy import log as scrapy_log, signals
+from scrapy.crawler import Crawler
+from scrapy.settings import CrawlerSettings
+from scrapy.utils.project import get_project_settings
 
 from apps.assets.models import Page, Store, Product
-from apps.scrapy.tasks import scrape_task, prioritize_task
 
 stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
 
-@login_required
-@request_methods("GET")
 def index(request):
     """"Home" page.  does nothing."""
 
@@ -26,8 +24,6 @@ def index(request):
     }
     return render(request, 'index.html', data)
 
-@login_required
-@request_methods("GET")
 def page(request, page_slug):
     """This page is where scrapers are run from"""
 
@@ -38,84 +34,65 @@ def page(request, page_slug):
     }
     return render(request, 'page.html', data)
 
-@check_login
-@never_cache
-@request_methods("POST")
 def scrape(request, page_slug):
-    """Async request to run a spider"""
+    """callback for running a spider"""
 
-    cat = json.loads(urlparse.unquote(request.POST.get('cat')))
     page = get_object_or_404(Page, url_slug=page_slug)
-    # Ensure session is set up
-    if not request.session.exists(request.session.session_key):
-        request.session.create() 
-    if not request.session.get('jobs', False):
-        request.session['jobs'] = {}
+    def process(request, store_slug):
+        cat = json.loads(urlparse.unquote(request.POST.get('cat')))
+        category = cat['name']
+        start_urls = cat['urls']
+        tiles = bool(request.POST.get('tiles') == 'true')
+        feeds = [Page.objects.get(url_slug=request.POST.get('page')).feed.id] if tiles else []
+        opts = {
+            'recreate_tiles': False,
+            'skip_images': False,
+            'skip_tiles': not tiles,
+        }
 
-    # Use job start time as unique id
-    # Must define job before task is initialized to avoid race condition
-    job_id = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    job = {
-        'id': job_id,
-        'complete': False,
-        'log_url': '',
-        'summary_url': '',
-        'summary': {},
-    }
-    request.session['jobs'].update({ job['id']: job })
-    request.session.save()
+        # set up standard framework for running spider in a script
+        settings = get_project_settings()
+        crawler = Crawler(settings)
+        crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
+        crawler.configure()
 
-    task1 = scrape_task.si(category= cat['name'],
-                        start_urls= cat['urls'],
-                        no_priorities= bool(len(cat['priorities']) == 0),
-                        create_tiles= bool(request.POST.get('tiles') == 'true'),
-                        page_slug= request.POST.get('page'),
-                        job_id= job_id,
-                        session_key= request.session.session_key)
-    task2 = prioritize_task.si(start_urls= cat['urls'], 
-                             priorities= cat['priorities'],
-                             job_id= job_id,
-                             session_key=request.session.session_key)
+        spider = crawler.spiders.create(store_slug, **opts)
+        spider.start_urls = start_urls
+        spider.categories = [category] if category else []
+        spider.feed_ids = feeds
 
-    # Delayed task!
-    # Could add some validation here before starting process
-    # Job will be updated in the session by the task
-    chain(task1, task2).delay()
+        crawler.crawl(spider)
+        scrapy_log.start()
+        scrapy_log.msg(u"Starting spider with options: {}".format(opts))
+        crawler.start()
 
-    return HttpResponse(json.dumps(job), content_type="application/json")
+        reactor.run()
 
-@check_login
-@never_cache
-@request_methods("POST")
+        if cat['priorities'] and len(cat['priorities']) > 0:
+            prioritize(request, page_slug)
+
+    p = Process(target=process, args=[request, page.store.slug])
+    p.start()
+    p.join()
+
+    return HttpResponse(status=204)
+
 def prioritize(request, page_slug):
     """callback for prioritizing tiles, if applicable"""
 
     cat = json.loads(urlparse.unquote(request.POST.get('cat')))
-    # Use job start time as unique id
-    # Must define job before task is initialized to avoid race condition
-    job_id = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    job = {
-        'id': job_id,
-        'complete': False,
-        'summary': {},
-    }
-    request.session['jobs'].update({ job['id']: job })
-    request.session.save()
+    urls = cat['urls']
+    priorities = cat['priorities']
+    for i, url in enumerate(urls):
+        prods = Product.objects.filter(url=url)
+        for prod in prods:
+            for tile in prod.tiles.all():
+                tile.priority = priorities[i]
+                tile.save()
+    return HttpResponse(status=204)
 
-    task = prioritize_task.delay(start_urls= cat['urls'],
-                                 priorities= cat['priorities'],
-                                 job_id= job_id,
-                                 session_key= request.session.session_key)
+def log(request, page_slug, filename=None):
+    return HttpResponse("<html><body>asdf3</body></html")
 
-
-    return HttpResponse(json.dumps(job), content_type="application/json")
-
-@check_login
-@never_cache
-@request_methods("GET")
-def result(request, page_slug, job_id):
-    try:
-        job = request.session['jobs'].get(job_id, None)
-        return HttpResponse(json.dumps(job), content_type="application/json")
-    except KeyError:
-        return HttpResponse(status=400)
+def summary(request, page_slug, filename=None):
+    return HttpResponse("<html><body>asdf4</body></html")
