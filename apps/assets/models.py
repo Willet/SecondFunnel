@@ -774,10 +774,10 @@ class Feed(BaseModel):
             # Tiles that will be delete
             for p in tile.products.all():
                 if set(p.tiles.values_list('pk', flat=True)).issubset(tiles_set):
-                    bulk_delete_products.append(p)
+                    bulk_delete_products.append(p.pk)
             for c in tile.content.all():
                 if set(c.tiles.values_list('pk', flat=True)).issubset(tiles_set):
-                    bulk_delete_content.append(c)
+                    bulk_delete_content.append(c.pk)
 
         Product.objects.filter(pk__in=bulk_delete_products).delete()
         Content.objects.filter(pk__in=bulk_delete_content).delete()
@@ -1039,17 +1039,52 @@ class Page(BaseModel):
         return instance
 
     def _get_incremented_url_slug(self):
-        """Returns
+        """Returns the url_slug with an incremented number. Guaranteed unique url_slug
         - "url_slug_1" for "url_slug"
         - "url_slug_2" for "url_slug_1
         """
-        url_slug = self.url_slug
-        m = re.match(r"^(.*_)(\d+)$", url_slug)
-        if m:
-            url_slug = m.group(1) + str(int(m.group(2)) + 1)
-        else:
-            url_slug += "_1"
-        return url_slug
+        def increment_url_slug(url_slug):
+            m = re.match(r"^(.*_)(\d+)$", url_slug)
+            if m:
+                url_slug = m.group(1) + str(int(m.group(2)) + 1)
+            else:
+                url_slug += "_1"
+
+            try:
+                self.__class__.objects.get(store=self.store, url_slug=url_slug)
+            except ObjectDoesNotExist:
+                # url_slug unique
+                pass
+            else:
+                # Recursively increment
+                url_slug = increment_url_slug(url_slug)
+            finally:
+                return url_slug
+        return increment_url_slug(self.url_slug)
+
+    def _get_incremented_name(self):
+        """Returns the name
+        - "name COPY 1" for "name"
+        - "name COPY 2" for "name COPY 1"
+        """
+        def increment_name(name):
+            m = re.match(r"^(.* COPY )(\d+)$", name)
+            if m:
+                name = m.group(1) + str(int(m.group(2)) + 1)
+            else:
+                name += " COPY 1"
+
+            try:
+                self.__class__.objects.get(store=self.store, name=name)
+            except ObjectDoesNotExist:
+                # url_slug unique
+                pass
+            else:
+                # Recursively increment
+                name = increment_name(name)
+            finally:
+                return name
+        return increment_name(self.name)
 
     def add(self, obj, prioritized=False, priority=0):
         """Alias for Page.feed.add
