@@ -774,10 +774,10 @@ class Feed(BaseModel):
             # Tiles that will be delete
             for p in tile.products.all():
                 if set(p.tiles.values_list('pk', flat=True)).issubset(tiles_set):
-                    bulk_delete_products.append(p)
+                    bulk_delete_products.append(p.pk)
             for c in tile.content.all():
                 if set(c.tiles.values_list('pk', flat=True)).issubset(tiles_set):
-                    bulk_delete_content.append(c)
+                    bulk_delete_content.append(c.pk)
 
         Product.objects.filter(pk__in=bulk_delete_products).delete()
         Content.objects.filter(pk__in=bulk_delete_content).delete()
