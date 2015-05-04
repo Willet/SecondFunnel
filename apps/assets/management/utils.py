@@ -17,9 +17,9 @@ def set_negative_priorities(tile_id_list):
         for i in tile_id_list:
             try:
                 t = Tile.objects.get(id=i)
-                t.priority = 0
+                t.priority = -1
                 t.save()
-                results += u"{} priority set to 0\n".format(t)
+                results += u"{} priority set to -1\n".format(t)
             except (ObjectDoesNotExist, ValidationError) as e:
                 results += u"ERROR: {}: {}\n".format(i, e)
     print results
@@ -48,12 +48,12 @@ def set_default_images(tile_id_and_image_id_tuple_list):
     with transaction.atomic():
         for (i, u) in tile_id_and_image_id_tuple_list:
             try:
-                t = Tile.objects.filter(id=i)[0]
+                t = Tile.objects.get(id=i)
                 p = t.products.all()[0]
                 pi = next(pi for pi in p.product_images.all() if u in pi.url)
                 p.default_image = pi
                 p.save()
                 results += u"{} default image set to {}\n".format(p, pi)
-            except (ObjectDoesNotExist, ValidationError, IndexError) as e:
+            except (ObjectDoesNotExist, ValidationError) as e:
                 results += u"ERROR: ({}, \"{}\"): {}\n".format(i, u, e)
     print results
