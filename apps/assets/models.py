@@ -726,7 +726,7 @@ class Feed(BaseModel):
         return self.tiles.exclude(products__in_stock=False)\
             .exclude(content__tagged_products__in_stock=False)
 
-    def add(self, obj, prioritized="", priority=0):
+    def add(self, obj, prioritized=u"", priority=0):
         """:raises ValueError"""
         if isinstance(obj, Product):
             return self._add_product(product=obj, prioritized=prioritized,
@@ -784,7 +784,7 @@ class Feed(BaseModel):
 
         tiles.delete()
 
-    def _add_product(self, product, prioritized=False, priority=0):
+    def _add_product(self, product, prioritized=u"", priority=0):
         """Adds (if not present) a tile with this product to the feed.
 
         This operation is so common and indirect that it is going
@@ -795,11 +795,10 @@ class Feed(BaseModel):
         """
         existing_tiles = self.tiles.filter(products=product.id)
         for tile in existing_tiles:
-            if len(tile.products.all()) == 1 and len(tile.content.all()) == 0:
+            if tile.products.count() == 1 and tile.content.count() == 0:
                 # A matching tile is tagged with just this product & no content
-                # Update
-                tile.prioritized = prioritized
-                tile.priority = priority
+                # Update IR Cache
+                tile.update_ir_cache()
                 tile.save()
                 print "<Product {0}> already in the feed. Updated <Tile {1}>.".format(product.id, tile.id)
                 return tile, product, False
@@ -815,7 +814,7 @@ class Feed(BaseModel):
 
             return new_tile, product, True
 
-    def _add_content(self, content, prioritized=False, priority=0):
+    def _add_content(self, content, prioritized=u"", priority=0):
         """Adds (if not present) a tile with this content to the feed.
 
         This operation is so common and indirect that it is going

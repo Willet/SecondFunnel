@@ -44,7 +44,7 @@ def get_or_create(model):
 def update_model(destination, source_item, commit=True):
     pk = destination.pk
     
-    # Presist exisitng attributes (arbitrary data field)
+    # Persist exisitng attributes (arbitrary data field)
     attrs = destination.get('attributes', {}).copy()
     attrs.update(source_item.get('attributes', {}))
     source_item['attributes'] = attrs

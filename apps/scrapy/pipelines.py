@@ -314,10 +314,7 @@ class CategoryPipeline(object):
 class TileCreationPipeline(object):
     def process_item(self, item, spider):
         recreate_tiles = getattr(spider, 'recreate_tiles', False)
-        skip_tiles = {
-            'spider': getattr(spider, 'skip_tiles', False),
-            'item': item.get('force_skip_tiles', False),
-        }
+        skip_tiles = [getattr(spider, 'skip_tiles', False), item.get('force_skip_tiles', False)]
 
         if True in skip_tiles:
             spider.log(u"Skipping tile creation. \
