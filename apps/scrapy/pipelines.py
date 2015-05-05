@@ -317,9 +317,7 @@ class TileCreationPipeline(object):
         skip_tiles = [getattr(spider, 'skip_tiles', False), item.get('force_skip_tiles', False)]
 
         if True in skip_tiles:
-            spider.log(u"Skipping tile creation. \
-                        spider.skip_tiles: {spider}, \
-                        item.force_skip_tiles: {item}".format(**skip_tiles))
+            spider.log(u"Skipping tile creation. spider.skip_tiles: {0}, item.force_skip_tiles: {1}".format(*skip_tiles))
             return item
         else:
             feed_ids = getattr(spider, 'feed_ids', [])
