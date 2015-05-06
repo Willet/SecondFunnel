@@ -506,6 +506,8 @@ class Content(BaseModel):
         super(Content, self).__init__(*args, **kwargs)
         if not self.attributes:
             self.attributes = {}
+        if not self.source_url:
+            self.source_url = self.url
 
     class Meta(object):
         verbose_name_plural = 'Content'
@@ -726,7 +728,7 @@ class Feed(BaseModel):
         return self.tiles.exclude(products__in_stock=False)\
             .exclude(content__tagged_products__in_stock=False)
 
-    def add(self, obj, prioritized="", priority=0):
+    def add(self, obj, prioritized=u"", priority=0):
         """:raises ValueError"""
         if isinstance(obj, Product):
             return self._add_product(product=obj, prioritized=prioritized,
@@ -774,17 +776,17 @@ class Feed(BaseModel):
             # Tiles that will be delete
             for p in tile.products.all():
                 if set(p.tiles.values_list('pk', flat=True)).issubset(tiles_set):
-                    bulk_delete_products.append(p)
+                    bulk_delete_products.append(p.pk)
             for c in tile.content.all():
                 if set(c.tiles.values_list('pk', flat=True)).issubset(tiles_set):
-                    bulk_delete_content.append(c)
+                    bulk_delete_content.append(c.pk)
 
         Product.objects.filter(pk__in=bulk_delete_products).delete()
         Content.objects.filter(pk__in=bulk_delete_content).delete()
 
         tiles.delete()
 
-    def _add_product(self, product, prioritized=False, priority=0):
+    def _add_product(self, product, prioritized=u"", priority=0):
         """Adds (if not present) a tile with this product to the feed.
 
         This operation is so common and indirect that it is going
@@ -795,11 +797,10 @@ class Feed(BaseModel):
         """
         existing_tiles = self.tiles.filter(products=product.id)
         for tile in existing_tiles:
-            if len(tile.products.all()) == 1 and len(tile.content.all()) == 0:
+            if tile.products.count() == 1 and tile.content.count() == 0:
                 # A matching tile is tagged with just this product & no content
-                # Update
-                tile.prioritized = prioritized
-                tile.priority = priority
+                # Update IR Cache
+                tile.update_ir_cache()
                 tile.save()
                 print "<Product {0}> already in the feed. Updated <Tile {1}>.".format(product.id, tile.id)
                 return tile, product, False
@@ -815,7 +816,7 @@ class Feed(BaseModel):
 
             return new_tile, product, True
 
-    def _add_content(self, content, prioritized=False, priority=0):
+    def _add_content(self, content, prioritized=u"", priority=0):
         """Adds (if not present) a tile with this content to the feed.
 
         This operation is so common and indirect that it is going
@@ -1039,17 +1040,52 @@ class Page(BaseModel):
         return instance
 
     def _get_incremented_url_slug(self):
-        """Returns
+        """Returns the url_slug with an incremented number. Guaranteed unique url_slug
         - "url_slug_1" for "url_slug"
         - "url_slug_2" for "url_slug_1
         """
-        url_slug = self.url_slug
-        m = re.match(r"^(.*_)(\d+)$", url_slug)
-        if m:
-            url_slug = m.group(1) + str(int(m.group(2)) + 1)
-        else:
-            url_slug += "_1"
-        return url_slug
+        def increment_url_slug(url_slug):
+            m = re.match(r"^(.*_)(\d+)$", url_slug)
+            if m:
+                url_slug = m.group(1) + str(int(m.group(2)) + 1)
+            else:
+                url_slug += "_1"
+
+            try:
+                self.__class__.objects.get(store=self.store, url_slug=url_slug)
+            except ObjectDoesNotExist:
+                # url_slug unique
+                pass
+            else:
+                # Recursively increment
+                url_slug = increment_url_slug(url_slug)
+            finally:
+                return url_slug
+        return increment_url_slug(self.url_slug)
+
+    def _get_incremented_name(self):
+        """Returns the name
+        - "name COPY 1" for "name"
+        - "name COPY 2" for "name COPY 1"
+        """
+        def increment_name(name):
+            m = re.match(r"^(.* COPY )(\d+)$", name)
+            if m:
+                name = m.group(1) + str(int(m.group(2)) + 1)
+            else:
+                name += " COPY 1"
+
+            try:
+                self.__class__.objects.get(store=self.store, name=name)
+            except ObjectDoesNotExist:
+                # url_slug unique
+                pass
+            else:
+                # Recursively increment
+                name = increment_name(name)
+            finally:
+                return name
+        return increment_name(self.name)
 
     def add(self, obj, prioritized=False, priority=0):
         """Alias for Page.feed.add
