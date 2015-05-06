@@ -506,6 +506,8 @@ class Content(BaseModel):
         super(Content, self).__init__(*args, **kwargs)
         if not self.attributes:
             self.attributes = {}
+        if not self.source_url:
+            self.source_url = self.url
 
     class Meta(object):
         verbose_name_plural = 'Content'
