@@ -48,10 +48,12 @@ def filter_tiles(fn):
             tiles = qs_for(tiles)
 
         tiles = filter_excluded(tiles, allowed_set, exclude_set)
+        # Banner tiles are special tiles meant to link elsewhere
+        # Force them into all feeds
         if products_only:
-            tiles = tiles.filter(template='product')
+            tiles = tiles.filter(template__in=['product','banner'])
         if content_only:
-            tiles = tiles.exclude(template='product')
+            tiles = tiles.exclude(template__in=['product','banner'])
 
         kwargs.update({
             'tiles': tiles,

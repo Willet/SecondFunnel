@@ -105,6 +105,24 @@
     <% } %>
 </script>
 
+<script type="text/template" id="banner_tile_template">
+    <div class='relative'>
+        <img class="focus" src="<%= obj.source_url %>" alt="<%= obj.caption %>" />
+    </div>
+    <% if (App.option("debug", 0) > 1) { %>
+        <span class="type"><%= obj["content-type"] %></span>
+    <% } %>
+    <div class="overlay">
+        <div class='table'>
+            <div class='cell'>
+                <div class="buy">
+                    <% include("product_buy_template") %>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
 <script type="text/template" id="gif_tile_template">
     <div class='relative'>
         <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
