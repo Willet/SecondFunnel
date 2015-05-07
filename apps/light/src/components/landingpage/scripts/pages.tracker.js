@@ -100,7 +100,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                     label = sku ? sku+' '+model.get('name') : model.get('name');
                     break;
                 case 'banner':
-                    category = 'Product';
+                    category = 'Banner';
                     label = model.get('name', 'Banner '+model.get('id'));
                     break;
                 default:
