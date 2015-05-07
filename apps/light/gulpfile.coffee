@@ -294,6 +294,13 @@ gulp.task "dev", [
     $.util.log($.util.colors.blue("Watch'ing html, styles, fonts, images, vendor, scripts"))
     return
 
+gulp.task "build-collect", [
+    "set-development"
+    "build"
+], ->
+    collectstatic()
+    return
+
 gulp.task "vagrant-dev", [
     "set-development"
     "build"
