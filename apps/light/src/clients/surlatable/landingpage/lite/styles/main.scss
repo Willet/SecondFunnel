@@ -483,7 +483,7 @@ body {
                 font-family: $slt-modern-font;
                 margin-top: 5px;
                 &:after {
-                    content: url('/static/light/surlatable/landingpage/mothersday/images/scroll-more-arrow.png');
+                    content: url('/static/light/surlatable/landingpage/default/images/scroll-more-arrow.png');
                 }
             }
         }
@@ -705,19 +705,19 @@ body {
         background-size: 70%;
     }
     .stl-swipe-up {
-        background-image: url('/static/light/surlatable/landingpage/mothersday/images/up.png');
+        background-image: url('/static/light/surlatable/landingpage/default/images/up.png');
         top: 0;
     }
     .stl-swipe-down {
-        background-image: url('/static/light/surlatable/landingpage/mothersday/images/down.png');
+        background-image: url('/static/light/surlatable/landingpage/default/images/down.png');
         bottom: 0;
     }
     .stl-swipe-left, .gallery-swipe-left {
-        background-image: url('/static/light/surlatable/landingpage/mothersday/images/left.png');
+        background-image: url('/static/light/surlatable/landingpage/default/images/left.png');
         left: 0;
     }
     .stl-swipe-right, .gallery-swipe-right {
-        background-image: url('/static/light/surlatable/landingpage/mothersday/images/right.png');
+        background-image: url('/static/light/surlatable/landingpage/default/images/right.png');
         right: 0;
     }
 }
