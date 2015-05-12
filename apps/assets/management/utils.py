@@ -2,6 +2,8 @@
 
 Intended to be run from a shell"""
 
+import pprint
+
 from apps.assets.models import *
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
