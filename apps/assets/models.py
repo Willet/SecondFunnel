@@ -753,6 +753,24 @@ class Feed(BaseModel):
         raise ValueError("remove() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
 
+    def get_all_products(self):
+        """Gets all tagged, related & similar products to this feed. Useful for bulk updates
+
+        :returns <QuerySet> of products"""
+        product_pks = set()
+
+        # Get ALL the products associated with this page
+        for tile in self.tiles.all():
+            for product in tile.products.all():
+                product_pks.add(product.pk)
+                if product.similar_products:
+                    product_pks.update(product.similar_products.values_list('pk', flat=True))
+            for content in tile.content.all():
+                if content.tagged_products:
+                    product_pks.update(content.tagged_products.values_list('pk', flat=True))
+
+        return Product.objects.filter(pk__in=product_pks).all()
+
     def _copy_tile(self, tile, prioritized=False, priority=0):
         """Creates a copy of a tile to this feed
 
@@ -766,7 +784,9 @@ class Feed(BaseModel):
         return new_tile
 
     def _deepdelete_tiles(self, tiles):
-        """Tiles is a <QuerySet> (ex: Feed.tiles.objects.all())"""
+        """Tiles is a <QuerySet> (ex: Feed.tiles.objects.all())
+
+        TODO: incorporate tagged products & similar products"""
         tiles_set = set(tiles.values_list('pk', flat=True))
         bulk_delete_products = []
         bulk_delete_content = []
