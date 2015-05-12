@@ -2,6 +2,7 @@
 
 Intended to be run from a shell"""
 
+import csv
 import pprint
 
 from apps.assets.models import *
