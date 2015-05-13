@@ -10,7 +10,7 @@ from apps.assets.models import Feed, Page
 class Command(BaseCommand):
     help = """Rescrapes all products in a given page.
     Usage:
-    python manage.py update_db [-t, --recreate-tiles] [-i, --update-images] <url_slug>
+    python manage.py scraper_update [-t, --recreate-tiles] [-i, --update-images] <url_slug>
 
     url_slug
         Url slug of the page to rescrape

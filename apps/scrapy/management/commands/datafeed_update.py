@@ -21,7 +21,7 @@ class FakeLog(object):
 class Command(BaseCommand):
     help = """Updates products from a CJ product data feed
     Usage:
-    python manage.py update_cj <url_slug>
+    python manage.py datafeed_update <url_slug>
 
     url_slug
         Url slug of the page to update
@@ -40,7 +40,6 @@ class Command(BaseCommand):
         else:
             results['logging/items updated'].append(product.url)
             #print 'logging/items updated: {}'.format(product.url)
-
     
     def handle(self, url_slug, **options):
         page = Page.objects.get(url_slug=url_slug)
@@ -81,9 +80,16 @@ class Command(BaseCommand):
                                     print u"NAME match: {}".format(product.url)
                                     self.update_product(product, data, results)
                             except KeyError:
-                                print u"\tMatch FAILED: {} {}".format(product.name.encode('ascii', errors='ignore'), product.url)
                                 # TODO: attempt fuzzy DESCRIPTION matching?
-                                results['logging/items dropped'].append(product.url)
+                                print u"\tMatch FAILED: {} {}".format(product.name.encode('ascii', errors='ignore'), product.url)
+                                if product.in_stock:
+                                    product.in_stock = False
+                                    product.save()
+                                    # If an item just switched, record it that way
+                                    results['logging/items out of stock'].append(product.url)
+                                else:
+                                    # If the item previously was out of stock, call it dropped
+                                    results['logging/items dropped'].append(product.url)
                     except Exception as e:
                         errors = results['logging/errors']
                         msg = '{}: {}'.format(e.__class__.__name__, e)
@@ -95,7 +101,7 @@ class Command(BaseCommand):
 
             print "Updates saved"
 
-            spider = FakeSpider("CJ Sur La Table Mothersday")
+            spider = FakeSpider("CJ Sur La Table Datafeed")
             reason = "finished"
 
             # Save results
