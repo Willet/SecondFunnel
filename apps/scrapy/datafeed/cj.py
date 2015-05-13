@@ -4,7 +4,6 @@ import os
 
 from ftplib import FTP
 
-
 CJ_USERNAME = "4503838"
 CJ_PASSWORD = "7JTu@6Xb"
 CJ_SERVERNAME = "datatransfer.cj.com"
@@ -14,7 +13,6 @@ STORE = {
         "FILENAME": "Sur_La_Table-Sur_La_Table_Product_Catalog.txt.gz",
     },
 }
-
 
 def download_product_datafeed(store):
     """Downloads the CJ product datafeed for "store" if it is setup
