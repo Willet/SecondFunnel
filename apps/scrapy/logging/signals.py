@@ -88,7 +88,7 @@ class Signals(object):
             reason
         ).run()
 
-        notify_slack.dump_stats(
+        notify_slack.dump_spider_stats(
             self.crawler.stats.get_stats(),
             spider,
             reason,
