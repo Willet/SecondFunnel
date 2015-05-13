@@ -17,6 +17,13 @@ STORE = {
 
 
 def download_product_datafeed(store):
+    """Downloads the CJ product datafeed for "store" if it is setup
+
+    store: <Store> instance
+
+    raises: LookupError if store is not set up for CJ product datafeed
+
+    return: filename where download is saved"""
     ftp = FTP(CJ_SERVERNAME)
     ftp.login(CJ_USERNAME, CJ_PASSWORD)
     ftp.cwd("/")
