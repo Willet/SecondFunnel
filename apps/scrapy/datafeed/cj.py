@@ -1,32 +1,45 @@
 import csv
+import gzip
+import os
 
 from ftplib import FTP
 
-CJ_USERNAME = 
-CJ_PASSWORD = 
-SERVERNAME = "datatransfer.cj.com/outgoing/productcatalog/"
-FILENAME = {
-    8: "Sur La Table - Sur La Table Product Catalog.txt.gz",
+
+CJ_USERNAME = "4503838"
+CJ_PASSWORD = "7JTu@6Xb"
+CJ_SERVERNAME = "datatransfer.cj.com"
+STORE = {
+    'Sur la Table': {
+        "PATHNAME": "outgoing/productcatalog/170707/",
+        "FILENAME": "Sur_La_Table-Sur_La_Table_Product_Catalog.txt.gz",
+    },
 }
 
-def download_product_datafeed(store_id):
-    ftp = FTP(SERVERNAME)
+
+def download_product_datafeed(store):
+    ftp = FTP(CJ_SERVERNAME)
     ftp.login(CJ_USERNAME, CJ_PASSWORD)
-    ftp.cwd("/opt/secondfunnel/app/") # This might just be "/"
-    
+    ftp.cwd("/")
+
     # Save file on disk as same name
-    filename = FILENAME[int(store_id)]
+    try:
+        data = STORE.get(store.name)
+    except KeyError:
+        raise LookupError("Store ID has no known CJ datafeed")
+    filename = data['FILENAME']
 
     with open(filename, 'wb') as outfile:
+        print "Downloading {} product datafeed: {}".format(store.name, filename)
         try:
-            ftp.retrbinary("RETR {}".format(filename), outfile.write)
+            ftp.retrbinary("RETR {}{}".format(data['PATHNAME'], filename), outfile.write)
         except Exception as e:
-            print 'FTP download failed!\n{}: {}'.format(e.__class__.__name__, e)
+            raise IOError('FTP download failed!\n{}: {}'.format(e.__class__.__name__, e))
 
     return filename
 
 def delete_product_datafeed(filename):
-    pass
+    print "Deleting product datafeed: {}".format(filename)
+    os.remove(filename)
 
 def load_product_datafeed(filename, collect_fields, lookup_fields=['SKU','NAME']):
     """ Takes in a CSV product datafeed, and generates a product lookup table
@@ -36,6 +49,8 @@ def load_product_datafeed(filename, collect_fields, lookup_fields=['SKU','NAME']
 
     returns: dict of lookup fields, each containing a lookup table for that field as keys
     """
+    product_counter = 0
+
     if not collect_fields:
         collect_fields = ["SKU", "NAME", "DESCRIPTION", "PRICE", "SALEPRICE", "BUYURL", "INSTOCK"]
 
@@ -43,17 +58,16 @@ def load_product_datafeed(filename, collect_fields, lookup_fields=['SKU','NAME']
     for i in lookup_fields:
         lookup_table[i] = {}
 
-    with open(filename, 'rb') as infile:
+    with gzip.open(filename, 'rb') as infile:
         csv_file = csv.DictReader(infile, delimiter=',')
         for row in csv_file:
             # Correct for encoding errors
-            entry = { f: row[f].decode("utf-8").encode("latin1").decode("utf-8") for f in fields }
+            entry = { f: row[f].decode("utf-8").encode("latin1").decode("utf-8") for f in collect_fields }
 
             for i in lookup_fields:
                 lookup_table[i][entry[i].encode('ascii', errors='ignore')] = entry
+            product_counter += 1
 
-            print entry["NAME"].encode('ascii', errors='ignore')
-
-    print u"Generated lookup table's for {} products".format(len(sku_lookup_table))
+    print u"Generated lookup table's for {} products".format(product_counter)
 
     return lookup_table
