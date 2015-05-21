@@ -123,8 +123,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     Marionette.TemplateCache.getSubtemplate = (templateId) ->
         cachedTemplate = @templateCaches[templateId]
         if not cachedTemplate
-          cachedTemplate = new Marionette.TemplateCache(templateId)
-          @templateCaches[templateId] = cachedTemplate
+            cachedTemplate = new Marionette.TemplateCache(templateId)
+            @templateCaches[templateId] = cachedTemplate
 
         return cachedTemplate.loadSubtemplate()
 

@@ -168,11 +168,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                 $feature.css('height', '100%')
 
-                #if App.support.mobile()
-                #    heightReduction = widthReduction = 0
-                #    heightValue = 'auto'
-                #    maxHeightValue = 'none'
-
                 # Popup sizing works by the featured area filling up as much room as the container will let it
                 # In order to support overlowing content, need to let the featured content expand in the
                 # constrained container, lock in the size, then let the container expand to fit the overflow content
@@ -261,8 +256,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 direction: "up"
             )
         if @model.get("similar-products")?.length > 0
-                    similarProductsInstance = new module.SimilarProductsView(@model.get("similar-products"))
-                    @similarProducts.show(similarProductsInstance)
+            similarProductsInstance = new module.SimilarProductsView(@model.get("similar-products"))
+            @similarProducts.show(similarProductsInstance)
         return
 
     module.ExpandedContent::swipeStatus = (event, phase, direction, distance, fingers, duration) ->
