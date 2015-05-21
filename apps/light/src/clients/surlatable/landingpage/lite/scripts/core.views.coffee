@@ -167,6 +167,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     'max-height': '640px'
                 )
                 $feature.css('height', '100%')
+
+                #if App.support.mobile()
+                #    heightReduction = widthReduction = 0
+                #    heightValue = 'auto'
+                #    maxHeightValue = 'none'
+
                 # Popup sizing works by the featured area filling up as much room as the container will let it
                 # In order to support overlowing content, need to let the featured content expand in the
                 # constrained container, lock in the size, then let the container expand to fit the overflow content
@@ -179,7 +185,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     $overflow.show()
                     heightValue = 'auto'
                     maxHeightValue = 'none'
-                    heightReduction = 10
+                    heightReduction =  10
                     widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
                 else
                     # Content fits in window, center it
@@ -191,6 +197,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         heightReduction = "0"
                     if widthReduction <= 0 # String because jQuery checks for falsey values
                         widthReduction = "0"
+                if App.support.mobile()
+                    heightReduction = widthReduction = 0
+                    maxHeightValue = 'none'
                     
                 $container.css(
                     left: widthReduction

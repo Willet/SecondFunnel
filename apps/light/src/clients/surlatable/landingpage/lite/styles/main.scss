@@ -1042,9 +1042,10 @@ body {
         .content {
             padding: 0 !important;
             border-radius: 0;
+            box-shadow: none;
         }
         .look-image-container {
-            height: 72%;
+            height: 77%;
             position: relative;
             .look-image {
                 width: calc(100% - 79px);
@@ -1071,13 +1072,13 @@ body {
             }
         }
         .info {
-            height: 72% !important;
+            height: 77% !important;
             padding: 0 !important;
             position: relative;
         }
         .look-product-carousel {
             width: 100%;
-            height: 72%;
+            height: 77%;
             .info, .look-image-container {
                 height: 100% !important;
             }
@@ -1085,7 +1086,7 @@ body {
         .tagged-product.row {
             .description {
                 width: 100%;
-                height: 28%;
+                height: 23%;
                 overflow: auto;
                 padding: 4px 14px 0;
                 text-align: left;
