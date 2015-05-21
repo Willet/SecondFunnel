@@ -146,12 +146,10 @@
 </script>
 
 <script type="text/template" id="preview_container_template">
-    <div class="fullscreen">
+    <div class="fullscreen scrollable">
         <div class="content">
             <span class="close">X</span>
-            <div class="scrollable">
-                <div class="template target"></div>
-            </div>
+            <div class="template target"></div>
         </div>
     </div>
     <div class="mask"></div>
@@ -188,6 +186,12 @@
 
 <script type="text/template" id="gif_preview_template">
     <% include("image_preview_template") %>
+</script>
+
+<script type="text/template" id="product_preview_template">
+    <div class="product-info table feature"></div>
+    <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
+    <div class="similar-products cell overflow"></div>
 </script>
 
 <script type="text/template" id="product_info_template">
@@ -271,6 +275,31 @@
     <% for (var i = 0; i < obj.images.length; i++) { %>
         <div class="item" data-index="<%- i %>"></div>
     <% } %>
+</script>
+
+<script type="text/template" id="similar_products_template">
+    <div class="similar-cta desktop-only">Similar products</div>
+    <div class="tiles">
+    <% _.each(items, function(item){ %>
+        <div class="tile">
+            <div class='relative'>
+                <img class="focus" src="<%= item.defaultImage.url %>" alt="<%= item.caption %>" />
+            </div>
+            <div class="overlay">
+                <div class='table'>
+                    <div class='cell'>
+                        <div class="title">
+                            <span>Get Details</span>
+                            <br/>
+                            <span class="tile-name"><%= (item.title || item.name || item.caption) %></span>
+                            <span class="tile-price"><% (item.price_range || item.sale_price || item.price )%></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+    </div>
 </script>
 
 <script type="text/template" id="carousel_template">

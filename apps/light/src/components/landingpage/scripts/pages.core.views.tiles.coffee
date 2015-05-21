@@ -214,7 +214,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onClick: ->
         	if App.option('page:tiles:openProductTileInPDP')
-                App.utils.openUrl @model.get("url")
+                App.utils.openUrl(@model.get("url"))
             else
                 super
             return        

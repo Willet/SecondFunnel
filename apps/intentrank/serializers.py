@@ -235,7 +235,7 @@ class PageConfigSerializer(object):
 
 class ProductSerializer(IRSerializer):
     """This will dump absolutely everything in a product as JSON."""
-    def get_dump_object(self, product):
+    def get_dump_object(self, product, shallow=False):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
         """
@@ -252,6 +252,7 @@ class ProductSerializer(IRSerializer):
             "details": product.details,
             "name": product.name,
             "similar-products": [],
+            "id": product.id,
         }
 
         data.update(product.attributes)
@@ -267,31 +268,35 @@ class ProductSerializer(IRSerializer):
             except (IndexError, AttributeError):
                 data['orientation'] = "portrait"
 
-        # Order images
-        if product.attributes.get('product_images_order'):
-            # If image ordering is explicitly given, use it
-            for i in product.attributes.get('product_images_order', []):
+        
+        if shallow:
+            # Just have the default image & skip similar products
+            data["images"] = [data["default-image"]]
+        else:
+            # Order images
+            if product.attributes.get('product_images_order'):
+                # If image ordering is explicitly given, use it
+                for i in product.attributes.get('product_images_order', []):
+                    try:
+                        product_images.append(find_where(product_images, i))
+                    except ValueError:
+                        pass  # could not find matching product image
+            elif product.default_image:
+                # If default image is in product_images, move it to front
                 try:
-                    product_images.append(find_where(product_images, i))
-                except ValueError:
-                    pass  # could not find matching product image
-        elif product.default_image:
-            # If default image is in product_images, move it to front
-            try:
-                idx = product_images.index(product.default_image)
-                product_images = [product.default_image] + \
-                                 product_images[:idx] + \
-                                 product_images[idx+1:]
-            except ValueError:  # default image not in list
-                pass  # bail ordering
+                    idx = product_images.index(product.default_image)
+                except ValueError:  # default image not in list
+                    pass  # bail ordering
+                else:
+                    product_images = [product.default_image] + \
+                                     product_images[:idx] + \
+                                     product_images[idx+1:]
 
-        data["images"] = [image.to_json() for image in product_images]
+            data["images"] = [image.to_json() for image in product_images]
 
-        for product in product.similar_products.filter(in_stock=True):
-            try:
-                data['similar-products'].append(product.to_json())
-            except:
-                pass
+            # Include a shallow similar_products. Prevents infinite loop
+            for product in product.similar_products.filter(in_stock=True):
+                data['similar-products'].append(self.get_dump_object(product, shallow=True))
 
         return data
 
@@ -347,8 +352,6 @@ class ImageSerializer(ContentSerializer):
             "format": ext or "jpg",
             "type": "image",
             "dominant-color": getattr(image, "dominant_color", "transparent"),
-            "url": image.url,
-            "id": image.id,
             "status": image.status,
             "sizes": image.attributes.get('sizes', {
                 'width': getattr(image, "width", '100%'),
@@ -377,8 +380,6 @@ class GifSerializer(ContentSerializer):
             "format": ext or "gif",
             "type": "gif",
             "dominant-color": getattr(gif, "dominant_color", "transparent"),
-            "url": gif.url,
-            "id": gif.id,
             "status": gif.status,
             "sizes": gif.attributes.get('sizes', {
                 'width': getattr(gif, "width", '100%'),

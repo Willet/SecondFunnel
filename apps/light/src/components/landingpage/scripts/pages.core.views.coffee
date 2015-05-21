@@ -258,6 +258,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @slide.swipe("destroy")
             return
 
+
     ###
     View responsible for Youtube videos in heros / previews
     
@@ -330,6 +331,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
             @player.destroy()
 
+    
     ###
     View responsible for Hero-specific things
 
