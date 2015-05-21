@@ -92,6 +92,10 @@ html.no-js .no-noscript {
     }
 }
 
+.scrollable {
+    overflow-y: scroll;
+}
+
 /***** PAGE SECTIONS *****/
 
 .navbar {
@@ -549,7 +553,7 @@ div.loading {
     }
     .content {
         width: 100%;
-        overflow-y: auto;
+        overflow-y: hidden;
         overflow-x: hidden;
         margin: auto;
         position: relative;

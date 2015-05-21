@@ -72,25 +72,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         catch err
             unless err.name and err.name is "NoTemplateError"
                 throw err
-        !!@templateCaches[templateId]
-
-
-    ###
-    Using templateId, checks if the template exists in the cache and creates a
-    new one if not found. Returns the template string.
-
-    @method getSubtemplate
-    @param templateId
-    @returns {string} template
-    ###
-    Marionette.TemplateCache.getSubtemplate = (templateId) ->
-        cachedTemplate = @templateCaches[templateId]
-        if not cachedTemplate
-          cachedTemplate = new Marionette.TemplateCache(templateId)
-          @templateCaches[templateId] = cachedTemplate
-
-        return cachedTemplate.loadSubtemplate()
-
+        return !!@templateCaches[templateId]
 
     ###
     Accept an arbitrary number of template selectors instead of just one.
@@ -128,8 +110,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 template = temp
                 break
             i++
-        template
+        return template
 
+    ###
+    Using templateId, checks if the template exists in the cache and creates a
+    new one if not found. Returns the template string.
+
+    @method getSubtemplate
+    @param templateId
+    @returns {string} template
+    ###
+    Marionette.TemplateCache.getSubtemplate = (templateId) ->
+        cachedTemplate = @templateCaches[templateId]
+        if not cachedTemplate
+            cachedTemplate = new Marionette.TemplateCache(templateId)
+            @templateCaches[templateId] = cachedTemplate
+
+        return cachedTemplate.loadSubtemplate()
 
     ###
     Replaces default load method. Stores template string in "template" property.
@@ -155,6 +152,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         
         return @rawTemplate
 
+    ###
+    Replaces default compileTempalte method. Removes include tags before
+    compiling the template.
+    ###
+    Marionette.TemplateCache::compileTemplate = (rawTemplate) ->
+        rawTemplate = @compileSubtemplate(rawTemplate)
+        
+        return _.template(rawTemplate)
 
     ###
     Replaces all include tags within a given template with cached templates.
@@ -165,7 +170,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @returns {string} template
     ###
     Marionette.TemplateCache::compileSubtemplate = (str) ->
-        includeRegex = /<%\sinclude(\("(.*?)"\)|\s"(.*?)")\s%>/g
+        includeRegex = /<%\sinclude(\("(.*?)"\)|\s"(.*?)");?\s%>/g
         str = str.replace(
             includeRegex,
             (match, result, javascriptId, coffeescriptId) ->
@@ -175,15 +180,3 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
         
         return str
-
-
-    ###
-    Replaces default compileTempalte method. Removes include tags before
-    compiling the template.
-    ###
-    Marionette.TemplateCache::compileTemplate = (rawTemplate) ->
-        rawTemplate = @compileSubtemplate(rawTemplate)
-        
-        return _.template(rawTemplate)
-        
-

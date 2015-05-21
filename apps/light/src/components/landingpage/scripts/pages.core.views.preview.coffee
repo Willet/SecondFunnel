@@ -193,16 +193,37 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
 
-    class module.ProductCollectionView extends Marionette.CollectionView
-        itemView: module.ProductView
+    ###
+    Similar products look like tiles
+    ###
+    class module.SimilarProductsView extends Marionette.ItemView
+        template: "#similar_products_template"
+
+        events:
+            "click .tile": (event) ->
+                id = $(event.currentTarget).data("id")
+                product = @collection.get(id)
+                if product.get('tile-id', false)
+                    # open tile in hero area
+                    if App.option("page:tiles:openTileInHero", false)
+                        App.router.navigate("tile/#{String(product.get('tile-id'))}", trigger: true)
+                    # open tile in popup
+                    else
+                        App.router.navigate("preview/#{String(product.get('tile-id'))}", trigger: true)
+                else
+                    # go to PDP
+                    App.utils.openUrl(product.get("url"))
 
         initialize: (products) ->
-            @collection = new module.ProductCollection(products)
+            @collection = new module.ProductCollection()
+            for product in products
+                product.template = 'product'
+                @collection.add(new module.SimilarProduct(product))
             return
 
 
     ###
-    A Shop The Look
+    Shop The Image or Shop The Product container
 
     @constructor
     @type {Layout}
@@ -211,6 +232,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         regions:
             productInfo: ".product-info"
             carouselRegion: ".carousel-region"
+            similarProducts: ".similar-products"
 
         events:
             "click .stl-look .stl-item": (event) ->
@@ -218,7 +240,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $ev = $(event.target)
                 $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
                 
-                $targetEl.addClass("selected").siblings().removeClass "selected"
+                $targetEl.addClass("selected").siblings().removeClass("selected")
                 index = $targetEl.data("index")
                 product = @model.get("tagged-products")[index]
                 productModel = new module.Product(product)
@@ -342,6 +364,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     model: new module.Product(@model.attributes)
                 )
                 @productInfo.show(productInstance)
+                if @model.get("similar-products")?.length > 0
+                    similarProductsInstance = new module.SimilarProductsView(@model.get("similar-products"))
+                    @similarProducts.show(similarProductsInstance)
             unless App.support.mobile()
                 @$el.closest(".fullscreen").addClass("loading-images")
             @resizeContainer()
@@ -487,7 +512,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 display: "table"
                 height: (if App.support.mobile() then heightMultiplier * $window.height() else "")
 
-            template = @options.model.get("template")
             contentOpts = model: @options.model
             contentInstance = undefined
             contentInstance = new module.PreviewContent(contentOpts)

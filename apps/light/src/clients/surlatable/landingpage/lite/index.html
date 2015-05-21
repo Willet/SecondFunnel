@@ -121,30 +121,30 @@
             <% include("image_tile_template") %>
         </script>
 
-            <script type="text/template" id="image_tile_template">
-              <div class='relative'>
+        <script type="text/template" id="image_tile_template">
+            <div class='relative'>
                 <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
-              </div>
-              <div class="overlay">
-                  <div class='table'>
-                      <div class='cell'>
-                          <% /* "Shop product" is actually wanted for the tile overlay */ %>
-                          <div class="title">
-                              <% if (obj.template === "product") { %>
-                                  <span>Get Details</span>
-                                  <br/>
-                                  <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
-                              <% } else if (obj.template === "image") { %>
-                                  <span>See the Recipe</span>
-                                  <br/>
-                                  <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
-                              <% } else { %>
-                                  <span>Get Details</span>
-                              <% } %>
-                          </div>
-                      </div>
-                  </div>
-              </div>
+            </div>
+            <div class="overlay">
+                <div class='table'>
+                    <div class='cell'>
+                        <% /* "Shop product" is actually wanted for the tile overlay */ %>
+                        <div class="title">
+                        <% if (obj.template === "product") { %>
+                            <span>Get Details</span>
+                            <br/>
+                            <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
+                        <% } else if (obj.template === "image") { %>
+                            <span>See the Recipe</span>
+                            <br/>
+                            <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
+                        <% } else { %>
+                            <span>Get Details</span>
+                        <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <% if (App.option("debug", 0) > 1) { %>
                 <span class="type"><%= obj["content-type"] %></span>
             <% } %>
@@ -152,13 +152,11 @@
 
         <script type="text/template" id="preview_container_template">
             <% var template = (obj.template || "image") %>
-            <div class="fullscreen <%= template %>">
+            <div class="fullscreen scrollable <%= template %>">
                 <div class="content">
                     <span class="close desktop-only">Close <img src="/static/light/surlatable/landingpage/lite/images/close.gif"></span>
                     <span class="close mobile-only">Back</span>
-                    <div class="scrollable">
-                        <div class="template target"></div>
-                    </div>
+                    <div class="template target"></div>
                 </div>
             </div>
             <div class="mask"></div>
@@ -282,8 +280,34 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <div class="product-info table"></div>
+            <div class="product-info table feature"></div>
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
+            <div class="similar-products cell overflow"></div>
+        </script>
+
+        <script type="text/template" id="similar_products_template">
+            <div class="similar-cta">Similar products</div>
+            <div class="tiles">
+            <% _.each(items, function(item){ %>
+                <div class="tile product" data-id="<%- item.id %>">
+                    <div class='relative'>
+                        <img class="focus" src="<%= item.defaultImage.url %>" alt="<%= item.caption %>" />
+                    </div>
+                    <div class="overlay">
+                        <div class='table'>
+                            <div class='cell'>
+                                <div class="title">
+                                    <span>Get Details</span>
+                                    <br/>
+                                    <span class="tile-name"><%= (item.title || item.name || item.caption) %></span>
+                                    <span class="tile-price"><%= (item.price_range || item.sale_price || item.price)%></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+            </div>
         </script>
 
         <script type="text/template" id="desktop_tagged_products">

@@ -128,9 +128,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         shrinkContainer = =>
             =>
-                $table = @$el.find(".table")
+                $window = $(window)
                 $container = @$el.closest(".fullscreen")
                 $containedItem = @$el.closest(".content")
+                $feature = $containedItem.find(".feature") 
+                if _.isEmpty($containedItem.find(".feature"))
+                    $feature = $containedItem.find(".preview-container")
+                else
+                    $feature = $containedItem.find(".feature")
+                $overflow = $containedItem.find(".overflow")
+                
                 # must wait for all images to load
                 if --imageCount isnt 0
                     return
@@ -154,18 +161,50 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     left: "0"
                     right: "0"
                 )
+                # Reset feature and container height
+                $containedItem.css(
+                    'height': '100%'
+                    'max-height': '640px'
+                )
+                $feature.css('height', '100%')
 
-                heightReduction = ($(window).height() - $containedItem.outerHeight()) / 2
-                widthReduction = ($(window).width() - $containedItem.outerWidth()) / 2
-                if heightReduction <= 0 # String because jQuery checks for falsey values
-                    heightReduction = "0"
-                if widthReduction <= 0 # String because jQuery checks for falsey values
-                    widthReduction = "0"
+                # Popup sizing works by the featured area filling up as much room as the container will let it
+                # In order to support overlowing content, need to let the featured content expand in the
+                # constrained container, lock in the size, then let the container expand to fit the overflow content
+                if _.some($overflow.map(-> return $(@).outerHeight()))
+                    # Content overflows (one or more .overflow elements have non-zero height)
+                    $overflow.hide()
+                    # Lock in featured content height
+                    $feature.css('height', $feature.outerHeight())
+                    # Reveal overflow
+                    $overflow.show()
+                    heightValue = 'auto'
+                    maxHeightValue = 'none'
+                    heightReduction =  10
+                    widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
+                else
+                    # Content fits in window, center it
+                    heightValue = '100%'
+                    maxHeightValue = 640
+                    heightReduction = ($window.height() - $containedItem.outerHeight()) / 2
+                    widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
+                    if heightReduction <= 0 # String because jQuery checks for falsey values
+                        heightReduction = "0"
+                    if widthReduction <= 0 # String because jQuery checks for falsey values
+                        widthReduction = "0"
+                if App.support.mobile()
+                    heightReduction = widthReduction = 0
+                    maxHeightValue = 'none'
+                    
                 $container.css(
-                    top: heightReduction
-                    bottom: heightReduction
                     left: widthReduction
                     right: widthReduction
+                )
+                $containedItem.css(
+                    'height': heightValue
+                    'max-height': maxHeightValue
+                    'margin-top': heightReduction
+                    'margin-bottom': heightReduction
                 )
                 $container.removeClass("loading-images")
                 @updateScrollCta()
@@ -216,6 +255,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 offset: "bottom-in-view"
                 direction: "up"
             )
+        if @model.get("similar-products")?.length > 0
+            similarProductsInstance = new module.SimilarProductsView(@model.get("similar-products"))
+            @similarProducts.show(similarProductsInstance)
         return
 
     module.ExpandedContent::swipeStatus = (event, phase, direction, distance, fingers, duration) ->
