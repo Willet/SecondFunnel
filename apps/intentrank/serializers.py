@@ -251,7 +251,7 @@ class ProductSerializer(IRSerializer):
             "description": product.description,
             "details": product.details,
             "name": product.name,
-            "similar-products": [],
+            "tagged-products": [],
             "id": product.id,
         }
 
@@ -296,7 +296,7 @@ class ProductSerializer(IRSerializer):
 
             # Include a shallow similar_products. Prevents infinite loop
             for product in product.similar_products.filter(in_stock=True):
-                data['similar-products'].append(self.get_dump_object(product, shallow=True))
+                data['tagged-products'].append(self.get_dump_object(product, shallow=True))
 
         return data
 

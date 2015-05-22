@@ -399,20 +399,20 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         # Disable scrolling body when preview is shown
         onShow: ->
-            if @model.get("tagged-products")?.length > 0
+            if @model.get("template") == "product"
+                productInstance = new module.ProductView(
+                    model: new module.Product(@model.attributes)
+                )
+                @productInfo.show(productInstance)
+                if @model.get("tagged-products")?.length > 0
+                    similarProductsInstance = new module.SimilarProductsView(@model.get("tagged-products"))
+                    @similarProducts.show(similarProductsInstance)
+            else if @model.get("tagged-products")?.length > 0
                 productInstance = new module.ProductView(
                     model: new module.Product(@model.get("tagged-products")[0])
                 )
                 @productInfo.show(productInstance)
                 @$el.find(".stl-item").filter("[data-index=0]").addClass("selected")
-            else if @model.get("template") == "product"
-                productInstance = new module.ProductView(
-                    model: new module.Product(@model.attributes)
-                )
-                @productInfo.show(productInstance)
-                if @model.get("similar-products")?.length > 0
-                    similarProductsInstance = new module.SimilarProductsView(@model.get("similar-products"))
-                    @similarProducts.show(similarProductsInstance)
             unless App.support.mobile()
                 @$el.closest(".fullscreen").addClass("loading-images")
             @resizeContainer()
