@@ -229,6 +229,12 @@
                 <div class="description mobile-only">
                     <% include("product_description_template") %>
                 </div>
+                <div class="cell shop">
+                <% if (obj['similar-products'].length > 0) { %>
+                    <div class="stl-title"><span>Similar Gifts</span></div>
+                    <div class="carousel-region"></div>
+                <% } %>
+            </div>
             </div>
         </script>
 
@@ -280,9 +286,10 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <div class="product-info table feature"></div>
+            <div class="cell info">
+                <div class="product-info table"></div>
+            </div>
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
-            <div class="similar-products cell overflow"></div>
         </script>
 
         <script type="text/template" id="similar_products_template">
@@ -335,7 +342,7 @@
             </div>
             <div class="cell shop">
                 <% if (obj['tagged-products'].length > 0) { %>
-                    <div class="stl-title">Perfect Gifts For This Recipe</div>
+                    <div class="stl-title"><span>Perfect Gifts For This Recipe</span></div>
                     <div class="carousel-region"></div>
                 <% } %>
             </div>

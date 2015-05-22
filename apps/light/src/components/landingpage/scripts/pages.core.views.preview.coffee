@@ -295,60 +295,105 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$(".stick-bottom").waypoint("destroy")
             return
 
-        resizeContainer: ->
-            shrinkContainer = =>
-                =>
-                    unless App.support.mobile()
-                        $container = @$el.closest(".fullscreen")
-                        $containedItem = @$el.closest(".content")
-                        if --imageCount isnt 0
-                            return
-
-                        # no container to shrink
-                        unless $container?.length
-                            return
-                        if @model.get("template") is "image" and @model.get("images")?.length > 0
-                            $lookImage = @$el.find(".look-image")
-                            unless $lookImage.is("img")
-                                imageUrl = App.utils.getResizedImage(@model.get("images")[0].url, 
-                                    ## parameters are rounded to nearest 100th, ensure w/h >= than look image container's
-                                    width: $lookImage.width()*1.3,
-                                    height: $lookImage.height()*1.3
-                                )
-                                $lookImage.css("background-image", "url(#{imageUrl})")
-                        $container.css(
-                            top: "0"
-                            bottom: "0"
-                            left: "0"
-                            right: "0"
-                        )
-                        heightReduction = ($window.height() - $containedItem.outerHeight()) / 2
-                        widthReduction = ($container.outerWidth() - $containedItem.outerWidth()) / 2
-                        if heightReduction <= 0 # String because jQuery checks for falsey values
-                            heightReduction = "0"
-                        if widthReduction <= 0 # String because jQuery checks for falsey values
-                            widthReduction = "0"
-                        $container.css(
-                            top: heightReduction
-                            bottom: heightReduction
-                            left: widthReduction
-                            right: widthReduction
-                        )
-                        $container.removeClass("loading-images")
+        ###
+        Returns a callback that sizes the preview container, making the featured area sized
+        to the viewport & allowing the overflow area to continue below the fold.
+        ###
+        shrinkContainerCallback: ->
+            =>
+                $window = $(window)
+                $container = @$el.closest(".fullscreen")
+                $containedItem = @$el.closest(".content")
+                # Content that will be sized to the viewport
+                $feature = $containedItem.find(".feature") 
+                if _.isEmpty($containedItem.find(".feature"))
+                    $feature = $containedItem.find(".preview-container")
+                else
+                    $feature = $containedItem.find(".feature")
+                # Content that will run below the fold
+                $overflow = $containedItem.find(".overflow")
+                
+                # must wait for all images to load
+                if --@_imageCount isnt 0
                     return
 
-            imageCount = $("img.main-image, img.image", @$el).length
+                # product view must be initialized after elements load so that the banner can be updated
+                if @productInfo.currentView is undefined
+                    @updateCarousel()
 
-            # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
-            $("img.main-image, img.image", @$el).one("load", shrinkContainer()).each ->
-                if @complete
-                    # Without the timeout the box may not be rendered. This lets the onShow method return
-                    setTimeout (=>
-                        $(@).load()
-                        return
-                    ), 1
+                if @model.get("type") is "image" or @model.get("type") is "gif"
+                    if @lookProductIndex > -1
+                        @$el.find(".look-thumbnail").show()
+                    else
+                        @$el.find(".look-thumbnail").hide()
+                $container.css(
+                    top: "0"
+                    bottom: "0"
+                    left: "0"
+                    right: "0"
+                )
+                # Reset feature and container height
+                $containedItem.css(
+                    'height': '100%'
+                    'max-height': '640px'
+                )
+                $feature.css('height', '100%')
+
+                # Popup sizing works by the featured area filling up as much room as the container will let it
+                # In order to support overlowing content, need to let the featured content expand in the
+                # constrained container, lock in the size, then let the container expand to fit the overflow content
+                if _.some($overflow.map(-> return $(@).outerHeight()))
+                    # Content overflows (one or more .overflow elements have non-zero height)
+                    $overflow.hide()
+                    # Lock in featured content height
+                    $feature.css('height', $feature.outerHeight())
+                    # Reveal overflow
+                    $overflow.show()
+                    heightValue = 'auto'
+                    maxHeightValue = 'none'
+                    heightReduction =  10
+                    widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
+                else
+                    # Content fits in window, center it
+                    heightValue = '100%'
+                    maxHeightValue = 640
+                    heightReduction = ($window.height() - $containedItem.outerHeight()) / 2
+                    widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
+                    if heightReduction <= 0 # String because jQuery checks for falsey values
+                        heightReduction = "0"
+                    if widthReduction <= 0 # String because jQuery checks for falsey values
+                        widthReduction = "0"
+                if App.support.mobile()
+                    heightReduction = widthReduction = 0
+                    maxHeightValue = 'none'
+                    
+                $container.css(
+                    left: widthReduction
+                    right: widthReduction
+                )
+                $containedItem.css(
+                    'height': heightValue
+                    'max-height': maxHeightValue
+                    'margin-top': heightReduction
+                    'margin-bottom': heightReduction
+                )
+                $container.removeClass("loading-images")
+                @updateScrollCta()
                 return
 
+        resizeContainer: ->
+            @_imageCount = $("img.main-image, img.image", @$el).length
+
+            # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
+            $("img.main-image, img.image", @$el).one("load", @shrinkContainerCallback()).each(->
+                if @complete
+                    # Without the timeout the box may not be rendered. This lets the onShow method return
+                    setTimeout((=>
+                        $(@).load()
+                        return
+                    ), 1)
+                return
+            )
             return
 
         # Disable scrolling body when preview is shown

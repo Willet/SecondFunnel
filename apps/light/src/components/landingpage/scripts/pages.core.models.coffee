@@ -284,7 +284,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             defaultImage = @getDefaultImage()
 
             # Transform related-product image, if necessary
-            relatedProducts = @get("tagged-products")
+            relatedProducts = @get("tagged-products") or @get("similar-products") ######
             unless _.isEmpty(relatedProducts)
                 relatedProducts = _.map(relatedProducts, (product) ->
                     originalImages = product.images or []
