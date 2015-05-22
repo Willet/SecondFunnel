@@ -194,7 +194,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     ###
-    Similar products look like tiles
+    Similar products look like tiles in a feed
+    Should have a tile-id attribute to allow continuous browsing
     ###
     class module.SimilarProductsView extends Marionette.ItemView
         template: "#similar_products_template"

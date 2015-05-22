@@ -431,7 +431,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if @model?
                     contentOpts = model: @model
                     contentInstance = undefined
-                    if _.contains(contentOpts.model.get("type", ""), "hero")
+                    if _.contains(_.get(contentOpts.model, "type", ""), "hero")
                         contentInstance = new module.HeroContent(contentOpts)
                     else
                         contentInstance = new module.PreviewContent(contentOpts)

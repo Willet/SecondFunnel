@@ -154,7 +154,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onMissingTemplate: ->
-
             # If a tile fails to load, destroy the model
             # and subsequently this tile.
             console.warn "Missing template - this view is closing.", this

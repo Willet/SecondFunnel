@@ -405,6 +405,10 @@ body {
             .cell.info {
                 height: 100%;
                 padding: 10px 0 0;
+                &.similar {
+                    height: 72%;
+                    padding: 10px 0;
+                }
             }
         }
     }

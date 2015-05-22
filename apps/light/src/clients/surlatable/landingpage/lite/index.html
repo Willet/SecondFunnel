@@ -183,6 +183,7 @@
         </script>
 
         <script type="text/template" id="product_info_template">
+            <% var similar = Boolean(obj['similar-products'].length > 0) %>
             <div class='tagged-product row'>
                 <div class="cell title-banner desktop-only">
                     <div class="title">
@@ -197,7 +198,7 @@
                         <% include("product_price_template") %>
                     </div>
                 </div>
-                <div class="cell info">
+                <div class="cell info<% if (similar) { %> similar<% } %>">
                     <div class="gallery-main-image">
                         <% if (obj.images.length > 1) { %>
                             <div class="gallery-swipe-left"></div>
@@ -229,12 +230,12 @@
                 <div class="description mobile-only">
                     <% include("product_description_template") %>
                 </div>
+                <% if (similar) { %>
                 <div class="cell shop">
-                <% if (obj['similar-products'].length > 0) { %>
                     <div class="stl-title"><span>Similar Gifts</span></div>
                     <div class="carousel-region"></div>
+                </div>
                 <% } %>
-            </div>
             </div>
         </script>
 
@@ -286,9 +287,7 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <div class="cell info">
-                <div class="product-info table"></div>
-            </div>
+            <div class="product-info table"></div>
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
         </script>
 
