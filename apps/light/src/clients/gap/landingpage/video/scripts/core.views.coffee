@@ -153,7 +153,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @lookProductIndex = $targetEl.data("index")
             unless @$el.find('.look-thumbnail').is(':visible')
                 @carouselRegion.currentView.index = Math.min($('.stl-look').children(':visible').length - 1, @carouselRegion.currentView.index + 1)
-            @updateCarousel()
+            @updateContent()
             App.vent.trigger('tracking:stlItemClick', @model.get("tagged-products")[@lookProductIndex])
             return
 
@@ -171,7 +171,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return
 
                 if @productInfo.currentView is undefined
-                    @updateCarousel()
+                    @updateContent()
                 if @model.get("type") is "image" or @model.get("type") is "gif"
                     if @lookProductIndex > -1
                         @$el.find(".look-thumbnail").show()
@@ -308,10 +308,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # swipe from look image to first product
                 else if @lookProductIndex is 0 and App.support.mobile()
                     @carouselRegion.currentView.index = Math.min($('.stl-look').children(':visible').length - 1, @carouselRegion.currentView.index + 1)
-            @updateCarousel()
+            @updateContent()
         return @
 
-    module.ExpandedContent::updateCarousel = ->
+    module.ExpandedContent::updateContent = ->
         if App.support.mobile() and @lookProductIndex < 0
             @$el.find('.look-thumbnail').hide()
             @$el.find('.info').hide()

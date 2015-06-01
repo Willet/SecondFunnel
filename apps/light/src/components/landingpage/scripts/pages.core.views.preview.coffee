@@ -79,7 +79,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onRender: ->
-            @setElement(@$el.children())
+            # Get rid of that pesky wrapping-div
+            @$el = @$el.children() # NOTE 1st child will be come element, all other children will be dropped
+            @$el.unwrap() # Unwrap the element to prevent infinitely nesting elements during re-render
+            @setElement(@$el)
             return
 
         onShow: ->
@@ -241,21 +244,24 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $ev = $(event.target)
                 $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
                 
-                $targetEl.addClass("selected").siblings().removeClass("selected")
                 index = $targetEl.data("index")
-                product = @model.get("tagged-products")[index]
-                productModel = new module.Product(product)
-                productInstance = new module.ProductView(
-                    model: productModel
-                )
+                
                 if App.support.mobile()
                     $('body').scrollTo(".cell.info", 500)
-                @productInfo.show(productInstance)
+                product = @updateContent(index)
 
-                App.vent.trigger('tracking:product:thumbnailClick', productModel)
+                App.vent.trigger('tracking:product:thumbnailClick', product)
                 return
+
+        initialize: ->
+            @$el.attr
+                id: "preview-#{@model.cid}"
+                class: "preview-container"
+            @_taggedProductIndex = -1
+            return
         
         onBeforeRender: ->
+            # orient image
             if @model.get("sizes")?.master
                 width = @model.get("sizes").master.width
                 height = @model.get("sizes").master.height
@@ -272,7 +278,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 image.url = image.height($window.height())
             else
                 image = image.height(App.utils.getViewportSized(true), true)
-
+            # order tagged-products by price
             if @model.get("tagged-products") and @model.get("tagged-products").length > 1
                 @model.set("tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
                     -1 * parseFloat((obj.price or "$0").substr(1), 10)
@@ -282,24 +288,35 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @model.set("image", image)
             return
 
-        initialize: ->
-            @$el.attr
-                id: "preview-#{@model.cid}"
-                class: "preview-container"
-            return
+        # Updating the current view with product or tagged product
+        # Returns product that is currently displayed
+        updateContent: (taggedProductIndex = -1) ->
+            if -1 < taggedProductIndex < @model.get('tagged-products').length
+                @_taggedProductIndex = taggedProductIndex
+                @carouselRegion.currentView.selectItem(taggedProductIndex)
+                product = new module.Product(@model.get('tagged-products')[taggedProductIndex])
+            else
+                @_taggedProductIndex = -1
+                @carouselRegion.currentView.deselectItems()
+                if @product?
+                    product = @product
 
-        close: ->
-            # See NOTE in onShow
-            unless App.support.mobile()
-                $(document.body).removeClass("no-scroll")
+            if product
+                productInstance = new module.ProductView(
+                    model: product
+                )
+                @productInfo.show(productInstance)
+                @$el.find('.info').show()
+            else
+                # Neither product or tagged product
+                @productInfo.empty()
+                @$el.find('.info').hide()
+            # Return model of product being displayed
+            return product
 
-            @$(".stick-bottom").waypoint("destroy")
-            return
-
-        ###
-        Returns a callback that sizes the preview container, making the featured area sized
-        to the viewport & allowing the overflow area to continue below the fold.
-        ###
+        # Returns a callback that sizes the preview container, making the featured area sized
+        # to the viewport & allowing the overflow area to continue below the fold.
+        # Meant to be called when all images finish loading
         shrinkContainerCallback: ->
             =>
                 $window = $(window)
@@ -320,13 +337,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                 # product view must be initialized after elements load so that the banner can be updated
                 if @productInfo.currentView is undefined
-                    @updateCarousel()
+                    @updateContent()
 
+                ### THIS CODE SHOULD EXIST SOMEWHERE ELSE ###
                 if @model.get("type") is "image" or @model.get("type") is "gif"
                     if @lookProductIndex > -1
                         @$el.find(".look-thumbnail").show()
                     else
                         @$el.find(".look-thumbnail").hide()
+
                 $container.css(
                     top: "0"
                     bottom: "0"
@@ -382,6 +401,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @updateScrollCta()
                 return
 
+        # shrinks container to images once images are loaded
         resizeContainer: ->
             @_imageCount = $("img.main-image, img.image", @$el).length
 
@@ -399,30 +419,47 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         # Disable scrolling body when preview is shown
         onShow: ->
-            if @model.get("template") == "product"
-                productInstance = new module.ProductView(
-                    model: new module.Product(@model.attributes)
-                )
-                @productInfo.show(productInstance)
-                if @model.get("tagged-products")?.length > 0
-                    similarProductsInstance = new module.SimilarProductsView(@model.get("tagged-products"))
-                    @similarProducts.show(similarProductsInstance)
-            else if @model.get("tagged-products")?.length > 0
-                productInstance = new module.ProductView(
-                    model: new module.Product(@model.get("tagged-products")[0])
-                )
-                @productInfo.show(productInstance)
-                @$el.find(".stl-item").filter("[data-index=0]").addClass("selected")
             unless App.support.mobile()
                 @$el.closest(".fullscreen").addClass("loading-images")
+
+            # Product pop-up
+            if @model.get("template") == "product"
+                @product = new module.Product(@model.attributes)
+                @updateContent()
+                    
+            # Content pop-up
+            else
+                # Content is contained in .look-image-container, loaded by template
+                # Load up zeroth tagged product
+                @updateContent(0)
+
+            # Initialize carousel
+            if @model.get("tagged-products")?.length > 0
+                carouselInstance = new module.CarouselView(
+                    items: @model.get('tagged-products')
+                    attrs:
+                        'lookImageSrc': @model.get('images')[0].url
+                        'lookName': @model.get('name')
+                )
+                @carouselRegion.show(carouselInstance)
+
+                # Add some logic here to decide if carouselview or similarproductsview
+                    #similarProductsInstance = new module.SimilarProductsView(@model.get("tagged-products"))
+                    #@similarProducts.show(similarProductsInstance)
+
             @resizeContainer()
+
+        close: ->
+            # See NOTE in onShow
+            unless App.support.mobile()
+                $(document.body).removeClass("no-scroll")
+
+            @$(".stick-bottom").waypoint("destroy")
+            return
 
 
     ###
-    Contents inside a PreviewWindow.
-
-    Content is displayed using a cascading level of templates, which
-    increases in specificity.
+    Contents inside a PreviewWindow
 
     @constructor
     @type {Layout}
@@ -581,7 +618,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @content.show(contentInstance)
             App.previewLoadingScreen.hide()
 
-            @listenTo(App.vent, "rotate", (width) =>
+            @listenTo(App.vent, "window:rotate", (width) =>
                 # On change in orientation, we want to rerender our layout
                 # this is automatically unbound on close, so we don't have to clean
                 heightMultiplier = (if App.utils.portrait() then 1 else 2)
@@ -592,17 +629,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @$el.closest(".previewContainer").addClass("landscape")
                 else
                     @$el.closest(".previewContainer").removeClass("landscape")
-                @content.currentView.resizeContainer()
-                if @content.currentView?.productInfo?.currentView
-                    productRegion = @content.currentView.productInfo
-                    productRegion.show(productRegion.currentView,
-                        forceShow: true
-                    )
-                if @content.currentView?.carouselRegion?.currentView
-                    carouselRegion = @content.currentView.carouselRegion
-                    carouselRegion.show(carouselRegion.currentView,
-                        forceShow: true
-                    )
+                if @content.currentView?.resizeContainer()
+                    @content.currentView.resizeContainer()
+                    if @content.currentView.productInfo?.currentView
+                        productRegion = @content.currentView.productInfo
+                        productRegion.show(productRegion.currentView,
+                            forceShow: true
+                        )
+                    if @content.currentView.carouselRegion?.currentView
+                        carouselRegion = @content.currentView.carouselRegion
+                        carouselRegion.show(carouselRegion.currentView,
+                            forceShow: true
+                        )
+                return
+            )
+
+            @listenTo(App.vent, "window:resize", () =>
+                @content.currentView?.resizeContainer()
                 return
             )
             return

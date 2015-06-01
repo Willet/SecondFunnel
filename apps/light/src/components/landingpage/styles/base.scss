@@ -936,51 +936,12 @@ div.spinner {
     }
 }
 
-@-keyframes fade {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0.25;
-    }
-}
-
-@-o-keyframes fade {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0.25;
-    }
-}
-
-@-ms-keyframes fade {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0.25;
-    }
-}
-
-@-moz-keyframes fade {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0.25;
-    }
-
-}
-
-@-webkit-keyframes fade {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0.25;
-    }
-}
+@-o-keyframes fade { from { opacity: 1; } to { opacity: 0.25; } }
+@-ms-keyframes fade { from { opacity: 1; } to { opacity: 0.25; } }
+@-moz-keyframes fade { from { opacity: 1; } to { opacity: 0.25; } }
+@-webkit-keyframes fade { from { opacity: 1; } to { opacity: 0.25; } }
+@-keyframes fade { from { opacity: 1; } to { opacity: 0.25; } }
+@keyframes fade { from { opacity: 1; } to { opacity: 0.25; } }
 
 @media screen and (max-width: 768px) {
     #category-area.mobile-dropdown {

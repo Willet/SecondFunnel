@@ -106,23 +106,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             globals.scrollHandler =
                 _.throttle (=> @pageScroll()), 500
-            globals.resizeHandler =
-                _.throttle (-> $('.resizable', document).trigger('resize')), 1000
-            globals.orientationChangeHandler = -> App.vent.trigger('rotate')
+            globals.resizeHandler = _.throttle((-> App.vent.trigger('window:resize')), 1000)
+                #_.throttle (-> $('.resizable', document).trigger('resize')), 1000
+            globals.orientationChangeHandler = -> App.vent.trigger('window:rotate')
 
             $(window)
                 .scroll(globals.scrollHandler)
                 .resize(globals.resizeHandler)
 
             # serve orientation change event via vent
-            $(window).on 'rotate', globals.orientationChangeHandler
+            $(window).on('rotate', globals.orientationChangeHandler)
         
         detachListeners: ->
             # detach global listeners
             globals = App._globals
             $(window)
-                .unbind 'scroll', globals.scrollHandler
-                .unbind 'resize', globals.resizeHandler
+                .unbind('scroll', globals.scrollHandler)
+                .unbind('resize', globals.resizeHandler)
 
             if window.removeEventListener
                 window.removeEventListener(

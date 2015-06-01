@@ -317,10 +317,14 @@
 </script>
 
 <script type="text/template" id="carousel_items_template">
-    <% for (var i = 0; i < obj.items.length; i++) { %>
-        <div class="item" data-index="<%- i %>">
-            <img src="<%= obj.items[i].url %>" class="image" />
+    <% var items = obj.items; %>
+    <% for (var i = 0; i < items.length; i++) { %>
+    <div class="item" data-index="<%- i %>">
+        <img src="<%= items[i].url %>" class="image" />
+        <div class="name desktop-only">
+            <%- items[i].title || items[i].name %>
         </div>
+    </div>
     <% } %>
 </script>
 

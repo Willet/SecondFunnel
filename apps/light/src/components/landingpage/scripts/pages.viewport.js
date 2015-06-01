@@ -144,5 +144,5 @@ module.exports = function (viewport, App, Backbone, Marionette, $, _) {
         // single call func removes args
         //viewport.scale();
     });
-    App.vent.on('rotate', viewport.scale);
+    App.vent.on('window:rotate', viewport.scale);
 };
