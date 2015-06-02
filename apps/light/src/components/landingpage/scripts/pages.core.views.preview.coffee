@@ -89,7 +89,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @leftArrow = @$el.find('.gallery-swipe-left')
             @rightArrow = @$el.find('.gallery-swipe-right')
             @mainImage = @$el.find('.main-image')
-            @resizeProductImages()
+            @resizeProductImages() # Parent elements must be completely sized before this fires
             if @numberOfImages > 1
                 @scrollImages(@mainImage.width()*@galleryIndex, 0)
                 @updateGallery()
@@ -244,11 +244,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $ev = $(event.target)
                 $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
                 
-                index = $targetEl.data("index")
+                @taggedProductIndex = $targetEl.data("index")
                 
                 if App.support.mobile()
                     $('body').scrollTo(".cell.info", 500)
-                product = @updateContent(index)
+                product = @renderView()
 
                 App.vent.trigger('tracking:product:thumbnailClick', product)
                 return
@@ -257,7 +257,27 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.attr
                 id: "preview-#{@model.cid}"
                 class: "preview-container"
-            @_taggedProductIndex = -1
+            @_currentIndex = -1 # Track which product is being displayed
+
+            # Product pop-up
+            if @model.get("template") == "product"
+                @product = new module.Product(@model.attributes)
+                @taggedProductIndex = -1
+                    
+            # Content pop-up
+            else
+                # Content is contained in .look-image-container, loaded by template
+                # Load up zeroth tagged product
+                @taggedProductIndex = 0
+
+            if @model.get("tagged-products") and @model.get("tagged-products").length > 1
+                # order tagged-products by price
+                @model.set("tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
+                    -1 * parseFloat((obj.price or "$0").substr(1), 10)
+                ))
+                @taggedProducts = (new module.Product(product) for product in @model.get('tagged-products'))
+            else
+                @taggedProducts = []
             return
         
         onBeforeRender: ->
@@ -278,11 +298,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 image.url = image.height($window.height())
             else
                 image = image.height(App.utils.getViewportSized(true), true)
-            # order tagged-products by price
-            if @model.get("tagged-products") and @model.get("tagged-products").length > 1
-                @model.set("tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
-                    -1 * parseFloat((obj.price or "$0").substr(1), 10)
-                ))
 
             # templates use this as obj.image.url
             @model.set("image", image)
@@ -290,16 +305,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         # Updating the current view with product or tagged product
         # Returns product that is currently displayed
-        updateContent: (taggedProductIndex = -1) ->
-            if -1 < taggedProductIndex < @model.get('tagged-products').length
-                @_taggedProductIndex = taggedProductIndex
-                @carouselRegion.currentView.selectItem(taggedProductIndex)
-                product = new module.Product(@model.get('tagged-products')[taggedProductIndex])
-            else
-                @_taggedProductIndex = -1
-                @carouselRegion.currentView.deselectItems()
-                if @product?
-                    product = @product
+        renderView: () ->
+            if @taggedProductIndex is not @_currentIndex
+                if -1 < @taggedProductIndex < @taggedProducts.length
+                    @_currentIndex = @taggedProductIndex
+                    @carouselRegion.currentView.selectItem(@taggedProductIndex)
+                    product = @taggedProducts[@taggedProductIndex]
+                else
+                    @_currentIndex = @taggedProductIndex = -1
+                    @carouselRegion.currentView.deselectItems()
+                    if @product?
+                        product = @product
 
             if product
                 productInstance = new module.ProductView(
@@ -335,9 +351,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if --@_imageCount isnt 0
                     return
 
-                # product view must be initialized after elements load so that the banner can be updated
-                if @productInfo.currentView is undefined
-                    @updateContent()
+                # All images are loaded to frame content, render it now
+                @renderView()
 
                 ### THIS CODE SHOULD EXIST SOMEWHERE ELSE ###
                 if @model.get("type") is "image" or @model.get("type") is "gif"
@@ -422,19 +437,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             unless App.support.mobile()
                 @$el.closest(".fullscreen").addClass("loading-images")
 
-            # Product pop-up
-            if @model.get("template") == "product"
-                @product = new module.Product(@model.attributes)
-                @updateContent()
-                    
-            # Content pop-up
-            else
-                # Content is contained in .look-image-container, loaded by template
-                # Load up zeroth tagged product
-                @updateContent(0)
-
             # Initialize carousel
-            if @model.get("tagged-products")?.length > 0
+            if not _.isEmpty(@taggedProducts)
                 carouselInstance = new module.CarouselView(
                     items: @model.get('tagged-products')
                     attrs:

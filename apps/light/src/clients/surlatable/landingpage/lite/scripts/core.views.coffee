@@ -89,16 +89,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ExpandedContent.prototype.events =
         "click .look-thumbnail, .back-to-recipe": (event) ->
-            @updateContent()
+            @taggedProductIndex = -1
+            @renderView()
             return
 
         "click .stl-look .stl-item": (event) ->
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
-            index = $targetEl.data("index")
+            @taggedProductIndex = $targetEl.data("index")
             if App.support.mobile() and not @$el.find('.look-thumbnail').is(':visible')
                 @carouselRegion.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @carouselRegion.currentView.index + 1)
-            product = @updateContent(index)
+            product = @renderView()
             App.vent.trigger('tracking:product:thumbnailClick', product)
             return
 
@@ -165,7 +166,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 index--
                 # swipe from recipe to last product
                 if index < -1
-                    index = @model.get('tagged-products').length - 1
+                    index = @taggedProducts.length - 1
                     if App.support.mobile()
                         @carouselRegion.currentView.index = Math.min($('.stl-look').children().length - 1, @carouselRegion.currentView.index + 1)
                 # swipe from first product to recipe
@@ -174,21 +175,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else if direction is 'left'
                 index++
                 # swipe from last product to recipe
-                if index is @model.get('tagged-products')?.length
+                if index is @taggedProducts.length
                     index = -1
                     if App.support.mobile()
                         @carouselRegion.currentView.index = Math.max(0, @carouselRegion.currentView.index - 1)
                 else if index is 0 and App.support.mobile()
                     @carouselRegion.currentView.index = Math.min($('.stl-look').children(':visible').length - 1, @carouselRegion.currentView.index + 1)
-            @updateContent(index)
+            @taggedProductIndex = index
+            @renderView()
         return @
 
-    module.ExpandedContent::updateContent = (taggedProductIndex = -1) ->
+    module.ExpandedContent::renderView = () ->
         # Tagged product selected
-        if -1 < taggedProductIndex < @model.get('tagged-products').length
-            @_taggedProductIndex = taggedProductIndex
+        if -1 < @taggedProductIndex < @taggedProducts.length
+            @_currentIndex = @taggedProductIndex
 
-            product = new module.Product(@model.get('tagged-products')[taggedProductIndex])
+            product = @taggedProducts[@taggedProductIndex]
             if not @product
                 # Recipes have "back to recipe" links
                 product.set("recipe-name", @model.get('name') or @model.get('title'))
@@ -196,8 +198,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.info').show()
             @$el.find('.look-image-container').hide()
             @$el.find('.shop').addClass('look-visible')
-            @carouselRegion.currentView?.selectItem(taggedProductIndex)
-            if App.support.mobile() and @model.get("tagged-products")?.length > 0 and @carouselRegion.currentView?
+            @carouselRegion.currentView?.selectItem(@taggedProductIndex)
+            if App.support.mobile() and @taggedProducts.length > 0 and @carouselRegion.currentView?
                 if App.utils.landscape()
                     @carouselRegion.currentView.calculateVerticalPosition()
                 else
@@ -205,6 +207,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         
         # Main content selected
         else
+            @_currentIndex = -1
             # Product popup
             if @product
                 product = @product

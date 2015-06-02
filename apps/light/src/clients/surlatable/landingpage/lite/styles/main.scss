@@ -410,10 +410,9 @@ body {
         &.product {
             .cell.info {
                 height: 100%;
-                padding: 10px 0 0;
+                padding: 10px 0 0 0;
                 &.similar {
-                    height: 73%;
-                    padding: 10px 0;
+                    padding: 10px 0 170px 0;
                 }
             }
         }
@@ -424,9 +423,9 @@ body {
         border-radius: 10px;
     }
     .table {
-        display: table;
+        display: block;
         .row {
-            display: table-row;
+            display: inline-block;
         }
     }
     .close {
@@ -623,11 +622,13 @@ body {
         }
     }
     .shop {
-        position: relative;
-        width: 100% !important;
-        height: 27%;
+        position: absolute;
+        width: auto !important;
         padding: 0;
         margin-top: 5px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
         .stl-title {
             position: absolute;
             left: 0;
@@ -665,8 +666,18 @@ body {
                 -o-transition: margin 0.5s ease;
                 transition: margin 0.5s ease;
                 width: 200px;
-                padding: 20px 20px 0 10px;
+                padding: 0 20px 0 10px;
                 margin-left: -200px;
+            }
+            .back {
+                color: $slt-purple-color;
+                font-size: 18px;
+                font-weight: normal;
+                font-family: $slt-modern-font;
+                text-align: center;
+                &:before {
+                    content: '\00ab';
+                }
             }
             .name {
                 padding: 0 10px;
@@ -1144,11 +1155,10 @@ body {
                 height: 100% !important;
             }
         }
-        .tagged-product.row {
+        .tagged-product {
             .description {
                 width: 100%;
-                height: 23%;
-                overflow: auto;
+                height: auto;
                 padding: 4px 14px 0;
                 text-align: left;
                 font-size: 12px;

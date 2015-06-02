@@ -107,7 +107,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             globals.scrollHandler =
                 _.throttle (=> @pageScroll()), 500
             globals.resizeHandler = _.throttle((-> App.vent.trigger('window:resize')), 1000)
-                #_.throttle (-> $('.resizable', document).trigger('resize')), 1000
             globals.orientationChangeHandler = -> App.vent.trigger('window:rotate')
 
             $(window)

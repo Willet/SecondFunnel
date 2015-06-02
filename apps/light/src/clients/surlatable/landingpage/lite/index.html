@@ -219,6 +219,9 @@
                         <% include("product_buy_template") %>
                     </div>
                 </div>
+                <div class="description mobile-only">
+                    <% include("product_description_template") %>
+                </div>
             </div>
         </script>
 
@@ -283,8 +286,9 @@
                     <div class="cell shop">
                         <div class="table">
                             <div class="stl-title"><span>Similar Gifts</span></div>
-                            <div class="look-thumbnail">
+                            <div class="look-thumbnail desktop-only">
                                 <div>
+                                    <div class="back">Back</div>
                                     <img src="<%= obj.images[0].url %>" class="image" />
                                     <div class="name desktop-only">
                                         <%= obj.name %>
@@ -408,6 +412,12 @@
                 <div class="stl-swipe-down carousel-swipe-down"></div>
                 <div class="stl-look-container carousel-container">
                     <div class="stl-look carousel-slide">
+                        <div class="look-thumbnail mobile-only">
+                            <img src="<%= obj.attrs['lookImageSrc'] %>" class="image" />
+                            <div class="name">
+                                <%= obj.attrs['lookName'] %>
+                            </div>
+                        </div>
                         <% var related = obj.items; %>
                         <% for (var i = 0; i < related.length; i++) { %>
                         <div class="stl-item" data-index="<%- i %>">
