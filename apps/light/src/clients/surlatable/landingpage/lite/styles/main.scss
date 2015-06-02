@@ -917,6 +917,12 @@ body {
                 border-bottom: 2px solid $slt-orange-color;
                 background-color: $slt-orange-color;
             }
+            &:only-child {
+                width: 99%;
+                > span {
+                    font-size: 20px;
+                }
+            }
             > span {
                 display: inline-block;
                 font-weight: lighter;
