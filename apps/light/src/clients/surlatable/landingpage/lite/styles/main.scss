@@ -51,12 +51,6 @@ $slt-thumbnail-height: 111px;
          url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.woff') format('woff');
 }
 
-@-o-keyframes grow { from { width: 0px; } to { width: 200px; } }
-@-ms-keyframes grow { from { width: 0px; } to { width: 200px; } }
-@-moz-keyframes grow { from { width: 0px; } to { width: 200px; } }
-@-webkit-keyframes grow { from { width: 0px; } to { width: 200px; } }
-@keyframes grow { from { width: 0px; } to { width: 200px; } }
-
 body {
     background: none;
     font-family: $slt-basic-font;
@@ -654,17 +648,10 @@ body {
             margin-left: -100%;
             overflow: hidden;
             width: 0px;
-            -webkit-transition: width 0.5s ease;
-            -moz-transition: width 0.5s ease;
-            -ms-transition: width 0.5s ease;
-            -o-transition: width 0.5s ease;
-            transition: width 0.5s ease;
+            @include transition(width, 0.5s, ease);
+            @include no-select;
             >div {
-                -webkit-transition: margin 0.5s ease;
-                -moz-transition: margin 0.5s ease;
-                -ms-transition: margin 0.5s ease;
-                -o-transition: margin 0.5s ease;
-                transition: margin 0.5s ease;
+                @include transition(margin 0.5s ease);
                 width: 200px;
                 padding: 0 20px 0 10px;
                 margin-left: -200px;
