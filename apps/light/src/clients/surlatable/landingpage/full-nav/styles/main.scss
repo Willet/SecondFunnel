@@ -904,6 +904,7 @@ body {
         }
     }
     .shop {
+        position: relative;
         width: 100% !important;
         height: 28%;
         padding: 12px 0 0 0;
@@ -930,11 +931,39 @@ body {
         }
     }
     .stl-title {
+        position: absolute;
+        left: 50%;
+        top: 0px;
+        margin-left: -20px;
         color: $slt-green-color;
         font-size: 14px;
         line-height: 14px;
         background-color: transparent;
         margin-bottom: 10px !important;
+    }
+    .look-thumbnail {
+        display: inline-block;
+        margin: 5px;
+        width: 150px;
+        height: auto;
+        text-align: center;
+        vertical-align: top;
+        img.image {
+            display: inline-block;
+            max-width: 100%;
+            max-height: 100px;
+            width: auto;
+            opacity: 1;
+            margin: 0 0 5px;
+        }
+        .name {
+            width: 100%;
+            margin: auto;
+            text-align: center;
+            font-size: 10px;
+            white-space: normal;
+            text-transform: none;
+        }
     }
     .carousel-region {
         width: 100%;
@@ -958,7 +987,7 @@ body {
             height: 100%;
             text-align: center;
             white-space: nowrap;
-            .stl-item, .look-thumbnail {
+            .stl-item {
                 display: inline-block;
                 margin: 5px;
                 width: 150px;

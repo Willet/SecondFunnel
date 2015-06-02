@@ -89,27 +89,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ExpandedContent.prototype.events =
         "click .look-thumbnail, .back-to-recipe": (event) ->
-            @$el.find('.look-thumbnail').hide()
-            @$el.find('.info').hide()
-            @$el.find('.look-image-container').show()
-            @lookProductIndex = -1
-            @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
-            if App.support.mobile()
-                @carouselRegion.currentView.index = Math.max(0, @carouselRegion.currentView.index - 1)
-                if App.utils.landscape()
-                    @carouselRegion.currentView.calculateVerticalPosition()
-                else
-                    @carouselRegion.currentView.calculateHorizontalPosition()
+            @taggedProductIndex = -1
+            @renderView()
             return
 
         "click .stl-look .stl-item": (event) ->
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
-            @lookProductIndex = $targetEl.data("index")
+            @taggedProductIndex = $targetEl.data("index")
             if App.support.mobile() and not @$el.find('.look-thumbnail').is(':visible')
                 @carouselRegion.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @carouselRegion.currentView.index + 1)
-            @updateCarousel()
-            product = new App.core.Product(@model.get("tagged-products")[@lookProductIndex])
+            product = @renderView()
             App.vent.trigger('tracking:product:thumbnailClick', product)
             return
 
@@ -122,108 +112,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $recipe.siblings(".scroll-cta").show()
         return
 
-    module.ExpandedContent::resizeContainer = ->
-        ###
-        Returns a callback that sizes the preview container.
-        ###
-        shrinkContainer = =>
-            =>
-                $window = $(window)
-                $container = @$el.closest(".fullscreen")
-                $containedItem = @$el.closest(".content")
-                $feature = $containedItem.find(".feature") 
-                if _.isEmpty($containedItem.find(".feature"))
-                    $feature = $containedItem.find(".preview-container")
-                else
-                    $feature = $containedItem.find(".feature")
-                $overflow = $containedItem.find(".overflow")
-                
-                # must wait for all images to load
-                if --imageCount isnt 0
-                    return
-
-                # product view must be initialized after elements load so that the banner can be updated
-                if @productInfo.currentView is undefined
-                    @updateCarousel()
-
-                if @model.get("type") is "image" or @model.get("type") is "gif"
-                    if @lookProductIndex > -1
-                        @$el.find(".look-thumbnail").show()
-                    else
-                        @$el.find(".look-thumbnail").hide()
-                $(".recipe").scroll( =>
+    # Patch shrinkContainerCallback to enble recipe scrolling when images are loaded
+    module.ExpandedContent::coreShrinkContainerCallback = module.ExpandedContent::shrinkContainerCallback
+    module.ExpandedContent::shrinkContainerCallback = ->
+        cb = @coreShrinkContainerCallback()
+        return =>
+            cb(arguments)
+            # must wait for all images to load
+            if @_imageCount is 0
+                $(".recipe").scroll(=>
                     @updateScrollCta()
                     return
                 )
-                $container.css(
-                    top: "0"
-                    bottom: "0"
-                    left: "0"
-                    right: "0"
-                )
-                # Reset feature and container height
-                $containedItem.css(
-                    'height': '100%'
-                    'max-height': '640px'
-                )
-                $feature.css('height', '100%')
-
-                # Popup sizing works by the featured area filling up as much room as the container will let it
-                # In order to support overlowing content, need to let the featured content expand in the
-                # constrained container, lock in the size, then let the container expand to fit the overflow content
-                if _.some($overflow.map(-> return $(@).outerHeight()))
-                    # Content overflows (one or more .overflow elements have non-zero height)
-                    $overflow.hide()
-                    # Lock in featured content height
-                    $feature.css('height', $feature.outerHeight())
-                    # Reveal overflow
-                    $overflow.show()
-                    heightValue = 'auto'
-                    maxHeightValue = 'none'
-                    heightReduction =  10
-                    widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
-                else
-                    # Content fits in window, center it
-                    heightValue = '100%'
-                    maxHeightValue = 640
-                    heightReduction = ($window.height() - $containedItem.outerHeight()) / 2
-                    widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
-                    if heightReduction <= 0 # String because jQuery checks for falsey values
-                        heightReduction = "0"
-                    if widthReduction <= 0 # String because jQuery checks for falsey values
-                        widthReduction = "0"
-                if App.support.mobile()
-                    heightReduction = widthReduction = 0
-                    maxHeightValue = 'none'
-                    
-                $container.css(
-                    left: widthReduction
-                    right: widthReduction
-                )
-                $containedItem.css(
-                    'height': heightValue
-                    'max-height': maxHeightValue
-                    'margin-top': heightReduction
-                    'margin-bottom': heightReduction
-                )
-                $container.removeClass("loading-images")
-                @updateScrollCta()
-                return
-
-        imageCount = $("img.load-image", @$el).length
-
-        # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
-        $("img.load-image", @$el).one("load", shrinkContainer()).each ->
-            if @complete
-                # Without the timeout the box may not be rendered. This lets the onShow method return
-                setTimeout (=>
-                    $(@).load()
-                    return
-                ), 1
             return
 
-        return
-
+    # Patch onShow
+    module.ExpandedContent::coreOnShow = module.ExpandedContent::onShow
     module.ExpandedContent::onShow = ->
         if App.support.mobile()
             if App.utils.landscape()
@@ -238,94 +142,99 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
         else
             @$el.closest(".previewContainer").removeClass("landscape")
-            @$el.closest(".fullscreen").addClass("loading-images")
-        @$el.find('.info').hide()
-        if @model.get("tagged-products")?.length > 0
-            @lookProductIndex = -1
-            carouselInstance = new module.CarouselView(
-                items: @model.get('tagged-products'),
-                attrs: { 'lookImageSrc': @model.get('images')[0].url }
-            )
-            @carouselRegion.show(carouselInstance)
-        @$el.find('.look-thumbnail').hide()
-        @resizeContainer()
+
+        @coreOnShow()
 
         if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
             $(".stick-bottom", @$el).addClass("stuck").waypoint("sticky",
                 offset: "bottom-in-view"
                 direction: "up"
             )
-        if @model.get("similar-products")?.length > 0
-            similarProductsInstance = new module.SimilarProductsView(@model.get("similar-products"))
-            @similarProducts.show(similarProductsInstance)
         return
 
     module.ExpandedContent::swipeStatus = (event, phase, direction, distance, fingers, duration) ->
         productImageIndex = @productInfo.currentView?.galleryIndex or 0
         numberOfImages = (@productInfo.currentView?.numberOfImages - 1) or 0
-        if @lookProductIndex > -1
+        index = @_taggedProductIndex # local copy to modify
+        if taggedProductIndex > -1
             # delegate swipe to ProductView to swipe through images
             unless (direction is 'left' and productImageIndex is numberOfImages) or (direction is 'right' and productImageIndex is 0)
                 @productInfo.currentView.swipeStatus(event, phase, direction, distance, fingers, duration)
                 return
         if phase is 'end'
             if direction is 'right'
-                @lookProductIndex--
+                index--
                 # swipe from recipe to last product
-                if @lookProductIndex < -1
-                    @lookProductIndex = @model.get('tagged-products').length - 1
+                if index < -1
+                    index = @taggedProducts.length - 1
                     if App.support.mobile()
                         @carouselRegion.currentView.index = Math.min($('.stl-look').children().length - 1, @carouselRegion.currentView.index + 1)
                 # swipe from first product to recipe
-                else if @lookProductIndex is -1 and App.support.mobile()
+                else if index is -1 and App.support.mobile()
                     @carouselRegion.currentView.index = Math.max(0, @carouselRegion.currentView.index - 1)
             else if direction is 'left'
-                @lookProductIndex++
+                index++
                 # swipe from last product to recipe
-                if @lookProductIndex is @model.get('tagged-products')?.length
-                    @lookProductIndex = -1
+                if index is @taggedProducts.length
+                    index = -1
                     if App.support.mobile()
                         @carouselRegion.currentView.index = Math.max(0, @carouselRegion.currentView.index - 1)
-                else if @lookProductIndex is 0 and App.support.mobile()
+                else if index is 0 and App.support.mobile()
                     @carouselRegion.currentView.index = Math.min($('.stl-look').children(':visible').length - 1, @carouselRegion.currentView.index + 1)
-            @updateCarousel()
+            @taggedProductIndex = index
+            @renderView()
         return @
 
-    module.ExpandedContent::updateCarousel = ->
-        if @lookProductIndex < 0
-            @$el.find('.look-thumbnail').hide()
-            @$el.find('.info').hide()
-            @$el.find('.look-image-container').show()
-            @$el.find('.stl-item').removeClass("selected")
-            @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
-            if App.support.mobile() and @model.get("tagged-products")?.length > 0
-                if App.utils.landscape()
-                    @carouselRegion.currentView.calculateVerticalPosition()
-                else
-                    @carouselRegion.currentView.calculateHorizontalPosition()
-        else
-            @$el.find(".stl-item").filter("[data-index=#{@lookProductIndex}]")
-                .addClass("selected").siblings().removeClass("selected")
+    module.ExpandedContent::renderView = () ->
+        # Tagged product selected
+        if -1 < @taggedProductIndex < @taggedProducts.length
+            @_currentIndex = @taggedProductIndex
+
+            product = @taggedProducts[@taggedProductIndex]
+            if not @product
+                # Recipes have "back to recipe" links
+                product.set("recipe-name", @model.get('name') or @model.get('title'))
+
             @$el.find('.info').show()
             @$el.find('.look-image-container').hide()
-            @$el.find('.look-thumbnail').show()
-            if @model.get("type") is "product"
-                product = new module.Product(@model.attributes)
-            else if @model.get("tagged-products")?.length > 0
-                product = new module.Product(@model.get("tagged-products")[@lookProductIndex])
-            unless product is undefined
-                product.set("recipe-name", @model.get('name') or @model.get('title'))
-                productInstance = new module.ProductView(
-                    model: product
-                )
-                @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
-                @productInfo.show(productInstance)
-            if App.support.mobile() and @model.get("tagged-products")?.length > 0
+            @$el.find('.shop').addClass('look-visible')
+            @carouselRegion.currentView?.selectItem(@taggedProductIndex)
+            if App.support.mobile() and @taggedProducts.length > 0 and @carouselRegion.currentView?
                 if App.utils.landscape()
                     @carouselRegion.currentView.calculateVerticalPosition()
                 else
                     @carouselRegion.currentView.calculateHorizontalPosition()
-        return
+        
+        # Main content selected
+        else
+            @_currentIndex = -1
+            # Product popup
+            if @product
+                product = @product
+                @$el.find('.info').show()
+                @$el.find('.look-image-container').hide()
+            # Image popup
+            else
+                @$el.find('.info').hide()
+                @$el.find('.look-image-container').show()
+                @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
+
+            @$el.find('.shop').removeClass('look-visible')
+            @carouselRegion.currentView?.deselectItems()
+            if App.support.mobile() and @carouselRegion.currentView?
+                @carouselRegion.currentView.index = Math.max(0, @carouselRegion.currentView.index - 1)
+                if App.utils.landscape()
+                    @carouselRegion.currentView.calculateVerticalPosition()
+                else
+                    @carouselRegion.currentView.calculateHorizontalPosition()
+
+        if product
+            productInstance = new module.ProductView(
+                model: product
+            )
+            @productInfo.show(productInstance)
+            @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
+        return product
 
     module.ExpandedContent::close = ->
         # See NOTE in onShow

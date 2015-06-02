@@ -284,7 +284,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             defaultImage = @getDefaultImage()
 
             # Transform related-product image, if necessary
-            relatedProducts = @get("tagged-products")
+            # Merge tagged-products (content tiles) & similar-products (product tiles)
+            # Let view deal with the difference
+            relatedProducts = @get("tagged-products") or []
             unless _.isEmpty(relatedProducts)
                 relatedProducts = _.map(relatedProducts, (product) ->
                     originalImages = product.images or []

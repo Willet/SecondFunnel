@@ -9,7 +9,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     $document = $(document)
 
     ###
-    View that provides carousel animations/swipe gestures.
+    View that provides carousel animations/swipe gestures.  Is ignorant to contained content
     
     @constructor
     @type {ItemView}
@@ -55,7 +55,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onRender: ->
-            @setElement(@$el.children())
+            # Get rid of that pesky wrapping-div
+            @$el = @$el.children() # NOTE 1st child will be come element, all other children will be dropped
+            @$el.unwrap() # Unwrap the element to prevent infinitely nesting elements during re-render
+            @setElement(@$el)
             return
 
         onShow: ->
@@ -85,6 +88,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @calculateVerticalPosition(direction)
             return @
 
+        selectItem: (index) ->
+            @$el.find(".stl-item").filter("[data-index=#{index}]")
+                    .addClass("selected").siblings().removeClass("selected")
+
+        deselectItems: () ->
+            @$el.find(".stl-item").removeClass("selected")
+
         ###
         Moves carousel and shows/hides arrows based on updated carousel position.
 
@@ -95,24 +105,25 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         updateCarousel: (distance, orientation, duration=300) ->
             updateArrows = =>
                 $items = @slide.children(":visible")
-                if orientation is "landscape"
-                    if Math.round($items.first().offset().left) >= Math.round(@container.offset().left)
-                        @leftArrow.hide()
+                unless $items.length == 0
+                    if orientation is "landscape"
+                        if Math.round($items.first().offset().left) >= Math.round(@container.offset().left)
+                            @leftArrow.hide()
+                        else
+                            @leftArrow.show()
+                        if Math.round($items.last().offset().left + $items.last().width()) <= Math.round(@container.offset().left + @container.width())
+                            @rightArrow.hide()
+                        else
+                            @rightArrow.show()
                     else
-                        @leftArrow.show()
-                    if Math.round($items.last().offset().left + $items.last().width()) <= Math.round(@container.offset().left + @container.width())
-                        @rightArrow.hide()
-                    else
-                        @rightArrow.show()
-                else
-                    if Math.round($items.first().offset().top) >= Math.round(@container.offset().top)
-                        @upArrow.hide()
-                    else
-                        @upArrow.show()
-                    if Math.round($items.last().offset().top + $items.last().outerHeight()) <= Math.round(@container.offset().top + @container.height())
-                        @downArrow.hide()
-                    else
-                        @downArrow.show()
+                        if Math.round($items.first().offset().top) >= Math.round(@container.offset().top)
+                            @upArrow.hide()
+                        else
+                            @upArrow.show()
+                        if Math.round($items.last().offset().top + $items.last().outerHeight()) <= Math.round(@container.offset().top + @container.height())
+                            @downArrow.hide()
+                        else
+                            @downArrow.show()
                 return
             @upArrow.hide()
             @downArrow.hide()
@@ -431,7 +442,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if @model?
                     contentOpts = model: @model
                     contentInstance = undefined
-                    if _.contains(contentOpts.model.get("type", ""), "hero")
+                    if _.contains(_.get(contentOpts.model, "type", ""), "hero")
                         contentInstance = new module.HeroContent(contentOpts)
                     else
                         contentInstance = new module.PreviewContent(contentOpts)

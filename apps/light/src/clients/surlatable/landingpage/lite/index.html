@@ -183,12 +183,7 @@
         </script>
 
         <script type="text/template" id="product_info_template">
-            <div class='tagged-product row'>
-                <div class="cell title-banner desktop-only">
-                    <div class="title">
-                        <% include("product_title_template") %>
-                    </div>
-                </div>
+            <div class="tagged-product">
                 <div class="product-details mobile-only">
                     <div class='title'>
                         <% include("product_title_template") %>
@@ -197,33 +192,31 @@
                         <% include("product_price_template") %>
                     </div>
                 </div>
-                <div class="cell info">
-                    <div class="gallery-main-image">
-                        <% if (obj.images.length > 1) { %>
-                            <div class="gallery-swipe-left"></div>
-                            <div class="gallery-swipe-right"></div>
-                        <% } %>
-                        <% include("product_galleryMainImage_template") %>
-                        <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'>
-                            <% include("product_galleryDots_template") %>
-                        </div>
-                        <div class='buy mobile-only'>
-                            <% include("product_buy_template") %>
-                        </div>
+                <div class="gallery-main-image">
+                    <% if (obj.images.length > 1) { %>
+                        <div class="gallery-swipe-left"></div>
+                        <div class="gallery-swipe-right"></div>
+                    <% } %>
+                    <% include("product_galleryMainImage_template") %>
+                    <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'>
+                        <% include("product_galleryDots_template") %>
                     </div>
-                    <div class="product-details desktop-only">
-                        <div class='title'>
-                            <% include("product_title_template") %>
-                        </div>
-                        <div class='price'>
-                            <% include("product_price_template") %>
-                        </div>
-                        <div class='description'>
-                            <% include("product_description_template") %>
-                        </div>
-                        <div class='buy'>
-                            <% include("product_buy_template") %>
-                        </div>
+                    <div class='buy mobile-only'>
+                        <% include("product_buy_template") %>
+                    </div>
+                </div>
+                <div class="product-details desktop-only">
+                    <div class='title'>
+                        <% include("product_title_template") %>
+                    </div>
+                    <div class='price'>
+                        <% include("product_price_template") %>
+                    </div>
+                    <div class='description'>
+                        <% include("product_description_template") %>
+                    </div>
+                    <div class='buy'>
+                        <% include("product_buy_template") %>
                     </div>
                 </div>
                 <div class="description mobile-only">
@@ -268,21 +261,47 @@
                     <div class='buy'>
                         <% include("product_buy_template") %>
                     </div>
+                    <% if (obj['recipe-name']) { %>
                     <div class="back-to-recipe">
-                        <% if (obj['recipe-name']) { %>
-                            Back to <%- obj['recipe-name'] %> Recipe
-                        <% } else { %>
-                            Back to Recipe
-                        <% } %>
+                        Back to <%- obj['recipe-name'] %> Recipe
                     </div>
+                    <% } %>
                 </div>
             </div>
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <div class="product-info table feature"></div>
+            <% var similar = Boolean(obj['tagged-products'].length > 0) %>
+            <div class="table <%= obj.orientation %>">
+                <div class="row">
+                    <div class="cell title-banner desktop-only">
+                        <div class="title">
+                            <% include("product_title_template") %>
+                        </div>
+                    </div>
+                    <div class="cell info <% if (similar) { %>similar<% } %>">
+                        <div class="product-info"></div>
+                    </div>
+                    <% if (similar) { %>
+                    <div class="cell shop">
+                        <div class="table">
+                            <div class="stl-title"><span>Similar Gifts</span></div>
+                            <div class="look-thumbnail desktop-only">
+                                <div>
+                                    <div class="back">Back</div>
+                                    <img src="<%= obj.images[0].url %>" class="image" />
+                                    <div class="name desktop-only">
+                                        <%= obj.name %>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="carousel-region"></div>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
-            <div class="similar-products cell overflow"></div>
         </script>
 
         <script type="text/template" id="similar_products_template">
@@ -333,12 +352,20 @@
             <div class="cell info">
                 <div class="product-info"></div>
             </div>
+            <% if (obj['tagged-products'].length > 0) { %>
             <div class="cell shop">
-                <% if (obj['tagged-products'].length > 0) { %>
-                    <div class="stl-title">Perfect Gifts For This Recipe</div>
-                    <div class="carousel-region"></div>
-                <% } %>
+                <div class="stl-title"><span>Perfect Gifts For This Recipe</span></div>
+                <div class="look-thumbnail mobile-only">
+                    <div>
+                        <img src="<%= obj.images[0].url %>" class="image" />
+                        <div class="name desktop-only">
+                            <%= obj.name %>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-region"></div>
             </div>
+            <% } %>
         </script>
 
         <script type="text/template" id="mobile_tagged_products">
@@ -361,12 +388,20 @@
                     <div class="product-info"></div>
                 </div>
             </div>
+            <% if (obj['tagged-products'].length > 0) { %>
             <div class="cell shop">
-                <% if (obj['tagged-products'].length > 0) { %>
-                    <div class="stl-title">Perfect Gifts For This Recipe</div>
-                    <div class="carousel-region"></div>
-                <% } %>
+                <div class="stl-title">Perfect Gifts For This Recipe</div>
+                <div class="look-thumbnail mobile-only">
+                    <div>
+                        <img src="<%= obj.images[0].url %>" class="image" />
+                        <div class="name desktop-only">
+                            <%= obj.name %>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-region"></div>
             </div>
+            <% } %>
         </script>
 
         <script type="text/template" id="carousel_template">
@@ -379,15 +414,16 @@
                     <div class="stl-look carousel-slide">
                         <div class="look-thumbnail mobile-only">
                             <img src="<%= obj.attrs['lookImageSrc'] %>" class="image" />
+                            <div class="name">
+                                <%= obj.attrs['lookName'] %>
+                            </div>
                         </div>
                         <% var related = obj.items; %>
                         <% for (var i = 0; i < related.length; i++) { %>
-                            <div class="stl-item" data-index="<%- i %>">
-                                <img src="<%- related[i].images[0].url %>" class="image" />
-                                <div class="name desktop-only">
-                                    <%- related[i].title || related[i].name %>
-                                </div>
-                            </div>
+                        <div class="stl-item" data-index="<%- i %>">
+                            <img src="<%- related[i].images[0].url %>" class="image" />
+                            <div class="name desktop-only"><%- related[i].title || related[i].name %></div>
+                        </div>
                         <% } %>
                     </div>
                 </div>

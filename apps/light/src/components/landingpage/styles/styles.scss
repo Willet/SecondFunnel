@@ -1,9 +1,11 @@
 @charset "UTF-8";
+@import "/base.scss";
 
 
 .main-image-container {
     padding-left: 0;
     padding-right: 0;
+    @include no-select;
 }
 
 @media (min-width: 768px) {
