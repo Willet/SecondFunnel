@@ -193,16 +193,17 @@
                     </div>
                 </div>
                 <div class="gallery-main-image">
-                    <% if (obj.images.length > 1) { %>
-                        <div class="gallery-swipe-left"></div>
-                        <div class="gallery-swipe-right"></div>
-                    <% } %>
+                    <div class="gallery-swipe-left"></div>
+                    <div class="gallery-swipe-right"></div>
                     <% include("product_galleryMainImage_template") %>
-                    <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'>
+                    <div class='gallery-dots'>
                         <% include("product_galleryDots_template") %>
                     </div>
                     <div class='buy mobile-only'>
                         <% include("product_buy_template") %>
+                    </div>
+                    <div class='description mobile-only'>
+                        <% include("product_description_template") %>
                     </div>
                 </div>
                 <div class="product-details desktop-only">
@@ -219,9 +220,6 @@
                         <% include("product_buy_template") %>
                     </div>
                 </div>
-                <div class='description mobile-only'>
-                    <% include("product_description_template") %>
-                </div>
             </div>
         </script>
 
@@ -236,12 +234,10 @@
                     </div>
                 </div>
                 <div class="gallery-main-image">
-                    <% if (obj.images.length > 1) { %>
-                        <div class="gallery-swipe-left"></div>
-                        <div class="gallery-swipe-right"></div>
-                    <% } %>
+                    <div class="gallery-swipe-left"></div>
+                    <div class="gallery-swipe-right"></div>
                     <% include("product_galleryMainImage_template") %>
-                    <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'>
+                    <div class='gallery-dots'>
                         <% include("product_galleryDots_template") %>
                     </div>
                     <div class='buy mobile-only'>

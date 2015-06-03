@@ -1029,8 +1029,9 @@ body {
                     width: 80%;
                 }
             }
-            .info, .look-image-container {
-                height: 100% !important;
+            .info, .info.tagged,
+            .look-image-container {
+                height: 100%;
             }
             .look-product-carousel {
                 width: 80%;
@@ -1160,6 +1161,12 @@ body {
         }
         .product {
             .info {
+                .main-image-container {
+                    height: 59%;
+                }
+                .buy {
+                    height: 11%;
+                }
                 .description {
                     width: 100%;
                     height: 28%;
@@ -1171,19 +1178,34 @@ body {
                 .main-image .description {
                     display: none;
                 }
-                .gallery-dots .description-dot {
-                    display: none;
+                .gallery-dots {
+                    bottom: 40%;
+                    .description-dot {
+                        display: none;
+                    }
                 }
             }
             .info.tagged {
+                .main-image-container {
+                    height: 85%;
+                }
+                .buy {
+                    height: 15%;
+                }
                 .description {
                     display: none;
                 }
                 .main-image .description {
                     display: inline-block;
+                    height: auto;
+                    max-height: 90%;
+                    padding: 10px 5px 0 45px;
                 }
-                .gallery-dots .description-dot {
-                    display: inline-block;
+                .gallery-dots {
+                    bottom: 16%;
+                    .description-dot {
+                        display: inline-block;
+                    }
                 }
             }
         }
@@ -1301,8 +1323,7 @@ body {
                     }
                     img {
                         height: 100%;
-                        max-width: none !important;
-                        max-height: none !important;
+                        max-height: none;
                     }
                 }
             }
