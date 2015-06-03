@@ -271,7 +271,7 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <% var similar = Boolean(obj['tagged-products'].length > 0) %>
+            <% var tagged = Boolean(obj['tagged-products'].length > 0) %>
             <div class="table <%= obj.orientation %>">
                 <div class="row">
                     <div class="cell title-banner desktop-only">
@@ -279,10 +279,10 @@
                             <% include("product_title_template") %>
                         </div>
                     </div>
-                    <div class="cell info <% if (similar) { %>similar<% } %>">
+                    <div class="cell info <% if (tagged) { %>tagged<% } %>">
                         <div class="product-info"></div>
                     </div>
-                    <% if (similar) { %>
+                    <% if (tagged) { %>
                     <div class="cell shop">
                         <div class="table">
                             <div class="stl-title"><span>Similar Gifts</span></div>
@@ -330,6 +330,7 @@
         </script>
 
         <script type="text/template" id="desktop_tagged_products">
+            <% var tagged = Boolean(obj['tagged-products'].length > 0) %>
             <div class="cell title-banner">
                 <div class="title">
                     <% include("product_title_template") %>
@@ -349,10 +350,10 @@
                     </div>
                 </div>
             </div>
-            <div class="cell info">
+            <div class="cell info <% if (tagged) { %>tagged<% } %>">
                 <div class="product-info"></div>
             </div>
-            <% if (obj['tagged-products'].length > 0) { %>
+            <% if (tagged) { %>
             <div class="cell shop">
                 <div class="stl-title"><span>Perfect Gifts For This Recipe</span></div>
                 <div class="look-thumbnail mobile-only">
@@ -369,6 +370,7 @@
         </script>
 
         <script type="text/template" id="mobile_tagged_products">
+            <% var tagged = Boolean(obj['tagged-products'].length > 0) %>
             <div class="look-product-carousel">
                 <div class="cell look-image-container">
                     <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
@@ -384,11 +386,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="cell info">
+                <div class="cell info <% if (tagged) { %>tagged<% } %>">
                     <div class="product-info"></div>
                 </div>
             </div>
-            <% if (obj['tagged-products'].length > 0) { %>
+            <% if (tagged) { %>
             <div class="cell shop">
                 <div class="stl-title">Perfect Gifts For This Recipe</div>
                 <div class="look-thumbnail mobile-only">

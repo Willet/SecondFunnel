@@ -8,8 +8,8 @@ swipe = require('jquery-touchswipe')
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.ProductView::onShow = ->
         if App.support.mobile()
-            # Add one for description slide unless it's a product popup in portrait mode or without tagged products
-            if @model.get('type') is "product" and (App.utils.portrait() or _.isEmpty(@model.get('tagged-products')))
+            # Add one for description slide unless it's a product popup in portrait mode without tagged products
+            if @model.get('type') is "product" and App.utils.portrait() and _.isEmpty(@model.get('tagged-products'))
                 @numberOfImages = @model.get('images').length
             else
                 @numberOfImages = @model.get('images').length + 1
