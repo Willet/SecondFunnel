@@ -373,8 +373,9 @@ body {
 
 .previewContainer,
 .heroContainer {
-    .scrollable, .content, .preview-container, .template.target, .table,
-    .row, .image-with-tagged-products, .image-without-tagged-products {
+    .content, .image-with-tagged-products, .image-without-tagged-products,
+    .main-image-container, .main-image, .preview-container, .product-info,
+    .row, .scrollable, .table, .tagged-product, .template.target {
         width: 100%;
         height: 100%;
     }
@@ -510,11 +511,6 @@ body {
             }
         }
     }
-    .product-info, .tagged-product,
-    .main-image-container, .main-image {
-        width: 100%;
-        height: 100%;
-    }
     .gallery-main-image {
         display: inline-block;
         vertical-align: top;
@@ -609,7 +605,7 @@ body {
     }
     .shop {
         position: absolute;
-        width: auto !important;
+        width: auto;
         padding: 0;
         margin-top: 5px;
         left: 10px;
@@ -637,16 +633,12 @@ body {
             position: relative;
             z-index: 1;
             cursor: pointer;
-            margin-left: -100%;
             overflow: hidden;
-            width: 0px;
-            @include transition(width, 0.5s, ease);
+            width: 200px;
             @include no-select;
             >div {
-                @include transition(margin 0.5s ease);
                 width: 200px;
                 padding: 0 20px 0 10px;
-                margin-left: -200px;
             }
             .back {
                 color: $slt-purple-color;
@@ -660,14 +652,6 @@ body {
             }
             .name {
                 padding: 0 10px;
-            }
-        }
-        &.look-visible {
-            .look-thumbnail {
-                width: 200px;
-                >div {
-                    margin-left: 0px;
-                }
             }
         }
     }
@@ -813,6 +797,32 @@ body {
     }
 }
 
+// DESKTOP ONLY
+@media screen and (min-width: 992px) {
+    .previewContainer,
+    .heroContainer {
+        .shop {
+            .look-thumbnail {
+                width: 0px;
+                @include transition(width, 0.5s, ease);
+                >div {
+                    margin-left: -200px;
+                    @include transition(margin 0.5s ease);
+                }
+            }
+            &.look-visible {
+                .look-thumbnail {
+                    width: 200px;
+                    >div {
+                        margin-left: 0px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MOBILE & TABLET ONLY
 @media screen and (max-width: 991px) {
     .tile {
         width: 50%;
@@ -823,6 +833,7 @@ body {
     }
 }
 
+// MOBILE ONLY
 @media screen and (max-width: 768px) {
     .fullscreen, .content, .scrollable, .content
     .preview-container, .template.target, .table, .row,
