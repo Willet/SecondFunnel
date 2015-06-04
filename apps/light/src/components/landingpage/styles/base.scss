@@ -29,6 +29,14 @@ $max-page-width: 1024px;
     user-select: none;
 }
 
+@mixin transition($property...) {
+    -webkit-transition: $property;
+    -moz-transition: $property;
+    -ms-transition: $property;
+    -o-transition: $property;
+    transition: $property;
+}
+
 /***** DEFAULTS *****/
 
 html, body {
@@ -90,6 +98,10 @@ html.no-js .no-noscript {
     >div {
         width: inherit;
     }
+}
+
+.scrollable {
+    overflow-y: scroll;
 }
 
 /***** PAGE SECTIONS *****/
@@ -332,11 +344,7 @@ div.loading {
 .heroContainer .stl-item .overlay  {
     opacity: 0;
     filter: alpha(opacity=0);
-    -webkit-transition: opacity 0.25s ease-in-out;
-    -moz-transition: opactiy 0.25s ease-in-out;
-    -ms-transition: opacity 0.25s ease-in-out;
-    -o-transition: opacity 0.25s ease-in-out;
-    transition: opacity 0.25s ease-in-out;
+    @include transition(opacity 0.25s ease-in-out);
     background: rgba(255,255,255,0.60);
     text-align: center;
     position: absolute;
@@ -549,7 +557,7 @@ div.loading {
     }
     .content {
         width: 100%;
-        overflow-y: auto;
+        overflow-y: hidden;
         overflow-x: hidden;
         margin: auto;
         position: relative;
@@ -932,51 +940,12 @@ div.spinner {
     }
 }
 
-@-keyframes fade {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0.25;
-    }
-}
-
-@-o-keyframes fade {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0.25;
-    }
-}
-
-@-ms-keyframes fade {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0.25;
-    }
-}
-
-@-moz-keyframes fade {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0.25;
-    }
-
-}
-
-@-webkit-keyframes fade {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0.25;
-    }
-}
+@-o-keyframes fade { from { opacity: 1; } to { opacity: 0.25; } }
+@-ms-keyframes fade { from { opacity: 1; } to { opacity: 0.25; } }
+@-moz-keyframes fade { from { opacity: 1; } to { opacity: 0.25; } }
+@-webkit-keyframes fade { from { opacity: 1; } to { opacity: 0.25; } }
+@-keyframes fade { from { opacity: 1; } to { opacity: 0.25; } }
+@keyframes fade { from { opacity: 1; } to { opacity: 0.25; } }
 
 @media screen and (max-width: 768px) {
     #category-area.mobile-dropdown {

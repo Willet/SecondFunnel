@@ -108,7 +108,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @lookProductIndex = $targetEl.data("index")
             if App.support.mobile() and not @$el.find('.look-thumbnail').is(':visible')
                 @carouselRegion.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @carouselRegion.currentView.index + 1)
-            @updateCarousel()
+            @updateContent()
             product = new App.core.Product(@model.get("tagged-products")[@lookProductIndex])
             App.vent.trigger('tracking:product:thumbnailClick', product)
             return
@@ -137,7 +137,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                 # product view must be initialized after elements load so that the banner can be updated
                 if @productInfo.currentView is undefined
-                    @updateCarousel()
+                    @updateContent()
 
                 if @model.get("type") is "image" or @model.get("type") is "gif"
                     if @lookProductIndex > -1
@@ -246,10 +246,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         @carouselRegion.currentView.index = Math.max(0, @carouselRegion.currentView.index - 1)
                 else if @lookProductIndex is 0 and App.support.mobile()
                     @carouselRegion.currentView.index = Math.min($('.stl-look').children(':visible').length - 1, @carouselRegion.currentView.index + 1)
-            @updateCarousel()
+            @updateContent()
         return @
 
-    module.ExpandedContent::updateCarousel = ->
+    module.ExpandedContent::updateContent = ->
         if @lookProductIndex < 0
             @$el.find('.look-thumbnail').hide()
             @$el.find('.info').hide()

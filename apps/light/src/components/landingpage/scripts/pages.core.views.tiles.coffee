@@ -154,7 +154,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onMissingTemplate: ->
-
             # If a tile fails to load, destroy the model
             # and subsequently this tile.
             console.warn "Missing template - this view is closing.", this
@@ -214,7 +213,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onClick: ->
         	if App.option('page:tiles:openProductTileInPDP')
-                App.utils.openUrl @model.get("url")
+                App.utils.openUrl(@model.get("url"))
             else
                 super
             return        

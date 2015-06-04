@@ -163,6 +163,25 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.Product extends Backbone.Model
 
 
+    class module.SimilarProduct extends module.Product
+        ### 
+        A SimilarProduct has tile-like attributes so that it can be mapped to tile templates
+        ###
+        initialize: (attributes, options) ->
+            # Convert image json into objects
+            imgInstances = _.map(@get("images"), (image) ->
+                new module.Image($.extend(true, {}, image))
+            ) or []
+            defaultImage = imgInstances[0]
+            @set
+                images: imgInstances
+                image: defaultImage
+                defaultImage: defaultImage
+                "tagged-products": []
+                "dominant-color": defaultImage.get("dominant-color")
+            return
+
+
     class module.ProductCollection extends Backbone.Collection
         model: module.Product
 
@@ -265,18 +284,20 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             defaultImage = @getDefaultImage()
 
             # Transform related-product image, if necessary
-            relatedProducts = @get("tagged-products")
+            # Merge tagged-products (content tiles) & similar-products (product tiles)
+            # Let view deal with the difference
+            relatedProducts = @get("tagged-products") or []
             unless _.isEmpty(relatedProducts)
                 relatedProducts = _.map(relatedProducts, (product) ->
                     originalImages = product.images or []
                     newImages = []
-                    _.each originalImages, (image) ->
+                    _.each(originalImages, (image) ->
                         imgObj = $.extend(true, {}, image)
-                        newImages.push new module.Image(imgObj)
+                        newImages.push(new module.Image(imgObj))
                         return
-
+                    )
                     product.images = newImages
-                    product
+                    return product
                 )
             @set
                 images: imgInstances
@@ -285,7 +306,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 "tagged-products": relatedProducts
                 "dominant-color": defaultImage.get("dominant-color")
 
-            App.vent.trigger "tileModelInitialized", this
+            App.vent.trigger("tileModelInitialized", @)
             return
 
         ###
@@ -320,7 +341,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # timing: attributes.images already coverted to Images
             else if defImg instanceof module.Image
                 return defImg
-            new module.Image(defImg)
+            return new module.Image(defImg)
 
         getDefaultImageId: ->
             try
@@ -674,9 +695,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                                 category: cat
                         return subMemo
                     , {})
-                return _.extend memo, subCatMemo
+                return _.extend(memo, subCatMemo)
 
-            @nameModelMap = _.reduce @models, categoryFlattener, {}
+            @nameModelMap = _.reduce(@models, categoryFlattener, {})
         
         ###
         Names can be a simple category ('for-her') or complex category ('for-her|under-20')
