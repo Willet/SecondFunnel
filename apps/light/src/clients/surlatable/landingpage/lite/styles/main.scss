@@ -1017,7 +1017,7 @@ body {
     .previewContainer {
         max-height: 100%;
         .tagged-product {
-            padding: 65px 0 40px 0;
+            padding: 65px 0 50px 0; // top - .product-details, bottom - .buy
         }
         &.landscape {
             .close {
@@ -1044,7 +1044,7 @@ body {
                     width: 100% !important;
                 }
             }
-            .info, .product .info {
+            .info, .product .info, .product .info {
                 .tagged-product {
                     padding-bottom: 0px;
                     position: relative;
@@ -1056,8 +1056,11 @@ body {
                     .main-image .description {
                         display: inline-block;
                     }
-                    .gallery-dots .description-dot {
-                        display: inline-block;
+                    .gallery-dots {
+                        bottom: 70px;
+                        .description-dot {
+                            display: inline-block;
+                        }
                     }
                 }
                 .buy {
@@ -1074,6 +1077,10 @@ body {
                 }
                 &.tagged {
                     padding: 0 0 0 20%;
+                    .tagged-product {
+                        padding-bottom: 0px;
+                        position: relative;
+                    }
                     .product-details {
                         left: 0;
                         right: 100px; // Back button
@@ -1158,7 +1165,7 @@ body {
             padding: 0;
             .buy {
                 width: 100%;
-                height: 40px;
+                height: 50px;
                 margin: 0 !important;
                 .button {
                     font-size: 20px;
@@ -1199,7 +1206,7 @@ body {
         .product {
             .info {
                 .tagged-product {
-                    padding-bottom: 180px;
+                    padding-bottom: 190px; // .buy + .description
                 }
                 .description {
                     display: block;
@@ -1214,7 +1221,7 @@ body {
             .info.tagged {
                 padding: 0;
                 .tagged-product {
-                    padding-bottom: 40px;
+                    padding-bottom: 50px; // .buy
                 }
                 .description {
                     display: none;
