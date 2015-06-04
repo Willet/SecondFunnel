@@ -8,8 +8,8 @@ swipe = require('jquery-touchswipe')
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.ProductView::onShow = ->
         if App.support.mobile()
-            # Add one for description slide unless it's a product popup in portrait mode
-            if @model.get('type') is "product" and App.utils.portrait()
+            # Add one for description slide unless it's a product popup in portrait mode without tagged products
+            if @model.get('type') is "product" and App.utils.portrait() and _.isEmpty(@model.get('tagged-products'))
                 @numberOfImages = @model.get('images').length
             else
                 @numberOfImages = @model.get('images').length + 1
@@ -197,7 +197,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             @$el.find('.info').show()
             @$el.find('.look-image-container').hide()
-            @$el.find('.shop').addClass('look-visible')
+            if App.support.mobile() then @$el.find('.look-thumbnail').show() else @$el.find('.shop').addClass('look-visible')
+            
             @carouselRegion.currentView?.selectItem(@taggedProductIndex)
             if App.support.mobile() and @taggedProducts.length > 0 and @carouselRegion.currentView?
                 if App.utils.landscape()
@@ -219,7 +220,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.find('.look-image-container').show()
                 @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
 
-            @$el.find('.shop').removeClass('look-visible')
+            if App.support.mobile() then @$el.find('.look-thumbnail').hide() else @$el.find('.shop').removeClass('look-visible')
+            
             @carouselRegion.currentView?.deselectItems()
             if App.support.mobile() and @carouselRegion.currentView?
                 @carouselRegion.currentView.index = Math.max(0, @carouselRegion.currentView.index - 1)

@@ -9,7 +9,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     $document = $(document)
 
     ###
-    View that provides carousel animations/swipe gestures.  Is ignorant to contained content
+    View that provides carousel animations/swipe gestures without knowledge of contained content!
+
+    Notes:
+        - carousel initialization will render items using carousel_template
+        - can add any additional children to .carousel-slide
+        - carousel behavior is determined by visible child elements of .carousel-slide
     
     @constructor
     @type {ItemView}
@@ -442,7 +447,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if @model?
                     contentOpts = model: @model
                     contentInstance = undefined
-                    if _.contains(_.get(contentOpts.model, "type", ""), "hero")
+                    if _.contains(contentOpts.model.get("type", ""), "hero")
                         contentInstance = new module.HeroContent(contentOpts)
                     else
                         contentInstance = new module.PreviewContent(contentOpts)

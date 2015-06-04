@@ -605,7 +605,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # remember if $.fn.swapWith is called so the feed can be swapped back
             contentInstance.on("feed:swapped", =>
-                @triggerMethod("feed:swapped")
+                @feedSwapped = true
                 return
             )
 
@@ -679,10 +679,3 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 App.feed.layout(App.discovery)
                 App.feed.masonry.resize()
             return
-
-
-        # state-keeping for restoring feed previously swapped out
-        onFeedSwapped: ->
-            @feedSwapped = true
-            return
-
