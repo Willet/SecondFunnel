@@ -1016,6 +1016,9 @@ body {
     }
     .previewContainer {
         max-height: 100%;
+        .tagged-product {
+            padding: 65px 0 40px 0;
+        }
         &.landscape {
             .close {
                 width: 100px;
@@ -1041,7 +1044,11 @@ body {
                     width: 100% !important;
                 }
             }
-            .info {
+            .info, .product .info {
+                .tagged-product {
+                    padding-bottom: 0px;
+                    position: relative;
+                }
                 .gallery-main-image {
                     .main-image-container {
                         height: 100%;
@@ -1052,26 +1059,26 @@ body {
                     .gallery-dots .description-dot {
                         display: inline-block;
                     }
-                    .buy {
-                        position: absolute;
-                        bottom: 8px;
-                        left: 0;
-                        right: 0;
-                        margin: 0 auto !important;
-                        width: 70%;
-                        height: 12%;
-                        .button {
-                            border-radius: 10px;
-                        }
+                }
+                .buy {
+                    position: absolute;
+                    bottom: 8px;
+                    left: 0;
+                    right: 0;
+                    margin: 0 auto !important;
+                    width: 70%;
+                    height: 12%;
+                    .button {
+                        border-radius: 10px;
                     }
                 }
-            }
-            .info.tagged {
-                padding: 0 0 0 20%;
-                .product-details {
-                    left: 20%;
-                    right: 100px; // Back button
-                    width: auto;
+                &.tagged {
+                    padding: 0 0 0 20%;
+                    .product-details {
+                        left: 0;
+                        right: 100px; // Back button
+                        width: auto;
+                    }
                 }
             }
             .shop {
@@ -1147,66 +1154,84 @@ body {
                 }
             }
         }
-        .info.tagged {
-            height: 72%;
+        .info {
             padding: 0;
-            position: relative;
-        }
-        .look-product-carousel {
-            width: 100%;
-            height: 77%;
-            .info, .look-image-container {
-                height: 100% !important;
+            .buy {
+                width: 100%;
+                height: 40px;
+                margin: 0 !important;
+                .button {
+                    font-size: 20px;
+                    border-radius: 0;
+                    line-height: 0;
+                    height: 100%;
+                    span {
+                        position: absolute;
+                        top: 46%;
+                        left: 0;
+                        right: 0;
+                    }
+                    &:hover {
+                        background-color: $slt-green-color;
+                        color: white;
+                    }
+                }
             }
+            .description {
+                width: 100%;
+                height: 140px;
+                padding: 4px 14px 0;
+                text-align: left;
+                font-size: 12px;
+                line-height: 22px;
+            }
+            .main-image .description {
+                height: auto;
+                max-height: 90%;
+                padding: 15px 20px 0 60px;
+            }
+        }
+        .info.tagged {
+            padding: 0; // repeated to beat specaficity
+            height: 72%;
+            position: relative;
         }
         .product {
             .info {
-                .main-image-container {
-                    height: 59%;
-                }
-                .buy {
-                    height: 11%;
+                .tagged-product {
+                    padding-bottom: 180px;
                 }
                 .description {
-                    width: 100%;
-                    height: 28%;
-                    padding: 4px 14px 0;
-                    text-align: left;
-                    font-size: 12px;
-                    line-height: 22px;
+                    display: block;
                 }
                 .main-image .description {
                     display: none;
                 }
-                .gallery-dots {
-                    bottom: 40%;
-                    .description-dot {
-                        display: none;
-                    }
+                .gallery-dots .description-dot {
+                    display: none;
                 }
             }
             .info.tagged {
-                .main-image-container {
-                    height: 85%;
-                }
-                .buy {
-                    height: 15%;
+                padding: 0;
+                .tagged-product {
+                    padding-bottom: 40px;
                 }
                 .description {
                     display: none;
                 }
                 .main-image .description {
                     display: inline-block;
-                    height: auto;
-                    max-height: 90%;
-                    padding: 10px 5px 0 45px;
                 }
-                .gallery-dots {
-                    bottom: 16%;
-                    .description-dot {
-                        display: inline-block;
-                    }
+                .gallery-dots .description-dot {
+                    display: inline-block;
                 }
+            }
+        }
+        .look-product-carousel {
+            width: 100%;
+            height: 72%;
+            .info, .look-image-container {
+                height: 100% !important;
             }
         }
         .product-details {
@@ -1233,39 +1258,11 @@ body {
         .gallery-main-image {
             width: 100%;
             height: 100%;
-            padding-top: 65px;
-            margin: 0 !important;
+            margin: 0;
             .image, .recipe {
                 border-radius: 0;
                 &.full-image {
                     background-size: contain;
-                }
-            }
-            .main-image-container {
-                height: 85%;
-            }
-            .gallery-dots {
-                bottom: 16%;
-            }
-            .buy {
-                width: 100%;
-                height: 15%;
-                margin: 0 !important;
-                .button {
-                    font-size: 20px;
-                    border-radius: 0;
-                    line-height: 0;
-                    height: 100%;
-                    span {
-                        position: absolute;
-                        top: 46%;
-                        left: 0;
-                        right: 0;
-                    }
-                    &:hover {
-                        background-color: $slt-green-color;
-                        color: white;
-                    }
                 }
             }
         }
