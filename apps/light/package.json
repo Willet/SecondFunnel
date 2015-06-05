@@ -128,8 +128,7 @@
     "jquery-deparam": "./lib/jquery-bbq-deparam/jquery-deparam.js",
     "jquery-waypoints": "./lib/jquery-waypoints/waypoints.js",
     "jquery-waypoints-sticky": "./lib/jquery-waypoints/shortcuts/sticky-elements/waypoints-sticky.js",
-    "jquery-scrollto": "./lib/jquery.scrollTo/jquery.scrollTo.js",
-    "owl-carousel": "./lib/owl-carousel/owl-carousel/owl.carousel.js"
+    "jquery-scrollto": "./lib/jquery.scrollTo/jquery.scrollTo.js"
   },
   "browserify-shim": {
     "modernizr": {
@@ -346,12 +345,6 @@
     },
     "jquery-scrollto": {
       "exports": "$.fn.scrollTo",
-      "depends": [
-        "jquery"
-      ]
-    },
-    "owl-carousel2": {
-      "exports": "$.fn.owlCarousel",
       "depends": [
         "jquery"
       ]
