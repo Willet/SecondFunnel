@@ -61,7 +61,7 @@ bleach==1.4
 
 # Image Processing
 Pillow==2.3.0
-cloudinary==1.0.17
+cloudinary==1.1.1
 numpy==1.8.0
 
 ## Database Related
