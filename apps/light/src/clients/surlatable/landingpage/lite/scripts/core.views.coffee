@@ -4,7 +4,7 @@
 
 char_limit = 243
 swipe = require('jquery-touchswipe')
-Modernizr = require('Modernizr')
+Modernizr = require('modernizr')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.ProductView::onShow = ->
