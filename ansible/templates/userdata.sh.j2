@@ -16,6 +16,16 @@ GIT_REPO=git@github.com:Willet/SecondFunnel.git
 DEPLOY_KEY={{secondfunnel_directory}}/willet_deploy_key_id_rsa
 INVENTORY_FILE={{secondfunnel_directory}}/ansible_userscript_inventory
 
+# Set PARAM1
+# TODO: rename PARAM1
+if [ $APP_ENVIRONMENT -eq "stage" ]
+then
+  EXPORT PARAM1="TEST"
+elif [ $APP_ENVIRONMENT -eq "production" ]
+then
+  EXPORT PARAM1="PRODUCTION"
+fi
+
 #
 # Verify that github is setup as a valid host verified (always)
 #
