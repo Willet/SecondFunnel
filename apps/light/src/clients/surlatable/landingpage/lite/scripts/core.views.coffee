@@ -197,7 +197,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             @$el.find('.info').show()
             @$el.find('.look-image-container').hide()
-            if App.support.mobile() then @$el.find('.look-thumbnail').show() else @$el.find('.shop').addClass('look-visible')
+            if App.support.mobile() then @$el.find('.look-thumbnail').show()
             
             @carouselRegion.currentView?.selectItem(@taggedProductIndex)
             if App.support.mobile() and @taggedProducts.length > 0 and @carouselRegion.currentView?
@@ -220,7 +220,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.find('.look-image-container').show()
                 @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
 
-            if App.support.mobile() then @$el.find('.look-thumbnail').hide() else @$el.find('.shop').removeClass('look-visible')
+            if App.support.mobile() then @$el.find('.look-thumbnail').hide()
             
             @carouselRegion.currentView?.deselectItems()
             if App.support.mobile() and @carouselRegion.currentView?
