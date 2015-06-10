@@ -97,11 +97,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         "click .stl-look .stl-item": (event) ->
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
-            @taggedProductIndex = $targetEl.data("index")
-            if App.support.mobile() and not @$el.find('.look-thumbnail').is(':visible')
-                @carouselRegion.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @carouselRegion.currentView.index + 1)
-            product = @renderView()
+            product = @taggedProducts[$targetEl.data("index")]
+            url = product.get('cj_link') or product.get('url')
+            ### Uncomment to enable switching view to product ###
+            #@taggedProductIndex = $targetEl.data("index")
+            #if App.support.mobile() and not @$el.find('.look-thumbnail').is(':visible')
+            #    @carouselRegion.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @carouselRegion.currentView.index + 1)
+            #product = @renderView()
             App.vent.trigger('tracking:product:thumbnailClick', product)
+            App.utils.openUrl(url)
             return
 
     module.ExpandedContent::updateScrollCta = ->

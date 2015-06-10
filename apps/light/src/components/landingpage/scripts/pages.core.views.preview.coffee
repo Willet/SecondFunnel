@@ -67,8 +67,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 else
                     App.vent.trigger('tracking:product:buyClick', @model)
 
-                # Over-write addUrlTrackingParameters for each customer
-                url = App.utils.addUrlTrackingParameters( $target.attr('href') )
                 App.utils.openUrl(url)
                 # Stop propogation to avoid double-opening url
                 return false
@@ -247,6 +245,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @taggedProductIndex = $targetEl.data("index")
                 
                 if App.support.mobile()
+                    # Scroll up to product view
                     $('body').scrollTo(".cell.info", 500)
                 product = @renderView()
 
