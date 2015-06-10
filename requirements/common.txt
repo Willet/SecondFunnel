@@ -50,7 +50,7 @@ BeautifulSoup==3.2.1
 cssmin==0.2.0
 
 ## API
-boto==2.25.0
+boto==2.38.0
 hammock==0.2.4
 requests==1.2.2
 requests-oauthlib==0.3.2
@@ -61,7 +61,7 @@ bleach==1.4
 
 # Image Processing
 Pillow==2.3.0
-cloudinary==1.0.17
+cloudinary==1.1.1
 numpy==1.8.0
 
 ## Database Related
