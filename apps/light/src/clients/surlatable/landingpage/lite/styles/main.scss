@@ -15,14 +15,14 @@ $slt-thumbnail-height: 111px;
 @import "src/components/landingpage/styles/base.scss";
 
                 
-@font-face{ 
+@font-face {
     font-family: MrEavesModern;
     src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltr-071211005EmigreWebOnly.eot');
     src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltr-071211005EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
          url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltr-071211005EmigreWebOnly.woff') format('woff');
 }
                 
-@font-face{ 
+@font-face {
     font-family: MrEavesModern;
     src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.eot');
     src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
@@ -30,21 +30,21 @@ $slt-thumbnail-height: 111px;
     font-weight: bold;
 }
 
-@font-face{
+@font-face {
     font-family: MrEavesModern;
     src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-Light.otf') format("opentype");
     font-weight: 200;
     font-style: normal;
 }
 
-@font-face{
+@font-face {
     font-family: MrEavesModern;
     src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-LightItalic.otf') format("opentype");
     font-weight: 200;
     font-style: italic;
 }
             
-@font-face{ 
+@font-face {
     font-family: MrEavesSans;
     src: url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.eot');
     src: url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
@@ -373,7 +373,7 @@ body {
 
 .previewContainer,
 .heroContainer {
-    .content, .image-with-tagged-products, .image-without-tagged-products,
+    .carousel-region, .content, .image-with-tagged-products, .image-without-tagged-products,
     .main-image-container, .main-image, .preview-container, .product-info,
     .row, .scrollable, .table, .tagged-product, .template.target {
         width: 100%;
@@ -611,6 +611,7 @@ body {
         left: 10px;
         right: 10px;
         bottom: 10px;
+        background-color: #FFF;
         .stl-title {
             position: absolute;
             left: 0;
@@ -628,37 +629,8 @@ body {
                 padding: 0 15px;
             }
         }
-        .look-thumbnail {
-            display: table-cell;
-            position: relative;
-            z-index: 1;
-            cursor: pointer;
-            overflow: hidden;
-            width: 200px;
-            @include no-select;
-            >div {
-                width: 200px;
-                padding: 0 20px 0 10px;
-            }
-            .back {
-                color: $slt-purple-color;
-                font-size: 18px;
-                font-weight: normal;
-                font-family: $slt-modern-font;
-                text-align: center;
-                &:before {
-                    content: '\00ab';
-                }
-            }
-            .name {
-                padding: 0 10px;
-            }
-        }
     }
     .carousel-region {
-        display: table-cell;
-        width: 100%;
-        height: 100%;
         .stl-carousel {
             display: block;
             width: 100%;
@@ -680,33 +652,31 @@ body {
             height: 100%;
             text-align: center;
             white-space: nowrap;
-            .stl-item {
+            .stl-item,
+            .look-thumbnail {
                 display: inline-block;
                 margin: 5px;
                 width: 150px;
+                text-align: center;
+                vertical-align: top;
+                height: auto;
+                img {
+                    display: inline-block;
+                    max-width: 100%;
+                    max-height: 100px;
+                    width: auto;
+                    opacity: 1;
+                    margin: 0 0 5px;
+                }
+                .name {
+                    width: 100%;
+                    margin: auto;
+                    text-align: center;
+                    font-size: 10px;
+                    white-space: normal;
+                    text-transform: none;
+                }
             }
-        }
-    }
-    .carousel-region .stl-look .stl-item,
-    .shop .look-thumbnail {
-        text-align: center;
-        vertical-align: top;
-        height: auto;
-        img {
-            display: inline-block;
-            max-width: 100%;
-            max-height: 100px;
-            width: auto;
-            opacity: 1;
-            margin: 0 0 5px;
-        }
-        .name {
-            width: 100%;
-            margin: auto;
-            text-align: center;
-            font-size: 10px;
-            white-space: normal;
-            text-transform: none;
         }
     }
     .image-with-tagged-products .cell.shop {
@@ -799,27 +769,6 @@ body {
 
 // DESKTOP ONLY
 @media screen and (min-width: 992px) {
-    .previewContainer,
-    .heroContainer {
-        .shop {
-            .look-thumbnail {
-                width: 0px;
-                @include transition(width, 0.5s, ease);
-                >div {
-                    margin-left: -200px;
-                    @include transition(margin 0.5s ease);
-                }
-            }
-            &.look-visible {
-                .look-thumbnail {
-                    width: 200px;
-                    >div {
-                        margin-left: 0px;
-                    }
-                }
-            }
-        }
-    }
 }
 
 // MOBILE & TABLET ONLY
@@ -1200,7 +1149,7 @@ body {
         }
         .info.tagged {
             padding: 0; // repeated to beat specaficity
-            height: 72%;
+            height: 72.1%; // .1% to ensure there is no sub-pixel gap
             position: relative;
         }
         .product {
@@ -1282,9 +1231,6 @@ body {
             width: 100% !important;
             padding: 12px 0 0 0;
             margin-top: 0;
-            .carousel-region {
-                display: block;
-            }
             .stl-carousel {
                 border: none;
                 border-radius: 0;
