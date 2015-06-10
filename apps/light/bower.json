@@ -7,7 +7,7 @@
     "cloudinary_js": "~1.0.17",
     "modernizr": "2.8.3",
     "jquery": "~1.11.0",
-    "masonry": "~3.1.5",
+    "masonry": "~3.2.0",
     "imagesloaded": "3.1.8",
     "classie": "~1.0.1",
     "jquery-touchswipe": "~1.6.8",
