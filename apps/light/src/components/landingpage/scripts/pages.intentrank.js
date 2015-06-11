@@ -76,7 +76,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @returns {String}
      */
     module.url = function () {
-        return _.template(module.options.urlTemplate, module.options);
+        compiledTemplate = _.template(module.options.urlTemplate);
+        return compiledTemplate(module.options);
     };
 
     /**
