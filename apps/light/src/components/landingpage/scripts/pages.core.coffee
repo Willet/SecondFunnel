@@ -98,10 +98,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         # model did not need to specify a template.
         i = 0
         while i < templateIDs.length
-            temp = _.template(templateIDs[i],
-                options: App.options
-                data: data
-            )
+            compiledTemp = _.template(templateIDs[i])
+            temp = compiledTemp(_.extend(data, App.options))
             templateExists = Marionette.TemplateCache._exists(temp)
             if templateExists
 
