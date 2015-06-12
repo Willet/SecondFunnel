@@ -369,7 +369,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # Reset feature and container height
                 $containedItem.css(
                     'height': '100%'
-                    'max-height': '640px'
                 )
                 $feature.css('height', '100%')
 
@@ -384,13 +383,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     # Reveal overflow
                     $overflow.show()
                     heightValue = 'auto'
-                    maxHeightValue = 'none'
                     heightReduction =  10
                     widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
                 else
                     # Content fits in window, center it
                     heightValue = '100%'
-                    maxHeightValue = 640
                     heightReduction = ($window.height() - $containedItem.outerHeight()) / 2
                     widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
                     if heightReduction <= 0 # String because jQuery checks for falsey values
@@ -399,7 +396,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         widthReduction = "0"
                 if App.support.mobile()
                     heightReduction = widthReduction = 0
-                    maxHeightValue = 'none'
                     
                 $container.css(
                     left: widthReduction
@@ -407,7 +403,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                 $containedItem.css(
                     'height': heightValue
-                    'max-height': maxHeightValue
                     'margin-top': heightReduction
                     'margin-bottom': heightReduction
                 )
