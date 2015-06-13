@@ -259,11 +259,13 @@ class ProductSerializer(IRSerializer):
 
         try:
             data["default-image"] = product.default_image.to_json()
+            data["sizes"] = product.default_image.get('sizes', None)
             data["orientation"] = product.default_image.orientation
         except AttributeError:
             try:
                 # fall back to first image
                 data["default-image"] = product_images[0].to_json()
+                data["sizes"] = product_images[0].get('sizes', None)
                 data["orientation"] = product_images[0].orientation
             except (IndexError, AttributeError):
                 data['orientation'] = "portrait"
@@ -311,6 +313,10 @@ class ProductImageSerializer(IRSerializer):
             "dominant-color": product_image.dominant_color or "transparent",
             "url": product_image.url,
             "id": product_image.id,
+            "sizes": product_image.attributes.get('sizes', {
+                'width': getattr(image, "width", '100%'),
+                'height': getattr(image, "height", '100%'),
+            }),
             "orientation": product_image.orientation,
         }
 

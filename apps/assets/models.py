@@ -424,8 +424,7 @@ class ProductImage(BaseModel):
         return "landscape" if self.width > self.height else "portrait"
 
     def save(self, *args, **kwargs):
-        """For whatever reason, ProductImages have separate width and height
-        attributes that are never populated by current code.
+        """attributes.sizes.master is populated by cloudinary
         """
         master_size = default_master_size
         try:
@@ -550,8 +549,7 @@ class Image(Content):
         return "landscape" if self.width > self.height else "portrait"
 
     def save(self, *args, **kwargs):
-        """For whatever reason, Images have separate width and height
-        attributes that are never populated by current code.
+        """attributes.sizes.master is populated by cloudinary
         """
         master_size = default_master_size
         try:

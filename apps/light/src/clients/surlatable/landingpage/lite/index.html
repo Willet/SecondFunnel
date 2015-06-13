@@ -152,7 +152,8 @@
 
         <script type="text/template" id="preview_container_template">
             <% var template = (obj.template || "image") %>
-            <div class="fullscreen scrollable <%= template %>">
+            <% var tagged = false; try { tagged = !_.isEmpty(obj['tagged-products']); } catch (e) {} %>
+            <div class="fullscreen scrollable <%= template %> <% if (tagged) { %>tagged<% } %>">
                 <div class="content">
                     <span class="close desktop-only">Close <img src="/static/light/surlatable/landingpage/lite/images/close.gif"></span>
                     <span class="close mobile-only">Back</span>
