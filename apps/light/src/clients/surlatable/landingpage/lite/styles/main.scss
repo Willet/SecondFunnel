@@ -351,20 +351,24 @@ body {
     .fullscreen {
         top: 0px;
         bottom: 0px;
-        max-height: none;
+        &.product {
+            .content {
+                max-height: 640px;
+            }
+            &.tagged .content {
+                max-height: 720px;
+            }
+        }
     }
     .content {
         padding: 40px 10px 10px !important;
-        max-height: none;
+        max-height: 720px;
         height: auto;
     }
 }
 .heroContainer {
     .fullscreen {
         max-height: 760px;
-        &.product {
-            max-height: 640px;
-        }
     }
     .content {
         max-height: 100%;
