@@ -58,8 +58,9 @@ class Command(BaseCommand):
         # Import data feed & generate lookup table
         lookup_table = load_product_datafeed(filename=product_datafeed_filename,
                                              collect_fields=["SKU", "NAME", "DESCRIPTION", "PRICE",
-                                                             "SALEPRICE", "BUYURL", "INSTOCK"],
-                                             lookup_fields=["SKU","NAME"])
+                                                             "SALEPRICE", "BUYURL", "INSTOCK", "ADVERTISERCATEGORY",
+                                                             "THIRDPARTYCATEGORY"],
+                                             lookup_fields=["SKU","NAME","THIRDPARTYCATEGORY"])
         try:
             products = page.feed.get_all_products()
             print u"Found {} products for {}".format(len(products), url_slug)
@@ -67,29 +68,22 @@ class Command(BaseCommand):
             # Find product in product data feed & update
             with transaction.atomic():
                 for product in products:
+                    data = None
                     try:
-                        try:
-                            data = lookup_table["SKU"][product.sku]
-                            if data:
-                                print u"SKU match: {}".format(product.url)
-                                self.update_product(product, data, results)
-                        except KeyError:
+                        lookup_attempts = [
+                            ("SKU", product.sku),
+                            ("NAME", product.name.encode('ascii', errors='ignore')),
+                            ("THIRDPARTYCATEGORY", product.url),
+                        ]
+                        for (field, val) in lookup_attempts:
                             try:
-                                data = lookup_table["NAME"][product.name.encode('ascii', errors='ignore')]
-                                if data:
-                                    print u"NAME match: {}".format(product.url)
-                                    self.update_product(product, data, results)
+                                key = lookup_table[field][val]
+                                data = lookup_table['hash'][key]
                             except KeyError:
-                                # TODO: attempt fuzzy DESCRIPTION matching?
-                                print u"\tMatch FAILED: {} {}".format(product.name.encode('ascii', errors='ignore'), product.url)
-                                if product.in_stock:
-                                    product.in_stock = False
-                                    product.save()
-                                    # If an item just switched, record it that way
-                                    results['logging/items out of stock'].append(product.url)
-                                else:
-                                    # If the item previously was out of stock, call it dropped
-                                    results['logging/items dropped'].append(product.url)
+                                pass
+                            else:
+                                if data:
+                                    break
                     except Exception as e:
                         errors = results['logging/errors']
                         msg = '{}: {}'.format(e.__class__.__name__, e)
@@ -98,6 +92,20 @@ class Command(BaseCommand):
                         errors[msg] = items
                         results['logging/errors'] = errors
                         print 'logging/errors: {}'.format(msg)
+                    else:
+                        if data:
+                            print u"{} match: {}".format(field, product.url)
+                            self.update_product(product, data, results)
+                        else:
+                            print u"\tMatch FAILED: {} {}".format(product.name.encode('ascii', errors='ignore'), product.url)
+                            if product.in_stock:
+                                product.in_stock = False
+                                product.save()
+                                # If an item just switched, record it that way
+                                results['logging/items out of stock'].append(product.url)
+                            else:
+                                # If the item previously was out of stock, call it dropped
+                                results['logging/items dropped'].append(product.url)
 
             print "Updates saved"
 

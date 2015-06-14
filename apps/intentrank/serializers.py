@@ -314,8 +314,8 @@ class ProductImageSerializer(IRSerializer):
             "url": product_image.url,
             "id": product_image.id,
             "sizes": product_image.attributes.get('sizes', {
-                'width': getattr(image, "width", '100%'),
-                'height': getattr(image, "height", '100%'),
+                'width': getattr(product_image, "width", '100%'),
+                'height': getattr(product_image, "height", '100%'),
             }),
             "orientation": product_image.orientation,
         }
