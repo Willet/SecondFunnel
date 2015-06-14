@@ -52,14 +52,17 @@ def load_product_datafeed(filename, collect_fields, lookup_fields=['SKU','NAME']
     collect_fields: array of fieldnames to collect for each product
     lookup_fields: keys to generate a lookup table for
 
-    returns: dict of lookup fields, each containing a lookup table for that field as keys
+    returns: dict of lookup fields and the hash table
+    each lookup field a lookup table for that field as keys, returning the hash key for the entry in the hash table
     """
     product_counter = 0
 
     if not collect_fields:
         collect_fields = ["SKU", "NAME", "DESCRIPTION", "PRICE", "SALEPRICE", "BUYURL", "INSTOCK"]
 
-    lookup_table = {}
+    lookup_table = {
+        'hash': {}
+    }   
     for i in lookup_fields:
         lookup_table[i] = {}
 
@@ -68,9 +71,10 @@ def load_product_datafeed(filename, collect_fields, lookup_fields=['SKU','NAME']
         for row in csv_file:
             # Correct for encoding errors
             entry = { f: row[f].decode("utf-8").encode("latin1").decode("utf-8") for f in collect_fields }
-
+            key = entry['SKU'].encode('ascii', errors='ignore')
+            lookup_table['hash'][key] = entry
             for i in lookup_fields:
-                lookup_table[i][entry[i].encode('ascii', errors='ignore')] = entry
+                lookup_table[i][entry[i].encode('ascii', errors='ignore')] = key
             product_counter += 1
 
     print u"Generated lookup table's for {} products".format(product_counter)
