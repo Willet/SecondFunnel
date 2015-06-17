@@ -4,6 +4,8 @@ import os
 
 from ftplib import FTP
 
+from apps.scrapy.models import LookupTable
+
 CJ_USERNAME = "4503838"
 CJ_PASSWORD = "7JTu@6Xb"
 CJ_SERVERNAME = "datatransfer.cj.com"
@@ -60,21 +62,15 @@ def load_product_datafeed(filename, collect_fields, lookup_fields=['SKU','NAME']
     if not collect_fields:
         collect_fields = ["SKU", "NAME", "DESCRIPTION", "PRICE", "SALEPRICE", "BUYURL", "INSTOCK"]
 
-    lookup_table = {
-        'hash': {}
-    }   
-    for i in lookup_fields:
-        lookup_table[i] = {}
+    lookup_table = LookupTable(lookup_fields)
 
     with gzip.open(filename, 'rb') as infile:
         csv_file = csv.DictReader(infile, delimiter=',')
         for row in csv_file:
             # Correct for encoding errors
             entry = { f: row[f].decode("utf-8").encode("latin1").decode("utf-8") for f in collect_fields }
-            key = entry['SKU'].encode('ascii', errors='ignore')
-            lookup_table['hash'][key] = entry
-            for i in lookup_fields:
-                lookup_table[i][entry[i].encode('ascii', errors='ignore')] = key
+            lookup_table.add(entry= entry,
+                             mappings= [ (f, entry[f].encode('ascii', errors='ignore')) for f in lookup_fields])
             product_counter += 1
 
     print u"Generated lookup table's for {} products".format(product_counter)

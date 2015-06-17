@@ -324,7 +324,6 @@ class ProductImageSerializer(IRSerializer):
 
 
 class ContentSerializer(IRSerializer):
-
     def get_dump_object(self, content):
         data = {
             'id': str(content.id),
@@ -363,7 +362,7 @@ class ImageSerializer(ContentSerializer):
                 'width': getattr(image, "width", '100%'),
                 'height': getattr(image, "height", '100%'),
             }),
-            "orientation": getattr(image, "orientation", "portrait"),
+            "orientation": getattr(image, 'orientation', 'portrait'),
         })
         if getattr(image, 'description', False):
             data.update({"description": image.description})

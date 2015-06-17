@@ -674,6 +674,9 @@ body {
                 }
                 .name {
                     width: 100%;
+                    line-height: 14px;
+                    max-height: 28px;
+                    overflow-y: hidden;
                     margin: auto;
                     text-align: center;
                     font-size: 10px;
