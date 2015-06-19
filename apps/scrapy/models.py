@@ -5,6 +5,8 @@ class LookupTable(object):
      - an arbitary number of lookup fields
      - arbitrary data
 
+    Used to store datafeeds & help with matching results to DB entries
+
     Note: the lookup table does not gaurentee the uniqueness of entries
     """
     def __init__(self, lookup_fields):

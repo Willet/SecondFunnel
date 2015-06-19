@@ -70,7 +70,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if tileInfo and tileInfo.length is 0
                     @ended = true
                     $(".loading").hide()
-                    @ended = true
 
                 _.delay @pageScroll, 500
             @lastRequest = xhr
@@ -167,7 +166,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onRender: ->
             @layout()
-
 
         layout: () ->
             if not @masonry
