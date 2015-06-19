@@ -38,6 +38,9 @@ GridMasonry.prototype._resetLayout = function() {
 
   this.maxY = 0;
   this._currentRowY = 0;
+
+  // Unstash any stashed items
+  while (this.unstashItem()) {}
 };
 
 GridMasonry.prototype.measureColumns = function() {
