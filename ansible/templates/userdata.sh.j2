@@ -16,19 +16,6 @@ GIT_REPO=git@github.com:Willet/SecondFunnel.git
 DEPLOY_KEY={{secondfunnel_directory}}/willet_deploy_key_id_rsa
 INVENTORY_FILE={{secondfunnel_directory}}/ansible_userscript_inventory
 
-# Set environment var PARAM1
-# This is a legacy AWS EBS variable that controls some dependency loading
-# TODO: rename PARAM1
-if [ $APP_ENVIRONMENT -eq "production" ]
-then
-  export PARAM1="PRODUCTION"
-elif [ $APP_ENVIRONMENT -eq "stage" ]
-then
-  export PARAM1="TEST"
-else
-  export PARAM1="DEV"
-fi
-
 #
 # Verify that github is setup as a valid host verified (always)
 #
