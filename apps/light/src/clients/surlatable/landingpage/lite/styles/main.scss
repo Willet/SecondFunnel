@@ -656,9 +656,14 @@ body {
             height: 100%;
             text-align: center;
             white-space: nowrap;
+            .stl-item {
+                display: inline-block;
+            }
+            .look-thumbnail {
+                display: none;
+            }
             .stl-item,
             .look-thumbnail {
-                display: inline-block;
                 margin: 5px;
                 width: 150px;
                 text-align: center;
@@ -1271,7 +1276,7 @@ body {
                 top: 0;
                 .look-thumbnail, .stl-item {
                     margin: 5px 5px 0 5px;
-                    display: inline-block;
+                    /* display: inline-block; */
                     max-width: 45%;
                     height: 100%;
                     overflow: hidden;
