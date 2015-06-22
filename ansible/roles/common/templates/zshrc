@@ -21,7 +21,6 @@ export PATH=$HOME/bin:/usr/local/bin:$PATH
 # Set environment var PARAM1
 # This is a legacy AWS EBS variable that controls some dependency loading
 # TODO: rename PARAM1
-export PARAM1="ERROR"
 export PARAM2="{{app_environment}}"
 
 APP_ENVIRONMENT="{{app_environment}}"
