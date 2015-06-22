@@ -24,10 +24,10 @@ export PATH=$HOME/bin:/usr/local/bin:$PATH
 export PARAM2="{{app_environment}}"
 
 APP_ENVIRONMENT="{{app_environment}}"
-if [ $APP_ENVIRONMENT -eq "production" ]
+if [ "$APP_ENVIRONMENT" = "production" ]
 then
   export PARAM1="PRODUCTION"
-elif [ $APP_ENVIRONMENT -eq "stage" ]
+elif [ "$APP_ENVIRONMENT" = "stage" ]
 then
   export PARAM1="TEST"
 fi
