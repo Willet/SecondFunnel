@@ -11,17 +11,3 @@ export AWS_ACCESS_KEY_ID="{{aws_access_key_id}}"
 export AWS_SECRET_KEY="{{aws_secret_key}}"
 
 export PATH=$PATH:$EC2_HOME
-
-# Set environment var PARAM1
-# This is a legacy AWS EBS variable that controls some dependency loading
-# TODO: rename PARAM1
-export PARAM1="ERROR"
-
-APP_ENVIRONMENT="{{app_environment}}"
-if [ $APP_ENVIRONMENT -eq "production" ]
-then
-  export PARAM1="PRODUCTION"
-elif [ $APP_ENVIRONMENT -eq "stage" ]
-then
-  export PARAM1="TEST"
-fi

@@ -18,6 +18,21 @@ source $ZSH/oh-my-zsh.sh
 
 export PATH=$HOME/bin:/usr/local/bin:$PATH
 
+# Set environment var PARAM1
+# This is a legacy AWS EBS variable that controls some dependency loading
+# TODO: rename PARAM1
+export PARAM1="ERROR"
+export PARAM2="{{app_environment}}"
+
+APP_ENVIRONMENT="{{app_environment}}"
+if [ $APP_ENVIRONMENT -eq "production" ]
+then
+  export PARAM1="PRODUCTION"
+elif [ $APP_ENVIRONMENT -eq "stage" ]
+then
+  export PARAM1="TEST"
+fi
+
 # You may need to manually set your language environment
 export LANG=en_US.UTF-8
 
