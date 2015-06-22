@@ -7,7 +7,7 @@ if __name__ == "__main__":
 
     # APP_ENVIRONMENT must be set by the deploy script
     # allowed values: production, stage, dev
-    environment_type = os.getenv('APP_ENVIRONMENT', '') or 'DEV'
+    environment_type = os.getenv('APP_ENVIRONMENT', '') or 'dev'
 
     os.environ['DJANGO_SETTINGS_MODULE'] = \
         'secondfunnel.settings.{0}'.format(environment_type.lower())
