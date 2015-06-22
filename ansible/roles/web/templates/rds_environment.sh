@@ -15,6 +15,8 @@ export PATH=$PATH:$EC2_HOME
 # Set environment var PARAM1
 # This is a legacy AWS EBS variable that controls some dependency loading
 # TODO: rename PARAM1
+export PARAM1="ERROR"
+
 APP_ENVIRONMENT="{{app_environment}}"
 if [ $APP_ENVIRONMENT -eq "production" ]
 then
