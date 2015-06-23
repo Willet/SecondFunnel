@@ -82,9 +82,9 @@
   args:
     chdir: "{{application_directory}}"
   with_items:
-    - "clearsessions"
     - "syncdb --noinput"
     - "migrate --noinput"
+    - "clearsessions"
   notify: uwsgi reload
   when: "'vagrant' in groups or git_repo|changed"
 
