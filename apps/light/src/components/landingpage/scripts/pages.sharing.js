@@ -84,7 +84,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         'initialize': function (options) {
             // Initializes the SocialButton View by determining what
             // social buttons to show and loading the initial config if necessary.
-            // automatically called when its parent Layout is rendered.
+            // automatically called when its parent LayoutView is rendered.
             var _this = this;
             // Only load the social once
             this.loadSocial(_.bind(this.initSocial, this));
@@ -272,7 +272,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @param {String} type     the button name.
      * @returns {String}        the url for that button.
      */
-    this.get = function (type) {
+    module.get = function (type) {
         if (typeof type !== 'string') {
             return {};
         }

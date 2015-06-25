@@ -3,12 +3,12 @@
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     View for showing a Tile (or its extensions).
-    This Layout contains socialButtons and tapIndicator regions.
+    This LayoutView contains socialButtons and tapIndicator regions.
     
     @constructor
-    @type {Layout}
+    @type {LayoutView}
     ###
-    class module.TileView extends Marionette.Layout
+    class module.TileView extends Marionette.LayoutView
         tagName: App.option("tileElement", "div")
         className: "tile"
 
@@ -206,7 +206,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     A product tile displays one product
 
     @constructor
-    @type {Layout}
+    @type {LayoutView}
     ###
     class module.ProductTileView extends module.TileView
         template: "#product_tile_template"
@@ -224,7 +224,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     An image tile is an image that is tagged with one or more products
 
     @constructor
-    @type {Layout}
+    @type {LayoutView}
     ###
     class module.ImageTileView extends module.TileView
         template: "#image_tile_template"
@@ -250,7 +250,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     To be used sparingly to achieve client requests
 
     @constructor
-    @type {Layout}
+    @type {LayoutView}
     ###
     class module.BannerTileView extends module.TileView
         template: "#image_tile_template"

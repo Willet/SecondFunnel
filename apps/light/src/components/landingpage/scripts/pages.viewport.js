@@ -3,7 +3,7 @@
 /**
  * @module viewport
  */
-module.exports = function (viewport, App, Backbone, Marionette, $, _) {
+module.exports = function (module, App, Backbone, Marionette, $, _) {
     var $window = $(window),
         getMeta = function () {
             var tag = $('meta[name="viewport"]', 'head');
@@ -27,7 +27,7 @@ module.exports = function (viewport, App, Backbone, Marionette, $, _) {
      * @return {Array} [enabled, width, scale, meta], some of which can
      *                 be undefined if not applicable.
      */
-    this.determine = function (desiredWidth) {
+    module.determine = function (desiredWidth) {
         return [false, undefined, undefined, 'disabled'];
         var adjustedScale,
             proposedMeta,
@@ -114,9 +114,9 @@ module.exports = function (viewport, App, Backbone, Marionette, $, _) {
      * @param {int} desiredWidth
      * @returns undefined
      */
-    this.scale = function (desiredWidth) {
+    module.scale = function (desiredWidth) {
         desiredWidth = desiredWidth || 1024;  // screen defaults to full width.
-        var analysis = viewport.determine(desiredWidth),
+        var analysis = module.determine(desiredWidth),
             metaTag = getMeta(),
             proposedMeta = '';
         //  allowed to scale,       found a meta tag
@@ -138,11 +138,11 @@ module.exports = function (viewport, App, Backbone, Marionette, $, _) {
 
     App.vent.on('beforeInit', function () {
         // single call func removes args
-        viewport.scale();
+        module.scale();
     });
     App.vent.on('finished', function () {
         // single call func removes args
         //viewport.scale();
     });
-    App.vent.on('window:rotate', viewport.scale);
+    App.vent.on('window:rotate', module.scale);
 };

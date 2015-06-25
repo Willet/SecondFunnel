@@ -5,7 +5,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     A container tile that has no onclick or onhover
 
     @constructor
-    @type {Layout}
+    @type {TileView}
     ###
     class module.ContainerTileView extends module.TileView
         onHover: (ev) ->

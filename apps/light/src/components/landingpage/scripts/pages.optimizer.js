@@ -9,7 +9,7 @@
  * custom dimension 8 to be A, and custom dimension 9 to be B.
  *
  */
-module.exports = function (optimizer, App, Backbone, Marionette, $, _) {
+module.exports = function (module, App, Backbone, Marionette, $, _) {
     var // custom dimensions must be pre-configured in GA, under
         // Admin > Property > Custom Definitions > Custom Dimensions
         CUSTOM_DIMENSIONS = [],
@@ -63,7 +63,7 @@ module.exports = function (optimizer, App, Backbone, Marionette, $, _) {
      *
      * @returns object
      **/
-    this.dimensions = function () {
+    module.dimensions = function () {
         return _.clone(CUSTOM_DIMENSIONS);
     };
 
@@ -73,7 +73,7 @@ module.exports = function (optimizer, App, Backbone, Marionette, $, _) {
      *
      * @returns none
      **/
-    this.setCookieValue = function (cname, value, days) {
+    module.setCookieValue = function (cname, value, days) {
         var expires, ms, d = new Date();
         ms = days ? days * MILLISECONDS_PER_DAY : 30 * 60 * 1000; // Defaults to 30 minutes, convert to milliseconds
         d.setTime(d.getTime() + ms);
@@ -87,7 +87,7 @@ module.exports = function (optimizer, App, Backbone, Marionette, $, _) {
      *
      * @returns none
      **/
-    this.clearCookie = function (cname) {
+    module.clearCookie = function (cname) {
         var expires = new Date();
         expires.setTime(0);
         expires = 'expires=' + expires.toGMTString();
@@ -100,7 +100,7 @@ module.exports = function (optimizer, App, Backbone, Marionette, $, _) {
      *
      * @returns string
      **/
-    this.getCookieValue = function (cname) {
+    module.getCookieValue = function (cname) {
         var cookies = document.cookie.split(';'),
             c;
         cname += '=';
@@ -119,7 +119,7 @@ module.exports = function (optimizer, App, Backbone, Marionette, $, _) {
      *
      * @returns Object
      **/
-    this.multivariate = function (options, probabilities) {
+    module.multivariate = function (options, probabilities) {
         var p,
             temp = [],
             rand = Math.random();
@@ -151,7 +151,7 @@ module.exports = function (optimizer, App, Backbone, Marionette, $, _) {
      *
      * @returns none
      **/
-    this.addTest = function (index, test, kwargs) {
+    module.addTest = function (index, test, kwargs) {
         var result, pos, cookie;
 
         cookie = OPTIMIZER_COOKIE + index;  // e.g. __sotm6
@@ -197,7 +197,7 @@ module.exports = function (optimizer, App, Backbone, Marionette, $, _) {
      *
      * @returns string
      **/
-    this.testStyle = function (styles, probabilities) {
+    module.testStyle = function (styles, probabilities) {
         var style,
             $style,
             pathname;
@@ -226,7 +226,7 @@ module.exports = function (optimizer, App, Backbone, Marionette, $, _) {
      *
      * @returns string
      **/
-    this.testTemplate = function (selector, templates, probabilities) {
+    module.testTemplate = function (selector, templates, probabilities) {
         var $selector,
             $template,
             template = this.multivariate(templates, probabilities),
@@ -246,7 +246,7 @@ module.exports = function (optimizer, App, Backbone, Marionette, $, _) {
      *
      * @returns none
      **/
-    this.initialize = function () {
+    module.initialize = function () {
         var test,
             index,
             tests = {},

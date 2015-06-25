@@ -132,14 +132,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @lastRequest.abort()
             @detachListeners()
 
-        itemView: (itemViewOptions) ->
+        childView: (childViewOptions) ->
             # Lookup the class to use based on the template specified on the item
-            model = itemViewOptions.model
-            itemViewClass = App.utils.findClass('TileView',
+            model = childViewOptions.model
+            childViewClass = App.utils.findClass('TileView',
                 model.get('template'),
                 App.core.TileView
             ) || App.core.TileView
-            return new itemViewClass(itemViewOptions)
+            return new childViewClass(childViewOptions)
 
 
     class module.MasonryFeedView extends module.FeedView

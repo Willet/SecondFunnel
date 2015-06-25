@@ -352,9 +352,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     View responsible for Hero-specific things
 
     @constructor
-    @type {ItemView}
+    @type {LayoutView}
     ###
-    class module.HeroContent extends Marionette.Layout
+    class module.HeroContent extends Marionette.LayoutView
         template: "#herovideo_template"
         regions:
             video: ".hero-video"
@@ -395,9 +395,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     (e.g. Shop-the-look, featured, or just a plain div)
 
     @constructor
-    @type {Layout}
+    @type {LayoutView}
     ###
-    class module.HeroAreaView extends Marionette.Layout
+    class module.HeroAreaView extends Marionette.LayoutView
         className: "heroContainer"
         template: "#hero_container_template"
         regions:
@@ -596,7 +596,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CategoryCollectionView extends Marionette.CollectionView
         tagName: "div"
         className: "category-area"
-        itemView: module.CategoryView
+        childView: module.CategoryView
 
         initialize: (options) ->
             mobileCatArr = App.option("page:mobileCategories", [])

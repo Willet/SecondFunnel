@@ -44,9 +44,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     and overlay with text: GIFTS for ____ (ex: The Chef, Him)
     
     @constructor
-    @type {Layout}
+    @type {LayoutView}
     ###
-    class module.SLTHeroAreaView extends Marionette.Layout
+    class module.SLTHeroAreaView extends Marionette.LayoutView
         model: module.Tile
         className: "previewContainer"
         template: "#hero_template"
