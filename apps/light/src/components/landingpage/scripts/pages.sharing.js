@@ -119,7 +119,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             var _this = this;
             _.each(_this.views, function (view) {
                 view.render();
-                if (!view.isClosed) {
+                if (!view.isDestroyed) {
                     _this.$el.append(view.$el);
                 }
             });

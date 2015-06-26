@@ -127,7 +127,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     'orientationchange', globals.orientationChangeHandler, false
                 )
 
-        onClose: ->
+        onDestroy: ->
             if @lastRequest
                 @lastRequest.abort()
             @detachListeners()

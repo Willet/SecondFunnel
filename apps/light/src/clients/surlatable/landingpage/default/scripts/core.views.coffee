@@ -72,7 +72,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         loadHeroArea: ->
             @generateHeroArea()
             # If view is already visible, update with new category
-            if not @.isClosed
+            if not @.isDestroyed
                 App.heroArea.show @
 
         initialize: ->

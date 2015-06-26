@@ -447,7 +447,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             @resizeContainer()
 
-        close: ->
+        destroy: ->
             # See NOTE in onShow
             unless App.support.mobile()
                 $(document.body).removeClass("no-scroll")
@@ -577,8 +577,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onMissingTemplate: ->
-            @content.close()
-            @close()
+            @destroy()
             return
 
         templateHelpers: ->
@@ -663,7 +662,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
             return
 
-        onClose: ->
+        onDestroy: ->
             # hide this, then restore discovery.
             if @feedSwapped
                 @$el.swapWith(App.discoveryArea.$el.parent())

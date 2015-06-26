@@ -72,7 +72,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	        }));
 
 	        var feature_tile = function (tile) {
-	        	var heroArea = new App.core.HeroAreaView(tile.attributes);
+	        	var heroArea = new App.core.HeroAreaView({tile: tile.attributes});
 	            App.heroArea.show(heroArea);
 	        };
 

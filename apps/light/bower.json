@@ -2,19 +2,19 @@
   "name": "willet-secondfunnel",
   "private": true,
   "dependencies": {
-    "backbone.marionette": "2.0.0",
+    "backbone.marionette": "~2.4",
     "bootstrap-sass-official": "~3.1.1",
     "cloudinary_js": "~1.0.17",
     "modernizr": "2.8.3",
     "jquery": "~1.11.0",
-    "masonry": "~3.2.0",
-    "imagesloaded": "3.1.8",
+    "masonry": "~3.3",
+    "imagesloaded": "~3.1",
     "classie": "~1.0.1",
     "jquery-touchswipe": "~1.6.8",
     "jquery-bbq-deparam": "~1.2.1",
     "json3": "~3.3.2",
-    "jquery-waypoints": "~2.0.5",
-    "jquery.scrollTo": "~1.4.14"
+    "jquery-waypoints": "~2.0",
+    "jquery.scrollTo": "~2.1"
   },
   "devDependencies": {},
   "resolutions": {

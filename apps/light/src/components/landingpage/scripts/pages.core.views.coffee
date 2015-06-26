@@ -270,7 +270,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
             return
 
-        close: ->
+        destroy: ->
             @slide.swipe("destroy")
             return
 
@@ -404,13 +404,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             content: ".content"
         
         ###
-        @param data - can be an {object} (tileJson) or a {number} (tile-id)
+        @param options: {
+            tile: {object} (tile or tileJson)
+            tileId: {number} (tile-id)
+            updateWithCategory: {boolean, default: true} if true, hero images updated with category changes 
+        }
         ###
-        initialize: (data) ->
-            tile = if _.isObject(data) and not _.isEmpty(data) then data else undefined
-            tileId = if App.utils.isNumber(data) then data else App.option("page:home:hero")
+        initialize: (options) ->
+            tile = _.get(options, 'tile', undefined)
+            tileId = Number(_.get(options, 'tileId', undefined))
+            updateWithCategory = Boolean(_.get(options, 'updateWithCategory', true))
+
             
-            # data can be an object (tileJson)
+            # tile can be an object (tileJson)
             if tile?
                 @tileLoaded = $.when(tile)
             # data can be a number (tile-id)
@@ -439,7 +445,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
             )
 
-            @listenTo(App.vent, "change:category", @updateCategoryHeroImages)
+            if updateWithCategory
+                @listenTo(App.vent, "change:category", @updateCategoryHeroImages)
             return
 
         onShow: ->
@@ -453,7 +460,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         contentInstance = new module.PreviewContent(contentOpts)
                     @content.show(contentInstance)
                 else
-                    @content.close()
+                    @content.destroy()
                 return
             )
 
@@ -464,7 +471,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             App.heroArea.show(@)
 
         getCategoryHeroImages: (category='') ->
-            category = if category? then category else App.option('page:home:category')
+            # default '' means home
+            category = if not _.isEmpty(category) then category else App.option('page:home:category')
             catObj = (App.categories.findModelByName(category) or {})
             desktopHeroImage = (catObj['desktopHeroImage'] or App.option('page:desktopHeroImage'))
             mobileHeroImage = (catObj['mobileHeroImage'] or App.option('page:mobileHeroImage'))

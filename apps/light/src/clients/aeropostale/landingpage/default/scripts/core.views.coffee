@@ -28,7 +28,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         'left': position.left
                     )
 
-        onClose: (ev) ->
+        onDestroy: (ev) ->
             # Move Grooveshark overlay off of the screen
             $('.grooveshark-tile-overlay').css('left', '-10000px')
 

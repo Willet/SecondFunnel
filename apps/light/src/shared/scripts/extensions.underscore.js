@@ -63,7 +63,7 @@ module.exports = function (module, App, Backhone, Marionette, $, _) {
             try {
                 var val = obj[key];
                 if (val !== undefined) {
-                    return obj[key];
+                    return val;
                 }
             } catch (err) {
                 // default
@@ -105,15 +105,6 @@ module.exports = function (module, App, Backhone, Marionette, $, _) {
             } else {
                 return collectionContains(collection_or_str, needle);
             }
-        },
-        'findIndex': _.findIndex || function(array, predicate, context) {
-            predicate = cb(predicate, context);
-            var length = array != null && array.length;
-            var index = 0;
-            for(; index >= 0 && index < length; index++) {
-                if (predicate(array[index], index, array)) return index;
-            }
-            return -1;
         }
     });
 };

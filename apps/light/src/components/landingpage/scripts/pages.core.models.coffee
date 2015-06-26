@@ -543,8 +543,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     ###
-    Our TileCollection manages ALL the tiles on the page.
-    This is essentially IntentRank.
+    Our TileCollection manages ALL the tiles on the page
 
     @constructor
     @type {Collection}
@@ -587,8 +586,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
             return tiles
 
-
-
         ###
         Allows tiles to be fetched without options.
 
@@ -616,7 +613,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             App.vent.trigger("tileCollectionInitialized", @)
             return
 
-
         ###
         Adds a reference to the tile in a hashmap of tiles.    Useful for
         getting the tile if you only know the real tile id.
@@ -629,7 +625,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             id = tile.get("tile-id")
             @tiles[id] = tile
             return
-
 
         ###
         (Re)configure this object to fetch from an Intent Rank URL.
@@ -646,6 +641,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @config.results = results or App.option("IRResultsCount") or @config.results
             return
 
+
     ###
     Categories are used to filter results from IR.
 
@@ -656,6 +652,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         url: ->
             compiledTemplate = _.template("<%=IRSource%>/page/<%=campaign%>/getresults?results=<%=IRResultsCount%>&category=<%=name%>")
             return compiledTemplate(_.extend({}, options: App.options, @attributes))
+
 
     ###
     Container for categories, does nothing for now.

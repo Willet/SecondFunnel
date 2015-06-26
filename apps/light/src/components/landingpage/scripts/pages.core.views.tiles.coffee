@@ -149,7 +149,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # the View/Model to free memory
             @$el.on "remove", (ev) =>
                 if ev.target is @el
-                    @close()
+                    @destroy
 
             return
 
@@ -157,7 +157,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # If a tile fails to load, destroy the model
             # and subsequently this tile.
             console.warn "Missing template - this view is closing.", this
-            @close()
+            @destroy()
             return
 
 
@@ -181,7 +181,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if $tileImg and $tileImg.length >= 1
                 $tileImg[0].onerror = =>
                     console.warn "Image error, closing views: " + arguments
-                    @close()
+                    @destroy()
                     return
 
             if App.sharing and App.option("conditionalSocialButtons", {})[@model.get("colspan")]
