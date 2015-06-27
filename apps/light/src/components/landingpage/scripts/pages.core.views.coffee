@@ -419,8 +419,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # tile can be an object (tileJson)
             if tile?
                 @tileLoaded = $.when(tile)
-            # data can be a number (tile-id)
-            else if tileId?
+            # tileId is either a tile-id or NaN
+            else if tileId
                 @tileLoaded = $.Deferred()
                 tileLoadedResolve = =>
                     @tileLoaded.resolve(arguments)
@@ -430,26 +430,26 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 tile = @getCategoryHeroImages(App.intentRank.currentCategory())
                 @tileLoaded = $.when(tile)
             # get category from intentRank when its ready
-            else 
+            else
                 @tileLoaded = $.Deferred()
                 App.vent.once('intentRankInitialized', =>
-                    tileJson = @updateCategoryHeroImages(App.intentRank.currentCategory())
+                    tileJson = @getCategoryHeroImages(App.intentRank.currentCategory())
                     @tileLoaded.resolve(tileJson)
                 )
             # tile can be a {Tile} or {object} tileJson
             @tileLoaded.done((tile) =>
                 @model = if _.isObject(tile) and not _.isEmpty(tile) then module.Tile.selectTileSubclass(tile) else undefined
+                App.heroArea.show(@)
+
                 @listenTo(App.vent, "windowResize", =>
-                    App.heroArea.show(@)
+                    App.heroArea.show(@, forceShow: true)
                 )
+                if updateWithCategory
+                    @listenTo(App.vent, "change:category", @updateCategoryHeroImages)
                 return
             )
 
-            if updateWithCategory
-                @listenTo(App.vent, "change:category", @updateCategoryHeroImages)
-            return
-
-        onShow: ->
+        onRender: ->
             @tileLoaded.done(=>
                 if @model?
                     contentOpts = model: @model
@@ -468,7 +468,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @model?.destroy()
             heroImagesModel = @getCategoryHeroImages(category)
             @model = if heroImagesModel then new module.Tile(heroImagesModel) else undefined
-            App.heroArea.show(@)
+            @render()
 
         getCategoryHeroImages: (category='') ->
             # default '' means home
