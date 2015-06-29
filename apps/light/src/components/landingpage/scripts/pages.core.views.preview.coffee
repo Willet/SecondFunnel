@@ -228,9 +228,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     Shop The Image or Shop The Product container
 
     @constructor
-    @type {Layout}
+    @type {LayoutView}
     ###
-    class module.ExpandedContent extends Marionette.Layout
+    class module.ExpandedContent extends Marionette.LayoutView
         regions:
             productInfo: ".product-info"
             carouselRegion: ".carousel-region"
@@ -447,7 +447,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             @resizeContainer()
 
-        close: ->
+        destroy: ->
             # See NOTE in onShow
             unless App.support.mobile()
                 $(document.body).removeClass("no-scroll")
@@ -460,7 +460,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     Contents inside a PreviewWindow
 
     @constructor
-    @type {Layout}
+    @type {LayoutView}
     ###
     class module.PreviewContent extends module.ExpandedContent
 
@@ -527,9 +527,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     Container view for a PreviewContent object.
 
     @constructor
-    @type {Layout}
+    @type {LayoutView}
     ###
-    class module.PreviewWindow extends Marionette.Layout
+    class module.PreviewWindow extends Marionette.LayoutView
         tagName: "div"
         className: "previewContainer"
         template: "#preview_container_template"
@@ -563,7 +563,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if App.initialPage == ''
                     Backbone.history.history.back()
                 else
-                    App.previewArea.close()
+                    App.previewArea.empty()
                     category = App.intentRank.currentCategory()
                     route = if category then "category/#{category}" else ""
                     App.router.navigate(route,
@@ -577,8 +577,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         onMissingTemplate: ->
-            @content.close()
-            @close()
+            @destroy()
             return
 
         templateHelpers: ->
@@ -663,7 +662,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
             return
 
-        onClose: ->
+        onDestroy: ->
             # hide this, then restore discovery.
             if @feedSwapped
                 @$el.swapWith(App.discoveryArea.$el.parent())

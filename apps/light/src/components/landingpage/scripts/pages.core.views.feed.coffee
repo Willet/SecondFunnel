@@ -21,7 +21,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             #        especially cause IntentRank then calls this thing back
             initialResults = options.initialResults
             if initialResults and initialResults.length > 0
-                if $.isArray intitialResults
+                if _.isArray(intitialResults)
                     deferred = $.when(initialResults)
                 else
                     deferred = $.Deferred()
@@ -32,8 +32,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                 deferred.done (initialResults) =>
                     App.options.IRResultsReturned = @collection.models.length
-                    @collection.add initialResults
-                    App.intentRank.addResultsShown initialResults
+                    @collection.add(initialResults)
+                    App.intentRank.addResultsShown(initialResults)
 
             $(window).scrollStopped(=>
                 App.vent.trigger('scrollStopped', @)
@@ -127,19 +127,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     'orientationchange', globals.orientationChangeHandler, false
                 )
 
-        onClose: ->
+        onDestroy: ->
             if @lastRequest
                 @lastRequest.abort()
             @detachListeners()
 
-        itemView: (itemViewOptions) ->
+        childView: (childViewOptions) ->
             # Lookup the class to use based on the template specified on the item
-            model = itemViewOptions.model
-            itemViewClass = App.utils.findClass('TileView',
+            model = childViewOptions.model
+            childViewClass = App.utils.findClass('TileView',
                 model.get('template'),
                 App.core.TileView
             ) || App.core.TileView
-            return new itemViewClass(itemViewOptions)
+            return new childViewClass(childViewOptions)
 
 
     class module.MasonryFeedView extends module.FeedView
@@ -197,7 +197,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @layout()
             return @
 
-        appendHtml: (view, itemview) ->
+        attachHtml: (view, itemview) ->
             @add(itemview.$el)
 
         add: ($fragment) ->
@@ -215,7 +215,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @collection.remove(_.map(tileViews, (view) -> view.model))
                 _.map(tileViews, (view) => @removeChildView(view))
                 @masonry.layout()
-            @masonry.on 'removeComplete', removeComplete
+            @masonry.on('removeComplete', removeComplete)
             @masonry.remove(_.map(tileViews, (view) -> view.$el[0]))
 
         addItems: _.debounce((->

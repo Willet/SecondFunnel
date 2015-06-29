@@ -120,6 +120,7 @@
     "eventEmitter": "./lib/eventEmitter/EventEmitter.js",
     "get-style-property": "./lib/get-style-property/get-style-property.js",
     "get-size": "./lib/get-size/get-size.js",
+    "fizzy-ui-utils": "./lib/fizzy-ui-utils/utils.js",
     "matches-selector": "./lib/matches-selector/matches-selector.js",
     "imagesLoaded": "./lib/imagesloaded/imagesloaded.js",
     "packery": "./lib/packery/dist/packery.pkgd.js",
@@ -263,6 +264,7 @@
         "eventEmitter",
         "get-style-property",
         "get-size",
+        "fizzy-ui-utils",
         "matches-selector",
         "outlayerItem"
       ]
@@ -275,6 +277,7 @@
         "eventEmitter",
         "get-style-property",
         "get-size",
+        "fizzy-ui-utils",
         "matches-selector"
       ]
     },
@@ -291,6 +294,12 @@
       "exports": "getSize",
       "depends": [
         "eventie"
+      ]
+    },
+    "fizzy-ui-utils": {
+      "exports": "utils",
+      "depends": [
+        "matches-selector"
       ]
     },
     "doc-ready": {

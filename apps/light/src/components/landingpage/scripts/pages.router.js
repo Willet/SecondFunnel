@@ -22,7 +22,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         }
 
         App.previewLoadingScreen.hide();
-        App.previewArea.close();
+        App.previewArea.empty();
 
         App.router.navigate('', {
             trigger: true,
@@ -60,7 +60,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	            App.initialPage = '';
 	        }
 
-	        App.previewArea.close();
+	        App.previewArea.empty();
 	        App.previewLoadingScreen.hide();
 	        App.intentRank.changeCategory('');
 	    },
@@ -72,12 +72,12 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	        }));
 
 	        var feature_tile = function (tile) {
-	        	var heroArea = new App.core.HeroAreaView(tile.attributes);
+	        	var heroArea = new App.core.HeroAreaView({tile: tile.attributes});
 	            App.heroArea.show(heroArea);
 	        };
 
 	        // Ensure any preview area is closed
-	        App.previewArea.close();
+	        App.previewArea.empty();
 	        App.previewLoadingScreen.hide();
 	        App.core.Tile.getTileById(tileId, feature_tile, return_home);
 	    },
@@ -105,7 +105,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	            'hash': window.location.hash
 	        }));
 	        // Ensure any preview area is closed
-	        App.previewArea.close();
+	        App.previewArea.empty();
 	        App.previewLoadingScreen.hide();
 
 			if (category) {

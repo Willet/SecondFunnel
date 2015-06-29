@@ -44,7 +44,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             if (App.discovery && App.discovery.$el) {
                 // Why is this necessary?
                 App.discovery.$el.empty();
-                App.discovery.close();
+                App.discovery.destroy();
                 delete App.discovery;
             }
 
@@ -65,17 +65,9 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
             // Prevent hero image from resetting to first category on reload
             if (!App.heroArea.currentView) {
-                tileId = App.option('page:init:hero', App.option('page:home:hero', null));
-                if (tileId) {
-                    App.core.Tile.getTileById(tileId,
-                        function (tile) {
-                            // Found tile, load it up!
-                            App.heroArea.show(new App.core.HeroAreaView(tile.attributes));
-                        },
-                        function () {
-                            // Could not find tile
-                            App.heroArea.show(new App.core.HeroAreaView());
-                        }); 
+                tileId = App.option('page:init:hero', null);
+                if (App.utils.isNumber(tileId)) {
+                    App.heroArea.show(new App.core.HeroAreaView({tileId: tileId}));
                 } else {
                     // load the category or default hero image
                     App.heroArea.show(new App.core.HeroAreaView());

@@ -5,7 +5,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     A container tile that has no onclick or onhover
 
     @constructor
-    @type {Layout}
+    @type {TileView}
     ###
     class module.ContainerTileView extends module.TileView
         onHover: (ev) ->
@@ -28,7 +28,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         'left': position.left
                     )
 
-        onClose: (ev) ->
+        onDestroy: (ev) ->
             # Move Grooveshark overlay off of the screen
             $('.grooveshark-tile-overlay').css('left', '-10000px')
 

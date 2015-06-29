@@ -270,7 +270,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
             return
 
-        close: ->
+        destroy: ->
             @slide.swipe("destroy")
             return
 
@@ -352,9 +352,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     View responsible for Hero-specific things
 
     @constructor
-    @type {ItemView}
+    @type {LayoutView}
     ###
-    class module.HeroContent extends Marionette.Layout
+    class module.HeroContent extends Marionette.LayoutView
         template: "#herovideo_template"
         regions:
             video: ".hero-video"
@@ -395,54 +395,62 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     (e.g. Shop-the-look, featured, or just a plain div)
 
     @constructor
-    @type {Layout}
+    @type {LayoutView}
     ###
-    class module.HeroAreaView extends Marionette.Layout
+    class module.HeroAreaView extends Marionette.LayoutView
         className: "heroContainer"
         template: "#hero_container_template"
         regions:
             content: ".content"
         
         ###
-        @param data - can be an {object} (tileJson) or a {number} (tile-id)
+        @param options: {
+            tile: {object} (tile or tileJson)
+            tileId: {number} (tile-id)
+            updateWithCategory: {boolean, default: true} if true, hero images updated with category changes 
+        }
         ###
-        initialize: (data) ->
-            tile = if _.isObject(data) and not _.isEmpty(data) then data else undefined
-            tileId = if App.utils.isNumber(data) then data else App.option("page:home:hero")
+        initialize: (options) ->
+            tile = _.get(options, 'tile', undefined)
+            tileId = Number(_.get(options, 'tileId', undefined))
+            updateWithCategory = Boolean(_.get(options, 'updateWithCategory', true))
+
             
-            # data can be an object (tileJson)
+            # tile can be an object (tileJson)
             if tile?
                 @tileLoaded = $.when(tile)
-            # data can be a number (tile-id)
-            else if tileId?
+            # tileId is either a tile-id or NaN
+            else if tileId
                 @tileLoaded = $.Deferred()
                 tileLoadedResolve = =>
                     @tileLoaded.resolve(arguments)
                 module.Tile.getTileById(tileId, tileLoadedResolve, tileLoadedResolve)
-            # data didn't work, try to get category from intentRank if its setup
-            else if App.intentRank?.currentCategory?
-                tile = @getCategoryHeroImages(App.intentRank.currentCategory())
-                @tileLoaded = $.when(tile)
-            # get category from intentRank when its ready
-            else 
-                @tileLoaded = $.Deferred()
-                App.vent.once('intentRankInitialized', =>
-                    tileJson = @updateCategoryHeroImages(App.intentRank.currentCategory())
-                    @tileLoaded.resolve(tileJson)
-                )
+            # no tile, get category from intentRank
+            else
+                if App.intentRank?.currentCategory?
+                    tile = @getCategoryHeroImages(App.intentRank.currentCategory())
+                    @tileLoaded = $.when(tile)
+                # get category from intentRank when its ready
+                else
+                    @tileLoaded = $.Deferred()
+                    App.vent.once('intentRankInitialized', =>
+                        tileJson = @getCategoryHeroImages(App.intentRank.currentCategory())
+                        @tileLoaded.resolve(tileJson)
+                    )
             # tile can be a {Tile} or {object} tileJson
             @tileLoaded.done((tile) =>
                 @model = if _.isObject(tile) and not _.isEmpty(tile) then module.Tile.selectTileSubclass(tile) else undefined
+                App.heroArea.show(@)
+
                 @listenTo(App.vent, "windowResize", =>
-                    App.heroArea.show(@)
+                    App.heroArea.show(@, forceShow: true)
                 )
+                if updateWithCategory
+                    @listenTo(App.vent, "change:category", @updateCategoryHeroImages)
                 return
             )
 
-            @listenTo(App.vent, "change:category", @updateCategoryHeroImages)
-            return
-
-        onShow: ->
+        onRender: ->
             @tileLoaded.done(=>
                 if @model?
                     contentOpts = model: @model
@@ -453,7 +461,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         contentInstance = new module.PreviewContent(contentOpts)
                     @content.show(contentInstance)
                 else
-                    @content.close()
+                    @content.destroy()
                 return
             )
 
@@ -461,10 +469,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @model?.destroy()
             heroImagesModel = @getCategoryHeroImages(category)
             @model = if heroImagesModel then new module.Tile(heroImagesModel) else undefined
-            App.heroArea.show(@)
+            @render()
 
         getCategoryHeroImages: (category='') ->
-            category = if category? then category else App.option('page:home:category')
+            # default '' means home
+            category = if not _.isEmpty(category) then category else App.option('page:home:category')
             catObj = (App.categories.findModelByName(category) or {})
             desktopHeroImage = (catObj['desktopHeroImage'] or App.option('page:desktopHeroImage'))
             mobileHeroImage = (catObj['mobileHeroImage'] or App.option('page:mobileHeroImage'))
@@ -596,7 +605,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CategoryCollectionView extends Marionette.CollectionView
         tagName: "div"
         className: "category-area"
-        itemView: module.CategoryView
+        childView: module.CategoryView
 
         initialize: (options) ->
             mobileCatArr = App.option("page:mobileCategories", [])

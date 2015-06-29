@@ -285,7 +285,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @carouselRegion.currentView.calculateHorizontalPosition()
         return
 
-    module.ExpandedContent::close = ->
+    module.ExpandedContent::destroy = ->
         # See NOTE in onShow
         unless App.support.mobile()
             $(document.body).removeClass("no-scroll")
