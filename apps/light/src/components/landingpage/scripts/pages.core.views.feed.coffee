@@ -21,7 +21,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             #        especially cause IntentRank then calls this thing back
             initialResults = options.initialResults
             if initialResults and initialResults.length > 0
-                if $.isArray intitialResults
+                if _.isArray(intitialResults)
                     deferred = $.when(initialResults)
                 else
                     deferred = $.Deferred()
@@ -32,8 +32,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                 deferred.done (initialResults) =>
                     App.options.IRResultsReturned = @collection.models.length
-                    @collection.add initialResults
-                    App.intentRank.addResultsShown initialResults
+                    @collection.add(initialResults)
+                    App.intentRank.addResultsShown(initialResults)
 
             $(window).scrollStopped(=>
                 App.vent.trigger('scrollStopped', @)
@@ -197,7 +197,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @layout()
             return @
 
-        appendHtml: (view, itemview) ->
+        attachHtml: (view, itemview) ->
             @add(itemview.$el)
 
         add: ($fragment) ->
@@ -215,7 +215,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @collection.remove(_.map(tileViews, (view) -> view.model))
                 _.map(tileViews, (view) => @removeChildView(view))
                 @masonry.layout()
-            @masonry.on 'removeComplete', removeComplete
+            @masonry.on('removeComplete', removeComplete)
             @masonry.remove(_.map(tileViews, (view) -> view.$el[0]))
 
         addItems: _.debounce((->

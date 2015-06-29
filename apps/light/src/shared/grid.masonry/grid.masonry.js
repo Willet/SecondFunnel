@@ -267,9 +267,7 @@ GridMasonry.prototype._layoutItems = function( items, isInstant ) {
   var queuedItems = _.map( queue, function (position){ return position.item; });
 
   // emit layoutComplete when queued items are placed
-  this._itemsOn( queuedItems, 'layout', function (){  
-    _this.emitEvent( 'layoutComplete', [ _this, queuedItems ] ); console.log('layoutComplete');
-  });
+  this._emitCompleteOnItems('layout', queuedItems);
 
   this._processLayoutQueue( queue );
 };

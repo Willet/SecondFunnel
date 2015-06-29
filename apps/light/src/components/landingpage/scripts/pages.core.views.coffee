@@ -425,17 +425,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 tileLoadedResolve = =>
                     @tileLoaded.resolve(arguments)
                 module.Tile.getTileById(tileId, tileLoadedResolve, tileLoadedResolve)
-            # data didn't work, try to get category from intentRank if its setup
-            else if App.intentRank?.currentCategory?
-                tile = @getCategoryHeroImages(App.intentRank.currentCategory())
-                @tileLoaded = $.when(tile)
-            # get category from intentRank when its ready
+            # no tile, get category from intentRank
             else
-                @tileLoaded = $.Deferred()
-                App.vent.once('intentRankInitialized', =>
-                    tileJson = @getCategoryHeroImages(App.intentRank.currentCategory())
-                    @tileLoaded.resolve(tileJson)
-                )
+                if App.intentRank?.currentCategory?
+                    tile = @getCategoryHeroImages(App.intentRank.currentCategory())
+                    @tileLoaded = $.when(tile)
+                # get category from intentRank when its ready
+                else
+                    @tileLoaded = $.Deferred()
+                    App.vent.once('intentRankInitialized', =>
+                        tileJson = @getCategoryHeroImages(App.intentRank.currentCategory())
+                        @tileLoaded.resolve(tileJson)
+                    )
             # tile can be a {Tile} or {object} tileJson
             @tileLoaded.done((tile) =>
                 @model = if _.isObject(tile) and not _.isEmpty(tile) then module.Tile.selectTileSubclass(tile) else undefined
