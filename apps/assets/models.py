@@ -447,10 +447,10 @@ class ProductImage(BaseModel):
         super(ProductImage, self).delete(*args, **kwargs)
 
 
-class Category(BaseModel):
-    products = models.ManyToManyField(Product, related_name='categories')
+class Tag(BaseModel):
+    products = models.ManyToManyField(Product, related_name='tags')
 
-    store = models.ForeignKey(Store, related_name='categories', on_delete=models.CASCADE)
+    store = models.ForeignKey(Store, related_name='tags', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
 
     url = models.TextField(blank=True, null=True)
@@ -695,21 +695,23 @@ class Feed(BaseModel):
         self._deepdelete_tiles(self.tiles.select_related('products','content').all())
         self.delete() # Cascades to tiles
 
-    def clear_category(self, category, deepdelete=False):
-        """Delete all feed tiles tagged only with category
+    def clear_category(self, tag, deepdelete=False):
+        """Delete all feed tiles tagged only with tag
 
-        :param category - can be str (name field of category) or Category instance
+        NOTE: Migrating categories to tiles, update this method
+
+        :param tag - can be str (name field of tag) or Tag instance
 
         :option deepdelete - if True, delete all product & content that is not tagged
         in any other tile
         """
-        cat = category if isinstance(category, Category) else Category.objects.get(name=category)
-        cat_products = Product.objects.filter(categories__in=[cat])
+        tag = tag if isinstance(tag, Tag) else Tag.objects.get(name=tag)
+        tag_products = Product.objects.filter(tags__in=[tag])
         if deepdelete:
-            tiles = self.tiles.select_related('products','content').filter(products__in=cat_products)
+            tiles = self.tiles.select_related('products','content').filter(products__in=tag_products)
             self._deepdelete_tiles(tiles)
         else:
-            self.tiles.filter(products__in=cat_products).delete()
+            self.tiles.filter(products__in=tag_products).delete()
 
     def find_tiles(self, content=None, product=None):
         """:returns list of tiles with this product/content (if given)"""

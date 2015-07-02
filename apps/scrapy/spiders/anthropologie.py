@@ -61,22 +61,22 @@ class AnthropologieSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('description', '.description-content')
         l.add_css('image_urls', '#imgSlider img::attr(ng-src)')
 
-        # Handle categories
+        # Handle tags
         breadcrumbs = iter(sel.css('.product-breadcrumb a'))
         breadcrumb = next(breadcrumbs)  # Skip the first element
 
-        categories = []
+        tags = []
         for breadcrumb in breadcrumbs:
             category_name = breadcrumb.css('::text').extract_first().strip()
             category_url = breadcrumb.css('::attr(href)').extract_first()
 
-            categories.append((
+            tags.append((
                 category_name,
                 hostname + category_url
             ))
 
         attributes = {}
-        attributes['categories'] = categories
+        attributes['tags'] = tags
         l.add_value('attributes', attributes)
 
         yield l.load_item()

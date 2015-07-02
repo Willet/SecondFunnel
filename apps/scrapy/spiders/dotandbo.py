@@ -70,13 +70,13 @@ class DotAndBoSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         image_urls = [u.replace('square2wide', 'original') for u in image_urls]
         l.add_value('image_urls', image_urls)
 
-        # Handle categories
+        # Handle tags
         breadcrumb = sel.css('.breadcrumb a')[-1]
         category_name = breadcrumb.css('::text').extract_first().strip()
         category_url = breadcrumb.css('::attr(href)').extract_first()
 
         attributes = {}
-        attributes['categories'] = [(category_name, category_url)]
+        attributes['tags'] = [(category_name, category_url)]
         l.add_value('attributes', attributes)
 
         sale_price = '$' + sel.css('meta[property="og:price:amount"]::attr("content")').extract_first()

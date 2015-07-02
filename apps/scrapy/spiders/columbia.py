@@ -73,11 +73,11 @@ class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
                 l.add_css('price', 'span.reg-price::text')
                 attributes['sale_price'] = ''
 
-            categories = sel.css('ol.breadcrumb a::text').extract()[1:]  # Skip the first breadcrumb
+            tags = sel.css('ol.breadcrumb a::text').extract()[1:]  # Skip the first breadcrumb
             uses = sel.css('.product-activities .value::text').extract()
             if uses:
-                categories += uses[0].split(',')
-            attributes['categories'] = categories
+                tags += uses[0].split(',')
+            attributes['tags'] = tags
             l.add_value('attributes', attributes)
 
             img_urls = sel.css('img.s7productthumbnail::attr(data-m-src)').extract()

@@ -81,9 +81,9 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         # Don't create tiles when gathering products for a recipe
         l.add_value('force_skip_tiles', skip_tiles)
         
-        l.add_css('name', 'h1.name::text')
+        l.add_css('name', 'h1#product-title::text')
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
-        l.add_css('description', '#description .boxsides')
+        l.add_css('description', '#product-description div::text')
 
         # If the page doesn't have a sku, the product doesn't exist
         try:
@@ -100,15 +100,15 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         #    Now: $99.96 Was: $139.95 Value: $200.00
         try:
             price_range = sel.css('meta[property="eb:pricerange"]::attr(content)').extract()[0]
+            try:
+                reg_price = sel.css('.product-priceInfo #product-priceList span::text').extract()[0].split('-')[0]
+            except IndexError:
+                reg_price = sel.css('.product-priceMain span.hide::text').extract()[0].split('-')[0]
+            else:
+                sale_price = sel.css('.product-priceMain span.hide::text').extract()[0].split('-')[0]
+                l.add_value('sale_price', sale_price)
             if price_range:
                 attributes['price_range'] = price_range
-            try:
-                reg_price = sel.css('.regular label#productPriceValue::text').extract()[0].split('-')[0]
-            except IndexError:
-                reg_price = sel.css('.price label#productPriceValue::text').extract()[0].split('-')[0]
-            else:
-                sale_price = sel.css('.sale label#productPriceValue::text').extract()[0].split('-')[0]
-                l.add_value('sale_price', sale_price)
         except IndexError:
             in_stock = False
             reg_price = u'$0.00'

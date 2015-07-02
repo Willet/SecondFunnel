@@ -4,9 +4,9 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db import models
 from django.forms import SelectMultiple, ModelMultipleChoiceField
 
-from apps.assets.forms import CategoryForm
+from apps.assets.forms import TagForm
 from apps.assets.models import (Store, Page, Tile, Feed, Product, ProductImage,
-                                Image, Content, Theme, Review, Video, Category, Gif)
+                                Image, Content, Theme, Review, Video, Tag, Gif)
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -57,10 +57,10 @@ class StoreAdmin(BaseNamedAdmin):
     search_fields = ('id', 'name',)
 
 
-class CategoryAdmin(BaseAdmin):
+class TagAdmin(BaseAdmin):
     list_display = ['name', 'id'] + BaseAdmin.list_display + ['store', 'url']
     filter_horizontal = ('products',)
-    form = CategoryForm
+    form = TagForm
 
 
 class PageAdmin(BaseAdmin):
@@ -82,17 +82,17 @@ class FeedAdmin(BaseAdmin):
 
 class ProductAdmin(BaseAdmin):
     ordering = ['name']
-    list_display = ['name', '_category_names'] + BaseAdmin.list_display
+    list_display = ['name', '_tag_names'] + BaseAdmin.list_display
     search_fields = ('id', 'name', 'description', 'sku',)
     exclude = ('default_image',)
     filter_horizontal = ('similar_products',)
 
-    def _categories(self, obj):
-        return [cat.name for cat in obj.categories.all()]
+    def _tags(self, obj):
+        return [tag.name for tag in obj.tags.all()]
 
-    def _category_names(self, obj):
-        return ", ".join(self._categories(obj))
-    _category_names.admin_order_field = 'categories'
+    def _tag_names(self, obj):
+        return ", ".join(self._tags(obj))
+    _tag_names.admin_order_field = 'tags'
 
 class ProductImageAdmin(BaseAdmin):
     ordering = ['created_at', 'original_url']
@@ -136,7 +136,7 @@ class VideoAdmin(BaseAdmin):
 
 
 admin.site.register(Store, StoreAdmin)
-admin.site.register(Category, CategoryAdmin)
+admin.site.register(Tag, TagAdmin)
 admin.site.register(Page, PageAdmin)
 admin.site.register(Tile, TileAdmin)
 admin.site.register(Feed, FeedAdmin)
@@ -153,12 +153,12 @@ admin.site.register(Video, VideoAdmin)
 @extend_registered
 class ExtendedProductAdminForm(add_bidirectional_m2m(registered_form(Product))):
 
-    categories = ModelMultipleChoiceField(
-        queryset=Category.objects.all(),
-        widget=FilteredSelectMultiple(verbose_name='categories', is_stacked=False),
+    tags = ModelMultipleChoiceField(
+        queryset=Tag.objects.all(),
+        widget=FilteredSelectMultiple(verbose_name='tags', is_stacked=False),
         required=False,
     )
 
     def _get_bidirectional_m2m_fields(self):
         return super(ExtendedProductAdminForm, self).\
-            _get_bidirectional_m2m_fields() + [('categories', 'categories')]
+            _get_bidirectional_m2m_fields() + [('tags', 'tags')]

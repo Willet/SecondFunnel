@@ -44,7 +44,7 @@ class CrocsSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         attributes = {}
 
         breadcrumbs = sel.css('#crumbs a::text').extract()
-        attributes['categories'] = breadcrumbs[1:] # first crumb is the "back" button, so ignore it
+        attributes['tags'] = breadcrumbs[1:] # first crumb is the "back" button, so ignore it
 
         sel_price = sel.css('h3.price')
         if sel_price.css('span'):

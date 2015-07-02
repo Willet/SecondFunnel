@@ -57,7 +57,7 @@ ITEM_PIPELINES = {
     # 900 - Persistence-related Pipelines
     'apps.scrapy.pipelines.ItemPersistencePipeline': 990,
     'apps.scrapy.pipelines.TagWithProductsPipeline': 991,
-    'apps.scrapy.pipelines.CategoryPipeline': 997,
+    'apps.scrapy.pipelines.TagPipeline': 997,
     'apps.scrapy.pipelines.TileCreationPipeline': 998,
     'apps.scrapy.pipelines.ProductImagePipeline': 999
 }

@@ -15,7 +15,7 @@ from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from urlparse import urlparse
 
-from apps.assets.models import Store, Product, Category, Feed, ProductImage, Image
+from apps.assets.models import Store, Product, Tag, Feed, ProductImage, Image
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
@@ -252,62 +252,62 @@ class TagWithProductsPipeline(object):
         spider.log('Saved {} tagged images'.format(len(self.images)))
 
 
-class CategoryPipeline(object):
+class TagPipeline(object):
     def process_item(self, item, spider):
         if not isinstance(item, ScraperProduct):
             return item
 
-        # if categories are given, add them
-        categories = item.get('attributes', {}).get('categories', [])
-        for name in categories:
-            spider.log("Adding scraped category '{}'".format(name.strip()))
-            self.add_to_category(item, name.strip())
+        # if tags are given, add them
+        tags = item.get('attributes', {}).get('tags', [])
+        for name in tags:
+            spider.log("Adding scraped tag '{}'".format(name.strip()))
+            self.add_to_tag(item, name.strip())
 
-        for category in getattr(spider, 'categories', []):
-            spider.log("Adding spider-specified category '{}'".format(category.strip()))
-            self.add_to_category(item, category.strip())
+        for tag in getattr(spider, 'tags', []):
+            spider.log("Adding spider-specified tag '{}'".format(tag.strip()))
+            self.add_to_tag(item, tag.strip())
 
         return item
 
-    def add_to_category(self, item, name):
+    def add_to_tag(self, item, name):
         kwargs = {
             'store': item['store'],
             'name__iexact': name # django field lookup "iexact", meaning: ignore case
         }
 
-        # temporary, we're clearing out duplicate categories.
-        # Should dissociate all the products from all the different categories
+        # temporary, we're clearing out duplicate tags.
+        # Should dissociate all the products from all the different tags
         # and associate them with the "good" one (whichever has lowest id),
-        # then delete the "bad" category.
-        categories = Category.objects.filter(**kwargs)
-        if len(categories) > 1:
-            self.compress_duplicate_categories(categories)
-        elif len(categories) == 1:
-            category = categories[0]
+        # then delete the "bad" tag
+        tags = Tag.objects.filter(**kwargs)
+        if len(tags) > 1:
+            self.compress_duplicate_tags(tags)
+        elif len(tags) == 1:
+            tag = tags[0]
         else:
-            category = Category.objects.create(store=kwargs['store'], name=name.lower())
+            tag = Tag.objects.create(store=kwargs['store'], name=name.lower())
 
-        category.name = category.name.lower()
-        category.save()
+        tag.name = tag.name.lower()
+        tag.save()
 
         try:
             item_model = item_to_model(item)
         except TypeError, e:
-            spider.log.WARNING('Error converting item to model, product not added to category {}:\n\t{}'.format(category.name, e))
+            spider.log.WARNING('Error converting item to model, product not added to tag {}:\n\t{}'.format(tag.name, e))
             return
 
         product, _ = get_or_create(item_model)
-        category.products.add(product)
-        category.save()
+        tag.products.add(product)
+        tag.save()
 
-    def compress_duplicate_categories(self, categories):
-        spider.log(u"Compressing duplicate categories: {}".format(categories))
-        category = categories[0]
-        spider.log(u"\tKeeping: <Category {} {}>".format(category.id, category.name))
-        for dup in categories[1:]:
-            category.products.add(*dup.products.all())
+    def compress_duplicate_tags(self, tags):
+        spider.log(u"Compressing duplicate tags: {}".format(tags))
+        tag = tags[0]
+        spider.log(u"\tKeeping: <Tag {} {}>".format(tag.id, tag.name))
+        for dup in tags[1:]:
+            tag.products.add(*dup.products.all())
             spider.log(u"\tTansferred {} products".format(dup.products.all()))
-            spider.log(u"\tDeleting: <Category {} {}>".format(dup.id, dup.name))
+            spider.log(u"\tDeleting: <Tag {} {}>".format(dup.id, dup.name))
             dup.delete()
 
 

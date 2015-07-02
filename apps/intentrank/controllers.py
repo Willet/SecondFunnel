@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core import serializers
 from django.db.models import Q
 
-from apps.assets.models import Category, Tile, Content
+from apps.assets.models import Tag, Tile, Content
 from apps.intentrank.algorithms import ir_magic, qs_for, ir_base
 
 
@@ -88,6 +88,8 @@ class IntentRank(object):
                     algorithm=None, tile_id=0, offset=0, **kwargs):
         """Converts a feed into a list of <any> using given parameters.
 
+        NOTE: migrate Tag -> Category
+
         :param results     number of <any> to return
         :param exclude_set IDs of items in the feed to never consider
         :param request     (relay)
@@ -118,10 +120,10 @@ class IntentRank(object):
         for category_name in category_names:
             try:
                 if self._page:
-                    category = Category.objects.filter(store=self._page.store, name=category_name)[0]
+                    category = Tag.objects.filter(store=self._page.store, name=category_name)[0]
                 else:
-                    category = Category.objects.filter(name=category_name)[0]
-            except (IndexError, Category.DoesNotExist):
+                    category = Tag.objects.filter(name=category_name)[0]
+            except (IndexError, Tag.DoesNotExist):
                 continue
 
             if not products:

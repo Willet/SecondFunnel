@@ -58,7 +58,7 @@ def scrape(request, page_slug):
 
         spider = crawler.spiders.create(store_slug, **opts)
         spider.start_urls = start_urls
-        spider.categories = [category] if category else []
+        spider.tags = [category] if category else []
         spider.feed_ids = feeds
 
         crawler.crawl(spider)

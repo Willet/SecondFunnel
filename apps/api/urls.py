@@ -4,7 +4,7 @@ from tastypie.api import Api
 from apps.api.resources import (
     UserResource, StoreResource, ProductResource, ProductImageResource, ReviewResource,
     VideoResource, ContentResource, ImageResource, ThemeResource, PageResource, FeedResource,
-    TileResource, TileConfigResource, CampaignResource, CategoryResource)
+    TileResource, TileConfigResource, CampaignResource, TagResource)
 
 from apps.api.views import (
     ContentCGHandler, StoreContentCGHandler,
@@ -15,7 +15,7 @@ from apps.api.views import (
     StorePageItemCGHandler, StoreProductItemCGHandler, StorePageContentItemCGHandler,
     StoreContentItemCGHandler, TileConfigItemCGHandler,
     PageTileConfigItemCGHandler, StorePageTileConfigCGHandler,
-    StorePageTileConfigItemCGHandler, CategoryCGHandler,
+    StorePageTileConfigItemCGHandler, TagCGHandler,
     StorePageContentSuggestedCGHandler, TileCGHandler, TileItemCGHandler,
     PageTileCGHandler, PageTileItemCGHandler, StorePageTileCGHandler,
     StorePageTileItemCGHandler, PageItemCGHandler, StorePageContentTagCGHandler,
@@ -34,7 +34,7 @@ api.register(UserResource())
 api.register(StoreResource())
 api.register(ProductResource())
 api.register(ProductImageResource())
-api.register(CategoryResource())
+api.register(TagResource())
 api.register(ContentResource())
 api.register(ImageResource())
 api.register(VideoResource())
@@ -62,8 +62,8 @@ urlpatterns += patterns(
     url(r'^%s/store/?$' % prefix, StoreCGHandler.as_view()),  # v2 mimics mostly
     url(r'^%s/store/(?P<store_id>\d+)/?$' % prefix, StoreItemCGHandler.as_view()),  # v2 mimics mostly
 
-    url(r'^%s/category/?$' % prefix, CategoryCGHandler.as_view()),
-    url(r'^%s/store/(?P<store_id>\d+)/category/?$' % prefix, CategoryCGHandler.as_view()),
+    url(r'^%s/tag/?$' % prefix, TagCGHandler.as_view()),
+    url(r'^%s/store/(?P<store_id>\d+)/tag/?$' % prefix, TagCGHandler.as_view()),
 
     # content
     url(r'^%s/content/?$' % prefix, ContentCGHandler.as_view()),
