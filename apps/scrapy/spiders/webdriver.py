@@ -29,6 +29,10 @@ class SecondFunnelScraper(object):
 
 
 class SecondFunnelCrawlScraper(SecondFunnelScraper):
+    # These fields are expected to be completed by subclass crawlers
+    name = ''
+    allowed_domains = []
+    store_slug = ''
 
     # see documentation for remove_background in apps.imageservice.tasks
     remove_background = '#FFF'
@@ -65,7 +69,8 @@ class WebdriverCrawlSpider(Spider):
     we lose the benefit of the updates. It would be best for us to contibute
     to the project to make the request / response configurable somehow.
 
-    NOTE: Webdriver dies on spiders throwing exceptions: https://github.com/brandicted/scrapy-webdriver/issues/5
+    !!! NOTE: Webdriver dies on spiders throwing exceptions: https://github.com/brandicted/scrapy-webdriver/issues/5
+              Catch all exceptions and handle gracefull (ugh)
     """
 
     rules = ()

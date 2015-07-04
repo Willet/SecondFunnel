@@ -12,7 +12,7 @@ from scrapy.crawler import Crawler
 from scrapy.settings import CrawlerSettings
 from scrapy.utils.project import get_project_settings
 
-from apps.assets.models import Page, Store, Product
+from apps.assets.models import Category, Page, Product, Store
 
 stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
 
@@ -40,10 +40,12 @@ def scrape(request, page_slug):
     page = get_object_or_404(Page, url_slug=page_slug)
     def process(request, store_slug):
         cat = json.loads(urlparse.unquote(request.POST.get('cat')))
-        category = cat['name']
         start_urls = cat['urls']
         tiles = bool(request.POST.get('tiles') == 'true')
-        feeds = [Page.objects.get(url_slug=request.POST.get('page')).feed.id] if tiles else []
+        category = cat['name'] if tiles else None
+        page = Page.objects.get(url_slug=request.POST.get('page'))
+        feed = page.feed if tiles else None
+
         opts = {
             'recreate_tiles': False,
             'skip_images': False,
@@ -58,8 +60,8 @@ def scrape(request, page_slug):
 
         spider = crawler.spiders.create(store_slug, **opts)
         spider.start_urls = start_urls
-        spider.tags = [category] if category else []
-        spider.feed_ids = feeds
+        spider.feed_ids = [feed.id]
+        spider.categories = [category]
 
         crawler.crawl(spider)
         scrapy_log.start()

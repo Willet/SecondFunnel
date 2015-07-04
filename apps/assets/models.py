@@ -475,7 +475,7 @@ class Content(BaseModel):
 
     tagged_products = models.ManyToManyField(Product, null=True, blank=True,
                                              related_name='content')
-    # tiles is an array of Tiles (many-to-many relationship)
+    # tiles = <RelatedManager> Tiles (many-to-many relationship)
 
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
@@ -653,8 +653,8 @@ class Theme(BaseModel):
 
 class Feed(BaseModel):
     source_urls = models.TextField(null=True, blank=True)
-    # tiles = is an array of Tiles (many-to-one relationship)
-    # pages = is an array of Pages (many-to-one relationship)
+    # tiles = <RelatedManager> Tiles (many-to-one relationship)
+    # pages = <RelatedManager> Pages (many-to-one relationship)
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
@@ -695,23 +695,20 @@ class Feed(BaseModel):
         self._deepdelete_tiles(self.tiles.select_related('products','content').all())
         self.delete() # Cascades to tiles
 
-    def clear_category(self, tag, deepdelete=False):
-        """Delete all feed tiles tagged only with tag
+    def clear_category(self, category, deepdelete=False):
+        """Delete all feed tiles tagged only with category
 
-        NOTE: Migrating categories to tiles, update this method
-
-        :param tag - can be str (name field of tag) or Tag instance
+        :param tag - can be str (name field of category) or Category instance
 
         :option deepdelete - if True, delete all product & content that is not tagged
         in any other tile
         """
-        tag = tag if isinstance(tag, Tag) else Tag.objects.get(name=tag)
-        tag_products = Product.objects.filter(tags__in=[tag])
+        category = category if isinstance(category, Category) else Category.objects.get(name=category)
         if deepdelete:
-            tiles = self.tiles.select_related('products','content').filter(products__in=tag_products)
+            tiles = self.tiles.select_related('products','content').filter(categories__in=[category])
             self._deepdelete_tiles(tiles)
         else:
-            self.tiles.filter(products__in=tag_products).delete()
+            self.tiles.filter(categories__in=[category]).delete()
 
     def find_tiles(self, content=None, product=None):
         """:returns list of tiles with this product/content (if given)"""
@@ -1119,7 +1116,6 @@ class Page(BaseModel):
         return self.feed.remove(obj=obj)
 
 
-
 class Tile(BaseModel):
     def _validate_prioritized(status):
         allowed = ["", "request", "pageview", "session", "cookie", "custom"]
@@ -1140,6 +1136,7 @@ class Tile(BaseModel):
     # use content.select_subclasses() instead of content.all()!
     content = models.ManyToManyField(Content, blank=True, null=True,
                                      related_name='tiles')
+    # categories = <RelatedManager> Category (many-to-one relationship)
 
     # '': not prioritized.
     # 'request': prioritized for every IR request made by the client.
@@ -1234,3 +1231,19 @@ class Tile(BaseModel):
                 return content.tagged_products.all()[0]
 
         return None
+
+
+class Category(BaseModel):
+    """ Feed category, shared name across all feeds for a store
+
+    # To filter a feed by category:
+    category_tiles = Feed.tiles.objects.filter(categories__in=[category])
+
+    # To add tiles to a category, filter with the Store
+    Category.objects.get(name=cat_name, store=store)
+    """
+    tiles = models.ManyToManyField(Tile, related_name='categories')
+    store = models.ForeignKey(Store, related_name='categories', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    url = models.TextField(blank=True, null=True)
+

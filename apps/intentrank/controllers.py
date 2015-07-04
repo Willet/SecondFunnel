@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core import serializers
 from django.db.models import Q
 
-from apps.assets.models import Tag, Tile, Content
+from apps.assets.models import Category, Content, Tile
 from apps.intentrank.algorithms import ir_magic, qs_for, ir_base
 
 
@@ -18,15 +18,17 @@ class IntentRank(object):
 
     def __init__(self, feed=None, page=None):
         """
-        :param {Feed} feed   a Feed object with products
+        :param {Feed} feed a Feed object with products
         """
         if page:
             self._page = page
             self._feed = page.feed
+            self._store = page.store.all()[0]
         elif feed:
             self._feed = feed
             if feed.page.count():
                 self._page = feed.page.all()[0]  # caution
+                self._store = page.store
         else:
             raise AttributeError("Must supply one or more of: feed, page")
 
@@ -88,8 +90,6 @@ class IntentRank(object):
                     algorithm=None, tile_id=0, offset=0, **kwargs):
         """Converts a feed into a list of <any> using given parameters.
 
-        NOTE: migrate Tag -> Category
-
         :param results     number of <any> to return
         :param exclude_set IDs of items in the feed to never consider
         :param request     (relay)
@@ -103,6 +103,7 @@ class IntentRank(object):
         request = kwargs.get('request', None)
         category_name = kwargs.get('category_name', None)
         feed = self._feed
+        store = self._store
         tiles = None
 
         if not algorithm:
@@ -112,28 +113,21 @@ class IntentRank(object):
             return qs_for([])
 
         category_names = []
-        products = None
+        categories = []
 
         if category_name:
             category_names = category_name.split('|')
 
         for category_name in category_names:
             try:
-                if self._page:
-                    category = Tag.objects.filter(store=self._page.store, name=category_name)[0]
-                else:
-                    category = Tag.objects.filter(name=category_name)[0]
-            except (IndexError, Tag.DoesNotExist):
+                category = Category.objects.get(store=store, name=category_name)[0]
+            except (IndexError, Category.DoesNotExist):
                 continue
-
-            if not products:
-                products = category.products.all()
             else:
-                products = products & category.products.all()
+                categories.append(category)
 
-        if products is not None:
-            contents = Content.objects.filter(tagged_products__in=products)
-            tiles = feed.tiles.filter(Q(products__in=products) | Q(content__in=contents))
+        if categories:
+            tiles = feed.tiles.objects.filter(categories=categories)
 
         tiles = ir_base(feed=feed, tiles=tiles,
             products_only=kwargs.get('products_only', False),

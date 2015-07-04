@@ -91,3 +91,24 @@ class TagForm(ModelForm):
                     raise ValidationError("Products in tag must have same store as tag.")
 
         return self.cleaned_data
+
+
+class CategoryForm(ModelForm):
+    class Meta(object):
+        model = Tag
+
+    def clean(self):
+        """
+        Validation for a category ensures that we can't add tiles to a category for which
+        the stores do not match.
+        """
+        store = self.cleaned_data.get('store')
+        tiles = self.cleaned_data.get('tiles')
+
+        if tiles:
+            for t in tiles.all():
+                feed = Feed.objects.get(tiles__in=[t])
+                if not feed.pages.all()[0].store == store:
+                    raise ValidationError("Tiles in category must have same store as category.")
+
+        return self.cleaned_data

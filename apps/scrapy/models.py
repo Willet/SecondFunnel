@@ -70,4 +70,3 @@ class LookupTable(object):
         # Didn't find anything
         return (None, None)
 
-

@@ -15,7 +15,7 @@ from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from urlparse import urlparse
 
-from apps.assets.models import Store, Product, Tag, Feed, ProductImage, Image
+from apps.assets.models import Category, Feed, Image, Product, ProductImage, Store, Tag
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
@@ -35,9 +35,6 @@ class CloudinaryPipeline(ImagesPipeline):
     """
     def _get_store(self, uri):
         return CloudinaryStore()
-
-
-# TODO: Many of these pipelines could likely be processors instead
 
 
 class ValidationPipeline(object):
@@ -197,8 +194,7 @@ class ContentImagePipeline(object):
         return image
 
 
-# Any changes to the item after this pipeline will not be persisted.
-# It is suggested that this be the last pipeline
+# Any changes to the item after this pipeline will not be persisted!
 class ItemPersistencePipeline(object):
     def process_item(self, item, spider):
         try:
@@ -216,7 +212,7 @@ class ItemPersistencePipeline(object):
         return item
 
 
-class TagWithProductsPipeline(object):
+class AssociateWithProductsPipeline(object):
     """
     It saves a reference to content that passes through the pipeline
     and tags that content with any subsequent associated products
@@ -257,12 +253,13 @@ class TagPipeline(object):
         if not isinstance(item, ScraperProduct):
             return item
 
-        # if tags are given, add them
+        # If tags were found by the crawler
         tags = item.get('attributes', {}).get('tags', [])
         for name in tags:
             spider.log("Adding scraped tag '{}'".format(name.strip()))
             self.add_to_tag(item, name.strip())
 
+        # If you want all products in a scrape to have a specific tag
         for tag in getattr(spider, 'tags', []):
             spider.log("Adding spider-specified tag '{}'".format(tag.strip()))
             self.add_to_tag(item, tag.strip())
@@ -312,9 +309,18 @@ class TagPipeline(object):
 
 
 class TileCreationPipeline(object):
+    """ 
+    If spider has feed(s), create tile(s) for product or content
+    If spider also has category(s, add tile(s) to category(s)
+    """
+    def __init__(self):
+        # Categories will be indexed by id
+        self.category_cache = {}
+
     def process_item(self, item, spider):
         recreate_tiles = getattr(spider, 'recreate_tiles', False)
         skip_tiles = [getattr(spider, 'skip_tiles', False), item.get('force_skip_tiles', False)]
+        categories = getattr(spider, 'categories', False)
 
         if True in skip_tiles:
             spider.log(u"Skipping tile creation. spider.skip_tiles: {0}, item.force_skip_tiles: {1}".format(*skip_tiles))
@@ -322,13 +328,21 @@ class TileCreationPipeline(object):
         else:
             feed_ids = getattr(spider, 'feed_ids', [])
 
-            for feed_id in feed_ids:
-                spider.log(u"Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
-                self.add_to_feed(item, feed_id, recreate_tiles)
+            # Supports multiple feeds and multiple categories
+            if feed_ids:
+                for fid in feed_ids:
+                    # Create tile for each feed
+                    spider.log(u"Adding '{}' to <Feed {}>".format(item.get('name'), fid))
+                    tile = self.add_to_feed(item, fid, category, recreate_tiles)
+                    if categories:
+                        # Add each tile to the categories
+                        for cname in categories:
+                            spider.log(u"Adding '{}' to <Category '{}'>".format(item.get('name'), cname, spider.store_slug))
+                            self.add_to_categories(tile, cname)
 
             return item
 
-    def add_to_feed(self, item, feed_id, recreate_tiles=False):
+    def add_to_feed(self, item, feed_id, category, recreate_tiles=False):
         try:
             feed = Feed.objects.get(id=feed_id)
         except Feed.DoesNotExist:
@@ -345,7 +359,24 @@ class TileCreationPipeline(object):
             spider.log(u"Recreating tile for <{}> {}".format(item_obj, item.get('name')))
             feed.remove(item_obj)
 
-        feed.add(item_obj)
+        return feed.add(item_obj)
+
+    def add_to_category(self, tile, category_name, store_slug):
+        # Add store_slug to category_cache
+        if not self.category_cache.get(store_slug, False):
+            self.category_cache[store_slug] = {}
+
+        try:
+            # Check cache
+            cat = self.category_cache[store_slug][category_name]
+        except KeyError:
+            # Get or create category
+            cat, created = get_or_create(Category.objects.get(name=category_name, store__slug=store_slug))
+            if created:
+                cat.save()
+            # Add to cache
+            self.category_cache[store_slug][category_name] = cat
+        cat.tiles.add(tile)
 
 
 class ProductImagePipeline(object):

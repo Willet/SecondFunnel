@@ -4,8 +4,8 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db import models
 from django.forms import SelectMultiple, ModelMultipleChoiceField
 
-from apps.assets.forms import TagForm
-from apps.assets.models import (Store, Page, Tile, Feed, Product, ProductImage,
+from apps.assets.forms import CategoryForm, TagForm
+from apps.assets.models import (Category, Store, Page, Tile, Feed, Product, ProductImage,
                                 Image, Content, Theme, Review, Video, Tag, Gif)
 
 
@@ -61,6 +61,12 @@ class TagAdmin(BaseAdmin):
     list_display = ['name', 'id'] + BaseAdmin.list_display + ['store', 'url']
     filter_horizontal = ('products',)
     form = TagForm
+
+
+class CategoryAdmin(BaseAdmin):
+    list_display = ['name', 'id'] + BaseAdmin.list_display + ['store', 'url']
+    filter_horizontal = ('tiles',)
+    form = CategoryForm
 
 
 class PageAdmin(BaseAdmin):
@@ -137,6 +143,7 @@ class VideoAdmin(BaseAdmin):
 
 admin.site.register(Store, StoreAdmin)
 admin.site.register(Tag, TagAdmin)
+admin.site.register(Category, CategoryAdmin)
 admin.site.register(Page, PageAdmin)
 admin.site.register(Tile, TileAdmin)
 admin.site.register(Feed, FeedAdmin)
