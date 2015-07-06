@@ -136,6 +136,7 @@ class DuplicatesPipeline(object):
 
 # At the moment, ForeignKeys are a bitch, so, handle those separately.
 class ForeignKeyPipeline(object):
+    """ Currently turns item['store'] into a <Store> instance """
     def process_item(self, item, spider):
         if isinstance(item, ScraperProduct):
             return self.process_product(item, spider)
@@ -229,14 +230,13 @@ class AssociateWithProductsPipeline(object):
             image = self.images.get(content_id)
             if image:
                 product = Product.objects.get(store__slug=spider.store_slug, sku=item['sku'])
-                if product:
-                    product_id = product.id
-                    tagged_product_ids = image.tagged_products.values_list('id', flat=True)
-                    if not product_id in tagged_product_ids:
-                        spider.log('Tagging <Image {}> with <Product {}>'.format(image.id, product_id))
-                        image.tagged_products.add(product)
-                    else:
-                        spider.log('<Image {}> already tagged with <Product {}>'.format(image.id, product_id))
+                product_id = product.id
+                tagged_product_ids = image.tagged_products.values_list('id', flat=True)
+                if not product_id in tagged_product_ids:
+                    spider.log('Tagging <Image {}> with <Product {}>'.format(image.id, product_id))
+                    image.tagged_products.add(product)
+                else:
+                    spider.log('<Image {}> already tagged with <Product {}>'.format(image.id, product_id))
 
         return item
 
@@ -333,12 +333,12 @@ class TileCreationPipeline(object):
                 for fid in feed_ids:
                     # Create tile for each feed
                     spider.log(u"Adding '{}' to <Feed {}>".format(item.get('name'), fid))
-                    tile = self.add_to_feed(item, fid, recreate_tiles)
+                    tile, _, _ = self.add_to_feed(item, fid, recreate_tiles)
                     if categories:
                         # Add each tile to the categories
                         for cname in categories:
                             spider.log(u"Adding '{}' to <Category '{}'>".format(item.get('name'), cname))
-                            self.add_to_category(tile, cname, spider.store_slug)
+                            self.add_to_category(tile, cname, item['store'])
 
             return item
 
@@ -361,21 +361,21 @@ class TileCreationPipeline(object):
 
         return feed.add(item_obj)
 
-    def add_to_category(self, tile, category_name, store_slug):
+    def add_to_category(self, tile, category_name, store):
         # Add store_slug to category_cache
-        if not self.category_cache.get(store_slug, False):
-            self.category_cache[store_slug] = {}
+        if not self.category_cache.get(store.slug, False):
+            self.category_cache[store.slug] = {}
 
         try:
             # Check cache
-            cat = self.category_cache[store_slug][category_name]
+            cat = self.category_cache[store.slug][category_name]
         except KeyError:
             # Get or create category
-            cat, created = get_or_create(Category(name=category_name, store__slug=store_slug))
+            cat, created = get_or_create(Category(name=category_name, store=store))
             if created:
                 cat.save()
             # Add to cache
-            self.category_cache[store_slug][category_name] = cat
+            self.category_cache[store.slug][category_name] = cat
         cat.tiles.add(tile)
 
 

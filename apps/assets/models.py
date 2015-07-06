@@ -734,8 +734,9 @@ class Feed(BaseModel):
             return self._add_content(content=obj, prioritized=prioritized,
                                      priority=priority)
         elif isinstance(obj, Tile):
-            return self._copy_tile(tile=obj, prioritized=prioritized,
+            tile = self._copy_tile(tile=obj, prioritized=prioritized,
                                      priority=priority)
+            return tile, obj, True
         raise ValueError("add() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
 

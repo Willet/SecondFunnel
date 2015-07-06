@@ -23,7 +23,7 @@ class IntentRank(object):
         if page:
             self._page = page
             self._feed = page.feed
-            self._store = page.store.all()[0]
+            self._store = page.store
         elif feed:
             self._feed = feed
             if feed.page.count():
@@ -112,6 +112,7 @@ class IntentRank(object):
         if not feed.tiles.count():  # short circuit: return empty resultset
             return qs_for([])
 
+        # categories filter a feed
         category_names = []
         categories = []
 
@@ -120,14 +121,14 @@ class IntentRank(object):
 
         for category_name in category_names:
             try:
-                category = Category.objects.get(store=store, name=category_name)[0]
-            except (IndexError, Category.DoesNotExist):
+                category = Category.objects.get(store=store, name=category_name)
+            except Category.DoesNotExist:
                 continue
             else:
                 categories.append(category)
 
         if categories:
-            tiles = feed.tiles.objects.filter(categories=categories)
+            tiles = feed.tiles.filter(categories__in=categories)
 
         tiles = ir_base(feed=feed, tiles=tiles,
             products_only=kwargs.get('products_only', False),

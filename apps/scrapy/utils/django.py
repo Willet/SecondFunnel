@@ -26,12 +26,12 @@ def get_or_create(model):
     try:
         if isinstance(model, Product):
             # We have no unique identifier at the moment; use the sku / store
-            obj = model_class.objects.get(sku=model.sku, store_id=model.store_id)
+            obj = model_class.objects.get(sku=model.sku, store_id=model.store.id)
         elif isinstance(model, Content):
             # since there is no unique identifier for content, assuming source_url is unique
             obj = model_class.objects.get(source_url=model.source_url)
         elif isinstance(model, Category):
-            obj = model_class.objects.get(name=model.name, store__slug=model.store.slug)
+            obj = model_class.objects.get(name=model.name, store_id=model.store.id)
         else:  # if not a product, its content? this is here just in case
             # TODO: don't always create...
             created = True
