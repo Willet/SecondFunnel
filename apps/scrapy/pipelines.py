@@ -311,7 +311,7 @@ class TagPipeline(object):
 class TileCreationPipeline(object):
     """ 
     If spider has feed(s), create tile(s) for product or content
-    If spider also has category(s, add tile(s) to category(s)
+    If spider also has category(s), add tile(s) to category(s)
     """
     def __init__(self):
         # Categories will be indexed by id
