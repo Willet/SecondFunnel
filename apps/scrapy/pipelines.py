@@ -333,7 +333,7 @@ class TileCreationPipeline(object):
                 for fid in feed_ids:
                     # Create tile for each feed
                     spider.log(u"Adding '{}' to <Feed {}>".format(item.get('name'), fid))
-                    tile, _, _ = self.add_to_feed(item, fid, recreate_tiles)
+                    tile, _ = self.add_to_feed(item, fid, recreate_tiles)
                     if categories:
                         # Add each tile to the categories
                         for cname in categories:

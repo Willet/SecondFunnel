@@ -726,7 +726,13 @@ class Feed(BaseModel):
             .exclude(content__tagged_products__in_stock=False)
 
     def add(self, obj, prioritized=u"", priority=0):
-        """:raises ValueError"""
+        """ Add a <Product>, <Content> as a new tile, or copy an existing <Tile> to the feed. If the
+        Product already exists as a product tile, or the Content exists as a content tile, returns
+        that tile
+
+        :returns <Tile>, <bool> created
+
+        :raises ValueError"""
         if isinstance(obj, Product):
             return self._add_product(product=obj, prioritized=prioritized,
                                      priority=priority)
@@ -736,7 +742,7 @@ class Feed(BaseModel):
         elif isinstance(obj, Tile):
             tile = self._copy_tile(tile=obj, prioritized=prioritized,
                                      priority=priority)
-            return tile, obj, True
+            return tile, True
         raise ValueError("add() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
 
