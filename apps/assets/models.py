@@ -1247,3 +1247,22 @@ class Category(BaseModel):
     name = models.CharField(max_length=255)
     url = models.TextField(blank=True, null=True)
 
+    def full_clean(self):
+        kwargs = {
+            'store': self.store,
+            'name__iexact': self.name, # django field lookup "iexact", meaning: ignore case
+        }
+        # Make sure there aren't multiple Category's with the same name for this store
+        try:
+            cat = Category.objects.get(**kwargs)
+        except Category.DoesNotExist:
+            # First of its kind, ok
+            pass
+        except Category.MultipleObjectsReturned:
+            # Already multiples, bail!
+            raise ValueError("Category's must have a unique name for each store")
+        else:
+            # Only one, make it sure its this one
+            if not self.pk == cat.pk:
+                raise ValueError("Category's must have a unique name for each store")
+        return

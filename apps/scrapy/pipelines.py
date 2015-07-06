@@ -333,16 +333,16 @@ class TileCreationPipeline(object):
                 for fid in feed_ids:
                     # Create tile for each feed
                     spider.log(u"Adding '{}' to <Feed {}>".format(item.get('name'), fid))
-                    tile = self.add_to_feed(item, fid, category, recreate_tiles)
+                    tile = self.add_to_feed(item, fid, recreate_tiles)
                     if categories:
                         # Add each tile to the categories
                         for cname in categories:
-                            spider.log(u"Adding '{}' to <Category '{}'>".format(item.get('name'), cname, spider.store_slug))
-                            self.add_to_categories(tile, cname)
+                            spider.log(u"Adding '{}' to <Category '{}'>".format(item.get('name'), cname))
+                            self.add_to_category(tile, cname, spider.store_slug)
 
             return item
 
-    def add_to_feed(self, item, feed_id, category, recreate_tiles=False):
+    def add_to_feed(self, item, feed_id, recreate_tiles=False):
         try:
             feed = Feed.objects.get(id=feed_id)
         except Feed.DoesNotExist:
@@ -371,7 +371,7 @@ class TileCreationPipeline(object):
             cat = self.category_cache[store_slug][category_name]
         except KeyError:
             # Get or create category
-            cat, created = get_or_create(Category.objects.get(name=category_name, store__slug=store_slug))
+            cat, created = get_or_create(Category(name=category_name, store__slug=store_slug))
             if created:
                 cat.save()
             # Add to cache
