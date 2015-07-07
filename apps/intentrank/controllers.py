@@ -105,10 +105,10 @@ class IntentRank(object):
         feed = self._feed
         store = self._store
         tiles = None
-        
+
         if not algorithm:
             algorithm = self.algorithm
-        
+
         if not feed.tiles.count():  # short circuit: return empty resultset
             return qs_for([])
 
@@ -126,7 +126,7 @@ class IntentRank(object):
             # Category doesn't exist - return results
             tiles = []
         else:
-            tiles = feed.tiles.filter(categories__in=base_category)
+            tiles = feed.tiles.filter(categories__id=base_category.id)
 
             # Filter tiles with additional categories if they exist
             for name in category_names[1:]:
@@ -137,7 +137,7 @@ class IntentRank(object):
                     continue
                 else:
                     # Filter tiles
-                    tiles = tiles.filter(categories__in=filter_category)
+                    tiles = tiles.filter(categories__id=filter_category.id)
 
             # Apply IR ordering to applicable tiles
             tiles = ir_base(feed=feed, tiles=tiles,
