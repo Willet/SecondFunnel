@@ -891,7 +891,7 @@ class Feed(BaseModel):
 
         :raises AttributeError
         """
-        tiles = self.tiles.filter(products__contains=product, template='product')
+        tiles = self.tiles.filter(products__id__contains=product.id, template='product')
         tiles.delete()
         if deepdelete:
             product.delete()
@@ -905,7 +905,7 @@ class Feed(BaseModel):
 
         :raises AttributeError
         """
-        tiles = self.tiles.filter(content__contains=content)
+        tiles = self.tiles.filter(content__id__contains=content.id)
         self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
 
 

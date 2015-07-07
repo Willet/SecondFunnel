@@ -105,34 +105,44 @@ class IntentRank(object):
         feed = self._feed
         store = self._store
         tiles = None
-
+        
         if not algorithm:
             algorithm = self.algorithm
-
+        
         if not feed.tiles.count():  # short circuit: return empty resultset
             return qs_for([])
 
         # categories filter a feed
         category_names = []
-        categories = []
+        tiles = []
 
         if category_name:
             category_names = category_name.split('|')
 
-        for category_name in category_names:
-            try:
-                category = Category.objects.get(store=store, name=category_name)
-            except Category.DoesNotExist:
-                continue
-            else:
-                categories.append(category)
+        # Get first category
+        try:
+            base_category = Category.objects.get(store=store, name=category_names[0])
+        except Category.DoesNotExist:
+            # Category doesn't exist - return results
+            tiles = []
+        else:
+            tiles = feed.tiles.filter(categories__in=base_category)
 
-        if categories:
-            tiles = feed.tiles.filter(categories__in=categories)
+            # Filter tiles with additional categories if they exist
+            for name in category_names[1:]:
+                try:
+                    filter_category = Category.objects.get(store=store, name=name)
+                except Category.DoesNotExist:
+                    # Ignore categories that don't exist
+                    continue
+                else:
+                    # Filter tiles
+                    tiles = tiles.filter(categories__in=filter_category)
 
-        tiles = ir_base(feed=feed, tiles=tiles,
-            products_only=kwargs.get('products_only', False),
-            content_only=kwargs.get('content_only', False))
+            # Apply IR ordering to applicable tiles
+            tiles = ir_base(feed=feed, tiles=tiles,
+                products_only=kwargs.get('products_only', False),
+                content_only=kwargs.get('content_only', False))
 
         args = dict(
             tiles=tiles, results=results,

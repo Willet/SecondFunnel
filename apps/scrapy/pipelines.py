@@ -222,14 +222,17 @@ class AssociateWithProductsPipeline(object):
         self.images = {}
 
     def process_item(self, item, spider):
+        store = item['store']
+        url = item['url']
+
         if isinstance(item, ScraperImage) and item.get('tag_with_products') and item.get('content_id'):
-            self.images[item.get('content_id')] = Image.objects.get(store__slug=spider.store_slug, url=item['url'])
+            self.images[item.get('content_id')] = Image.objects.get(store=store, url=url)
 
         if isinstance(item, ScraperProduct) and item.get('content_id_to_tag'):
             content_id = item.get('content_id_to_tag')
             image = self.images.get(content_id)
             if image:
-                product = Product.objects.get(store__slug=spider.store_slug, sku=item['sku'])
+                product = Product.objects.get(stores=store, sku=item['sku'])
                 product_id = product.id
                 tagged_product_ids = image.tagged_products.values_list('id', flat=True)
                 if not product_id in tagged_product_ids:
@@ -282,7 +285,7 @@ class TagPipeline(object):
         elif len(tags) == 1:
             tag = tags[0]
         else:
-            tag = Tag.objects.create(store=kwargs['store'], name=name.lower())
+            tag = Tag.objects.create(**kwargs)
 
         tag.name = tag.name.lower()
         tag.save()
@@ -383,6 +386,7 @@ class ProductImagePipeline(object):
     def process_item(self, item, spider):
         remove_background = getattr(spider, 'remove_background', False)
         skip_images = getattr(spider, 'skip_images', False)
+        store = item['store']
 
         if isinstance(item, ScraperProduct) and not skip_images:
             successes = 0
@@ -399,7 +403,7 @@ class ProductImagePipeline(object):
                 # if product has no images, we don't want
                 # to show it on the page.
                 # Implementation is not very idiomatic unfortunately
-                product = Product.objects.get(store__slug=spider.store_slug, sku=item['sku'])
+                product = Product.objects.get(store=store, sku=item['sku'])
                 product.in_stock = False
                 product.save()
 
@@ -412,10 +416,10 @@ class ProductImagePipeline(object):
 
     def process_product_image(self, item, image_url, remove_background=False):
         store = item['store']
-        product = item['sku']
+        sku = item['sku']
 
         if not isinstance(product, Model):
-            product = Product.objects.get(sku=product, store_id=store.id)
+            product = Product.objects.get(sku=sku, store=store)
 
         # Doesn't this mean that if we ever end up seeing the same URL twice,
         # then we'll create new product images if the product differs?
