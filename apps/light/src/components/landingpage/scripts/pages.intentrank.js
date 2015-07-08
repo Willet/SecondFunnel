@@ -282,10 +282,9 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         var catObj;
         silent = silent || false;
 
-        // If category doesn't exist
-        if (!(category && App.categories.categoryExists(category))) {
-            // '' is valid; it means load home
-            if (!(category === '') && App.option('debug', false)) {
+        // If category doesn't exist or '' - load home 
+        if (!_.isString(category) || _.isEmpty(category)) {
+            if (!_.isString(category) && App.option('debug', false)) {
                 console.error("Invalid category '"+category+"', attempting to load home category");
             }
             // try the home category

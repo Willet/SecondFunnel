@@ -48,7 +48,6 @@ urlpatterns = patterns('',
         'apps.intentrank.views.get_rss_feed'),
 
     # page  livedin/id/123
-    # %7C is the pipe '|' between categories
     url(r'^(?P<page_slug>[^/\.]+)'
         r'/(?P<identifier>(id|sku|tile|category|preview))'
         r'/(?P<identifier_value>[\w\.\|-]+)/?$',
