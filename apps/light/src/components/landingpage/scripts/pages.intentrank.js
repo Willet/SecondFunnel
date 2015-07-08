@@ -325,6 +325,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
             // We create a new feed each time to ensure the previous
             // feed & tiles are completely unbinded
+            // This is a hack because of memory leaks and should be undone
+            // and the leaks fixed
             App.discovery = new App.core.MasonryFeedView(App.options);
             App.discoveryArea.show(App.discovery);
         }
