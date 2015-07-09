@@ -50,7 +50,7 @@ urlpatterns = patterns('',
     # page  livedin/id/123
     url(r'^(?P<page_slug>[^/\.]+)'
         r'/(?P<identifier>(id|sku|tile|category|preview))'
-        r'/(?P<identifier_value>[\w\.-]+)/?$',
+        r'/(?P<identifier_value>[\w\.\|-]+)/?$',
         'apps.light.views.landing_page'),
 )
 

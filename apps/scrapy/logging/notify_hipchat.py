@@ -1,7 +1,7 @@
 from django.conf import settings
 from apps.utils import hipchat_broadcast as hipchat
 
-def dump_spider_stats(stats, spider, reason, s3_urls):
+def dump_stats(stats, spider, reason, s3_urls):
     """
     Assemble stats into a brief message, then
     print it to the Scrapy room in hipchat.

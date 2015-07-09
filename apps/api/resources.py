@@ -23,7 +23,7 @@ from tastypie.serializers import Serializer
 from apps.api.paginator import ContentGraphPaginator
 from apps.api.utils import UserObjectsReadOnlyAuthorization
 from apps.assets.models import (Product, Store, Page, Feed, Tile, ProductImage,
-                                Image, Video, Review, Theme, Content, Category)
+                                Image, Video, Review, Theme, Content, Tag)
 from apps.dashboard.models import Campaign
 
 
@@ -86,7 +86,7 @@ class StoreResource(BaseCGResource):
     staff = fields.ToManyField('apps.api.resources.UserResource', 'staff', full=False) # causes recursion with user resource
     default_theme = fields.ForeignKey('apps.api.resources.ThemeResource', 'default_theme', full=True, null=True)
     pages = fields.ToManyField('apps.api.resources.PageResource', 'pages')
-    categories = fields.ToManyField('apps.api.resources.CategoryResource', 'categories')
+    tags = fields.ToManyField('apps.api.resources.TagResource', 'tags')
 
     class Meta(BaseCGResource.Meta):
         queryset = Store.objects.all()
@@ -132,7 +132,7 @@ class ProductResource(BaseCGResource):
                                       'default_image', null=True, full=True, full_list=False)
     images = fields.ToManyField('apps.api.resources.ProductImageResource', 'product_images',
                                 null=True, full=True, full_list=False)
-    categories = fields.ToManyField('apps.api.resources.CategoryResource', 'categories', full=False, full_list=False)
+    tags = fields.ToManyField('apps.api.resources.TagResource', 'tags', full=False, full_list=False)
     tagged_on = fields.ToManyField('apps.api.resources.ContentResource', 'content', null=True)
 
     def dehydrate(self, bundle):
@@ -193,14 +193,14 @@ class ProductImageResource(BaseCGResource):
         }
 
 
-class CategoryResource(BaseCGResource):
-    """Returns a category"""
+class TagResource(BaseCGResource):
+    """Returns a tag"""
     products = fields.ToManyField('apps.api.resources.ProductResource', 'products', null=True)
     store = fields.ForeignKey('apps.api.resources.StoreResource', 'store')
 
     class Meta(BaseCGResource.Meta):
-        queryset = Category.objects.all()
-        resource_name = 'category'
+        queryset = Tag.objects.all()
+        resource_name = 'tag'
 
         # TODO does this need filtering?
 

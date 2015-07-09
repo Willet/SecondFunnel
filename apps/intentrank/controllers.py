@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core import serializers
 from django.db.models import Q
 
-from apps.assets.models import Category, Tile, Content
+from apps.assets.models import Category, Content, Tile
 from apps.intentrank.algorithms import ir_magic, qs_for, ir_base
 
 
@@ -18,15 +18,17 @@ class IntentRank(object):
 
     def __init__(self, feed=None, page=None):
         """
-        :param {Feed} feed   a Feed object with products
+        :param {Feed} feed a Feed object with products
         """
         if page:
             self._page = page
             self._feed = page.feed
+            self._store = page.store
         elif feed:
             self._feed = feed
             if feed.page.count():
                 self._page = feed.page.all()[0]  # caution
+                self._store = page.store
         else:
             raise AttributeError("Must supply one or more of: feed, page")
 
@@ -101,6 +103,7 @@ class IntentRank(object):
         request = kwargs.get('request', None)
         category_name = kwargs.get('category_name', None)
         feed = self._feed
+        store = self._store
         tiles = None
 
         if not algorithm:
@@ -109,40 +112,45 @@ class IntentRank(object):
         if not feed.tiles.count():  # short circuit: return empty resultset
             return qs_for([])
 
+        # categories filter a feed
         category_names = []
-        products = None
+        tiles = []
 
         if category_name:
             category_names = category_name.split('|')
 
-        for category_name in category_names:
-            try:
-                if self._page:
-                    category = Category.objects.filter(store=self._page.store, name=category_name)[0]
-                else:
-                    category = Category.objects.filter(name=category_name)[0]
-            except (IndexError, Category.DoesNotExist):
-                continue
+        # Get first category
+        try:
+            base_category = Category.objects.get(store=store, name=category_names[0])
+        except Category.DoesNotExist:
+            # Category doesn't exist - return results
+            tiles = []
+        else:
+            tiles = feed.tiles.filter(categories__id=base_category.id)
 
-            if not products:
-                products = category.products.all()
-            else:
-                products = products & category.products.all()
+            # Filter tiles with additional categories if they exist
+            for name in category_names[1:]:
+                try:
+                    filter_category = Category.objects.get(store=store, name=name)
+                except Category.DoesNotExist:
+                    # This text is hardcoded by API consumers, so be careful about changing it
+                    raise Category.DoesNotExist("Category with name '{0}' does not exist for Store '{1}'".format(name, store.name))
+                tiles = tiles.filter(categories__id=filter_category.id)
 
-        if products is not None:
-            contents = Content.objects.filter(tagged_products__in=products)
-            tiles = feed.tiles.filter(Q(products__in=products) | Q(content__in=contents))
+            # Apply IR ordering to applicable tiles
+            tiles = ir_base(feed=feed, tiles=tiles,
+                products_only=kwargs.get('products_only', False),
+                content_only=kwargs.get('content_only', False))
 
-        tiles = ir_base(feed=feed, tiles=tiles,
-            products_only=kwargs.get('products_only', False),
-            content_only=kwargs.get('content_only', False))
+        if not tiles:
+            return []        
+        else:
+            args = dict(
+                tiles=tiles, results=results,
+                exclude_set=exclude_set, request=request,
+                offset=offset, tile_id=tile_id, feed=feed, page=self._page)
 
-        args = dict(
-            tiles=tiles, results=results,
-            exclude_set=exclude_set, request=request,
-            offset=offset, tile_id=tile_id, feed=feed, page=self._page)
-
-        return algorithm(**args)
+            return algorithm(**args)
 
     def to_json(self):
         """

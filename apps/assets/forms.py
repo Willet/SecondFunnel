@@ -7,7 +7,7 @@ from django.contrib.sites.models import get_current_site
 from django.core.mail import EmailMessage, get_connection
 from django.contrib.auth.tokens import default_token_generator
 
-from apps.assets.models import Category
+from apps.assets.models import Category, Tag
 
 
 class HTMLPasswordResetForm(PasswordResetForm):
@@ -73,13 +73,13 @@ class HTMLPasswordResetForm(PasswordResetForm):
         return msg.send()
 
 
-class CategoryForm(ModelForm):
+class TagForm(ModelForm):
     class Meta(object):
-        model = Category
+        model = Tag
 
     def clean(self):
         """
-        Validation for a category ensures that we can't add products to a category for which
+        Validation for a tag ensures that we can't add products to a tag for which
         the stores do not match.
         """
         store = self.cleaned_data.get('store')
@@ -88,6 +88,27 @@ class CategoryForm(ModelForm):
         if products:
             for p in products.all():
                 if not p.store == store:
-                    raise ValidationError("Products in category must have same store as category.")
+                    raise ValidationError("Products in tag must have same store as tag.")
+
+        return self.cleaned_data
+
+
+class CategoryForm(ModelForm):
+    class Meta(object):
+        model = Category
+
+    def clean(self):
+        """
+        Validation for a category ensures that we can't add tiles to a category for which
+        the stores do not match.
+        """
+        store = self.cleaned_data.get('store')
+        tiles = self.cleaned_data.get('tiles')
+
+        if tiles:
+            for t in tiles.all():
+                feed = Feed.objects.get(tiles__in=[t])
+                if not feed.pages.all()[0].store == store:
+                    raise ValidationError("Tiles in category must have same store as category.")
 
         return self.cleaned_data

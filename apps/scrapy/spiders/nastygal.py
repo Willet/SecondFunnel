@@ -58,11 +58,11 @@ class NastyGalSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('description', '.product-description')
         l.add_css('image_urls', '.carousel img::attr(src)')
 
-        # Handle categories
-        categories = sel.css('.breadcrumb a span::text').extract()[1:]  # Skip the first element
+        # Handle tags
+        tags = sel.css('.breadcrumb a span::text').extract()[1:]  # Skip the first element
 
         attributes = {}
-        attributes['categories'] = categories
+        attributes['tags'] = tags
         l.add_value('attributes', attributes)
 
         yield l.load_item()

@@ -661,9 +661,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @returns {bool}
         ###
         selectCategory: (category) ->
+            # Unselect currently selected
+            @unselectCategories()
             if category == ''
                 # home category
-                @unselectCategories()
                 return true
             try
                 catMapObj = @collection.findModelByName(category)

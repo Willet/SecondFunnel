@@ -447,10 +447,10 @@ class ProductImage(BaseModel):
         super(ProductImage, self).delete(*args, **kwargs)
 
 
-class Category(BaseModel):
-    products = models.ManyToManyField(Product, related_name='categories')
+class Tag(BaseModel):
+    products = models.ManyToManyField(Product, related_name='tags')
 
-    store = models.ForeignKey(Store, related_name='categories', on_delete=models.CASCADE)
+    store = models.ForeignKey(Store, related_name='tags', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
 
     url = models.TextField(blank=True, null=True)
@@ -475,7 +475,7 @@ class Content(BaseModel):
 
     tagged_products = models.ManyToManyField(Product, null=True, blank=True,
                                              related_name='content')
-    # tiles is an array of Tiles (many-to-many relationship)
+    # tiles = <RelatedManager> Tiles (many-to-many relationship)
 
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
@@ -653,8 +653,8 @@ class Theme(BaseModel):
 
 class Feed(BaseModel):
     source_urls = models.TextField(null=True, blank=True)
-    # tiles = is an array of Tiles (many-to-one relationship)
-    # pages = is an array of Pages (many-to-one relationship)
+    # tiles = <RelatedManager> Tiles (many-to-one relationship)
+    # pages = <RelatedManager> Pages (many-to-one relationship)
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
@@ -698,18 +698,17 @@ class Feed(BaseModel):
     def clear_category(self, category, deepdelete=False):
         """Delete all feed tiles tagged only with category
 
-        :param category - can be str (name field of category) or Category instance
+        :param tag - can be str (name field of category) or Category instance
 
         :option deepdelete - if True, delete all product & content that is not tagged
         in any other tile
         """
-        cat = category if isinstance(category, Category) else Category.objects.get(name=category)
-        cat_products = Product.objects.filter(categories__in=[cat])
+        category = category if isinstance(category, Category) else Category.objects.get(name=category)
         if deepdelete:
-            tiles = self.tiles.select_related('products','content').filter(products__in=cat_products)
+            tiles = self.tiles.select_related('products','content').filter(categories__in=[category])
             self._deepdelete_tiles(tiles)
         else:
-            self.tiles.filter(products__in=cat_products).delete()
+            self.tiles.filter(categories__in=[category]).delete()
 
     def find_tiles(self, content=None, product=None):
         """:returns list of tiles with this product/content (if given)"""
@@ -727,7 +726,13 @@ class Feed(BaseModel):
             .exclude(content__tagged_products__in_stock=False)
 
     def add(self, obj, prioritized=u"", priority=0):
-        """:raises ValueError"""
+        """ Add a <Product>, <Content> as a new tile, or copy an existing <Tile> to the feed. If the
+        Product already exists as a product tile, or the Content exists as a content tile, returns
+        that tile
+
+        :returns <Tile>, <bool> created
+
+        :raises ValueError"""
         if isinstance(obj, Product):
             return self._add_product(product=obj, prioritized=prioritized,
                                      priority=priority)
@@ -735,8 +740,9 @@ class Feed(BaseModel):
             return self._add_content(content=obj, prioritized=prioritized,
                                      priority=priority)
         elif isinstance(obj, Tile):
-            return self._copy_tile(tile=obj, prioritized=prioritized,
+            tile = self._copy_tile(tile=obj, prioritized=prioritized,
                                      priority=priority)
+            return tile, True
         raise ValueError("add() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
 
@@ -885,7 +891,7 @@ class Feed(BaseModel):
 
         :raises AttributeError
         """
-        tiles = self.tiles.filter(products__contains=product, template='product')
+        tiles = self.tiles.filter(products__id=product.id, template='product')
         tiles.delete()
         if deepdelete:
             product.delete()
@@ -899,7 +905,7 @@ class Feed(BaseModel):
 
         :raises AttributeError
         """
-        tiles = self.tiles.filter(content__contains=content)
+        tiles = self.tiles.filter(content__id=content.id)
         self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
 
 
@@ -1117,7 +1123,6 @@ class Page(BaseModel):
         return self.feed.remove(obj=obj)
 
 
-
 class Tile(BaseModel):
     def _validate_prioritized(status):
         allowed = ["", "request", "pageview", "session", "cookie", "custom"]
@@ -1138,6 +1143,7 @@ class Tile(BaseModel):
     # use content.select_subclasses() instead of content.all()!
     content = models.ManyToManyField(Content, blank=True, null=True,
                                      related_name='tiles')
+    # categories = <RelatedManager> Category (many-to-one relationship)
 
     # '': not prioritized.
     # 'request': prioritized for every IR request made by the client.
@@ -1232,3 +1238,38 @@ class Tile(BaseModel):
                 return content.tagged_products.all()[0]
 
         return None
+
+
+class Category(BaseModel):
+    """ Feed category, shared name across all feeds for a store
+
+    # To filter a feed by category:
+    category_tiles = Feed.tiles.objects.filter(categories__in=[category])
+
+    # To add tiles to a category, filter with the Store
+    Category.objects.get(name=cat_name, store=store)
+    """
+    tiles = models.ManyToManyField(Tile, related_name='categories')
+    store = models.ForeignKey(Store, related_name='categories', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    url = models.TextField(blank=True, null=True)
+
+    def full_clean(self):
+        kwargs = {
+            'store': self.store,
+            'name__iexact': self.name, # django field lookup "iexact", meaning: ignore case
+        }
+        # Make sure there aren't multiple Category's with the same name for this store
+        try:
+            cat = Category.objects.get(**kwargs)
+        except Category.DoesNotExist:
+            # First of its kind, ok
+            pass
+        except Category.MultipleObjectsReturned:
+            # Already multiples, bail!
+            raise ValueError("Category's must have a unique name for each store")
+        else:
+            # Only one, make it sure its this one
+            if not self.pk == cat.pk:
+                raise ValueError("Category's must have a unique name for each store")
+        return

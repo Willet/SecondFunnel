@@ -6,7 +6,7 @@ from optparse import make_option
 
 from apps.assets.models import Page, Product, ProductImage
 from apps.imageservice.utils import get_filetype
-from apps.scrapy.datafeed.cj import download_product_datafeed, load_product_datafeed, delete_product_datafeed
+from apps.scrapy.datafeeds.cj import download_product_datafeed, load_product_datafeed, delete_product_datafeed
 from apps.scrapy.logging import notify_slack, upload_to_s3
 
 # Required to use scrapy logging
