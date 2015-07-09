@@ -176,7 +176,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                     if (App.option('debug', false)) {
                         console.error(e.responseText);
                     }
-                    if (App.option("page:home:category") === module._category) {
+                    if (module._category === App.option("page:home:category")) {
                         // Home category is failing, go directly to unfiltered feed
                         module._changeCategory('', true);
                     } else {
