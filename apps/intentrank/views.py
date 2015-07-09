@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 import re
 
 from apps.api.decorators import request_methods
-from apps.assets.models import Page, Tile, Store
+from apps.assets.models import Category, Page, Store, Tile
 from apps.intentrank.controllers import IntentRank
 from apps.intentrank.algorithms import ir_all
 from apps.intentrank.utils import ajax_jsonp
@@ -114,11 +114,15 @@ def get_results_view(request, page_id):
         page.id, page.feed.id, algorithm.__name__)
 
     # results is a queryset!
-    results = ir.get_results(
-        results=results,
-        request=request, exclude_set=exclude_set, category_name=category,
-        offset=offset, tile_id=tile_id, content_only=content_only,
-        products_only=products_only)
+    try:
+        results = ir.get_results(
+            results=results,
+            request=request, exclude_set=exclude_set, category_name=category,
+            offset=offset, tile_id=tile_id, content_only=content_only,
+            products_only=products_only)
+    except Category.DoesNotExist as e:
+        return HttpResponseNotFound("{}".format(e))
+    
     # results is a list of stringified tiles!
     results = results.values_list('ir_cache', flat=True)
 
@@ -166,7 +170,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     if tile_id:
         try:
             tile = get_object_or_404(Tile, id=tile_id)
-        except Tile.DoesNotExist:
+        except Http404:
             return HttpResponseNotFound("No tile {0}".format(tile_id))
 
         return ajax_jsonp(tile.to_json())
@@ -174,7 +178,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     # get all tiles
     try:
         page = get_object_or_404(Page, id=page_id)
-    except Page.DoesNotExist:
+    except Http404:
         return HttpResponseNotFound("No page {0}".format(page_id))
 
     feed = page.feed
@@ -183,7 +187,11 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
 
     # results is a queryset!
     ir = IntentRank(page=page)
-    results = ir.get_results(request=request, algorithm=ir_all)
+    try:
+        results = ir.get_results(request=request, algorithm=ir_all)
+    except Category.DoesNotExist as e:
+        return HttpResponseNotFound("{}".format(e))
+
     # results is a list of stringified tiles!
     results = results.values_list('ir_cache', flat=True)
 

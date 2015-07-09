@@ -133,23 +133,24 @@ class IntentRank(object):
                 try:
                     filter_category = Category.objects.get(store=store, name=name)
                 except Category.DoesNotExist:
-                    # Ignore categories that don't exist
-                    continue
-                else:
-                    # Filter tiles
-                    tiles = tiles.filter(categories__id=filter_category.id)
+                    # This text is hardcoded by API consumers, so be careful about changing it
+                    raise Category.DoesNotExist("Category with name '{0}' does not exist for Store '{1}'".format(name, store.name))
+                tiles = tiles.filter(categories__id=filter_category.id)
 
             # Apply IR ordering to applicable tiles
             tiles = ir_base(feed=feed, tiles=tiles,
                 products_only=kwargs.get('products_only', False),
                 content_only=kwargs.get('content_only', False))
 
-        args = dict(
-            tiles=tiles, results=results,
-            exclude_set=exclude_set, request=request,
-            offset=offset, tile_id=tile_id, feed=feed, page=self._page)
+        if not tiles:
+            return []        
+        else:
+            args = dict(
+                tiles=tiles, results=results,
+                exclude_set=exclude_set, request=request,
+                offset=offset, tile_id=tile_id, feed=feed, page=self._page)
 
-        return algorithm(**args)
+            return algorithm(**args)
 
     def to_json(self):
         """

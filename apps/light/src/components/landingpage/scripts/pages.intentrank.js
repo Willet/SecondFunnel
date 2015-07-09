@@ -164,13 +164,28 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 // (it was specified before?)
                 resultsAlreadyRequested = resultsAlreadyRequested.slice(
                     -module.options.IRResultsCount);
-            }).fail(function () {
+            }).fail(function (e) {
                 // request FAILED
                 if (collection.ajaxFailCount) {
                     collection.ajaxFailCount++;
                 } else {
                     collection.ajaxFailCount = 1;
                 }
+                // For category does not exist errors, attempt recovery
+                if (e.status === 404 && _.contains(e.responseText, 'Category with name') && _.contains(e.responseText, 'does not exist')) {
+                    if (App.option('debug', false)) {
+                        console.error(e.responseText);
+                    }
+                    if (App.option("page:home:category") === module._category) {
+                        // Home category is failing, go directly to unfiltered feed
+                        module._changeCategory('', true);
+                    } else {
+                        // Navigate home
+                        App.router.navigate("", { trigger: true });
+                    }
+                }
+                // Stop propogation
+                return false;
             });
 
         collection.isLoading = true;
@@ -271,15 +286,14 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
     /**
      * Changes the intentRank category and updates the discovery area
-     * Fire 'change:category' event (can be silenced with silent=true)
+     * and fire 'change:category' event
      *
      * @param {String} category
-     * @param {Boolean} silent
+     * @param {Boolean} silent (optional) - supresses 'change:category' event
      *
      * @return this
      */
     module.changeCategory = function (category, silent) {
-        var catObj;
         silent = silent || false;
 
         // If category doesn't exist or '' - load home 
@@ -306,31 +320,49 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 console.warn("Could not change category to '"+category+"': category already selected");
             }
         } else {
-            // Change to valid category
-            $(".loading").show();
-
-            catObj = App.categories.findModelByName(category) || {};
-
-            module._category = category;
-            // tileSet is an optional paramter which can force a category to be
-            // content-only "content" or product-only "products"
-            // generally this should be undefined
-            module._IRTileSet = catObj['tileSet'] || undefined;
-            module.options.IRReset = true;
-            
-            App.vent.trigger('tracking:changeCategory', category);
-            if (!silent) {
-                App.vent.trigger('change:category', category, category);
-            }
-
-            // We create a new feed each time to ensure the previous
-            // feed & tiles are completely unbinded
-            // This is a hack because of memory leaks and should be undone
-            // and the leaks fixed
-            App.discovery = new App.core.MasonryFeedView(App.options);
-            App.discoveryArea.show(App.discovery);
+            module._changeCategory(category, silent);
         }
         
         return module;
+    };
+
+    /**
+     * Executes change category command on category with no protections
+     *
+     * @param {String} category
+     * @param {Boolean} silent (optional) - supresses 'change:category' event
+     *
+     * Note: currently IntentRank does not know what valid categories are.  The server should
+     *       return 404 Bad Request for invalid category(s) and the page will try to load the
+     *       home category then no category.
+     *
+     * @return this
+     */
+    module._changeCategory = function (category, silent) {
+        var catObj;
+
+        // Change to valid category
+        $(".loading").show();
+
+        catObj = App.categories.findModelByName(category) || {};
+
+        module._category = category;
+        // tileSet is an optional paramter which can force a category to be
+        // content-only "content" or product-only "products"
+        // generally this should be undefined
+        module._IRTileSet = catObj['tileSet'] || undefined;
+        module.options.IRReset = true;
+        
+        App.vent.trigger('tracking:changeCategory', category);
+        if (!silent) {
+            App.vent.trigger('change:category', category, category);
+        }
+
+        // We create a new feed each time to ensure the previous
+        // feed & tiles are completely unbinded
+        // This is a hack because of memory leaks and should be undone
+        // and the leaks fixed
+        App.discovery = new App.core.MasonryFeedView(App.options);
+        App.discoveryArea.show(App.discovery);
     };
 };
