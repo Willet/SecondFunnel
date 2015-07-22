@@ -2,8 +2,9 @@ import json
 import urlparse
 from multiprocessing import Process
 
-from django.http import HttpResponse, Http404
+from django.db.models import Count
 from django.conf import settings as django_settings
+from django.http import HttpResponse, Http404
 from django.shortcuts import render, get_object_or_404
 from twisted.internet import reactor
 
@@ -80,17 +81,23 @@ def scrape(request, page_slug):
     return HttpResponse(status=204)
 
 def prioritize(request, page_slug):
-    """callback for prioritizing tiles, if applicable"""
+    """ Callback for prioritizing product tiles on page, if applicable """
+    data = json.loads(urlparse.unquote(request.POST.get('cat')))
+    page = Page.objects.get(url_slug=request.POST.get('page'))
+    store = page.store
+    urls = data['urls']
+    priorities = data['priorities']
+    cat_name = data['name']
+    category = Category.objects.get(name=cat_name, store=store)
+    # Get tiles & add product count for later filtering
+    tiles = page.feed.tiles.objects.filter(categories__in=[category]).annotate(Count('products'))
 
-    cat = json.loads(urlparse.unquote(request.POST.get('cat')))
-    urls = cat['urls']
-    priorities = cat['priorities']
     for i, url in enumerate(urls):
+        # we assume there is only 1 product per url, but to be safe iterate over results
         prods = Product.objects.filter(url=url)
         for prod in prods:
-            for tile in prod.tiles.all():
-                tile.priority = priorities[i]
-                tile.save()
+            # filter for product tiles with this product, update priority in bulk
+            tiles.filter(products__id=prod.id, products__count=1, content=None).update(priority=priorities[i])
     return HttpResponse(status=204)
 
 def log(request, page_slug, filename=None):
