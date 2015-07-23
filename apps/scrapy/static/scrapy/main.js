@@ -52,7 +52,7 @@ var scrape = function() {
             $results.html($results.html() + "\n Category: " + cat);
             console.log('Category: ' + cat);
             $.ajax({
-                url: 'scrape',
+                url: page + '/scrape',
                 type: 'POST',
                 data: {
                     'cat': encodeURIComponent(JSON.stringify(categories[cat])),
@@ -93,7 +93,7 @@ var prioritize = function() {
             $results.html($results.html() + "\n Category: " + cat);
             console.log('Category: ' + cat);
             $.ajax({
-                url: 'prioritize',
+                url: page + '/prioritize',
                 type: 'POST',
                 data: {
                     'cat': encodeURIComponent(JSON.stringify(categories[cat])),
