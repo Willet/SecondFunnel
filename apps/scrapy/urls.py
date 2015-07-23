@@ -8,7 +8,6 @@ urlpatterns = patterns(
     url(r'^(?P<page_slug>[-\w]+)/log/(?P<filename>.+)/?$', 'log'),
     url(r'^(?P<page_slug>[-\w]+)/summary$', 'summary'),
     url(r'^(?P<page_slug>[-\w]+)/summary/(?P<filename>.+)/?$', 'summary'),
-
     url(r'^(?P<page_slug>[-\w]+)/scrape/?', 'scrape'),
     url(r'^(?P<page_slug>[-\w]+)/prioritize/?', 'prioritize'),
 )

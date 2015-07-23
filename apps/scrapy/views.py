@@ -83,21 +83,24 @@ def scrape(request, page_slug):
 def prioritize(request, page_slug):
     """ Callback for prioritizing product tiles on page, if applicable """
     data = json.loads(urlparse.unquote(request.POST.get('cat')))
-    page = Page.objects.get(url_slug=request.POST.get('page'))
+    page = Page.objects.get(url_slug=page_slug)
     store = page.store
     urls = data['urls']
     priorities = data['priorities']
     cat_name = data['name']
     category = Category.objects.get(name=cat_name, store=store)
-    # Get tiles & add product count for later filtering
-    tiles = page.feed.tiles.objects.filter(categories__in=[category]).annotate(Count('products'))
+    # Get product tiles
+    product_tiles = page.feed.tiles.filter(categories__id=category.id, content=None).annotate(Count('products')).filter(products__count=1)
+    # Because of a Django bug (https://code.djangoproject.com/ticket/25171), 
+    # get clean QuerySet without count annotation
+    product_tiles = page.feed.tiles.filter(pk__in=product_tiles.values_list('pk', flat=True))
 
     for i, url in enumerate(urls):
         # we assume there is only 1 product per url, but to be safe iterate over results
         prods = Product.objects.filter(url=url)
         for prod in prods:
             # filter for product tiles with this product, update priority in bulk
-            tiles.filter(products__id=prod.id, products__count=1, content=None).update(priority=priorities[i])
+            product_tiles.filter(products__id=prod.id).update(priority=priorities[i])
     return HttpResponse(status=204)
 
 def log(request, page_slug, filename=None):
