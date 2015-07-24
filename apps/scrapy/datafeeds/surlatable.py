@@ -1,7 +1,7 @@
 from apps.scrapy.datafeeds.cj import Datafeed
 
 
-class SurLaTable_Datafeed(Datafeed):
+class SurLaTableDatafeed(Datafeed):
     name = 'surlatable'
 
     def __init__(self):
