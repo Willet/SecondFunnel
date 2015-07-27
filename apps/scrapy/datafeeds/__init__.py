@@ -1,11 +1,11 @@
 import inspect
 
-import apps.scrapy.datafeeds as dfs
+import apps.scrapy.datafeeds as datafeeds
 
 def find_datafeed(name):
-    datafeeds = inspect.getmembers(dfs, inspect.isclass)
+    dfs = inspect.getmembers(datafeeds, inspect.isclass)
 
-    matches = [ obj if getattr(obj, 'name', None) == name for obj in datafeeds ]
+    matches = [ obj if getattr(obj, 'name', None) == name for obj in dfs ]
     if matches:
         return matches[0]
     else:

@@ -10,14 +10,14 @@ class SurLaTableDatafeed(Datafeed):
             "PATHNAME": "outgoing/productcatalog/170707/",
             "FILENAME": "Sur_La_Table-Sur_La_Table_Product_Catalog.txt.gz",
         }
-        super(SurLaTable_Datafeed, self).__init__(store=store, datafeed=datafeed)
+        super(SurLaTableDatafeed, self).__init__(store=store, datafeed=datafeed)
 
     def load(self):
         """ Import data feed & generate lookup table """
         # THIRDPARTYCATEGORY - product url
         # ADVERTISERCATEGORY - product category breadcrumb
         # ARTIST - large product image url
-        self.lookup_table = super(SurLaTable_Datafeed, self).load(
+        self.lookup_table = super(SurLaTableDatafeed, self).load(
             collect_fields=["SKU", "NAME", "DESCRIPTION", "PRICE",
                 "SALEPRICE", "BUYURL", "INSTOCK",
                 "ADVERTISERCATEGORY", "THIRDPARTYCATEGORY",
