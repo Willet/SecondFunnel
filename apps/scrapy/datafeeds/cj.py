@@ -4,7 +4,7 @@ import os
 
 from ftplib import FTP
 
-from apps.scrapy.models import LookupTable
+from apps.scrapy.utils.models import LookupTable
 
 
 class Datafeed(object):

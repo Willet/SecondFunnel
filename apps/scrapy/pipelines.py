@@ -11,42 +11,70 @@ from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.db import transaction
 from django.db.models import Model, Q
 from scrapy import log
-from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from urlparse import urlparse
 
-from apps.assets.models import Category, Feed, Image, Product, ProductImage, Store, Tag
+from apps.assets.models import Category, Feed, Image, Page, Product, ProductImage, Store, Tag
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
-from apps.scrapy.utils.misc import CloudinaryStore, extract_decimal, extract_currency
+from apps.scrapy.utils.misc import extract_decimal, extract_currency
 
 
-class CloudinaryPipeline(ImagesPipeline):
+class ItemManifold(object):
     """
-    Enable Cloudinary storage using the ImagePipeline.
+    A Scrapy Pipeline that processes by scraper item type
+    Pipeline is skipped if processor is not implemented for a type
 
-    Highly experimental, as ImagePipeline isn't really extensible at the
-    moment.
+    Supported items:
 
-    More details on the Image Pipeline here:
-        http://doc.scrapy.org/en/latest/topics/images.html
+    ScraperProduct -> process_product
+    ScraperContent -> process_content
+    ScraperImage   -> process_image
     """
-    def _get_store(self, uri):
-        return CloudinaryStore()
-
-
-class ValidationPipeline(object):
     def process_item(self, item, spider):
         if isinstance(item, ScraperProduct):
-            return self.process_product(item, spider)
-
+            return (self.process_product(item, spider) or item) if \
+                callable(getattr(self.__class__, 'process_product', None)) else item
         elif isinstance(item, ScraperContent):
-            return self.process_content(item, spider)
+            return (self.process_content(item, spider) or item) if \
+                callable(getattr(self.__class__, 'process_content', None)) else item
+        elif isinstance(item, ScraperImage):
+            return (self.process_image(item, spider) or item) if \
+                callable(getattr(self.__class__, 'process_image', None)) else item
+        else:
+            return item
+
+
+class ForeignKeyPipeline(ItemManifold):
+    """ Currently turns item['store'] into a <Store> instance """
+    def process_product(self, item, spider):
+        item = self.associate_store(item, spider)
 
         return item
 
+    def process_content(self, item, spider):
+        item = self.associate_store(item, spider)
+
+        return item
+
+    def associate_store(self, item, spider):
+        store_slug = getattr(spider, 'store_slug', '')
+
+        try:
+            store = Store.objects.get(slug=store_slug)
+        except Store.DoesNotExist:
+            raise DropItem("Can't add item to non-existent store")
+
+        item['store'] = store
+        return item
+
+
+class ValidationPipeline(ItemManifold):
+    """
+    If item fails validation, drop item & do something intelligent if its already in the database
+    """
     def process_product(self, item, spider):
         # Drop items missing required fields
         required = set(['sku', 'name'])
@@ -80,123 +108,86 @@ class ValidationPipeline(object):
 
         return item
 
+
+class DuplicatesPipeline(ItemManifold):
+    """
+    Detects if there are duplicates based on sku and spider name.
+
+    TODO: merge duplicates?
+    """
+    def __init__(self):
+        self.products_seen = defaultdict(set)
+        self.content_seen = defaultdict(set)
+
+    def process_product(self, item, spider):
+        sku = item['sku']
+
+        if sku in self.products_seen[spider.name]:
+            raise DropItem("Duplicate item found here: {}".format(item))
+
+        self.products_seen[spider.name].add(sku)
+
     def process_content(self, item, spider):
-        return item
+        # assuming source_url to be a unique attribute
+        source_url = item['source_url']
+
+        if source_url in self.content_seen[spider.name]:
+            raise DropItem("Duplicate item found: {}".format(item))
+
+        self.content_seen[spider.name].add(source_url)
 
 
-class PricePipeline(object):
+class PricePipeline(ItemManifold):
     """
     Converts price & sale_price to decimal.Decimal & stores currency
     Note: currency is *any* characters around price that aren't numbers, decimal, or whitespace
     """
-    def process_item(self, item, spider):
-        if isinstance(item, ScraperProduct):
-            if not isinstance(item['price'], decimal.Decimal):
-                price = item['price']
-
-                item['price'] = extract_decimal(price)
-                item['currency'] = extract_currency(price)
-
-            sale_price = item.get('sale_price', None)
-            if sale_price and not isinstance(sale_price, decimal.Decimal):
-                item['sale_price'] = extract_decimal(sale_price)
-
-        return item
-
-
-class DuplicatesPipeline(object):
-    """
-    Detects if there are duplicates based on sku and spider name.
-
-    Alternatively, we could do some sort of merge if there are duplicates...
-    """
-    def __init__(self):
-        self.ids_seen = defaultdict(set)
-        self.content_seen = defaultdict(set)
-
-    def process_item(self, item, spider):
-        spider_name = spider.name
-        if isinstance(item, ScraperProduct):
-            sku = item['sku']
-
-            if sku in self.ids_seen[spider_name]:
-                raise DropItem("Duplicate item found here: {}".format(item))
-
-            self.ids_seen[spider_name].add(sku)
-        if isinstance(item, ScraperContent):
-            # assuming source_url to be a unique attribute
-            source_url = item['source_url']
-
-            if source_url in self.content_seen[spider_name]:
-                raise DropItem("Duplicate item found: {}".format(item))
-
-            self.content_seen[spider_name].add(source_url)
-        return item
-
-
-# At the moment, ForeignKeys are a bitch, so, handle those separately.
-class ForeignKeyPipeline(object):
-    """ Currently turns item['store'] into a <Store> instance """
-    def process_item(self, item, spider):
-        if isinstance(item, ScraperProduct):
-            return self.process_product(item, spider)
-
-        elif isinstance(item, ScraperContent):
-            return self.process_content(item, spider)
-
-        return item
-
     def process_product(self, item, spider):
-        item = self.associate_store(item, spider)
+        if not isinstance(item['price'], decimal.Decimal):
+            price = item['price']
 
-        return item
+            item['price'] = extract_decimal(price)
+            item['currency'] = extract_currency(price)
 
-    def process_content(self, item, spider):
-        item = self.associate_store(item, spider)
-
-        return item
-
-    def associate_store(self, item, spider):
-        store_slug = getattr(spider, 'store_slug', '')
-
-        try:
-            store = Store.objects.get(slug=store_slug)
-        except Store.DoesNotExist:
-            raise DropItem("Can't add item to non-existent store")
-
-        item['store'] = store
+        sale_price = item.get('sale_price', None)
+        if sale_price and not isinstance(sale_price, decimal.Decimal):
+            item['sale_price'] = extract_decimal(sale_price)
         return item
 
 
-class ContentImagePipeline(object):
-    def process_item(self, item, spider):
-        if isinstance(item, ScraperImage):
-            if item.get('source_url', False):
-                item = self.process_image(item['source_url'], item, item['store'])
-        return item
+class ContentImagePipeline(ItemManifold):
+    """
+    Load image up to Cloudinary and store image details
+    """
+    def process_image(self, item, spider):
+        source_url = item.get('source_url', False)
+        if source_url:
+            if item.get('url', False) and item.get('file_type', False):
+                # Already sufficiently proccessed
+                return item
 
-    def process_image(self, source_url, image, store, remove_background=False):
-        if image.get('url', False) and image.get('file_type', False) and image.get('source_url', False):
-            return image
+            spider.log("\nprocessing image - {}".format(source_url))
+            data = process_image(source_url, create_image_path(store.id), remove_background=remove_background)
+            item['url'] = data.get('url')
+            item['file_type'] = data.get('format')
+            item['dominant_color'] = data.get('dominant_colour')
+            item['source_url'] = source_url
+            if not item.get('attributes', False):
+                item['attributes'] = {}
+            try:
+                item['attributes']['sizes'] = data['sizes']
+            except KeyError:
+                item['attributes']['sizes'] = {}
 
-        print '\nprocessing image - ' + source_url
-        data = process_image(source_url, create_image_path(store.id), remove_background=remove_background)
-        image['url'] = data.get('url')
-        image['file_type'] = data.get('format')
-        image['dominant_color'] = data.get('dominant_colour')
-        image['source_url'] = source_url
-        if not image.get('attributes', False):
-            image['attributes'] = {}
-        try:
-            image['attributes']['sizes'] = data['sizes']
-        except KeyError:
-            image['attributes']['sizes'] = {}
-
-        return image
+            return item
 
 
-# Any changes to the item after this pipeline will not be persisted!
 class ItemPersistencePipeline(object):
+    """
+    Save item as model
+
+    Any changes to the item after this pipeline will not be automaticlaly persisted!
+    """
     def process_item(self, item, spider):
         try:
             item_model = item_to_model(item)
@@ -210,29 +201,34 @@ class ItemPersistencePipeline(object):
         except ValidationError as e:
             raise DropItem('DB item validation failed: ({})'.format(e))
 
+        if isinstance(item, ScraperProduct):
+            item['product'] = model
+
+        elif isinstance(item, ScraperContent):
+            item['content'] = model
+
         return item
 
 
-class AssociateWithProductsPipeline(object):
+class AssociateWithProductsPipeline(ItemManifold):
     """
-    It saves a reference to content that passes through the pipeline
-    and tags that content with any subsequent associated products
+    If a content has 'tag_with_products' field True and a 'content_id' field
+    then tag with any subsequent products with 'content_id_to_tag' field matching
+    'content_id'
     """
     def __init__(self):
         self.images = {}
 
-    def process_item(self, item, spider):
-        store = item['store']
-        url = item['url']
+    def process_image(self, item, spider):
+        if item.get('tag_with_products') and item.get('content_id'):
+            self.images[item.get('content_id')] = Image.objects.get(store=item['store'], url=item['url'])
 
-        if isinstance(item, ScraperImage) and item.get('tag_with_products') and item.get('content_id'):
-            self.images[item.get('content_id')] = Image.objects.get(store=store, url=url)
-
-        if isinstance(item, ScraperProduct) and item.get('content_id_to_tag'):
+    def process_product(self, item, spider):
+        if item.get('content_id_to_tag'):
             content_id = item.get('content_id_to_tag')
             image = self.images.get(content_id)
             if image:
-                product = Product.objects.get(stores=store, sku=item['sku'])
+                product = item['product']
                 product_id = product.id
                 tagged_product_ids = image.tagged_products.values_list('id', flat=True)
                 if not product_id in tagged_product_ids:
@@ -240,8 +236,6 @@ class AssociateWithProductsPipeline(object):
                     image.tagged_products.add(product)
                 else:
                     spider.log('<Image {}> already tagged with <Product {}>'.format(image.id, product_id))
-
-        return item
 
     def close_spider(self, spider):
         # Save images in one transaction
@@ -251,64 +245,96 @@ class AssociateWithProductsPipeline(object):
         spider.log('Saved {} tagged images'.format(len(self.images)))
 
 
-class TagPipeline(object):
-    def process_item(self, item, spider):
-        if not isinstance(item, ScraperProduct):
-            return item
-
+class TagPipeline(ItemManifold):
+    """
+    If product or spider has tags, add them to <Product> items
+    """
+    def process_product(self, item, spider):
         # If tags were found by the crawler
-        tags = item.get('attributes', {}).get('tags', [])
-        for name in tags:
+        for name in item.get('attributes', {}).get('tags', []):
             spider.log("Adding scraped tag '{}'".format(name.strip()))
-            self.add_to_tag(item, name.strip())
+            self.add_product_to_tag(item, name.strip())
 
         # If you want all products in a scrape to have a specific tag
-        for tag in getattr(spider, 'tags', []):
-            spider.log("Adding spider-specified tag '{}'".format(tag.strip()))
-            self.add_to_tag(item, tag.strip())
+        for name in getattr(spider, 'tags', []):
+            spider.log("Adding spider-specified tag '{}'".format(name.strip()))
+            self.add_product_to_tag(item, name.strip())
 
-        return item
+    def add_product_to_tag(self, item, name):
+        tag = Tag.objects.get(store=item['store'], name__iexact=name)
+        tag.products.add(item['product'])
+        tag.save()
 
-    def add_to_tag(self, item, name):
-        kwargs = {
-            'store': item['store'],
-            'name__iexact': name # django field lookup "iexact", meaning: ignore case
-        }
 
-        # temporary, we're clearing out duplicate tags.
-        # Should dissociate all the products from all the different tags
-        # and associate them with the "good" one (whichever has lowest id),
-        # then delete the "bad" tag
-        tags = Tag.objects.filter(**kwargs)
-        if len(tags) > 1:
-            self.compress_duplicate_tags(tags)
-        elif len(tags) == 1:
-            tag = tags[0]
+class ProductImagePipeline(ItemManifold):
+    """
+    If product has image_urls, turn them into <Product Image> if they don't exist already
+    """
+    def process_product(self, item, spider):
+        remove_background = getattr(spider, 'remove_background', False)
+        skip_images = getattr(spider, 'skip_images', False)
+        store = item['store']
+        sku = item['sku']
+
+        if skip_images:
+            spider.log(u"Skipping product images. item: <{}>, spider.skip_images: {}".format(item.__class__.__name__, skip_images))
         else:
-            tag = Tag.objects.create(**kwargs)
+            successes = 0
+            failures = 0
+            for image_url in item.get('image_urls', []):
+                url = urlparse(image_url, scheme='http')
+                try:
+                    self.process_product_image(item, url.geturl(), remove_background=remove_background)
+                    successes += 1
+                except cloudinary.api.Error as e:
+                    traceback.print_exc()
+                    failures += 1
+            if not successes:
+                # if product has no images, we don't want
+                # to show it on the page.
+                # Implementation is not very idiomatic unfortunately
+                product = item['product']
+                product.in_stock = False
+                product.save()
 
-        tag.name = tag.name.lower()
-        tag.save()
+            spider.log(u"Processed {} images".format(successes))
+            if failures:
+                spider.log(u"{} images failed processing".format(failures))
 
+    def process_product_image(self, item, image_url, remove_background=False):
+        store = item['store']
+        product = item['product']
+
+        # Doesn't this mean that if we ever end up seeing the same URL twice,
+        # then we'll create new product images if the product differs?
         try:
-            item_model = item_to_model(item)
-        except TypeError, e:
-            spider.log.WARNING('Error converting item to model, product not added to tag {}:\n\t{}'.format(tag.name, e))
-            return
+            image = ProductImage.objects.get(original_url=image_url, product=product)
+        except ProductImage.DoesNotExist:
+            image = ProductImage(original_url=image_url, product=product)
 
-        product, _ = get_or_create(item_model)
-        tag.products.add(product)
-        tag.save()
+        # this image needs to be uploaded
+        if not (image.url and image.file_type):
+            print '\nprocessing image - ' + image_url
+            data = process_image(image_url, create_image_path(store.id),
+                                 remove_background=remove_background)
+            image.url = data.get('url')
+            image.file_type = data.get('format')
+            image.dominant_color = data.get('dominant_colour')
 
-    def compress_duplicate_tags(self, tags):
-        spider.log(u"Compressing duplicate tags: {}".format(tags))
-        tag = tags[0]
-        spider.log(u"\tKeeping: <Tag {} {}>".format(tag.id, tag.name))
-        for dup in tags[1:]:
-            tag.products.add(*dup.products.all())
-            spider.log(u"\tTansferred {} products".format(dup.products.all()))
-            spider.log(u"\tDeleting: <Tag {} {}>".format(dup.id, dup.name))
-            dup.delete()
+            image.attributes['sizes'] = data['sizes']
+
+            # save the image
+            image.save()
+
+            if product and not product.default_image:
+                product.default_image = image
+                product.save()
+        else:
+            print '\nimage has already been processed'
+
+        print image.to_json()
+
+        return image
 
 
 class TileCreationPipeline(object):
@@ -349,16 +375,15 @@ class TileCreationPipeline(object):
         try:
             feed = Feed.objects.get(id=feed_id)
         except Feed.DoesNotExist:
+            spider.log(u"Error adding to <Feed {}> because feed does not exist".format(feed_id))
             return
 
-        try:
-            item_model = item_to_model(item)
-        except TypeError:
-            return
+        if isinstance(ScraperProduct):
+            item_obj = item['product']
+        elif isinstance(ScraperContent):
+            item_obj = item['content']
 
-        item_obj, created = get_or_create(item_model)
-
-        if not created and recreate_tiles:
+        if not item['created'] and recreate_tiles:
             spider.log(u"Recreating tile for <{}> {}".format(item_obj, item.get('name')))
             feed.remove(item_obj)
 
@@ -382,72 +407,69 @@ class TileCreationPipeline(object):
         cat.tiles.add(tile)
 
 
-class ProductImagePipeline(object):
-    def process_item(self, item, spider):
-        remove_background = getattr(spider, 'remove_background', False)
-        skip_images = getattr(spider, 'skip_images', False)
-        store = item['store']
+class PageUpdatePipeline(ItemManifold):
+    """ During a page update, catch any product that is not updated & set it to out of stock
+    
+    To enable:
+        a) spider must have 'page_update' field set to True
+        b) spider must have a valid 'page_slug' field
 
-        if isinstance(item, ScraperProduct) and not skip_images:
-            successes = 0
-            failures = 0
-            for image_url in item.get('image_urls', []):
-                url = urlparse(image_url, scheme='http')
+    TODO: items that have remained out of stock for a sufficiently long time (1 or 2 weeks?)
+          should be deleted
+    """
+    def __init__(self):
+        # set of product pk's for page, indexed by "store_slug-page_slug"
+        self.not_updated_sets = {}
+
+    def process_product(self, item, spider):
+        if getattr(spider, 'page_update', False):
+            # This product has been updated
+            store = item['store']
+            sku = item['sku']
+            page_slug = getattr(spider, 'page_slug', False)
+
+            if isinstance(item, ScraperProduct) and store.slug and page_slug:
+                key = '{}-{}'.format(store.slug, page_slug)
+                pk = item['product'].pk
+                pk_set = self.not_updated_sets[key]
                 try:
-                    self.process_product_image(item, url.geturl(), remove_background=remove_background)
-                    successes += 1
-                except cloudinary.api.Error as e:
-                    traceback.print_exc()
-                    failures += 1
-            if not successes:
-                # if product has no images, we don't want
-                # to show it on the page.
-                # Implementation is not very idiomatic unfortunately
-                product = Product.objects.get(store=store, sku=item['sku'])
-                product.in_stock = False
-                product.save()
+                    pk_set.remove(pk)
+                except KeyError:
+                    # If this is a new product from the datafeed, it will not be in the set
+                    pass
 
-            spider.log(u"Processed {} images".format(successes))
-            if failures:
-                spider.log(u"{} images failed processing".format(failures))
-        else:
-            spider.log(u"Skipping product images. item: <{}>, spider.skip_images: {}".format(item.__class__.__name__, skip_images))
-        return item
+    def spider_opened(self, spider):
+        """ Create list of products for this page """
+        if getattr(spider, 'page_update', False):
+            store_slug = getattr(spider, 'store_slug', False)
+            page_slug = getattr(spider, 'page_slug', False)
+            key = '{}-{}'.format(store_slug, page_slug)
 
-    def process_product_image(self, item, image_url, remove_background=False):
-        store = item['store']
-        sku = item['sku']
+            try:
+                page = Page.objects.get(url_slug=page_slug, store__slug=store_slug)
+            except Page.DoesNotExist:
+                pass
+            else:
+                # ensure key is unique
+                if key in self.not_updated_cache:
+                    # Two spiders should not be updating a datafeed at the same time
+                    raise ValueError("Page '{}' feed update already initialized, can't initialize twice".format(page_slug))
+                # Store pk set of products
+                self.not_updated_sets[key] = page.feed.get_all_products(pk_set=True)
 
-        if not isinstance(product, Model):
-            product = Product.objects.get(sku=sku, store=store)
+    def close_spider(self, spider):
+        """ Mark all products that were not updated as out of stock """
+        if getattr(spider, 'page_update', False):
+            store_slug = getattr(spider, 'store_slug', False)
+            page_slug = getattr(spider, 'page_slug', False)
+            key = '{}-{}'.format(store_slug, page_slug)
 
-        # Doesn't this mean that if we ever end up seeing the same URL twice,
-        # then we'll create new product images if the product differs?
-        try:
-            image = ProductImage.objects.get(original_url=image_url, product=product)
-        except ProductImage.DoesNotExist:
-            image = ProductImage(original_url=image_url, product=product)
+            try:
+                pk_set = self.not_updated_sets[key]
+            except KeyError:
+                pass
+            else:
+                # Mark all items in not_updated_cache as out of stock
+                Product.objects.filter(pk__in=pk_set).update(in_stock=False)
+                spider.log('Marked {} products as sold out'.format(len(pk_set)))
 
-        # this image needs to be uploaded
-        if not (image.url and image.file_type):
-            print '\nprocessing image - ' + image_url
-            data = process_image(image_url, create_image_path(store.id),
-                                 remove_background=remove_background)
-            image.url = data.get('url')
-            image.file_type = data.get('format')
-            image.dominant_color = data.get('dominant_colour')
-
-            image.attributes['sizes'] = data['sizes']
-
-            # save the image
-            image.save()
-
-            if product and not product.default_image:
-                product.default_image = image
-                product.save()
-        else:
-            print '\nimage has already been processed'
-
-        print image.to_json()
-
-        return image

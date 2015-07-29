@@ -9,8 +9,6 @@
 import os
 from django.conf import settings
 
-#os.environ['DJANGO_SETTINGS_MODULE'] = 'secondfunnel.settings.dev'
-
 BOT_NAME = 'scraper'
 
 SPIDER_MODULES = ['apps.scrapy.spiders']
@@ -47,19 +45,22 @@ WEBDRIVER_OPTIONS = {
 
 # http://doc.scrapy.org/en/latest/topics/item-pipeline.html#activating-an-item-pipeline-component
 ITEM_PIPELINES = {
-    # 'scrapy.contrib.pipeline.images.ImagesPipeline': 1,
-    # 'apps.scrapy.pipelines.CloudinaryPipeline': 1,
+    # 1's - Validation
     'apps.scrapy.pipelines.ForeignKeyPipeline': 1,
-    'apps.scrapy.pipelines.ContentImagePipeline': 2,
     'apps.scrapy.pipelines.ValidationPipeline': 3,
+    'apps.scrapy.pipelines.DuplicatesPipeline': 5,
+    # 10 - Sanitize and generate attributes
     'apps.scrapy.pipelines.PricePipeline': 11,
-    'apps.scrapy.pipelines.DuplicatesPipeline': 20,
-    # 900 - Persistence-related Pipelines
-    'apps.scrapy.pipelines.ItemPersistencePipeline': 990,
-    'apps.scrapy.pipelines.AssociateWithProductsPipeline': 991,
-    'apps.scrapy.pipelines.TagPipeline': 997,
-    'apps.scrapy.pipelines.TileCreationPipeline': 998,
-    'apps.scrapy.pipelines.ProductImagePipeline': 999
+    'apps.scrapy.pipelines.ContentImagePipeline': 12,
+    # 40 - Persistence-related
+    'apps.scrapy.pipelines.ItemPersistencePipeline': 40,
+    'apps.scrapy.pipelines.AssociateWithProductsPipeline': 41,
+    'apps.scrapy.pipelines.TagPipeline': 42,
+    'apps.scrapy.pipelines.ProductImagePipeline': 47,
+    # 50 - 
+    'apps.scrapy.pipelines.TileCreationPipeline': 50,
+    # 90 - Scrape job control
+    'apps.scrapy.pipelines.PageUpdatePipeline': 99,
 }
 # Image storage information here:
 #   http://doc.scrapy.org/en/latest/topics/images.html#images-storage

@@ -1,4 +1,3 @@
-
 class LookupTable(object):
     """
     A one-to-many lookup table that supports 
@@ -69,4 +68,3 @@ class LookupTable(object):
                     return (entries, field)
         # Didn't find anything
         return (None, None)
-
