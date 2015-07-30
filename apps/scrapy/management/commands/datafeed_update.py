@@ -23,6 +23,9 @@ class FakeLog(object):
 
 class Command(BaseCommand):
     help = """Updates products from a product data feed
+
+    NOTE: Deprecated in favor of update_page
+    
     Usage:
     python manage.py datafeed_update <url_slug>
 

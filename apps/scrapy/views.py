@@ -14,6 +14,7 @@ from scrapy.settings import CrawlerSettings
 from scrapy.utils.project import get_project_settings
 
 from apps.assets.models import Category, Page, Product, Store
+from apps.scrapy.controllers import PageUpdater
 
 stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
 
@@ -53,24 +54,12 @@ def scrape(request, page_slug):
             'skip_tiles': not tiles,
         }
 
-        # set up standard framework for running spider in a script
-        settings = get_project_settings()
-        crawler = Crawler(settings)
-        crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
-        crawler.configure()
-
-        spider = crawler.spiders.create(store_slug, **opts)
-        spider.start_urls = start_urls
-        spider.feed_ids = [feed.id]
-        spider.categories = [category]
-
-        crawler.crawl(spider)
-        scrapy_log.start()
-        scrapy_log.msg(u"Starting spider with options: {}".format(opts))
-        crawler.start()
-
-        reactor.run()
-
+        updater = PageUpdater(page)
+        updater._run_scraper(spider_name=page.store.slug,
+                             start_urls=start_urls,
+                             feed_ids=[feed.id],
+                             options=opts)
+        
         if cat['priorities'] and len(cat['priorities']) > 0:
             prioritize(request, page_slug)
 

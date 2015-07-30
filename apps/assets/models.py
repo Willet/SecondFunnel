@@ -779,6 +779,11 @@ class Feed(BaseModel):
         else:
             return Product.objects.filter(pk__in=product_pks).all()
 
+    def update_tiles_ir_cache(self):
+        """ Updates IR cache for all tiles in feed. Useful after having run a product update """
+        for tile in self.tiles.all():
+            tile.update_ir_cache()
+
     def _copy_tile(self, tile, prioritized=False, priority=0):
         """Creates a copy of a tile to this feed
 
@@ -790,7 +795,7 @@ class Feed(BaseModel):
         new_tile.save()
 
         return new_tile
-    
+
     def _deepdelete_tiles(self, tiles):
         """Tiles is a <QuerySet> (ex: Feed.tiles.objects.all())
 
