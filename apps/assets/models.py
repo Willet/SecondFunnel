@@ -13,10 +13,10 @@ from django_extensions.db.fields import CreationDateTimeField
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
-from apps.utils import returns_unicode
 import apps.api.serializers as cg_serializers
-import apps.intentrank.serializers as ir_serializers
 from apps.imageservice.utils import delete_cloudinary_resource
+import apps.intentrank.serializers as ir_serializers
+from apps.utils import returns_unicode
 from apps.utils.models import MemcacheSetting
 
 
@@ -681,8 +681,8 @@ class Page(BaseModel):
 
     last_published_at = models.DateTimeField(blank=True, null=True)
 
-    feed = models.ForeignKey(Feed, related_name='page', blank=True, null=True) 
-    source_urls = model.JSONField(default=[]) # List of <str> urls feed is generated from
+    feed = models.ForeignKey('Feed', related_name='page', blank=True, null=True) 
+    source_urls = JSONField(default=[]) # List of <str> urls feed is generated from
 
     _attribute_map = BaseModel._attribute_map + (
         # (cg attribute name, python attribute name)
@@ -1134,7 +1134,7 @@ class Category(BaseModel):
     # To add tiles to a category, filter with the Store
     Category.objects.get(name=cat_name, store=store)
     """
-    tiles = models.ManyToManyField(Tile, related_name='categories')
+    tiles = models.ManyToManyField('Tile', related_name='categories')
     store = models.ForeignKey(Store, related_name='categories', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     url = models.TextField(blank=True, null=True)
@@ -1163,7 +1163,7 @@ class Category(BaseModel):
 
 class Tile(BaseModel):
     """
-    ir_cache is updated with every tile save.  See tile_saved signal
+    ir_cache is updated with every tile save.  See tile_saved task
     """
     def _validate_prioritized(status):
         allowed = ["", "request", "pageview", "session", "cookie", "custom"]
