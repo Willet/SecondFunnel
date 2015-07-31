@@ -2,7 +2,8 @@ from django.core.management.base import BaseCommand
 from optparse import make_option
 
 from apps.assets.models import Page
-from apps.scrapy.controllers import PageUpdater
+from apps.scrapy.controllers import PageMaintainer
+
 
 class Command(BaseCommand):
     help = """Updates all products in a given page.
@@ -33,7 +34,7 @@ class Command(BaseCommand):
 
     def handle(self, url_slug, **options):
         page = Page.objects.get(url_slug=url_slug)
-        PageUpdater(page).run(options={
+        PageMaintainer(page).update(options={
             'recreate_tiles': options['recreate_tiles'],
             'skip_images': not options['update_images'],
             'skip_tiles': True,

@@ -65,7 +65,7 @@ class Command(BaseCommand):
 
         spider = crawler.spiders.create(store_slug, **opts)
         spider.start_urls = start_urls
-        spider.feed_ids = [feed.id]
+        spider.feed_id = feed.id
 
         crawler.crawl(spider)
         log.start()

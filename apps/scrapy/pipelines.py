@@ -339,12 +339,12 @@ class ProductImagePipeline(ItemManifold):
 
 class TileCreationPipeline(object):
     """ 
-    If spider has feed(s), create tile(s) for product or content
+    If spider has feed_id, get or create tile(s) for product or content
     If spider also has category(s), add tile(s) to category(s)
     """
     def __init__(self):
         # Categories will be indexed by id
-        self.category_cache = {}
+        self.category_cache = defaultdict(dict)
 
     def process_item(self, item, spider):
         recreate_tiles = getattr(spider, 'recreate_tiles', False)
@@ -355,19 +355,17 @@ class TileCreationPipeline(object):
             spider.log(u"Skipping tile creation. spider.skip_tiles: {0}, item.force_skip_tiles: {1}".format(*skip_tiles))
             return item
         else:
-            feed_ids = getattr(spider, 'feed_ids', [])
+            feed_id = getattr(spider, 'feed_id', None)
 
-            # Supports multiple feeds and multiple categories
-            if feed_ids:
-                for fid in feed_ids:
-                    # Create tile for each feed
-                    spider.log(u"Adding '{}' to <Feed {}>".format(item.get('name'), fid))
-                    tile, _ = self.add_to_feed(item, fid, recreate_tiles)
-                    if categories:
-                        # Add each tile to the categories
-                        for cname in categories:
-                            spider.log(u"Adding '{}' to <Category '{}'>".format(item.get('name'), cname))
-                            self.add_to_category(tile, cname, item['store'])
+            if feed_id:
+                # Create tile for each feed
+                spider.log(u"Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
+                tile, _ = self.add_to_feed(item, feed_id, recreate_tiles)
+                if categories:
+                    # Add each tile to the categories
+                    for cname in categories:
+                        spider.log(u"Adding '{}' to <Category '{}'>".format(item.get('name'), cname))
+                        self.add_to_category(tile, cname, item['store'])
 
             return item
 
@@ -379,21 +377,17 @@ class TileCreationPipeline(object):
             return
 
         if isinstance(ScraperProduct):
-            item_obj = item['product']
+            obj = item['product']
         elif isinstance(ScraperContent):
-            item_obj = item['content']
+            obj = item['content']
 
         if not item['created'] and recreate_tiles:
-            spider.log(u"Recreating tile for <{}> {}".format(item_obj, item.get('name')))
-            feed.remove(item_obj)
+            spider.log(u"Recreating tile for <{}> {}".format(obj, item.get('name')))
+            feed.remove(obj)
 
-        return feed.add(item_obj)
+        return feed.add(obj)
 
     def add_to_category(self, tile, category_name, store):
-        # Add store_slug to category_cache
-        if not self.category_cache.get(store.slug, False):
-            self.category_cache[store.slug] = {}
-
         try:
             # Check cache
             cat = self.category_cache[store.slug][category_name]
@@ -405,6 +399,10 @@ class TileCreationPipeline(object):
             # Add to cache
             self.category_cache[store.slug][category_name] = cat
         cat.tiles.add(tile)
+
+
+class SimilarProductsPipeline(ItemManifold):
+    pass
 
 
 class PageUpdatePipeline(ItemManifold):

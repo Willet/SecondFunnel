@@ -14,7 +14,7 @@ from scrapy.settings import CrawlerSettings
 from scrapy.utils.project import get_project_settings
 
 from apps.assets.models import Category, Page, Product, Store
-from apps.scrapy.controllers import PageUpdater
+from apps.scrapy.controllers import PageMaintainer
 
 stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
 
@@ -42,24 +42,18 @@ def scrape(request, page_slug):
     page = get_object_or_404(Page, url_slug=page_slug)
     def process(request, store_slug):
         cat = json.loads(urlparse.unquote(request.POST.get('cat')))
-        start_urls = cat['urls']
         tiles = bool(request.POST.get('tiles') == 'true')
-        category = cat['name'] if tiles else None
+        categories = [cat['name']] if tiles else []
+        urls = cat['urls']
         page = Page.objects.get(url_slug=request.POST.get('page'))
-        feed = page.feed if tiles else None
 
-        opts = {
-            'recreate_tiles': False,
-            'skip_images': False,
+        options = {
             'skip_tiles': not tiles,
         }
 
-        updater = PageUpdater(page)
-        updater._run_scraper(spider_name=page.store.slug,
-                             start_urls=start_urls,
-                             feed_ids=[feed.id],
-                             options=opts)
-        
+        maintainer = PageMaintainer(page)
+        maintainer.add(source_urls=urls, categories=categories, options=options)
+
         if cat['priorities'] and len(cat['priorities']) > 0:
             prioritize(request, page_slug)
 
@@ -79,10 +73,7 @@ def prioritize(request, page_slug):
     cat_name = data['name']
     category = Category.objects.get(name=cat_name, store=store)
     # Get product tiles
-    product_tiles = page.feed.tiles.filter(categories__id=category.id, content=None).annotate(Count('products')).filter(products__count=1)
-    # Because of a Django bug (https://code.djangoproject.com/ticket/25171), 
-    # get clean QuerySet without count annotation
-    product_tiles = page.feed.tiles.filter(pk__in=product_tiles.values_list('pk', flat=True))
+    product_tiles = page.feed.tiles.filter(categories__id=category.id, template='product')
 
     for i, url in enumerate(urls):
         # we assume there is only 1 product per url, but to be safe iterate over results

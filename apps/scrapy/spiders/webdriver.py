@@ -14,8 +14,8 @@ class SecondFunnelScraper(object):
             separator = getattr(self, "start_urls_separator", ",")
             self.start_urls = kwargs.get('start_urls').split(separator)
 
-        if kwargs.get('feed_ids'):
-            self.feed_ids = kwargs.get('feed_ids').split(',')
+        if kwargs.get('feed_id'):
+            self.feed_id = kwargs.get('feed_id')
 
         if kwargs.get('categories'):
             self.categories = kwargs.get('categories').split(',')

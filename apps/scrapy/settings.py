@@ -59,6 +59,7 @@ ITEM_PIPELINES = {
     'apps.scrapy.pipelines.ProductImagePipeline': 47,
     # 50 - 
     'apps.scrapy.pipelines.TileCreationPipeline': 50,
+    'apps.scrapy.pipelines.SimilarProductsPipeline': 52,
     # 90 - Scrape job control
     'apps.scrapy.pipelines.PageUpdatePipeline': 99,
 }

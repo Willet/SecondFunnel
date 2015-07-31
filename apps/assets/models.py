@@ -137,6 +137,7 @@ class BaseModel(models.Model, SerializableMixin):
 
     def update_ir_cache(self):
         """Generates and/or updates the IR cache for the current object.
+        Remember to save object to persist!
 
         :returns (the cache, whether it was updated)
         """
@@ -651,273 +652,6 @@ class Theme(BaseModel):
         return self.template
 
 
-class Feed(BaseModel):
-    source_urls = models.TextField(null=True, blank=True)
-    # tiles = <RelatedManager> Tiles (many-to-one relationship)
-    # pages = <RelatedManager> Pages (many-to-one relationship)
-    feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
-    feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
-                                     help_text="Percent of content to display on feed using ratio-based algorithm")
-    is_finite = models.BooleanField(default=False)
-
-    serializer = ir_serializers.FeedSerializer
-
-    def __unicode__(self):
-        try:
-            page_names = ', '.join(page.name for page in self.page.all())
-            return u'Feed (#%s), pages: %s' % (self.id, page_names)
-        except (ObjectDoesNotExist, MultipleObjectsReturned):
-            return u'Feed (#%s)' % self.id
-        except:
-            return u'(Unsaved Feed)'
-
-    def __copy__(self):
-        """A shallow copy of a feed does not include tiles. It is highly unlikely that that
-        was the intention.  Force conscious use of deepcopy
-        """
-        raise NotImplementedError
-
-    def __deepcopy__(self, memo={}):
-        """Creates a duplicate of the feed & its tiles
-        :returns new feed"""
-        feed = self.__class__._copy(self)
-        for tile in self.tiles.all():
-            feed._copy_tile(tile)
-        return feed
-
-    def deepcopy(self):
-        """feed.deepcopy() is alias for deepcopy(feed)"""
-        return self.__deepcopy__()
-
-    def deepdelete(self):
-        """Delete the feed, its tiles, and all product & content that is not
-        tagged in any other tile"""
-        self._deepdelete_tiles(self.tiles.select_related('products','content').all())
-        self.delete() # Cascades to tiles
-
-    def clear_category(self, category, deepdelete=False):
-        """Delete all feed tiles tagged only with category
-
-        :param tag - can be str (name field of category) or Category instance
-
-        :option deepdelete - if True, delete all product & content that is not tagged
-        in any other tile
-        """
-        category = category if isinstance(category, Category) else Category.objects.get(name=category)
-        if deepdelete:
-            tiles = self.tiles.select_related('products','content').filter(categories__in=[category])
-            self._deepdelete_tiles(tiles)
-        else:
-            self.tiles.filter(categories__in=[category]).delete()
-
-    def find_tiles(self, content=None, product=None):
-        """:returns list of tiles with this product/content (if given)"""
-        if content:
-            tiles = self.tiles.filter(content__id=content.id)
-        else:
-            tiles = self.tiles.all()
-
-        if not product:
-            return tiles
-        return tiles.filter(products__id=product.id)
-
-    def get_in_stock_tiles(self):
-        return self.tiles.exclude(products__in_stock=False)\
-            .exclude(content__tagged_products__in_stock=False)
-
-    def add(self, obj, prioritized=u"", priority=0):
-        """ Add a <Product>, <Content> as a new tile, or copy an existing <Tile> to the feed. If the
-        Product already exists as a product tile, or the Content exists as a content tile, returns
-        that tile
-
-        :returns <Tile>, <bool> created
-
-        :raises ValueError"""
-        if isinstance(obj, Product):
-            return self._add_product(product=obj, prioritized=prioritized,
-                                     priority=priority)
-        elif isinstance(obj, Content):
-            return self._add_content(content=obj, prioritized=prioritized,
-                                     priority=priority)
-        elif isinstance(obj, Tile):
-            tile = self._copy_tile(tile=obj, prioritized=prioritized,
-                                     priority=priority)
-            return tile, True
-        raise ValueError("add() accepts either Product, Content or Tile; "
-                         "got {}".format(obj.__class__))
-
-    def remove(self, obj, deepdelete=False):
-        """:raises ValueError"""
-        if isinstance(obj, Product):
-            return self._remove_product(product=obj, deepdelete=deepdelete)
-        elif isinstance(obj, Content):
-            return self._remove_content(content=obj, deepdelete=deepdelete)
-        elif isinstance(obj, Tile):
-            return self._deepdelete_tiles(tiles=self.tiles.get(id=obj.id)) if deepdelete else obj.delete()
-        raise ValueError("remove() accepts either Product, Content or Tile; "
-                         "got {}".format(obj.__class__))
-
-    def get_all_products(self, pk_set=False):
-        """Gets all tagged, related & similar products to this feed. Useful for bulk updates
-
-        pk_set (bool): if True, return a set of primary keys
-
-        :returns <QuerySet> of products"""
-        product_pks = set()
-
-        # Get ALL the products associated with this page
-        for tile in self.tiles.all():
-            for product in tile.products.all():
-                product_pks.add(product.pk)
-                if product.similar_products:
-                    product_pks.update(product.similar_products.values_list('pk', flat=True))
-            for content in tile.content.all():
-                if content.tagged_products:
-                    product_pks.update(content.tagged_products.values_list('pk', flat=True))
-        if pk_set:
-            return product_pks
-        else:
-            return Product.objects.filter(pk__in=product_pks).all()
-
-    def update_tiles_ir_cache(self):
-        """ Updates IR cache for all tiles in feed. Useful after having run a product update """
-        for tile in self.tiles.all():
-            tile.update_ir_cache()
-
-    def _copy_tile(self, tile, prioritized=False, priority=0):
-        """Creates a copy of a tile to this feed
-
-        :returns <Tile> copy"""
-        new_tile = Tile._copy(tile, update_fields= {'feed': self,
-                                                    'prioritized': prioritized or tile.prioritized,
-                                                    'priority': priority or tile.priority })
-        new_tile.update_ir_cache()
-        new_tile.save()
-
-        return new_tile
-
-    def _deepdelete_tiles(self, tiles):
-        """Tiles is a <QuerySet> (ex: Feed.tiles.objects.all())
-
-        TODO: incorporate tagged products & similar products"""
-        tiles_set = set(tiles.values_list('pk', flat=True))
-        bulk_delete_products = []
-        bulk_delete_content = []
-
-        for tile in tiles:
-            # Queue products & content for deletion if they are ONLY tagged in
-            # Tiles that will be delete
-            for p in tile.products.all():
-                if set(p.tiles.values_list('pk', flat=True)).issubset(tiles_set):
-                    bulk_delete_products.append(p.pk)
-            for c in tile.content.all():
-                if set(c.tiles.values_list('pk', flat=True)).issubset(tiles_set):
-                    bulk_delete_content.append(c.pk)
-
-        Product.objects.filter(pk__in=bulk_delete_products).delete()
-        Content.objects.filter(pk__in=bulk_delete_content).delete()
-
-        tiles.delete()
-
-    def _add_product(self, product, prioritized=u"", priority=0):
-        """Adds (if not present) a tile with this product to the feed.
-
-        This operation is so common and indirect that it is going
-        to stay in models.py.
-
-        :returns tuple (the tile, the product, whether it was newly added)
-        :raises AttributeError
-        """
-        existing_tiles = self.tiles.filter(products=product.id)
-        for tile in existing_tiles:
-            if tile.products.count() == 1 and tile.content.count() == 0:
-                # A matching tile is tagged with just this product & no content
-                # Update IR Cache
-                tile.update_ir_cache()
-                tile.save()
-                print "<Product {0}> already in the feed. Updated <Tile {1}>.".format(product.id, tile.id)
-                return tile, product, False
-        else:
-            # there weren't any tiles with this product in them
-            new_tile = self.tiles.create(feed=self,
-                                         template='product',
-                                         prioritized=prioritized,
-                                         priority=priority)
-            new_tile.products.add(product)
-            new_tile.save()
-            print "<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id)
-
-            return new_tile, product, True
-
-    def _add_content(self, content, prioritized=u"", priority=0):
-        """Adds (if not present) a tile with this content to the feed.
-
-        This operation is so common and indirect that it is going
-        to stay in models.py.
-
-        :returns tuple (the tile, the content, whether it was newly added)
-        :raises AttributeError
-        """
-        existing_tile = self.tiles.filter(content=content.id)
-        if len(existing_tile) > 0:
-            # Update tile
-            # Could attempt to be smarter about choosing the most appropriate tile to update
-            # It would have just the 1 piece of content
-            tile = existing_tile[0]
-            tile.prioritized = prioritized
-            tile.priority = priority
-            product_qs = content.tagged_products.all()
-            tile.products.add(*product_qs)
-            tile.save()
-            print "<Content {0}> already in the feed. Updated <Tile {1}>".format(content.id, tile.id)
-            return tile, content, False
-        else:
-            # Create new tile
-            new_tile = self.tiles.create(feed=self,
-                                         template='image',
-                                         prioritized=prioritized,
-                                         priority=priority)
-
-            # content template adjustments. should probably be somewhere else
-            if isinstance(content, Video):
-                if 'youtube' in content.url:
-                    new_tile.template = 'youtube'
-                else:
-                    new_tile.template = 'video'
-
-            new_tile.content.add(content)
-            product_qs = content.tagged_products.all()
-            new_tile.products.add(*product_qs)
-            new_tile.save()
-            print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)
-
-            return new_tile, content, True
-
-    def _remove_product(self, product, deepdelete=False):
-        """Removes (if present) product tiles with this product from the feed.
-
-        If deepdelete, product will be deleted too (wiping tagging associations)
-
-        :raises AttributeError
-        """
-        tiles = self.tiles.filter(products__id=product.id, template='product')
-        tiles.delete()
-        if deepdelete:
-            product.delete()
-
-    def _remove_content(self, content, deepdelete=False):
-        """Removes (if present) tiles with this content from the feed that
-        belongs to this page.
-
-        If deepdelete, tries to delete other products & content associated with
-        this content (will not delete them if they are in other tiles.
-
-        :raises AttributeError
-        """
-        tiles = self.tiles.filter(content__id=content.id)
-        self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
-
-
 class Page(BaseModel):
     store = models.ForeignKey(Store, related_name='pages', on_delete=models.CASCADE)
 
@@ -947,8 +681,8 @@ class Page(BaseModel):
 
     last_published_at = models.DateTimeField(blank=True, null=True)
 
-    feed = models.ForeignKey(Feed, related_name='page', blank=True, null=True)
-           #on_delete=models.SET_NULL, 
+    feed = models.ForeignKey(Feed, related_name='page', blank=True, null=True) 
+    source_urls = model.JSONField(default=[]) # List of <str> urls feed is generated from
 
     _attribute_map = BaseModel._attribute_map + (
         # (cg attribute name, python attribute name)
@@ -1132,7 +866,305 @@ class Page(BaseModel):
         return self.feed.remove(obj=obj)
 
 
+class Feed(BaseModel):
+    source_urls = models.TextField(null=True, blank=True)
+    # tiles = <RelatedManager> Tiles (many-to-one relationship)
+    # pages = <RelatedManager> Pages (many-to-one relationship)
+    feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
+    feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
+                                     help_text="Percent of content to display on feed using ratio-based algorithm")
+    is_finite = models.BooleanField(default=False)
+
+    serializer = ir_serializers.FeedSerializer
+
+    def __unicode__(self):
+        try:
+            page_names = ', '.join(page.name for page in self.page.all())
+            return u'Feed (#%s), pages: %s' % (self.id, page_names)
+        except (ObjectDoesNotExist, MultipleObjectsReturned):
+            return u'Feed (#%s)' % self.id
+        except:
+            return u'(Unsaved Feed)'
+
+    def __copy__(self):
+        """A shallow copy of a feed does not include tiles. It is highly unlikely that that
+        was the intention.  Force conscious use of deepcopy
+        """
+        raise NotImplementedError
+
+    def __deepcopy__(self, memo={}):
+        """Creates a duplicate of the feed & its tiles
+        :returns new feed"""
+        feed = self.__class__._copy(self)
+        for tile in self.tiles.all():
+            feed._copy_tile(tile)
+        return feed
+
+    def deepcopy(self):
+        """feed.deepcopy() is alias for deepcopy(feed)"""
+        return self.__deepcopy__()
+
+    def deepdelete(self):
+        """Delete the feed, its tiles, and all product & content that is not
+        tagged in any other tile"""
+        self._deepdelete_tiles(self.tiles.select_related('products','content').all())
+        self.delete() # Cascades to tiles
+
+    def clear_category(self, category, deepdelete=False):
+        """Delete all feed tiles tagged only with category
+
+        :param tag - can be str (name field of category) or Category instance
+
+        :option deepdelete - if True, delete all product & content that is not tagged
+        in any other tile
+        """
+        category = category if isinstance(category, Category) else Category.objects.get(name=category)
+        if deepdelete:
+            tiles = self.tiles.select_related('products','content').filter(categories__in=[category])
+            self._deepdelete_tiles(tiles)
+        else:
+            self.tiles.filter(categories__in=[category]).delete()
+
+    def find_tiles(self, content=None, product=None):
+        """:returns list of tiles with this product/content (if given)"""
+        if content:
+            tiles = self.tiles.filter(content__id=content.id)
+        else:
+            tiles = self.tiles.all()
+
+        if not product:
+            return tiles
+        return tiles.filter(products__id=product.id)
+
+    def get_in_stock_tiles(self):
+        return self.tiles.exclude(products__in_stock=False)\
+            .exclude(content__tagged_products__in_stock=False)
+
+    def add(self, obj, prioritized=u"", priority=0):
+        """ Add a <Product>, <Content> as a new tile, or copy an existing <Tile> to the feed. If the
+        Product already exists as a product tile, or the Content exists as a content tile, returns
+        that tile
+
+        :returns <Tile>, <bool> created
+
+        :raises ValueError"""
+        if isinstance(obj, Product):
+            return self._add_product(product=obj, prioritized=prioritized,
+                                     priority=priority)
+        elif isinstance(obj, Content):
+            return self._add_content(content=obj, prioritized=prioritized,
+                                     priority=priority)
+        elif isinstance(obj, Tile):
+            tile = self._copy_tile(tile=obj, prioritized=prioritized,
+                                     priority=priority)
+            return tile, True
+        raise ValueError("add() accepts either Product, Content or Tile; "
+                         "got {}".format(obj.__class__))
+
+    def remove(self, obj, deepdelete=False):
+        """:raises ValueError"""
+        if isinstance(obj, Product):
+            return self._remove_product(product=obj, deepdelete=deepdelete)
+        elif isinstance(obj, Content):
+            return self._remove_content(content=obj, deepdelete=deepdelete)
+        elif isinstance(obj, Tile):
+            return self._deepdelete_tiles(tiles=self.tiles.get(id=obj.id)) if deepdelete else obj.delete()
+        raise ValueError("remove() accepts either Product, Content or Tile; "
+                         "got {}".format(obj.__class__))
+
+    def get_all_products(self, pk_set=False):
+        """Gets all tagged, related & similar products to this feed. Useful for bulk updates
+
+        pk_set (bool): if True, return a set of primary keys
+
+        :returns <QuerySet> of products"""
+        product_pks = set()
+
+        # Get ALL the products associated with this page
+        for tile in self.tiles.all():
+            for product in tile.products.all():
+                product_pks.add(product.pk)
+                if product.similar_products:
+                    product_pks.update(product.similar_products.values_list('pk', flat=True))
+            for content in tile.content.all():
+                if content.tagged_products:
+                    product_pks.update(content.tagged_products.values_list('pk', flat=True))
+        if pk_set:
+            return product_pks
+        else:
+            return Product.objects.filter(pk__in=product_pks).all()
+
+    def _copy_tile(self, tile, prioritized=False, priority=0):
+        """Creates a copy of a tile to this feed
+
+        :returns <Tile> copy"""
+        new_tile = Tile._copy(tile, update_fields= {'feed': self,
+                                                    'prioritized': prioritized or tile.prioritized,
+                                                    'priority': priority or tile.priority })
+        new_tile.save()
+
+        return new_tile
+
+    def _deepdelete_tiles(self, tiles):
+        """Tiles is a <QuerySet> (ex: Feed.tiles.objects.all())
+
+        TODO: incorporate tagged products & similar products"""
+        tiles_set = set(tiles.values_list('pk', flat=True))
+        bulk_delete_products = []
+        bulk_delete_content = []
+
+        for tile in tiles:
+            # Queue products & content for deletion if they are ONLY tagged in
+            # Tiles that will be delete
+            for p in tile.products.all():
+                if set(p.tiles.values_list('pk', flat=True)).issubset(tiles_set):
+                    bulk_delete_products.append(p.pk)
+            for c in tile.content.all():
+                if set(c.tiles.values_list('pk', flat=True)).issubset(tiles_set):
+                    bulk_delete_content.append(c.pk)
+
+        Product.objects.filter(pk__in=bulk_delete_products).delete()
+        Content.objects.filter(pk__in=bulk_delete_content).delete()
+
+        tiles.delete()
+
+    def _add_product(self, product, prioritized=u"", priority=0):
+        """Adds (if not present) a tile with this product to the feed.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        :returns tuple (the tile, the product, whether it was newly added)
+        :raises AttributeError
+        """
+        existing_tiles = self.tiles.filter(products=product.id)
+        for tile in existing_tiles:
+            if tile.products.count() == 1 and tile.content.count() == 0:
+                # A matching tile is tagged with just this product & no content
+                tile.save() # Update IR Cache
+                print "<Product {0}> already in the feed. Updated <Tile {1}>.".format(product.id, tile.id)
+                return tile, product, False
+        else:
+            # there weren't any tiles with this product in them
+            new_tile = self.tiles.create(feed=self,
+                                         template='product',
+                                         prioritized=prioritized,
+                                         priority=priority)
+            new_tile.products.add(product)
+            new_tile.save()
+            print "<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id)
+
+            return new_tile, product, True
+
+    def _add_content(self, content, prioritized=u"", priority=0):
+        """Adds (if not present) a tile with this content to the feed.
+
+        This operation is so common and indirect that it is going
+        to stay in models.py.
+
+        :returns tuple (the tile, the content, whether it was newly added)
+        :raises AttributeError
+        """
+        existing_tile = self.tiles.filter(content=content.id)
+        if len(existing_tile) > 0:
+            # Update tile
+            # Could attempt to be smarter about choosing the most appropriate tile to update
+            # It would have just the 1 piece of content
+            tile = existing_tile[0]
+            tile.prioritized = prioritized
+            tile.priority = priority
+            product_qs = content.tagged_products.all()
+            tile.products.add(*product_qs)
+            tile.save()
+            print "<Content {0}> already in the feed. Updated <Tile {1}>".format(content.id, tile.id)
+            return tile, content, False
+        else:
+            # Create new tile
+            new_tile = self.tiles.create(feed=self,
+                                         template='image',
+                                         prioritized=prioritized,
+                                         priority=priority)
+
+            # content template adjustments. should probably be somewhere else
+            if isinstance(content, Video):
+                if 'youtube' in content.url:
+                    new_tile.template = 'youtube'
+                else:
+                    new_tile.template = 'video'
+
+            new_tile.content.add(content)
+            product_qs = content.tagged_products.all()
+            new_tile.products.add(*product_qs)
+            new_tile.save()
+            print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)
+
+            return new_tile, content, True
+
+    def _remove_product(self, product, deepdelete=False):
+        """Removes (if present) product tiles with this product from the feed.
+
+        If deepdelete, product will be deleted too (wiping tagging associations)
+
+        :raises AttributeError
+        """
+        tiles = self.tiles.filter(products__id=product.id, template='product')
+        tiles.delete()
+        if deepdelete:
+            product.delete()
+
+    def _remove_content(self, content, deepdelete=False):
+        """Removes (if present) tiles with this content from the feed that
+        belongs to this page.
+
+        If deepdelete, tries to delete other products & content associated with
+        this content (will not delete them if they are in other tiles.
+
+        :raises AttributeError
+        """
+        tiles = self.tiles.filter(content__id=content.id)
+        self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
+
+
+class Category(BaseModel):
+    """ Feed category, shared name across all feeds for a store
+
+    # To filter a feed by category:
+    category_tiles = Feed.tiles.objects.filter(categories__id=category)
+
+    # To add tiles to a category, filter with the Store
+    Category.objects.get(name=cat_name, store=store)
+    """
+    tiles = models.ManyToManyField(Tile, related_name='categories')
+    store = models.ForeignKey(Store, related_name='categories', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    url = models.TextField(blank=True, null=True)
+
+    def full_clean(self):
+        kwargs = {
+            'store': self.store,
+            'name__iexact': self.name, # django field lookup "iexact", meaning: ignore case
+        }
+        # Make sure there aren't multiple Category's with the same name for this store
+        try:
+            cat = Category.objects.get(**kwargs)
+        except Category.DoesNotExist:
+            # First of its kind, ok
+            pass
+        except Category.MultipleObjectsReturned:
+            # Already multiples, bail!
+            raise ValueError("Category's must have a unique name for each store")
+        else:
+            # Only one, make it sure its this one
+            if not self.pk == cat.pk:
+                raise ValueError("Category's must have a unique name for each store")
+        return
+
+
+
 class Tile(BaseModel):
+    """
+    ir_cache is updated with every tile save.  See tile_saved signal
+    """
     def _validate_prioritized(status):
         allowed = ["", "request", "pageview", "session", "cookie", "custom"]
         if type(status) == bool:
@@ -1222,9 +1254,6 @@ class Tile(BaseModel):
             serializer = getattr(ir_serializers,
                                  '{}TileSerializer'.format(target_class))
         except AttributeError:  # cannot find e.g. 'Youtube'TileSerializer -- use default
-            pass
-
-        if not serializer:  # default
             serializer = ir_serializers.TileSerializer
         
         return serializer().to_str([self], skip_cache=skip_cache)
@@ -1248,37 +1277,3 @@ class Tile(BaseModel):
 
         return None
 
-
-class Category(BaseModel):
-    """ Feed category, shared name across all feeds for a store
-
-    # To filter a feed by category:
-    category_tiles = Feed.tiles.objects.filter(categories__in=[category])
-
-    # To add tiles to a category, filter with the Store
-    Category.objects.get(name=cat_name, store=store)
-    """
-    tiles = models.ManyToManyField(Tile, related_name='categories')
-    store = models.ForeignKey(Store, related_name='categories', on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
-    url = models.TextField(blank=True, null=True)
-
-    def full_clean(self):
-        kwargs = {
-            'store': self.store,
-            'name__iexact': self.name, # django field lookup "iexact", meaning: ignore case
-        }
-        # Make sure there aren't multiple Category's with the same name for this store
-        try:
-            cat = Category.objects.get(**kwargs)
-        except Category.DoesNotExist:
-            # First of its kind, ok
-            pass
-        except Category.MultipleObjectsReturned:
-            # Already multiples, bail!
-            raise ValueError("Category's must have a unique name for each store")
-        else:
-            # Only one, make it sure its this one
-            if not self.pk == cat.pk:
-                raise ValueError("Category's must have a unique name for each store")
-        return
