@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.db import transaction
 from django.db.models import Model, Q
 from scrapy import log
-from scrapy.exceptions import DropItem
+from scrapy.exceptions import DropItem, CloseSpider
 from urlparse import urlparse
 
 from apps.assets.models import Category, Feed, Image, Page, Product, ProductImage, Store, Tag
@@ -73,7 +73,7 @@ class ForeignKeyPipeline(ItemManifold):
 
 class ValidationPipeline(ItemManifold):
     """
-    If item fails validation, drop item & do something intelligent if its already in the database
+    If item fails validation, drop item & do something intelligent if it's already in the database
     """
     def process_product(self, item, spider):
         # Drop items missing required fields
@@ -201,14 +201,11 @@ class ItemPersistencePipeline(object):
         except ValidationError as e:
             raise DropItem('DB item validation failed: ({})'.format(e))
 
-        if isinstance(item, ScraperProduct):
-            item['product'] = model
-
-        elif isinstance(item, ScraperContent):
-            item['content'] = model
+        item['instance'] = model # save reference for further pipeline steps
 
         return item
 
+# --- Item now has instance reference ---
 
 class AssociateWithProductsPipeline(ItemManifold):
     """
@@ -228,7 +225,7 @@ class AssociateWithProductsPipeline(ItemManifold):
             content_id = item.get('content_id_to_tag')
             image = self.images.get(content_id)
             if image:
-                product = item['product']
+                product = item['instance']
                 product_id = product.id
                 tagged_product_ids = image.tagged_products.values_list('id', flat=True)
                 if not product_id in tagged_product_ids:
@@ -262,7 +259,7 @@ class TagPipeline(ItemManifold):
 
     def add_product_to_tag(self, item, name):
         tag = Tag.objects.get(store=item['store'], name__iexact=name)
-        tag.products.add(item['product'])
+        tag.products.add(item['instance'])
         tag.save()
 
 
@@ -293,7 +290,7 @@ class ProductImagePipeline(ItemManifold):
                 # if product has no images, we don't want
                 # to show it on the page.
                 # Implementation is not very idiomatic unfortunately
-                product = item['product']
+                product = item['instance']
                 product.in_stock = False
                 product.save()
 
@@ -303,7 +300,7 @@ class ProductImagePipeline(ItemManifold):
 
     def process_product_image(self, item, image_url, remove_background=False):
         store = item['store']
-        product = item['product']
+        product = item['instance']
 
         # Doesn't this mean that if we ever end up seeing the same URL twice,
         # then we'll create new product images if the product differs?
@@ -374,12 +371,9 @@ class TileCreationPipeline(object):
             feed = Feed.objects.get(id=feed_id)
         except Feed.DoesNotExist:
             spider.log(u"Error adding to <Feed {}> because feed does not exist".format(feed_id))
-            return
+            raise CloseSpider(reason='Invalid feed id')
 
-        if isinstance(ScraperProduct):
-            obj = item['product']
-        elif isinstance(ScraperContent):
-            obj = item['content']
+        obj = item['instance']
 
         if not item['created'] and recreate_tiles:
             spider.log(u"Recreating tile for <{}> {}".format(obj, item.get('name')))
@@ -428,7 +422,7 @@ class PageUpdatePipeline(ItemManifold):
 
             if isinstance(item, ScraperProduct) and store.slug and page_slug:
                 key = '{}-{}'.format(store.slug, page_slug)
-                pk = item['product'].pk
+                pk = item['instance'].pk
                 pk_set = self.not_updated_sets[key]
                 try:
                     pk_set.remove(pk)

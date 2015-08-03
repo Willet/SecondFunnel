@@ -31,7 +31,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         super(SurLaTableSpider, self).__init__(*args, **kwargs)
 
     def parse_start_url(self, response):
-        if response.url in visited:
+        if response.url in self.visited:
             log.msg(u"Already scraped {}, skipping".format(response.url))
             return []
         if self.is_product_page(response):

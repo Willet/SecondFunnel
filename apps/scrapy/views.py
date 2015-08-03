@@ -4,8 +4,10 @@ from multiprocessing import Process
 
 from django.db.models import Count
 from django.conf import settings as django_settings
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_POST
 from twisted.internet import reactor
 
 from scrapy import log as scrapy_log, signals
@@ -18,6 +20,7 @@ from apps.scrapy.controllers import PageMaintainer
 
 stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
 
+@login_required
 def index(request):
     """"Home" page.  does nothing."""
 
@@ -36,9 +39,10 @@ def page(request, page_slug):
     }
     return render(request, 'page.html', data)
 
+@require_POST
+@login_required
 def scrape(request, page_slug):
     """callback for running a spider"""
-
     page = get_object_or_404(Page, url_slug=page_slug)
     def process(request, store_slug):
         cat = json.loads(urlparse.unquote(request.POST.get('cat')))
@@ -63,6 +67,8 @@ def scrape(request, page_slug):
 
     return HttpResponse(status=204)
 
+@require_POST
+@login_required
 def prioritize(request, page_slug):
     """ Callback for prioritizing product tiles on page, if applicable """
     data = json.loads(urlparse.unquote(request.POST.get('cat')))
@@ -83,8 +89,10 @@ def prioritize(request, page_slug):
             product_tiles.filter(products__id=prod.id).update(priority=priorities[i])
     return HttpResponse(status=204)
 
+@login_required
 def log(request, page_slug, filename=None):
     return HttpResponse("<html><body>asdf3</body></html")
 
+@login_required
 def summary(request, page_slug, filename=None):
     return HttpResponse("<html><body>asdf4</body></html")

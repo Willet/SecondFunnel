@@ -350,7 +350,7 @@ class Product(BaseModel):
     ## for instance new-egg's egg-score; sale-prices; etc.
     # currently known used attrs:
     # - product_set
-    attributes = JSONField(blank=True, null=True, default={})
+    attributes = JSONField(blank=True, null=True, default=lambda:{})
 
     similar_products = models.ManyToManyField('self', related_name='reverse_similar_products',
                                               symmetrical=False, null=True, blank=True)
@@ -402,7 +402,7 @@ class ProductImage(BaseModel):
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
-    attributes = JSONField(blank=True, null=True, default={})
+    attributes = JSONField(blank=True, null=True, default=lambda:{})
 
     serializer = ir_serializers.ProductImageSerializer
     cg_serializer = cg_serializers.ProductImageSerializer
@@ -481,7 +481,7 @@ class Content(BaseModel):
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
     ## but restrict to only filtering/ordering on above fields
-    attributes = JSONField(null=True, blank=True, default={})
+    attributes = JSONField(null=True, blank=True, default=lambda:{})
 
     # "approved", "rejected", "needs-review"
     status = models.CharField(max_length=255, blank=True, null=True,
@@ -660,7 +660,7 @@ class Page(BaseModel):
             #on_delete=models.SET_NULL,
 
     # attributes named differently
-    theme_settings = JSONField(blank=True, null=True)
+    theme_settings = JSONField(default=lambda:{}, blank=True, null=True)
 
     theme_settings_fields = [
         ('image_tile_wide', 0.0),
@@ -671,7 +671,7 @@ class Page(BaseModel):
         ('enable_tracking', "true"),
     ]
 
-    dashboard_settings = JSONField(default={}, blank=True)
+    dashboard_settings = JSONField(default=lambda:{}, blank=True)
     campaign = models.ForeignKey('dashboard.Campaign', blank=True, null=True)
                #on_delete=models.SET_NULL,
 
@@ -682,7 +682,6 @@ class Page(BaseModel):
     last_published_at = models.DateTimeField(blank=True, null=True)
 
     feed = models.ForeignKey('Feed', related_name='page', blank=True, null=True) 
-    source_urls = JSONField(default=[]) # List of <str> urls feed is generated from
 
     _attribute_map = BaseModel._attribute_map + (
         # (cg attribute name, python attribute name)
@@ -867,13 +866,16 @@ class Page(BaseModel):
 
 
 class Feed(BaseModel):
-    source_urls = models.TextField(null=True, blank=True)
     # tiles = <RelatedManager> Tiles (many-to-one relationship)
     # pages = <RelatedManager> Pages (many-to-one relationship)
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
     is_finite = models.BooleanField(default=False)
+
+    # Fields necessary to update / regenerate feed
+    source_urls = JSONField(default=lambda:[]) # List of <str> urls feed is generated from
+    spider_name = models.CharField(max_length=64, blank=True) # Spider defines behavior to update / regenerate page, '' valid
 
     serializer = ir_serializers.FeedSerializer
 
@@ -957,7 +959,7 @@ class Feed(BaseModel):
         elif isinstance(obj, Tile):
             tile = self._copy_tile(tile=obj, prioritized=prioritized,
                                      priority=priority)
-            return tile, True
+            return (tile, True)
         raise ValueError("add() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
 
@@ -1043,7 +1045,7 @@ class Feed(BaseModel):
                 # A matching tile is tagged with just this product & no content
                 tile.save() # Update IR Cache
                 print "<Product {0}> already in the feed. Updated <Tile {1}>.".format(product.id, tile.id)
-                return tile, product, False
+                return (tile, False)
         else:
             # there weren't any tiles with this product in them
             new_tile = self.tiles.create(feed=self,
@@ -1054,7 +1056,7 @@ class Feed(BaseModel):
             new_tile.save()
             print "<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id)
 
-            return new_tile, product, True
+            return (new_tile, True)
 
     def _add_content(self, content, prioritized=u"", priority=0):
         """Adds (if not present) a tile with this content to the feed.
@@ -1077,7 +1079,7 @@ class Feed(BaseModel):
             tile.products.add(*product_qs)
             tile.save()
             print "<Content {0}> already in the feed. Updated <Tile {1}>".format(content.id, tile.id)
-            return tile, content, False
+            return (tile, False)
         else:
             # Create new tile
             new_tile = self.tiles.create(feed=self,
@@ -1098,7 +1100,7 @@ class Feed(BaseModel):
             new_tile.save()
             print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)
 
-            return new_tile, content, True
+            return (new_tile, True)
 
     def _remove_product(self, product, deepdelete=False):
         """Removes (if present) product tiles with this product from the feed.
@@ -1160,7 +1162,6 @@ class Category(BaseModel):
         return
 
 
-
 class Tile(BaseModel):
     """
     ir_cache is updated with every tile save.  See tile_saved task
@@ -1206,13 +1207,18 @@ class Tile(BaseModel):
     priority = models.IntegerField(null=True, default=0)
 
     # miscellaneous attributes, e.g. "is_banner_tile"
-    attributes = JSONField(blank=True, null=True, default={})
+    attributes = JSONField(blank=True, null=True, default=lambda:{})
 
     clicks = models.PositiveIntegerField(default=0)
 
     views = models.PositiveIntegerField(default=0)
 
     cg_serializer = cg_serializers.TileSerializer
+
+    def _copy(self, *args, **kwargs):
+        # Should only be able to copy if new feed & feed belong to same store
+        # Add logic here
+        return super(Tile, self)._copy(*args, **kwargs)
 
     def deepdelete(self):
         bulk_delete_products = []

@@ -1,3 +1,5 @@
+from django.core.validators import URLValidator
+
 from scrapy import log, signals
 from scrapy.utils.project import get_project_settings
 from scrapy.crawler import Crawler
@@ -25,7 +27,9 @@ class PageMaintainer(object):
         self.page = page
         self.store = page.store
         self.feed = page.feed
-        self.spider_name = page.attributes['spider_name'] if 'spider_name' in page.attributes else self.store.slug
+        self.spider_name = self.feed.spider_name or self.store.slug
+
+        self.url_validator = URLValidator()
 
     def add(self, source_urls, categories=[], options={}):
         """
@@ -43,15 +47,21 @@ class PageMaintainer(object):
             'skip_images': <bool> Do not scrape product images. Useful if you want a fast data-only update.
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
         }
+
+        raises: django.core.execeptions.ValidationError for invalid url
         """
+        # Ensure source urls look good
+        for url in source_urls:
+            self.url_validator(url)
+
         # If source urls are not already in the page, add new source urls
         source_urls = set(source_urls)
-        if not source_urls.issubset(set(self.page.source_urls)):
-            self.page.source_urls = list(set(self.page.source_urls).union(source_urls))
-            self.page.save()
+        if not source_urls.issubset(set(self.feed.source_urls)):
+            self.feed.source_urls = list(set(self.feed.source_urls).union(source_urls))
+            self.feed.save()
 
         # Override for page's spider_name to enable added spider functionality
-        if spider_name in options:
+        if 'spider_name' in options:
             spider_name = options['spider_name']
             del options['spider_name']
         else:
@@ -65,7 +75,6 @@ class PageMaintainer(object):
         
         self._run_scraper(spider_name=spider_name,
                           start_urls=source_urls,
-                          feed_id=self.feed.id,
                           categories=categories,
                           options=opts)
 
@@ -82,13 +91,13 @@ class PageMaintainer(object):
         }
         """
         # Add more logic here re start_urls
-        if len(page.source_urls):
-            start_urls = set(page.source_urls)
+        if len(self.feed.source_urls):
+            start_urls = set(self.feed.source_urls)
         else:
             start_urls = set(self.feed.get_all_products().values_list('url', flat=True))
 
         # Override for page's spider_name to enable added spider functionality
-        if spider_name in options:
+        if 'spider_name' in options:
             spider_name = options['spider_name']
             del options['spider_name']
         else:
@@ -121,7 +130,7 @@ class PageMaintainer(object):
 
         crawler.crawl(spider)
         log.start()
-        log.msg('Starting spider with options: {}'.format(opts))
+        log.msg('Starting spider with options: {}'.format(options))
         crawler.start()
 
         reactor.run()
