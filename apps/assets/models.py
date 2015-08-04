@@ -373,11 +373,11 @@ class Product(BaseModel):
             self.attributes = {}
 
         if self.price and not (isinstance(self.price, decimal.Decimal) or isinstance(self.price, float)):
-            raise ValidationError('Product price does not validate')
+            raise ValidationError('Product price must be decimal or float')
 
         sale_price = self.get('sale_price', self.attributes.get('sale_price', float()))
         if sale_price and not (isinstance(sale_price, decimal.Decimal) or isinstance(sale_price, float)):
-            raise ValidationError('Product price does not validate')
+            raise ValidationError('Product sale price must be decimal or float')
         
         # guarantee the default image is in the list of product images
         # (and vice versa)
@@ -1245,9 +1245,9 @@ class Tile(BaseModel):
 
     def clean(self):
         # TODO: move m2m validation into a pre-save signal (see tasks.py)
-        if products.exclude(store__id=self.feed.store.id).count():
+        if self.products.exclude(store__id=self.feed.store.id).count():
             raise ValidationError({'products': 'Products may not be from a different store'})
-        if content.exclude(store__id=self.feed.store.id).count():
+        if self.content.exclude(store__id=self.feed.store.id).count():
             raise ValidationError({'products': 'Content may not be from a different store'})
 
     def deepdelete(self):
