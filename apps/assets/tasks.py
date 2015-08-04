@@ -79,8 +79,8 @@ def tile_saved(sender, **kwargs):
     if not tile:
         return
 
-    _, updated = tile.update_ir_cache() # sets tile.ir_cache
+    ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
     if updated:
         post_save.disconnect(tile_saved, sender=Tile)
-        tile.save()
+        tile.update(ir_cache=ir_cache) # Update avoids triggering full_clean
         post_save.connect(tile_saved, sender=Tile)

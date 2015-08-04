@@ -292,6 +292,11 @@ class BaseModel(models.Model, SerializableMixin):
 
 
 class Store(BaseModel):
+    """
+    All other models exist under a store and should never be re-assigned.
+
+    All other models under a store should cascade delete on store deletion
+    """
     staff = models.ManyToManyField(User, related_name='stores')
 
     name = models.CharField(max_length=1024)
@@ -388,6 +393,8 @@ class Product(BaseModel):
 class ProductImage(BaseModel):
     """An Image-like model class that is explicitly an image depicting
     a product, rather than any other kind.
+
+    TODO: make it subclass of Image
     """
     product = models.ForeignKey(Product, related_name="product_images",
                                 on_delete=models.CASCADE, blank=True, null=True,
@@ -619,15 +626,6 @@ class Theme(BaseModel):
         # backward compatibility for pages that don't specify themes
         default="apps/pinpoint/templates/pinpoint/campaign_base.html")
 
-    # @deprecated for page generator
-    CUSTOM_FIELDS = {
-        'opengraph_tags': 'pinpoint/campaign_opengraph_tags.html',
-        'head_content': 'pinpoint/campaign_head.html',
-        'body_content': 'pinpoint/campaign_body.html',
-        'campaign_config': 'pinpoint/campaign_config.html',
-        'js_templates': 'pinpoint/default_templates.html'
-    }
-
     @returns_unicode
     def load_theme(self):
         """download/open the template as a string."""
@@ -653,6 +651,11 @@ class Theme(BaseModel):
 
 
 class Page(BaseModel):
+    """
+    Controls the source of the page content & how the page should look / behave
+
+    Store -> Page -> Feed
+    """
     store = models.ForeignKey(Store, related_name='pages', on_delete=models.CASCADE)
 
     name = models.CharField(max_length=256)  # e.g. Lived In
@@ -866,8 +869,16 @@ class Page(BaseModel):
 
 
 class Feed(BaseModel):
-    # tiles = <RelatedManager> Tiles (many-to-one relationship)
+    """
+    Container for tiles for a page / ad
+
+    Page -> Feed -> Tiles
+
+    TODO: expanding Feed's understanding of sources to be able to recreate itself
+    """
     # pages = <RelatedManager> Pages (many-to-one relationship)
+    # tiles = <RelatedManager> Tiles (many-to-one relationship)
+    store = models.ForeignKey(Store, related_name='feeds', on_delete=models.CASCADE)
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
@@ -930,13 +941,11 @@ class Feed(BaseModel):
     def find_tiles(self, content=None, product=None):
         """:returns list of tiles with this product/content (if given)"""
         if content:
-            tiles = self.tiles.filter(content__id=content.id)
+            return self.tiles.filter(content__id=content.id)
+        elif product:
+            return self.tiles.filter(products__id=product.id)
         else:
-            tiles = self.tiles.all()
-
-        if not product:
-            return tiles
-        return tiles.filter(products__id=product.id)
+            return self.tiles.all()
 
     def get_in_stock_tiles(self):
         return self.tiles.exclude(products__in_stock=False)\
@@ -1099,7 +1108,6 @@ class Feed(BaseModel):
             new_tile.products.add(*product_qs)
             new_tile.save()
             print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)
-
             return (new_tile, True)
 
     def _remove_product(self, product, deepdelete=False):
@@ -1129,6 +1137,8 @@ class Feed(BaseModel):
 
 class Category(BaseModel):
     """ Feed category, shared name across all feeds for a store
+
+    Store -> Category -> Tiles
 
     # To filter a feed by category:
     category_tiles = Feed.tiles.objects.filter(categories__id=category)
@@ -1164,7 +1174,11 @@ class Category(BaseModel):
 
 class Tile(BaseModel):
     """
+    A unit in a feed, defined by a template, product(s) and content(s)
+
     ir_cache is updated with every tile save.  See tile_saved task
+
+    Feed -> Tile -> Products / Content
     """
     def _validate_prioritized(status):
         allowed = ["", "request", "pageview", "session", "cookie", "custom"]
@@ -1217,8 +1231,21 @@ class Tile(BaseModel):
 
     def _copy(self, *args, **kwargs):
         # Should only be able to copy if new feed & feed belong to same store
-        # Add logic here
+        try:
+            destination_feed = kwargs['update_fields']['feed']
+        except KeyError:
+            pass
+        else:
+            if not self.store.pk == destination_feed.store.pk:
+                raise ValueError("Can not copy tile to feed belonging to a different store")
         return super(Tile, self)._copy(*args, **kwargs)
+
+    def clean(self):
+        # TODO: move m2m validation into a pre-save signal (see tasks.py)
+        if products.exclude(store__id=self.feed.store.id).count():
+            raise ValidationError({'products': 'Products may not be from a different store'})
+        if content.exclude(store__id=self.feed.store.id).count():
+            raise ValidationError({'products': 'Content may not be from a different store'})
 
     def deepdelete(self):
         bulk_delete_products = []
