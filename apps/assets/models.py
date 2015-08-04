@@ -1039,76 +1039,79 @@ class Feed(BaseModel):
 
         tiles.delete()
 
-    def _add_product(self, product, prioritized=u"", priority=0):
+    def _add_product(self, product, prioritized=u"", priority=0, force_duplicate=False):
         """Adds (if not present) a tile with this product to the feed.
 
-        This operation is so common and indirect that it is going
-        to stay in models.py.
+        If force_duplicate is true, will create a new tile even an existing product tile exists
 
         :returns tuple (the tile, the product, whether it was newly added)
-        :raises AttributeError
+        :raises AttributeError, ValidationError
         """
-        existing_tiles = self.tiles.filter(products=product.id)
-        for tile in existing_tiles:
-            if tile.products.count() == 1 and tile.content.count() == 0:
-                # A matching tile is tagged with just this product & no content
+        if not force_duplicate:
+            # Check for existing tile
+            existing_tiles = self.tiles.filter(products__id=product.id, template='product')
+            if len(existing_tiles):
+                tile = existing_tiles[0]
+                tile.prioritized = prioritized
+                tile.priority = priority
                 tile.save() # Update IR Cache
                 print "<Product {0}> already in the feed. Updated <Tile {1}>.".format(product.id, tile.id)
                 return (tile, False)
-        else:
-            # there weren't any tiles with this product in them
-            new_tile = self.tiles.create(feed=self,
-                                         template='product',
-                                         prioritized=prioritized,
-                                         priority=priority)
-            new_tile.products.add(product)
-            new_tile.save()
-            print "<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id)
 
-            return (new_tile, True)
+        # Create new tile
+        new_tile = self.tiles.create(feed=self,
+                                     template='product',
+                                     prioritized=prioritized,
+                                     priority=priority)
+        new_tile.products.add(product)
+        new_tile.save()
+        print "<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id)
 
-    def _add_content(self, content, prioritized=u"", priority=0):
+        return (new_tile, True)
+
+    def _add_content(self, content, prioritized=u"", priority=0, force_duplicate=False):
         """Adds (if not present) a tile with this content to the feed.
 
-        This operation is so common and indirect that it is going
-        to stay in models.py.
+        If force_duplicate is true, will create a new tile even an existing content tile exists
 
         :returns tuple (the tile, the content, whether it was newly added)
-        :raises AttributeError
+        :raises AttributeError, ValidationError
         """
-        existing_tile = self.tiles.filter(content=content.id)
-        if len(existing_tile) > 0:
-            # Update tile
-            # Could attempt to be smarter about choosing the most appropriate tile to update
-            # It would have just the 1 piece of content
-            tile = existing_tile[0]
-            tile.prioritized = prioritized
-            tile.priority = priority
-            product_qs = content.tagged_products.all()
-            tile.products.add(*product_qs)
-            tile.save()
-            print "<Content {0}> already in the feed. Updated <Tile {1}>".format(content.id, tile.id)
-            return (tile, False)
-        else:
-            # Create new tile
-            new_tile = self.tiles.create(feed=self,
-                                         template='image',
-                                         prioritized=prioritized,
-                                         priority=priority)
+        if not force_duplicate:
+            # Check for existing tile
+            existing_tiles = self.tiles.filter(content__id=content.id)
+            if len(existing_tiles):
+                # Update tile
+                # Could attempt to be smarter about choosing the most appropriate tile to update
+                # It would have just the 1 piece of content
+                tile = existing_tiles[0]
+                tile.prioritized = prioritized
+                tile.priority = priority
+                product_qs = content.tagged_products.all()
+                tile.products.add(*product_qs)
+                tile.save()
+                print "<Content {0}> already in the feed. Updated <Tile {1}>".format(content.id, tile.id)
+                return (tile, False)
 
-            # content template adjustments. should probably be somewhere else
-            if isinstance(content, Video):
-                if 'youtube' in content.url:
-                    new_tile.template = 'youtube'
-                else:
-                    new_tile.template = 'video'
+        # Create new tile
+        new_tile = self.tiles.create(feed=self,
+                                     template='image',
+                                     prioritized=prioritized,
+                                     priority=priority)
 
-            new_tile.content.add(content)
-            product_qs = content.tagged_products.all()
-            new_tile.products.add(*product_qs)
-            new_tile.save()
-            print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)
-            return (new_tile, True)
+        # content template adjustments. should probably be somewhere else
+        if isinstance(content, Video):
+            if 'youtube' in content.url:
+                new_tile.template = 'youtube'
+            else:
+                new_tile.template = 'video'
+
+        new_tile.content.add(content)
+        product_qs = content.tagged_products.all()
+        new_tile.products.add(*product_qs)
+        new_tile.save()
+        print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)
+        return (new_tile, True)
 
     def _remove_product(self, product, deepdelete=False):
         """Removes (if present) product tiles with this product from the feed.
@@ -1118,9 +1121,7 @@ class Feed(BaseModel):
         :raises AttributeError
         """
         tiles = self.tiles.filter(products__id=product.id, template='product')
-        tiles.delete()
-        if deepdelete:
-            product.delete()
+        self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
 
     def _remove_content(self, content, deepdelete=False):
         """Removes (if present) tiles with this content from the feed that
@@ -1192,6 +1193,8 @@ class Tile(BaseModel):
     # <Feed>.tiles.all() gives you... all its tiles
     feed = models.ForeignKey(Feed, related_name='tiles', on_delete=models.CASCADE)
 
+    # Universal templates: 'product', 'image', 'banner', 'youtube'
+    # Invent templates as needed
     template = models.CharField(max_length=128)
 
     products = models.ManyToManyField(Product, blank=True, null=True,
