@@ -951,20 +951,22 @@ class Feed(BaseModel):
         return self.tiles.exclude(products__in_stock=False)\
             .exclude(content__tagged_products__in_stock=False)
 
-    def add(self, obj, prioritized=u"", priority=0):
+    def add(self, obj, prioritized=u"", priority=0, force_create_tile=False):
         """ Add a <Product>, <Content> as a new tile, or copy an existing <Tile> to the feed. If the
-        Product already exists as a product tile, or the Content exists as a content tile, returns
-        that tile
+        Product already exists as a product tile, or the Content exists as a content tile, updates
+        and returns that tile
+
+        If force_create_tile is True, forces the creation of a new tile
 
         :returns <Tile>, <bool> created
 
         :raises ValueError"""
         if isinstance(obj, Product):
             return self._add_product(product=obj, prioritized=prioritized,
-                                     priority=priority)
+                                     priority=priority, force_create_tile=force_create_tile)
         elif isinstance(obj, Content):
             return self._add_content(content=obj, prioritized=prioritized,
-                                     priority=priority)
+                                     priority=priority, force_create_tile=force_create_tile)
         elif isinstance(obj, Tile):
             tile = self._copy_tile(tile=obj, prioritized=prioritized,
                                      priority=priority)
@@ -1011,7 +1013,7 @@ class Feed(BaseModel):
         :returns <Tile> copy"""
         new_tile = Tile._copy(tile, update_fields= {'feed': self,
                                                     'prioritized': prioritized or tile.prioritized,
-                                                    'priority': priority or tile.priority })
+                                                    'priority': priority if isinstance(priority, int) else tile.priority })
         new_tile.save()
 
         return new_tile
@@ -1039,15 +1041,15 @@ class Feed(BaseModel):
 
         tiles.delete()
 
-    def _add_product(self, product, prioritized=u"", priority=0, force_duplicate=False):
+    def _add_product(self, product, prioritized=u"", priority=0, force_create_tile=False):
         """Adds (if not present) a tile with this product to the feed.
 
-        If force_duplicate is true, will create a new tile even an existing product tile exists
+        If force_create_tile is True, will create a new tile even an existing product tile exists
 
         :returns tuple (the tile, the product, whether it was newly added)
         :raises AttributeError, ValidationError
         """
-        if not force_duplicate:
+        if not force_create_tile:
             # Check for existing tile
             existing_tiles = self.tiles.filter(products__id=product.id, template='product')
             if len(existing_tiles):
@@ -1069,15 +1071,15 @@ class Feed(BaseModel):
 
         return (new_tile, True)
 
-    def _add_content(self, content, prioritized=u"", priority=0, force_duplicate=False):
+    def _add_content(self, content, prioritized=u"", priority=0, force_create_tile=False):
         """Adds (if not present) a tile with this content to the feed.
 
-        If force_duplicate is true, will create a new tile even an existing content tile exists
+        If force_create_tile is True, will create a new tile even an existing content tile exists
 
         :returns tuple (the tile, the content, whether it was newly added)
         :raises AttributeError, ValidationError
         """
-        if not force_duplicate:
+        if not force_create_tile:
             # Check for existing tile
             existing_tiles = self.tiles.filter(content__id=content.id)
             if len(existing_tiles):
