@@ -292,6 +292,11 @@ class BaseModel(models.Model, SerializableMixin):
 
 
 class Store(BaseModel):
+    """
+    All other models exist under a store and should never be re-assigned.
+
+    All other models under a store should cascade delete on store deletion
+    """
     staff = models.ManyToManyField(User, related_name='stores')
 
     name = models.CharField(max_length=1024)
@@ -368,11 +373,11 @@ class Product(BaseModel):
             self.attributes = {}
 
         if self.price and not (isinstance(self.price, decimal.Decimal) or isinstance(self.price, float)):
-            raise ValidationError('Product price does not validate')
+            raise ValidationError('Product price must be decimal or float')
 
         sale_price = self.get('sale_price', self.attributes.get('sale_price', float()))
         if sale_price and not (isinstance(sale_price, decimal.Decimal) or isinstance(sale_price, float)):
-            raise ValidationError('Product price does not validate')
+            raise ValidationError('Product sale price must be decimal or float')
         
         # guarantee the default image is in the list of product images
         # (and vice versa)
@@ -388,6 +393,8 @@ class Product(BaseModel):
 class ProductImage(BaseModel):
     """An Image-like model class that is explicitly an image depicting
     a product, rather than any other kind.
+
+    TODO: make it subclass of Image
     """
     product = models.ForeignKey(Product, related_name="product_images",
                                 on_delete=models.CASCADE, blank=True, null=True,
@@ -619,15 +626,6 @@ class Theme(BaseModel):
         # backward compatibility for pages that don't specify themes
         default="apps/pinpoint/templates/pinpoint/campaign_base.html")
 
-    # @deprecated for page generator
-    CUSTOM_FIELDS = {
-        'opengraph_tags': 'pinpoint/campaign_opengraph_tags.html',
-        'head_content': 'pinpoint/campaign_head.html',
-        'body_content': 'pinpoint/campaign_body.html',
-        'campaign_config': 'pinpoint/campaign_config.html',
-        'js_templates': 'pinpoint/default_templates.html'
-    }
-
     @returns_unicode
     def load_theme(self):
         """download/open the template as a string."""
@@ -653,6 +651,11 @@ class Theme(BaseModel):
 
 
 class Page(BaseModel):
+    """
+    Controls the source of the page content & how the page should look / behave
+
+    Store -> Page -> Feed
+    """
     store = models.ForeignKey(Store, related_name='pages', on_delete=models.CASCADE)
 
     name = models.CharField(max_length=256)  # e.g. Lived In
@@ -866,8 +869,16 @@ class Page(BaseModel):
 
 
 class Feed(BaseModel):
-    # tiles = <RelatedManager> Tiles (many-to-one relationship)
+    """
+    Container for tiles for a page / ad
+
+    Page -> Feed -> Tiles
+
+    TODO: expanding Feed's understanding of sources to be able to recreate itself
+    """
     # pages = <RelatedManager> Pages (many-to-one relationship)
+    # tiles = <RelatedManager> Tiles (many-to-one relationship)
+    store = models.ForeignKey(Store, related_name='feeds', on_delete=models.CASCADE)
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
@@ -930,32 +941,32 @@ class Feed(BaseModel):
     def find_tiles(self, content=None, product=None):
         """:returns list of tiles with this product/content (if given)"""
         if content:
-            tiles = self.tiles.filter(content__id=content.id)
+            return self.tiles.filter(content__id=content.id)
+        elif product:
+            return self.tiles.filter(products__id=product.id)
         else:
-            tiles = self.tiles.all()
-
-        if not product:
-            return tiles
-        return tiles.filter(products__id=product.id)
+            return self.tiles.all()
 
     def get_in_stock_tiles(self):
         return self.tiles.exclude(products__in_stock=False)\
             .exclude(content__tagged_products__in_stock=False)
 
-    def add(self, obj, prioritized=u"", priority=0):
+    def add(self, obj, prioritized=u"", priority=0, force_create_tile=False):
         """ Add a <Product>, <Content> as a new tile, or copy an existing <Tile> to the feed. If the
-        Product already exists as a product tile, or the Content exists as a content tile, returns
-        that tile
+        Product already exists as a product tile, or the Content exists as a content tile, updates
+        and returns that tile
+
+        If force_create_tile is True, forces the creation of a new tile
 
         :returns <Tile>, <bool> created
 
         :raises ValueError"""
         if isinstance(obj, Product):
             return self._add_product(product=obj, prioritized=prioritized,
-                                     priority=priority)
+                                     priority=priority, force_create_tile=force_create_tile)
         elif isinstance(obj, Content):
             return self._add_content(content=obj, prioritized=prioritized,
-                                     priority=priority)
+                                     priority=priority, force_create_tile=force_create_tile)
         elif isinstance(obj, Tile):
             tile = self._copy_tile(tile=obj, prioritized=prioritized,
                                      priority=priority)
@@ -1002,7 +1013,7 @@ class Feed(BaseModel):
         :returns <Tile> copy"""
         new_tile = Tile._copy(tile, update_fields= {'feed': self,
                                                     'prioritized': prioritized or tile.prioritized,
-                                                    'priority': priority or tile.priority })
+                                                    'priority': priority if isinstance(priority, int) else tile.priority })
         new_tile.save()
 
         return new_tile
@@ -1030,77 +1041,79 @@ class Feed(BaseModel):
 
         tiles.delete()
 
-    def _add_product(self, product, prioritized=u"", priority=0):
+    def _add_product(self, product, prioritized=u"", priority=0, force_create_tile=False):
         """Adds (if not present) a tile with this product to the feed.
 
-        This operation is so common and indirect that it is going
-        to stay in models.py.
+        If force_create_tile is True, will create a new tile even an existing product tile exists
 
         :returns tuple (the tile, the product, whether it was newly added)
-        :raises AttributeError
+        :raises AttributeError, ValidationError
         """
-        existing_tiles = self.tiles.filter(products=product.id)
-        for tile in existing_tiles:
-            if tile.products.count() == 1 and tile.content.count() == 0:
-                # A matching tile is tagged with just this product & no content
+        if not force_create_tile:
+            # Check for existing tile
+            existing_tiles = self.tiles.filter(products__id=product.id, template='product')
+            if len(existing_tiles):
+                tile = existing_tiles[0]
+                tile.prioritized = prioritized
+                tile.priority = priority
                 tile.save() # Update IR Cache
                 print "<Product {0}> already in the feed. Updated <Tile {1}>.".format(product.id, tile.id)
                 return (tile, False)
-        else:
-            # there weren't any tiles with this product in them
-            new_tile = self.tiles.create(feed=self,
-                                         template='product',
-                                         prioritized=prioritized,
-                                         priority=priority)
-            new_tile.products.add(product)
-            new_tile.save()
-            print "<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id)
 
-            return (new_tile, True)
+        # Create new tile
+        new_tile = self.tiles.create(feed=self,
+                                     template='product',
+                                     prioritized=prioritized,
+                                     priority=priority)
+        new_tile.products.add(product)
+        new_tile.save()
+        print "<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id)
 
-    def _add_content(self, content, prioritized=u"", priority=0):
+        return (new_tile, True)
+
+    def _add_content(self, content, prioritized=u"", priority=0, force_create_tile=False):
         """Adds (if not present) a tile with this content to the feed.
 
-        This operation is so common and indirect that it is going
-        to stay in models.py.
+        If force_create_tile is True, will create a new tile even an existing content tile exists
 
         :returns tuple (the tile, the content, whether it was newly added)
-        :raises AttributeError
+        :raises AttributeError, ValidationError
         """
-        existing_tile = self.tiles.filter(content=content.id)
-        if len(existing_tile) > 0:
-            # Update tile
-            # Could attempt to be smarter about choosing the most appropriate tile to update
-            # It would have just the 1 piece of content
-            tile = existing_tile[0]
-            tile.prioritized = prioritized
-            tile.priority = priority
-            product_qs = content.tagged_products.all()
-            tile.products.add(*product_qs)
-            tile.save()
-            print "<Content {0}> already in the feed. Updated <Tile {1}>".format(content.id, tile.id)
-            return (tile, False)
-        else:
-            # Create new tile
-            new_tile = self.tiles.create(feed=self,
-                                         template='image',
-                                         prioritized=prioritized,
-                                         priority=priority)
+        if not force_create_tile:
+            # Check for existing tile
+            existing_tiles = self.tiles.filter(content__id=content.id)
+            if len(existing_tiles):
+                # Update tile
+                # Could attempt to be smarter about choosing the most appropriate tile to update
+                # It would have just the 1 piece of content
+                tile = existing_tiles[0]
+                tile.prioritized = prioritized
+                tile.priority = priority
+                product_qs = content.tagged_products.all()
+                tile.products.add(*product_qs)
+                tile.save()
+                print "<Content {0}> already in the feed. Updated <Tile {1}>".format(content.id, tile.id)
+                return (tile, False)
 
-            # content template adjustments. should probably be somewhere else
-            if isinstance(content, Video):
-                if 'youtube' in content.url:
-                    new_tile.template = 'youtube'
-                else:
-                    new_tile.template = 'video'
+        # Create new tile
+        new_tile = self.tiles.create(feed=self,
+                                     template='image',
+                                     prioritized=prioritized,
+                                     priority=priority)
 
-            new_tile.content.add(content)
-            product_qs = content.tagged_products.all()
-            new_tile.products.add(*product_qs)
-            new_tile.save()
-            print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)
+        # content template adjustments. should probably be somewhere else
+        if isinstance(content, Video):
+            if 'youtube' in content.url:
+                new_tile.template = 'youtube'
+            else:
+                new_tile.template = 'video'
 
-            return (new_tile, True)
+        new_tile.content.add(content)
+        product_qs = content.tagged_products.all()
+        new_tile.products.add(*product_qs)
+        new_tile.save()
+        print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)
+        return (new_tile, True)
 
     def _remove_product(self, product, deepdelete=False):
         """Removes (if present) product tiles with this product from the feed.
@@ -1110,9 +1123,7 @@ class Feed(BaseModel):
         :raises AttributeError
         """
         tiles = self.tiles.filter(products__id=product.id, template='product')
-        tiles.delete()
-        if deepdelete:
-            product.delete()
+        self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
 
     def _remove_content(self, content, deepdelete=False):
         """Removes (if present) tiles with this content from the feed that
@@ -1129,6 +1140,8 @@ class Feed(BaseModel):
 
 class Category(BaseModel):
     """ Feed category, shared name across all feeds for a store
+
+    Store -> Category -> Tiles
 
     # To filter a feed by category:
     category_tiles = Feed.tiles.objects.filter(categories__id=category)
@@ -1164,7 +1177,11 @@ class Category(BaseModel):
 
 class Tile(BaseModel):
     """
+    A unit in a feed, defined by a template, product(s) and content(s)
+
     ir_cache is updated with every tile save.  See tile_saved task
+
+    Feed -> Tile -> Products / Content
     """
     def _validate_prioritized(status):
         allowed = ["", "request", "pageview", "session", "cookie", "custom"]
@@ -1178,6 +1195,8 @@ class Tile(BaseModel):
     # <Feed>.tiles.all() gives you... all its tiles
     feed = models.ForeignKey(Feed, related_name='tiles', on_delete=models.CASCADE)
 
+    # Universal templates: 'product', 'image', 'banner', 'youtube'
+    # Invent templates as needed
     template = models.CharField(max_length=128)
 
     products = models.ManyToManyField(Product, blank=True, null=True,
@@ -1217,8 +1236,21 @@ class Tile(BaseModel):
 
     def _copy(self, *args, **kwargs):
         # Should only be able to copy if new feed & feed belong to same store
-        # Add logic here
+        try:
+            destination_feed = kwargs['update_fields']['feed']
+        except KeyError:
+            pass
+        else:
+            if not self.store.pk == destination_feed.store.pk:
+                raise ValueError("Can not copy tile to feed belonging to a different store")
         return super(Tile, self)._copy(*args, **kwargs)
+
+    def clean(self):
+        # TODO: move m2m validation into a pre-save signal (see tasks.py)
+        if self.products.exclude(store__id=self.feed.store.id).count():
+            raise ValidationError({'products': 'Products may not be from a different store'})
+        if self.content.exclude(store__id=self.feed.store.id).count():
+            raise ValidationError({'products': 'Content may not be from a different store'})
 
     def deepdelete(self):
         bulk_delete_products = []
