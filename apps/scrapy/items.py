@@ -11,6 +11,7 @@ from apps.scrapy.utils.serializers import store_serializer
 # will not be saved; neat :)
 class ScraperBase(DjangoItem):
     force_skip_tiles = Field()
+    instance = Field() # for passing the created instance through the pipeline
 
 
 # Also, fields that override existing fields don't *seem* to affect

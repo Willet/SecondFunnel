@@ -21,6 +21,8 @@ apps/pinpoint/static/campaigns
 scripts/flush.sql
 db.sql
 ghostdriver.log
+*.sublime-project
+*.sublime-workspace
 
 # Local settings
 secondfunnel/settings/local.py

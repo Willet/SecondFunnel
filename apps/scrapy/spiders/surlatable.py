@@ -15,6 +15,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     root_url = "http://www.surlatable.com"
     allowed_domains = ['surlatable.com']
     store_slug = name
+    visited = []
 
     remove_background = False
     
@@ -30,13 +31,18 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         super(SurLaTableSpider, self).__init__(*args, **kwargs)
 
     def parse_start_url(self, response):
+        if response.url in self.visited:
+            log.msg(u"Already scraped {}, skipping".format(response.url))
+            return []
         if self.is_product_page(response):
             self.rules = ()
             self._rules = []
+            self.visited.append(response.url)
             return self.parse_product(response)
         elif self.is_recipe_page(response):
             self.rules = ()
             self._rules = []
+            self.visitd.append(response.url)
             return self.parse_recipe(response)
         else:
             log.msg(u"Not a product or recipe page: {}".format(response.url))

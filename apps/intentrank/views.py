@@ -5,9 +5,9 @@ from django.http.response import Http404, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render_to_response
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET, require_POST
 import re
 
-from apps.api.decorators import request_methods
 from apps.assets.models import Category, Page, Store, Tile
 from apps.intentrank.controllers import IntentRank
 from apps.intentrank.algorithms import ir_all
@@ -73,7 +73,7 @@ def limit_showns(request, n=TRACK_SHOWN_TILES_NUM):
 
 @never_cache
 @csrf_exempt
-@request_methods('GET')
+@require_GET
 def get_results_view(request, page_id):
     """Returns random results for a campaign
 
@@ -155,7 +155,7 @@ def get_overview(request):
 
 @never_cache
 @csrf_exempt
-@request_methods('GET')
+@require_GET
 def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     """Returns a response containing all tiles for the page, or just
     one tile if its id is given.
@@ -204,7 +204,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
 
 @never_cache
 @csrf_exempt
-@request_methods('GET')
+@require_GET
 def get_rss_feed(request, feed_name, page_id=0, page_slug=None, google=False, **kwargs):
     feed_link = 'http://' + str(request.META['HTTP_HOST']) + '/'
     if page_slug:
@@ -241,7 +241,7 @@ def update_tiles(tile_ids, action='views'):
 
 @never_cache
 @csrf_exempt
-@request_methods('POST')
+@require_POST
 def track_tiles(request, action, **kwargs):
     tile_ids = request.GET.get('tile-ids', None) or request.POST.get('tile-ids', None)
     if not tile_ids:

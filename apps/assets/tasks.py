@@ -6,15 +6,11 @@ from django.db import transaction
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 
-from apps.api.decorators import (validate_json_deserializable,
-                                 require_keys_for_message)
 from apps.assets.models import Tile, Product, Content, ProductImage
-
-from apps.contentgraph.models import TileConfigObject
-
 
 celery = Celery()
 logger = get_task_logger(__name__)
+
 
 @receiver(post_save, sender=ProductImage)
 def productimage_saved(sender, **kwargs):
@@ -83,7 +79,7 @@ def tile_saved(sender, **kwargs):
     if not tile:
         return
 
-    _, updated = tile.update_ir_cache()
+    _, updated = tile.update_ir_cache() # sets tile.ir_cache
     if updated:
         post_save.disconnect(tile_saved, sender=Tile)
         tile.save()

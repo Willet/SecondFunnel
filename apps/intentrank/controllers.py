@@ -110,7 +110,7 @@ class IntentRank(object):
             algorithm = self.algorithm
 
         if not feed.tiles.count():  # short circuit: return empty resultset
-            return qs_for([])
+            return Tile.objects.none()
 
         # categories filter a feed
         category_names = []
@@ -124,7 +124,7 @@ class IntentRank(object):
             base_category = Category.objects.get(store=store, name=category_names[0])
         except Category.DoesNotExist:
             # Category doesn't exist - return results
-            tiles = []
+            tiles = Tile.objects.none()
         else:
             tiles = feed.tiles.filter(categories__id=base_category.id)
 
@@ -143,7 +143,7 @@ class IntentRank(object):
                 content_only=kwargs.get('content_only', False))
 
         if not tiles:
-            return []        
+            return Tile.objects.none()
         else:
             args = dict(
                 tiles=tiles, results=results,

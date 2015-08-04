@@ -9,6 +9,9 @@ from apps.assets.models import Feed, Page
 
 class Command(BaseCommand):
     help = """Rescrapes all products in a given page.
+
+    NOTE: Deprecated in favor of update_page
+
     Usage:
     python manage.py scraper_update [-t, --recreate-tiles] [-i, --update-images] <url_slug>
 
@@ -62,7 +65,7 @@ class Command(BaseCommand):
 
         spider = crawler.spiders.create(store_slug, **opts)
         spider.start_urls = start_urls
-        spider.feed_ids = [feed.id]
+        spider.feed_id = feed.id
 
         crawler.crawl(spider)
         log.start()

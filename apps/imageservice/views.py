@@ -4,7 +4,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_POST
 
 from apps.imageservice.tasks import process_image, process_gif
 from apps.imageservice.utils import create_image_path, get_filetype
@@ -41,7 +41,7 @@ def has_image_key(fn):
 
 @csrf_exempt
 @login_required
-@require_http_methods(["POST"])
+@require_POST
 @has_image_key
 def create(request, img):
     """
@@ -59,7 +59,7 @@ def create(request, img):
 
 @csrf_exempt
 @login_required
-@require_http_methods(["POST"])
+@require_POST
 @has_image_key
 def create_image(request, img, store_id, source):
     """
@@ -103,7 +103,7 @@ def create_image(request, img, store_id, source):
 
 @csrf_exempt
 @login_required
-@require_http_methods(["POST"])
+@require_POST
 @has_image_key
 def create_product_image(request, img, store_id, product_id, source):
     """
