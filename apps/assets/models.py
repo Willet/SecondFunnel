@@ -1,23 +1,295 @@
+import calendar
+import datetime
+import decimal
 import json
 import re
 
+from copy import deepcopy
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import models
+from django_extensions.db.fields import CreationDateTimeField
 from jsonfield import JSONField
+from model_utils.managers import InheritanceManager
 
 import apps.api.serializers as cg_serializers
+from apps.imageservice.utils import delete_cloudinary_resource
 import apps.intentrank.serializers as ir_serializers
 from apps.utils import returns_unicode
+from apps.utils.models import MemcacheSetting
 
-from .core import BaseModel
-#from .elements import Product, Content # deferred to end of file
 
-"""
-Store -> Page -> Theme
-     |        -> Feed -> Tile
-      -> Category --------^
-"""
+default_master_size = {
+    'master': {
+        'width': '100%',
+        'height': '100%',
+    }
+}
+
+
+class SerializableMixin(object):
+    """Provides to_json() and to_cg_json() methods for model instances.
+
+    To implement specific json formats, override these methods.
+    """
+
+    serializer = ir_serializers.RawSerializer
+    cg_serializer = cg_serializers.RawSerializer
+
+    def to_json(self, skip_cache=False):
+        """default method for all models to have a json representation."""
+        if hasattr(self.serializer, 'dump'):
+            return self.serializer.dump(self, skip_cache=skip_cache)
+        return self.serializer().serialize(iter([self]))
+
+    def to_str(self, skip_cache=False):
+        return self.serializer().to_str([self], skip_cache=skip_cache)
+
+    def to_cg_json(self):
+        """serialize into CG model. This is an instance shorthand."""
+        return self.cg_serializer.dump(self)
+
+
+class BaseModel(models.Model, SerializableMixin):
+    created_at = CreationDateTimeField()
+    created_at.editable = True
+
+    # To change this value, use model.save(skip_updated_at=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # used by IR to bypass frequent re/deserialization to shave off CPU time
+    ir_cache = models.TextField(blank=True, null=True)
+
+    # @override
+    _attribute_map = (
+        # (cg attribute name, python attribute name)
+        ('created', 'created_at'),
+        ('last-modified', 'updated_at'),
+    )
+
+    class Meta(object):
+        abstract = True
+
+    def __getitem__(self, key):
+        return getattr(self, key, None)
+
+    def __setitem__(self, key, value):
+        return setattr(self, key, value)
+
+    def __unicode__(self):
+        """Changes display of models in the django admin.
+
+        http://stackoverflow.com/a/5853966/1558430
+        """
+        if hasattr(self, 'name'):
+            return u'({class_name} #{obj_id}) {obj_name}'.format(
+                class_name=self.__class__.__name__,
+                obj_id=self.pk,
+                obj_name=getattr(self, 'name', ''))
+
+        return u'{class_name} #{obj_id}'.format(
+            class_name=self.__class__.__name__,
+            obj_id=self.pk)
+
+    @classmethod
+    def _copy(cls, obj, update_fields={}, exclude_fields=[]):
+        """Copies fields over to new instance of class & saves it
+        Note: Fields 'id' and 'ir_cache' are excluded by default
+        Warning: not tested with all related fields
+
+        :param obj - instance to copy
+        :param update_fields - dict of key,values of fields to update
+        :param exclude_fields - list of field names to exclude from copying
+
+        :return copied instance
+        """
+        # NOTE: _meta API updated in Django 1.8, will need to re-implement
+        default_exclude = ['id', 'ir_cache']
+        autofields = [f.name for f in obj._meta.fields if isinstance(f, models.AutoField)]
+        exclude = list(set(exclude_fields + autofields + default_exclude)) # eliminate duplicates
+
+        # local fields + many-to-many fields = all fields (assumption!)
+        local_fields = [f.name for f in obj._meta.local_fields]
+        m2m_fields = [f.name for f in obj._meta.many_to_many]
+
+        # Remove excluded fields from fields that are copied
+        local_kwargs = { k:getattr(obj,k) for k in local_fields if k not in exclude }
+        m2m_kwargs = { k:getattr(obj,k) for k in m2m_fields if k not in exclude }
+
+        # Separate update_fields into local & m2m
+        local_update = { k:v for (k,v) in update_fields.iteritems() if k in local_fields }
+        m2m_update = { k:v for (k,v) in update_fields.iteritems() if k in m2m_fields }
+        
+        local_kwargs.update(local_update)
+        m2m_kwargs.update(m2m_update)
+
+        new_obj = cls(**local_kwargs)
+        new_obj.save()
+
+        # m2m fields require instance id, so set after saving
+        for (k,v) in m2m_kwargs.iteritems():
+            setattr(new_obj, k, v.all())
+
+        new_obj.save()
+
+        return new_obj
+
+    def update_ir_cache(self):
+        """Generates and/or updates the IR cache for the current object.
+        Remember to save object to persist!
+
+        :returns (the cache, whether it was updated)
+        """
+        old_ir_cache = self.ir_cache
+        self.ir_cache = ''  # force tile to regenerate itself
+        new_ir_cache = self.to_str(skip_cache=True)
+
+        if new_ir_cache == old_ir_cache:
+            return new_ir_cache, False
+
+        self.ir_cache = new_ir_cache
+        return new_ir_cache, True
+
+    def _cg_attribute_name_to_python_attribute_name(self, cg_attribute_name):
+        """(method name can be shorter, but something about PEP 20)
+
+        reads the model's key conversion map and returns whichever model
+        attribute name it is that matches the given cg_attribute_name.
+
+        :returns str
+        """
+        for cg_py in self._attribute_map:
+            if cg_py[0] == cg_attribute_name:
+                return cg_py[1]
+        return cg_attribute_name  # not found, assume identical
+
+    def _python_attribute_name_to_cg_attribute_name(self, python_attribute_name):
+        """(method name can be shorter, but something about PEP 20)
+
+        reads the model's key conversion map and returns whichever model
+        attribute name it is that matches the given python_attribute_name.
+
+        :returns str
+        """
+        for cg_py in reversed(self._attribute_map):
+            if cg_py[1] == python_attribute_name:
+                return cg_py[0]
+        return python_attribute_name  # not found, assume identical
+
+    @classmethod
+    def update_or_create(cls, defaults=None, **kwargs):
+        """Like Model.objects.get_or_create, either gets, updates, or creates
+        a model based on current state. Arguments are the same as the former.
+
+        Examples:
+        >>> Store.update_or_create(id=2, defaults={"id": 3})
+        (<Store: Store object>, True, False)  # created
+        >>> Store.update_or_create(id=2, defaults={"id": 3})
+        (<Store: Store object>, False, False)  # found
+        >>> Store.update_or_create(id=2, id=4)
+        (<Store: Store object>, False, True)  # updated
+
+        :raises <AllSortsOfException>s, depending on input
+        :returns tuple  (object, updated, created)
+        """
+        updated = created = False
+
+        if not defaults:
+            defaults = {}
+
+        try:
+            obj = cls.objects.get(**kwargs)
+            for key, value in defaults.iteritems():
+                try:
+                    current_value = getattr(obj, key, None)
+                except ObjectDoesNotExist as err:
+                    # tried to read object reference that currently
+                    # points to nothing. ignore it and set the attribute.
+                    # a subclass.DoesNotExist, whose reference I don't know
+                    current_value = err
+
+                if current_value != value:
+                    setattr(obj, key, value)
+                    updated = True
+
+        except cls.DoesNotExist:
+            update_kwargs = dict(defaults.items())
+            update_kwargs.update(kwargs)
+            obj = cls(**update_kwargs)
+            created = True
+
+        if created or updated:
+            obj.save()
+
+        return (obj, created, updated)
+
+    def get(self, key, default=None):
+        """Duck-type a <dict>'s get() method to make CG transition easier.
+
+        Also looks into the attributes JSONField if present.
+        """
+        attr = getattr(self, key, None)
+        if attr:
+            return attr
+        if hasattr(self, 'attributes'):
+            if key in self.attributes:
+                return self.attributes.get(key, default)
+        return default
+
+    def update(self, other=None, **kwargs):
+        """This is not <dict>.update().
+
+        Setting attributes of non-model fields does not raise exceptions..
+
+        :param {dict} other    overwrites matching attributes in self.
+        :param {dict} kwargs   only if other is not supplied, use kwargs
+                               as other.
+
+        :returns self (<dict>.update() does not return anything)
+        """
+        if not other:
+            other = kwargs
+
+        if not other:
+            return self
+
+        for key in other:
+            if key == 'created':
+                self.created_at = datetime.datetime.fromtimestamp(
+                    int(other[key]) / 1000)
+            elif key in ['last-modified', 'modified']:
+                self.updated_at = datetime.datetime.fromtimestamp(
+                    int(other[key]) / 1000)
+            else:
+                setattr(self,
+                        self._cg_attribute_name_to_python_attribute_name(key),
+                        other[key])
+            print u"updated {0}.{1} to {2}".format(
+                self, self._cg_attribute_name_to_python_attribute_name(key),
+                other[key])
+
+        return self
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+
+        if hasattr(self, 'pk') and self.pk:
+            obj_key = "cg-{0}-{1}".format(self.__class__.__name__, self.id)
+            MemcacheSetting.set(obj_key, None)  # save
+
+        super(BaseModel, self).save(*args, **kwargs)
+
+    @property
+    def cg_created_at(self):
+        """(readonly) representation of the content graph timestamp"""
+        return unicode(calendar.timegm(self.created_at.utctimetuple()) * 1000)
+
+    @property
+    def cg_updated_at(self):
+        """(readonly) representation of the content graph timestamp"""
+        return unicode(calendar.timegm(self.updated_at.utctimetuple()) * 1000)
+
 
 class Store(BaseModel):
     """
@@ -54,6 +326,291 @@ class Store(BaseModel):
         for field in json_data:
             setattr(instance, field, json_data[field])
         return instance
+
+
+class Product(BaseModel):
+    store = models.ForeignKey(Store, related_name='products', on_delete=models.CASCADE)
+    name = models.CharField(max_length=1024, default="")
+    description = models.TextField(blank=True, null=True, default="")
+    # point form stuff like <li>hand wash</li> that isn't in the description already
+    details = models.TextField(blank=True, null=True, default="")
+    url = models.TextField()
+    sku = models.CharField(max_length=255)
+
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    currency = models.CharField(max_length=5, default="$")
+
+    default_image = models.ForeignKey('ProductImage', related_name='default_image',
+                                      blank=True, null=True, on_delete=models.SET_NULL)
+    # product_images is an array of ProductImages (many-to-one relationship)
+    # tiles is an array of Tiles (many-to-many relationship)
+    
+    last_scraped_at = models.DateTimeField(blank=True, null=True)
+
+    # keeps track of if/when a product is available but ran out
+    in_stock = models.BooleanField(default=True)
+
+    ## for custom, potential per-store additional fields
+    ## for instance new-egg's egg-score; sale-prices; etc.
+    # currently known used attrs:
+    # - product_set
+    attributes = JSONField(blank=True, null=True, default=lambda:{})
+
+    similar_products = models.ManyToManyField('self', related_name='reverse_similar_products',
+                                              symmetrical=False, null=True, blank=True)
+
+    serializer = ir_serializers.ProductSerializer
+    cg_serializer = cg_serializers.ProductSerializer
+
+    def __init__(self, *args, **kwargs):
+        super(Product, self).__init__(*args, **kwargs)
+        if not self.attributes:
+            self.attributes = {}
+
+    def clean(self):
+        if not self.attributes:
+            self.attributes = {}
+
+        if self.price and not (isinstance(self.price, decimal.Decimal) or isinstance(self.price, float)):
+            raise ValidationError('Product price must be decimal or float')
+
+        sale_price = self.get('sale_price', self.attributes.get('sale_price', float()))
+        if sale_price and not (isinstance(sale_price, decimal.Decimal) or isinstance(sale_price, float)):
+            raise ValidationError('Product sale price must be decimal or float')
+        
+        # guarantee the default image is in the list of product images
+        # (and vice versa)
+        image_urls = [img.url for img in self.product_images.all()]
+        if self.default_image and (self.default_image.url not in image_urls):
+            # there is a default image and it's not in the list of product images
+            self.product_images.add(self.default_image)
+        elif not self.default_image and len(image_urls):
+            # there is no default image
+            self.default_image = self.product_images.all()[0]
+
+
+class ProductImage(BaseModel):
+    """An Image-like model class that is explicitly an image depicting
+    a product, rather than any other kind.
+
+    TODO: make it subclass of Image
+    """
+    product = models.ForeignKey(Product, related_name="product_images",
+                                on_delete=models.CASCADE, blank=True, null=True,
+                                default=None)
+
+    url = models.TextField()  # store/.../.jpg
+    original_url = models.TextField()  # gap.com/.jpg
+    file_type = models.CharField(max_length=255, blank=True, null=True)
+    file_checksum = models.CharField(max_length=512, blank=True, null=True)
+    width = models.PositiveSmallIntegerField(blank=True, null=True)
+    height = models.PositiveSmallIntegerField(blank=True, null=True)
+
+    dominant_color = models.CharField(max_length=32, blank=True, null=True)
+
+    attributes = JSONField(blank=True, null=True, default=lambda:{})
+
+    serializer = ir_serializers.ProductImageSerializer
+    cg_serializer = cg_serializers.ProductImageSerializer
+
+    class Meta(BaseModel.Meta):
+        ordering = ('id', )
+
+    def image_tag(self):
+        return u'<img src="%s" style="width: 400px;"/>' % self.url
+
+    image_tag.allow_tags = True
+
+    def __init__(self, *args, **kwargs):
+        super(ProductImage, self).__init__(*args, **kwargs)
+        if not self.attributes:
+            self.attributes = {}
+
+    @property
+    def orientation(self):
+        return "landscape" if self.width > self.height else "portrait"
+
+    def save(self, *args, **kwargs):
+        """attributes.sizes.master is populated by cloudinary
+        """
+        master_size = default_master_size
+        try:
+            master_size = self.attributes['sizes']['master']
+        except KeyError:
+            pass
+        except TypeError:
+            if isinstance(self.attributes, list):
+                self.attributes = {"sizes": default_master_size}
+
+        if master_size:
+            self.width = master_size.get('width', 0)
+            self.height = master_size.get('height', 0)
+
+        return super(ProductImage, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
+            delete_cloudinary_resource(self.url)
+        super(ProductImage, self).delete(*args, **kwargs)
+
+
+class Tag(BaseModel):
+    products = models.ManyToManyField(Product, related_name='tags')
+
+    store = models.ForeignKey(Store, related_name='tags', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+
+    url = models.TextField(blank=True, null=True)
+
+
+class Content(BaseModel):
+    def _validate_status(status):
+        allowed = ["approved", "rejected", "needs-review"]
+        if status not in allowed:
+            raise ValidationError("{0} is not an allowed status; "
+                                  "choices are {1}".format(status, allowed))
+
+    # Content.objects object for deserializing Content models as subclasses
+    objects = InheritanceManager()
+
+    store = models.ForeignKey(Store, related_name='content', on_delete=models.CASCADE)
+
+    url = models.TextField()  # 2f.com/.jpg
+    source = models.CharField(max_length=255)
+    source_url = models.TextField(blank=True, null=True)  # gap/.jpg
+    author = models.CharField(max_length=255, blank=True, null=True)
+
+    tagged_products = models.ManyToManyField(Product, null=True, blank=True,
+                                             related_name='content')
+    # tiles = <RelatedManager> Tiles (many-to-many relationship)
+
+    ## all other fields of proxied models will be store in this field
+    ## this will allow arbitrary fields, querying all Content
+    ## but restrict to only filtering/ordering on above fields
+    attributes = JSONField(null=True, blank=True, default=lambda:{})
+
+    # "approved", "rejected", "needs-review"
+    status = models.CharField(max_length=255, blank=True, null=True,
+                              default="needs-review",
+                              validators=[_validate_status])
+
+    _attribute_map = BaseModel._attribute_map + (
+        # (cg attribute name, python attribute name)
+        ('tagged-products', 'tagged_products'),
+        ('page-prioritized', 'deprecated_attribute?'),
+    )
+
+    serializer = ir_serializers.ContentSerializer
+    cg_serializer = cg_serializers.ContentSerializer
+
+    def image_tag(self):
+        return u'<img src="%s" style="width: 400px;"/>' % self.url
+
+    image_tag.allow_tags = True
+
+    def __init__(self, *args, **kwargs):
+        super(Content, self).__init__(*args, **kwargs)
+        if not self.attributes:
+            self.attributes = {}
+        if not self.source_url:
+            self.source_url = self.url
+
+    class Meta(object):
+        verbose_name_plural = 'Content'
+
+    def update(self, other=None, **kwargs):
+        """Additional operations for converting tagged-products: [123] into
+        actual tagged_products: [<Product>]s
+        """
+        if not other:
+            other = kwargs
+
+        if not other:
+            return self
+
+        if 'tagged-products' in other:
+            other['tagged-products'] = [Product.objects.get(id=x) for x in
+                                        other['tagged-products']]
+
+        return super(Content, self).update(other=other)
+
+
+class Image(Content):
+    name = models.CharField(max_length=1024, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+
+    original_url = models.TextField()
+    file_type = models.CharField(max_length=255, blank=True, null=True)
+    file_checksum = models.CharField(max_length=512, blank=True, null=True)
+
+    width = models.PositiveSmallIntegerField(blank=True, null=True)
+    height = models.PositiveSmallIntegerField(blank=True, null=True)
+
+    dominant_color = models.CharField(max_length=32, blank=True, null=True)
+
+    serializer = ir_serializers.ImageSerializer
+    cg_serializer = cg_serializers.ImageSerializer
+
+    @property
+    def orientation(self):
+        return "landscape" if self.width > self.height else "portrait"
+
+    def save(self, *args, **kwargs):
+        """attributes.sizes.master is populated by cloudinary
+        """
+        master_size = default_master_size
+        try:
+            master_size = self.attributes['sizes']['master']
+        except KeyError:
+            pass
+        except TypeError:
+            if isinstance(self.attributes, list):
+                self.attributes = {"sizes": default_master_size}
+
+        if master_size:
+            self.width = master_size.get('width', 0)
+            self.height = master_size.get('height', 0)
+            print "Setting width and height to %dx%d" % (self.width, self.height)
+
+        return super(Image, self).save(*args, **kwargs)
+
+
+    def delete(self, *args, **kwargs):
+        if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
+            delete_cloudinary_resource(self.url)
+        super(Image, self).delete(*args, **kwargs)
+
+
+class Gif(Image):
+    gif_url = models.TextField() # location of gif image
+
+    serializer = ir_serializers.GifSerializer
+    cg_serializer = cg_serializers.GifSerializer
+
+
+class Video(Content):
+    name = models.CharField(max_length=1024, blank=True, null=True)
+
+    caption = models.CharField(max_length=255, blank=True, default="")
+    username = models.CharField(max_length=255, blank=True, default="")
+    description = models.TextField(blank=True, null=True)
+
+    player = models.CharField(max_length=255)
+    file_type = models.CharField(max_length=255, blank=True, null=True)
+    file_checksum = models.CharField(max_length=512, blank=True, null=True)
+
+    # e.g. oHg5SJYRHA0
+    original_id = models.CharField(max_length=255, blank=True, null=True)
+
+    serializer = ir_serializers.VideoSerializer
+    cg_serializer = cg_serializers.VideoSerializer
+
+
+class Review(Content):
+    product = models.ForeignKey(Product)
+
+    body = models.TextField()
 
 
 class Theme(BaseModel):
@@ -99,10 +656,10 @@ class Page(BaseModel):
 
     Store -> Page -> Feed
     """
-    store = models.ForeignKey('Store', related_name='pages', on_delete=models.CASCADE)
+    store = models.ForeignKey(Store, related_name='pages', on_delete=models.CASCADE)
 
     name = models.CharField(max_length=256)  # e.g. Lived In
-    theme = models.ForeignKey('Theme', related_name='pages', blank=True, null=True)
+    theme = models.ForeignKey(Theme, related_name='pages', blank=True, null=True)
             #on_delete=models.SET_NULL,
 
     # attributes named differently
@@ -321,7 +878,7 @@ class Feed(BaseModel):
     """
     # pages = <RelatedManager> Pages (many-to-one relationship)
     # tiles = <RelatedManager> Tiles (many-to-one relationship)
-    store = models.ForeignKey('Store', related_name='feeds', on_delete=models.CASCADE)
+    store = models.ForeignKey(Store, related_name='feeds', on_delete=models.CASCADE)
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
@@ -636,16 +1193,16 @@ class Tile(BaseModel):
         return status
 
     # <Feed>.tiles.all() gives you... all its tiles
-    feed = models.ForeignKey('Feed', related_name='tiles', on_delete=models.CASCADE)
+    feed = models.ForeignKey(Feed, related_name='tiles', on_delete=models.CASCADE)
 
     # Universal templates: 'product', 'image', 'banner', 'youtube'
     # Invent templates as needed
     template = models.CharField(max_length=128)
 
-    products = models.ManyToManyField('Product', blank=True, null=True,
+    products = models.ManyToManyField(Product, blank=True, null=True,
                                       related_name='tiles')
     # use content.select_subclasses() instead of content.all()!
-    content = models.ManyToManyField('Content', blank=True, null=True,
+    content = models.ManyToManyField(Content, blank=True, null=True,
                                      related_name='tiles')
     # categories = <RelatedManager> Category (many-to-one relationship)
 
@@ -686,7 +1243,6 @@ class Tile(BaseModel):
         else:
             if not self.store.pk == destination_feed.store.pk:
                 raise ValueError("Can not copy tile to feed belonging to a different store")
-        
         return super(Tile, self)._copy(*args, **kwargs)
 
     def clean(self):
@@ -759,6 +1315,3 @@ class Tile(BaseModel):
 
         return None
 
-
-# Circular import
-from .elements import Product, Content
