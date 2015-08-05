@@ -10,6 +10,14 @@ import apps.api.serializers as cg_serializers
 import apps.intentrank.serializers as ir_serializers
 from apps.utils import returns_unicode
 
+from .core import BaseModel
+#from .elements import Product, Content # deferred to end of file
+
+"""
+Store -> Page -> Theme
+     |        -> Feed -> Tile
+      -> Category --------^
+"""
 
 class Store(BaseModel):
     """
@@ -91,10 +99,10 @@ class Page(BaseModel):
 
     Store -> Page -> Feed
     """
-    store = models.ForeignKey(Store, related_name='pages', on_delete=models.CASCADE)
+    store = models.ForeignKey('Store', related_name='pages', on_delete=models.CASCADE)
 
     name = models.CharField(max_length=256)  # e.g. Lived In
-    theme = models.ForeignKey(Theme, related_name='pages', blank=True, null=True)
+    theme = models.ForeignKey('Theme', related_name='pages', blank=True, null=True)
             #on_delete=models.SET_NULL,
 
     # attributes named differently
@@ -313,7 +321,7 @@ class Feed(BaseModel):
     """
     # pages = <RelatedManager> Pages (many-to-one relationship)
     # tiles = <RelatedManager> Tiles (many-to-one relationship)
-    store = models.ForeignKey(Store, related_name='feeds', on_delete=models.CASCADE)
+    store = models.ForeignKey('Store', related_name='feeds', on_delete=models.CASCADE)
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
@@ -628,16 +636,16 @@ class Tile(BaseModel):
         return status
 
     # <Feed>.tiles.all() gives you... all its tiles
-    feed = models.ForeignKey(Feed, related_name='tiles', on_delete=models.CASCADE)
+    feed = models.ForeignKey('Feed', related_name='tiles', on_delete=models.CASCADE)
 
     # Universal templates: 'product', 'image', 'banner', 'youtube'
     # Invent templates as needed
     template = models.CharField(max_length=128)
 
-    products = models.ManyToManyField(Product, blank=True, null=True,
+    products = models.ManyToManyField('Product', blank=True, null=True,
                                       related_name='tiles')
     # use content.select_subclasses() instead of content.all()!
-    content = models.ManyToManyField(Content, blank=True, null=True,
+    content = models.ManyToManyField('Content', blank=True, null=True,
                                      related_name='tiles')
     # categories = <RelatedManager> Category (many-to-one relationship)
 
@@ -751,3 +759,6 @@ class Tile(BaseModel):
 
         return None
 
+
+# Circular import
+from .elements import Product, Content

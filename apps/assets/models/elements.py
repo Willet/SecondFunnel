@@ -9,9 +9,18 @@ import apps.api.serializers as cg_serializers
 import apps.intentrank.serializers as ir_serializers
 from apps.imageservice.utils import delete_cloudinary_resource
 
+#from .structure import Store # deferred to end of file
+from .core import BaseModel, default_master_size
+
+"""
+Tag -> Product -> ProductImage
+       Content ===> Image => Gif
+               |"=> Video
+               "==> Review
+"""
 
 class Product(BaseModel):
-    store = models.ForeignKey(Store, related_name='products', on_delete=models.CASCADE)
+    store = models.ForeignKey('Store', related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=1024, default="")
     description = models.TextField(blank=True, null=True, default="")
     # point form stuff like <li>hand wash</li> that isn't in the description already
@@ -78,7 +87,7 @@ class ProductImage(BaseModel):
 
     TODO: make it subclass of Image
     """
-    product = models.ForeignKey(Product, related_name="product_images",
+    product = models.ForeignKey('Product', related_name="product_images",
                                 on_delete=models.CASCADE, blank=True, null=True,
                                 default=None)
 
@@ -138,9 +147,9 @@ class ProductImage(BaseModel):
 
 
 class Tag(BaseModel):
-    products = models.ManyToManyField(Product, related_name='tags')
+    products = models.ManyToManyField('Product', related_name='tags')
 
-    store = models.ForeignKey(Store, related_name='tags', on_delete=models.CASCADE)
+    store = models.ForeignKey('Store', related_name='tags', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
 
     url = models.TextField(blank=True, null=True)
@@ -154,16 +163,18 @@ class Content(BaseModel):
                                   "choices are {1}".format(status, allowed))
 
     # Content.objects object for deserializing Content models as subclasses
+    # use Content.objects.select_subclasses() instead of Content.objects.all()!
+    # use content.select_subclasses() instead of content.all()!
     objects = InheritanceManager()
 
-    store = models.ForeignKey(Store, related_name='content', on_delete=models.CASCADE)
+    store = models.ForeignKey('Store', related_name='content', on_delete=models.CASCADE)
 
     url = models.TextField()  # 2f.com/.jpg
     source = models.CharField(max_length=255)
     source_url = models.TextField(blank=True, null=True)  # gap/.jpg
     author = models.CharField(max_length=255, blank=True, null=True)
 
-    tagged_products = models.ManyToManyField(Product, null=True, blank=True,
+    tagged_products = models.ManyToManyField('Product', null=True, blank=True,
                                              related_name='content')
     # tiles = <RelatedManager> Tiles (many-to-many relationship)
 
@@ -198,7 +209,7 @@ class Content(BaseModel):
         if not self.source_url:
             self.source_url = self.url
 
-    class Meta(object):
+    class Meta(BaseModel.Meta):
         verbose_name_plural = 'Content'
 
     def update(self, other=None, **kwargs):
@@ -290,7 +301,9 @@ class Video(Content):
 
 
 class Review(Content):
-    product = models.ForeignKey(Product)
-
+    product = models.ForeignKey('Product')
     body = models.TextField()
 
+
+# Circular import
+from .structure import Store

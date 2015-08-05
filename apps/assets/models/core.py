@@ -1,6 +1,7 @@
 import calendar
 import datetime
 
+from django.db import models
 from django_extensions.db.fields import CreationDateTimeField
 
 import apps.api.serializers as cg_serializers
@@ -40,6 +41,9 @@ class SerializableMixin(object):
 
 
 class BaseModel(models.Model, SerializableMixin):
+    """
+    All cj/content_graph related items are deprecated & will be removed
+    """
     created_at = CreationDateTimeField()
     created_at.editable = True
 
@@ -57,6 +61,7 @@ class BaseModel(models.Model, SerializableMixin):
     )
 
     class Meta(object):
+        app_label = "assets"
         abstract = True
 
     def __getitem__(self, key):
