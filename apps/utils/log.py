@@ -12,6 +12,9 @@ class AdminSlackHandler(logging.Handler):
 
     If the request is passed as the first argument to the log record,
     request data will be provided in the email report.
+
+    Modelled on django.utils.log.AdminEmailHandler -
+        https://github.com/django/django/blob/1.6/django%2Futils%2Flog.py#L78
     """
     def __init__(self):
         logging.Handler.__init__(self)
