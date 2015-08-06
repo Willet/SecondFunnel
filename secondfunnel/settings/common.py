@@ -51,8 +51,7 @@ CLICKMETER_API_KEY = '8306A265-51DC-4D3C-B1E3-79A8FCB2336E'
 
 
 ADMINS = (
-    ('Kevin "The Awesome" Simpson', 'kevin@willetinc.com'),
-    ('Alex "The Robot" Riedler', 'alex@willetinc.com'),
+    ('Fraser Harris', 'fraser@willetinc.com'),
     # ('Your Name', 'your_email@example.com'),
 )
 
