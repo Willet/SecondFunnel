@@ -383,6 +383,10 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
             'include_html': True,
         },
+        'slack': {
+            'level': 'ERROR',
+            'class': 'apps.utils.log.AdminSlackHandler',
+        },
         'null': {
             'level': 'DEBUG',
             'class': 'logging.NullHandler',
@@ -390,7 +394,7 @@ LOGGING = {
     },
     'loggers': {
         'django.request': {
-            'handlers': ['stderr', 'mail_admins'],
+            'handlers': ['stderr', 'mail_admins', 'slack'],
             'level': 'ERROR',
             'propagate': True,
         },
