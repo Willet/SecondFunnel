@@ -1242,7 +1242,7 @@ class Tile(BaseModel):
         except KeyError:
             pass
         else:
-            if not self.feed.store.pk == destination_feed.store.pk:
+            if not self.feed.store == destination_feed.store:
                 raise ValueError("Can not copy tile to feed belonging to a different store")
         return super(Tile, self)._copy(*args, **kwargs)
 
