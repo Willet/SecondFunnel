@@ -108,7 +108,7 @@ class CategoryForm(ModelForm):
         if tiles:
             for t in tiles.all():
                 feed = Feed.objects.get(tiles__in=[t])
-                if not feed.pages.all()[0].store == store: == store:
+                if not feed.pages.all()[0].store == store:
                     raise ValidationError("Tiles in category must have same store as category.")
 
         return self.cleaned_data
