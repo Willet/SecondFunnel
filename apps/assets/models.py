@@ -17,6 +17,7 @@ import apps.api.serializers as cg_serializers
 from apps.imageservice.utils import delete_cloudinary_resource
 import apps.intentrank.serializers as ir_serializers
 from apps.utils import returns_unicode
+from apps.utils.fields import ListField
 from apps.utils.models import MemcacheSetting
 
 
@@ -885,7 +886,7 @@ class Feed(BaseModel):
     is_finite = models.BooleanField(default=False)
 
     # Fields necessary to update / regenerate feed
-    source_urls = JSONField(default=lambda:[]) # List of <str> urls feed is generated from
+    source_urls = ListField(blank=True, type=str) # List of urls feed is generated from, allowed to be empty
     spider_name = models.CharField(max_length=64, blank=True) # Spider defines behavior to update / regenerate page, '' valid
 
     serializer = ir_serializers.FeedSerializer

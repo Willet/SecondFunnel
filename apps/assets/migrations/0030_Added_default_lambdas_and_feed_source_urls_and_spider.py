@@ -15,7 +15,7 @@ class Migration(SchemaMigration):
 
         # Changing field 'Feed.source_urls'
         db.delete_column(u'assets_feed', 'source_urls')
-        db.add_column(u'assets_feed', 'source_urls', self.gf('jsonfield.fields.JSONField')(default=lambda:[]))
+        db.add_column(u'assets_feed', 'source_urls', self.gf('apps.utils.fields.ListField')(default='[]', blank=True), keep_default=True)
 
     def backwards(self, orm):
         # Deleting field 'Feed.spider_name'
