@@ -126,13 +126,17 @@ class BaseModel(models.Model, SerializableMixin):
         m2m_kwargs.update(m2m_update)
 
         new_obj = cls(**local_kwargs)
-        new_obj.save()
+        super(BaseModel, new_obj).save() # skip full_clean for this save
 
         # m2m fields require instance id, so set after saving
         for (k,v) in m2m_kwargs.iteritems():
             setattr(new_obj, k, v.all())
 
-        new_obj.save()
+        try:
+            new_obj.save() # run full_clean now that model has id & m2m relations created
+        except ValidationError:
+            new_obj.delete() # full_clean failed, cleanup
+            raise
 
         return new_obj
 
@@ -1179,6 +1183,8 @@ class Category(BaseModel):
 class Tile(BaseModel):
     """
     A unit in a feed, defined by a template, product(s) and content(s)
+
+    In general, tiles should be created by the feed (add, copy)
 
     ir_cache is updated with every tile save.  See tile_saved task
 
