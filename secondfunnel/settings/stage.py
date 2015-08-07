@@ -1,7 +1,7 @@
 from common import *
 
 ENVIRONMENT = "test"
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 # Enable GZIP and Minification
