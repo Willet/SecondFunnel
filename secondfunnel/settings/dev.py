@@ -56,8 +56,8 @@ MIDDLEWARE_CLASSES += (
     'snippetscream.ProfileMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     # oddly enough, this goes *after* debug_toolbar
-    'apps.utils.models.NonHtmlDebugToolbarMiddleware',
-    'apps.utils.models.ShowHandlerMiddleware',
+    'apps.utils.middleware.NonHtmlDebugToolbarMiddleware',
+    'apps.utils.middleware.ShowHandlerMiddleware',
     'devserver.middleware.DevServerMiddleware',
     'apps.light.middleware.BrowserSyncMiddleware',
 )

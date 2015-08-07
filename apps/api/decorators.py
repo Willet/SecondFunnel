@@ -3,8 +3,7 @@ import json
 
 from django.http import HttpResponse, HttpResponseNotAllowed
 
-from apps.utils import check_keys_exist
-from apps.utils.functional import check_other_keys_dont_exist
+from apps.utils.functional import check_keys_exist, check_other_keys_dont_exist
 from secondfunnel.errors import MissingRequiredKeysError, TooManyKeysError
 
 

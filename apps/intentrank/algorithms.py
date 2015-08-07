@@ -12,7 +12,6 @@ from django.conf import settings
 from django.db.models import Count
 from django.db.models.query import QuerySet
 from apps.assets.models import Tile
-from apps.utils.functional import result, sort_helper
 
 
 def filter_tiles(fn):

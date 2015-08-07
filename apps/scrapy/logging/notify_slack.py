@@ -1,5 +1,5 @@
 from django.conf import settings
-from apps.utils import slack_broadcast as slack
+from apps.utils.broadcast import slack
 
 def dump_stats(stats, spider, reason, s3_urls):
     """

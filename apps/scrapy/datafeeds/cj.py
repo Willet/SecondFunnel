@@ -4,10 +4,10 @@ import os
 
 from ftplib import FTP
 
-from apps.scrapy.utils.models import LookupTable
+from apps.utils.models import LookupTable
 
 
-class Datafeed(object):
+class CJDatafeed(object):
     """ CJ datafeed download & parser.  Intended to be wrapped for each customer """
     CJ_USERNAME = "4503838"
     CJ_PASSWORD = "7JTu@6Xb"

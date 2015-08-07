@@ -3,7 +3,7 @@ from django.conf import settings
 import json
 
 from apps.api.serializers import RawSerializer
-from apps.utils.functional import find_where, may_be_json, get_image_file_type
+from apps.utils.functional import find_where, get_image_file_type, may_be_json
 
 
 class IRSerializer(RawSerializer):
