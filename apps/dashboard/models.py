@@ -5,6 +5,9 @@ import json
 import jsonfield
 import re
 
+from model_utils.managers import InheritanceManager
+from string import capitalize
+
 from apiclient.discovery import build
 from apiclient.errors import HttpError
 from oauth2client.client import SignedJwtAssertionCredentials
@@ -12,10 +15,9 @@ from oauth2client.client import SignedJwtAssertionCredentials
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
-
-from model_utils.managers import InheritanceManager
-from string import capitalize
 from django.utils.timezone import now
+
+from apps.assets.models import Page
 
 
 class Query(models.Model):
@@ -362,7 +364,7 @@ class DashBoard(models.Model):
     """
     # human name for the site that these statistics correspond to
     site_name = models.CharField(max_length=128)
-    page = models.ForeignKey('assets.Page', blank=False, null=True)
+    page = models.ForeignKey('Page', blank=False, null=True)
 
     queries = models.ManyToManyField(Query)
 

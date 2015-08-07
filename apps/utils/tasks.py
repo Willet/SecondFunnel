@@ -1,5 +1,4 @@
 from celery import Celery
-
 from celery.utils import noop
 from celery.utils.log import get_task_logger
 

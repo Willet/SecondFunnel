@@ -16,7 +16,7 @@ from model_utils.managers import InheritanceManager
 import apps.api.serializers as cg_serializers
 from apps.imageservice.utils import delete_cloudinary_resource
 import apps.intentrank.serializers as ir_serializers
-from apps.utils import returns_unicode
+from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
 from apps.utils.models import MemcacheSetting
 

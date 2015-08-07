@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 import ast
 
+
 class ListField(models.TextField):
     """
     type: (optional) type of list elements. Raises ValidationError during save if other types are added

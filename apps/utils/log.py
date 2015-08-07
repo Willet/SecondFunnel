@@ -5,7 +5,8 @@ from django.conf import settings
 from django.utils.encoding import force_text
 from django.views.debug import ExceptionReporter, get_exception_reporter_filter
 
-from .slack_broadcast import msg as slack_msg
+from .broadcast import slack
+
 
 class AdminSlackHandler(logging.Handler):
     """An exception log handler that sends log entries to Slack.
@@ -51,4 +52,4 @@ class AdminSlackHandler(logging.Handler):
         title = "{} Server".format(os.getenv("AWS_GROUP", "Dev"))
         message = "%s\n\nRequest repr(): %s" % (self.format(record), request_repr)
 
-        slack_msg(channel=channel, sender="django", title=title, message=message, level="error")
+        slack.msg(channel=channel, sender="django", title=title, message=message, level="error")

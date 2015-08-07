@@ -1,5 +1,5 @@
 from django.conf import settings
-from apps.utils import hipchat_broadcast as hipchat
+from apps.utils.broadcast import hipchat
 
 def dump_stats(stats, spider, reason, s3_urls):
     """
