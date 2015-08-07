@@ -61,11 +61,7 @@ class PageMaintainer(object):
             self.feed.save()
 
         # Override for page's spider_name to enable added spider functionality
-        if 'spider_name' in options:
-            spider_name = options['spider_name']
-            del options['spider_name']
-        else:
-            spider_name = self.spider_name
+        spider_name = options.pop('spider_name') if 'spider_name' in options else self.spider_name
 
         opts = {
             'recreate_tiles': options.get('recreate_tiles', False), # In case you screwed up? Not very useful
@@ -97,11 +93,7 @@ class PageMaintainer(object):
             start_urls = set(self.feed.get_all_products().values_list('url', flat=True))
 
         # Override for page's spider_name to enable added spider functionality
-        if 'spider_name' in options:
-            spider_name = options['spider_name']
-            del options['spider_name']
-        else:
-            spider_name = self.spider_name
+        spider_name = options.pop('spider_name') if 'spider_name' in options else self.spider_name
 
         opts = {
             'recreate_tiles': options.get('recreate_tiles', False), # In case you screwed up? Not very useful
