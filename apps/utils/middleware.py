@@ -2,6 +2,7 @@ import json
 
 from django.http import HttpResponse
 
+
 class NonHtmlDebugToolbarMiddleware(object):
     """
     The Django Debug Toolbar usually only works for views that return HTML.
