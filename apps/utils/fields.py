@@ -35,7 +35,7 @@ class ListField(models.TextField):
 
         super(ListField, self).validate(value, model_instance)
 
-    def get_db_prep_value(self, value):
+    def get_db_prep_value(self, value, connection=None, prepared=None):
         return unicode(value)
 
     def value_to_string(self, obj):
