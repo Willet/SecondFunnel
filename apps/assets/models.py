@@ -1244,7 +1244,7 @@ class Tile(BaseModel):
         else:
             if not self.feed.store == destination_feed.store:
                 raise ValueError("Can not copy tile to feed belonging to a different store")
-        return super(Tile, self)._copy(*args, **kwargs)
+        return super(Tile, self)._copy(self, *args, **kwargs)
 
     def clean(self):
         # TODO: move m2m validation into a pre-save signal (see tasks.py)
