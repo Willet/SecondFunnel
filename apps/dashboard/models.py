@@ -17,8 +17,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 
-from apps.assets.models import Page
-
 
 class Query(models.Model):
     """
@@ -364,7 +362,7 @@ class DashBoard(models.Model):
     """
     # human name for the site that these statistics correspond to
     site_name = models.CharField(max_length=128)
-    page = models.ForeignKey('Page', blank=False, null=True)
+    page = models.ForeignKey('assets.Page', blank=False, null=True)
 
     queries = models.ManyToManyField(Query)
 
