@@ -514,7 +514,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         events:
             'click': (event) ->
-                category = @model.get("name")
+                categoryName = @model.get("name")
+                categoryUrl = @model.get("url")
                 $el = @$el
                 $subCatEl = $el.find('.sub-category')
 
@@ -526,12 +527,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     # First click w/ no subcategories or
                     # second click w/ categories, select category
                     $el.removeClass('expanded')
-                    unless $el.hasClass('selected') and not $subCatEl.hasClass('selected')
-                        @selectCategoryEl($el)
+                    # A category without a name is just drop-down for subcategories
+                    if categoryName
+                        # only open again if it isn't already open
+                        unless $el.hasClass('selected') and not $subCatEl.hasClass('selected')
+                            @selectCategoryEl($el)
 
-                        App.router.navigate("category/#{category}",
-                            trigger: true
-                        )
+                            App.router.navigate("category/#{categoryName}",
+                                trigger: true
+                            )
+                    if categoryUrl
+                        App.utils.openUrl(categoryUrl)
                 return false # stop propogation
 
             'click .sub-category': (event) ->
@@ -540,27 +546,34 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $ev = $(event.target)
                 $subCatEl = if $ev.hasClass('sub-category') then $ev else $ev.parent('.sub-category')
 
-                # Close categories drop-down
-                $el.removeClass 'expanded'
+                # A sub-category without a name is just a label
+                if $subCatEl.data('name')
+                    # Close categories drop-down
+                    $el.removeClass 'expanded'
 
-                # Retrieve subcategory object
-                subCategory = _.find(category.get('subCategories'), (subcategory) ->
-                    return subcategory.name == $subCatEl.data('name')
-                )
-                # switch to the selected category if it has changed
-                unless $el.hasClass('selected') and $subCatEl.hasClass('selected') and not $subCatEl.siblings().hasClass('selected')
-                    @selectCategoryEl($subCatEl)
-
-                    # If subCategory leads with "|", its an additional filter on the parent category
-                    if subCategory['name'].charAt(0) == "|"
-                        switchCategory = category.get("name") + subCategory['name']
-                    # Else, subCategory is a category
-                    else
-                        switchCategory = subCategory['name']
-
-                    App.router.navigate("category/#{switchCategory}",
-                        trigger: true
+                    # Retrieve subcategory object
+                    subCategory = _.find(category.get('subCategories'), (subcategory) ->
+                        return subcategory.name == $subCatEl.data('name')
                     )
+
+                    if subCategory['url']:
+                        App.utils.openUrl(subCategory['url'])
+
+                    # else switch to the selected category if it has changed
+                    else
+                        unless $el.hasClass('selected') and $subCatEl.hasClass('selected') and not $subCatEl.siblings().hasClass('selected')
+                            @selectCategoryEl($subCatEl)
+
+                            # If subCategory leads with "|", its an additional filter on the parent category
+                            if subCategory['name'].charAt(0) == "|"
+                                switchCategory = category.get("name") + subCategory['name']
+                            # Else, subCategory is a category
+                            else
+                                switchCategory = subCategory['name']
+
+                            App.router.navigate("category/#{switchCategory}",
+                                trigger: true
+                            )
                 return false # stop propogation
 
         # Apply the 'selected' class to a category or sub-category element
