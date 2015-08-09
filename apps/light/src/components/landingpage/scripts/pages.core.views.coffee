@@ -546,33 +546,33 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $ev = $(event.target)
                 $subCatEl = if $ev.hasClass('sub-category') then $ev else $ev.parent('.sub-category')
 
-                # A sub-category without a name is just a label
-                if $subCatEl.data('name')
-                    # Close categories drop-down
-                    $el.removeClass 'expanded'
+                # Close categories drop-down
+                $el.removeClass 'expanded'
 
-                    # Retrieve subcategory object
-                    subCategory = _.find(category.get('subCategories'), (subcategory) ->
-                        return subcategory.name == $subCatEl.data('name')
-                    )
+                # Retrieve subcategory object
+                # TODO: refactor to index by model id
+                subCategory = _.find(category.get('subCategories'), (subcategory) ->
+                    return subcategory.name == $subCatEl.data('name')
+                )
 
-                    if subCategory['url']:
-                        App.utils.openUrl(subCategory['url'])
+                # url's take priority over category name's
+                if subCategory['url']:
+                    App.utils.openUrl(subCategory['url'])
 
-                    # else switch to the selected category if it has changed
-                    else
-                        unless $el.hasClass('selected') and $subCatEl.hasClass('selected') and not $subCatEl.siblings().hasClass('selected')
-                            @selectCategoryEl($subCatEl)
+                # else switch to the selected category if it has changed
+                else
+                    unless $el.hasClass('selected') and $subCatEl.hasClass('selected') and not $subCatEl.siblings().hasClass('selected')
+                        @selectCategoryEl($subCatEl)
 
-                            # If subCategory leads with "|", its an additional filter on the parent category
-                            if subCategory['name'].charAt(0) == "|"
-                                switchCategory = category.get("name") + subCategory['name']
-                            # Else, subCategory is a category
-                            else
-                                switchCategory = subCategory['name']
+                        # If subCategory leads with "|", its an additional filter on the parent category
+                        if subCategory['name'].charAt(0) == "|"
+                            switchCategory = category.get("name") + subCategory['name']
+                        # Else, subCategory is a category
+                        else
+                            switchCategory = subCategory['name']
 
-                            App.router.navigate("category/#{switchCategory}",
-                                trigger: true
+                        App.router.navigate("category/#{switchCategory}",
+                            trigger: true
                             )
                 return false # stop propogation
 

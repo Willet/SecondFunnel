@@ -165,47 +165,6 @@
       "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431033495/under-50_zstful.jpg",
       "subCategories":[
         {
-          "displayName": "By Recipient",
-        },
-        {
-          "mobileHeroImage":"",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217494/SLT%20GG%20Hero%20Images/Gifts_for_The_Baker_Desktop.png",
-          "displayName":"The Baker",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010759/SLT%20GG%20Hero%20Images/Baker.png",
-          "name":"the-baker"
-        },
-        {
-          "mobileHeroImage":"",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217533/SLT%20GG%20Hero%20Images/Gifts_for_The_Entertainer_Desktop.png",
-          "displayName":"The Entertainer",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Entertainer.png",
-          "name":"the-entertainer"
-        },
-        {
-          "mobileHeroImage":"",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217533/SLT%20GG%20Hero%20Images/Gifts_for_The_Entertainer_Desktop.png",
-          "displayName":"The Host",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Entertainer.png",
-          "name":"the-host"
-        },
-        {
-          "mobileHeroImage":"",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217535/SLT%20GG%20Hero%20Images/Gifts_for_The_Health_Nut_Desktop.png",
-          "displayName":"The Health Nut",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Health_Nut.png",
-          "name":"the-health-nut"
-        },
-        {
-          "mobileHeroImage":"",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217527/SLT%20GG%20Hero%20Images/Gifts_for_The_Family_Desktop.png",
-          "displayName":"The Family",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Family.png",
-          "name":"the-family"
-        },
-        {
-          "displayName": "More Gifts",
-        },
-        {
           "displayName":"Gift Cards",
           "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Family.png",
           "url":"http://www.surlatable.com/category/CAT-11149/",
