@@ -97,7 +97,7 @@ class BaseModel(models.Model, SerializableMixin):
     def _copy(cls, obj, update_fields={}, exclude_fields=[]):
         """Copies fields over to new instance of class & saves it
         
-        Note: other sided m2m fields not copied over by default! add to update_fields
+        Note: related m2m fields not copied over by default! add to update_fields
         Note: Fields 'id' and 'ir_cache' are excluded by default
         
         Warning: not tested with all related fields
@@ -113,17 +113,20 @@ class BaseModel(models.Model, SerializableMixin):
         autofields = [f.name for f in obj._meta.fields if isinstance(f, models.AutoField)]
         exclude = list(set(exclude_fields + autofields + default_exclude)) # eliminate duplicates
 
-        # local fields + many-to-many fields = all fields (assumption!)
+        # local fields + many-to-many fields = all fields - related m2m fields
         local_fields = [f.name for f in obj._meta.local_fields]
-        m2m_fields = [f.name for f in obj._meta.many_to_many]
+        m2m_local_fields = [f.name for f in obj._meta.many_to_many]
+        m2m_all_fields = list(set(obj._meta.get_all_field_names()) - set(local_fields)) # includes related_names
 
         # Remove excluded fields from fields that are copied
         local_kwargs = { k:getattr(obj,k) for k in local_fields if k not in exclude }
-        m2m_kwargs = { k:getattr(obj,k) for k in m2m_fields if k not in exclude }
+        # By default, skip copying of related relations
+        m2m_kwargs = { k:getattr(obj,k) for k in m2m_local_fields if k not in exclude }
 
         # Separate update_fields into local & m2m
         local_update = { k:v for (k,v) in update_fields.iteritems() if k in local_fields }
-        m2m_update = { k:v for (k,v) in update_fields.iteritems() if k in m2m_fields }
+        # Allow related relations to be copied if in update_fields
+        m2m_update = { k:v for (k,v) in update_fields.iteritems() if k in m2m_all_fields }
         
         local_kwargs.update(local_update)
         m2m_kwargs.update(m2m_update)
@@ -1019,9 +1022,9 @@ class Feed(BaseModel):
         """Creates a copy of a tile to this feed
 
         :returns <Tile> copy"""
-        new_tile = Tile._copy(tile, update_fields= {'feed': self,
-                                                    'prioritized': prioritized or tile.prioritized,
-                                                    'priority': priority if isinstance(priority, int) else tile.priority })
+        new_tile = tile._copy(update_fields= {'feed': self,
+                                              'prioritized': prioritized or tile.prioritized,
+                                              'priority': priority if isinstance(priority, int) else tile.priority })
         new_tile.save()
 
         return new_tile
