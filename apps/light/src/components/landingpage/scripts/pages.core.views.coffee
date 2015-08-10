@@ -547,7 +547,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $subCatEl = if $ev.hasClass('sub-category') then $ev else $ev.parent('.sub-category')
 
                 # Close categories drop-down
-                $el.removeClass 'expanded'
+                $el.removeClass('expanded')
 
                 # Retrieve subcategory object
                 # TODO: refactor to index by model id
@@ -556,7 +556,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
 
                 # url's take priority over category name's
-                if subCategory['url']:
+                if subCategory['url']
                     App.utils.openUrl(subCategory['url'])
 
                 # else switch to the selected category if it has changed
