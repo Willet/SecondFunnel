@@ -96,7 +96,10 @@ class BaseModel(models.Model, SerializableMixin):
     @classmethod
     def _copy(cls, obj, update_fields={}, exclude_fields=[]):
         """Copies fields over to new instance of class & saves it
+        
+        Note: other sided m2m fields not copied over by default! add to update_fields
         Note: Fields 'id' and 'ir_cache' are excluded by default
+        
         Warning: not tested with all related fields
 
         :param obj - instance to copy
@@ -1012,7 +1015,7 @@ class Feed(BaseModel):
         else:
             return Product.objects.filter(pk__in=product_pks).all()
 
-    def _copy_tile(self, tile, prioritized=False, priority=0):
+    def _copy_tile(self, tile, prioritized=None, priority=None):
         """Creates a copy of a tile to this feed
 
         :returns <Tile> copy"""
@@ -1242,14 +1245,18 @@ class Tile(BaseModel):
     cg_serializer = cg_serializers.TileSerializer
 
     def _copy(self, *args, **kwargs):
+        update_fields = kwargs.pop('update_fields', {})
+
         # Should only be able to copy if new feed & feed belong to same store
-        try:
-            destination_feed = kwargs['update_fields']['feed']
-        except KeyError:
-            pass
-        else:
-            if not self.feed.store == destination_feed.store:
-                raise ValueError("Can not copy tile to feed belonging to a different store")
+        if 'feed' in update_fields and not self.feed.store == update_fields['feed'].store:
+            raise ValueError("Can not copy tile to feed belonging to a different store")
+
+        # Copy over categories unless overridden
+        if not 'categories' in update_fields:
+            update_fields['categories'] = self.categories
+
+        kwargs['update_fields'] = update_fields
+
         return super(Tile, self)._copy(self, *args, **kwargs)
 
     def clean(self):
