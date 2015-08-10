@@ -116,7 +116,7 @@ class BaseModel(models.Model, SerializableMixin):
         # local fields + many-to-many fields = all fields - related m2m fields
         local_fields = [f.name for f in obj._meta.local_fields]
         m2m_local_fields = [f.name for f in obj._meta.many_to_many]
-        m2m_all_fields = list(set(obj.meta.get_all_field_names()) - set(local_fields)) # includes related_names
+        m2m_all_fields = list(set(obj._meta.get_all_field_names()) - set(local_fields)) # includes related_names
 
         # Remove excluded fields from fields that are copied
         local_kwargs = { k:getattr(obj,k) for k in local_fields if k not in exclude }
