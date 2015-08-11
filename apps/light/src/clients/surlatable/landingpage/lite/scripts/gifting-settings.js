@@ -15,7 +15,7 @@
           "name":"top-25",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayTop25GIfts_green_ruytxi.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431032692/top-25_ljpzqh.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/"
         },
         {
           "tileSet":"products",
@@ -23,7 +23,7 @@
           "name":"under-50",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayGIftsUnder50_green_jc26jb.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431033495/under-50_zstful.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/"
         },
         {
           "tileSet":"products",
@@ -31,7 +31,7 @@
           "name":"under-100",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayGIftsUnder100_green_rdfj5f.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431033065/under-100_o7shaf.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/"
         },
         {
           "tileSet":"products",
@@ -39,7 +39,7 @@
           "name":"gourmet",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayGourmetGIfts_green_debdrr.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431032994/gourmet_xdx5oa.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/"
         },
         {
           "tileSet":"products",
@@ -47,7 +47,7 @@
           "name":"griller",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayGrillingGIfts_green_stufxw.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431031820/griller_ps5ch5.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/"
         },
         {
           "tileSet":"products",
@@ -55,7 +55,7 @@
           "name":"bartender",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayBarGIfts_green_pldzkh.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431031676/bartender_bw7ywn.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/"
         }
       ],
       "displayName":"<i>Dad\u2019s Day</i> GIFT SHOPS",
@@ -87,7 +87,7 @@
       "displayName":"Gifts by Price",
       "name":"",
       "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayGIftsUnder100_green_rdfj5f.jpg",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431033065/under-100_o7shaf.jpg",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gifts-By-Price_111x111.jpg",
       "subCategories":[
         {
           "label": "Gifts by Price"
@@ -98,7 +98,7 @@
           "name":"under-25",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayTop25GIfts_green_ruytxi.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431032692/top-25_ljpzqh.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-25_50x50.jpg"
         },
         {
           "tileSet":"products",
@@ -106,7 +106,7 @@
           "name":"under-50",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayGIftsUnder50_green_jc26jb.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431033495/under-50_zstful.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-50_50x50.jpg"
         },
         {
           "tileSet":"products",
@@ -114,14 +114,14 @@
           "name":"under-100",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayGIftsUnder100_green_rdfj5f.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431033065/under-100_o7shaf.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-100_50x50.jpg"
         },
         {
           "displayName":"Gourmet",
           "name":"gourmet",
           "desktopHeroImage":"",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431032994/gourmet_xdx5oa.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gourmet_50x50.jpg"
         }
       ]
     },
@@ -129,35 +129,35 @@
       "mobileHeroImage":"",
       "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217533/SLT%20GG%20Hero%20Images/Gifts_for_The_Entertainer_Desktop.png",
       "displayName":"The Cook",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Entertainer.png",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Cook_111x111.jpg",
       "name":"the-cook"
     },
     {
       "mobileHeroImage":"",
       "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217533/SLT%20GG%20Hero%20Images/Gifts_for_The_Entertainer_Desktop.png",
       "displayName":"The Entertainer",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Entertainer.png",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Entertainer_111x111.jpg",
       "name":"the-entertainer"
     },
     {
       "mobileHeroImage":"",
       "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217494/SLT%20GG%20Hero%20Images/Gifts_for_The_Baker_Desktop.png",
       "displayName":"The Baker",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010759/SLT%20GG%20Hero%20Images/Baker.png",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Baker_111x111.jpg",
       "name":"the-baker"
     },
     {
       "mobileHeroImage":"",
       "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217527/SLT%20GG%20Hero%20Images/Gifts_for_The_Family_Desktop.png",
       "displayName":"The Family",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Family.png",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Family_111x111.jpg",
       "name":"the-family"
     },
     {
       "mobileHeroImage":"",
       "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217533/SLT%20GG%20Hero%20Images/Gifts_for_The_Entertainer_Desktop.png",
       "displayName":"The Host",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Entertainer.png",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Host_111x111.jpg",
       "name":"the-host"
     },
     {
@@ -165,7 +165,7 @@
       "displayName": "More Gift Ideas",
       "name":"",
       "desktopHeroImage":"",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431033495/under-50_zstful.jpg",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/More-Gift-Ideas_111x111.jpg",
       "subCategories":[
         {
           "label": "Gifts by Recipient"
@@ -176,7 +176,7 @@
           "name":"for-her",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayTop25GIfts_green_ruytxi.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431032692/top-25_ljpzqh.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/For-Her_50x50.jpg"
         },
         {
           "tileSet":"products",
@@ -184,7 +184,7 @@
           "name":"for-him",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayGIftsUnder50_green_jc26jb.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431033495/under-50_zstful.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/For-Him_50x50.jpg"
         },
         {
           "tileSet":"products",
@@ -192,20 +192,20 @@
           "name":"the-health-nut",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayGIftsUnder100_green_rdfj5f.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431033065/under-100_o7shaf.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Health-Nut_50x50.jpg"
         },
         {
           "label": "More Gift Ideas"
         },
         {
           "displayName":"Gift Cards",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Family.png",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gift-Cards_50x50.jpg",
           "url":"http://www.surlatable.com/category/CAT-11149/",
           "name": "gift-cards"
         },
         {
           "displayName":"Cooking Classes",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Family.png",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Cooking-Classes_50x50.jpg",
           "url":"http://www.surlatable.com/category/cat2211278/",
           "name": "cooking-classes"
         },
@@ -213,7 +213,7 @@
           "mobileHeroImage":"",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1417217527/SLT%20GG%20Hero%20Images/Gifts_for_The_Family_Desktop.png",
           "displayName":"Top Registry Gifts",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Family.png",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Registry_50x50.jpg",
           "name":"top-registry"
         },
         {
@@ -222,7 +222,7 @@
           "name":"top-25",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayTop25GIfts_green_ruytxi.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431032692/top-25_ljpzqh.jpg"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Top-25_50x50.jpg"
         },
         {
           "tileSet":"products",
@@ -230,8 +230,8 @@
           "name":"all-gifts",
           "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayGIftsUnder50_green_jc26jb.jpg",
           "mobileHeroImage":"",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431033495/under-50_zstful.jpg"
-        },
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/All-Gifts_50x50.jpg"
+        }
       ]
     }
   ]

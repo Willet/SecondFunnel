@@ -271,3 +271,54 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
 
         return @
+
+    ###
+    View responsible for the Sur La Table Hero Area
+    This Hero's are special in that if there is no hero image specified,
+    an overlay with the category name is used (ex: The Chef, Top 25)
+    
+    @constructor
+    @type {LayoutView}
+    ###
+    class module.SLTHeroAreaView extends Marionette.LayoutView
+        model: module.Tile
+        className: "previewContainer"
+        template: "#hero_template"
+        regions:
+            content: ".content"
+
+        generateHeroArea: ->
+            category = App.intentRank.currentCategory() || App.option('page:home:category')
+            catObj = App.categories.findModelByName(category)
+
+            # If category can't be found, default to 'The Chef'
+            if not catObj? then catObj = displayName: 'Gifts'
+
+            tile =
+                desktopHeroImage: catObj.desktopHeroImage or ""
+                mobileHeroImage: catObj.mobileHeroImage or ""
+                title: "#{catObj.displayName}"
+            
+            if @model? and @model.destroy then @model.destroy()
+            @model = new module.Tile(tile)
+            return @
+
+        loadHeroArea: ->
+            @generateHeroArea()
+            # If view is already visible, update with new category
+            if not @.isDestroyed
+                App.heroArea.show @
+
+        initialize: ->
+            if App.intentRank.currentCategory and App.categories
+                @generateHeroArea()
+            else
+                # placeholder to stop error
+                @model = new module.Tile()
+                App.vent.once('intentRankInitialized', =>
+                    @loadHeroArea()
+                )
+            @listenTo App.vent, "change:category", =>
+                @loadHeroArea()
+            return @
+

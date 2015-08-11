@@ -29,17 +29,42 @@ $slt-thumbnail-height: 111px;
          url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.woff') format('woff');
     font-weight: bold;
 }
+@font-face {
+    font-family: MrEavesModern;
+    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-BookItalic.otf') format("opentype");
+    font-weight: 600;
+    font-style: italic;
+}
+@font-face {
+    font-family: MrEavesModern;
+    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-RegItalic.otf') format("opentype");
+    font-weight: 500;
+    font-style: italic;
+}
+@font-face {
+    font-family: MrEavesModern;
+    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-ThinItalic.otf') format("opentype");
+    font-weight: 400;
+    font-style: italic;
+}
 
 @font-face {
     font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-Light.otf') format("opentype");
+    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-BoldItalic.otf') format("opentype");
+    font-weight: 700;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: MrEavesModern;
+    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-Light.otf') format("opentype");
     font-weight: 200;
     font-style: normal;
 }
 
 @font-face {
     font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/default/fonts/MrEavesModOT-LightItalic.otf') format("opentype");
+    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-LightItalic.otf') format("opentype");
     font-weight: 200;
     font-style: italic;
 }
@@ -217,13 +242,14 @@ body {
             }
         }
         .sub-categories-label {
+            font-family: $slt-sans-font;
+            font-style: italic;
+            font-size: 18px;
             color: $slt-orange-color;
             line-height: 20px;
-            padding-bottom: 8px;
-            font-style: italic;
-            font-weight: 200;
-            font-size: 18px;
+            padding: 6px 0 8px 15px;;
             text-indent: 5px;
+            text-transform: none;
         }
         &:last-child {
             .sub-categories {
@@ -393,7 +419,7 @@ body {
     font-style: italic;
     font-family: $slt-sans-font;
     font-weight: bold;
-    color: $slt-purple-color;
+    color: $slt-orange-color;
     &:after {
         content: '\25be';
         position: relative;
