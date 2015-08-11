@@ -8,6 +8,7 @@
 
 - name: "Delete Previous Rollback Codebase"
   file: state=absent force=yes path="{{application_directory}}-rollback"
+  sudo: true
   when: app_environment != 'vagrant'
 
 - name: "Create Rollback of existing codebase"
