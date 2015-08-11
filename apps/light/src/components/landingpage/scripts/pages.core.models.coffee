@@ -678,19 +678,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         generateNameModelMap: ->
             categoryFlattener = (memo, cat) ->
                 # Add category first, will be overwritten by any subcategory with same name
-                memo[cat.attributes.name] = _.extend {}, cat.attributes,
+                memo[cat.attributes.name] = _.extend({}, cat.attributes,
                     category: cat
+                )
                 subCatMemo = _.reduce(cat.attributes.subCategories, (subMemo, subcat) ->
-                        if subcat.name.charAt(0) == '|'
-                            subMemo[cat.attributes.name + subcat.name] = _.extend {}, subcat,
-                                desktopHeroImage: subcat.desktopHeroImage or cat.attributes.desktopHeroImage
-                                mobileHeroImage: subcat.mobileHeroImage or cat.attributes.mobileHeroImage
-                                subCategory: subcat.name
-                                category: cat
-                        else
-                            subMemo[subcat.name] = _.extend {}, subcat,
-                                subCategory: subcat.name
-                                category: cat
+                        # If subcat doesn't have a name attribute, just ignore it
+                        if subcat.name
+                            if subcat.name.charAt(0) == '|'
+                                subMemo[cat.attributes.name + subcat.name] = _.extend {}, subcat,
+                                    desktopHeroImage: subcat.desktopHeroImage or cat.attributes.desktopHeroImage
+                                    mobileHeroImage: subcat.mobileHeroImage or cat.attributes.mobileHeroImage
+                                    subCategory: subcat.name
+                                    category: cat
+                            else
+                                subMemo[subcat.name] = _.extend {}, subcat,
+                                    subCategory: subcat.name
+                                    category: cat
                         return subMemo
                     , {})
                 return _.extend(memo, subCatMemo)
