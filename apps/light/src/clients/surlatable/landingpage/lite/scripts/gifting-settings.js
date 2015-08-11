@@ -215,7 +215,23 @@
           "displayName":"Top Registry Gifts",
           "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1418010760/SLT%20GG%20Hero%20Images/Family.png",
           "name":"top-registry"
-        }
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Top 25",
+          "name":"top-25",
+          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayTop25GIfts_green_ruytxi.jpg",
+          "mobileHeroImage":"",
+          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431032692/top-25_ljpzqh.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"All Gifts",
+          "name":"all-gifts",
+          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1431034602/FathersDayGIftsUnder50_green_jc26jb.jpg",
+          "mobileHeroImage":"",
+          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1431033495/under-50_zstful.jpg"
+        },
       ]
     }
   ]
