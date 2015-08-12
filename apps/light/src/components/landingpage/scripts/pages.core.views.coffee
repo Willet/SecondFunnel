@@ -443,7 +443,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 App.heroArea.show(@)
 
                 @listenTo(App.vent, "windowResize", =>
-                    App.heroArea.show(@, forceShow: true)
+                    #App.heroArea.show(@, forceShow: true) # remove
+                    @.render()
                 )
                 if updateWithCategory
                     @listenTo(App.vent, "change:category", @updateCategoryHeroImages)
@@ -521,12 +522,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                 if $subCatEl.length and not $el.hasClass('expanded')
                     # First click, expand subcategories
-                    $el.addClass('expanded')
-                    $el.siblings().removeClass('expanded')
+                    $el.addClass('expanded').siblings().removeClass('expanded')
                 else
                     # First click w/ no subcategories or
                     # second click w/ categories, select category
-                    $el.removeClass('expanded')
+                    $el.removeClass('expanded').siblings().removeClass('expanded')
                     # A category without a name is just drop-down for subcategories
                     if categoryName
                         # only open again if it isn't already open

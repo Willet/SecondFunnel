@@ -276,19 +276,20 @@ body {
         overflow: hidden;
         img {
             border: none;
-            border-radius: 5px;
+            position: relative;
+            z-index: 1;
         }
         .category-name {
             position: absolute;
-            z-index: 1;
             top: 50%;
-            margin-top: -25px;
+            margin-top: -30px;
             width: 100%;
             text-align: center;
-            line-height: 55px;
-            color: #FFF;
+            line-height: 65px;
+            color: $slt-green-color;
             font-family: $slt-modern-font;
-            font-size: 55px;
+            font-style: italic;
+            font-size: 65px;
             font-weight: 300;
             .spaced {
                 letter-spacing: 0.05em;

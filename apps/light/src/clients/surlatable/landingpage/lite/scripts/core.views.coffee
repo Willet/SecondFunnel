@@ -307,7 +307,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @generateHeroArea()
             # If view is already visible, update with new category
             if not @.isDestroyed
-                App.heroArea.show @
+                @.render()
 
         initialize: ->
             if App.intentRank.currentCategory and App.categories
@@ -318,7 +318,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 App.vent.once('intentRankInitialized', =>
                     @loadHeroArea()
                 )
-            @listenTo App.vent, "change:category", =>
+            @listenTo(App.vent, "change:category", =>
                 @loadHeroArea()
+            )
             return @
 
