@@ -15,6 +15,8 @@ App.module('utils', require('./utils'));
 App.module('core', require('./core.views'));
 App.module('core', require('./core.views.tiles'));
 
+App.core.HeroAreaView = App.core.SLTHeroAreaView;
+
 // Run Application
 App.init.initialize();
 App.start();
