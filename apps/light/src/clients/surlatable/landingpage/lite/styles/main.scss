@@ -146,18 +146,17 @@ body {
         #search-bar {
             position: absolute;
             right: 23px;
-            top: 42px;
+            top: 44px;
             width: 196px;
             height: 28px;
-            color: #fff;
             border: 1px solid #829253;
             border-radius: 5px;
             cursor: pointer;
             background: $slt-main-color;
             > input {
-                border: 1px solid #fff;
+                border: none;
                 border-radius: 5px;
-                padding: 4px;
+                padding: 5px;
                 margin: 0;
                 width: 162px;
                 height: 16px;
@@ -173,6 +172,7 @@ body {
                 font-size: 26px;
                 font-weight: bold;
                 line-height: 39px;
+                color: #FFF;
                 @include no-select;
             }
         }
