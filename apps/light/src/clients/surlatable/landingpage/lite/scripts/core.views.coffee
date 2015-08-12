@@ -297,7 +297,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             tile =
                 desktopHeroImage: catObj.desktopHeroImage or ""
                 mobileHeroImage: catObj.mobileHeroImage or ""
-                title: "#{catObj.displayName}"
+                title: "#{catObj.title or catObj.displayName}"
             
             if @model? and @model.destroy then @model.destroy()
             @model = new module.Tile(tile)
