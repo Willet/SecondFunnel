@@ -246,6 +246,9 @@ body {
         .sub-categories {
             position: absolute;
             display: none;
+            left: -50%;
+            top: 98%;
+            z-index: 1;
             .wrap {
                 width: 100%;
                 border: 2px solid $slt-green-color;
@@ -286,8 +289,15 @@ body {
             text-indent: 5px;
             text-transform: none;
         }
+        &:first-child {
+            .sub-categories {
+                left: 0;
+                right: initial;
+            }
+        }
         &:last-child {
             .sub-categories {
+                left: initial;
                 right: 0;
             }
         }
