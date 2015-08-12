@@ -305,7 +305,8 @@ body {
     &.stuck {
         .category-area {
             height: auto;
-            margin-top: (-$slt-thumbnail-height);
+            /* 2px for border */
+            margin-top: (-2px - $slt-thumbnail-height);
         }
     }
 }
@@ -313,6 +314,7 @@ body {
 #hero-area {
     .jumbotron {
         position: relative;
+        text-align: center;
         height: 104px; /* 2px + 100px + 2px */
         padding: 2px;
         margin-top: 0px;
@@ -325,12 +327,8 @@ body {
             z-index: 1;
         }
         .category-name {
-            position: absolute;
-            top: 50%;
-            margin-top: -30px;
             width: 100%;
-            text-align: center;
-            line-height: 65px;
+            line-height: 104px;
             color: $slt-green-color;
             font-family: $slt-modern-font;
             font-style: italic;
@@ -987,11 +985,11 @@ body {
         position: relative;
         .visible-xs.jumbotron,
         .visible-sm.jumbotron {
-            height: auto;
+            height: 60px;
             margin-bottom: 1px;
             .category-name {
+                line-height: 60px;
                 font-size: 30px;
-                margin-top: -25px;
             }
         }
     }
