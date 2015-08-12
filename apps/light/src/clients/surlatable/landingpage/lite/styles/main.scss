@@ -143,6 +143,39 @@ body {
                 color: #6c8f01;
             }
         }
+        #search-bar {
+            position: absolute;
+            right: 23px;
+            top: 44px;
+            width: 196px;
+            height: 28px;
+            border: 1px solid #829253;
+            border-radius: 5px;
+            cursor: pointer;
+            background: $slt-main-color;
+            > input {
+                border: none;
+                border-radius: 5px;
+                padding: 5px;
+                margin: 0;
+                width: 162px;
+                height: 16px;
+                box-sizing: content-box;
+                font-family: $slt-basic-font;
+                font-size: 11px;
+                color: $slt-main-color;
+            }
+            > span {
+                position: absolute;
+                right: 6px;
+                top: -8px;
+                font-size: 26px;
+                font-weight: bold;
+                line-height: 39px;
+                color: #FFF;
+                @include no-select;
+            }
+        }
     }
 }
 
