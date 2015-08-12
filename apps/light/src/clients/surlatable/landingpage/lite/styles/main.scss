@@ -154,6 +154,10 @@ body {
             cursor: pointer;
             background: $slt-main-color;
             > input {
+                position: absolute;
+                left: 0;
+                top: 0;
+                line-height: normal;
                 border: none;
                 border-radius: 5px;
                 padding: 5px;
