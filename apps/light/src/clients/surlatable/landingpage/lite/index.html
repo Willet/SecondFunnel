@@ -460,16 +460,8 @@
         </script>
 
         <script type="text/template" id="category_template">
-            <% if (!App.support.mobile()) { %>
             <img src="<%- obj['thumbnail'] || '/static/light/surlatable/landingpage/lite/images/subcat-placeholder.png' %> " />
-            <% } %>
-            <span class="name <% if (obj.subCategories) { %>subcats<% } %>" data-name="<%- obj.name %>">
-                <% if (obj.displayName) { %>
-                    <%- obj.displayName %>
-                <% } else { %>
-                    <%- obj.name %>
-                <% } %>
-            </span>
+            <span class="name <% if (obj.subCategories) { %>subcats<% } %>" data-name="<%- obj.name %>"><%- obj.displayName %></span>
             <% if (obj.subCategories) { %>
             <div class="sub-categories">
                 <div class="wrap">
