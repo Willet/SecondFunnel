@@ -149,6 +149,7 @@ body {
             top: 44px;
             width: 196px;
             height: 28px;
+            line-height: 28px;
             border: 1px solid #829253;
             border-radius: 5px;
             cursor: pointer;
@@ -172,10 +173,9 @@ body {
             > span {
                 position: absolute;
                 right: 6px;
-                top: -8px;
+                top: -2px;
                 font-size: 26px;
                 font-weight: bold;
-                line-height: 39px;
                 color: #FFF;
                 @include no-select;
             }
