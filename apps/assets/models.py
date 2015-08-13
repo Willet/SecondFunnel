@@ -8,7 +8,7 @@ from copy import deepcopy
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
-from django.db import models
+from django.db import models, transaction
 from django_extensions.db.fields import CreationDateTimeField
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
@@ -107,6 +107,8 @@ class BaseModel(models.Model, SerializableMixin):
         :param exclude_fields - list of field names to exclude from copying
 
         :return copied instance
+
+        :raises: ValidationError
         """
         # NOTE: _meta API updated in Django 1.8, will need to re-implement
         default_exclude = ['id', 'ir_cache']
@@ -132,18 +134,15 @@ class BaseModel(models.Model, SerializableMixin):
         m2m_kwargs.update(m2m_update)
 
         new_obj = cls(**local_kwargs)
-        super(BaseModel, new_obj).save() # skip full_clean for this save
 
-        # m2m fields require instance id, so set after saving
-        for (k,v) in m2m_kwargs.iteritems():
-            setattr(new_obj, k, v.all())
+        with transaction.atomic():
+            # skip full_clean for this save which creates pk, required by m2m_fields
+            super(BaseModel, new_obj).save()
 
-        try:
-            new_obj.save() # run full_clean now that model has id & m2m relations created
-        except ValidationError:
-            new_obj.delete() # full_clean failed, cleanup
-            raise
+            for (k,v) in m2m_kwargs.iteritems():
+                setattr(new_obj, k, v.all())
 
+            new_obj.save() # run full_clean to validate
         return new_obj
 
     def update_ir_cache(self):
@@ -248,7 +247,7 @@ class BaseModel(models.Model, SerializableMixin):
                 return self.attributes.get(key, default)
         return default
 
-    def update(self, other=None, **kwargs):
+    def update_cg(self, other=None, **kwargs):
         """This is not <dict>.update().
 
         Setting attributes of non-model fields does not raise exceptions..
