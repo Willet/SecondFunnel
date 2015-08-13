@@ -9,6 +9,7 @@ $slt-green-color: #6b8e00;
 $slt-pastel-green-color: #829253;
 $slt-purple-color: #651e44;
 $slt-orange-color: #EF842C;
+$slt-categories-height: 140px;
 $slt-thumbnail-height: 111px;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
@@ -81,14 +82,9 @@ body {
     font-family: $slt-basic-font;
 }
 
-.sticky-wrapper {
-    display: block !important;
-    height: 140px !important;
-    margin: 15px 0 0 0;
-}
-
 .container {
     position: relative;
+    z-index: 1;
 }
 
 .navbar {
@@ -183,6 +179,11 @@ body {
     }
 }
 
+.sticky-wrapper {
+    margin: 15px 0 0 0;
+    height: $slt-categories-height !important;
+}
+
 #category-area {
     display: block;
     border-spacing: 2px;
@@ -192,9 +193,19 @@ body {
     overflow: visible;
     @include no-select;
     .category-area {
+        position:relative;
+        z-index: 2;
         background-color: transparent;
         display: block;
-        height: 140px;
+        height: $slt-categories-height;
+    }
+    #category-closer {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
     }
 
     .category {
@@ -969,11 +980,14 @@ body {
             }
         }
     }
+    .sticky-wrapper {
+        margin-top: 0;
+    }
     #category-area {
         z-index: 10;
-        /* overlap above clickable element with a margin to reduce fat finger clicks */
+        /* overlap above clickable element with a margin to reduce fat finger clicks
         margin: -20px 0 0;
-        padding-top: 22px;
+        padding-top: 22px;*/
         background-color: transparent;
         overflow: visible;
         .category-area {

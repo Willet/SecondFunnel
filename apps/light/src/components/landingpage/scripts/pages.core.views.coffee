@@ -523,10 +523,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if $subCatEl.length and not $el.hasClass('expanded')
                     # First click, expand subcategories
                     $el.addClass('expanded').siblings().removeClass('expanded')
+                    App.vent.trigger('categories:expanded', $el)
                 else
                     # First click w/ no subcategories or
                     # second click w/ categories, select category
                     $el.removeClass('expanded').siblings().removeClass('expanded')
+                    App.vent.trigger('categories:contracted', $el)
                     # A category without a name is just drop-down for subcategories
                     if categoryName
                         # only open again if it isn't already open
