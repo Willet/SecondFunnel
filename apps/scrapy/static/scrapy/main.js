@@ -1,16 +1,17 @@
 "use strict";
 
 var get_data = function () {
-    var csv = $('#pseudo-spreadsheet').val();
-    var lines = csv.split('\n');
-    lines = lines.filter(function(x){
+    var line, lines, url, cat, priority,
+        categories = {},
+        warning = $('.warning'),
+        delim = $('#delimiter').val(),
+        csv = $('#pseudo-spreadsheet').val();
+    
+    lines = csv.split('\n').filter(function(x) {
         return x.trim().length > 0;
     });
-    var delim = $('#delimiter').val();
-    var categories = {};
 
     // will get some text in red letters if data doesn't validate
-    var warning = $('.warning');
     warning.text('');
 
     for (var i=0; i < lines.length; i++) {
@@ -22,9 +23,9 @@ var get_data = function () {
             return false;
         }
 
-        var url = line[0].trim(),
-            cat = line[1].trim(),
-            priority = line[2].trim();
+        url = line[0].trim();
+        cat = line[1].trim();
+        priority = line[2].trim();
 
         // assemble the CSV into a js object to pass to server side handlers
         categories[cat] = categories[cat] || {urls: [], priorities: [], name: cat};
