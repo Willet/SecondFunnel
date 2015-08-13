@@ -90,6 +90,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         l.add_css('name', 'h1#product-title::text')
         l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_css('description', '#product-description div::text')
+        l.add_css('details', '#product-moreInfo-features li')
 
         # If the page doesn't have a sku, the product doesn't exist
         try:
