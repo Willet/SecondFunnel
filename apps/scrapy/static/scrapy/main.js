@@ -38,9 +38,10 @@ var get_data = function () {
 
 // callback for "run" button
 var scrape = function() {
-    var categories = get_data();
-    var create_tiles = $('#create-tiles').prop('checked');
-    var $results = $('.results').removeClass('success').removeClass('warning');
+    var cat,
+        categories = get_data(),
+        create_tiles = $('#create-tiles').prop('checked'),
+        $results = $('.results').removeClass('success').removeClass('warning');
 
     if (!categories) {
         $results.addClass("warning");
@@ -82,8 +83,9 @@ var scrape = function() {
 
 // callback for "prioritize" button
 var prioritize = function() {
-    var categories = get_data();
-    var $results = $('.results').removeClass('success').removeClass('warning');
+    var cat,
+        categories = get_data(),
+        $results = $('.results').removeClass('success').removeClass('warning');
 
     if (!categories) {
         $results.addClass("warning");
