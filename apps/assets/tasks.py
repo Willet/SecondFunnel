@@ -2,7 +2,7 @@ import json
 
 from celery import Celery
 from celery.utils.log import get_task_logger
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 
@@ -82,5 +82,5 @@ def tile_saved(sender, **kwargs):
     ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
     if updated:
         post_save.disconnect(tile_saved, sender=Tile)
-        tile.save(update_fields=['ir_cache'])
+        models.Model.save(tile, update_fields=['ir_cache']) # skip full_clean
         post_save.connect(tile_saved, sender=Tile)
