@@ -1,7 +1,7 @@
 import bleach
 
 from scrapy.contrib.loader import ItemLoader, Identity
-from scrapy.contrib.loader.processor import TakeFirst, Compose
+from scrapy.contrib.loader.processor import TakeFirst, Compose, Join
 
 from apps.scrapy.utils.misc import str_to_boolean
 from apps.scrapy.utils.processors import MergeDicts
@@ -33,9 +33,9 @@ class ScraperProductLoader(ItemLoader):
 
     name_in = Compose(TakeFirst(), unicode.strip)
 
-    description_in = Compose(TakeFirst(), sanitize_html)
+    description_in = Compose(Join(), sanitize_html)
 
-    details_in = Compose(TakeFirst(), sanitize_html)
+    details_in = Compose(Join(), sanitize_html)
 
     attributes_out = MergeDicts()
 
@@ -50,8 +50,8 @@ class ScraperContentLoader(ItemLoader):
 
     name_in = Compose(TakeFirst(), unicode.strip)
 
-    description_in = Compose(TakeFirst(), sanitize_html)
+    description_in = Compose(Join(), sanitize_html)
 
-    details_in = Compose(TakeFirst(), sanitize_html)
+    details_in = Compose(Join(), sanitize_html)
 
     attributes_out = MergeDicts()
