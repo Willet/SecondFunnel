@@ -40,4 +40,13 @@ App.start();
             $('#submit-search').click();
         }
     });
+
+    // Close categories if clicked
+    var $catCloser = $('<div/>', { id: 'category-closer' }).appendTo('#category-area');
+    $catCloser.on('click', function () {
+        $catCloser.hide();
+        $('.category.expanded').removeClass('expanded');
+    });
+    App.vent.on('categories:expanded', function () { $catCloser.show() });
+    App.vent.on('categories:contracted', function () { $catCloser.hide() });
 }());

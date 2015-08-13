@@ -186,7 +186,7 @@
   "gaAccountNumber":"UA-23764505-25",
   "column_width":341,
   "social_buttons":null,
-  "stickyCategories":"desktop-only",
+  "stickyCategories":true,
   "desktopHeroImage":"",
   "home":{
     "category":"all-gifts"

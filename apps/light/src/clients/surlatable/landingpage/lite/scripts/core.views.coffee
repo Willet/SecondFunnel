@@ -263,11 +263,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
             else if sticky == 'mobile-only' and App.support.mobile()
                 @$el.parent().waypoint('sticky',
-                    offest: '-113px' # 111px thumbnail + 1px + 1px borders
+                    offset: '-113px' # 111px thumbnail + 1px + 1px borders
                 )
         else if _.isBoolean(sticky) and sticky
             @$el.parent().waypoint('sticky',
-                offest: '-113px' # 111px thumbnail + 1px + 1px borders
+                offset: '-113px' # 111px thumbnail + 1px + 1px borders
             )
 
         return @
