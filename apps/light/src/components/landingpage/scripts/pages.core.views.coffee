@@ -526,7 +526,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if $subCatEl.length and not $el.hasClass('expanded')
                     # First click, expand subcategories
                     @parent?.expandCategory($el)
-                    App.vent.trigger('categories:expanded', $el)
                 else
                     # First click w/ no subcategories or
                     # second click w/ categories, select category
@@ -610,8 +609,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         tagName: "div"
         className: "category-area"
         childView: module.CategoryView
-        childViewOptions:
-            parent: @
+        childViewOptions: (model, index) ->
+            return parent: @
 
         initialize: (options) ->
             mobileCatArr = App.option("page:mobileCategories", [])
@@ -647,11 +646,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return @
 
         expandCategory: ($el) ->
-            @$el.find('.#{@childView.className}.expanded').removeClass('expanded')
-            $el.filter('.#{@childView.className}').addClass('expanded')
+            @$el.find(".#{@childView::className}.expanded").removeClass('expanded')
+            $el.filter(".#{@childView::className}").addClass('expanded')
+            App.vent.trigger('categories:expanded')
 
         contractCategories: () ->
-            ex = @$el.find('.#{@childView.className}.expanded')
+            ex = @$el.find(".#{@childView::className}.expanded")
             if ex.length
                 ex.removeClass('expanded')
                 App.vent.trigger('categories:contracted')
