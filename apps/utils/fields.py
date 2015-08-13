@@ -32,7 +32,7 @@ class ListField(models.TextField):
         if self.type:
             for val in value:
                 if not isinstance(val, self.type):
-                    raise ValidationError("'{}' is not of {}.".format(val, self.type))
+                    raise ValidationError("'{}' is required to be {}, but is {}.".format(val, self.type, type(val)))
 
         super(ListField, self).validate(value, model_instance)
 
