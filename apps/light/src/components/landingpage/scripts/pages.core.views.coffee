@@ -513,6 +513,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
             templateRules
 
+        initialize: (options) ->
+            @parent = options.parent
+
         events:
             'click': (event) ->
                 categoryName = @model.get("name")
@@ -522,13 +525,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                 if $subCatEl.length and not $el.hasClass('expanded')
                     # First click, expand subcategories
-                    $el.addClass('expanded').siblings().removeClass('expanded')
+                    @parent?.expandCategory($el)
                     App.vent.trigger('categories:expanded', $el)
                 else
                     # First click w/ no subcategories or
                     # second click w/ categories, select category
-                    $el.removeClass('expanded').siblings().removeClass('expanded')
-                    App.vent.trigger('categories:contracted', $el)
+                    @parent?.contractCategories()
+                    
                     # A category without a name is just drop-down for subcategories
                     if categoryName
                         # only open again if it isn't already open
@@ -549,7 +552,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $subCatEl = if $ev.hasClass('sub-category') then $ev else $ev.parent('.sub-category')
 
                 # Close categories drop-down
-                $el.removeClass('expanded')
+                @parent?.contractCategories()
 
                 # Retrieve subcategory object
                 # TODO: refactor to index by model id
@@ -575,7 +578,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                         App.router.navigate("category/#{switchCategory}",
                             trigger: true
-                            )
+                        )
                 return false # stop propogation
 
         # Apply the 'selected' class to a category or sub-category element
@@ -587,27 +590,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $el.find('.sub-category').removeClass('selected')
                 # switch to the selected category if it has changed
                 unless $el.hasClass('selected')
+                    @parent?.unselectCategories()
                     $el.addClass('selected')
-                    # remove selected from other categories
-                    $el.siblings().each ->
-                        self = $(@)
-                        self.removeClass('selected')
-                        self.find('.sub-category').removeClass('selected')
 
             else if $el.hasClass('sub-category')
-                $catEl = $el.parents('.category')
-                
                 # switch to selected sub-category
-                $el.addClass('selected')
-                $el.siblings().removeClass('selected')
-                # switch to selected category if not already
-                unless $catEl.hasClass('selected')
-                    $catEl.addClass('selected')
-                    # remove selected from other categories
-                    $catEl.siblings().each ->
-                        self = $(@)
-                        self.removeClass('selected')
-                        self.find('.sub-category').removeClass('selected')
+                @collection?.unselectCategories()
+                $el.addClass('selected').parents('.category').addClass('selected')
             return @
 
 
@@ -621,6 +610,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         tagName: "div"
         className: "category-area"
         childView: module.CategoryView
+        childViewOptions:
+            parent: @
 
         initialize: (options) ->
             mobileCatArr = App.option("page:mobileCategories", [])
@@ -654,6 +645,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         unselectCategories: ->
             @$el.find('.selected').removeClass('selected')
             return @
+
+        expandCategory: ($el) ->
+            @$el.find('.#{@childView.className}.expanded').removeClass('expanded')
+            $el.filter('.#{@childView.className}').addClass('expanded')
+
+        contractCategories: () ->
+            ex = @$el.find('.#{@childView.className}.expanded')
+            if ex.length
+                ex.removeClass('expanded')
+                App.vent.trigger('categories:contracted')
 
         onShow: ->
             # Enable sticky category bar
