@@ -423,8 +423,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else if tileId
                 @tileLoaded = $.Deferred()
                 tileLoadedResolve = =>
-                    @tileLoaded.resolve(arguments)
-                module.Tile.getTileById(tileId, tileLoadedResolve, tileLoadedResolve)
+                    @tileLoaded.resolve(arguments[0])
+                tileLoadedFailed = =>
+                    @tileLoaded.resolve()
+                module.Tile.getTileById(tileId, tileLoadedResolve, tileLoadedFailed)
             # no tile, get category from intentRank
             else
                 if App.intentRank?.currentCategory?
