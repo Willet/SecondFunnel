@@ -213,7 +213,7 @@ body {
         margin-right: 2px;
         position: relative;
         width: 14%;
-        height: 100%;
+        height: $slt-categories-height;
         font-size: 20px;
         line-height: 34px;
         color: $slt-green-color;
@@ -317,6 +317,7 @@ body {
         }
     }
     &.stuck {
+        margin-top: -113px;
         .category-area {
             height: auto;
             /* 2px for border */
@@ -991,7 +992,6 @@ body {
         /* overlap above clickable element with a margin to reduce fat finger clicks
         margin: -20px 0 0;
         padding-top: 22px;*/
-        background-color: transparent;
         overflow: visible;
         .category-area {
             background-color: #FFF;
