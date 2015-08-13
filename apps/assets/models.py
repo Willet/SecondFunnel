@@ -896,7 +896,7 @@ class Feed(BaseModel):
     is_finite = models.BooleanField(default=False)
 
     # Fields necessary to update / regenerate feed
-    source_urls = ListField(blank=True, type=str) # List of urls feed is generated from, allowed to be empty
+    source_urls = ListField(blank=True, type=unicode) # List of urls feed is generated from, allowed to be empty
     spider_name = models.CharField(max_length=64, blank=True) # Spider defines behavior to update / regenerate page, '' valid
 
     serializer = ir_serializers.FeedSerializer
@@ -1264,10 +1264,12 @@ class Tile(BaseModel):
 
     def clean(self):
         # TODO: move m2m validation into a pre-save signal (see tasks.py)
-        if self.products.exclude(store__id=self.feed.store.id).count():
-            raise ValidationError({'products': 'Products may not be from a different store'})
-        if self.content.exclude(store__id=self.feed.store.id).count():
-            raise ValidationError({'products': 'Content may not be from a different store'})
+        # If the tile has been saved before, validate its m2m relations
+        if self.pk:
+            if self.products.exclude(store__id=self.feed.store.id).count():
+                raise ValidationError({'products': 'Products may not be from a different store'})
+            if self.content.exclude(store__id=self.feed.store.id).count():
+                raise ValidationError({'products': 'Content may not be from a different store'})
 
     def deepdelete(self):
         bulk_delete_products = []
