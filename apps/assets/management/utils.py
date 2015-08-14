@@ -5,8 +5,8 @@ Intended to be run from a shell"""
 import csv
 import pprint
 
-from apps.assets.models import *
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from apps.assets.models import Category, Feed, Page, Product, Tile
+from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import transaction
 
 def set_negative_priorities(tile_id_list):
@@ -60,6 +60,47 @@ def set_default_images(tile_id_and_image_id_tuple_list):
             except (ObjectDoesNotExist, ValidationError) as e:
                 results += u"ERROR: ({}, \"{}\"): {}\n".format(i, u, e)
     print results
+
+def generate_tiles_from_urls(feed, category, urls):
+    store = feed.store
+    products = []
+    results = {
+        'doesnotexist': [],
+        'created': [],
+        'updated': [],
+        'error': [],
+    }
+
+    category = category if isinstance(category, Category) else \
+               Category.objects.get(store=store, name=category)
+
+    for url in urls:
+        try:
+            p = Product.objects.get(store=store, url=url)
+        except Product.DoesNotExist:
+            results['doesnotexist'].append(url)
+        except MultipleObjectsReturned as e:
+            results['error'].append({
+                    'exception': repr(e),
+                    'url': url,
+                })
+        else:
+            try:
+                tile, created = feed.add(p, category=category)
+            except Exception as e:
+                results['error'].append({
+                    'exception': repr(e),
+                    'url': url,
+                })
+            else:
+                if created:
+                    results['created'].append(url)
+                else:
+                    results['updated'].append(url)
+    return results
+
+
+
 
 def update_page_from_datafeed(page):
     """ Assumes in.txt is a csv product data feed (usually provided by CJ.com)

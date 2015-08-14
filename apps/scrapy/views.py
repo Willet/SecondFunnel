@@ -3,6 +3,7 @@ import urlparse
 from multiprocessing import Process
 
 from django.db.models import Count
+from django.core.exceptions import ValidationError
 from django.conf import settings as django_settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, Http404
@@ -45,12 +46,25 @@ def scrape(request, page_slug):
     """callback for running a spider"""
     page = get_object_or_404(Page, url_slug=page_slug)
     def process(request, store_slug):
-        cat = json.loads(urlparse.unquote(request.POST.get('cat')))
-        tiles = bool(request.POST.get('tiles') == 'true')
-        categories = [cat['name']] if tiles else []
-        urls = cat['urls']
         page = Page.objects.get(url_slug=request.POST.get('page'))
-
+        cat = request.POST.get('cat')
+        if not cat:
+            return HttpResponse(status=400, reason_phrase=u"Missing required data 'cat'")
+        try:
+            data = json.loads(urlparse.unquote(request.POST.get('cat')))
+        except ValueError:
+            return HttpResponse(status=400, reason_phrase=u"Data 'cat' was not valid json")
+        urls = data.get('urls')
+        if not urls:
+            return HttpResponse(status=400, reason_phrase=u"Data 'cat' is missing 'urls', the list of urls to scrape")
+        priorities = data.get('priorities', []) # Optional list of priorities
+        if priorities and len(priorities) != len(urls):
+            return HttpResponse(status=400, reason_phrase=u"Can't match priorities and urls because they are of different lengths")
+        
+        tiles = bool(request.POST.get('tiles') == 'true')
+        category_name = data.get('name') # 'category_name', '' or None
+        categories = [category_name] if tiles and category_names else []
+        
         options = {
             'skip_tiles': not tiles,
         }
@@ -58,7 +72,7 @@ def scrape(request, page_slug):
         maintainer = PageMaintainer(page)
         maintainer.add(source_urls=urls, categories=categories, options=options)
 
-        if cat['priorities'] and len(cat['priorities']) > 0:
+        if categories and priorities:
             prioritize(request, page_slug)
 
     p = Process(target=process, args=[request, page.store.slug])
