@@ -1039,7 +1039,7 @@ class Feed(BaseModel):
         }
         if category:
             update_fields['categories'] = [category]
-        new_tile = tile._copy(update_fields=update_fields)
+        new_tile = tile._copy(update_fields=update_fields) # generates ir_cache
 
         return new_tile
 
@@ -1094,6 +1094,7 @@ class Feed(BaseModel):
                                      prioritized=prioritized,
                                      priority=priority)
         new_tile.products.add(product)
+        new_tile.save() # generate ir_cache
         if category:
             category.tiles.add(new_tile)
         print "<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id)
@@ -1144,6 +1145,7 @@ class Feed(BaseModel):
         new_tile.content.add(content)
         product_qs = content.tagged_products.all()
         new_tile.products.add(*product_qs)
+        new_tile.save() # generate ir_cache
         if category:
             category.tiles.add(new_tile)
         print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)

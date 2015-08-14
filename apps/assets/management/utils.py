@@ -5,8 +5,8 @@ Intended to be run from a shell"""
 import csv
 import pprint
 
-from apps.assets.models import Category, Feed, Tile, Page
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from apps.assets.models import Category, Feed, Page, Product, Tile
+from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import transaction
 
 def set_negative_priorities(tile_id_list):
@@ -79,12 +79,17 @@ def generate_tiles_from_urls(feed, category, urls):
             p = Product.objects.get(store=store, url=url)
         except Product.DoesNotExist:
             results['doesnotexist'].append(url)
+        except MultipleObjectsReturned as e:
+            results['error'].append({
+                    'exception': repr(e),
+                    'url': url,
+                })
         else:
             try:
                 tile, created = feed.add(p, category=category)
             except Exception as e:
                 results['error'].append({
-                    'exception': e,
+                    'exception': repr(e),
                     'url': url,
                 })
             else:
