@@ -269,11 +269,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # Load up zeroth tagged product
                 @taggedProductIndex = 0
 
-            if @model.get("tagged-products") and @model.get("tagged-products").length > 1
+            if @model.get("tagged-products")?.length > 0
                 # order tagged-products by price
-                @model.set("tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
-                    -1 * parseFloat((obj.price or "$0").substr(1), 10)
-                ))
+                if @model.get("tagged-products")?.length > 1
+                    @model.set("tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
+                        -1 * parseFloat((obj.price or "$0").substr(1), 10)
+                    ))
                 @taggedProducts = (new module.Product(product) for product in @model.get('tagged-products'))
             else
                 @taggedProducts = []

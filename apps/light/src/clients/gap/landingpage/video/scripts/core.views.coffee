@@ -87,13 +87,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             numDefaultThumbnails = 1
             @$("#more-button").attr("style", "display: none;")
             table = @$(".thumbnail-table>tbody")[0]
-            thumbnailTemplate = "<td><div class='thumbnail-item' data-index='<%- i %>'>
+            thumbnailTemplate = _.template("<td><div class='thumbnail-item' data-index='<%- i %>'>
                     <div class='thumbnail-image<% if (thumbnail.youtubeId) { %> playing<% } %>' style='background-image: url(\"<%= thumbnail.url %>\");'></div>
                     <p>Episode <%= i + 1 %> <br><%= thumbnail.date %></p>
-                </div></td>"
+                </div></td>")
             if table
                 for thumbnail, i in @model.get('thumbnails') when i >= numDefaultThumbnails
-                    thumbnailElem = _.template(thumbnailTemplate, { "thumbnail" : thumbnail, "i" : i })
+                    thumbnailElem = thumbnailTemplate({ "thumbnail" : thumbnail, "i" : i })
                     table.insertRow(-1).innerHTML = thumbnailElem
             return
 
@@ -180,7 +180,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if App.support.mobile()
                     return
                 tableHeight = undefined
-                numProducts = @model.get("tagged-products").length
+                numProducts = @taggedProducts.length
                 if @model.get("template") is "image" or @model.get("template") is "gif"
                     if (@model.get("orientation") is "landscape" and numProducts > 1) or @model.get("orientation") is "portrait"
                         tableHeight = if $container.height() then $container.height() else $containedItem.height()
@@ -236,6 +236,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ExpandedContent::onShow = ->
         if App.support.mobile()
+            @lookProductIndex = -1
             if App.utils.landscape()
                 @$el.closest(".previewContainer").addClass("landscape")
             else
@@ -247,8 +248,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 allowPageScroll: 'vertical'
             )
         else
+            @lookProductIndex = 0
             @$el.closest(".fullscreen").addClass("loading-images")
-        if @model.get("tagged-products")?.length > 0
+
+        if @taggedProducts.length > 1 or App.support.mobile()
             # @stlIndex = 0
             carouselInstance = new module.CarouselView(
                 items: @model.get('tagged-products'),
@@ -263,7 +266,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
             @carouselRegion.show(carouselInstance)
             @$el.find('.look-thumbnail').hide()
-            @lookProductIndex = if App.support.mobile() then -1 else 0
             @leftArrow = @$el.find('.stl-swipe-left')
             @rightArrow = @$el.find('.stl-swipe-right')
             @upArrow = @$el.find(".stl-swipe-up")
@@ -290,7 +292,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @lookProductIndex--
                 # swipe from look image to last product
                 if @lookProductIndex < -1
-                    @lookProductIndex = @model.get('tagged-products').length - 1
+                    @lookProductIndex = @taggedProducts.length - 1
                     if App.support.mobile()
                         @carouselRegion.currentView.index = Math.min($('.stl-look').children().length - 1, @carouselRegion.currentView.index + 1)
                 # swipe from first product to look image
@@ -299,7 +301,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else if direction is 'left'
                 @lookProductIndex++
                 # swipe from last product to look image
-                if @lookProductIndex is @model.get("tagged-products")?.length
+                if @lookProductIndex is @taggedProducts.length
                     if App.support.mobile()
                         @lookProductIndex = -1
                         @carouselRegion.currentView.index = Math.max(@carouselRegion.currentView.index - 1, 0)
@@ -322,10 +324,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else
                 @carouselRegion.currentView.calculateHorizontalPosition()
         else
-            @$el.find(".stl-item").filter("[data-index=#{@lookProductIndex}]")
-                .addClass("selected").siblings().removeClass("selected")
+            if @carouselRegion.hasView()
+                @$el.find(".stl-item").filter("[data-index=#{@lookProductIndex}]")
+                    .addClass("selected").siblings().removeClass("selected")
             productInstance = new module.ProductView(
-                model: new module.Product(@model.get("tagged-products")[@lookProductIndex])
+                model: @taggedProducts[@lookProductIndex]
             )
             @productInfo.show(productInstance)
             if App.support.mobile()
