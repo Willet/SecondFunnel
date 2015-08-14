@@ -99,6 +99,8 @@ class BaseModel(models.Model, SerializableMixin):
         
         Note: related m2m fields not copied over by default! add to update_fields
         Note: Fields 'id' and 'ir_cache' are excluded by default
+        Note: m2m field values can be a list of models, a django query <QuerySet>,
+              or an existing m2m relation <RelatedManager>
         
         Warning: not tested with all related fields
 
@@ -140,7 +142,12 @@ class BaseModel(models.Model, SerializableMixin):
             super(BaseModel, new_obj).save()
 
             for (k,v) in m2m_kwargs.iteritems():
-                setattr(new_obj, k, v.all())
+                if isinstance(v,list) or isinstance(v, models.query.QuerySet):
+                    setattr(new_obj, k, v)
+                elif isinstance(v, models.fields.related.RelatedManager):
+                    setattr(new_obj, k, v.all())
+                else:
+                    raise ValidationError(u"Value '{}' can't be assigned to ManyToManyField '{}'".format(k, v))
 
             new_obj.save() # run full_clean to validate
         return new_obj
@@ -961,25 +968,29 @@ class Feed(BaseModel):
         return self.tiles.exclude(products__in_stock=False)\
             .exclude(content__tagged_products__in_stock=False)
 
-    def add(self, obj, prioritized=u"", priority=0, force_create_tile=False):
+    def add(self, obj, prioritized=u"", priority=0, category=None, force_create_tile=False):
         """ Add a <Product>, <Content> as a new tile, or copy an existing <Tile> to the feed. If the
         Product already exists as a product tile, or the Content exists as a content tile, updates
         and returns that tile
 
-        If force_create_tile is True, forces the creation of a new tile
+        prioritized: <bool or str>
+        priority: <int>
+        category: <Category> a new tile will be added to that category unless
+                             a matching tile already exists in that category
+        force_create_tile: <bool> if True, forces the creation of a new tile
 
-        :returns <Tile>, <bool> created
+        :returns (<Tile>, <bool>) created
 
         :raises ValueError"""
         if isinstance(obj, Product):
-            return self._add_product(product=obj, prioritized=prioritized,
-                                     priority=priority, force_create_tile=force_create_tile)
+            return self._add_product(product=obj, prioritized=prioritized, priority=priority,
+                                     category=category, force_create_tile=force_create_tile)
         elif isinstance(obj, Content):
-            return self._add_content(content=obj, prioritized=prioritized,
-                                     priority=priority, force_create_tile=force_create_tile)
+            return self._add_content(content=obj, prioritized=prioritized, priority=priority,
+                                     category=category, force_create_tile=force_create_tile)
         elif isinstance(obj, Tile):
             tile = self._copy_tile(tile=obj, prioritized=prioritized,
-                                     priority=priority)
+                                   priority=priority, category=category)
             return (tile, True)
         raise ValueError("add() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
@@ -1017,14 +1028,18 @@ class Feed(BaseModel):
         else:
             return Product.objects.filter(pk__in=product_pks).all()
 
-    def _copy_tile(self, tile, prioritized=None, priority=None):
+    def _copy_tile(self, tile, prioritized=None, priority=None, category=None):
         """Creates a copy of a tile to this feed
 
         :returns <Tile> copy"""
-        new_tile = tile._copy(update_fields= {'feed': self,
-                                              'prioritized': prioritized or tile.prioritized,
-                                              'priority': priority if isinstance(priority, int) else tile.priority })
-        new_tile.save()
+        update_fields = {
+            'feed': self,
+            'prioritized': prioritized if not None else tile.prioritized,
+            'priority': priority if not None else tile.priority,
+        }
+        if category:
+            update_fields['categories'] = [category]
+        new_tile = tile._copy(update_fields=update_fields)
 
         return new_tile
 
@@ -1051,7 +1066,7 @@ class Feed(BaseModel):
 
         tiles.delete()
 
-    def _add_product(self, product, prioritized=u"", priority=0, force_create_tile=False):
+    def _add_product(self, product, prioritized=u"", priority=0, category=None, force_create_tile=False):
         """Adds (if not present) a tile with this product to the feed.
 
         If force_create_tile is True, will create a new tile even an existing product tile exists
@@ -1061,7 +1076,10 @@ class Feed(BaseModel):
         """
         if not force_create_tile:
             # Check for existing tile
-            existing_tiles = self.tiles.filter(products__id=product.id, template='product')
+            query = models.Q(products__id=product.id, template='product')
+            if category:
+                query &= models.Q(categories__id=category.id)
+            existing_tiles = self.tiles.filter(query)
             if len(existing_tiles):
                 tile = existing_tiles[0]
                 tile.prioritized = prioritized
@@ -1076,12 +1094,13 @@ class Feed(BaseModel):
                                      prioritized=prioritized,
                                      priority=priority)
         new_tile.products.add(product)
-        new_tile.save()
+        if category:
+            category.tiles.add(new_tile)
         print "<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id)
 
         return (new_tile, True)
 
-    def _add_content(self, content, prioritized=u"", priority=0, force_create_tile=False):
+    def _add_content(self, content, prioritized=u"", priority=0, category=None, force_create_tile=False):
         """Adds (if not present) a tile with this content to the feed.
 
         If force_create_tile is True, will create a new tile even an existing content tile exists
@@ -1091,7 +1110,10 @@ class Feed(BaseModel):
         """
         if not force_create_tile:
             # Check for existing tile
-            existing_tiles = self.tiles.filter(content__id=content.id)
+            query = models.Q(content__id=content.id)
+            if category:
+                query &= models.Q(categories__id=category.id)
+            existing_tiles = self.tiles.filter(query)
             if len(existing_tiles):
                 # Update tile
                 # Could attempt to be smarter about choosing the most appropriate tile to update
@@ -1106,22 +1128,24 @@ class Feed(BaseModel):
                 return (tile, False)
 
         # Create new tile
-        new_tile = self.tiles.create(feed=self,
-                                     template='image',
-                                     prioritized=prioritized,
-                                     priority=priority)
-
-        # content template adjustments. should probably be somewhere else
         if isinstance(content, Video):
             if 'youtube' in content.url:
-                new_tile.template = 'youtube'
+                template = 'youtube'
             else:
-                new_tile.template = 'video'
+                template = 'video'
+        else:
+            template = 'image'
+
+        new_tile = self.tiles.create(feed=self,
+                                     template=template,
+                                     prioritized=prioritized,
+                                     priority=priority)
 
         new_tile.content.add(content)
         product_qs = content.tagged_products.all()
         new_tile.products.add(*product_qs)
-        new_tile.save()
+        if category:
+            category.tiles.add(new_tile)
         print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)
         return (new_tile, True)
 
@@ -1197,7 +1221,7 @@ class Tile(BaseModel):
     """
     def _validate_prioritized(status):
         allowed = ["", "request", "pageview", "session", "cookie", "custom"]
-        if type(status) == bool:
+        if isinstance(status, bool):
             status = "pageview" if status else ""
         if status not in allowed:
             raise ValidationError("{0} is not an allowed status; "
@@ -1290,7 +1314,7 @@ class Tile(BaseModel):
     def full_clean(self, exclude=None, validate_unique=True):
         # south turns False into string 'false', which isn't what we wanted.
         # this turns 'true' and 'false' into appropriate priority flags.
-        if type(self.prioritized) == bool:
+        if isinstance(self.prioritized, bool):
             self.prioritized = 'pageview' if self.prioritized else ''
         if self.prioritized == 'true':
             self.prioritized = 'pageview'

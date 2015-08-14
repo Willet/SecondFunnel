@@ -340,8 +340,9 @@ class TileCreationPipeline(object):
     If spider also has category(s), add tile(s) to category(s)
     """
     def __init__(self):
-        # Categories will be indexed by id
+        # Categories and feeds will be indexed by id
         self.category_cache = defaultdict(dict)
+        self.feed_cache = defaultdict(dict)
 
     def process_item(self, item, spider):
         recreate_tiles = getattr(spider, 'recreate_tiles', False)
@@ -357,16 +358,11 @@ class TileCreationPipeline(object):
             if feed_id:
                 # Create tile for each feed
                 spider.log(u"Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
-                tile, _ = self.add_to_feed(item, feed_id, recreate_tiles)
-                if categories:
-                    # Add each tile to the categories
-                    for cname in categories:
-                        spider.log(u"Adding '{}' to <Category '{}'>".format(item.get('name'), cname))
-                        self.add_to_category(tile, cname, item['store'])
-
+                tile, _ = self.add_to_feed(spider, item, feed_id, recreate_tiles, categories)
+            
             return item
 
-    def add_to_feed(self, item, feed_id, recreate_tiles=False):
+    def add_to_feed(self, spider, item, feed_id, recreate_tiles=False, categories=[]):
         try:
             feed = Feed.objects.get(id=feed_id)
         except Feed.DoesNotExist:
@@ -379,9 +375,22 @@ class TileCreationPipeline(object):
             spider.log(u"Recreating tile for <{}> {}".format(obj, item.get('name')))
             feed.remove(obj)
 
-        return feed.add(obj)
+        if not categories:
+            return feed.add(obj)
+        elif len(categories) == 1:
+            cname = categories[0]
+            cat = self.get_category(cname, store=item['store'])
+            spider.log(u"Adding '{}' to <Category '{}'>".format(item.get('name'), cname))
+            return feed.add(obj, category=cat)
+        else:
+            tile, created = feed.add(obj)
+            for cname in categories:
+                cat = self.get_category(cname, store=item['store'])
+                spider.log(u"Adding '{}' to <Category '{}'>".format(item.get('name'), cname))
+                cat.tiles.add(tile)
+            return (tile, created)
 
-    def add_to_category(self, tile, category_name, store):
+    def get_category(self, category_name, store):
         try:
             # Check cache
             cat = self.category_cache[store.slug][category_name]
@@ -392,7 +401,7 @@ class TileCreationPipeline(object):
                 cat.save()
             # Add to cache
             self.category_cache[store.slug][category_name] = cat
-        cat.tiles.add(tile)
+        return cat
 
 
 class SimilarProductsPipeline(ItemManifold):
