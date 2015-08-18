@@ -33,8 +33,10 @@
 .content {
     width: 100%;
 }
-.content .csv {
+.content .column {
     display: inline-block;
+}
+.content .csv {
     width: 55%;
     padding-right: 20px;
 }
@@ -43,23 +45,21 @@
     width: 100%;
     resize: vertical;
 }
-
-.content .options {
-    display: inline-block;
+.content .controls {
     width: calc(44% - 20px);
     vertical-align: top;
 }
 
 .options #delimiter {
     font-size: 20;
+    width: 30px;
 }
-
 .options #create-tiles {
     transform: scale(1.5);
     margin-left: 12;
 }
-
-.options #scrape, .options #prioritize {
+.options #scrape,
+.options #prioritize {
     width: 140;
     font-size: 40;
 }

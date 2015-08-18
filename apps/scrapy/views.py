@@ -45,8 +45,8 @@ def page(request, page_slug):
 def scrape(request, page_slug):
     """callback for running a spider"""
     page = get_object_or_404(Page, url_slug=page_slug)
-    def process(request, store_slug):
-        page = Page.objects.get(url_slug=request.POST.get('page'))
+    def process(request, page_id):
+        page = Page.objects.get(id=page_id)
         cat = request.POST.get('cat')
         if not cat:
             return HttpResponse(status=400, reason_phrase=u"Missing required data 'cat'")
@@ -75,7 +75,7 @@ def scrape(request, page_slug):
         if categories and priorities:
             prioritize(request, page_slug)
 
-    p = Process(target=process, args=[request, page.store.slug])
+    p = Process(target=process, args=[request, page_id])
     p.start()
     p.join()
 

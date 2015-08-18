@@ -978,6 +978,7 @@ class Feed(BaseModel):
         category: <Category> a new tile will be added to that category unless
                              a matching tile already exists in that category
         force_create_tile: <bool> if True, forces the creation of a new tile
+                             in the category & with priority (always True for Tile's)
 
         :returns (<Tile>, <bool>) created
 

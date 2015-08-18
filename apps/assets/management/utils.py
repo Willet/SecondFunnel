@@ -57,7 +57,7 @@ def set_default_images(tile_id_and_image_id_tuple_list):
                 p.default_image = pi
                 p.save()
                 results += u"{} default image set to {}\n".format(p, pi)
-            except (ObjectDoesNotExist, ValidationError) as e:
+            except (ObjectDoesNotExist, StopIteration, ValidationError) as e:
                 results += u"ERROR: ({}, \"{}\"): {}\n".format(i, u, e)
     print results
 
