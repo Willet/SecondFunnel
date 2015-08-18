@@ -6,7 +6,7 @@ from functools import wraps
 from django.views.decorators.cache import patch_cache_control
 
 
-def never_ever_cache(decorated_function):
+def never_ever_cache(fn):
     """Like Django @never_cache but sets more valid cache disabling headers.
 
     @never_cache only sets Cache-Control:max-age=0 which is not
@@ -15,9 +15,9 @@ def never_ever_cache(decorated_function):
 
     http://stackoverflow.com/questions/2095520
     """
-    @wraps(decorated_function)
+    @wraps(fn)
     def wrapper(*args, **kwargs):
-        response = decorated_function(*args, **kwargs)
+        response = fn(*args, **kwargs)
         patch_cache_control(
             response, no_cache=True, no_store=True, must_revalidate=True,
             max_age=0)
