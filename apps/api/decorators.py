@@ -1,4 +1,4 @@
-import functools
+from functools import wraps
 import json
 
 from django.http import HttpResponse, HttpResponseNotAllowed
@@ -9,7 +9,7 @@ from secondfunnel.errors import MissingRequiredKeysError, TooManyKeysError
 
 def check_login(fn):
     """wrap the function around three wrappers that check for custom login."""
-    @functools.wraps(fn)
+    @wraps(fn)
     def wrapped(*args, **kwargs):
         request = args[0]
 
@@ -31,7 +31,7 @@ def append_headers(fn):
     """Provide the function's request object with a new NEW_HEADERS
     that the proxy can use to relay.
     """
-    @functools.wraps(fn)
+    @wraps(fn)
     def wrapped(*args, **kwargs):
         request = args[0]
 
@@ -58,7 +58,7 @@ def validate_json_deserializable(fn):
     This decorator decorator targets SQS queue-processing functions that
     accept one SQS queue message.
     """
-    @functools.wraps(fn)
+    @wraps(fn)
     def wrap(*args, **kwargs):
         msg = args[0]
 
@@ -88,7 +88,7 @@ def require_keys_for_message(keys, only_those_keys=True):
     @require_keys_for_message(['a'])
     """
     def wrap(fn):
-        @functools.wraps(fn)
+        @wraps(fn)
         def wrapped_fn(dct, *args, **kwargs):
             print (dct, keys)  # dct is still a string at this point
                                # (converted to dict next line)
