@@ -330,18 +330,17 @@
         {
           "displayName":"Gift Cards",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gift-Cards_50x50.jpg",
-          "url":"http://www.surlatable.com/category/CAT-11149/",
+          "url":"http://www.anrdoezrs.net/links/7774943/type/dlg/http://www.surlatable.com/category/CAT-11149/Gift+Cards",
           "name": "gift-cards"
         },
         {
           "displayName":"Cooking Classes",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Cooking-Classes_50x50.jpg",
-          "url":"http://www.surlatable.com/category/cat2211278/",
+          "url":"http://www.anrdoezrs.net/links/7774943/type/dlg/http://www.surlatable.com/category/cat2211278/Cooking+Classes",
           "name": "cooking-classes"
         },
         {
-          "mobileHeroImage":"",
-          "desktopHeroImage":"",
+          "url": "http://www.anrdoezrs.net/links/7774943/type/dlg/http://www.surlatable.com/category/cat2550418/Top+Registry+Gifts",
           "displayName":"Top Registry Gifts",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Registry_50x50.jpg",
           "name":"top-registry"

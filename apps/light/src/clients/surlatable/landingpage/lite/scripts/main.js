@@ -25,11 +25,12 @@ App.start();
     // Send search bar inqueries to surlatable.com
     $('#submit-search').click(function(ev){
         var searchUrl,
+            baseUrl = "http://www.anrdoezrs.net/links/7774943/type/dlg/http://www.surlatable.com/search/search.jsp",
             $this = $(this),
             $inputBox = $this.siblings().first(),
             $topNavSearch = $this.parents('#search-bar');
         if ($topNavSearch.length && $inputBox.length) {
-            searchUrl = $topNavSearch.data('nonsecureurl') + "?Ntt=" + $inputBox.val();
+            searchUrl = baseUrl + "?Ntt=" + $inputBox.val();
             App.utils.openUrl(searchUrl, "_top");
         }
         return false;
