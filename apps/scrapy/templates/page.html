@@ -22,15 +22,10 @@
 <div class="column controls">
     <div class="options">
         <p>Choose delimiter: <input id="delimiter" type="text" name="delimiter" value="," /></p>
-        <p>
-            Create tiles?
-            <input id="create-tiles" type="checkbox" name="create-tiles" value="false" />
-            <br />
-            Note: Tiles will not be created if they already exist.
-            Note: Prioritization only effects existing tiles.
-        </p>
         <input id="scrape" type="button" onclick="scrape(false)" value="ADD PRODUCTS" />
-        <input id="scrape" type="button" onclick="scrape(true)" value="ADD & CREATE/UPDATE TILES" />
+        <br />
+        <input id="scrape-create" type="button" onclick="scrape(true)" value="ADD & CREATE/UPDATE TILES" />
+        <br />
         <input id="prioritize" type="button" onclick="prioritize()" value="PRIORITIZE" />
     </div>
 

@@ -63,7 +63,7 @@ def scrape(request, page_slug):
         
         tiles = bool(request.POST.get('tiles') == 'true')
         category_name = data.get('name') # 'category_name', '' or None
-        categories = [category_name] if tiles and category_names else []
+        categories = [category_name] if tiles and category_name else []
         
         options = {
             'skip_tiles': not tiles,
@@ -75,7 +75,7 @@ def scrape(request, page_slug):
         if categories and priorities:
             prioritize(request, page_slug)
 
-    p = Process(target=process, args=[request, page_id])
+    p = Process(target=process, args=[request, page.id])
     p.start()
     p.join()
 
