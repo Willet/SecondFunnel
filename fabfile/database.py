@@ -1,4 +1,5 @@
 import os
+import sys
 
 from datetime import datetime
 
@@ -7,6 +8,10 @@ from fabric.api import task, env, hide
 from fabric.contrib import django
 
 from utils import prep_bool_arg
+
+
+# If the commands are run via Fabric, it needs this
+sys.path.append('/opt/secondfunnel/app/')
 
 
 @task
