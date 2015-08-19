@@ -132,6 +132,15 @@ def ir_all(tiles, *args, **kwargs):
 
 def ir_magic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
              offset=0, feed=None, page=None, *args, **kwargs):
+    """
+    1. Tiles can be finite or infinite
+    2. Any two tiles with an identical priority value can be ordered randomly
+    3. Any two content of types that are automatically in motion (ex: gif, not youtube) 
+       must be apart from each other
+    4. product/content ratio must be customizable BUT if available products/contents 
+       count is above or beyond an "reasonable" value, then do not obey product/content ratio
+    5. In no situation will algorithm attempt to repeat its content until necessary
+    """
 
     # Getting the template types in this feed
     template_types = tiles.distinct('template').values_list('template', flat=True)
