@@ -24,7 +24,7 @@ var get_data = function () {
         }
 
         url = line[0].trim();
-        cat = line[1].trim();
+        cat = line[1].trim(); // "" is valid
         priority = line[2].trim();
 
         // assemble the CSV into a js object to pass to server side handlers
@@ -37,10 +37,9 @@ var get_data = function () {
 };
 
 // callback for "run" button
-var scrape = function() {
+var scrape = function(create_tiles) {
     var cat,
         categories = get_data(),
-        create_tiles = $('#create-tiles').prop('checked'),
         $results = $('.results').removeClass('success').removeClass('warning');
 
     if (!categories) {
@@ -51,7 +50,7 @@ var scrape = function() {
         $results.html("Scraping...");
         console.log('Scraping...');
 
-        // run each category separately (spiders only take one set of categories at a time)
+        // run each category separately
         for (cat in categories) {
             $results.html($results.html() + "\n Category: " + cat);
             console.log('Category: ' + cat);

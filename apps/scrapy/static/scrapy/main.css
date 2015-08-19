@@ -21,20 +21,23 @@
 	display: inline-block;
 }
 .page-info .page-name {
-	width: 280;
+	width: 100%;
 	font-size: 25;
 	display: inline-block;
 }
 
 .page-info .store-name {
 	color: rgb(80,80,80);
+    width: 100%;
 }
 
 .content {
     width: 100%;
 }
-.content .csv {
+.content .column {
     display: inline-block;
+}
+.content .csv {
     width: 55%;
     padding-right: 20px;
 }
@@ -43,25 +46,22 @@
     width: 100%;
     resize: vertical;
 }
-
-.content .options {
-    display: inline-block;
+.content .controls {
     width: calc(44% - 20px);
     vertical-align: top;
 }
 
 .options #delimiter {
     font-size: 20;
+    width: 30px;
 }
-
-.options #create-tiles {
-    transform: scale(1.5);
-    margin-left: 12;
-}
-
-.options #scrape, .options #prioritize {
-    width: 140;
-    font-size: 40;
+.options #scrape,
+.options #scrape-create,
+.options #prioritize {
+    width: 250px;
+    font-size: 40px;
+    margin: 10px 0;
+    text-align: left;
 }
 
 .results {

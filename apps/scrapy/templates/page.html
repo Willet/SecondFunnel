@@ -14,28 +14,24 @@
 </script>
 <script type="text/javascript" src="{% static 'scrapy/main.js' %}"></script>
 
-<div class="csv">
+<div class="column csv">
     <p>Put the contents of a CSV file here.</p>
-    <p>Format: [URL, category, priority] <span class="warning"></span></p>
+    <p>Format: URL, category, priority <span class="warning"></span></p>
     <textarea id="pseudo-spreadsheet"></textarea>
 </div>
-
-<div class="options">
-    <p>Choose delimiter: <input id="delimiter" type="text" name="delimiter" value="," /></p>
-    <p>
-        Create tiles?
-        <input id="create-tiles" type="checkbox" name="create-tiles" value="false" />
+<div class="column controls">
+    <div class="options">
+        <p>Choose delimiter: <input id="delimiter" type="text" name="delimiter" value="," /></p>
+        <input id="scrape" type="button" onclick="scrape(false)" value="ADD PRODUCTS" />
         <br />
-        Note: Tiles will not be created if they already exist.
-        Note: Prioritization only effects existing tiles.
-    </p>
-    <input id="scrape" type="button" onclick="scrape()" value="SCRAPE" />
-    <input id="prioritize" type="button" onclick="prioritize()" value="PRIORITIZE" />
-</div>
+        <input id="scrape-create" type="button" onclick="scrape(true)" value="ADD & CREATE/UPDATE TILES" />
+        <br />
+        <input id="prioritize" type="button" onclick="prioritize()" value="PRIORITIZE" />
+    </div>
 
-<div class="message">
-    <h3>RESULTS:</h3>
-    <div class="results">Ready to scrape!</div>
+    <div class="message">
+        <h3>RESULTS:</h3>
+        <div class="results">Ready to scrape!</div>
+    </div>
 </div>
-
 {% endblock %}

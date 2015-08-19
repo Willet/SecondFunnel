@@ -40,11 +40,13 @@ def set_priorities(tile_id_and_priority_tuple_list):
                 t.save()
                 results += u"{} priority set to {}\n".format(t, t.priority)
             except (ObjectDoesNotExist, ValidationError) as e:
-                results += u"ERROR: {}: {}\n".format(i, e)
+                results += u"ERROR: {}: {}\n".format(i, repr(e))
     print results
 
 def set_default_images(tile_id_and_image_id_tuple_list):
     """Set the default image for each tile based on some unique str component in the url
+
+    Note: a side effect is that all tiles with this product will be updated as well
 
     ex: tile_id_and_image_id_tuple_list= [(123, 'abc234'), (234, 'def567'), ...]"""
     results = u""
@@ -57,8 +59,8 @@ def set_default_images(tile_id_and_image_id_tuple_list):
                 p.default_image = pi
                 p.save()
                 results += u"{} default image set to {}\n".format(p, pi)
-            except (ObjectDoesNotExist, ValidationError) as e:
-                results += u"ERROR: ({}, \"{}\"): {}\n".format(i, u, e)
+            except (ObjectDoesNotExist, StopIteration, ValidationError) as e:
+                results += u"ERROR: ({}, \"{}\"): {}\n".format(i, u, repr(e))
     print results
 
 def generate_tiles_from_urls(feed, category, urls):
