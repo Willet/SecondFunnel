@@ -696,5 +696,5 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return true
             catch err
                 if App.option 'debug', false
-                    console.error("Could not select category '#{category}' because:\n#{err.message}")
+                    console.warn("Could not select category '#{category}' because:\n#{err.message}")
             return false

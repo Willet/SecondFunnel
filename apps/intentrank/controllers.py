@@ -123,8 +123,8 @@ class IntentRank(object):
         try:
             base_category = Category.objects.get(store=store, name=category_names[0])
         except Category.DoesNotExist:
-            # Category doesn't exist - return results
-            tiles = Tile.objects.none()
+            # This text is hardcoded by API consumers, so be careful about changing it
+            raise Category.DoesNotExist("Category '{0}' does not exist for Store '{1}'".format(category_names[0], store.name))
         else:
             tiles = feed.tiles.filter(categories__id=base_category.id)
 
@@ -134,7 +134,7 @@ class IntentRank(object):
                     filter_category = Category.objects.get(store=store, name=name)
                 except Category.DoesNotExist:
                     # This text is hardcoded by API consumers, so be careful about changing it
-                    raise Category.DoesNotExist("Category with name '{0}' does not exist for Store '{1}'".format(name, store.name))
+                    raise Category.DoesNotExist("Category '{0}' does not exist for Store '{1}'".format(name, store.name))
                 tiles = tiles.filter(categories__id=filter_category.id)
 
             # Apply IR ordering to applicable tiles
