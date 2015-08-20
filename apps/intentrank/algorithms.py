@@ -146,14 +146,15 @@ def ir_magic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     template_types = tiles.distinct('template').values_list('template', flat=True)
 
     # Make sure we do not have any duplicates
-    tiles = tiles.distinct('id', 'priority')
+    all_tiles = tiles.distinct('id', 'priority')
 
-    total_tiles = tiles.count()
+    total_tiles = all_tiles.count()
     if total_tiles == 0:
-        return tiles
+        return all_tiles
 
     # This feed is finite and has returned all of the tiles
-    if feed and feed.is_finite and offset >= total_tiles and not (page and page.theme_settings.get('override_finite_feed', False)):
+    if feed and feed.is_finite and offset >= total_tiles \
+        and not (page and page.theme_settings.get('override_finite_feed', False)):
         return qs_for([])
 
     # Wrapping results
@@ -164,13 +165,13 @@ def ir_magic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     while offset >= total_tiles:
         offset -= overflow + total_tiles
 
-    templated_tiles = {}
+    template_indexed_containers = {}
 
     for template_type in template_types:
-        tile_list = list(tiles.filter(template=template_type).order_by('-priority'))
+        tile_list = list(all_tiles.filter(template=template_type).order_by('-priority'))
         total = len(tile_list)
 
-        templated_tiles[template_type] = {
+        template_indexed_containers[template_type] = {
             'tiles': tile_list,
             'total': total,
             'ratio': total / float(total_tiles),
@@ -180,34 +181,50 @@ def ir_magic(tiles, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     result_tiles = []
 
     def get_next_tile():
+        """
+        Strategy is to get the 1st tile from each template list & get the ones with the highest
+        priority. Choose the one of the highest priorities with the worst ratio in the feed.
+        """
+
+        # TODO refactor as iterator
         tile_list = []
-        highest_priority = 0
         worst_ratio = 2
+        highest_priority = None
+        candidates = None
 
-        # Pick the tile(s) with the highest priority
-        for _, templated_tile in templated_tiles.iteritems():
-            if templated_tile['added'] < templated_tile['total']:
-                tile_candidate = templated_tile['tiles'][templated_tile['added']]
+        # Of the various available templates, pick the tile(s) with the highest priority
+        for template, tiles_container in template_indexed_containers.iteritems():
+            next_index = tiles_container['added']
+            if next_index < tiles_container['total']:
+                tile_candidate = tiles_container['tiles'][next_index]
 
-                if tile_candidate.priority > highest_priority:
-                    tile_list = [tile_candidate]
+                if not candidates:
+                    candidates = [tile_candidate]
+                    highest_priority = tile_candidate.priority
+                elif tile_candidate.priority > highest_priority:
+                    candidates = [tile_candidate]
                     highest_priority = tile_candidate.priority
                 elif tile_candidate.priority == highest_priority:
-                    tile_list.append(tile_candidate)
+                    candidates.append(tile_candidate)
 
-        # Pick the tile that will have the worst (current) ratio
-        for tile_candidate in tile_list:
-            templated_tile = templated_tiles[tile_candidate.template]
-            ratio = templated_tile['added'] / float(total_tiles)
-            ratio /= templated_tile['ratio']
-            if ratio < worst_ratio:
-                worst_ratio = ratio
-                tile = tile_candidate
+        if len(candidates) > 1:
+            # Pick the template of tile that currently has the worst ratio relative
+            # to other tile templates in the feed
+            for candidate in candidates:
+                tiles_container = template_indexed_containers[candidate.template]
+                ratio = tiles_container['added'] / float(total_tiles)
+                ratio /= tiles_container['ratio']
+                if ratio < worst_ratio:
+                    worst_ratio = ratio
+                    tile = candidate
+        else:
+            tile = candidates[0]
 
-        templated_tiles[tile.template]['added'] += 1
+        print "tile_list: {}".format(tile_list)
+        template_indexed_containers[tile.template]['added'] += 1
 
         return tile
-
+        
     while len(result_tiles) < results + offset and len(result_tiles) < total_tiles:
         result_tiles.append(get_next_tile())
 
