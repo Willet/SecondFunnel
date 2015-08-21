@@ -33,11 +33,12 @@ def track_tile_view(request, tile_id):
     if not isinstance(tile_id, int):
         tile_id = int(tile_id)
 
-    if not request.session.get('shown', []):
+    if not request.session.get('shown', None):
         request.session['shown'] = []
 
     request.session['shown'].append(tile_id)
-    request.session['shown'] = list(set(request.session['shown']))  # uniq
+    # sets are not JSON serializable, so order and convert to set
+    request.session['shown'] = list(set(request.session['shown']))
 
 
 def track_tiles_view(request, tile_ids):
@@ -87,7 +88,7 @@ def get_results_view(request, page_id):
     callback = request.GET.get('callback', None)
     category = request.GET.get('category', None)
     offset = int(request.GET.get('offset', 0))  # used only by some deterministic algos
-    results = int(request.GET.get('results', 10))
+    num_results = int(request.GET.get('results', 10))
     shown = filter(bool, re.split('(?:,|%2C)', request.GET.get('shown', "")))
     tile_id = request.GET.get('tile-id', 0)  # for related
     session_reset = True if request.GET.get('session-reset', "").lower() == "true" else False
@@ -115,7 +116,7 @@ def get_results_view(request, page_id):
     # results is a queryset!
     try:
         results = ir.get_results(
-            results=results,
+            results=num_results,
             request=request, exclude_set=exclude_set, category_name=category,
             offset=offset, tile_id=tile_id, content_only=content_only,
             products_only=products_only)
@@ -126,7 +127,7 @@ def get_results_view(request, page_id):
     results = results.values_list('ir_cache', flat=True)
 
     # makes sure they are all non-falsy tiles
-    results = [r for r in results if r]
+    results = filter(bool, results)
     print 'returning {0} tiles'.format(len(results))
 
     # manually construct a json array
