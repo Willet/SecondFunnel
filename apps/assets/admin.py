@@ -75,7 +75,7 @@ class PageAdmin(BaseAdmin):
 
 
 class TileAdmin(BaseAdmin):
-    list_display = ['feed', 'template', 'prioritized'] + BaseAdmin.list_display
+    list_display = ['feed', 'template'] + BaseAdmin.list_display
     search_fields = ('id', 'template')
     list_filter = ('feed',)
     filter_horizontal = ('products', 'content',)

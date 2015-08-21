@@ -439,9 +439,6 @@ class TileSerializer(IRSerializer):
         if hasattr(tile, 'template'):
             data['template'] = tile.template
 
-        if hasattr(tile, 'prioritized'):
-            data['prioritized'] = tile.prioritized
-
         if hasattr(tile, 'priority'):
             data['priority'] = tile.priority
 
