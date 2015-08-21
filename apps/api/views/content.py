@@ -323,17 +323,16 @@ class StoreContentUndecideItemCGHandler(StoreContentStateItemCGHandler):
 
 class StorePageContentPrioritizeItemCGHandler(StorePageContentItemCGHandler):
     def post(self, request, *args, **kwargs):
-
+        """ DEPRECATED """
         feed = self.page.feed
         tiles_with_this_content = feed.find_tiles(content=self.content)
         if len(tiles_with_this_content):  # tile is already in the feed
             for tile in tiles_with_this_content:
                 print "prioritized tile {0} for content {1}".format(
                     tile.id, self.content.id)
-                tile.prioritized = "pageview"
                 tile.save()
         else:  # tile not in the feed, create a prioritized tile
-            self.page.add(obj=self.content, prioritized='pageview')
+            self.page.add(obj=self.content)
 
         return ajax_jsonp(self.content.to_cg_json())
 
@@ -347,13 +346,12 @@ class StorePageContentDeprioritizeItemCGHandler(StorePageContentItemCGHandler):
     and deprioritises it.
     """
     def post(self, request, *args, **kwargs):
-
+        """ DEPRECATED """
         feed = self.page.feed
         tiles_with_this_content = feed.find_tiles(content=self.content)
         for tile in tiles_with_this_content:
             print "deprioritized tile {0} for content {1}".format(
                 tile.id, self.content.id)
-            tile.prioritized = ""
             tile.save()
 
         return ajax_jsonp(self.content.to_cg_json())

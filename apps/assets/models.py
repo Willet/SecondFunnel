@@ -515,7 +515,6 @@ class Content(BaseModel):
     _attribute_map = BaseModel._attribute_map + (
         # (cg attribute name, python attribute name)
         ('tagged-products', 'tagged_products'),
-        ('page-prioritized', 'deprecated_attribute?'),
     )
 
     serializer = ir_serializers.ContentSerializer
@@ -873,11 +872,10 @@ class Page(BaseModel):
                 return name
         return increment_name(self.name)
 
-    def add(self, obj, prioritized=False, priority=0):
+    def add(self, obj, priority=0):
         """Alias for Page.feed.add
         """
-        return self.feed.add(obj=obj, prioritized=prioritized,
-                             priority=priority)
+        return self.feed.add(obj=obj, priority=priority)
 
     def remove(self, obj):
         """Alias for Page.feed.remove
@@ -968,12 +966,11 @@ class Feed(BaseModel):
         return self.tiles.exclude(products__in_stock=False)\
             .exclude(content__tagged_products__in_stock=False)
 
-    def add(self, obj, prioritized=u"", priority=0, category=None, force_create_tile=False):
+    def add(self, obj, priority=0, category=None, force_create_tile=False):
         """ Add a <Product>, <Content> as a new tile, or copy an existing <Tile> to the feed. If the
         Product already exists as a product tile, or the Content exists as a content tile, updates
         and returns that tile
 
-        prioritized: <bool or str>
         priority: <int>
         category: <Category> a new tile will be added to that category unless
                              a matching tile already exists in that category
@@ -984,14 +981,13 @@ class Feed(BaseModel):
 
         :raises ValueError"""
         if isinstance(obj, Product):
-            return self._add_product(product=obj, prioritized=prioritized, priority=priority,
-                                     category=category, force_create_tile=force_create_tile)
+            return self._add_product(product=obj, priority=priority, category=category,
+                                     force_create_tile=force_create_tile)
         elif isinstance(obj, Content):
-            return self._add_content(content=obj, prioritized=prioritized, priority=priority,
-                                     category=category, force_create_tile=force_create_tile)
+            return self._add_content(content=obj, priority=priority, category=category,
+                                     force_create_tile=force_create_tile)
         elif isinstance(obj, Tile):
-            tile = self._copy_tile(tile=obj, prioritized=prioritized,
-                                   priority=priority, category=category)
+            tile = self._copy_tile(tile=obj, priority=priority, category=category)
             return (tile, True)
         raise ValueError("add() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
@@ -1029,13 +1025,12 @@ class Feed(BaseModel):
         else:
             return Product.objects.filter(pk__in=product_pks).all()
 
-    def _copy_tile(self, tile, prioritized=None, priority=None, category=None):
+    def _copy_tile(self, tile, priority=None, category=None):
         """Creates a copy of a tile to this feed
 
         :returns <Tile> copy"""
         update_fields = {
             'feed': self,
-            'prioritized': prioritized if not None else tile.prioritized,
             'priority': priority if not None else tile.priority,
         }
         if category:
@@ -1067,7 +1062,7 @@ class Feed(BaseModel):
 
         tiles.delete()
 
-    def _add_product(self, product, prioritized=u"", priority=0, category=None, force_create_tile=False):
+    def _add_product(self, product, priority=0, category=None, force_create_tile=False):
         """Adds (if not present) a tile with this product to the feed.
 
         If force_create_tile is True, will create a new tile even an existing product tile exists
@@ -1083,7 +1078,6 @@ class Feed(BaseModel):
             existing_tiles = self.tiles.filter(query)
             if len(existing_tiles):
                 tile = existing_tiles[0]
-                tile.prioritized = prioritized
                 tile.priority = priority
                 tile.save() # Update IR Cache
                 print "<Product {0}> already in the feed. Updated <Tile {1}>.".format(product.id, tile.id)
@@ -1092,7 +1086,6 @@ class Feed(BaseModel):
         # Create new tile
         new_tile = self.tiles.create(feed=self,
                                      template='product',
-                                     prioritized=prioritized,
                                      priority=priority)
         new_tile.products.add(product)
         new_tile.save() # generate ir_cache
@@ -1102,7 +1095,7 @@ class Feed(BaseModel):
 
         return (new_tile, True)
 
-    def _add_content(self, content, prioritized=u"", priority=0, category=None, force_create_tile=False):
+    def _add_content(self, content, priority=0, category=None, force_create_tile=False):
         """Adds (if not present) a tile with this content to the feed.
 
         If force_create_tile is True, will create a new tile even an existing content tile exists
@@ -1121,7 +1114,6 @@ class Feed(BaseModel):
                 # Could attempt to be smarter about choosing the most appropriate tile to update
                 # It would have just the 1 piece of content
                 tile = existing_tiles[0]
-                tile.prioritized = prioritized
                 tile.priority = priority
                 product_qs = content.tagged_products.all()
                 tile.products.add(*product_qs)
@@ -1140,7 +1132,6 @@ class Feed(BaseModel):
 
         new_tile = self.tiles.create(feed=self,
                                      template=template,
-                                     prioritized=prioritized,
                                      priority=priority)
 
         new_tile.content.add(content)
@@ -1222,15 +1213,6 @@ class Tile(BaseModel):
 
     Feed -> Tile -> Products / Content
     """
-    def _validate_prioritized(status):
-        allowed = ["", "request", "pageview", "session", "cookie", "custom"]
-        if isinstance(status, bool):
-            status = "pageview" if status else ""
-        if status not in allowed:
-            raise ValidationError("{0} is not an allowed status; "
-                                  "choices are {1}".format(status, allowed))
-        return status
-
     # <Feed>.tiles.all() gives you... all its tiles
     feed = models.ForeignKey(Feed, related_name='tiles', on_delete=models.CASCADE)
 
@@ -1244,18 +1226,6 @@ class Tile(BaseModel):
     content = models.ManyToManyField(Content, blank=True, null=True,
                                      related_name='tiles')
     # categories = <RelatedManager> Category (many-to-one relationship)
-
-    # '': not prioritized.
-    # 'request': prioritized for every IR request made by the client.
-    # 'pageview': prioritized for every page view made by the client. (implemented in some algorithms, see docs)
-    # 'session': prioritized for the beginning of each session.
-    # 'cookie': prioritized if the tile cookie does not exist. (not implemented)
-    # 'custom': run the tile's priority function that returns an int.
-    #           the tile will be as prioritized within the feed as the size
-    #           of that int. (not implemented)
-    prioritized = models.CharField(
-        max_length=255, default="", blank=True,
-        null=True, validators=[_validate_prioritized])
 
     # Tiles are sorted using this attribute
     #   - negative values are allowed.
@@ -1313,14 +1283,6 @@ class Tile(BaseModel):
         self.delete()
 
     def full_clean(self, exclude=None, validate_unique=True):
-        # south turns False into string 'false', which isn't what we wanted.
-        # this turns 'true' and 'false' into appropriate priority flags.
-        if isinstance(self.prioritized, bool):
-            self.prioritized = 'pageview' if self.prioritized else ''
-        if self.prioritized == 'true':
-            self.prioritized = 'pageview'
-        if self.prioritized in [0, '0', 'false']:
-            self.prioritized = ''
         return super(Tile, self).full_clean(exclude=exclude,
                                             validate_unique=validate_unique)
 

@@ -213,7 +213,6 @@ class VideoSerializer(ContentSerializer):
             "source": getattr(obj, 'source', 'youtube'),
             "is-content": "true",
             "source-url": obj.source_url,
-            "page-prioritized": "false",  # TODO: ?
         })
 
         if hasattr(obj, 'attributes'):
@@ -267,7 +266,6 @@ class TileSerializer(RawSerializer):
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
             "json": json.dumps(obj.to_json()),
-            "prioritized": "true" if obj.prioritized else "false",
         }
 
         try:
@@ -301,8 +299,6 @@ class TileConfigSerializer(RawSerializer):
             "is-content": "false" if obj.template == 'product' else "true",
             "last-modified": obj.cg_updated_at,
             "created": obj.cg_created_at,
-            # backwards compat means any len(string)>0 counts as prioritized from before
-            "prioritized": "true" if obj.prioritized else "false",
         }
 
         try:

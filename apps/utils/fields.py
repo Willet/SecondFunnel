@@ -1,6 +1,8 @@
+import ast
+
 from django.core.exceptions import ValidationError
 from django.db import models
-import ast
+from south.modelsinspector import add_introspection_rules
 
 
 class ListField(models.TextField):
@@ -11,6 +13,7 @@ class ListField(models.TextField):
     """
     __metaclass__ = models.SubfieldBase
     description = "Stores a python list consisting of built-in types"
+    add_introspection_rules([], ["^apps\.utils\.fields\.ListField"])
 
     def __init__(self, *args, **kwargs):
         self.type = kwargs.pop('type') if kwargs.get('type') else None
