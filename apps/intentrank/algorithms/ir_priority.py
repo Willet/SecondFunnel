@@ -1,11 +1,12 @@
 from itertools import chain
 
-from .utils import filter_tiles, qs_for
+from django.conf import settings
+
+from .utils import qs_for
 
 
-@filter_tiles
 def ir_priority(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-             offset=0, feed=None, page=None, *args, **kwargs):
+                offset=0, feed=None, page=None, *args, **kwargs):
     """
     Produce results based purely on priority.  Useful for homogenous feeds
 
@@ -14,7 +15,7 @@ def ir_priority(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     3. Tiles will not be repeated until they are exhausted
     """
     # Make sure we do not have any duplicates
-    ordered_tiles = tiles.distinct('id').order_by('-priority')
+    ordered_tiles = tiles.distinct('id','priority').order_by('-priority')
 
     num_tiles = ordered_tiles.count()
     if num_tiles == 0:

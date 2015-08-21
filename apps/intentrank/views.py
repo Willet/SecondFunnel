@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import F as Fucking
 from django.http import HttpResponse
@@ -6,7 +8,6 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
-import re
 
 from apps.assets.models import Category, Page, Store, Tile
 from apps.intentrank.controllers import IntentRank
@@ -33,19 +34,24 @@ def track_tile_view(request, tile_id):
     if not isinstance(tile_id, int):
         tile_id = int(tile_id)
 
-    if not request.session.get('shown', None):
-        request.session['shown'] = []
+    shown = set(request.session.get('shown', []))
+    shown.add(tile_id)
 
-    request.session['shown'].append(tile_id)
-    # sets are not JSON serializable, so order and convert to set
-    request.session['shown'] = list(set(request.session['shown']))
+    # sets are not JSON serializable, convert to list
+    request.session['shown'] = list(shown)
 
 
-def track_tiles_view(request, tile_ids):
+def track_tiles_view(request, tile_ids, reset=False):
     """Shorthand"""
-    limit_showns(request)  # limit is controlled by TRACK_SHOWN_TILES_NUM
+    if reset:
+        print "IR tracked tiles reset"
+        request.session['shown'] = []
+    else:
+        limit_showns(request)  # limit is controlled by TRACK_SHOWN_TILES_NUM
+
     for tile_id in tile_ids:
         track_tile_view(request=request, tile_id=tile_id)
+
     return request.session.get('shown', [])
 
 
@@ -55,17 +61,11 @@ def limit_showns(request, n=TRACK_SHOWN_TILES_NUM):
     """
     # ordered algos keep track of full list for zero repeats
     # for some algo families, reloading the page should reset the list of shown tiles
-    req_num = request.GET.get('reqNum', 0)
-    algorithm_name = request.GET.get('algorithm', 'generic').lower()
-
-    if algorithm_name in ['sorted', 'custom']:
-        # prevent these from ever resetting
+    algorithm_name = request.GET.get('algorithm', 'magic').lower()
+    
+    if algorithm_name in ['magic']:
+        # keep a running list of tiles
         pass
-    elif algorithm_name in ['generic', 'ordered', 'content_first', 'mixed'] or \
-            'finite' in algorithm_name:
-        # reset these every pageload
-        if int(req_num) == 0:
-            request.session['shown'] = []
     else:
         # default: remember last 20
         request.session['shown'] = request.session.get('shown', [])[-n:]
@@ -95,21 +95,17 @@ def get_results_view(request, page_id):
     content_only = (request.GET.get('tile-set', '') == 'content')
     products_only = (request.GET.get('tile-set', '') == 'products')
 
-    if session_reset:
-        offset = 0  # For deterministic algorithms, we have to reset the offset
-        print "intentrank session was cleared"
-
     # keep track of the last (unique) tiles have been shown, then
     # show everything except these tile ids
-    shown = track_tiles_view(request, tile_ids=shown)
-    exclude_set = [int(x) for x in shown]
+    shown_ids = track_tiles_view(request, tile_ids=shown, reset=session_reset)
+    offset -= len(shown_ids) # correct for tiles we are removing from queryset
 
     page = get_object_or_404(Page, id=page_id)
 
     ir = IntentRank(page=page)
     ir.algorithm = algorithm_name
-
     algorithm = ir.algorithm
+
     print 'request for [page {}, feed {}] being handled by {}'.format(
         page.id, page.feed.id, algorithm.__name__)
 
@@ -117,7 +113,7 @@ def get_results_view(request, page_id):
     try:
         results = ir.get_results(
             results=num_results,
-            request=request, exclude_set=exclude_set, category_name=category,
+            request=request, exclude_set=shown_ids, category_name=category,
             offset=offset, tile_id=tile_id, content_only=content_only,
             products_only=products_only)
     except Category.DoesNotExist as e:

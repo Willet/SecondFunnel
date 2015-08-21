@@ -13,7 +13,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             'remove': false,
             'categories': {},
             'IRResultsCount': 10,
-            'IRAlgo': 'generic',
+            'IRAlgo': 'magic',
             'IRTileSet': '',
             'IRReqNum': 0,
             'store': {},
@@ -95,18 +95,20 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             data = {},
             opts;
 
+        if (module.options.IRReset) {
+            data['session-reset'] = true;
+            module.options.IRReset = false;
+            resultsAlreadyRequested = [];
+        }
+
         if (resultsAlreadyRequested.length) {
             data.shown = resultsAlreadyRequested.sort().join(',');
         }
+
         data.algorithm = module.options.IRAlgo;
         data.reqNum = module.options.IRReqNum;
         data.offset = collection.offset || 0;
         data['tile-set'] = module._IRTileSet || module.options.IRTileSet;
-
-        if (module.options.IRReset) {
-            data['session-reset'] = true;
-            module.options.IRReset = false;
-        }
 
         // normally undefined, unless a category is selected on the page
         data.category = module._category || module.options.category || undefined;
