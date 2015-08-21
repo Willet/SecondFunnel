@@ -6,7 +6,7 @@ from django.db.models import Count
 from django.core.exceptions import ValidationError
 from django.conf import settings as django_settings
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 from twisted.internet import reactor
@@ -49,17 +49,17 @@ def scrape(request, page_slug):
         page = Page.objects.get(id=page_id)
         cat = request.POST.get('cat')
         if not cat:
-            return HttpResponse(status=400, reason_phrase=u"Missing required data 'cat'")
+            return HttpResponseBadRequest(u"Missing required data 'cat'")
         try:
             data = json.loads(urlparse.unquote(request.POST.get('cat')))
         except ValueError:
-            return HttpResponse(status=400, reason_phrase=u"Data 'cat' was not valid json")
+            return HttpResponseBadRequest(u"Data 'cat' was not valid json")
         urls = data.get('urls')
         if not urls:
-            return HttpResponse(status=400, reason_phrase=u"Data 'cat' is missing 'urls', the list of urls to scrape")
+            return HttpResponseBadRequest(u"Data 'cat' is missing 'urls', the list of urls to scrape")
         priorities = data.get('priorities', []) # Optional list of priorities
         if priorities and len(priorities) != len(urls):
-            return HttpResponse(status=400, reason_phrase=u"Can't match priorities and urls because they are of different lengths")
+            return HttpResponseBadRequest(u"Can't match priorities and urls because they are of different lengths")
         
         tiles = bool(request.POST.get('tiles') == 'true')
         category_name = data.get('name') # 'category_name', '' or None
