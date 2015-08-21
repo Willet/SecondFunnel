@@ -26,8 +26,8 @@ def filter_tiles(fn):
     def wrapped_fn(*args, **kwargs):
         tiles = kwargs.get('tiles')
         feed = kwargs.get('feed')
-        allowed_set = kwargs.get('allowed_set')
-        exclude_set = kwargs.get('exclude_set')
+        allowed_set = kwargs.get('allowed_set', None)
+        exclude_set = kwargs.get('exclude_set', None)
         num_results = kwargs.get('num_results', 10)
         content_only = kwargs.get('content_only', False)
         products_only = kwargs.get('products_only', False)

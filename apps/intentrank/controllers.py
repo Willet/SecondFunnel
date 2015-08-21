@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core import serializers
 
 from apps.assets.models import Category, Content, Tile
-from apps.intentrank.algorithms import ir_magic
+from apps.intentrank.algorithms import ir_filter, ir_magic
 
 
 class IntentRank(object):
@@ -141,6 +141,9 @@ class IntentRank(object):
             if not tiles:
                 return Tile.objects.none()
             else:
+                tiles = ir_filter(feed=feed, tiles=tiles, products_only=products_only,
+                                  content_only=content_only)
+
                 return algorithm(tiles=tiles, num_results=results, exclude_set=exclude_set, request=request,
                                  offset=offset, tile_id=tile_id, feed=feed, page=self._page,
                                  products_only=products_only, content_only=content_only)

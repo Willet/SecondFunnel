@@ -3,10 +3,10 @@ from itertools import islice
 
 from django.conf import settings
 
-from .utils import filter_tiles, qs_for
+from .ir_priority import ir_priority
+from .utils import qs_for
 
 
-@filter_tiles
 def ir_magic(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
              offset=0, feed=None, page=None, *args, **kwargs):
     """
@@ -20,8 +20,12 @@ def ir_magic(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
        count is above or beyond an "reasonable" value, then do not obey product/content ratio
     5. In no situation will algorithm attempt to repeat its content until necessary
     """
+    if kwargs.get('products_only'):
+        return ir_priority(tiles, num_results=num_results, offset=offset, feed=feed,
+                           page=page, *args, **kwargs)
+
     # Make sure we do not have any duplicates
-    all_tiles = tiles.distinct('id')
+    all_tiles = tiles.distinct('id', 'priority')
 
     total_tiles = all_tiles.count()
     if total_tiles == 0:

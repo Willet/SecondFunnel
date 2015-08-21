@@ -106,7 +106,7 @@ def get_algorithm(algorithm=None, request=None, page=None, feed=None):
     - if request specifies one
     - if page settings specify one
     - if feed has one
-    - 'generic'
+    - 'magic'
 
     :returns str
     """
@@ -114,7 +114,7 @@ def get_algorithm(algorithm=None, request=None, page=None, feed=None):
         return algorithm
 
     if request and request.GET.get('algorithm'):
-        return request.GET.get('algorithm', 'generic')
+        return request.GET.get('algorithm', 'magic')
 
     if page and page.theme_settings.get('feed_algorithm'):
         return page.theme_settings.get('feed_algorithm')
@@ -125,4 +125,4 @@ def get_algorithm(algorithm=None, request=None, page=None, feed=None):
     if feed and feed.feed_algorithm:
         return feed.feed_algorithm
 
-    return 'generic'
+    return 'magic'

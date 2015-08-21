@@ -1257,11 +1257,9 @@ class Tile(BaseModel):
         max_length=255, default="", blank=True,
         null=True, validators=[_validate_prioritized])
 
-    # if the feed's algorithm is 'generic', then priority is not used.
-    # if the feed's algorithm is 'ordered', then prioritized tiles will be
-    # sorted using this attribute instead of the tile's created date.
-    #   negative values are allowed.
-    #   identical values are shuffled.
+    # Tiles are sorted using this attribute
+    #   - negative values are allowed.
+    #   - identical values are randomly ordered.
     priority = models.IntegerField(null=True, default=0)
 
     # miscellaneous attributes, e.g. "is_banner_tile"

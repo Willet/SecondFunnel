@@ -128,7 +128,7 @@ class PageConfigSerializer(object):
             feed = page.feed
 
         if not algorithm:
-            algorithm = 'generic'
+            algorithm = 'magic'
 
         # custom variables (kwargs)
         kwargs = {}
