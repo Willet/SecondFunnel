@@ -172,7 +172,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                     collection.ajaxFailCount = 1;
                 }
                 // For category does not exist errors, attempt recovery
-                if (e.status === 404 && _.contains(e.responseText, 'Category with name') && _.contains(e.responseText, 'does not exist')) {
+                if (e.status === 404 && _.contains(e.responseText, 'Category') && _.contains(e.responseText, 'does not exist')) {
                     if (App.option('debug', false)) {
                         console.error(e.responseText);
                     }
