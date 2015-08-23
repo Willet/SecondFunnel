@@ -8,7 +8,7 @@ from .utils import qs_for
 
 
 def ir_magic(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-             offset=0, feed=None, page=None, *args, **kwargs):
+             offset=0, finite=False, *args, **kwargs):
     """
     For mixed content & product feeds - guaranteed to create a good mix
 
@@ -21,8 +21,7 @@ def ir_magic(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     5. In no situation will algorithm attempt to repeat its content until necessary
     """
     if kwargs.get('products_only'):
-        return ir_priority(tiles, num_results=num_results, offset=offset, feed=feed,
-                           page=page, *args, **kwargs)
+        return ir_priority(tiles, num_results=num_results, offset=offset, finite=finite, *args, **kwargs)
 
     # Make sure we do not have any duplicates
     all_tiles = tiles.distinct('id', 'priority')

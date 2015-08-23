@@ -90,19 +90,18 @@ class IntentRank(object):
         """Converts a feed into a list of <any> using given parameters.
 
         :param results      number of <any> to return
-        :param exclude_set  IDs of items in the feed to never consider
+        :param exclude_set  IDs of items in the feed to never consider (ex: seen tiles)
         :param request      (relay)
         :param algorithm    reference to a <Feed> => [<Tile>] function
-        :param tile_id      for getting related tiles
+        :param tile_id      for getting related tiles (unused!)
 
         :returns            a list of <any>
         """
-        # "everything except these tile ids"
-        exclude_set = kwargs.get('exclude_set', [])
         request = kwargs.get('request', None)
         category_name = kwargs.get('category_name', None)
         feed = self._feed
         store = self._store
+        exclude_set = kwargs.get('exclude_set', [])
         products_only = kwargs.get('products_only', False)
         content_only = kwargs.get('content_only', False)
         tiles = None
@@ -141,11 +140,12 @@ class IntentRank(object):
             if not tiles:
                 return Tile.objects.none()
             else:
-                tiles = ir_filter(feed=feed, tiles=tiles, products_only=products_only,
-                                  content_only=content_only)
+                # Apply filter algorithm
+                tiles = ir_filter(feed=feed, tiles=tiles, exclude_set=exclude_set,
+                                  products_only=products_only, content_only=content_only)
 
-                return algorithm(tiles=tiles, num_results=results, exclude_set=exclude_set, request=request,
-                                 offset=offset, tile_id=tile_id, feed=feed, page=self._page,
+                return algorithm(tiles=tiles, num_results=results, exclude_set=exclude_set,
+                                 offset=offset, tile_id=tile_id, finite=self._page.is_finite,
                                  products_only=products_only, content_only=content_only)
 
     def to_json(self):

@@ -673,7 +673,6 @@ class Page(BaseModel):
     Store -> Page -> Feed
     """
     store = models.ForeignKey(Store, related_name='pages', on_delete=models.CASCADE)
-
     name = models.CharField(max_length=256)  # e.g. Lived In
     theme = models.ForeignKey(Theme, related_name='pages', blank=True, null=True)
             #on_delete=models.SET_NULL,
@@ -692,15 +691,12 @@ class Page(BaseModel):
 
     dashboard_settings = JSONField(default=lambda:{}, blank=True)
     campaign = models.ForeignKey('dashboard.Campaign', blank=True, null=True)
-               #on_delete=models.SET_NULL,
-
     description = models.TextField(blank=True, null=True)
     url_slug = models.CharField(max_length=128)  # e.g. livedin
     legal_copy = models.TextField(blank=True, null=True)
-
     last_published_at = models.DateTimeField(blank=True, null=True)
-
     feed = models.ForeignKey('Feed', related_name='page', blank=True, null=True) 
+    # is_finite @property
 
     _attribute_map = BaseModel._attribute_map + (
         # (cg attribute name, python attribute name)
@@ -812,6 +808,11 @@ class Page(BaseModel):
                 return self.theme_settings.get(key, default)
         return default
 
+    @property
+    def is_finite(self):
+        return bool(self.feed.is_finite and \
+            not self.theme_settings.get('override_finite_feed', False))
+
     @classmethod
     def from_json(cls, json_data):
         """@deprecated for replacing the Campaign Model. Use something else.
@@ -872,15 +873,15 @@ class Page(BaseModel):
                 return name
         return increment_name(self.name)
 
-    def add(self, obj, priority=0):
+    def add(self, *args, **kwargs):
         """Alias for Page.feed.add
         """
-        return self.feed.add(obj=obj, priority=priority)
+        return self.feed.add(*args, **kwargs)
 
-    def remove(self, obj):
+    def remove(self, *args, **kwargs):
         """Alias for Page.feed.remove
         """
-        return self.feed.remove(obj=obj)
+        return self.feed.remove(*args, **kwargs)
 
 
 class Feed(BaseModel):
