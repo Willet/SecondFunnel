@@ -22,6 +22,7 @@ def ir_filter(tiles=None, *args, **kwargs):
      - products_only, content_only
      - out of stock
     """
+    # Decorator does work
     return tiles
 
 

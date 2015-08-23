@@ -1,4 +1,5 @@
 import re
+import json
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import F as Fucking
@@ -41,13 +42,13 @@ def track_tile_view(request, tile_id):
     request.session['shown'] = list(shown)
 
 
-def track_tiles_view(request, tile_ids, reset=False):
+def track_tiles_view(request, tile_ids, finite=False, reset=False):
     """Shorthand"""
     if reset:
         print "IR tracked tiles reset"
         request.session['shown'] = []
     else:
-        limit_showns(request)  # limit is controlled by TRACK_SHOWN_TILES_NUM
+        limit_showns(request, finite)  # limit is controlled by TRACK_SHOWN_TILES_NUM
 
     for tile_id in tile_ids:
         track_tile_view(request=request, tile_id=tile_id)
@@ -55,18 +56,15 @@ def track_tiles_view(request, tile_ids, reset=False):
     return request.session.get('shown', [])
 
 
-def limit_showns(request, n=TRACK_SHOWN_TILES_NUM):
+def limit_showns(request, finite, n=TRACK_SHOWN_TILES_NUM):
     """
+    Finite algorithms keep track of all tiles for zero repeats
+    
+    Infinite algorithms keep track of last n tiles to prevent clumped repeats
+
     :param n: how many to keep
     """
-    # ordered algos keep track of full list for zero repeats
-    # for some algo families, reloading the page should reset the list of shown tiles
-    algorithm_name = request.GET.get('algorithm', 'magic').lower()
-    
-    if algorithm_name in ['magic']:
-        # keep a running list of tiles
-        pass
-    else:
+    if not finite:
         # default: remember last 20
         request.session['shown'] = request.session.get('shown', [])[-n:]
 
@@ -95,11 +93,6 @@ def get_results_view(request, page_id):
     content_only = (request.GET.get('tile-set', '') == 'content')
     products_only = (request.GET.get('tile-set', '') == 'products')
 
-    # keep track of the last (unique) tiles have been shown, then
-    # show everything except these tile ids
-    shown_ids = track_tiles_view(request, tile_ids=shown, reset=session_reset)
-    offset -= len(shown_ids) # correct for tiles we are removing from queryset
-
     page = get_object_or_404(Page, id=page_id)
 
     ir = IntentRank(page=page)
@@ -109,23 +102,22 @@ def get_results_view(request, page_id):
     print 'request for [page {}, feed {}] being handled by {}'.format(
         page.id, page.feed.id, algorithm.__name__)
 
+    # keep track of the last (unique) tiles have been shown, then
+    # show everything except these tile ids
+    shown_ids = track_tiles_view(request, tile_ids=shown, finite=page.is_finite, reset=session_reset)
+    offset -= len(shown_ids) # correct for tiles we are removing from queryset
+
     # results is a queryset!
     try:
-        results = ir.get_results(
-            results=num_results,
-            request=request, exclude_set=shown_ids, category_name=category,
-            offset=offset, tile_id=tile_id, content_only=content_only,
-            products_only=products_only)
+        results = ir.get_results(results=num_results, request=request, exclude_set=shown_ids,
+                                 category_name=category, offset=offset, tile_id=tile_id,
+                                 content_only=content_only, products_only=products_only)
     except Category.DoesNotExist as e:
         return HttpResponseNotFound("{}".format(e))
     
     # results is a list of stringified tiles!
     results = results.values_list('ir_cache', flat=True)
-
-    # makes sure they are all non-falsy tiles
-    results = filter(bool, results)
-    print 'returning {0} tiles'.format(len(results))
-
+    
     # manually construct a json array
     response_text = "[{}]".format(",".join(results))
     if callback:

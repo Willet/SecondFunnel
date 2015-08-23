@@ -6,7 +6,7 @@ from .utils import qs_for
 
 
 def ir_priority(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                offset=0, feed=None, page=None, *args, **kwargs):
+                offset=0, finite=False, *args, **kwargs):
     """
     Produce results based purely on priority.  Useful for homogenous feeds
 
@@ -21,8 +21,7 @@ def ir_priority(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if num_tiles == 0:
         return ordered_tiles
 
-    if feed and feed.is_finite and \
-        not (page and page.theme_settings.get('override_finite_feed', False)):
+    if finite:
         # Finite feed, if offset > num_tiles will return empty Queryset
         return ordered_tiles[offset : offset + num_results]
     else:
