@@ -893,22 +893,22 @@ class Feed(BaseModel):
     """
     Container for tiles for a page / ad
 
-    Tiles in a feed are the definition of what's in a feed
-    Start_url's are an assertion of what definitely *should* exist in a feed
+    Tiles are THE DEFINITION of what should exist in the feed, so be very careful
+    about deleting tiles.  Hide tiles from a feed by toggling 'Reviewed' to False
+
+    Start_url's are an instruction to the scraper about how to update *some* tiles
 
     Page -> Feed -> Tiles
-
-    TODO: expanding Feed's understanding of sources to be able to recreate itself
     """
     # pages = <RelatedManager> Pages (many-to-one relationship)
     # tiles = <RelatedManager> Tiles (many-to-one relationship)
     store = models.ForeignKey(Store, related_name='feeds', on_delete=models.CASCADE)
-    feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
-    feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
+    feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. magic, priority
+    feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently unused by any algo
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
     is_finite = models.BooleanField(default=False)
 
-    # Fields necessary to update / regenerate feed
+    # Fields used as instructions to update need
     source_urls = ListField(blank=True, type=unicode) # List of urls feed is generated from, allowed to be empty
     spider_name = models.CharField(max_length=64, blank=True) # Spider defines behavior to update / regenerate page, '' valid
 
@@ -1243,7 +1243,7 @@ class Tile(BaseModel):
     priority = models.IntegerField(null=True, default=0)
     clicks = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-    # Feeds hide un-reviewed tiles by default
+    # Feed hides un-reviewed tiles by default
     # Used for placeholder tiles when a product scrape fails
     reviewed = models.BooleanField(default=True)
     # Clean toggles in / out of stock

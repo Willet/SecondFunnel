@@ -522,8 +522,8 @@ class BannerTileSerializer(TileSerializer):
 
             if not redirect_url:
                 try:
-                    redirect_url = banner_tile.products.all()[0].url
-                except IndexError:
+                    redirect_url = banner_tile.products.first().url
+                except AttributeError:
                     pass  # tried to find a redirect url, don't have one
 
         data.update({'redirect-url': redirect_url})

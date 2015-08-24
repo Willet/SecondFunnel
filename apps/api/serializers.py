@@ -270,7 +270,7 @@ class TileSerializer(RawSerializer):
 
         try:
             data["page-id"] = str(obj.feed.page.first().id)
-        except IndexError:
+        except AttributeError:
             # the feed doesn't belong to a page (perhaps intentionally).
             data["page-id"] = "0"
 
@@ -303,7 +303,7 @@ class TileConfigSerializer(RawSerializer):
 
         try:
             data["page-id"] = str(obj.feed.page.first().id)
-        except IndexError:
+        except AttributeError:
             # the feed doesn't belong to a page (perhaps intentionally).
             data["page-id"] = "0"
 
