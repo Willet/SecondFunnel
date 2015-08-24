@@ -99,7 +99,7 @@ def get_results_view(request, page_id):
     ir.algorithm = algorithm_name
     algorithm = ir.algorithm
 
-    print 'request for [page {}, feed {}] being handled by {}'.format(
+    print 'Request for [page {}, feed {}] being handled by {}'.format(
         page.id, page.feed.id, algorithm.__name__)
 
     # keep track of the last (unique) tiles have been shown, then

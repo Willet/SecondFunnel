@@ -153,15 +153,8 @@ def process_image(source, path='', sizes=None, remove_background=False):
     if not sizes:
         sizes = []
 
-    PROCESSING_SEM.acquire()
-    try:
+    with PROCESSING_SEM:
         data = process_image_now(source, path, remove_background=remove_background)
-    except Exception as e:
-        # Need to ensure semaphore is released
-        PROCESSING_SEM.release()
-        raise e
-
-    PROCESSING_SEM.release()
 
     return data
 

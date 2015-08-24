@@ -265,16 +265,18 @@ class TagPipeline(ItemManifold):
 
 class ProductImagePipeline(ItemManifold):
     """
-    If product has image_urls, turn them into <Product Image> if they don't exist already
+    If product has image_urls, turn them into <Product Image> and delete
+    all other <Product Image>s that exist already
     """
     def process_product(self, item, spider):
         remove_background = getattr(spider, 'remove_background', False)
-        skip_images = getattr(spider, 'skip_images', False)
+        skip_images = [getattr(spider, 'skip_images', False), item.get('force_skip_images', False)]
         store = item['store']
         sku = item['sku']
 
-        if skip_images:
-            spider.log(u"Skipping product images. item: <{}>, spider.skip_images: {}".format(item.__class__.__name__, skip_images))
+        if True in skip_images:
+            spider.log(u"Skipping product images. item: <{0}>, spider.skip_images: {1}, \
+                         item.force_skip_images: {2}".format(item.__class__.__name__, skip_images[0], skip_images[1]))
         else:
             successes = 0
             failures = 0
@@ -287,8 +289,7 @@ class ProductImagePipeline(ItemManifold):
                     traceback.print_exc()
                     failures += 1
             if not successes:
-                # if product has no images, we don't want
-                # to show it on the page.
+                # if product has no images, we don't want to show it on the page.
                 # Implementation is not very idiomatic unfortunately
                 product = item['instance']
                 product.in_stock = False
@@ -302,8 +303,6 @@ class ProductImagePipeline(ItemManifold):
         store = item['store']
         product = item['instance']
 
-        # Doesn't this mean that if we ever end up seeing the same URL twice,
-        # then we'll create new product images if the product differs?
         try:
             image = ProductImage.objects.get(original_url=image_url, product=product)
         except ProductImage.DoesNotExist:

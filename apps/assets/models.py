@@ -888,6 +888,9 @@ class Feed(BaseModel):
     """
     Container for tiles for a page / ad
 
+    Tiles in a feed are the definition of what's in a feed
+    Start_url's are an assertion of what definitely *should* exist in a feed
+
     Page -> Feed -> Tiles
 
     TODO: expanding Feed's understanding of sources to be able to recreate itself
