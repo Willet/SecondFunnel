@@ -181,7 +181,7 @@ class PageProductAllCGHandler(StorePageProductCGHandler):
     This view is identical to PageProductAllCGHandler.
     """
     def get_queryset(self, request=None):
-        return Product.objects.filter(store_id=self.feed.page.all()[0].store.id)
+        return Product.objects.filter(store_id=self.feed.page.first().store.id)
 
     def put(self, request, *args, **kwargs):
         """:returns 200"""

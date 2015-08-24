@@ -95,8 +95,8 @@ def landing_page(request, page_slug, identifier='', identifier_value=''):
                 identifier: identifier_value,
             }
             product = Product.objects.get(**lookup_map)
-            tile = product.tiles.all()[0] if product else None
-        except (Product.DoesNotExist, IndexError, ValueError):
+            tile = product.tiles.first() if product else None
+        except (Product.DoesNotExist, ValueError):
             tile = None
 
     # /aeropostale/category/for-her

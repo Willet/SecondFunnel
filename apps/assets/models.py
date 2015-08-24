@@ -385,17 +385,22 @@ class Product(BaseModel):
         if not self.attributes:
             self.attributes = {}
 
+    def clean_fields(self, exclude=None):
+        if exclude is None:
+            exclude = []
+
+        if not 'price' in exclude:
+            if self.price and not (isinstance(self.price, decimal.Decimal) or isinstance(self.price, float)):
+                raise ValidationError('Product price must be decimal or float')
+
+            sale_price = self.get('sale_price', self.attributes.get('sale_price', float()))
+            if sale_price and not (isinstance(sale_price, decimal.Decimal) or isinstance(sale_price, float)):
+                raise ValidationError('Product sale price must be decimal or float')
+
     def clean(self):
         if not self.attributes:
             self.attributes = {}
 
-        if self.price and not (isinstance(self.price, decimal.Decimal) or isinstance(self.price, float)):
-            raise ValidationError('Product price must be decimal or float')
-
-        sale_price = self.get('sale_price', self.attributes.get('sale_price', float()))
-        if sale_price and not (isinstance(sale_price, decimal.Decimal) or isinstance(sale_price, float)):
-            raise ValidationError('Product sale price must be decimal or float')
-        
         # guarantee the default image is in the list of product images
         # (and vice versa)
         image_urls = [img.url for img in self.product_images.all()]
@@ -404,7 +409,7 @@ class Product(BaseModel):
             self.product_images.add(self.default_image)
         elif not self.default_image and len(image_urls):
             # there is no default image
-            self.default_image = self.product_images.all()[0]
+            self.default_image = self.product_images.first()
 
 
 class ProductImage(BaseModel):
@@ -1186,25 +1191,28 @@ class Category(BaseModel):
     name = models.CharField(max_length=255)
     url = models.TextField(blank=True, null=True)
 
-    def full_clean(self):
-        kwargs = {
-            'store': self.store,
-            'name__iexact': self.name, # django field lookup "iexact", meaning: ignore case
-        }
-        # Make sure there aren't multiple Category's with the same name for this store
-        try:
-            cat = Category.objects.get(**kwargs)
-        except Category.DoesNotExist:
-            # First of its kind, ok
-            pass
-        except Category.MultipleObjectsReturned:
-            # Already multiples, bail!
-            raise ValueError("Category's must have a unique name for each store")
-        else:
-            # Only one, make it sure its this one
-            if not self.pk == cat.pk:
+    def clean_fields(self, exclude=None):
+        if exclude is None:
+            exclude = []
+
+        if not 'name' in exclude:
+            kwargs = {
+                'store': self.store,
+                'name__iexact': self.name, # django field lookup "iexact", meaning: ignore case
+            }
+            # Make sure there aren't multiple Category's with the same name for this store
+            try:
+                cat = Category.objects.get(**kwargs)
+            except Category.DoesNotExist:
+                # First of its kind, ok
+                pass
+            except Category.MultipleObjectsReturned:
+                # Already multiples, bail!
                 raise ValueError("Category's must have a unique name for each store")
-        return
+            else:
+                # Only one, make it sure its this one
+                if not self.pk == cat.pk:
+                    raise ValueError("Category's must have a unique name for each store")
 
 
 class Tile(BaseModel):
@@ -1219,11 +1227,9 @@ class Tile(BaseModel):
     """
     # <Feed>.tiles.all() gives you... all its tiles
     feed = models.ForeignKey(Feed, related_name='tiles', on_delete=models.CASCADE)
-
     # Universal templates: 'product', 'image', 'banner', 'youtube'
     # Invent templates as needed
     template = models.CharField(max_length=128)
-
     products = models.ManyToManyField(Product, blank=True, null=True,
                                       related_name='tiles')
     # use content.select_subclasses() instead of content.all()!
@@ -1235,13 +1241,16 @@ class Tile(BaseModel):
     #   - negative values are allowed.
     #   - identical values are randomly ordered.
     priority = models.IntegerField(null=True, default=0)
+    clicks = models.PositiveIntegerField(default=0)
+    views = models.PositiveIntegerField(default=0)
+    # Feeds hide un-reviewed tiles by default
+    # Used for placeholder tiles when a product scrape fails
+    reviewed = models.BooleanField(default=True)
+    # Clean toggles in / out of stock
+    in_stock = models.BooleanField(default=True)
 
     # miscellaneous attributes, e.g. "is_banner_tile"
     attributes = JSONField(blank=True, null=True, default=lambda:{})
-
-    clicks = models.PositiveIntegerField(default=0)
-
-    views = models.PositiveIntegerField(default=0)
 
     cg_serializer = cg_serializers.TileSerializer
 
@@ -1260,14 +1269,27 @@ class Tile(BaseModel):
 
         return super(Tile, self)._copy(self, *args, **kwargs)
 
-    def clean(self):
+    def clean_fields(self, exclude=None):
+        if exclude is None:
+            exclude = []
+
         # TODO: move m2m validation into a pre-save signal (see tasks.py)
         # If the tile has been saved before, validate its m2m relations
         if self.pk:
-            if self.products.exclude(store__id=self.feed.store.id).count():
+            if not 'products' in exclude and \
+                self.products.exclude(store__id=self.feed.store.id).count():
                 raise ValidationError({'products': 'Products may not be from a different store'})
-            if self.content.exclude(store__id=self.feed.store.id).count():
+            if not 'content' in exclude and \
+                self.content.exclude(store__id=self.feed.store.id).count():
                 raise ValidationError({'products': 'Content may not be from a different store'})
+
+    def clean(self):
+        in_stock_products = [p.in_stock for p in self.products.all()]
+        if self.content.count():
+            # check 1st piece of content
+            in_stock_products += [p.in_stock for p in self.content.first().tagged_products.all()]
+        # TODO: update ir_cache to hide out-of-stock products?
+        self.in_stock = bool(True in in_stock_products)
 
     def deepdelete(self):
         bulk_delete_products = []
@@ -1285,10 +1307,6 @@ class Tile(BaseModel):
         Content.objects.filter(pk__in=bulk_delete_content).delete()
 
         self.delete()
-
-    def full_clean(self, exclude=None, validate_unique=True):
-        return super(Tile, self).full_clean(exclude=exclude,
-                                            validate_unique=validate_unique)
 
     def to_json(self, skip_cache=False):
         return json.loads(self.to_str(skip_cache=skip_cache))
@@ -1317,10 +1335,10 @@ class Tile(BaseModel):
         the tile's first piece of content that has tagged products.
         """
         if self.products.count():
-            return self.products.all()[0]
+            return self.products.first()
         for content in self.content.all():
             if content.tagged_products.count():
-                return content.tagged_products.all()[0]
+                return content.tagged_products.first()
 
         return None
 
