@@ -286,10 +286,10 @@ class ProductImagePipeline(ItemManifold):
             for image_url in item.get('image_urls', []):
                 url = urlparse(image_url, scheme='http').geturl()
                 existing_image = next((old_images.pop(i) for i, pi in enumerate(old_images) \
-                                      if pi.original_image == url), None)
+                                      if pi.original_url == url), None)
                 if not existing_image:
                     try:
-                        images.append(self.process_product_image(item, url.geturl(),
+                        images.append(self.process_product_image(item, url,
                                                                  remove_background=remove_background))
                         processed += 1
                     except cloudinary.api.Error as e:
@@ -308,13 +308,14 @@ class ProductImagePipeline(ItemManifold):
                 old_pks = [pi.pk for pi in old_images]
                 product.product_images.filter(pk__in=old_pks).delete()
 
-                spider.log(u"<Product {}> processed {} images".format(product, processed))
+                spider.log(u"<Product {}> has {} images, {} processed and {} deleted".format(
+                                                    product, len(images), processed, len(old_pks)))
                
 
     def process_product_image(self, item, image_url, remove_background=False):
         store = item['store']
         product = item['instance']
-        
+
         try:
             image = ProductImage.objects.get(original_url=image_url, product=product)
         except ProductImage.DoesNotExist:
