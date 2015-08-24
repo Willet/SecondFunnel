@@ -289,7 +289,7 @@ class ProductImagePipeline(ItemManifold):
                                       if pi.original_image == url), None)
                 if not existing_image:
                     try:
-                        new_images.append(self.process_product_image(item, url.geturl(),
+                        images.append(self.process_product_image(item, url.geturl(),
                                                                  remove_background=remove_background))
                         processed += 1
                     except cloudinary.api.Error as e:
@@ -314,8 +314,7 @@ class ProductImagePipeline(ItemManifold):
     def process_product_image(self, item, image_url, remove_background=False):
         store = item['store']
         product = item['instance']
-
-        # This is redundant
+        
         try:
             image = ProductImage.objects.get(original_url=image_url, product=product)
         except ProductImage.DoesNotExist:
