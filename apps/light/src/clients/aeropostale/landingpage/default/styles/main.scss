@@ -260,7 +260,7 @@ body {
     .buy {
         cursor: pointer;
     }
-    
+
     .fullscreen {
         max-width: 1024px;
         max-height: 760px;
@@ -353,10 +353,6 @@ body {
             opacity: 1;
             filter: alpha(opacity=100);
         }
-    }
-    .main-image-container {
-        width: 50%;
-        margin: auto;
     }
     .gallery-swipe-right {
         border-left-color: #D8D8D8;
@@ -560,7 +556,7 @@ body {
             height: 70%;
         }
         .main-image-container {
-            width: 76%;
+            width: 50%;
             height: 100%;
             margin: auto;
             overflow: hidden;

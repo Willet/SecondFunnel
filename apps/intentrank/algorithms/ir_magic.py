@@ -60,6 +60,7 @@ class TemplateRatioEqualizer(object):
     def __init__(self, tiles):
         # Organize the tiles by template
         template_types = tiles.distinct('template').values_list('template', flat=True)
+        print "######\ntemplate_types={}\n#######".format(template_types)
         self.containers = {
             template: TileRatioContainer(
                 num_total_tiles= tiles.count(),
