@@ -1243,8 +1243,8 @@ class Tile(BaseModel):
     priority = models.IntegerField(null=True, default=0)
     clicks = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
+    # A Placeholder is an unreviewed tile that is out of stock
     # Feed hides un-reviewed tiles by default
-    # Used for placeholder tiles when a product scrape fails
     reviewed = models.BooleanField(default=True)
     # Clean toggles in / out of stock
     in_stock = models.BooleanField(default=True)

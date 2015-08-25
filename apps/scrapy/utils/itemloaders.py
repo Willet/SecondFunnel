@@ -6,6 +6,10 @@ from scrapy.contrib.loader.processor import TakeFirst, Compose, Join
 from apps.scrapy.utils.misc import str_to_boolean
 from apps.scrapy.utils.processors import MergeDicts
 
+"""
+ItemLoader's are used by spiders
+"""
+
 def sanitize_html(html):
     allowed_tags = ['div', 'ul', 'ol', 'li', 'p', ]
     allowed_attrs = {

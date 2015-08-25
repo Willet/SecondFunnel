@@ -1,3 +1,4 @@
+from collections import Iterator
 from operator import itemgetter
 from itertools import islice
 
@@ -51,7 +52,7 @@ def ir_magic(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     return qs_for(result_tiles)
 
 
-class TemplateRatioEqualizer(object):
+class TemplateRatioEqualizer(Iterator):
     """
     Generator of tiles based on:
      - get the highest priority tile from each template list
@@ -70,9 +71,6 @@ class TemplateRatioEqualizer(object):
         
         self.candidates = []
         self.highest_priority = None
-
-    def __iter__(self):
-        return self
 
     def next(self):
         if not self.candidates and not self._get_next_highest_priority_tiles():
