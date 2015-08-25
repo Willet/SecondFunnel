@@ -32,8 +32,7 @@ def ir_magic(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         return all_tiles
 
     # This feed is finite and has returned all of the tiles
-    if feed and feed.is_finite and offset >= total_tiles \
-        and not (page and page.theme_settings.get('override_finite_feed', False)):
+    if finite and offset >= total_tiles:
         return qs_for([])
 
     # Wrapping results
@@ -62,6 +61,7 @@ class TemplateRatioEqualizer(Iterator):
     def __init__(self, tiles):
         # Organize the tiles by template
         template_types = tiles.distinct('template').values_list('template', flat=True)
+        print "######\ntemplate_types={}\n#######".format(template_types)
         self.containers = {
             template: TileRatioContainer(
                 num_total_tiles= tiles.count(),
