@@ -1,4 +1,5 @@
 $aero-pink: #EE2841;
+$aero-fonts: "SaaSeriesFD", Helvetica, sans-serif;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -154,7 +155,7 @@ body {
         font-size: 21px;
         text-transform: uppercase;
         .cell {
-            font-family: SaaSeriesFD, Helvetica, sans-serif;
+            font-family: $aero-fonts;
         }
     }
 }
@@ -230,39 +231,9 @@ body {
     cursor: pointer;
 }
 
-.grooveshark-placeholder {
-    width: 324px;
-    height: 465px;
-}
-.grooveshark-tile-overlay {
-    position: absolute;
-    left: -10000px;
-    z-index: 1;
-    width: 324px;
-    height: 465px;
-    padding-top: 80px;
-    cursor: default;
-
-    .title {
-        height: 70px;
-        font-family: "SaaSeriesFD", Helvetica, sans-serif;
-        font-size: 18px;
-        line-height: 24px;
-        letter-spacing: 0;
-        color: $aero-pink;
-        text-transform: uppercase;
-        text-decoration: none;
-        text-align: center;
-        padding: 0 45px;
-    }
-    .grooveshark-container {
-        padding: 0 35px;
-    }
-}
-
 .tile .buy .button,
 .previewContainer .buy .button {
-    font-family: "SaaSeriesFD", Helvetica, sans-serif;
+    font-family: $aero-fonts;
     font-size: 21px;
     line-height: 18px;
     letter-spacing: 0;
@@ -289,9 +260,28 @@ body {
     .buy {
         cursor: pointer;
     }
-    .content {
-        padding: 0 2px 0 0;
+    
+    .fullscreen {
+        max-width: 1024px;
+        max-height: 760px;
+        width: 100%;
+        height: 100%;
+        .table {
+            height: 760px; /* initial height for desktop, fixed later onShow */
+            &.square {
+                height: 507px;
+            }
+        }
     }
+
+    .content {
+        padding: 0 !important;
+        width: 100%;
+        max-width: 1024px !important;
+        max-height: 100%;
+        overflow: hidden;
+    }
+
     .close {
         background-color: $aero-pink;
         color: #FFF;
@@ -334,7 +324,7 @@ body {
         width: 100%;
         text-align: center;
         color: #555;
-        font-family: "SaaSeriesFD", Helvetica, sans-serif;
+        font-family: $aero-fonts;
     }
     .title {
         font-size: 15px;
@@ -351,17 +341,10 @@ body {
         font-size: 11px;
         color: #3E3E3E;
     }
-    .stl-title {
-        font-family: "SaaSeriesFD", Helvetica, sans-serif;
-        font-size: 14px;
-        line-height: 17px;
-        text-transform: uppercase;
-    }
     .stl-look {
         width: auto;
         max-height: 577px;
-        font-size: 12px;
-        line-height: 14px;
+        
     }
     .landscape .stl-look .stl-item {
         margin: 0 5px;
@@ -380,6 +363,236 @@ body {
     }
     .gallery-swipe-left {
         border-right-color: #D8D8D8;
+    }
+        .gallery img {
+        width: 56px;
+    }
+    /* ######## */
+
+    .info {
+        text-align: left;
+        overflow: hidden;
+        padding-top: 20px;
+    }
+
+    .table {
+        max-height: 760px;
+        display: block;
+    }
+
+    .row {
+        display: inline-block;
+        height: 100%;
+    }
+
+    .cell {
+        display: inline-block;
+        float: left;
+        vertical-align: top;
+        height: 100%;
+    }
+
+    .look-product-carousel {
+        width: 100%;
+        height: 67%;
+    }
+
+    .cell.desktop-only {
+        &.look-image-container {
+            padding: 0;
+            &.square,
+            &.portrait {
+                width: 49.6%;
+                height: 100%;
+            }
+            &.landscape {
+                width: 63%;
+                height: 67%;
+            }
+            &.one-product {
+                height: 100% !important;
+            }
+            .look-image {
+                width: 100%;
+                height: 100%;
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+        }
+        
+        &.shop {
+            width: 14%;
+            max-height: 760px;
+            padding: 20px 0 0 0;
+            text-transform: lowercase;
+            .stl-title {
+                font-family: $aero-fonts;
+                font-size: 14px;
+                line-height: 17px;
+                text-transform: uppercase;
+                max-height: 28px;
+                overflow: hidden;
+            }
+            .carousel-region {
+                height: 94%;
+            }
+            .stl-carousel {
+                width: 100%;
+                height: 100%;
+                position: relative;
+            }
+            .stl-look-container {
+                position: absolute;
+                top: 0; left: 0; right: 0;
+                margin: auto;
+                height: 90%;
+                overflow: hidden;
+            }
+            .stl-look {
+                width: 100%;
+                height: 100%;
+                max-width: none;
+                overflow: visible;
+            }
+            .stl-item {
+                margin-bottom: 25px;
+                width: 100%;
+                position: relative;
+                &:first-child {
+                    margin-left: 0 !important;
+                }
+                img {
+                    width: 90%;
+                    height: auto;
+                    opacity: 1 !important;
+                    margin: 0 auto;
+                }
+                span {
+                    white-space: normal;
+                }
+            }
+        }
+
+        &.shop.landscape {
+            width: 100%;
+            height: 33%;
+            padding: 0;
+            border-top: 1px solid #AAA;
+            border-right: none;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            .stl-title {
+                margin: 10px 0;
+            }
+            .carousel-region {
+                width: 100%;
+                height: 80%;
+            }
+            .stl-look-container {
+                width: 90%;
+                height: 100%;
+            }
+            .stl-look {
+                margin: 0;
+                white-space: nowrap;
+                width: 100%;
+                height: 100%;
+                text-align: center;
+            }
+            .stl-item {
+                margin: 0 12px 25px;
+                height: 85%;
+                width: 125px;
+                white-space: normal;
+                img {
+                    height: 95%;
+                    width: auto !important;
+                    margin: 0 auto;
+                    object-fit: contain;
+                }
+            }
+        }
+    }
+
+    .image-with-tagged-products .info {
+        width: 36%;
+        height: 67%;
+        padding: 20px;
+        text-align: center;
+        &.one-product {
+            float: none;
+            height: 100%;
+        }
+        &.square,
+        &.portrait {
+            height: 100%;
+        }
+        &.portrait .product-info {
+            height: 66%;
+        }
+        .title {
+            font-size: 15px;
+            line-height: 17px;
+            width: 97%;
+            height: auto;
+            margin: 0px;
+        }
+        .price {
+            font-size: 18px;
+            line-height: 21px;
+            font-weight: bold;
+            height: auto;
+            margin: 0 0 6px 0 !important;
+        }
+        .product-info, .tagged-product {
+            height: 100%;
+            position: relative;
+            > div {
+                margin: 0;
+            }
+        }
+        .gallery-main-image {
+            display: inline-block;
+            position: relative;
+            width: 100%;
+            height: 70%;
+        }
+        .main-image-container {
+            width: 76%;
+            height: 100%;
+            margin: auto;
+            overflow: hidden;
+            position: relative;
+            .main-image {
+                width: 100%;
+                height: 100%;
+                white-space: nowrap;
+                font-size: 0;
+                .image {
+                    width: 100%;
+                    height: 100%;
+                    display: inline-block;
+                    background-size: cover;
+                    background-position: top center;
+                    background-repeat: no-repeat;
+                }
+            }
+        }
+        .gallery-dots {
+            margin: 3px 0 !important;
+            width: 100%;
+            font-size: 12px;
+            .item {
+                background-color: #000;
+                width: 6px;
+                height: 6px;
+                &.selected {
+                    background-color: #AAA;
+                }
+            }
+        }
     }
 }
 
@@ -458,13 +671,6 @@ body {
         .category {
             font-size: 16px;
         }
-    }
-}
-
-@media (max-width: 991px) {
-    .tile.grooveshark,
-    .grooveshark-tile-overlay {
-        display: none;
     }
 }
 

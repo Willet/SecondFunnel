@@ -31,8 +31,7 @@ def ir_magic(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         return all_tiles
 
     # This feed is finite and has returned all of the tiles
-    if feed and feed.is_finite and offset >= total_tiles \
-        and not (page and page.theme_settings.get('override_finite_feed', False)):
+    if finite and offset >= total_tiles:
         return qs_for([])
 
     # Wrapping results
