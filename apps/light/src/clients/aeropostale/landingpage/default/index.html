@@ -162,11 +162,6 @@
             </div>
         </script>
 
-        <!-- content is overlayed on tile creation -->
-        <script type="text/template" id="grooveshark_tile_template">
-            <div class='grooveshark-placeholder'></div>
-        </script>
-
         <script type="text/template" id="giftcard_tile_template">
             <div class='tile-border'>
                 <div class='image-border'>
@@ -205,6 +200,44 @@
         </script>
 
         <script type="text/template" id="desktop_tagged_products">
+            <% var orientation = (obj.orientation || "square"); %>
+            <% var oneProduct = (obj['tagged-products'].length < 2); %>
+            <div class="cell look-image-container desktop-only <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
+                <div class="look-image"
+                    style="background-image: url('<%= image_src %>');">
+                </div>
+            </div>
+            <% if (obj['tagged-products'].length > 1) { %>
+                <div class="cell desktop-only shop <%= orientation %>">
+                    <div class="stl-title">
+                        Shop the look
+                    </div>
+                    <div class="carousel-region"></div>
+                </div>
+            <% } %>
+            <div class="cell info <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
+                <div class='product-info'></div>
+            </div>
+            <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
+        </script>
+
+        <script type="text/template" id="mobile_tagged_products">
+            <div class="look-product-carousel">
+                <div class="cell look-image-container mobile-only">
+                    <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
+                </div>
+                <div class="cell info mobile-only">
+                    <div class="product-info"></div>
+                </div>
+            </div>
+            <div class="cell shop mobile-only">
+                <div class="stl-title">Shop the look</div>
+                <div class="carousel-region"></div>
+                </div>
+            </div>
+        </script>
+
+        <!--<script type="text/template" id="desktop_tagged_products">
             <div class="cell desktop-only image-cell">
                 <img src="<%= image_src %>" alt="image" class="image look-image"/>
                 <% if (obj['tumblr'] && obj.tumblr.author && obj.tumblr.url) { %>
@@ -274,7 +307,7 @@
             <div class="cell info">
                 <div class="product-info"></div>
             </div>
-        </script>
+        </script> -->
 
         <script type="text/template" id="no_tagged_products">
             <div class="cell">
@@ -322,16 +355,33 @@
         <script type="text/template" id="gif_info_template">
             <% include("image_info_template") %>
         </script>
-    </div>
 
-    <!-- this will be overlayed on top of the grooveshark tile when it is in the feed -->
-    <div class='grooveshark-tile-overlay'>
-        <div class='title'>
-            <span>Our Gift to You: Click Play</span>
-        </div>
-        <div class="grooveshark-container">
-            <object width="250" height="250" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" id="gsPlaylist10194444485" name="gsPlaylist10194444485"><param name="movie" value="http://grooveshark.com/widget.swf"><param name="wmode" value="window"><param name="allowScriptAccess" value="always"><param name="flashvars" value="hostname=grooveshark.com&amp;playlistID=101944444&amp;p=0&amp;bbg=f7f7f7&amp;bth=f7f7f7&amp;pfg=f7f7f7&amp;lfg=f7f7f7&amp;bt=d13a3a&amp;pbg=d13a3a&amp;pfgh=d13a3a&amp;si=d13a3a&amp;lbg=d13a3a&amp;<br />;lfgh=d13a3a&amp;sb=d13a3a&amp;bfg=fafafa&amp;pbgh=fafafa&amp;lbgh=fafafa&amp;sbh=fafafa"><object type="application/x-shockwave-flash" data="http://grooveshark.com/widget.swf" width="250" height="250"><param name="wmode" value="window"><param name="allowScriptAccess" value="always"><param name="flashvars" value="hostname=grooveshark.com&amp;playlistID=101944444&amp;p=0&amp;bbg=f7f7f7&amp;bth=f7f7f7&amp;pfg=f7f7f7&amp;lfg=f7f7f7&amp;bt=d13a3a&amp;pbg=d13a3a&amp;pfgh=d13a3a&amp;si=d13a3a&amp;lbg=d13a3a&amp;lfgh=d13a3a&amp;sb=d13a3a&amp;bfg=fafafa&amp;pbgh=fafafa&amp;lbgh=fafafa&amp;sbh=fafafa"><span><a href="http://grooveshark.com/search/playlist?q=Aero%3A%20Your%20Music%2C%20Your%20Now%20Anna%20Murphy" title="Aero: Your Music, Your Now by Anna Murphy on Grooveshark">Aero: Your Music, Your Now by Anna Murphy on Grooveshark</a></span></object></object>
-        </div>
+        <script type="text/template" id="carousel_template">
+            <div class="stl-carousel carousel-view">
+                <div class="stl-swipe-left carousel-swipe-left"></div>
+                <div class="stl-swipe-right carousel-swipe-right"></div>
+                <div class="stl-swipe-up carousel-swipe-up"></div>
+                <div class="stl-swipe-down carousel-swipe-down"></div>
+                <div class="stl-look-container carousel-container">
+                    <div class="stl-look carousel-slide">
+                        <% include("carousel_items_template") %>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="carousel_items_template">
+            <div class="look-thumbnail mobile-only">
+                <img src="<%= obj.attrs['lookImageSrc'] %>" class="image"/>
+            </div>
+            <% var related = obj.items; %>
+            <% for (var i = 0; i < related.length; i++) { %>
+                <div class="stl-item" data-index="<%- i %>">
+                    <img src="<%- related[i].images[0].url %>" class="image"/>
+                    <span class="desktop-only"><%- related[i].name %></span>
+                </div>
+            <% } %>
+        </script>
     </div>
     
     <div class="container">

@@ -111,6 +111,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 template = temp
                 break
             i++
+        if App.option('debug', false)
+            console.warn("Retrieved template: #{temp}")
         return template
 
     ###

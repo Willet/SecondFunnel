@@ -43,26 +43,6 @@ App.start();
             ].join(" ")
         );
     }
-
-    // If Flash is disabled/not installed or Safari browser, don't show Grooveshark player
-    var hasFlash = false,
-        isSafari = false;
-    try {
-        hasFlash = Boolean(new ActiveXObject('ShockwaveFlash.ShockwaveFlash'));
-    } catch(exception) {
-        hasFlash = ('undefined' != typeof navigator.mimeTypes['application/x-shockwave-flash']);
-    }
-    isSafari = navigator.userAgent.search("Safari") >= 0 && navigator.userAgent.search("Chrome") < 0;
-    if (isSafari || !hasFlash) {
-        $('head').append([
-                '<style type="text/css">',
-                '.tile.grooveshark,',
-                '.grooveshark-tile-overlay {',
-                '    display: none !important;',
-                '}',
-                '</style>'
-            ].join(" "));
-    }
     
     $(document).ready(function() {
         // Aero wants their own tracking
