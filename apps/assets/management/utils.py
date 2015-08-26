@@ -54,7 +54,7 @@ def set_default_images(tile_id_and_image_id_tuple_list):
         for (i, u) in tile_id_and_image_id_tuple_list:
             try:
                 t = Tile.objects.get(id=i)
-                p = t.products.all()[0]
+                p = t.products.first()
                 pi = next(pi for pi in p.product_images.all() if u in pi.url)
                 p.default_image = pi
                 p.save()

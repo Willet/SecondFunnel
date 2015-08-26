@@ -6,6 +6,7 @@ import cloudinary
 import traceback
 import decimal
 
+from pprint import pprint
 from collections import defaultdict
 from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.db import transaction
@@ -17,34 +18,10 @@ from urlparse import urlparse
 from apps.assets.models import Category, Feed, Image, Page, Product, ProductImage, Store, Tag
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
-from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
 from apps.scrapy.utils.misc import extract_decimal, extract_currency
 
-
-class ItemManifold(object):
-    """
-    A Scrapy Pipeline that processes by scraper item type
-    Pipeline is skipped if processor is not implemented for a type
-
-    Supported items:
-
-    ScraperProduct -> process_product
-    ScraperContent -> process_content
-    ScraperImage   -> process_image
-    """
-    def process_item(self, item, spider):
-        if isinstance(item, ScraperProduct):
-            return (self.process_product(item, spider) or item) if \
-                callable(getattr(self.__class__, 'process_product', None)) else item
-        elif isinstance(item, ScraperContent):
-            return (self.process_content(item, spider) or item) if \
-                callable(getattr(self.__class__, 'process_content', None)) else item
-        elif isinstance(item, ScraperImage):
-            return (self.process_image(item, spider) or item) if \
-                callable(getattr(self.__class__, 'process_image', None)) else item
-        else:
-            return item
+from .mixins import ItemManifold, PlaceholderMixin, TilesMixin
 
 
 class ForeignKeyPipeline(ItemManifold):
@@ -65,64 +42,56 @@ class ForeignKeyPipeline(ItemManifold):
         try:
             store = Store.objects.get(slug=store_slug)
         except Store.DoesNotExist:
-            raise DropItem("Can't add item to non-existent store")
+            raise CloseSpider("Can't add items to non-existent store")
 
         item['store'] = store
         return item
 
 
-class ValidationPipeline(ItemManifold):
+class ValidationPipeline(ItemManifold, PlaceholderMixin):
     """
-    If item fails validation, drop item & do something intelligent if it's already in the database
+    If item fails validation:
+     - if product exists in database, set it to out of stock
+     - if product doesn't exist in database, create a placeholder product
+    Then, create placeholder tiles
     """
     def process_product(self, item, spider):
         # Drop items missing required fields
-        required = set(['sku', 'name'])
+        required = set(['sku', 'name', 'price'])
         missing_fields = required - set([k for (k,v) in item.items()])
         empty_fields = [k for (k, v) in item.items() if k in required and not v]
+
         if missing_fields or empty_fields:
-            # If we are missing required fields, attempt to find the product & mark it as out of stock
-            sku = item.get('sku', None)
-            url = item.get('url', None)
-
-            store_slug = getattr(spider, 'store_slug', '')
-            store = Store.objects.get(slug=store_slug)
-
-            query = Q(sku=sku, store=store)|Q(url=url, store=store) if sku and url else \
-                    Q(sku=sku, store=store) if sku else \
-                    Q(url=url, store=store) if url else None
-
-            try:
-                product = Product.objects.get(query)
-                product.in_stock = False
-                product.save()
-
-                raise DropItem('OutOfStock')
-            except (Product.DoesNotExist, TypeError):
-                # TypeError happens if the query includes Q(None)
-                # This item doesn't exist yet
-                raise DropItem('Required fields missing ({}) or empty ({})'.format(
+            # Attempt to find the product & mark it as out of stock
+            # If we are creating tiles, create a placeholder
+            self.update_or_save_placeholder(item, spider)
+            raise DropItem('Required fields missing ({}) or empty ({})'.format(
                     ', '.join(missing_fields),
                     ', '.join(empty_fields)
                 ))
-
         return item
 
 
-class DuplicatesPipeline(ItemManifold):
+class DuplicatesPipeline(ItemManifold, TilesMixin):
     """
     Detects if there are duplicates based on sku and spider name.
-
-    TODO: merge duplicates?
+    If so, drop this item and, if requested, create tiles with the 
+    previous duplicate.
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.products_seen = defaultdict(set)
         self.content_seen = defaultdict(set)
+        super(DuplicatesPipeline, self).__init__(*args, **kwargs)
 
     def process_product(self, item, spider):
         sku = item['sku']
+        store = item['store']
 
         if sku in self.products_seen[spider.name]:
+            if not self.skip_tiles(item, spider):
+                product = Product.objects.get(store=store, sku=sku)
+                item['instance'] = product
+                self.add_to_feed(item, spider, placeholder=product.is_placeholder)
             raise DropItem("Duplicate item found here: {}".format(item))
 
         self.products_seen[spider.name].add(sku)
@@ -132,6 +101,10 @@ class DuplicatesPipeline(ItemManifold):
         source_url = item['source_url']
 
         if source_url in self.content_seen[spider.name]:
+            if not self.skip_tiles(item, spider):
+                content = Content.objects.filter(store=store, source_url=source_url).select_subclasses()[0]
+                item['instance'] = content
+                self.add_to_feed(item, spider)
             raise DropItem("Duplicate item found: {}".format(item))
 
         self.content_seen[spider.name].add(source_url)
@@ -182,7 +155,7 @@ class ContentImagePipeline(ItemManifold):
             return item
 
 
-class ItemPersistencePipeline(object):
+class ItemPersistencePipeline(PlaceholderMixin):
     """
     Save item as model
 
@@ -192,13 +165,15 @@ class ItemPersistencePipeline(object):
         try:
             item_model = item_to_model(item)
         except TypeError:
-            return item
+            raise DropItem("Item was not a known model, discarding: {}".format(item))
 
         model, was_it_created = get_or_create(item_model)
         item['created'] = was_it_created
+        spider.log("model: {}, created: {}".format(item_model, was_it_created))
         try:
             update_model(model, item)
         except ValidationError as e:
+            self.update_or_save_placeholder(item, spider)
             raise DropItem('DB item validation failed: ({})'.format(e))
 
         item['instance'] = model # save reference for further pipeline steps
@@ -213,8 +188,9 @@ class AssociateWithProductsPipeline(ItemManifold):
     then tag with any subsequent products with 'content_id_to_tag' field matching
     'content_id'
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.images = {}
+        super(AssociateWithProductsPipeline, self).__init__(*args, **kwargs)
 
     def process_image(self, item, spider):
         if item.get('tag_with_products') and item.get('content_id'):
@@ -265,45 +241,57 @@ class TagPipeline(ItemManifold):
 
 class ProductImagePipeline(ItemManifold):
     """
-    If product has image_urls, turn them into <Product Image> if they don't exist already
+    If product has image_urls, turn them into <Product Image> and delete
+    all other <Product Image>s that exist already
     """
     def process_product(self, item, spider):
         remove_background = getattr(spider, 'remove_background', False)
-        skip_images = getattr(spider, 'skip_images', False)
+        skip_images = [getattr(spider, 'skip_images', False), item.get('force_skip_images', False)]
         store = item['store']
         sku = item['sku']
+        product = item['instance']
 
-        if skip_images:
-            spider.log(u"Skipping product images. item: <{}>, spider.skip_images: {}".format(item.__class__.__name__, skip_images))
+        if True in skip_images:
+            spider.log(u"Skipping product images. item: <{0}>, spider.skip_images: {1}, \
+                         item.force_skip_images: {2}".format(item.__class__.__name__, skip_images[0], skip_images[1]))
         else:
-            successes = 0
-            failures = 0
+            old_images = list(product.product_images.all())
+            images = []
+            processed = 0
+
             for image_url in item.get('image_urls', []):
-                url = urlparse(image_url, scheme='http')
-                try:
-                    self.process_product_image(item, url.geturl(), remove_background=remove_background)
-                    successes += 1
-                except cloudinary.api.Error as e:
-                    traceback.print_exc()
-                    failures += 1
-            if not successes:
-                # if product has no images, we don't want
-                # to show it on the page.
+                url = urlparse(image_url, scheme='http').geturl()
+                existing_image = next((old_images.pop(i) for i, pi in enumerate(old_images) \
+                                      if pi.original_url == url), None)
+                if not existing_image:
+                    try:
+                        images.append(self.process_product_image(item, url,
+                                                                 remove_background=remove_background))
+                        processed += 1
+                    except cloudinary.api.Error as e:
+                        spider.log(u"<Product {}> image failed processing:\n{}".format(product, traceback.format_exc()))
+                else:
+                    images.append(existing_image)
+
+            if not images:
+                # Product has no images, something is wrong with it
                 # Implementation is not very idiomatic unfortunately
-                product = item['instance']
                 product.in_stock = False
                 product.save()
+                spider.log(u"<Product {}> failed image processing!".format(product))
+            else:
+                # Product is good, delete any out of date images
+                old_pks = [pi.pk for pi in old_images]
+                product.product_images.filter(pk__in=old_pks).delete()
 
-            spider.log(u"Processed {} images".format(successes))
-            if failures:
-                spider.log(u"{} images failed processing".format(failures))
+                spider.log(u"<Product {}> has {} images, {} processed and {} deleted".format(
+                                                    product, len(images), processed, len(old_pks)))
+               
 
     def process_product_image(self, item, image_url, remove_background=False):
         store = item['store']
         product = item['instance']
 
-        # Doesn't this mean that if we ever end up seeing the same URL twice,
-        # then we'll create new product images if the product differs?
         try:
             image = ProductImage.objects.get(original_url=image_url, product=product)
         except ProductImage.DoesNotExist:
@@ -334,74 +322,27 @@ class ProductImagePipeline(ItemManifold):
         return image
 
 
-class TileCreationPipeline(object):
+class TileCreationPipeline(TilesMixin):
     """ 
     If spider has feed_id, get or create tile(s) for product or content
     If spider also has category(s), add tile(s) to category(s)
     """
-    def __init__(self):
-        # Categories and feeds will be indexed by id
-        self.category_cache = defaultdict(dict)
-        self.feed_cache = defaultdict(dict)
+    def __init__(self, *args, **kwargs):
+        super(TileCreationPipeline, self).__init__(*args, **kwargs)
 
     def process_item(self, item, spider):
         recreate_tiles = getattr(spider, 'recreate_tiles', False)
-        skip_tiles = [getattr(spider, 'skip_tiles', False), item.get('force_skip_tiles', False)]
         categories = getattr(spider, 'categories', False)
 
-        if True in skip_tiles:
-            spider.log(u"Skipping tile creation. spider.skip_tiles: {0}, item.force_skip_tiles: {1}".format(*skip_tiles))
+        if self.skip_tiles(item, spider):
             return item
         else:
             feed_id = getattr(spider, 'feed_id', None)
-
             if feed_id:
-                # Create tile for each feed
                 spider.log(u"Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
-                tile, _ = self.add_to_feed(spider, item, feed_id, recreate_tiles, categories)
+                tile, _ = self.add_to_feed(item, spider)
             
             return item
-
-    def add_to_feed(self, spider, item, feed_id, recreate_tiles=False, categories=[]):
-        try:
-            feed = Feed.objects.get(id=feed_id)
-        except Feed.DoesNotExist:
-            spider.log(u"Error adding to <Feed {}> because feed does not exist".format(feed_id))
-            raise CloseSpider(reason='Invalid feed id')
-
-        obj = item['instance']
-
-        if not item['created'] and recreate_tiles:
-            spider.log(u"Recreating tile for <{}> {}".format(obj, item.get('name')))
-            feed.remove(obj)
-
-        if not categories:
-            return feed.add(obj)
-        elif len(categories) == 1:
-            cname = categories[0]
-            cat = self.get_category(cname, store=item['store'])
-            spider.log(u"Adding '{}' to <Category '{}'>".format(item.get('name'), cname))
-            return feed.add(obj, category=cat)
-        else:
-            tile, created = feed.add(obj)
-            for cname in categories:
-                cat = self.get_category(cname, store=item['store'])
-                spider.log(u"Adding '{}' to <Category '{}'>".format(item.get('name'), cname))
-                cat.tiles.add(tile)
-            return (tile, created)
-
-    def get_category(self, category_name, store):
-        try:
-            # Check cache
-            cat = self.category_cache[store.slug][category_name]
-        except KeyError:
-            # Get or create category
-            cat, created = get_or_create(Category(name=category_name, store=store))
-            if created:
-                cat.save()
-            # Add to cache
-            self.category_cache[store.slug][category_name] = cat
-        return cat
 
 
 class SimilarProductsPipeline(ItemManifold):
@@ -418,9 +359,10 @@ class PageUpdatePipeline(ItemManifold):
     TODO: items that have remained out of stock for a sufficiently long time (1 or 2 weeks?)
           should be deleted
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         # set of product pk's for page, indexed by "store_slug-page_slug"
         self.not_updated_sets = {}
+        super(PageUpdatePipeline, self).__init__(*args, **kwargs)
 
     def process_product(self, item, spider):
         if getattr(spider, 'page_update', False):
@@ -429,7 +371,7 @@ class PageUpdatePipeline(ItemManifold):
             sku = item['sku']
             page_slug = getattr(spider, 'page_slug', False)
 
-            if isinstance(item, ScraperProduct) and store.slug and page_slug:
+            if store.slug and page_slug:
                 key = '{}-{}'.format(store.slug, page_slug)
                 pk = item['instance'].pk
                 pk_set = self.not_updated_sets[key]

@@ -454,9 +454,9 @@ class ProductTileSerializer(TileSerializer):
         """
         data = super(ProductTileSerializer, self).get_dump_object(product_tile)
         try:
-            data.update(product_tile.products.all()[0].to_json())
+            data.update(product_tile.products.first().to_json())
             data['product-ids'] = [x.id for x in product_tile.products.all()]
-        except IndexError:
+        except AttributeError:
             pass  # no products in this tile
         return data
 
@@ -522,8 +522,8 @@ class BannerTileSerializer(TileSerializer):
 
             if not redirect_url:
                 try:
-                    redirect_url = banner_tile.products.all()[0].url
-                except IndexError:
+                    redirect_url = banner_tile.products.first().url
+                except AttributeError:
                     pass  # tried to find a redirect url, don't have one
 
         data.update({'redirect-url': redirect_url})

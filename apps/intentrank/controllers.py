@@ -26,7 +26,7 @@ class IntentRank(object):
         elif feed:
             self._feed = feed
             if feed.page.count():
-                self._page = feed.page.all()[0]  # caution
+                self._page = feed.page.first()  # caution
                 self._store = page.store
         else:
             raise AttributeError("Must supply one or more of: feed, page")

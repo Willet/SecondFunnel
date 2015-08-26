@@ -2,8 +2,6 @@
 
 Scrapy is neat. It makes it possible to decouple different aspects of scraping
 (e.g. downloading image from parsing page, processing from downloading etc.)
-and is fairly flexible (even if it could use some improvement) as compared to
-our existing setup. Plus, its faster!
 
 ## Usage
 

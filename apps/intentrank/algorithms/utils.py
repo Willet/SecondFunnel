@@ -1,19 +1,10 @@
 from functools import wraps
 
+from django.db.models import Q
 from django.db.models.query import QuerySet
 
 from apps.assets.models import Tile
 
-
-def filter_excluded(tiles, allowed_set=None, exclude_set=None):
-    """Given a Tile QuerySet, apply allowed_set and/or exclude_set to it
-    if present.
-    """
-    if allowed_set:
-        tiles = tiles.filter(id__in=allowed_set)
-    if exclude_set:
-        tiles = tiles.exclude(id__in=exclude_set)
-    return tiles
 
 def filter_tiles(fn):
     """Algorithm with this decorator receives a list of tiles that already
@@ -32,32 +23,35 @@ def filter_tiles(fn):
         content_only = kwargs.get('content_only', False)
         products_only = kwargs.get('products_only', False)
 
-        if not feed and tiles is None:  # permit [] for tiles
-            raise ValueError("Either tiles or feed must be supplied")
-
-        if tiles is None and feed:
-            tiles = feed.tiles.all()
-        if not tiles:  # nothing to give
-            return qs_for([])
-
         if num_results < 1:  # nothing to get
             return qs_for([])
 
-        if not isinstance(tiles, QuerySet):
-            tiles = qs_for(tiles)
+        # Note: every QuerySet call clones the QuerySet, so combine all
+        # filters into a single query
 
-        tiles = filter_excluded(tiles, allowed_set, exclude_set)
+        if tiles:
+            if not isinstance(tiles, QuerySet):
+                tiles = qs_for(tiles)
+        elif not feed:
+            raise ValueError("Either tiles or feed must be supplied")
+        else:
+            tiles = feed.tiles
+        
+        # Filter out of stock tiles
+        filters = Q(placeholder=False, in_stock=True)
+
+        if allowed_set:
+            filters = filters & Q(id__in=allowed_set)
+        if exclude_set:
+            filters = filters & ~Q(id__in=exclude_set)
         # Banner tiles are special tiles meant to link elsewhere
         # Force them into all feeds
         if products_only:
-            tiles = tiles.filter(template__in=['product','banner'])
-        if content_only:
-            tiles = tiles.exclude(template__in=['product','banner'])
+            filters = filters & Q(template__in=['product','banner'])
+        elif content_only:
+            filters = filters & Q(template__in=['product','banner'])
 
-        # Filter out of stock tiles
-        # TODO: move out of stock to tile model
-        tiles = tiles.exclude(products__in_stock=False)\
-                     .exclude(content__tagged_products__in_stock=False)
+        tiles = tiles.filter(filters)
 
         kwargs.update({
             'tiles': tiles,

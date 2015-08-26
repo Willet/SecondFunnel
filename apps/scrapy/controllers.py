@@ -35,8 +35,7 @@ class PageMaintainer(object):
         """
         1. Adds new source urls to a page
         2. Scrapes the listed source urls for products & content (depending on scraper)
-        3. For newly found products and/or content, tiles are generated.
-        4. Tiles related to the products & content scraped are added to categories (may be existing tiles)
+        3. The products & content scraped are added to categories as tiles (may be existing tiles)
 
         source_urls: list of <str> urls
         categories: list of <str> catgory names
@@ -76,7 +75,8 @@ class PageMaintainer(object):
 
     def update(self, options={}):
         """
-        Refreshes products and content on a page (depending on scraper)
+        Refreshes products and content on a page (depending on scraper).  If a product
+        does not get updated, it is set to Out of Stock
 
         options: <dict> which control what is updated IFF implemented for that page
         {
@@ -98,7 +98,8 @@ class PageMaintainer(object):
         opts = {
             'recreate_tiles': options.get('recreate_tiles', False), # In case you screwed up? Not very useful
             'skip_images': options.get('skip_images', True),
-            'skip_tiles': options.get('skip_tiles', True)
+            'skip_tiles': options.get('skip_tiles', True),
+            'page_update': True,
         }
 
         self._run_scraper(spider_name=spider_name,

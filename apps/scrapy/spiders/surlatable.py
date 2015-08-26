@@ -63,7 +63,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     def clean_surlatable_url(self, url):
         clean_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/product/(?:REC|PRO)-\d+/).*?',
                              url).group(1)
-        log.msg(u"Cleaned url '{}' into '{}'".format(url, clean_url))
+        self.log(u"Cleaned url '{}' into '{}'".format(url, clean_url))
         return clean_url
         
     def parse_product(self, response, force_skip_tiles=False, force_skip_images=False):
@@ -94,13 +94,18 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
         # If the page doesn't have a sku, the product doesn't exist
         try:
-            # Product ID usually of form: 'PRO-1220433'
-            prod_id = sel.css('#productId::attr(value)').extract()[0]
-            sku = re.search(r'\d+', prod_id).group()
-            l.add_value('sku', sku)
+            # Try to find the SKU directly, does not work for products with multiple sizes
+            sku = sel.css('#product-sku span[itemprop="sku"]::text').extract()[0].strip()
         except (IndexError, AttributeError):
-            # An item with a missing sku will not validate
-            l.add_value('sku', '')
+            try:
+                # Product ID usually of form: 'PRO-1220433'
+                prod_id = sel.css('#productId::attr(value)').extract()[0]
+                sku = re.search(r'\d+', prod_id).group()
+            except (IndexError, AttributeError):
+                # An item with a missing sku will not validate
+                sku = ''
+        finally:
+            l.add_value('sku', sku)
 
         # prices are sometimes in the forms:
         #    $9.95 - $48.96
@@ -147,7 +152,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
         item = response.meta.get('item', ScraperProduct())
         l = ScraperProductLoader(item=item, response=response)
 
-        urls = sel.css('image[url*="touchzoom"]::attr(url)').extract()
+        urls = sel.css('image[url*="touchzoom_variation_Default"]::attr(url)').extract()
         image_urls = set(['{}/{}'.format(response.url.rsplit('/', 1)[0], url.rsplit('/', 1)[1]) for url in urls])
         
         l.add_value('image_urls', image_urls)
@@ -156,7 +161,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     def parse_recipe(self, response, force_skip_tiles=False, force_skip_images=False):
         if not self.is_recipe_page(response):
-            log.msg(u"Not a recipe page: {}".format(response.url))
+            self.log(u"Not a recipe page: {}".format(response.url))
             return
         skip_images = (self.skip_images or force_skip_images)
         skip_tiles = (self.skip_tiles or force_skip_tiles)

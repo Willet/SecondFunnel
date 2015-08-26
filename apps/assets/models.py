@@ -152,6 +152,37 @@ class BaseModel(models.Model, SerializableMixin):
             new_obj.save() # run full_clean to validate
         return new_obj
 
+    def _replace_relations(self, others, exclude_fields=[]):
+        """
+        Any relations pointing to `others` are replaced with `self`
+        This is a core part of merging duplicate models
+
+        :param others - list of objects to replace with self
+        :param exclude_fields - list of field names to exclude from merging
+        """
+        exclude_fields = set(exclude_fields)
+
+        for obj in others:
+            local_fields = set([f.name for f in obj._meta.local_fields])
+            local_m2m_fields = set([f.name for f in obj._meta.many_to_many])
+            all_fields = set(obj._meta.get_all_field_names())
+            reverse_m2m_fields = list(all_fields - local_fields - local_m2m_fields - exclude_fields)
+
+            # Move reverse many-to-many and reverse one-to-many relations to new model
+            for field in reverse_m2m_fields:
+                try:
+                    for model in getattr(obj, field).all():
+                        if model:
+                            getattr(self, field).add(model)
+                            getattr(obj, field).remove(model)
+                except AttributeError:
+                    # Likely has '_set' appended by default
+                    field += "_set"
+                    for model in getattr(obj, field).all():
+                        if model:
+                            getattr(self, field).add(model)
+                            getattr(obj, field).remove(model)
+
     def update_ir_cache(self):
         """Generates and/or updates the IR cache for the current object.
         Remember to save object to persist!
@@ -385,17 +416,22 @@ class Product(BaseModel):
         if not self.attributes:
             self.attributes = {}
 
+    def clean_fields(self, exclude=None):
+        if exclude is None:
+            exclude = []
+
+        if not 'price' in exclude:
+            if self.price and not (isinstance(self.price, decimal.Decimal) or isinstance(self.price, float)):
+                raise ValidationError('Product price must be decimal or float')
+
+            sale_price = self.get('sale_price', self.attributes.get('sale_price', float()))
+            if sale_price and not (isinstance(sale_price, decimal.Decimal) or isinstance(sale_price, float)):
+                raise ValidationError('Product sale price must be decimal or float')
+
     def clean(self):
         if not self.attributes:
             self.attributes = {}
 
-        if self.price and not (isinstance(self.price, decimal.Decimal) or isinstance(self.price, float)):
-            raise ValidationError('Product price must be decimal or float')
-
-        sale_price = self.get('sale_price', self.attributes.get('sale_price', float()))
-        if sale_price and not (isinstance(sale_price, decimal.Decimal) or isinstance(sale_price, float)):
-            raise ValidationError('Product sale price must be decimal or float')
-        
         # guarantee the default image is in the list of product images
         # (and vice versa)
         image_urls = [img.url for img in self.product_images.all()]
@@ -404,7 +440,31 @@ class Product(BaseModel):
             self.product_images.add(self.default_image)
         elif not self.default_image and len(image_urls):
             # there is no default image
-            self.default_image = self.product_images.all()[0]
+            self.default_image = self.product_images.first()
+
+    @property
+    def is_placeholder(self):
+        # A placeholder product is created by the scraper, starts with name 'placeholder'
+        # and sku 'placeholder-{ semi-random hash }'
+        return bool(self.name == 'placeholder' or 'placeholder' in self.sku)
+
+    def merge(self, other_products):
+        """
+        Handles trickiness of replacing references to old products to the new one
+        Deletes the other_products
+
+        :param other_products - a list or QuerySet of <Product>s to replace relations with
+        """
+        if isinstance(other_products, Product):
+            other_products = list(other_products)
+        for p in other_products:
+            if self.store != p.store:
+                raise ValueError('Can not merge products from different stores')
+
+        self._replace_relations(other_products,
+            exclude_fields=['product_images', 'similar_products'])
+        for product in other_products:
+            product.delete()
 
 
 class ProductImage(BaseModel):
@@ -489,6 +549,10 @@ class Content(BaseModel):
                                   "choices are {1}".format(status, allowed))
 
     # Content.objects object for deserializing Content models as subclasses
+    # Content.objects.select_subclasses() to get hetergenous instances
+    # Content.objects.get_subclass(id=...) to get instance
+    # Can also use .select_subclasses & .get_subclass on Content many-to-many fields
+    # http://django-model-utils.readthedocs.org/en/latest/managers.html#inheritancemanager
     objects = InheritanceManager()
 
     store = models.ForeignKey(Store, related_name='content', on_delete=models.CASCADE)
@@ -888,19 +952,22 @@ class Feed(BaseModel):
     """
     Container for tiles for a page / ad
 
-    Page -> Feed -> Tiles
+    Tiles are THE DEFINITION of what should exist in the feed, so be very careful
+    about deleting tiles.  Hide tiles from a feed by toggling 'Reviewed' to False
 
-    TODO: expanding Feed's understanding of sources to be able to recreate itself
+    Start_url's are an instruction to the scraper about how to update *some* tiles
+
+    Page -> Feed -> Tiles
     """
     # pages = <RelatedManager> Pages (many-to-one relationship)
     # tiles = <RelatedManager> Tiles (many-to-one relationship)
     store = models.ForeignKey(Store, related_name='feeds', on_delete=models.CASCADE)
-    feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
-    feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently only used by ir_mixed
+    feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. magic, priority
+    feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently unused by any algo
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
     is_finite = models.BooleanField(default=False)
 
-    # Fields necessary to update / regenerate feed
+    # Fields used as instructions to update need
     source_urls = ListField(blank=True, type=unicode) # List of urls feed is generated from, allowed to be empty
     spider_name = models.CharField(max_length=64, blank=True) # Spider defines behavior to update / regenerate page, '' valid
 
@@ -1183,25 +1250,28 @@ class Category(BaseModel):
     name = models.CharField(max_length=255)
     url = models.TextField(blank=True, null=True)
 
-    def full_clean(self):
-        kwargs = {
-            'store': self.store,
-            'name__iexact': self.name, # django field lookup "iexact", meaning: ignore case
-        }
-        # Make sure there aren't multiple Category's with the same name for this store
-        try:
-            cat = Category.objects.get(**kwargs)
-        except Category.DoesNotExist:
-            # First of its kind, ok
-            pass
-        except Category.MultipleObjectsReturned:
-            # Already multiples, bail!
-            raise ValueError("Category's must have a unique name for each store")
-        else:
-            # Only one, make it sure its this one
-            if not self.pk == cat.pk:
-                raise ValueError("Category's must have a unique name for each store")
-        return
+    def clean_fields(self, exclude=None):
+        if exclude is None:
+            exclude = []
+
+        if not 'name' in exclude:
+            kwargs = {
+                'store': self.store,
+                'name__iexact': self.name, # django field lookup "iexact", meaning: ignore case
+            }
+            # Make sure there aren't multiple Category's with the same name for this store
+            try:
+                cat = Category.objects.get(**kwargs)
+            except Category.DoesNotExist:
+                # First of its kind, ok
+                pass
+            except Category.MultipleObjectsReturned:
+                # Already multiples, bail!
+                raise ValidationError({'name': "Category's must have a unique name for each store"})
+            else:
+                # Only one, make it sure its this one
+                if not self.pk == cat.pk:
+                    raise ValidationError({'name': "Category's must have a unique name for each store"})
 
 
 class Tile(BaseModel):
@@ -1216,11 +1286,9 @@ class Tile(BaseModel):
     """
     # <Feed>.tiles.all() gives you... all its tiles
     feed = models.ForeignKey(Feed, related_name='tiles', on_delete=models.CASCADE)
-
     # Universal templates: 'product', 'image', 'banner', 'youtube'
     # Invent templates as needed
     template = models.CharField(max_length=128)
-
     products = models.ManyToManyField(Product, blank=True, null=True,
                                       related_name='tiles')
     # use content.select_subclasses() instead of content.all()!
@@ -1232,13 +1300,16 @@ class Tile(BaseModel):
     #   - negative values are allowed.
     #   - identical values are randomly ordered.
     priority = models.IntegerField(null=True, default=0)
+    clicks = models.PositiveIntegerField(default=0)
+    views = models.PositiveIntegerField(default=0)
+    # A placeholder tile is for products or content that we are going to
+    # continue trying to add to the feed.  Placeholders are hidden by default
+    placeholder = models.BooleanField(default=True)
+    # Clean toggles in / out of stock
+    in_stock = models.BooleanField(default=True)
 
     # miscellaneous attributes, e.g. "is_banner_tile"
     attributes = JSONField(blank=True, null=True, default=lambda:{})
-
-    clicks = models.PositiveIntegerField(default=0)
-
-    views = models.PositiveIntegerField(default=0)
 
     cg_serializer = cg_serializers.TileSerializer
 
@@ -1257,14 +1328,28 @@ class Tile(BaseModel):
 
         return super(Tile, self)._copy(self, *args, **kwargs)
 
-    def clean(self):
+    def clean_fields(self, exclude=None):
+        if exclude is None:
+            exclude = []
+
         # TODO: move m2m validation into a pre-save signal (see tasks.py)
         # If the tile has been saved before, validate its m2m relations
         if self.pk:
-            if self.products.exclude(store__id=self.feed.store.id).count():
+            if not 'products' in exclude and \
+                self.products.exclude(store__id=self.feed.store.id).count():
                 raise ValidationError({'products': 'Products may not be from a different store'})
-            if self.content.exclude(store__id=self.feed.store.id).count():
+            if not 'content' in exclude and \
+                self.content.exclude(store__id=self.feed.store.id).count():
                 raise ValidationError({'products': 'Content may not be from a different store'})
+
+    def clean(self):
+        if self.pk:
+            in_stock_products = [p.in_stock for p in self.products.all()]
+            if self.content.count():
+                # check 1st piece of content
+                in_stock_products += [p.in_stock for p in self.content.first().tagged_products.all()]
+            # TODO: update ir_cache to hide out-of-stock products?
+            self.in_stock = bool(True in in_stock_products)
 
     def deepdelete(self):
         bulk_delete_products = []
@@ -1282,10 +1367,6 @@ class Tile(BaseModel):
         Content.objects.filter(pk__in=bulk_delete_content).delete()
 
         self.delete()
-
-    def full_clean(self, exclude=None, validate_unique=True):
-        return super(Tile, self).full_clean(exclude=exclude,
-                                            validate_unique=validate_unique)
 
     def to_json(self, skip_cache=False):
         return json.loads(self.to_str(skip_cache=skip_cache))
@@ -1314,10 +1395,10 @@ class Tile(BaseModel):
         the tile's first piece of content that has tagged products.
         """
         if self.products.count():
-            return self.products.all()[0]
+            return self.products.first()
         for content in self.content.all():
             if content.tagged_products.count():
-                return content.tagged_products.all()[0]
+                return content.tagged_products.first()
 
         return None
 
