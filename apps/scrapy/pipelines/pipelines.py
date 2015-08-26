@@ -92,6 +92,7 @@ class DuplicatesPipeline(ItemManifold, TilesMixin):
         if sku in self.products_seen[spider.name]:
             if not self.skip_tiles(item, spider):
                 product = Product.objects.get(store=store, sku=sku)
+                item['instance'] = product
                 self.add_to_feed(item, spider, placeholder=product.is_placeholder)
             raise DropItem("Duplicate item found here: {}".format(item))
 
@@ -102,6 +103,10 @@ class DuplicatesPipeline(ItemManifold, TilesMixin):
         source_url = item['source_url']
 
         if source_url in self.content_seen[spider.name]:
+            if not self.skip_tiles(item, spider):
+                content = Content.objects.filter(store=store, source_url=source_url).select_subclasses()[0]
+                item['instance'] = content
+                self.add_to_feed(item, spider)
             raise DropItem("Duplicate item found: {}".format(item))
 
         self.content_seen[spider.name].add(source_url)
@@ -162,7 +167,7 @@ class ItemPersistencePipeline(PlaceholderMixin):
         try:
             item_model = item_to_model(item)
         except TypeError:
-            return item
+            raise DropItem("Item was not a known model, discarding: {}".format(item))
 
         model, was_it_created = get_or_create(item_model)
         item['created'] = was_it_created

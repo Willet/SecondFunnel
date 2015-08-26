@@ -1,10 +1,9 @@
-from hashlib import md5
-
 from django.core.exceptions import MultipleObjectsReturned
 from scrapy.exceptions import CloseSpider
 
 from apps.assets.models import Feed, Product
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
+from apps.scrapy.models import PlaceholderProduct
 
 
 class ItemManifold(object):
@@ -31,6 +30,8 @@ class ItemManifold(object):
         elif isinstance(item, ScraperImage):
             return (self.process_image(item, spider) or item) if \
                 callable(getattr(self.__class__, 'process_image', None)) else item
+        elif callable(getattr(self.__class__, 'process_default', None)):
+            return (self.process_default(item, spider) or item)
         else:
             return item
 
@@ -106,12 +107,12 @@ class TilesMixin(object):
             cat = self.category_cache.get_or_create(cname, store=item['store'])
             spider.log(u"Adding '{}' to <Category '{}'>".format(item.get('name'), cname))
             tile, created = feed.add(obj, category=cat)
-            tile.reviewed = not placeholder
+            tile.placeholder = placeholder
             tile.save()
             return (tile, created)
         else:
             tile, created = feed.add(obj)
-            tile.reviewed = not placeholder
+            tile.placeholder = placeholder
             tile.save()
             for cname in categories:
                 cat = self.category_cache.get_or_create(cname, store=item['store'])
@@ -140,10 +141,9 @@ class PlaceholderMixin(TileMixin):
                 product = Product.objects.get(url=url, store=store)
                 product.in_stock = False
                 product.save()
-                created = False
             except Product.DoesNotExist:
-                product = self.create_placeholder_product(store=store, url=url, sku=sku)
-                created = True
+                product = PlaceholderProduct(store=store, url=url, sku=sku)
+                product.save()
             except MultipleObjectsReturned:
                 ps = Product.objects.filter(url=url, store=store)
                 not_placeholders = [ p for p in ps if not p.is_placeholder ]
@@ -151,12 +151,7 @@ class PlaceholderMixin(TileMixin):
                 # grab the most recent not placehoder, or the first placeholder
                 product = not_placeholders[0] or ps[0]
                 product.merge([ p for p in ps if p != product])
-                created = False
             finally:
-                item['instance'] = product
-                item['created'] = created
-                item['name'] = product.name
-
                 # If we are creating tiles, add a placeholder to the feed
                 if not self.skip_tiles(item, spider) and feed_id:
                     spider.log(u"Adding '{}' to <Feed {}>".format(product.name, feed_id))
@@ -164,12 +159,5 @@ class PlaceholderMixin(TileMixin):
                     recreate_tiles = getattr(spider, 'recreate_tiles', False)
                     categories = getattr(spider, 'categories', False)
 
-                    self.add_to_feed(item, spider, placeholder=True)
-
-    def create_placeholder_product(self, store, url, sku=None, name="placeholder"):
-        if sku is None:
-            # Make-up a temporary, unique SKU
-            sku = "placeholder-{}".format(md5(url).hexdigest()) 
-        return store.products.create(url=url, sku=sku, name=name,
-                                     price=0, in_stock=False)
+                    self.add_to_feed(item, spider, placeholder=product.is_placeholer)
 

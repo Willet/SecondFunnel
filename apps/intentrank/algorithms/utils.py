@@ -38,7 +38,7 @@ def filter_tiles(fn):
             tiles = feed.tiles
         
         # Filter out of stock tiles
-        filters = Q(reviewed=True, in_stock=True)
+        filters = Q(placeholder=False, in_stock=True)
 
         if allowed_set:
             filters = filters & Q(id__in=allowed_set)

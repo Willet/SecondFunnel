@@ -546,6 +546,10 @@ class Content(BaseModel):
                                   "choices are {1}".format(status, allowed))
 
     # Content.objects object for deserializing Content models as subclasses
+    # Content.objects.select_subclasses() to get hetergenous instances
+    # Content.objects.get_subclass(id=...) to get instance
+    # Can also use .select_subclasses & .get_subclass on Content many-to-many fields
+    # http://django-model-utils.readthedocs.org/en/latest/managers.html#inheritancemanager
     objects = InheritanceManager()
 
     store = models.ForeignKey(Store, related_name='content', on_delete=models.CASCADE)
@@ -1295,9 +1299,9 @@ class Tile(BaseModel):
     priority = models.IntegerField(null=True, default=0)
     clicks = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-    # A Placeholder is an unreviewed tile that is out of stock
-    # Feed hides un-reviewed tiles by default
-    reviewed = models.BooleanField(default=True)
+    # A placeholder tile is for products or content that we are going to
+    # continue trying to add to the feed.  Placeholders are hidden by default
+    placeholder = models.BooleanField(default=True)
     # Clean toggles in / out of stock
     in_stock = models.BooleanField(default=True)
 
