@@ -20,7 +20,7 @@ from apps.imageservice.utils import create_image_path
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
 from apps.scrapy.utils.misc import extract_decimal, extract_currency
 
-from .utils import ItemManifold, TilesOpsMixin, SimpleCache, create_placeholder_product, create_tile
+from .utils import ItemManifold, PlaceholderMixin, TilesMixin, SimpleCache
 
 
 _category_cache = SimpleCache(Category)
@@ -44,13 +44,13 @@ class ForeignKeyPipeline(ItemManifold):
         try:
             store = Store.objects.get(slug=store_slug)
         except Store.DoesNotExist:
-            raise DropItem("Can't add item to non-existent store")
+            raise CloseSpider("Can't add items to non-existent store")
 
         item['store'] = store
         return item
 
 
-class ValidationPipeline(ItemManifold, TileOpsMixin):
+class ValidationPipeline(ItemManifold, PlaceholderMixin):
     """
     If item fails validation:
      - if product exists in database, set it to out of stock
@@ -59,32 +59,40 @@ class ValidationPipeline(ItemManifold, TileOpsMixin):
     """
     def process_product(self, item, spider):
         # Drop items missing required fields
-        required = set(['sku', 'name'])
+        required = set(['sku', 'name', 'price'])
         missing_fields = required - set([k for (k,v) in item.items()])
         empty_fields = [k for (k, v) in item.items() if k in required and not v]
 
         if missing_fields or empty_fields:
-            # If we are missing required fields, attempt to find the product & mark it as out of stock
-            # url will most likely represent stub products, so tried to find those preferentially
-            raise self.save_stub(item, spider)
-
+            # Attempt to find the product & mark it as out of stock
+            # If we are creating tiles, create a placeholder
+            self.update_or_save_placeholder(item, spider)
+            raise DropItem('Required fields missing ({}) or empty ({})'.format(
+                    ', '.join(missing_fields),
+                    ', '.join(empty_fields)
+                ))
         return item
 
 
-class DuplicatesPipeline(ItemManifold):
+class DuplicatesPipeline(ItemManifold, TilesMixin):
     """
     Detects if there are duplicates based on sku and spider name.
-
-    TODO: merge duplicates?
+    If so, drop this item and, if requested, create tiles with the 
+    previous duplicate.
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.products_seen = defaultdict(set)
         self.content_seen = defaultdict(set)
+        super(DuplicatesPipeline, self).__init__(*args, **kwargs)
 
     def process_product(self, item, spider):
         sku = item['sku']
+        store = item['store']
 
         if sku in self.products_seen[spider.name]:
+            if not self.skip_tiles(item, spider):
+                product = Product.objects.get(store=store, sku=sku)
+                self.add_to_feed(item, spider, placeholder=product.is_placeholder)
             raise DropItem("Duplicate item found here: {}".format(item))
 
         self.products_seen[spider.name].add(sku)
@@ -144,7 +152,7 @@ class ContentImagePipeline(ItemManifold):
             return item
 
 
-class ItemPersistencePipeline(object):
+class ItemPersistencePipeline(PlaceholderMixin):
     """
     Save item as model
 
@@ -161,6 +169,7 @@ class ItemPersistencePipeline(object):
         try:
             update_model(model, item)
         except ValidationError as e:
+            self.update_or_save_placeholder(item, spider)
             raise DropItem('DB item validation failed: ({})'.format(e))
 
         item['instance'] = model # save reference for further pipeline steps
@@ -175,8 +184,9 @@ class AssociateWithProductsPipeline(ItemManifold):
     then tag with any subsequent products with 'content_id_to_tag' field matching
     'content_id'
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.images = {}
+        super(AssociateWithProductsPipeline, self).__init__(*args, **kwargs)
 
     def process_image(self, item, spider):
         if item.get('tag_with_products') and item.get('content_id'):
@@ -308,7 +318,7 @@ class ProductImagePipeline(ItemManifold):
         return image
 
 
-class TileCreationPipeline(object, TileOpsMixin):
+class TileCreationPipeline(TilesMixin):
     """ 
     If spider has feed_id, get or create tile(s) for product or content
     If spider also has category(s), add tile(s) to category(s)
@@ -320,14 +330,13 @@ class TileCreationPipeline(object, TileOpsMixin):
         recreate_tiles = getattr(spider, 'recreate_tiles', False)
         categories = getattr(spider, 'categories', False)
 
-        if self.skip_tiles():
+        if self.skip_tiles(item, spider):
             return item
         else:
             feed_id = getattr(spider, 'feed_id', None)
             if feed_id:
                 spider.log(u"Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
-                tile, _ = self.add_to_feed(item=item, feed_id=feed_id, recreate_tiles=recreate_tiles,
-                                           categories=categories, logger=spider.log)
+                tile, _ = self.add_to_feed(item, spider)
             
             return item
 
@@ -346,9 +355,10 @@ class PageUpdatePipeline(ItemManifold):
     TODO: items that have remained out of stock for a sufficiently long time (1 or 2 weeks?)
           should be deleted
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         # set of product pk's for page, indexed by "store_slug-page_slug"
         self.not_updated_sets = {}
+        super(PageUpdatePipeline, self).__init__(*args, **kwargs)
 
     def process_product(self, item, spider):
         if getattr(spider, 'page_update', False):

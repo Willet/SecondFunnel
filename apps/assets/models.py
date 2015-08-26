@@ -152,6 +152,36 @@ class BaseModel(models.Model, SerializableMixin):
             new_obj.save() # run full_clean to validate
         return new_obj
 
+    def _replace_relations(self, others, exclude_fields=[]):
+        """
+        Any relations pointing to `others` are replaced with `self`
+        This is a core part of merging duplicate models
+
+        :param others - list of objects to replace with self
+        :param exclude_fields - list of field names to exclude from merging
+        """
+        exclude_fields = set(exclude_fields)
+        local_fields = set([f.name for f in obj._meta.local_fields])
+        local_m2m_fields = set([f.name for f in obj._meta.many_to_many])
+        all_fields = set(obj._meta.get_all_field_names())
+        reverse_m2m_fields = list(all_fields - local_fields - local_m2m_fields - exclude_fields)
+
+        for obj in others:
+            # Move reverse many-to-many and reverse one-to-many relations to new model
+            for field in reverse_m2m_fields:
+                try:
+                    for model in getattr(obj, field):
+                        if model:
+                            getattr(self, field).add(model)
+                            getattr(obj, field).remove(model)
+                except AttributeError:
+                    # Likely has '_set' appended by default
+                    field += "_set"
+                    for model in getattr(obj, field):
+                        if model:
+                            getattr(self, field).add(model)
+                            getattr(obj, field).remove(model)
+
     def update_ir_cache(self):
         """Generates and/or updates the IR cache for the current object.
         Remember to save object to persist!
@@ -410,6 +440,28 @@ class Product(BaseModel):
         elif not self.default_image and len(image_urls):
             # there is no default image
             self.default_image = self.product_images.first()
+
+    @property
+    def is_placeholder(self):
+        # A placeholder product is created by the scraper, starts with name 'placeholder'
+        # and sku 'placeholder-{ semi-random hash }'
+        return bool(self.name == 'placeholder' or 'placeholder' in self.sku)
+
+    def merge(self, other_products):
+        """
+        Handles trickiness of replacing references to old products to the new one
+        Deletes the other_products
+
+        :param other_products - a list or QuerySet of <Product>s to replace relations with
+        """
+        for p in other_products:
+            if self.store != p.store:
+                raise ValueError('Can not merge products from different stores')
+
+        self._replace_relations(other_products,
+            exclude_fields=['product_images', 'similar_products'])
+        for product in other_products:
+            product.delete()
 
 
 class ProductImage(BaseModel):
@@ -1208,11 +1260,11 @@ class Category(BaseModel):
                 pass
             except Category.MultipleObjectsReturned:
                 # Already multiples, bail!
-                raise ValueError("Category's must have a unique name for each store")
+                raise ValidationError({'name': "Category's must have a unique name for each store"})
             else:
                 # Only one, make it sure its this one
                 if not self.pk == cat.pk:
-                    raise ValueError("Category's must have a unique name for each store")
+                    raise ValidationError({'name': "Category's must have a unique name for each store"})
 
 
 class Tile(BaseModel):
