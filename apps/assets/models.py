@@ -161,23 +161,24 @@ class BaseModel(models.Model, SerializableMixin):
         :param exclude_fields - list of field names to exclude from merging
         """
         exclude_fields = set(exclude_fields)
-        local_fields = set([f.name for f in obj._meta.local_fields])
-        local_m2m_fields = set([f.name for f in obj._meta.many_to_many])
-        all_fields = set(obj._meta.get_all_field_names())
-        reverse_m2m_fields = list(all_fields - local_fields - local_m2m_fields - exclude_fields)
 
         for obj in others:
+            local_fields = set([f.name for f in obj._meta.local_fields])
+            local_m2m_fields = set([f.name for f in obj._meta.many_to_many])
+            all_fields = set(obj._meta.get_all_field_names())
+            reverse_m2m_fields = list(all_fields - local_fields - local_m2m_fields - exclude_fields)
+
             # Move reverse many-to-many and reverse one-to-many relations to new model
             for field in reverse_m2m_fields:
                 try:
-                    for model in getattr(obj, field):
+                    for model in getattr(obj, field).all():
                         if model:
                             getattr(self, field).add(model)
                             getattr(obj, field).remove(model)
                 except AttributeError:
                     # Likely has '_set' appended by default
                     field += "_set"
-                    for model in getattr(obj, field):
+                    for model in getattr(obj, field).all():
                         if model:
                             getattr(self, field).add(model)
                             getattr(obj, field).remove(model)
@@ -454,6 +455,8 @@ class Product(BaseModel):
 
         :param other_products - a list or QuerySet of <Product>s to replace relations with
         """
+        if isinstance(other_products, Product):
+            other_products = list(other_products)
         for p in other_products:
             if self.store != p.store:
                 raise ValueError('Can not merge products from different stores')
@@ -1340,12 +1343,13 @@ class Tile(BaseModel):
                 raise ValidationError({'products': 'Content may not be from a different store'})
 
     def clean(self):
-        in_stock_products = [p.in_stock for p in self.products.all()]
-        if self.content.count():
-            # check 1st piece of content
-            in_stock_products += [p.in_stock for p in self.content.first().tagged_products.all()]
-        # TODO: update ir_cache to hide out-of-stock products?
-        self.in_stock = bool(True in in_stock_products)
+        if self.pk:
+            in_stock_products = [p.in_stock for p in self.products.all()]
+            if self.content.count():
+                # check 1st piece of content
+                in_stock_products += [p.in_stock for p in self.content.first().tagged_products.all()]
+            # TODO: update ir_cache to hide out-of-stock products?
+            self.in_stock = bool(True in in_stock_products)
 
     def deepdelete(self):
         bulk_delete_products = []

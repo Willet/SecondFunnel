@@ -6,6 +6,7 @@ import cloudinary
 import traceback
 import decimal
 
+from pprint import pprint
 from collections import defaultdict
 from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.db import transaction
@@ -20,10 +21,7 @@ from apps.imageservice.utils import create_image_path
 from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
 from apps.scrapy.utils.misc import extract_decimal, extract_currency
 
-from .utils import ItemManifold, PlaceholderMixin, TilesMixin, SimpleCache
-
-
-_category_cache = SimpleCache(Category)
+from .mixins import ItemManifold, PlaceholderMixin, TilesMixin
 
 
 class ForeignKeyPipeline(ItemManifold):
@@ -171,6 +169,7 @@ class ItemPersistencePipeline(PlaceholderMixin):
 
         model, was_it_created = get_or_create(item_model)
         item['created'] = was_it_created
+        spider.log("model: {}, created: {}".format(item_model, was_it_created))
         try:
             update_model(model, item)
         except ValidationError as e:

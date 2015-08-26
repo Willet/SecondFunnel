@@ -456,7 +456,7 @@ class ProductTileSerializer(TileSerializer):
         try:
             data.update(product_tile.products.first().to_json())
             data['product-ids'] = [x.id for x in product_tile.products.all()]
-        except IndexError:
+        except AttributeError:
             pass  # no products in this tile
         return data
 
