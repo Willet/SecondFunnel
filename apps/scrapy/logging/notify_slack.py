@@ -1,5 +1,8 @@
 from django.conf import settings
+
 from apps.utils.broadcast import slack
+from apps.utils.functional import flatten
+
 
 def dump_stats(stats, spider, reason, s3_urls):
     """
@@ -20,6 +23,9 @@ def dump_stats(stats, spider, reason, s3_urls):
         ('items updated', 'info')
     ]
     stats_collection = {key: stats.get('logging/' + key) or [] for key, _ in keys}
+
+    # items dropped is a collection of reasons & urls - flatten it
+    stats_collection['items dropped'] = flatten(stats_collection['items dropped'].values())
 
     total = float(sum(map(len, stats_collection.values())))
 

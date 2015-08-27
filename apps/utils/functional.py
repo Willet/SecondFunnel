@@ -1,6 +1,10 @@
 import os
+import itertools
 import urlparse
 
+def flatten(list_of_lists):
+    """ Compress of a lists of lists down to just the values of the lists """
+    return list(itertools.chain(*list_of_lists))
 
 def check_keys_exist(dct, keys):
     """Returns true if all keys exist in the dict dct."""

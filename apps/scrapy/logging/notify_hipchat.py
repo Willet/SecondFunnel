@@ -21,6 +21,9 @@ def dump_stats(stats, spider, reason, s3_urls):
     ]
     stats_collection = {key: stats.get('logging/' + key) or [] for key, _ in keys}
 
+    # items dropped is a collection of reasons & urls - flatten it
+    stats_collection['items dropped'] = flatten(stats_collection['items dropped'].values())
+
     total = float(sum(map(len, stats_collection.values())))
 
     result_codes = {

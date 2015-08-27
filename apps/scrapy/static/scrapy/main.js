@@ -71,8 +71,8 @@ var scrape = function(create_tiles) {
                 },
                 error: function(obj, status, error) {
                     $results.addClass('warning');
-                    $results.html('\nScrape failed with status: ' + status);
-                    console.warn('Scrape failed with status: ' + status);
+                    $results.html('\nScrape failed with status: ' + error);
+                    console.warn('Scrape failed with status: ' + error);
                     console.warn(obj);
                 }
             });
@@ -112,8 +112,8 @@ var prioritize = function() {
                 },
                 error: function(obj, status, error) {
                     $results.addClass('warning');
-                    $results.html('\nPrioritize failed with status: ' + status);
-                    console.warn('Prioritize failed with status: ' + status);
+                    $results.html('\nPrioritize failed with status: ' + error);
+                    console.warn('Prioritize failed with status: ' + error);
                     console.warn(obj);
                 }
             });
