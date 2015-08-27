@@ -55,12 +55,13 @@ class TilesMixin(object):
         super(TilesMixin, self).__init__(*args, **kwargs)
     
     def skip_tiles(self, item, spider):
-        skip_tiles = bool(True in [getattr(spider, 'skip_tiles', False),
-                                   item.get('force_skip_tiles', False) ])
-        if skip_tiles:
+        skip_tiles = [getattr(spider, 'skip_tiles', False), item.get('force_skip_tiles', False) ]
+        if bool(True in skip_tiles):
             spider.log(u"Skipping tile creation. \
                          spider.skip_tiles: {0}, item.force_skip_tiles: {1}".format(*skip_tiles))
-        return skip_tiles
+            return True
+        else:
+            return False
 
     def add_to_feed(self, item, spider, placeholder=False):
         feed_id = getattr(spider, 'feed_id', None)
@@ -110,38 +111,38 @@ class PlaceholderMixin(TilesMixin):
         super(PlaceholderMixin, self).__init__(*args, **kwargs)
 
     def update_or_save_placeholder(self, item, spider):
-            url = item['url']
-            store = item['store']
-            sku = item.get('sku', None)
+        url = item['url']
+        store = item['store']
+        sku = item.get('sku', None)
 
-            feed_id = getattr(spider, 'feed_id', None)
+        feed_id = getattr(spider, 'feed_id', None)
 
-            try:
-                product = Product.objects.get(url=url, store=store)
-                product.in_stock = False
-                product.save()
-                created = False
-            except Product.DoesNotExist:
-                product = PlaceholderProduct(store=store, url=url, sku=sku)
-                product.save()
-                created = True
-            except MultipleObjectsReturned:
-                ps = Product.objects.filter(url=url, store=store)
-                not_placeholders = [ p for p in ps if not p.is_placeholder ]
-                not_placeholders.sort(key=lambda p: p.created_at, reverse=True)
-                # grab the most recent not placehoder, or the first placeholder
-                product = not_placeholders[0] or ps[0]
-                product.merge([ p for p in ps if p != product])
-                created = False
-            finally:
-                # If we are creating tiles, add a placeholder to the feed
-                if not self.skip_tiles(item, spider) and feed_id:
-                    item['instance'] = product
-                    item['created'] = created
-                    spider.log(u"Adding '{}' to <Feed #{}>".format(product, feed_id))
+        try:
+            product = Product.objects.get(url=url, store=store)
+            product.in_stock = False
+            product.save()
+            created = False
+        except Product.DoesNotExist:
+            product = PlaceholderProduct(store=store, url=url, sku=sku)
+            product.save()
+            created = True
+        except MultipleObjectsReturned:
+            ps = Product.objects.filter(url=url, store=store)
+            not_placeholders = [ p for p in ps if not p.is_placeholder ]
+            not_placeholders.sort(key=lambda p: p.created_at, reverse=True)
+            # grab the most recent not placehoder, or the first placeholder
+            product = not_placeholders[0] or ps[0]
+            product.merge([ p for p in ps if p != product])
+            created = False
+        finally:
+            # If we are creating tiles, add a placeholder to the feed
+            if not self.skip_tiles(item, spider) and feed_id:
+                item['instance'] = product
+                item['created'] = created
+                spider.log(u"Adding '{}' to <Feed #{}>".format(product, feed_id))
 
-                    recreate_tiles = getattr(spider, 'recreate_tiles', False)
-                    categories = getattr(spider, 'categories', False)
+                recreate_tiles = getattr(spider, 'recreate_tiles', False)
+                categories = getattr(spider, 'categories', False)
 
-                    self.add_to_feed(item, spider, placeholder=product.is_placeholder)
+                self.add_to_feed(item, spider, placeholder=product.is_placeholder)
 

@@ -169,7 +169,7 @@ class ItemPersistencePipeline(PlaceholderMixin):
 
         model, was_it_created = get_or_create(item_model)
         item['created'] = was_it_created
-        spider.log("model: {}, created: {}".format(item_model, was_it_created))
+        spider.log("item: {}, created: {}".format(item, was_it_created))
         try:
             update_model(model, item)
         except ValidationError as e:
