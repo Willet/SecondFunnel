@@ -23,7 +23,7 @@ class Migration(SchemaMigration):
 
 
         # Changing field 'Feed.source_urls'
-        db.alter_column(u'assets_feed', 'source_urls', self.gf('jsonfield.fields.JSONField')())
+        db.alter_column(u'assets_feed', 'source_urls', self.gf('django.db.models.fields.TextField')())
 
     models = {
         u'assets.category': {
