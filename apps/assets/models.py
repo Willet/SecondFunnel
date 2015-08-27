@@ -1337,10 +1337,10 @@ class Tile(BaseModel):
         if self.pk:
             if not 'products' in exclude and \
                 self.products.exclude(store__id=self.feed.store.id).count():
-                raise ValidationError({'products': 'Products may not be from a different store'})
+                raise ValidationError({'products': u'Products may not be from a different store'})
             if not 'content' in exclude and \
                 self.content.exclude(store__id=self.feed.store.id).count():
-                raise ValidationError({'products': 'Content may not be from a different store'})
+                raise ValidationError({'content': u'Content may not be from a different store'})
 
     def clean(self):
         if self.pk:

@@ -1,14 +1,20 @@
+import random
+
 from apps.scrapy.datafeeds.cj import CJDatafeed
+
+from apps.assets.models import Store, Product, ProductImage
+
+from apps.imageservice.utils import get_filetype
 
 
 class SurLaTableDatafeed(CJDatafeed):
     name = 'surlatable'
 
     def __init__(self):
-        store = Store.objects.get(slug=name)
+        store = Store.objects.get(slug=self.name)
         datafeed = {
-            "PATHNAME": "outgoing/productcatalog/170707/",
-            "FILENAME": "Sur_La_Table-Sur_La_Table_Product_Catalog.txt.gz",
+            "pathname": "outgoing/productcatalog/170707/",
+            "filename": "Sur_La_Table-Sur_La_Table_Product_Catalog.txt.gz",
         }
         super(SurLaTableDatafeed, self).__init__(store=store, datafeed=datafeed)
 
@@ -22,7 +28,7 @@ class SurLaTableDatafeed(CJDatafeed):
                 "SALEPRICE", "BUYURL", "INSTOCK",
                 "ADVERTISERCATEGORY", "THIRDPARTYCATEGORY",
                 "ARTIST"],
-            lookup_fields=["SKU","NAME","THIRDPARTYCATEGORY", "ADVERTISERCATEGORY"]))
+            lookup_fields=["SKU","NAME","THIRDPARTYCATEGORY", "ADVERTISERCATEGORY"])
     
     def lookup_product(self, product):
         """ Looksup product in datafeed
@@ -66,7 +72,10 @@ class SurLaTableDatafeed(CJDatafeed):
             # Update existing similar products
             for sp in product.similar_products.all():
                 (sp_data, _) = self.lookup_table.find(mappings=[("SKU", sp.sku)], first=True)
-                self._update_product_cj_fields(sp, sp_data)
+                if sp_data:
+                    self._update_product_cj_fields(sp, sp_data)
+                else:
+                    sp.in_stock = False
                 sp.save()
 
                 exclude_skus.append(sp.sku)
@@ -107,7 +116,7 @@ class SurLaTableDatafeed(CJDatafeed):
                               store= store)
 
         # Update
-        self.update_product_cj_fields(product, data)
+        self._update_product_cj_fields(product, data)
         product.save()
 
         if not product.product_images.count():
