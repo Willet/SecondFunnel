@@ -1304,7 +1304,7 @@ class Tile(BaseModel):
     views = models.PositiveIntegerField(default=0)
     # A placeholder tile is for products or content that we are going to
     # continue trying to add to the feed.  Placeholders are hidden by default
-    placeholder = models.BooleanField(default=True)
+    placeholder = models.BooleanField(default=False)
     # Clean toggles in / out of stock
     in_stock = models.BooleanField(default=True)
 
