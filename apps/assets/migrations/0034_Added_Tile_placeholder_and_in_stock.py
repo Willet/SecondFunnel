@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'Tile.placeholder'
         db.add_column(u'assets_tile', 'placeholder',
-                      self.gf('django.db.models.fields.BooleanField')(default=True),
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=True)
 
         # Adding field 'Tile.in_stock'
