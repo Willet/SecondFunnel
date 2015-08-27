@@ -28,32 +28,7 @@ class SecondFunnelScraper(object):
         self.skip_images = kwargs.get('skip_images', False)
 
 
-class SecondFunnelCrawlScraper(SecondFunnelScraper):
-    # These fields are expected to be completed by subclass crawlers
-    name = ''
-    allowed_domains = []
-    store_slug = ''
-
-    # see documentation for remove_background in apps.imageservice.tasks
-    remove_background = '#FFF'
-
-    def parse_start_url(self, response):
-        if self.is_product_page(response):
-            self.rules = ()
-            self._rules = []
-            return self.parse_product(response)
-        else:
-            self.log("Not a product page: {}".format(response.url))
-            return []
-
-    def is_product_page(self, response):
-        raise NotImplementedError
-
-    def parse_product(self, response):
-        raise NotImplementedError
-
-
-class WebdriverCrawlSpider(Spider):
+class WebdriverCrawlSpider(Spider, SecondFunnelScraper):
     """
     A spider that can automatically crawl other webpages based on rules.
 
@@ -87,26 +62,6 @@ class WebdriverCrawlSpider(Spider):
             'service_args': [
                 '--debug=true', '--load-images=false', '--webdriver-loglevel=debug'
             ],
-        },
-        # http://doc.scrapy.org/en/latest/topics/item-pipeline.html#activating-an-item-pipeline-component
-        'ITEM_PIPELINES': {
-            # 1's - Validation
-            'apps.scrapy.pipelines.ForeignKeyPipeline': 1,
-            'apps.scrapy.pipelines.ValidationPipeline': 3,
-            'apps.scrapy.pipelines.DuplicatesPipeline': 5,
-            # 10 - Sanitize and generate attributes
-            'apps.scrapy.pipelines.PricePipeline': 11,
-            'apps.scrapy.pipelines.ContentImagePipeline': 12,
-            # 40 - Persistence-related
-            'apps.scrapy.pipelines.ItemPersistencePipeline': 40,
-            'apps.scrapy.pipelines.AssociateWithProductsPipeline': 41,
-            'apps.scrapy.pipelines.TagPipeline': 42,
-            'apps.scrapy.pipelines.ProductImagePipeline': 47,
-            # 50 - 
-            'apps.scrapy.pipelines.TileCreationPipeline': 50,
-            'apps.scrapy.pipelines.SimilarProductsPipeline': 52,
-            # 90 - Scrape job control
-            'apps.scrapy.pipelines.PageUpdatePipeline': 99,
         },
     }
     rules = ()
@@ -184,3 +139,51 @@ class WebdriverCrawlSpider(Spider):
     def set_crawler(self, crawler):
         super(WebdriverCrawlSpider, self).set_crawler(crawler)
         self._follow_links = crawler.settings.getbool('CRAWLSPIDER_FOLLOW_LINKS', True)
+
+
+class SecondFunnelCrawlScraper(WebdriverCrawlSpider):
+    custom_settings = WebdriverCrawlSpider.custom_settings.copy().update({
+        # http://doc.scrapy.org/en/latest/topics/item-pipeline.html#activating-an-item-pipeline-component
+        'ITEM_PIPELINES': {
+            # 1's - Validation
+            'apps.scrapy.pipelines.ForeignKeyPipeline': 1,
+            'apps.scrapy.pipelines.ValidationPipeline': 3,
+            'apps.scrapy.pipelines.DuplicatesPipeline': 5,
+            # 10 - Sanitize and generate attributes
+            'apps.scrapy.pipelines.PricePipeline': 11,
+            'apps.scrapy.pipelines.ContentImagePipeline': 12,
+            # 40 - Persistence-related
+            'apps.scrapy.pipelines.ItemPersistencePipeline': 40,
+            'apps.scrapy.pipelines.AssociateWithProductsPipeline': 41,
+            'apps.scrapy.pipelines.TagPipeline': 42,
+            'apps.scrapy.pipelines.ProductImagePipeline': 47,
+            # 50 - 
+            'apps.scrapy.pipelines.TileCreationPipeline': 50,
+            'apps.scrapy.pipelines.SimilarProductsPipeline': 52,
+            # 90 - Scrape job control
+            'apps.scrapy.pipelines.PageUpdatePipeline': 99,
+        },
+    })
+    # These fields are expected to be completed by subclass crawlers
+    name = ''
+    allowed_domains = []
+    store_slug = ''
+
+    # see documentation for remove_background in apps.imageservice.tasks
+    remove_background = '#FFF'
+
+    def parse_start_url(self, response):
+        if self.is_product_page(response):
+            self.rules = ()
+            self._rules = []
+            return self.parse_product(response)
+        else:
+            self.log("Not a product page: {}".format(response.url))
+            return []
+
+    def is_product_page(self, response):
+        raise NotImplementedError
+
+    def parse_product(self, response):
+        raise NotImplementedError
+

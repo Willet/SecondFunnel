@@ -12,7 +12,7 @@ from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCra
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class LenovoSpider(SecondFunnelCrawlScraper, Spider):
+class LenovoSpider(SecondFunnelCrawlScraper):
     name = 'lenovo'
     allowed_domains = ['lenovo.com', 'shop.lenovo.com']
     start_urls = ['http://shop.lenovo.com/us/en/tablets/']

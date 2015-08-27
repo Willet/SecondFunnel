@@ -10,7 +10,7 @@ from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelCraw
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class TheWarehouseSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class TheWarehouseSpider(SecondFunnelCrawlScraper):
     name = 'thewarehouse'
     store_slug = name
     allowed_domains = ['thewarehouse.co.nz']

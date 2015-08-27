@@ -8,7 +8,7 @@ from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class NastyGalSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class NastyGalSpider(SecondFunnelCrawlScraper):
     name = 'nastygal'
     allowed_domains = ['nastygal.com']
     start_urls = ['http://www.nastygal.com/']

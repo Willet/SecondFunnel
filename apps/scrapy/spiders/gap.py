@@ -8,7 +8,7 @@ from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class GapSpider(SecondFunnelCrawlScraper):
     name = 'gap'
     allowed_domains = ['gap.com']
     start_urls = ['http://www.gap.com/']

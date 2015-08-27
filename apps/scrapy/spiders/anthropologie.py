@@ -8,7 +8,7 @@ from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class AnthropologieSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class AnthropologieSpider(SecondFunnelCrawlScraper):
     name = 'anthropologie'
     allowed_domains = ['anthropologie.com']
     start_urls = ['http://www.anthropologie.com/']

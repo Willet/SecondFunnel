@@ -3,7 +3,7 @@ from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCra
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 from apps.scrapy.items import ScraperProduct
 
-class BodyShopSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class BodyShopSpider(SecondFunnelCrawlScraper):
     name = 'body-shop'
     root_url = "http://www.thebodyshop-usa.com"
     allowed_domains = ['thebodyshop-usa.com']

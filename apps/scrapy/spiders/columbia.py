@@ -9,7 +9,7 @@ from apps.scrapy.utils.itemloaders import ScraperProductLoader
 from apps.assets.models import Product
 
 
-class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class ColumbiaSpider(SecondFunnelCrawlScraper):
     name = 'columbia'
     allowed_domains = ['columbia.com']
     start_urls = ['http://www.columbia.com/']

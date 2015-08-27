@@ -10,7 +10,7 @@ from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCra
 from apps.scrapy.utils.itemloaders import ScraperContentLoader, ScraperProductLoader
 from apps.scrapy.items import ScraperImage, ScraperProduct
 
-class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class SurLaTableSpider(SecondFunnelCrawlScraper):
     name = 'surlatable'
     root_url = "http://www.surlatable.com"
     allowed_domains = ['surlatable.com']
