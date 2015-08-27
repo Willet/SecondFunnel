@@ -55,8 +55,8 @@ class TilesMixin(object):
         super(TilesMixin, self).__init__(*args, **kwargs)
     
     def skip_tiles(self, item, spider):
-        skip_tiles = [getattr(spider, 'skip_tiles', False), item.get('force_skip_tiles', False) ]
-        if bool(True in skip_tiles):
+        skip_tiles = [getattr(spider, 'skip_tiles', False), item.get('force_skip_tiles', False)]
+        if True in skip_tiles:
             spider.log(u"Skipping tile creation. \
                          spider.skip_tiles: {0}, item.force_skip_tiles: {1}".format(*skip_tiles))
             return True
