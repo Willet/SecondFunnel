@@ -23,7 +23,7 @@ class CJDatafeed(object):
         """
         self.store = store
         self.datafeed = datafeed
-        self.filename = datafeed.filename
+        self.filename = datafeed['filename']
 
     def load(self, collect_fields=["SKU", "NAME", "DESCRIPTION", "PRICE", "SALEPRICE",\
                                    "BUYURL", "INSTOCK"], lookup_fields=['SKU','NAME']):
@@ -63,17 +63,20 @@ class CJDatafeed(object):
         raises: LookupError if store is not set up for CJ product datafeed
 
         return: filename where download is saved"""
-        ftp = FTP(CJ_SERVERNAME)
-        ftp.login(CJ_USERNAME, CJ_PASSWORD)
+        ftp = FTP(self.CJ_SERVERNAME)
+        ftp.login(self.CJ_USERNAME, self.CJ_PASSWORD)
         ftp.cwd("/")
 
         with open(self.filename, 'wb') as outfile:
-            print "Downloading {} product datafeed: {}".format(store.name, self.filename)
+            print "Downloading {} product datafeed: {}".format(self.store.name, self.filename)
             try:
-                ftp.retrbinary("RETR {}{}".format(self.datafeed['PATHNAME'], self.filename), outfile.write)
+                ftp.retrbinary("RETR {}{}".format(self.datafeed['pathname'], self.filename), outfile.write)
             except Exception as e:
                 raise IOError('FTP download failed!\n{}: {}'.format(e.__class__.__name__, e))
 
     def _delete(self):
         print "Deleting product datafeed: {}".format(self.filename)
-        os.remove(self.filename)
+        try:
+            os.remove(self.filename)
+        except OSError:
+            pass
