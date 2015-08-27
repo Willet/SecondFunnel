@@ -144,7 +144,8 @@ class BaseModel(models.Model, SerializableMixin):
             for (k,v) in m2m_kwargs.iteritems():
                 if isinstance(v,list) or isinstance(v, models.query.QuerySet):
                     setattr(new_obj, k, v)
-                elif isinstance(v, models.fields.related.RelatedManager):
+                elif callable(getattr(v, 'all', None)):
+                    # assume this is a RelatedManager, can't check directly b/c generated at runtime
                     setattr(new_obj, k, v.all())
                 else:
                     raise ValidationError(u"Value '{}' can't be assigned to ManyToManyField '{}'".format(k, v))
