@@ -7,7 +7,7 @@ from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, \
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class MadewellSpider(SecondFunnelCrawlScraper):
+class MadewellSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     name = 'madewell'
     allowed_domains = ['madewell.com']
     start_urls = ['http://www.madewell.com/']
