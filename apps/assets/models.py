@@ -1394,11 +1394,11 @@ class Tile(BaseModel):
         """Returns the tile's first product, or the first tagged product from
         the tile's first piece of content that has tagged products.
         """
-        if self.products.count():
-            return self.products.first()
-        for content in self.content.all():
-            if content.tagged_products.count():
-                return content.tagged_products.first()
-
+        if self.pk:
+            if self.products.count():
+                return self.products.first()
+            for content in self.content.all():
+                if content.tagged_products.count():
+                    return content.tagged_products.first()
         return None
 
