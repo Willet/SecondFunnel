@@ -1,11 +1,12 @@
 # NOT USED!!!!!
 # I left this file here in case we decide to go back to using Sentry.  
 # Because if we did, I would probably never find it in the git repo.
+import sys
 
 from scrapy import signals, log
 from scrapy_sentry.extensions import Signals
 from scrapy_sentry.utils import get_client, response_to_dict
-import sys
+
 
 class SentrySignals(Signals):
     """

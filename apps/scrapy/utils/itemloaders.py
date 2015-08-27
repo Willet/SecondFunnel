@@ -3,8 +3,8 @@ import bleach
 from scrapy.contrib.loader import ItemLoader, Identity
 from scrapy.contrib.loader.processor import TakeFirst, Compose, Join
 
-from apps.scrapy.utils.misc import str_to_boolean
-from apps.scrapy.utils.processors import MergeDicts
+from .misc import str_to_boolean
+from .processors import MergeDicts
 
 """
 ItemLoader's are used by spiders

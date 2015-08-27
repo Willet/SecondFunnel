@@ -2,6 +2,8 @@ import inspect
 
 from .surlatable import SurLaTableDatafeed
 
+help = """ DEPRECATED: downloads XML files from CJ & updates projects """
+
 datafeeds = { 'surlatable': SurLaTableDatafeed }
 
 def find_datafeed(name):
