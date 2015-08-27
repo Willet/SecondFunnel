@@ -24,12 +24,9 @@ def ir_magic(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if kwargs.get('products_only'):
         return ir_priority(tiles, num_results=num_results, offset=offset, finite=finite, *args, **kwargs)
 
-    # Make sure we do not have any duplicates
-    all_tiles = tiles.distinct('id', 'priority')
-
-    total_tiles = all_tiles.count()
+    total_tiles = tiles.count()
     if total_tiles == 0:
-        return all_tiles
+        return tiles
 
     # This feed is finite and has returned all of the tiles
     if finite and offset >= total_tiles:
@@ -44,7 +41,7 @@ def ir_magic(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         offset -= overflow + total_tiles
 
     # Get the tiles out of an iterator
-    itiles = islice(TemplateRatioEqualizer(tiles=all_tiles), offset, offset + num_results)
+    itiles = islice(TemplateRatioEqualizer(tiles=tiles), offset, offset + num_results)
     result_tiles = [tile for tile in itiles]
 
     print "Returning tiles: %s" % result_tiles
@@ -61,14 +58,12 @@ class TemplateRatioEqualizer(Iterator):
     def __init__(self, tiles):
         # Organize the tiles by template
         template_types = tiles.distinct('template').values_list('template', flat=True)
-        print "######\ntemplate_types={}\n#######".format(template_types)
         self.containers = {
             template: TileRatioContainer(
                 num_total_tiles= tiles.count(),
-                tiles= list(tiles.filter(template=template).order_by('-priority')) ) \
-            for template in template_types
+                tiles= list(tiles.filter(template=template).order_by('-priority'))
+            ) for template in template_types
         }
-        
         self.candidates = []
         self.highest_priority = None
 
@@ -86,12 +81,12 @@ class TemplateRatioEqualizer(Iterator):
         else:
             # Of the available templates, get one of each template with the highest priority
             for template, container in self.containers.iteritems():
-                candidate = container.get_next_tile(min_priority=self.highest_priority)
+                candidate = container.get_next_tile()
                 if candidate:
                     if not self.candidates or candidate['tile'].priority > self.highest_priority:
                         self.candidates = [ candidate ]
                         self.highest_priority = candidate['tile'].priority
-                    elif candidate.priority == self.highest_priority:
+                    elif candidate['tile'].priority == self.highest_priority:
                         self.candidates.append(candidate)
             # Order the tiles by which template has the worst ratio relative
             # to other tile templates in the feed
@@ -99,7 +94,8 @@ class TemplateRatioEqualizer(Iterator):
             return self.candidates
 
     def _replace_tile_of_template(self, template):
-        candidate = self.containers[template].get_next_tile()
+        candidate = self.containers[template].get_next_tile(increment=True,
+                                                            min_priority=self.highest_priority)
         if candidate:
             self.candidates.append(candidate)
             self.candidates.sort(key=itemgetter('ratio')) # Fix!
@@ -117,7 +113,9 @@ class TileRatioContainer(object):
         self.num_total_tiles = num_total_tiles
         self.num_added = 0
 
-    def get_next_tile(self, min_priority=None):
+    def get_next_tile(self, increment=False, min_priority=None):
+        if increment:
+            self.num_added += 1
         if self.num_added == self.total:
             return None
         tile = self.tiles[self.num_added]
@@ -125,6 +123,5 @@ class TileRatioContainer(object):
         if isinstance(min_priority, int) and min_priority > tile.priority:
             return None
         else:
-            self.num_added += 1
             return { 'tile': tile, 'ratio': ratio }
 
