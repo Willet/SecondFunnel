@@ -89,6 +89,9 @@ def generate_tiles_from_urls(feed, category, urls):
         else:
             try:
                 tile, created = feed.add(p, category=category)
+                if p.is_placeholder:
+                    t.placeholder = True
+                    t.save()
             except Exception as e:
                 results['error'].append({
                     'exception': repr(e),
@@ -101,8 +104,13 @@ def generate_tiles_from_urls(feed, category, urls):
                     results['updated'].append(url)
     return results
 
-
-
+def merge_products_with_same_url(url, store):
+    ps = Product.objects.filter(url=url, store=store)
+    not_placeholders = [ p for p in ps if not p.is_placeholder ]
+    not_placeholders.sort(key=lambda p: p.created_at, reverse=True)
+    # grab the most recent not placehoder, or the first placeholder
+    product = not_placeholders[0] or ps[0]
+    product.merge([ p for p in ps if p != product])
 
 def update_page_from_datafeed(page):
     """ Assumes in.txt is a csv product data feed (usually provided by CJ.com)

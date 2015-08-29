@@ -306,12 +306,12 @@ body {
         &:first-child {
             .sub-categories {
                 left: 0;
-                right: initial;
+                right: auto;
             }
         }
         &:last-child {
             .sub-categories {
-                left: initial;
+                left: auto;
                 right: 0;
             }
         }
