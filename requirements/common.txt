@@ -114,6 +114,6 @@ cssselect==0.9.1
 pyOpenSSL==0.14
 pycparser==2.10
 queuelib==1.1.1
-w3lib==1.5
+w3lib==1.12
 zope.interface==4.1.1
 https://github.com/sosign/scrapy-webdriver/archive/master.zip
