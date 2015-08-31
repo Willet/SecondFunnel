@@ -10,16 +10,13 @@ import os
 from django.conf import settings
 
 BOT_NAME = 'scraper'
-
-SPIDER_MODULES = ['apps.scrapy.spiders']
-NEWSPIDER_MODULE = 'apps.scrapy.spiders'
+LOG_ENABLED = True
 
 EXTENSIONS = {
     # SentrySignals removed because we don't use Sentry.
     # See utils.extensions file for more info.
     #'apps.scrapy.utils.extensions.SentrySignals': 10,
-
-    'apps.scrapy.logging.signals.Signals': 10,
+    'apps.scrapy.signals.Signals': 10,
 }
 
 # Image storage information here:

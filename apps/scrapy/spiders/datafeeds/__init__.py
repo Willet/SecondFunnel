@@ -1,18 +1,3 @@
-from apps.scrapy.spiders import SecondFunnelCrawlScraper as SFScraper
-from apps.utils.functional import autodiscover_module_classes
-
-
-def get_spider(name):
-    """ Find spider in this module with attribute name """
-    try:
-       return next(iter([spider for spider in \
-                         autodiscover_module_classes(__name__, __path__, baseclass=SFScraper) \
-                         if spider.name == name]))
-    except StopIteration:
-        raise LookupError("Can't find spider in <module {}> with name = '{}'".format(__name__, name))
-
-
-# http://doc.scrapy.org/en/latest/topics/item-pipeline.html#activating-an-item-pipeline-component
 ITEM_PIPELINES = {
     # 1's - Validation
     'apps.scrapy.pipelines.ForeignKeyPipeline': 1,

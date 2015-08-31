@@ -12,7 +12,7 @@ def autodiscover_module_classes(name, path, baseclass=None):
 
     NOTE: usually used in an __init__.py file. Populate globals or __all__ with the output
 
-    returns: <list> everything found
+    returns: <list> (<str> name, <type> class) for every class found (same as inspect.getmembers)
     """
     # get all immediate sub-modules
     modules = []
@@ -26,14 +26,14 @@ def autodiscover_module_classes(name, path, baseclass=None):
     discovered = []
     for module in modules:
         members = inspect.getmembers(module, 
-                                     lambda member: inspect.isclass(member) and \
+                                     lambda member: inspect.isclass(member) and
                                                     member.__module__ == module.__name__)
-        for _, member in members:
+        for clsname, cls in members:
             if baseclass:
-                if issubclass(member, baseclass):
-                    discovered.append(member)
+                if issubclass(cls, baseclass):
+                    discovered.append((clsname, cls))
             else:
-                discovered.append(member)
+                discovered.append((clsname, cls))
     return discovered
 
 def flatten(list_of_lists):

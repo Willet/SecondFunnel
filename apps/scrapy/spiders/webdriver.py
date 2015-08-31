@@ -44,7 +44,7 @@ class SecondFunnelCrawlScraper(SecondFunnelScraper):
             self._rules = []
             return self.parse_product(response)
         else:
-            self.logging.info("Not a product page: {}".format(response.url))
+            self.logger.info("Not a product page: {}".format(response.url))
             return []
 
     def is_product_page(self, response):
@@ -144,6 +144,9 @@ class WebdriverCrawlSpider(Spider):
             rule.process_links = get_method(rule.process_links)
             rule.process_request = get_method(rule.process_request)
 
-    def set_crawler(self, crawler):
-        super(WebdriverCrawlSpider, self).set_crawler(crawler)
-        self._follow_links = crawler.settings.getbool('CRAWLSPIDER_FOLLOW_LINKS', True)
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super(WebdriverCrawlSpider, cls).from_crawler(crawler, *args, **kwargs)
+        spider._follow_links = crawler.settings.getbool(
+            'CRAWLSPIDER_FOLLOW_LINKS', True)
+        return spider

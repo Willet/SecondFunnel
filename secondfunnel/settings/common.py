@@ -401,7 +401,15 @@ LOGGING = {
         'django.security.DisallowedHost': {
             'handlers': ['null'],
             'propagate': False,
+        },
+        # scrapy loggers
+        'boto': {
+            'level': 'WARN',
+        },
+        'selenium.webdriver.remote.remote_connection': {
+            'level': 'WARN',
         }
+
     }
 }
 

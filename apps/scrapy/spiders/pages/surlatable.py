@@ -1,5 +1,4 @@
 import re
-import logging
 
 from scrapy.selector import Selector
 from scrapy.linkextractors.sgml import SgmlLinkExtractor
@@ -7,7 +6,7 @@ from scrapy.spiders import Rule
 from scrapy_webdriver.http import WebdriverRequest
 
 from apps.scrapy.items import ScraperImage, ScraperProduct
-from apps.scrapy.spiders import SecondFunnelCrawlScraper, WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperContentLoader, ScraperProductLoader
 
 
@@ -33,7 +32,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
 
     def parse_start_url(self, response):
         if response.url in self.visited:
-            logging.info(u"Already scraped {}, skipping".format(response.url))
+            self.logger.info(u"Already scraped {}, skipping".format(response.url))
             return []
         if self.is_product_page(response):
             self.rules = ()
@@ -46,7 +45,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
             self.visitd.append(response.url)
             return self.parse_recipe(response)
         else:
-            logging.info(u"Not a product or recipe page: {}".format(response.url))
+            self.logger.info(u"Not a product or recipe page: {}".format(response.url))
             return []
 
     def is_product_page(self, response):
@@ -64,12 +63,12 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
     def clean_surlatable_url(self, url):
         clean_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/product/(?:REC|PRO)-\d+/).*?',
                              url).group(1)
-        self.logging.info(u"Cleaned url '{}' into '{}'".format(url, clean_url))
+        self.logger.info(u"Cleaned url '{}' into '{}'".format(url, clean_url))
         return clean_url
         
     def parse_product(self, response, force_skip_tiles=False, force_skip_images=False):
         if not self.is_product_page(response):
-            logging.info(u"Not a product page: {}".format(response.url))
+            self.logger.info(u"Not a product page: {}".format(response.url))
             return
         
         skip_images = (self.skip_images or force_skip_images)
@@ -162,7 +161,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
 
     def parse_recipe(self, response, force_skip_tiles=False, force_skip_images=False):
         if not self.is_recipe_page(response):
-            self.logging.info(u"Not a recipe page: {}".format(response.url))
+            self.logger.info(u"Not a recipe page: {}".format(response.url))
             return
         skip_images = (self.skip_images or force_skip_images)
         skip_tiles = (self.skip_tiles or force_skip_tiles)

@@ -3,7 +3,7 @@ from django.core.validators import URLValidator
 
 from scrapy import signals
 from scrapy.utils.project import get_project_settings
-from scrapy.crawler import Crawler
+from scrapy.crawler import Crawler, CrawlerProcess
 from twisted.internet import reactor
 
 from .spiders import datafeeds, pages
@@ -116,19 +116,16 @@ class PageMaintainer(object):
         set up standard framework for running spider in a script
         """
         settings = self._get_project_settings(project)
-        spidercls = project.get_spider(spider_name)
-
-        crawler = Crawler(spidercls=spidercls, settings=settings)
-        crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
-        crawler.crawl(start_urls=start_urls,
+        process = CrawlerProcess(settings=settings)
+        process.crawl(spider_name,
+                      start_urls=start_urls,
                       feed_id=self.feed.id,
                       categories=categories,
                       **options)
 
         logging.info('Starting spider with options: {}'.format(options))
-        crawler.start()
 
-        reactor.run()
+        process.start()
 
     def _get_project_settings(self, project):
         """
@@ -138,7 +135,7 @@ class PageMaintainer(object):
         settings = get_project_settings()
         settings.setmodule(project)
         settings.setdict({
-            'SPIDER_MODULE': [project.__name__],
+            'SPIDER_MODULES': [project.__name__],
             'NEWSPIDER_MODULE': project.__name__,
         })
         return settings

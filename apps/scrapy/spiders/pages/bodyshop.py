@@ -1,5 +1,5 @@
 from scrapy.selector import Selector
-from apps.scrapy.spiders import SecondFunnelCrawlScraper, WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 from apps.scrapy.items import ScraperProduct
 

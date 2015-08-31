@@ -3,11 +3,7 @@ from scrapy.http import Request
 from scrapy.selector import SelectorList
 from scrapy.utils.python import get_spec
 
-from .webdriver import SecondFunnelCrawlScraper, SecondFunnelScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.misc import monkeypatch_method
-
-
-__all__ = [SecondFunnelCrawlScraper, SecondFunnelScraper, WebdriverCrawlSpider]
 
 
 # MonkeyPatch SelectorList to add useful methods
