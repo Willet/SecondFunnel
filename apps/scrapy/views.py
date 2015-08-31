@@ -1,20 +1,11 @@
 import json
-import urlparse
 from multiprocessing import Process
+import urlparse
 
-from django.db.models import Count
-from django.core.exceptions import ValidationError
-from django.conf import settings as django_settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
-from twisted.internet import reactor
-
-from scrapy import log as scrapy_log, signals
-from scrapy.crawler import Crawler
-from scrapy.settings import CrawlerSettings
-from scrapy.utils.project import get_project_settings
 
 from apps.assets.models import Category, Page, Product, Store
 from apps.scrapy.controllers import PageMaintainer

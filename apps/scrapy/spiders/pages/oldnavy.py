@@ -1,6 +1,7 @@
-from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-from scrapy.contrib.spiders import Rule
-from apps.scrapy.spiders.gap import GapSpider
+from scrapy.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.spiders import Rule
+
+from .gap import GapSpider
 
 
 class OldNavySpider(GapSpider):

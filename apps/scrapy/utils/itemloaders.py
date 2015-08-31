@@ -1,7 +1,7 @@
 import bleach
 
-from scrapy.contrib.loader import ItemLoader, Identity
-from scrapy.contrib.loader.processor import TakeFirst, Compose, Join
+from scrapy.loader import ItemLoader, Identity
+from scrapy.loader.processors import TakeFirst, Compose, Join
 
 from .misc import str_to_boolean
 from .processors import MergeDicts

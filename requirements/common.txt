@@ -107,6 +107,7 @@ python-simple-hipchat==0.2
 # Scrapy
 Scrapy==1.0.3
 scrapy-sentry==0.6.1
+scrapy-djangoitem==1.0.0
 Twisted==13.2.0
 cffi==0.8.2
 cryptography==0.4

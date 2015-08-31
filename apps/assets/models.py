@@ -18,7 +18,7 @@ from apps.imageservice.utils import delete_cloudinary_resource
 import apps.intentrank.serializers as ir_serializers
 from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
-from apps.utils.models import MemcacheSetting
+from apps.utils.classes import MemcacheSetting
 
 
 default_master_size = {

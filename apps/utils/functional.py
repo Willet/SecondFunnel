@@ -1,6 +1,40 @@
 import os
+import pkgutil
+import sys
+import inspect
 import itertools
 import urlparse
+
+def autodiscover_module_classes(name, path, baseclass=None):
+    """
+    Discover every class defined in this package at the immediate depth
+    Optionally filter for children of baseclass
+
+    NOTE: usually used in an __init__.py file. Populate globals or __all__ with the output
+
+    returns: <list> everything found
+    """
+    # get all immediate sub-modules
+    modules = []
+    for importer, package_name, _ in pkgutil.iter_modules(path, prefix="{}.".format(name)):
+        if package_name not in sys.modules:
+            module = importer.find_module(package_name).load_module(package_name)
+        else:
+            module = sys.modules[package_name]
+        modules.append(module)
+    # get classes in submodules
+    discovered = []
+    for module in modules:
+        members = inspect.getmembers(module, 
+                                     lambda member: inspect.isclass(member) and \
+                                                    member.__module__ == module.__name__)
+        for _, member in members:
+            if baseclass:
+                if issubclass(member, baseclass):
+                    discovered.append(member)
+            else:
+                discovered.append(member)
+    return discovered
 
 def flatten(list_of_lists):
     """ Compress of a lists of lists down to just the values of the lists """

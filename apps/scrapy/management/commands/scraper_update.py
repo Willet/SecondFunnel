@@ -1,9 +1,11 @@
 from django.core.management.base import BaseCommand
+import logging
 from optparse import make_option
-from scrapy import log, signals
+from twisted.internet import reactor
+
+from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from scrapy.crawler import Crawler
-from twisted.internet import reactor
 
 from apps.assets.models import Feed, Page
 
@@ -68,8 +70,7 @@ class Command(BaseCommand):
         spider.feed_id = feed.id
 
         crawler.crawl(spider)
-        log.start()
-        log.msg('Starting spider with options: {}'.format(opts))
+        logging.info('Starting spider with options: {}'.format(opts))
         crawler.start()
 
         reactor.run()

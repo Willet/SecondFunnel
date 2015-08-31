@@ -3,15 +3,14 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import cloudinary
-import traceback
 import decimal
+import logging
+import traceback
 
-from pprint import pprint
 from collections import defaultdict
 from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.db import transaction
 from django.db.models import Model, Q
-from scrapy import log
 from scrapy.exceptions import DropItem, CloseSpider
 from urlparse import urlparse
 
@@ -139,7 +138,7 @@ class ContentImagePipeline(ItemManifold):
                 # Already sufficiently proccessed
                 return item
 
-            spider.log("\nprocessing image - {}".format(source_url))
+            spider.logging.info("\nprocessing image - {}".format(source_url))
             data = process_image(source_url, create_image_path(store.id), remove_background=remove_background)
             item['url'] = data.get('url')
             item['file_type'] = data.get('format')
@@ -169,7 +168,7 @@ class ItemPersistencePipeline(PlaceholderMixin):
 
         model, was_it_created = get_or_create(item_model)
         item['created'] = was_it_created
-        spider.log("item: {}, created: {}".format(item, was_it_created))
+        spider.logging.info("item: {}, created: {}".format(item, was_it_created))
         try:
             update_model(model, item)
         except ValidationError as e:
@@ -205,17 +204,17 @@ class AssociateWithProductsPipeline(ItemManifold):
                 product_id = product.id
                 tagged_product_ids = image.tagged_products.values_list('id', flat=True)
                 if not product_id in tagged_product_ids:
-                    spider.log('Tagging <Image {}> with <Product {}>'.format(image.id, product_id))
+                    spider.logging.info('Tagging <Image {}> with <Product {}>'.format(image.id, product_id))
                     image.tagged_products.add(product)
                 else:
-                    spider.log('<Image {}> already tagged with <Product {}>'.format(image.id, product_id))
+                    spider.logging.info('<Image {}> already tagged with <Product {}>'.format(image.id, product_id))
 
     def close_spider(self, spider):
         # Save images in one transaction
         with transaction.atomic():
             for id in self.images:
                 self.images[id].save()
-        spider.log('Saved {} tagged images'.format(len(self.images)))
+        spider.logging.info('Saved {} tagged images'.format(len(self.images)))
 
 
 class TagPipeline(ItemManifold):
@@ -225,12 +224,12 @@ class TagPipeline(ItemManifold):
     def process_product(self, item, spider):
         # If tags were found by the crawler
         for name in item.get('attributes', {}).get('tags', []):
-            spider.log("Adding scraped tag '{}'".format(name.strip()))
+            spider.logging.info("Adding scraped tag '{}'".format(name.strip()))
             self.add_product_to_tag(item, name.strip())
 
         # If you want all products in a scrape to have a specific tag
         for name in getattr(spider, 'tags', []):
-            spider.log("Adding spider-specified tag '{}'".format(name.strip()))
+            spider.logging.info("Adding spider-specified tag '{}'".format(name.strip()))
             self.add_product_to_tag(item, name.strip())
 
     def add_product_to_tag(self, item, name):
@@ -252,7 +251,7 @@ class ProductImagePipeline(ItemManifold):
         product = item['instance']
 
         if True in skip_images:
-            spider.log(u"Skipping product images. item: <{0}>, spider.skip_images: {1}, \
+            spider.logging.info(u"Skipping product images. item: <{0}>, spider.skip_images: {1}, \
                          item.force_skip_images: {2}".format(item.__class__.__name__, skip_images[0], skip_images[1]))
         else:
             old_images = list(product.product_images.all())
@@ -269,7 +268,7 @@ class ProductImagePipeline(ItemManifold):
                                                                  remove_background=remove_background))
                         processed += 1
                     except cloudinary.api.Error as e:
-                        spider.log(u"<Product {}> image failed processing:\n{}".format(product, traceback.format_exc()))
+                        spider.logging.info(u"<Product {}> image failed processing:\n{}".format(product, traceback.format_exc()))
                 else:
                     images.append(existing_image)
 
@@ -278,13 +277,13 @@ class ProductImagePipeline(ItemManifold):
                 # Implementation is not very idiomatic unfortunately
                 product.in_stock = False
                 product.save()
-                spider.log(u"<Product {}> failed image processing!".format(product))
+                spider.logging.info(u"<Product {}> failed image processing!".format(product))
             else:
                 # Product is good, delete any out of date images
                 old_pks = [pi.pk for pi in old_images]
                 product.product_images.filter(pk__in=old_pks).delete()
 
-                spider.log(u"<Product {}> has {} images, {} processed and {} deleted".format(
+                spider.logging.info(u"<Product {}> has {} images, {} processed and {} deleted".format(
                                                     product, len(images), processed, len(old_pks)))
                
 
@@ -339,7 +338,7 @@ class TileCreationPipeline(TilesMixin):
         else:
             feed_id = getattr(spider, 'feed_id', None)
             if feed_id:
-                spider.log(u"Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
+                spider.logging.info(u"Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
                 tile, _ = self.add_to_feed(item, spider)
             
             return item
@@ -414,5 +413,5 @@ class PageUpdatePipeline(ItemManifold):
             else:
                 # Mark all items in not_updated_cache as out of stock
                 Product.objects.filter(pk__in=pk_set).update(in_stock=False)
-                spider.log('Marked {} products as sold out'.format(len(pk_set)))
+                spider.logging.info('Marked {} products as sold out'.format(len(pk_set)))
 

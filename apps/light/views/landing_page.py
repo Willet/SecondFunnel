@@ -17,7 +17,7 @@ from django.utils.safestring import SafeString
 from apps.assets.models import Page, Store, Product, Tile
 from apps.intentrank.serializers import PageConfigSerializer
 from apps.light.utils import get_store_from_request, get_algorithm
-from apps.utils.models import AttrDict
+from apps.utils.classes import AttrDict
 
 
 @cache_control(must_revalidate=True, max_age=(1 * 60))

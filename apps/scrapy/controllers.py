@@ -1,6 +1,7 @@
+import logging
 from django.core.validators import URLValidator
 
-from scrapy import log, signals
+from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from scrapy.crawler import Crawler
 from twisted.internet import reactor
@@ -115,18 +116,16 @@ class PageMaintainer(object):
         set up standard framework for running spider in a script
         """
         settings = self._get_project_settings(project)
-        crawler = Crawler(settings)
+        spidercls = project.get_spider(spider_name)
+
+        crawler = Crawler(spidercls=spidercls, settings=settings)
         crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
-        crawler.configure()
+        crawler.crawl(start_urls=start_urls,
+                      feed_id=self.feed.id,
+                      categories=categories,
+                      **options)
 
-        spider = crawler.spiders.create(spider_name, **options)
-        spider.start_urls = start_urls
-        spider.feed_id = self.feed.id
-        spider.categories = categories
-
-        crawler.crawl(spider)
-        log.start()
-        log.msg('Starting spider with options: {}'.format(options))
+        logging.info('Starting spider with options: {}'.format(options))
         crawler.start()
 
         reactor.run()

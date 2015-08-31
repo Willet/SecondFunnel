@@ -1,6 +1,7 @@
 import copy
-from scrapy import log
-from scrapy.spider import Spider
+import logging
+
+from scrapy.spiders import Spider
 from scrapy.utils.spider import iterate_spider_output
 from scrapy_webdriver.http import WebdriverRequest, WebdriverResponse
 
@@ -43,7 +44,7 @@ class SecondFunnelCrawlScraper(SecondFunnelScraper):
             self._rules = []
             return self.parse_product(response)
         else:
-            self.log("Not a product page: {}".format(response.url))
+            self.logging.info("Not a product page: {}".format(response.url))
             return []
 
     def is_product_page(self, response):
