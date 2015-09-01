@@ -97,6 +97,14 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
             # Try to find the SKU directly, does not work for products with multiple sizes
             sku = sel.css('#product-sku span[itemprop="sku"]::text').extract()[0].strip()
         except (IndexError, AttributeError):
+            pass
+        if not sku:
+            try:
+                # could be a color option
+                sku = sel.css('#product #product-options a[data-sku]::attr(data-sku)').extract()[0]
+            except (IndexError, AttributeError):
+                pass
+        if not sku:
             try:
                 # Product ID usually of form: 'PRO-1220433'
                 prod_id = sel.css('#productId::attr(value)').extract()[0]
@@ -104,8 +112,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
             except (IndexError, AttributeError):
                 # An item with a missing sku will not validate
                 sku = ''
-        finally:
-            l.add_value('sku', sku)
+        l.add_value('sku', sku)
 
         # prices are sometimes in the forms:
         #    $9.95 - $48.96

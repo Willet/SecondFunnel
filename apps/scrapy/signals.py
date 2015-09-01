@@ -47,8 +47,13 @@ class Signals(object):
         logging.getLogger().addHandler(sh)
 
     def spider_opened(self, spider):
-        self.crawler.stats.set_value('logging/items dropped', {})
-        self.crawler.stats.set_value('logging/errors', {})
+        self.crawler.stats.set_stats({
+            'logging/items dropped': {},
+            'logging/errors': {},
+            'logging/new items': [],
+            'logging/items out of stock': [],
+            'logging/items updated': [],
+        })
 
 
     def item_scraped(self, item, response, spider):

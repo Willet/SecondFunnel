@@ -117,4 +117,4 @@ pycparser==2.10
 queuelib==1.1.1
 w3lib==1.12
 zope.interface==4.1.1
-https://github.com/sosign/scrapy-webdriver/archive/master.zip
+https://github.com/Willet/scrapy-webdriver/archive/master.zip
