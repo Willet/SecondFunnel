@@ -467,6 +467,31 @@ class Product(BaseModel):
         for product in other_products:
             product.delete()
 
+    @classmethod
+    def merge_products(products):
+        """
+        Merge products into most recent non-placeholder product
+
+        products - <QuerySet> or list of <Product>'s
+
+        returns: merged <Product>
+        """
+        # If products has 1 or None, return it stripped of the list container
+        if len(products) < 2:
+            return products[0] if len(products) else None
+
+        not_placeholders = [ p for p in products if not p.is_placeholder ]
+        # merge into the most recent not placehoder, or the first placeholder
+        if not_placeholders:
+            not_placeholders.sort(key=lambda p: p.created_at, reverse=True)
+            product = not_placeholders[0]
+            product.merge([p for p in ps if p != product])
+        else:
+            # order doesnt matter with placeholders
+            product = ps.pop(0)
+            product.merge(ps)
+        return product
+
 
 class ProductImage(BaseModel):
     """An Image-like model class that is explicitly an image depicting

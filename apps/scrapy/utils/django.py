@@ -1,3 +1,5 @@
+from django.core.exceptions import MultipleObjectsReturned
+
 from apps.assets.models import Product, Category, Content
 
 
@@ -15,32 +17,46 @@ def item_to_model(item):
 
 
 def get_or_create(model):
+    """
+    Normally, we would use Django's `get_or_create`. However, `get_or_create`
+    would match all properties of an object (i.e. create a new object anytime it
+    changed) rather than update an existing object.
+
+    Instead, this does a lookup on a narrow set of reliably distinct fields.
+    Update should be manually performed by update_model (see below)
+
+    Returns: <tuple> (<model_class> obj, <bool> created)
+    """
     model_class = type(model)
-    created = False
 
-    # Normally, we would use `get_or_create`. However, `get_or_create` would
-    # match all properties of an object (i.e. create a new object
-    # anytime it changed) rather than update an existing object.
-    #
-    # Instead, we do the two steps separately
-    try:
-        if isinstance(model, Product):
-            # We have no unique identifier at the moment; use the url / store
-            obj = model_class.objects.get(url=model.url, store_id=model.store.id)
-        elif isinstance(model, Content):
-            # since there is no unique identifier for content, assuming source_url is unique
-            obj = model_class.objects.get(source_url=model.source_url)
-        elif isinstance(model, Category):
-            obj = model_class.objects.get(name=model.name, store_id=model.store.id)
-        else:  # if not a product, its content? this is here just in case
-            # TODO: don't always create...
-            created = True
-            obj = model  # djangoitem created a model for us.
-    except model_class.DoesNotExist:
-        created = True
-        obj = model  # djangoitem created a model for us.
+    def get_or_return(model, query):
+        try:
+            obj = model_class.objects.get(**query)
+            return (obj, False)
+        except model_class.DoesNotExist:
+            return (model, True) # djangoitem created a model for us.
 
-    return (obj, created)
+    def get_or_return_product(model, query):
+        # Occasionally we can get multiples of products. Merge if we find them
+        try:
+            (product, created) = get_or_return(model, query)
+        except MultipleObjectsReturned:
+            qs = Product.objects.filter(**query)
+            product = Product.merge_products(qs)
+            created = False
+        return (product, created)
+    
+    if isinstance(model, Product):
+        # We have no unique identifier at the moment; use the url / store
+        return get_or_return_product(model, { 'url': model.url, 'store_id': model.store.id })
+    elif isinstance(model, Content):
+        # since there is no unique identifier for content, assuming source_url is unique
+        return get_or_return(model, { 'source_url': model.source_url })
+    elif isinstance(model, Category):
+        return get_or_return(model, { 'name': model.name, 'store_id': model.store.id })
+    else:
+        # Don't know what this is, pass it on
+        return (model, False)
 
 
 def update_model(destination, source_item, commit=True):
