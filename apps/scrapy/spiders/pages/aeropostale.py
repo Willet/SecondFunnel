@@ -3,9 +3,8 @@ import urlparse
 import time
 
 from scrapy.selector import Selector
-from scrapy.contrib.spiders import CrawlSpider
-from scrapy.contrib.spiders import Rule
-from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.spiders import CrawlSpider, Rule
+from scrapy.linkextractors.sgml import SgmlLinkExtractor
 from scrapy_webdriver.http import WebdriverRequest
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions

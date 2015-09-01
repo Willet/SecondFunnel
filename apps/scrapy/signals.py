@@ -1,9 +1,9 @@
-from scrapy import signals, log
-from StringIO import StringIO
 from django.conf import settings
+import logging
+from scrapy import signals
+from StringIO import StringIO
 
-import notify_slack
-import upload_to_s3
+from .log import notify_slack, upload_to_s3
 
 
 class Signals(object):
@@ -35,9 +35,25 @@ class Signals(object):
 
 
     def engine_started(self):
+        # Save logging messages to a buffer that will be saved to S3
         log_buffer = StringIO()
         self.crawler.stats.set_value('log', log_buffer)
-        log.ScrapyFileLogObserver(log_buffer, level=log.DEBUG).start()
+        formatter = logging.Formatter('%(asctime)s [%(name)s] %(levelname)s: %(message)s')
+
+        sh = logging.StreamHandler(log_buffer)
+        sh.setLevel(logging.INFO)
+        sh.setFormatter(formatter)
+
+        logging.getLogger().addHandler(sh)
+
+    def spider_opened(self, spider):
+        self.crawler.stats.set_stats({
+            'logging/items dropped': {},
+            'logging/errors': {},
+            'logging/new items': [],
+            'logging/items out of stock': [],
+            'logging/items updated': [],
+        })
 
 
     def item_scraped(self, item, response, spider):
@@ -59,7 +75,7 @@ class Signals(object):
         if msg == 'OutOfStock':
             self.crawler.stats.inc_value('logging/items out of stock', [item['url']], [])
         else:
-            dropped_items = self.crawler.stats.get_value('logging/items dropped', {})
+            dropped_items = self.crawler.stats.get_value('logging/items dropped')
             items = dropped_items.get(msg, [])
             items.append(item.get('url'))
             dropped_items[msg] = items
@@ -68,7 +84,7 @@ class Signals(object):
 
 
     def spider_error(self, failure, response, spider):
-        errors = self.crawler.stats.get_value('logging/errors', {})
+        errors = self.crawler.stats.get_value('logging/errors')
 
         msg = failure.getErrorMessage()
         items = errors.get(msg, [])

@@ -1,16 +1,16 @@
 import re
 
-from scrapy import log
 from scrapy.selector import Selector
-from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-from scrapy.contrib.spiders import Rule
+from scrapy.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.spiders import Rule
 from scrapy_webdriver.http import WebdriverRequest
 
+from apps.scrapy.items import ScraperImage, ScraperProduct
 from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperContentLoader, ScraperProductLoader
-from apps.scrapy.items import ScraperImage, ScraperProduct
 
-class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+
+class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
     name = 'surlatable'
     root_url = "http://www.surlatable.com"
     allowed_domains = ['surlatable.com']
@@ -32,7 +32,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     def parse_start_url(self, response):
         if response.url in self.visited:
-            log.msg(u"Already scraped {}, skipping".format(response.url))
+            self.logger.info(u"Already scraped {}, skipping".format(response.url))
             return []
         if self.is_product_page(response):
             self.rules = ()
@@ -45,7 +45,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             self.visitd.append(response.url)
             return self.parse_recipe(response)
         else:
-            log.msg(u"Not a product or recipe page: {}".format(response.url))
+            self.logger.info(u"Not a product or recipe page: {}".format(response.url))
             return []
 
     def is_product_page(self, response):
@@ -63,12 +63,12 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
     def clean_surlatable_url(self, url):
         clean_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/product/(?:REC|PRO)-\d+/).*?',
                              url).group(1)
-        self.log(u"Cleaned url '{}' into '{}'".format(url, clean_url))
+        self.logger.info(u"Cleaned url '{}' into '{}'".format(url, clean_url))
         return clean_url
         
     def parse_product(self, response, force_skip_tiles=False, force_skip_images=False):
         if not self.is_product_page(response):
-            log.msg(u"Not a product page: {}".format(response.url))
+            self.logger.info(u"Not a product page: {}".format(response.url))
             return
         
         skip_images = (self.skip_images or force_skip_images)
@@ -97,6 +97,14 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             # Try to find the SKU directly, does not work for products with multiple sizes
             sku = sel.css('#product-sku span[itemprop="sku"]::text').extract()[0].strip()
         except (IndexError, AttributeError):
+            pass
+        if not sku:
+            try:
+                # could be a color option
+                sku = sel.css('#product #product-options a[data-sku]::attr(data-sku)').extract()[0]
+            except (IndexError, AttributeError):
+                pass
+        if not sku:
             try:
                 # Product ID usually of form: 'PRO-1220433'
                 prod_id = sel.css('#productId::attr(value)').extract()[0]
@@ -104,8 +112,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
             except (IndexError, AttributeError):
                 # An item with a missing sku will not validate
                 sku = ''
-        finally:
-            l.add_value('sku', sku)
+        l.add_value('sku', sku)
 
         # prices are sometimes in the forms:
         #    $9.95 - $48.96
@@ -161,7 +168,7 @@ class SurLaTableSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
 
     def parse_recipe(self, response, force_skip_tiles=False, force_skip_images=False):
         if not self.is_recipe_page(response):
-            self.log(u"Not a recipe page: {}".format(response.url))
+            self.logger.info(u"Not a recipe page: {}".format(response.url))
             return
         skip_images = (self.skip_images or force_skip_images)
         skip_tiles = (self.skip_tiles or force_skip_tiles)

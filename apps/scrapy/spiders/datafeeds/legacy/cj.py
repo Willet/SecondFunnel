@@ -4,7 +4,7 @@ import os
 
 from ftplib import FTP
 
-from apps.utils.models import LookupTable
+from apps.utils.classes import LookupTable
 
 
 class CJDatafeed(object):

@@ -1,20 +1,11 @@
 import json
-import urlparse
 from multiprocessing import Process
+import urlparse
 
-from django.db.models import Count
-from django.core.exceptions import ValidationError
-from django.conf import settings as django_settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
-from twisted.internet import reactor
-
-from scrapy import log as scrapy_log, signals
-from scrapy.crawler import Crawler
-from scrapy.settings import CrawlerSettings
-from scrapy.utils.project import get_project_settings
 
 from apps.assets.models import Category, Page, Product, Store
 from apps.scrapy.controllers import PageMaintainer
@@ -45,37 +36,37 @@ def page(request, page_slug):
 def scrape(request, page_slug):
     """callback for running a spider"""
     page = get_object_or_404(Page, url_slug=page_slug)
-    def process(request, page_id):
-        page = Page.objects.get(id=page_id)
-        cat = request.POST.get('cat')
-        if not cat:
-            return HttpResponseBadRequest(u"Missing required data 'cat'")
-        try:
-            data = json.loads(urlparse.unquote(request.POST.get('cat')))
-        except ValueError:
-            return HttpResponseBadRequest(u"Data 'cat' was not valid json")
-        urls = data.get('urls')
-        if not urls:
-            return HttpResponseBadRequest(u"Data 'cat' is missing 'urls', the list of urls to scrape")
-        priorities = data.get('priorities', []) # Optional list of priorities
-        if priorities and len(priorities) != len(urls):
-            return HttpResponseBadRequest(u"Can't match priorities and urls because they are of different lengths")
-        
-        tiles = bool(request.POST.get('tiles') == 'true')
-        category_name = data.get('name') # 'category_name', '' or None
-        categories = [category_name] if tiles and category_name else []
-        
-        options = {
-            'skip_tiles': not tiles,
-        }
+    cat = request.POST.get('cat')
+    if not cat:
+        return HttpResponseBadRequest(u"Missing required data 'cat'")
+    try:
+        data = json.loads(urlparse.unquote(request.POST.get('cat')))
+    except ValueError:
+        return HttpResponseBadRequest(u"Data 'cat' was not valid json")
+    urls = data.get('urls')
+    if not urls:
+        return HttpResponseBadRequest(u"Data 'cat' is missing 'urls', the list of urls to scrape")
+    priorities = data.get('priorities', []) # Optional list of priorities
+    
+    if priorities and len(priorities) != len(urls):
+        return HttpResponseBadRequest(u"Can't match priorities and urls because they are of different lengths")
+    
+    tiles = bool(request.POST.get('tiles') == 'true')
+    category_name = data.get('name') # 'category_name', '' or None
+    categories = [category_name] if tiles and category_name else []
+    
+    options = {
+        'skip_tiles': not tiles,
+    }
 
+    def process(request, page, urls, options, categories, priorities):
         maintainer = PageMaintainer(page)
         maintainer.add(source_urls=urls, categories=categories, options=options)
 
         if categories and priorities:
-            prioritize(request, page_slug)
+            prioritize(request, page.url_slug)
 
-    p = Process(target=process, args=[request, page.id])
+    p = Process(target=process, args=[request, page, urls, options, categories, priorities])
     p.start()
     p.join()
 
@@ -100,7 +91,17 @@ def prioritize(request, page_slug):
         prods = Product.objects.filter(url=url)
         for prod in prods:
             # filter for product tiles with this product, update priority in bulk
-            product_tiles.filter(products__id=prod.id).update(priority=priorities[i])
+            print "Setting priority of {} to '{}'".format(prod, priorities[i])
+            try:
+                product_tiles.filter(products__id=prod.id).update(priority=priorities[i])
+            except ValueError:
+                if len(priorities[i]) == 0:
+                    # u''
+                    pass
+                else:
+                    error_text = "Invalid priority '{}' for '{}'".format(priorities[i], url)
+                    print error_text
+                    return HttpResponseBadRequest(error_text)
     return HttpResponse(status=204)
 
 @login_required

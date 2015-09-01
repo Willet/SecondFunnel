@@ -2,8 +2,9 @@
 #
 # See documentation in:
 # http://doc.scrapy.org/en/latest/topics/items.html
-from scrapy.contrib.djangoitem import DjangoItem
 from scrapy.item import Field
+from scrapy_djangoitem import DjangoItem
+
 from apps.assets.models import Product, Content, Image, Video
 from apps.scrapy.utils.serializers import store_serializer
 

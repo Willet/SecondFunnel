@@ -1,10 +1,12 @@
+import logging
 from django.core.validators import URLValidator
 
-from scrapy import log, signals
+from scrapy import signals
 from scrapy.utils.project import get_project_settings
-from scrapy.crawler import Crawler
+from scrapy.crawler import Crawler, CrawlerProcess
 from twisted.internet import reactor
 
+from .spiders import datafeeds, pages
 
 class PageMaintainer(object):
     """
@@ -71,7 +73,8 @@ class PageMaintainer(object):
         self._run_scraper(spider_name=spider_name,
                           start_urls=source_urls,
                           categories=categories,
-                          options=opts)
+                          options=opts,
+                          project=pages)
 
     def update(self, options={}):
         """
@@ -105,26 +108,35 @@ class PageMaintainer(object):
         self._run_scraper(spider_name=spider_name,
                           start_urls=start_urls,
                           categories=[],
-                          options=opts)
+                          options=opts,
+                          project=datafeeds)
 
-    def _run_scraper(self, spider_name, start_urls, categories, options):
+    def _run_scraper(self, spider_name, start_urls, categories, options, project):
         """
         set up standard framework for running spider in a script
         """
+        settings = self._get_project_settings(project)
+        process = CrawlerProcess(settings=settings)
+        process.crawl(spider_name,
+                      start_urls=start_urls,
+                      feed_id=self.feed.id,
+                      categories=categories,
+                      **options)
+
+        logging.info('Starting spider with options: {}'.format(options))
+
+        process.start()
+
+    def _get_project_settings(self, project):
+        """
+        Scrapers are namespaced by project
+        Add in project specific settings & location of scrapers
+        """
         settings = get_project_settings()
-        crawler = Crawler(settings)
-        crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
-        crawler.configure()
-
-        spider = crawler.spiders.create(spider_name, **options)
-        spider.start_urls = start_urls
-        spider.feed_id = self.feed.id
-        spider.categories = categories
-
-        crawler.crawl(spider)
-        log.start()
-        log.msg('Starting spider with options: {}'.format(options))
-        crawler.start()
-
-        reactor.run()
+        settings.setmodule(project)
+        settings.setdict({
+            'SPIDER_MODULES': [project.__name__],
+            'NEWSPIDER_MODULE': project.__name__,
+        })
+        return settings
 

@@ -3,11 +3,12 @@ from cloudinary import uploader as uploader
 import os
 import re
 import decimal
-from scrapy.http import HtmlResponse, TextResponse
-from scrapy_webdriver.http import WebdriverResponse
 import six
 import tempfile
 import webbrowser
+
+from scrapy.http import HtmlResponse, TextResponse
+from scrapy_webdriver.http import WebdriverResponse
 
 
 def open_in_browser(response, _openfunc=webbrowser.open):

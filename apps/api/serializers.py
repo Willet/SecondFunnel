@@ -2,7 +2,7 @@ import json
 
 from django.core.serializers.json import Serializer as JSONSerializer
 from django.utils.text import slugify
-from apps.utils.models import MemcacheSetting
+from apps.utils.classes import MemcacheSetting
 
 
 class RawSerializer(JSONSerializer):

@@ -2,7 +2,9 @@ from scrapy.contracts import ContractsManager
 from scrapy.http import Request
 from scrapy.selector import SelectorList
 from scrapy.utils.python import get_spec
+
 from apps.scrapy.utils.misc import monkeypatch_method
+
 
 # MonkeyPatch SelectorList to add useful methods
 @monkeypatch_method(SelectorList)

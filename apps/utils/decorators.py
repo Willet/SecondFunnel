@@ -1,4 +1,5 @@
 import cPickle
+import logging
 
 from threading import Thread
 from functools import wraps
@@ -41,3 +42,22 @@ def returns_unicode(fn, encoding='utf-8'):
             return rtn
 
     return unicode_func
+
+
+def temporary_log_level(logname, templevel):
+    """ For duration of function, set logging for standard log logname to templevel."""
+    def func(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            logger = logging.getLogger(logname)
+            level = logger.getEffectiveLevel()
+            logger.setLevel(templevel)
+
+            rtn = fn(*args, **kwargs)
+            
+            logger.setLevel(level)
+            
+            return rtn
+
+        return wrapper
+    return func

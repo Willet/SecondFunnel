@@ -1,7 +1,7 @@
 import json
 
-from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-from scrapy.contrib.spiders import Rule
+from scrapy.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.spiders import Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
 

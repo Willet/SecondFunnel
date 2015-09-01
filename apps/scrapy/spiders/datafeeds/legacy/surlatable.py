@@ -1,10 +1,9 @@
 import random
 
-from apps.scrapy.datafeeds.cj import CJDatafeed
-
 from apps.assets.models import Store, Product, ProductImage
-
 from apps.imageservice.utils import get_filetype
+
+from .cj import CJDatafeed
 
 
 class SurLaTableDatafeed(CJDatafeed):

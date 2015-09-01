@@ -1,11 +1,11 @@
 import re
 import time
-
-from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-from scrapy.contrib.spiders import Rule
-from scrapy.selector import Selector
-from scrapy.spider import Spider
 from urlparse import urlparse
+
+from scrapy.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.spiders import Rule
+from scrapy.selector import Selector
+from scrapy.spiders import Spider
 
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
