@@ -4,7 +4,7 @@ from south.db import db
 from south.v2 import DataMigration
 from django.db import models
 
-from apps.scrapy.utils.django import get_or_create
+from apps.scrapy.utils.djangotools import get_or_create
 
 class Migration(DataMigration):
 
