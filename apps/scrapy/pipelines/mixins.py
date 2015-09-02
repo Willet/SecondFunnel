@@ -127,12 +127,8 @@ class PlaceholderMixin(TilesMixin):
             product.save()
             created = True
         except MultipleObjectsReturned:
-            ps = Product.objects.filter(url=url, store=store)
-            not_placeholders = [ p for p in ps if not p.is_placeholder ]
-            not_placeholders.sort(key=lambda p: p.created_at, reverse=True)
-            # grab the most recent not placehoder, or the first placeholder
-            product = not_placeholders[0] or ps[0]
-            product.merge([ p for p in ps if p != product])
+            qs = Product.objects.filter(url=url, store=store)
+            product = Product.merge_products(qs)
             created = False
         finally:
             # If we are creating tiles, add a placeholder to the feed

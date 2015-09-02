@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from apps.scrapy.utils.django import get_or_create
+from apps.scrapy.utils.djangotools import get_or_create
 
 
 class SimpleModelCache(object):

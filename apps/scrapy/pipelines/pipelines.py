@@ -17,7 +17,7 @@ from urlparse import urlparse
 from apps.assets.models import Category, Feed, Image, Page, Product, ProductImage, Store, Tag
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
-from apps.scrapy.utils.django import item_to_model, get_or_create, update_model
+from apps.scrapy.utils.djangotools import item_to_model, get_or_create, update_model
 from apps.scrapy.utils.misc import extract_decimal, extract_currency
 
 from .mixins import ItemManifold, PlaceholderMixin, TilesMixin
