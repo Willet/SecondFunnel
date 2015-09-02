@@ -21,6 +21,7 @@ def index(request):
     }
     return render(request, 'index.html', data)
 
+@login_required
 def page(request, page_slug):
     """This page is where scrapers are run from"""
 
