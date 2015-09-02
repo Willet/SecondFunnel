@@ -4,6 +4,7 @@ Intended to be run from a shell"""
 
 import csv
 import pprint
+import random
 
 from apps.assets.models import Category, Feed, Page, Product, Tile
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
@@ -104,13 +105,23 @@ def generate_tiles_from_urls(feed, category, urls):
                     results['updated'].append(url)
     return results
 
-def merge_products_with_same_url(url, store):
-    ps = Product.objects.filter(url=url, store=store)
-    not_placeholders = [ p for p in ps if not p.is_placeholder ]
-    not_placeholders.sort(key=lambda p: p.created_at, reverse=True)
-    # grab the most recent not placehoder, or the first placeholder
-    product = not_placeholders[0] or ps[0]
-    product.merge([ p for p in ps if p != product])
+def set_random_priorities(tiles, max_priority=0, min_priority=0):
+    """ Randomly assign priorities to tiles using range(1:number of tiles)
+
+    Optional: will use range(1:max_priority) or range(min_priority:max_priority)
+    for priority values.
+    """
+    if max_priority is 0:
+        max_priority = len(tiles)
+    print u"Assigning priorities in range {} to {}".format(min_priority, max_priority)
+    priorities = range(min_priority, max_priority)
+    random.shuffle(priorities)
+    with transaction.atomic():
+        for t in tiles:
+            t.priority = priorities.pop()
+            t.save()
+            print u"{} priority set to {}".format(t, t.priority)
+    print u"Random priorities set for {} Tiles".format(len(tiles))
 
 def update_page_from_datafeed(page):
     """ Assumes in.txt is a csv product data feed (usually provided by CJ.com)
