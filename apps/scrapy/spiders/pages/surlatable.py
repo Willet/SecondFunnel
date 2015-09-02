@@ -93,6 +93,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         l.add_css('details', '#product-moreInfo-features li')
 
         # If the page doesn't have a sku, the product doesn't exist
+        sku = ''
         try:
             # Try to find the SKU directly, does not work for products with multiple sizes
             sku = sel.css('#product-sku span[itemprop="sku"]::text').extract()[0].strip()
@@ -111,7 +112,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
                 sku = re.search(r'\d+', prod_id).group()
             except (IndexError, AttributeError):
                 # An item with a missing sku will not validate
-                sku = ''
+                pass
         l.add_value('sku', sku)
 
         # prices are sometimes in the forms:
