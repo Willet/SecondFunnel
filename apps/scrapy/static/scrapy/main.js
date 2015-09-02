@@ -40,6 +40,7 @@ var get_data = function () {
 var scrape = function(create_tiles) {
     var cat,
         categories = get_data(),
+        refresh_images = $('#refresh-images').prop('checked'),
         $results = $('.results').removeClass('success').removeClass('warning');
 
     if (!categories) {
@@ -60,7 +61,8 @@ var scrape = function(create_tiles) {
                 data: {
                     'cat': encodeURIComponent(JSON.stringify(categories[cat])),
                     'page': page,
-                    'tiles': create_tiles
+                    'tiles': create_tiles,
+                    'refresh-images': refresh_images
                 },
                 success: function(data, status) {
                     if (!$results.hasClass('warning')) {

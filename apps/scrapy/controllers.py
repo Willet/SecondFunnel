@@ -45,6 +45,7 @@ class PageMaintainer(object):
         {
             'spider_name': <str> Over-ride for page / store spider
             'recreate_tiles': <bool> Recreate tiles if they already exist. Wipes old data, categories, etc.
+            'refresh_images': <bool> Delete existing images & scrape new ones. Wipes old data
             'skip_images': <bool> Do not scrape product images. Useful if you want a fast data-only update.
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
         }
@@ -70,6 +71,9 @@ class PageMaintainer(object):
             'skip_tiles': options.get('skip_tiles', False)
         }
         
+        if options.get('refresh_images', False):
+            self._delete_product_images(source_urls)
+
         self._run_scraper(spider_name=spider_name,
                           start_urls=source_urls,
                           categories=categories,
@@ -140,3 +144,11 @@ class PageMaintainer(object):
         })
         return settings
 
+    def _delete_product_images(self, urls):
+        for url in urls:
+            # This should be unique, but quietly handle multiples
+            ps = Product.objects.filter(url=url, store=self.store)
+            for p in ps:
+                p.in_stock = False # hide product tiles while they have no images
+                p.save()
+                p.product_images.all().delete()

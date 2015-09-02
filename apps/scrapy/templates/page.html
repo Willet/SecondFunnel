@@ -22,9 +22,10 @@
 <div class="column controls">
     <div class="options">
         <p>Choose delimiter: <input id="delimiter" type="text" name="delimiter" value="," /></p>
-        <input id="scrape" type="button" onclick="scrape(false)" value="ADD PRODUCTS" />
+        <p>Refresh images: <input id="refresh-images" type="checkbox" name="refresh-images" value="false" /></p>
+        <input id="scrape" type="button" onclick="scrape(false)" value="ADD/UPDATE PRODUCTS" />
         <br />
-        <input id="scrape-create" type="button" onclick="scrape(true)" value="ADD & CREATE/UPDATE TILES" />
+        <input id="scrape-create" type="button" onclick="scrape(true)" value="ADD/UPDATE PRODUCTS & TILES" />
         <br />
         <input id="prioritize" type="button" onclick="prioritize()" value="PRIORITIZE" />
     </div>
