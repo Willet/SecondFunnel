@@ -2,6 +2,7 @@ import calendar
 import datetime
 import decimal
 import json
+import logging
 import re
 
 from copy import deepcopy
@@ -314,9 +315,9 @@ class BaseModel(models.Model, SerializableMixin):
                 setattr(self,
                         self._cg_attribute_name_to_python_attribute_name(key),
                         other[key])
-            print u"updated {0}.{1} to {2}".format(
+            logging.info(u"updated {0}.{1} to {2}".format(
                 self, self._cg_attribute_name_to_python_attribute_name(key),
-                other[key])
+                other[key]))
 
         return self
 
@@ -467,7 +468,7 @@ class Product(BaseModel):
         for product in other_products:
             product.delete()
 
-    @classmethod
+    @staticmethod
     def merge_products(products):
         """
         Merge products into most recent non-placeholder product
@@ -480,16 +481,16 @@ class Product(BaseModel):
         if len(products) < 2:
             return products[0] if len(products) else None
 
-        not_placeholders = [ p for p in products if not p.is_placeholder ]
+        not_placeholders = [p for p in products if not p.is_placeholder]
         # merge into the most recent not placehoder, or the first placeholder
         if not_placeholders:
             not_placeholders.sort(key=lambda p: p.created_at, reverse=True)
             product = not_placeholders[0]
-            product.merge([p for p in ps if p != product])
+            product.merge([p for p in products if p != product])
         else:
-            # order doesnt matter with placeholders
-            product = ps.pop(0)
-            product.merge(ps)
+            # order doesnt matter with placeholders, take 1st one
+            product = products.pop(0)
+            product.merge(products)
         return product
 
 
@@ -677,7 +678,7 @@ class Image(Content):
         if master_size:
             self.width = master_size.get('width', 0)
             self.height = master_size.get('height', 0)
-            print "Setting width and height to %dx%d" % (self.width, self.height)
+            logging.info("Setting {} width and height to %dx%d" % (self, self.width, self.height))
 
         return super(Image, self).save(*args, **kwargs)
 
@@ -747,12 +748,12 @@ class Theme(BaseModel):
 
         remote_theme = read_remote_file(self.template, '')[0]
         if remote_theme:
-            print "[INFO] speed up page load times by placing the theme" \
-                  " '{0}' locally.".format(self.template)
+            logging.info("speed up page load times by placing the theme" \
+                  " '{0}' locally.".format(self.template))
             return remote_theme
 
-        print "[WARN] template '{0}' was neither local nor remote".format(
-            self.template)
+        logging.warn("template '{0}' was neither local nor remote".format(
+            self.template))
         return self.template
 
 
@@ -1174,7 +1175,7 @@ class Feed(BaseModel):
                 tile = existing_tiles[0]
                 tile.priority = priority
                 tile.save() # Update IR Cache
-                print "<Product {0}> already in the feed. Updated <Tile {1}>.".format(product.id, tile.id)
+                logging.info("<Product {0}> already in the feed. Updated <Tile {1}>.".format(product.id, tile.id))
                 return (tile, False)
 
         # Create new tile
@@ -1185,7 +1186,7 @@ class Feed(BaseModel):
         new_tile.save() # generate ir_cache
         if category:
             category.tiles.add(new_tile)
-        print "<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id)
+        logging.info("<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id))
 
         return (new_tile, True)
 
@@ -1212,7 +1213,7 @@ class Feed(BaseModel):
                 product_qs = content.tagged_products.all()
                 tile.products.add(*product_qs)
                 tile.save()
-                print "<Content {0}> already in the feed. Updated <Tile {1}>".format(content.id, tile.id)
+                logging.info("<Content {0}> already in the feed. Updated <Tile {1}>".format(content.id, tile.id))
                 return (tile, False)
 
         # Create new tile
@@ -1234,7 +1235,7 @@ class Feed(BaseModel):
         new_tile.save() # generate ir_cache
         if category:
             category.tiles.add(new_tile)
-        print "<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id)
+        logging.info("<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id))
         return (new_tile, True)
 
     def _remove_product(self, product, deepdelete=False):
