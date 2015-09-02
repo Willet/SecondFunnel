@@ -24,6 +24,9 @@ def ir_magic(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if kwargs.get('products_only'):
         return ir_priority(tiles, num_results=num_results, offset=offset, finite=finite, *args, **kwargs)
 
+    # Make sure we do not have any duplicates
+    tiles = tiles.distinct('id', 'priority')
+
     total_tiles = tiles.count()
     if total_tiles == 0:
         return tiles

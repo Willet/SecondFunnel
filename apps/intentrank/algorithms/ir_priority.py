@@ -15,7 +15,7 @@ def ir_priority(tiles, num_results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     3. Tiles will not be repeated until they are exhausted
     """
     # Make sure we do not have any duplicates
-    ordered_tiles = tiles.order_by('-priority')
+    ordered_tiles = tiles.distinct('id', 'priority').order_by('-priority')
 
     num_tiles = ordered_tiles.count()
     if num_tiles == 0:
