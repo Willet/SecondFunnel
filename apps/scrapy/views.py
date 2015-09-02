@@ -58,7 +58,7 @@ def scrape(request, page_slug):
     
     options = {
         'skip_tiles': not tiles,
-        'refresh_images': request.POST.get('refresh_images', False)
+        'refresh_images': bool(request.POST.get('refresh_images') == 'true')
     }
 
     def process(request, page, urls, options, categories, priorities):

@@ -1,16 +1,12 @@
 import logging
 from django.core.validators import URLValidator
 
-from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from scrapy.crawler import Crawler, CrawlerProcess
-from twisted.internet import reactor
 
 from apps.assets.models import Product
 
 from .spiders import datafeeds, pages
-
-logger = logging.getLogger('scrapy')
 
 
 class PageMaintainer(object):
@@ -37,7 +33,7 @@ class PageMaintainer(object):
         self.store = page.store
         self.feed = page.feed
         self.spider_name = self.feed.spider_name or self.store.slug
-        logging.info(u"Initialized {} for {} with spider '{}'".format(self.__class__.__name__,
+        logging.debug(u"Initialized {} for {} with spider '{}'".format(self.__class__.__name__,
                                                                       self.page,
                                                                       self.spider_name))
         self.url_validator = URLValidator()
@@ -61,7 +57,7 @@ class PageMaintainer(object):
 
         raises: django.core.execeptions.ValidationError for invalid url
         """
-        logger.info(u"Adding/updating {} with {} urls".format(self.page, len(source_urls)))
+        logging.debug(u"Adding/updating {} with {} urls".format(self.page, len(source_urls)))
         # Ensure source urls look good
         for url in source_urls:
             self.url_validator(url)
@@ -82,7 +78,7 @@ class PageMaintainer(object):
         }
         
         if options.get('refresh_images', False):
-            logger.info(u"Deleting product images prior to scrape")
+            logging.debug(u"Deleting product images prior to scrape")
             self._delete_product_images(source_urls)
 
         self._run_scraper(spider_name=spider_name,
@@ -104,7 +100,7 @@ class PageMaintainer(object):
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
         }
         """
-        logger.info(u"Updating {} from datafeed".format(self.page))
+        logging.debug(u"Updating {} from datafeed".format(self.page))
         # Add more logic here re start_urls
         if len(self.feed.source_urls):
             start_urls = set(self.feed.source_urls)
@@ -139,7 +135,7 @@ class PageMaintainer(object):
                       categories=categories,
                       **options)
 
-        logger.info(u"Starting scraper with options: {}".format(options))
+        logging.debug(u"Starting scraper with options: {}".format(options))
 
         process.start()
 
@@ -159,8 +155,12 @@ class PageMaintainer(object):
     def _delete_product_images(self, urls):
         for url in urls:
             # This should be unique, but quietly handle multiples
-            ps = Product.objects.filter(url=url, store=self.store)
-            for p in ps:
-                p.in_stock = False # hide product tiles while they have no images
-                p.save()
-                p.product_images.all().delete()
+            try:
+                ps = Product.objects.filter(url=url, store=self.store)
+            except Product.DoesNotExist:
+                pass
+            else:
+                for p in ps:
+                    p.in_stock = False # hide product tiles while they have no images
+                    p.save()
+                    p.product_images.all().delete()
