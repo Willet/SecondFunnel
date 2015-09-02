@@ -4,6 +4,7 @@ import os
 import re
 import decimal
 import six
+from StringIO import StringIO
 import tempfile
 import webbrowser
 
@@ -11,9 +12,12 @@ from scrapy.http import HtmlResponse, TextResponse
 from scrapy_webdriver.http import WebdriverResponse
 
 
-class CarefulStringIO(StringIO):
+class CarefulStringIO(StringIO, object):
     """ StringIO.StringIO errors when streamed a mixture of unicode and str. Force
-    unicode conversion """
+    unicode conversion
+
+    NOTE magic: requires `object` as mixin b/c StringIO is old-style class that super
+    doesn't recognize. """
     def write(self, string, *args, **kwargs):
         super(CarefulStringIO, self).write(unicode(string), *args, **kwargs)
 

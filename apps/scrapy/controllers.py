@@ -37,7 +37,8 @@ class PageMaintainer(object):
         self.store = page.store
         self.feed = page.feed
         self.spider_name = self.feed.spider_name or self.store.slug
-        logging.info(u"Initialized {} for {} with spider '{}'".format(self.page,
+        logging.info(u"Initialized {} for {} with spider '{}'".format(self.__class__.__name__,
+                                                                      self.page,
                                                                       self.spider_name))
         self.url_validator = URLValidator()
 
