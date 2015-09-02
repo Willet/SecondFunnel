@@ -149,7 +149,8 @@ class BaseModel(models.Model, SerializableMixin):
                     # assume this is a RelatedManager, can't check directly b/c generated at runtime
                     setattr(new_obj, k, v.all())
                 else:
-                    raise ValidationError(u"Value '{}' can't be assigned to ManyToManyField '{}'".format(k, v))
+                    raise ValidationError(u"Value '{}' can't be assigned to \
+                                            ManyToManyField '{}'".format(k, v))
 
             new_obj.save() # run full_clean to validate
         return new_obj
@@ -168,7 +169,8 @@ class BaseModel(models.Model, SerializableMixin):
             local_fields = set([f.name for f in obj._meta.local_fields])
             local_m2m_fields = set([f.name for f in obj._meta.many_to_many])
             all_fields = set(obj._meta.get_all_field_names())
-            reverse_m2m_fields = list(all_fields - local_fields - local_m2m_fields - exclude_fields)
+            reverse_m2m_fields = list(all_fields - local_fields - local_m2m_fields
+                                      - exclude_fields)
 
             # Move reverse many-to-many and reverse one-to-many relations to new model
             for field in reverse_m2m_fields:
@@ -423,11 +425,13 @@ class Product(BaseModel):
             exclude = []
 
         if not 'price' in exclude:
-            if self.price and not (isinstance(self.price, decimal.Decimal) or isinstance(self.price, float)):
+            if self.price and not (isinstance(self.price, decimal.Decimal) \
+                or isinstance(self.price, float)):
                 raise ValidationError('Product price must be decimal or float')
 
             sale_price = self.get('sale_price', self.attributes.get('sale_price', float()))
-            if sale_price and not (isinstance(sale_price, decimal.Decimal) or isinstance(sale_price, float)):
+            if sale_price and not (isinstance(sale_price, decimal.Decimal) \
+                or isinstance(sale_price, float)):
                 raise ValidationError('Product sale price must be decimal or float')
 
     def clean(self):
@@ -680,13 +684,15 @@ class Image(Content):
         if master_size:
             self.width = master_size.get('width', 0)
             self.height = master_size.get('height', 0)
-            logging.info("Setting {} width and height to %dx%d" % (self, self.width, self.height))
+            logging.info("Setting {} width and height to %dx%d" % (self, self.width,
+                                                                   self.height))
 
         return super(Image, self).save(*args, **kwargs)
 
 
     def delete(self, *args, **kwargs):
-        if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
+        if settings.ENVIRONMENT == "production" and \
+           settings.CLOUDINARY_BASE_URL in self.url:
             delete_cloudinary_resource(self.url)
         super(Image, self).delete(*args, **kwargs)
 
@@ -750,8 +756,8 @@ class Theme(BaseModel):
 
         remote_theme = read_remote_file(self.template, '')[0]
         if remote_theme:
-            logging.info("speed up page load times by placing the theme" \
-                  " '{0}' locally.".format(self.template))
+            logging.info("speed up page load times by placing the theme \
+                         '{0}' locally.".format(self.template))
             return remote_theme
 
         logging.warn("template '{0}' was neither local nor remote".format(
@@ -810,7 +816,8 @@ class Page(BaseModel):
         super(self.__class__, self).__init__(*args, **kwargs)
         # self._theme_settings is a merged theme_settings with defaults
         if not self.theme_settings:
-            self._theme_settings = { key: default for (key, default) in self.theme_settings_fields }
+            self._theme_settings = { key: default for (key, default)
+                                     in self.theme_settings_fields }
         else:
             self._theme_settings = self.theme_settings.copy()
             for (key, default) in self.theme_settings_fields:
@@ -827,15 +834,17 @@ class Page(BaseModel):
     def __copy__(self):
         """Duplicates the page, points to existing feed & associated tiles
         returns: page"""
-        return self.__class__._copy(self, update_fields= {'url_slug': self._get_incremented_url_slug()})
+        return self.__class__._copy(self,
+                                    update_fields= {'url_slug': self._get_incremented_url_slug()})
 
     def __deepcopy__(self, memo={}):
         """Duplicates the page, feed & associated tiles
         returns: page"""
         feed = self.feed.deepcopy()
         feed.save() # ensure feed is saved
-        return self.__class__._copy(self, update_fields= {'url_slug': self._get_incremented_url_slug(),
-                                                          'feed': feed })
+        return self.__class__._copy(self,
+                                    update_fields= {'url_slug': self._get_incremented_url_slug(),
+                                                    'feed': feed })
 
     def copy(self):
         """page.copy() is alias for copy(page)"""
@@ -903,7 +912,7 @@ class Page(BaseModel):
 
     @property
     def is_finite(self):
-        return bool(self.feed.is_finite and \
+        return bool(self.feed.is_finite and
             not self.theme_settings.get('override_finite_feed', False))
 
     @classmethod
@@ -1096,7 +1105,8 @@ class Feed(BaseModel):
         elif isinstance(obj, Content):
             return self._remove_content(content=obj, deepdelete=deepdelete)
         elif isinstance(obj, Tile):
-            return self._deepdelete_tiles(tiles=self.tiles.get(id=obj.id)) if deepdelete else obj.delete()
+            return (self._deepdelete_tiles(tiles=self.tiles.get(id=obj.id))
+                   if deepdelete else obj.delete())
         raise ValueError("remove() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
 
@@ -1177,7 +1187,8 @@ class Feed(BaseModel):
                 tile = existing_tiles[0]
                 tile.priority = priority
                 tile.save() # Update IR Cache
-                logging.info("<Product {0}> already in the feed. Updated <Tile {1}>.".format(product.id, tile.id))
+                logging.info("<Product {0}> already in the feed. \
+                              Updated <Tile {1}>.".format(product.id, tile.id))
                 return (tile, False)
 
         # Create new tile
@@ -1188,7 +1199,8 @@ class Feed(BaseModel):
         new_tile.save() # generate ir_cache
         if category:
             category.tiles.add(new_tile)
-        logging.info("<Product {0}> added to the feed in <Tile {1}>.".format(product.id, new_tile.id))
+        logging.info("<Product {0}> added to the feed in \
+                      <Tile {1}>.".format(product.id, new_tile.id))
 
         return (new_tile, True)
 
@@ -1215,7 +1227,8 @@ class Feed(BaseModel):
                 product_qs = content.tagged_products.all()
                 tile.products.add(*product_qs)
                 tile.save()
-                logging.info("<Content {0}> already in the feed. Updated <Tile {1}>".format(content.id, tile.id))
+                logging.info("<Content {0}> already in the feed. Updated \
+                              <Tile {1}>".format(content.id, tile.id))
                 return (tile, False)
 
         # Create new tile
@@ -1237,7 +1250,8 @@ class Feed(BaseModel):
         new_tile.save() # generate ir_cache
         if category:
             category.tiles.add(new_tile)
-        logging.info("<Content {0}> added to the feed. Created <Tile {1}>".format(content.id, new_tile.id))
+        logging.info("<Content {0}> added to the feed. Created \
+                      <Tile {1}>".format(content.id, new_tile.id))
         return (new_tile, True)
 
     def _remove_product(self, product, deepdelete=False):
@@ -1296,11 +1310,13 @@ class Category(BaseModel):
                 pass
             except Category.MultipleObjectsReturned:
                 # Already multiples, bail!
-                raise ValidationError({'name': "Category's must have a unique name for each store"})
+                raise ValidationError({'name': "Category's must have a \
+                                                unique name for each store"})
             else:
                 # Only one, make it sure its this one
                 if not self.pk == cat.pk:
-                    raise ValidationError({'name': "Category's must have a unique name for each store"})
+                    raise ValidationError({'name': "Category's must have a \
+                                                    unique name for each store"})
 
 
 class Tile(BaseModel):
