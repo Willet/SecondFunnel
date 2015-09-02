@@ -11,6 +11,13 @@ from scrapy.http import HtmlResponse, TextResponse
 from scrapy_webdriver.http import WebdriverResponse
 
 
+class CarefulStringIO(StringIO):
+    """ StringIO.StringIO errors when streamed a mixture of unicode and str. Force
+    unicode conversion """
+    def write(self, string, *args, **kwargs):
+        super(CarefulStringIO, self).write(unicode(string), *args, **kwargs)
+
+
 def open_in_browser(response, _openfunc=webbrowser.open):
     """
     Open the given response in a local web browser, populating the <base>

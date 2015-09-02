@@ -6,7 +6,12 @@ from scrapy.utils.project import get_project_settings
 from scrapy.crawler import Crawler, CrawlerProcess
 from twisted.internet import reactor
 
+from apps.assets.models import Product
+
 from .spiders import datafeeds, pages
+
+logger = logging.getLogger('scrapy')
+
 
 class PageMaintainer(object):
     """
@@ -22,7 +27,9 @@ class PageMaintainer(object):
                     products add to a page
             b. set - defines the products on the page and their status
 
-        2. Product url scrapers
+        2. Page scrapers
+            a. product & category urls
+            b. content urls (instagram post, blog post, etc)
 
     """
     def __init__(self, page):
@@ -30,7 +37,8 @@ class PageMaintainer(object):
         self.store = page.store
         self.feed = page.feed
         self.spider_name = self.feed.spider_name or self.store.slug
-
+        logging.info(u"Initialized {} for {} with spider '{}'".format(self.page,
+                                                                      self.spider_name))
         self.url_validator = URLValidator()
 
     def add(self, source_urls, categories=[], options={}):
@@ -52,6 +60,7 @@ class PageMaintainer(object):
 
         raises: django.core.execeptions.ValidationError for invalid url
         """
+        logger.info(u"Adding/updating {} with {} urls".format(self.page, len(source_urls)))
         # Ensure source urls look good
         for url in source_urls:
             self.url_validator(url)
@@ -72,6 +81,7 @@ class PageMaintainer(object):
         }
         
         if options.get('refresh_images', False):
+            logger.info(u"Deleting product images prior to scrape")
             self._delete_product_images(source_urls)
 
         self._run_scraper(spider_name=spider_name,
@@ -93,6 +103,7 @@ class PageMaintainer(object):
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
         }
         """
+        logger.info(u"Updating {} from datafeed".format(self.page))
         # Add more logic here re start_urls
         if len(self.feed.source_urls):
             start_urls = set(self.feed.source_urls)
@@ -127,7 +138,7 @@ class PageMaintainer(object):
                       categories=categories,
                       **options)
 
-        logging.info('Starting spider with options: {}'.format(options))
+        logger.info(u"Starting scraper with options: {}".format(options))
 
         process.start()
 

@@ -1,8 +1,8 @@
 from django.conf import settings
 import logging
 from scrapy import signals
-from io import StringIO
 
+from .utils.misc import CarefulStringIO as StringIO
 from .log import notify_slack, upload_to_s3
 
 

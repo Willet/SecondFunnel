@@ -62,7 +62,7 @@ var scrape = function(create_tiles) {
                     'cat': encodeURIComponent(JSON.stringify(categories[cat])),
                     'page': page,
                     'tiles': create_tiles,
-                    'refresh-images': refresh_images
+                    'refresh_images': refresh_images
                 },
                 success: function(data, status) {
                     if (!$results.hasClass('warning')) {
