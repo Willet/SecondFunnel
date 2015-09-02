@@ -486,11 +486,13 @@ class Product(BaseModel):
         if not_placeholders:
             not_placeholders.sort(key=lambda p: p.created_at, reverse=True)
             product = not_placeholders[0]
-            product.merge([p for p in products if p != product])
+            other_products = [p for p in products if p != product]
         else:
             # order doesnt matter with placeholders, take 1st one
             product = products.pop(0)
-            product.merge(products)
+            other_products = products
+        logging.info('Merging {} into {}'.format(other_products, product))
+        product.merge(other_products)
         return product
 
 

@@ -408,6 +408,9 @@ LOGGING = {
         },
         'selenium.webdriver.remote.remote_connection': {
             'level': 'WARN',
+        },
+        'requests.packages.urllib3.connectionpool': {
+            'level': 'WARN',
         }
 
     }
