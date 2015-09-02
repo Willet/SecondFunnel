@@ -756,8 +756,8 @@ class Theme(BaseModel):
 
         remote_theme = read_remote_file(self.template, '')[0]
         if remote_theme:
-            logging.info("speed up page load times by placing the theme" \
-                  " '{0}' locally.".format(self.template))
+            logging.info("speed up page load times by placing the theme \
+                         '{0}' locally.".format(self.template))
             return remote_theme
 
         logging.warn("template '{0}' was neither local nor remote".format(
@@ -816,7 +816,7 @@ class Page(BaseModel):
         super(self.__class__, self).__init__(*args, **kwargs)
         # self._theme_settings is a merged theme_settings with defaults
         if not self.theme_settings:
-            self._theme_settings = { key: default for (key, default) \
+            self._theme_settings = { key: default for (key, default)
                                      in self.theme_settings_fields }
         else:
             self._theme_settings = self.theme_settings.copy()
@@ -912,7 +912,7 @@ class Page(BaseModel):
 
     @property
     def is_finite(self):
-        return bool(self.feed.is_finite and \
+        return bool(self.feed.is_finite and
             not self.theme_settings.get('override_finite_feed', False))
 
     @classmethod
@@ -1105,8 +1105,8 @@ class Feed(BaseModel):
         elif isinstance(obj, Content):
             return self._remove_content(content=obj, deepdelete=deepdelete)
         elif isinstance(obj, Tile):
-            return self._deepdelete_tiles(tiles=self.tiles.get(id=obj.id)) \
-                   if deepdelete else obj.delete()
+            return (self._deepdelete_tiles(tiles=self.tiles.get(id=obj.id))
+                   if deepdelete else obj.delete())
         raise ValueError("remove() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
 
