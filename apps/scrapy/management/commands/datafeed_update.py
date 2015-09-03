@@ -37,7 +37,7 @@ class Command(BaseCommand):
         store = page.store
         results = {
             'logging/errors': {},
-            'logging/items dropped': [],
+            'logging/items dropped': {'match failed': []},
             'logging/items out of stock': [],
             'logging/items updated': [],
             'logging/new items': [],
@@ -87,7 +87,7 @@ class Command(BaseCommand):
                         results['logging/items out of stock'].append(product.url)
                     else:
                         # If the item previously was out of stock, call it dropped
-                        results['logging/items dropped'].append(product.url)
+                        results['logging/items dropped']['match failed'].append(product.url)
 
         print "Updates saved"
 
