@@ -138,7 +138,7 @@ class ContentImagePipeline(ItemManifold):
                 # Already sufficiently proccessed
                 return item
 
-            spider.logger.info("\nprocessing image - {}".format(source_url))
+            spider.logger.info(u"\nprocessing image - {}".format(source_url))
             data = process_image(source_url, create_image_path(store.id), remove_background=remove_background)
             item['url'] = data.get('url')
             item['file_type'] = data.get('format')
@@ -168,7 +168,7 @@ class ItemPersistencePipeline(PlaceholderMixin):
 
         model, was_it_created = get_or_create(item_model)
         item['created'] = was_it_created
-        spider.logger.info("item: {}, created: {}".format(item, was_it_created))
+        spider.logger.info(u"item: {}, created: {}".format(item, was_it_created))
         try:
             update_model(model, item)
         except ValidationError as e:
@@ -204,17 +204,17 @@ class AssociateWithProductsPipeline(ItemManifold):
                 product_id = product.id
                 tagged_product_ids = image.tagged_products.values_list('id', flat=True)
                 if not product_id in tagged_product_ids:
-                    spider.logger.info('Tagging <Image {}> with <Product {}>'.format(image.id, product_id))
+                    spider.logger.info(u'Tagging <Image {}> with <Product {}>'.format(image.id, product_id))
                     image.tagged_products.add(product)
                 else:
-                    spider.logger.info('<Image {}> already tagged with <Product {}>'.format(image.id, product_id))
+                    spider.logger.info(u'<Image {}> already tagged with <Product {}>'.format(image.id, product_id))
 
     def close_spider(self, spider):
         # Save images in one transaction
         with transaction.atomic():
             for id in self.images:
                 self.images[id].save()
-        spider.logger.info('Saved {} tagged images'.format(len(self.images)))
+        spider.logger.info(u'Saved {} tagged images'.format(len(self.images)))
 
 
 class TagPipeline(ItemManifold):
@@ -224,12 +224,12 @@ class TagPipeline(ItemManifold):
     def process_product(self, item, spider):
         # If tags were found by the crawler
         for name in item.get('attributes', {}).get('tags', []):
-            spider.logger.info("Adding scraped tag '{}'".format(name.strip()))
+            spider.logger.info(u"Adding scraped tag '{}'".format(name.strip()))
             self.add_product_to_tag(item, name.strip())
 
         # If you want all products in a scrape to have a specific tag
         for name in getattr(spider, 'tags', []):
-            spider.logger.info("Adding spider-specified tag '{}'".format(name.strip()))
+            spider.logger.info(u"Adding spider-specified tag '{}'".format(name.strip()))
             self.add_product_to_tag(item, name.strip())
 
     def add_product_to_tag(self, item, name):
@@ -413,5 +413,5 @@ class PageUpdatePipeline(ItemManifold):
             else:
                 # Mark all items in not_updated_cache as out of stock
                 Product.objects.filter(pk__in=pk_set).update(in_stock=False)
-                spider.logger.info('Marked {} products as sold out'.format(len(pk_set)))
+                spider.logger.info(u'Marked {} products as sold out'.format(len(pk_set)))
 

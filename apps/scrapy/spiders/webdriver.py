@@ -44,7 +44,7 @@ class SecondFunnelCrawlScraper(SecondFunnelScraper):
             self._rules = []
             return self.parse_product(response)
         else:
-            self.logger.info("Not a product page: {}".format(response.url))
+            self.logger.info(u"Not a product page: {}".format(response.url))
             return []
 
     def is_product_page(self, response):

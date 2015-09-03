@@ -1,12 +1,13 @@
 import logging
 from django.core.validators import URLValidator
 
-from scrapy import signals
 from scrapy.utils.project import get_project_settings
 from scrapy.crawler import Crawler, CrawlerProcess
-from twisted.internet import reactor
+
+from apps.assets.models import Product
 
 from .spiders import datafeeds, pages
+
 
 class PageMaintainer(object):
     """
@@ -22,7 +23,9 @@ class PageMaintainer(object):
                     products add to a page
             b. set - defines the products on the page and their status
 
-        2. Product url scrapers
+        2. Page scrapers
+            a. product & category urls
+            b. content urls (instagram post, blog post, etc)
 
     """
     def __init__(self, page):
@@ -30,7 +33,9 @@ class PageMaintainer(object):
         self.store = page.store
         self.feed = page.feed
         self.spider_name = self.feed.spider_name or self.store.slug
-
+        logging.debug(u"Initialized {} for {} with spider '{}'".format(self.__class__.__name__,
+                                                                      self.page,
+                                                                      self.spider_name))
         self.url_validator = URLValidator()
 
     def add(self, source_urls, categories=[], options={}):
@@ -45,12 +50,14 @@ class PageMaintainer(object):
         {
             'spider_name': <str> Over-ride for page / store spider
             'recreate_tiles': <bool> Recreate tiles if they already exist. Wipes old data, categories, etc.
+            'refresh_images': <bool> Delete existing images & scrape new ones. Wipes old data
             'skip_images': <bool> Do not scrape product images. Useful if you want a fast data-only update.
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
         }
 
         raises: django.core.execeptions.ValidationError for invalid url
         """
+        logging.debug(u"Adding/updating {} with {} urls".format(self.page, len(source_urls)))
         # Ensure source urls look good
         for url in source_urls:
             self.url_validator(url)
@@ -70,6 +77,10 @@ class PageMaintainer(object):
             'skip_tiles': options.get('skip_tiles', False)
         }
         
+        if options.get('refresh_images', False):
+            logging.debug(u"Deleting product images prior to scrape")
+            self._delete_product_images(source_urls)
+
         self._run_scraper(spider_name=spider_name,
                           start_urls=source_urls,
                           categories=categories,
@@ -89,6 +100,7 @@ class PageMaintainer(object):
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
         }
         """
+        logging.debug(u"Updating {} from datafeed".format(self.page))
         # Add more logic here re start_urls
         if len(self.feed.source_urls):
             start_urls = set(self.feed.source_urls)
@@ -123,7 +135,7 @@ class PageMaintainer(object):
                       categories=categories,
                       **options)
 
-        logging.info('Starting spider with options: {}'.format(options))
+        logging.debug(u"Starting scraper with options: {}".format(options))
 
         process.start()
 
@@ -140,3 +152,15 @@ class PageMaintainer(object):
         })
         return settings
 
+    def _delete_product_images(self, urls):
+        for url in urls:
+            # This should be unique, but quietly handle multiples
+            try:
+                ps = Product.objects.filter(url=url, store=self.store)
+            except Product.DoesNotExist:
+                pass
+            else:
+                for p in ps:
+                    p.in_stock = False # hide product tiles while they have no images
+                    p.save()
+                    p.product_images.all().delete()

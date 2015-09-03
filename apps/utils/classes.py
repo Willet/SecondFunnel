@@ -131,3 +131,4 @@ class MemcacheSetting(object):
         cls.settings.append(key)
         cls.settings = list(set(cls.settings))
         cache.set('memcached_keys', ','.join(cls.settings), timeout=10000)
+
