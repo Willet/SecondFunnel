@@ -149,8 +149,8 @@ class BaseModel(models.Model, SerializableMixin):
                     # assume this is a RelatedManager, can't check directly b/c generated at runtime
                     setattr(new_obj, k, v.all())
                 else:
-                    raise ValidationError(u"Value '{}' can't be assigned to \
-                                            ManyToManyField '{}'".format(k, v))
+                    raise TypeError("Value '{}' can't be assigned to \
+                                     ManyToManyField '{}'".format(v, k)]})
 
             new_obj.save() # run full_clean to validate
         return new_obj
@@ -427,12 +427,12 @@ class Product(BaseModel):
         if not 'price' in exclude:
             if self.price and not (isinstance(self.price, decimal.Decimal) \
                 or isinstance(self.price, float)):
-                raise ValidationError('Product price must be decimal or float')
+                raise ValidationError({'price': [u'Product price must be decimal or float']})
 
             sale_price = self.get('sale_price', self.attributes.get('sale_price', float()))
             if sale_price and not (isinstance(sale_price, decimal.Decimal) \
                 or isinstance(sale_price, float)):
-                raise ValidationError('Product sale price must be decimal or float')
+                raise ValidationError({'sale_price': [u'Product sale price must be decimal or float']})
 
     def clean(self):
         if not self.attributes:
@@ -578,8 +578,11 @@ class Content(BaseModel):
     def _validate_status(status):
         allowed = ["approved", "rejected", "needs-review"]
         if status not in allowed:
-            raise ValidationError("{0} is not an allowed status; "
-                                  "choices are {1}".format(status, allowed))
+            raise ValidationError(
+                _(u"{status} is not an allowed status; choices are {allowed}"),
+                params={'status': status, 'allowed': allowed},
+                code='invalid',
+            )
 
     # Content.objects object for deserializing Content models as subclasses
     # Content.objects.select_subclasses() to get hetergenous instances
@@ -1310,13 +1313,13 @@ class Category(BaseModel):
                 pass
             except Category.MultipleObjectsReturned:
                 # Already multiples, bail!
-                raise ValidationError({'name': "Category's must have a \
-                                                unique name for each store"})
+                raise ValidationError({'name': [u"Category's must have a \
+                                                  unique name for each store"]})
             else:
                 # Only one, make it sure its this one
                 if not self.pk == cat.pk:
-                    raise ValidationError({'name': "Category's must have a \
-                                                    unique name for each store"})
+                    raise ValidationError({'name': [u"Category's must have a \
+                                                      unique name for each store"]})
 
 
 class Tile(BaseModel):
@@ -1382,10 +1385,10 @@ class Tile(BaseModel):
         if self.pk:
             if not 'products' in exclude and \
                 self.products.exclude(store__id=self.feed.store.id).count():
-                raise ValidationError({'products': u'Products may not be from a different store'})
+                raise ValidationError({'products': [u'Products may not be from a different store']})
             if not 'content' in exclude and \
                 self.content.exclude(store__id=self.feed.store.id).count():
-                raise ValidationError({'content': u'Content may not be from a different store'})
+                raise ValidationError({'content': [u'Content may not be from a different store']})
 
     def clean(self):
         if self.pk:

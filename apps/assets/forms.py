@@ -88,7 +88,8 @@ class TagForm(ModelForm):
         if products:
             for p in products.all():
                 if not p.store == store:
-                    raise ValidationError("Products in tag must have same store as tag.")
+                    raise ValidationError(_(u"Products in tag must have same store as tag."),
+                                          code='invalid')
 
         return self.cleaned_data
 
@@ -109,6 +110,7 @@ class CategoryForm(ModelForm):
             for t in tiles.all():
                 feed = Feed.objects.get(tiles__in=[t])
                 if not feed.store == store:
-                    raise ValidationError("Tiles in category must have same store as category.")
+                    raise ValidationError(_(u"Tiles in category must have same store as category."),
+                                          code='invalid')
 
         return self.cleaned_data
