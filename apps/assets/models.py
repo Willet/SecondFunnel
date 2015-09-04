@@ -150,7 +150,7 @@ class BaseModel(models.Model, SerializableMixin):
                     setattr(new_obj, k, v.all())
                 else:
                     raise TypeError("Value '{}' can't be assigned to \
-                                     ManyToManyField '{}'".format(v, k)]})
+                                     ManyToManyField '{}'".format(v, k))
 
             new_obj.save() # run full_clean to validate
         return new_obj
