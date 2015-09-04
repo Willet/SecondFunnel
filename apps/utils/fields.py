@@ -31,11 +31,21 @@ class ListField(models.TextField):
 
     def validate(self, value, model_instance):
         if not isinstance(value, list):
-            raise ValidationError("List has been over-written into '{}'".format(value))
+            raise ValidationError(
+                _("List has been over-written into '{type}'"),
+                params={'type': format(value)},
+            )
         if self.type:
             for val in value:
                 if not isinstance(val, self.type):
-                    raise ValidationError("'{}' is required to be {}, but is {}.".format(val, self.type, type(val)))
+                    raise ValidationError(
+                        _("'{}' is required to be {}, but is {}."),
+                        params={
+                            'value': val,
+                            'expected': self.type,
+                            'actual': type(val),
+                        },
+                    )
 
         super(ListField, self).validate(value, model_instance)
 
