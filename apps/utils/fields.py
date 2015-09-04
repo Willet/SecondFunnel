@@ -33,7 +33,7 @@ class ListField(models.TextField):
         if not isinstance(value, list):
             raise ValidationError(
                 _("List has been over-written into '{type}'"),
-                params={'type': format(value)},
+                params={'type': type(value)},
                 code='invalid',
             )
         if self.type:
