@@ -2,7 +2,6 @@ import ast
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils.translation import ugettext as _
 from south.modelsinspector import add_introspection_rules
 
 
@@ -33,7 +32,7 @@ class ListField(models.TextField):
     def validate(self, value, model_instance):
         if not isinstance(value, list):
             raise ValidationError(
-                _(u"List has been over-written into '{type}'"),
+                _("List has been over-written into '{type}'"),
                 params={'type': type(value)},
                 code='invalid',
             )
@@ -41,7 +40,7 @@ class ListField(models.TextField):
             for val in value:
                 if not isinstance(val, self.type):
                     raise ValidationError(
-                        _(u"'{}' is required to be {}, but is {}."),
+                        _("'{}' is required to be {}, but is {}."),
                         params={
                             'value': val,
                             'expected': self.type,
