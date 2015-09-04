@@ -34,6 +34,7 @@ class ListField(models.TextField):
             raise ValidationError(
                 _("List has been over-written into '{type}'"),
                 params={'type': format(value)},
+                code='invalid',
             )
         if self.type:
             for val in value:
@@ -45,6 +46,7 @@ class ListField(models.TextField):
                             'expected': self.type,
                             'actual': type(val),
                         },
+                        code='invalid',
                     )
 
         super(ListField, self).validate(value, model_instance)

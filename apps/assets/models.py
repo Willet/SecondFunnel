@@ -149,8 +149,8 @@ class BaseModel(models.Model, SerializableMixin):
                     # assume this is a RelatedManager, can't check directly b/c generated at runtime
                     setattr(new_obj, k, v.all())
                 else:
-                    raise ValidationError({ k: [u"Value '{}' can't be assigned to \
-                                                  ManyToManyField '{}'".format(k, v)] })
+                    raise TypeError("Value '{}' can't be assigned to \
+                                     ManyToManyField '{}'".format(v, k)]})
 
             new_obj.save() # run full_clean to validate
         return new_obj
@@ -578,8 +578,11 @@ class Content(BaseModel):
     def _validate_status(status):
         allowed = ["approved", "rejected", "needs-review"]
         if status not in allowed:
-            raise ValidationError({'status': [u"{0} is not an allowed status; \
-                                                choices are {1}".format(status, allowed)]})
+            raise ValidationError(
+                _(u"{status} is not an allowed status; choices are {allowed}"),
+                params={'status': status, 'allowed': allowed},
+                code='invalid',
+            )
 
     # Content.objects object for deserializing Content models as subclasses
     # Content.objects.select_subclasses() to get hetergenous instances
