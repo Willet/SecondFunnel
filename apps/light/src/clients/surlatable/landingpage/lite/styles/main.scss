@@ -1,14 +1,15 @@
 $icon-font-path: "/static/light/fonts/";
-$slt-modern-font: MrEavesModern, sans-serif;
-$slt-sans-font: MrEavesSans, sans-serif;
+$slt-modern-font: MrEavesModern, Verdana, Arial, Helvetica, sans-serif;
+$slt-sans-font: MrEavesSans, Verdana, Arial, Helvetica, sans-serif;
 $slt-basic-font: Verdana, Arial, Helvetica, sans-serif;
 $slt-main-color: #405700;
 $slt-basic-color: #444444;
 $slt-grey-color: #a8a8a8;
+$slt-dark-green-color: #536122;
 $slt-green-color: #6b8e00;
 $slt-pastel-green-color: #829253;
 $slt-purple-color: #651e44;
-$slt-orange-color: #EF842C;
+$slt-orange-color: #F05423;
 $slt-categories-height: 140px;
 $slt-thumbnail-height: 111px;
 
@@ -133,10 +134,10 @@ body {
                 font-size: 16px;
             }
             .orange {
-                color: #e37b00;
+                color: $slt-orange-color;
             }
             .green {
-                color: #6c8f01;
+                color: $slt-dark-green-color;
             }
         }
         #search-bar {
@@ -217,11 +218,11 @@ body {
         height: $slt-categories-height;
         font-size: 20px;
         line-height: 34px;
-        color: $slt-green-color;
+        color: $slt-dark-green-color;
         font-family: $slt-modern-font;
         overflow: visible;
         &.selected, &:hover {
-            color: $slt-green-color;
+            color: $slt-dark-green-color;
             > .name {
                 text-decoration: underline;
             }
@@ -263,7 +264,7 @@ body {
             z-index: 1;
             .wrap {
                 width: 100%;
-                border: 2px solid $slt-green-color;
+                border: 2px solid $slt-dark-green-color;
                 border-radius: 6px;
                 background-color: #FFF;
                 padding: 10px 10px 20px 10px;
@@ -290,7 +291,7 @@ body {
             }
             &.selected, &:hover {
                 > .name {
-                    border-bottom: 1px solid $slt-green-color;
+                    border-bottom: 1px solid $slt-dark-green-color;
                 }
             }
         }
@@ -345,7 +346,7 @@ body {
         .category-name {
             width: 100%;
             line-height: 104px;
-            color: $slt-green-color;
+            color: $slt-dark-green-color;
             font-family: $slt-modern-font;
             font-style: italic;
             font-size: 65px;
@@ -710,16 +711,21 @@ body {
         padding: 10px 20px;
         margin: 0 !important;
         text-align: left;
-        .title {
-            line-height: 20px;
-            font-size: 20px;
-            color: $slt-basic-color;
+        .title, .price {
+            font-size: 30px;
+            line-height: 30px;
+            font-family: $slt-sans-font;
+            font-weight: bold;
             margin-bottom: 15px;
         }
         .price {
-            font-size: 12px;
-            color: $slt-basic-color;
-            margin-bottom: 15px;
+            .current:before {
+                content: "$";
+                font-size: .6em;
+                position: relative;
+                bottom: .5em;
+                display: inline-block;
+            }
         }
         .description {
             overflow: hidden;
@@ -763,7 +769,7 @@ body {
             top: 0;
             width: 100%;
             z-index: 2;
-            color: $slt-green-color;
+            color: $slt-dark-green-color;
             font-size: 14px;
             line-height: 14px;
             background-color: transparent;

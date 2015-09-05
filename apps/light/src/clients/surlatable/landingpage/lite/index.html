@@ -84,7 +84,7 @@
 			    <a href="https://www.surlatable.com/account/login.jsp" target="_top" rel="noFollow" >Log In or Register</a> |
 				<a href="https://www.surlatable.com/account/anonymousOrderTracking.jsp" target="_top" rel="noFollow">Track My Order</a> |
                 <a href="http://blog.surlatable.com/" target="_top" rel="noFollow" class="orange">Blog</a> |
-	            <a href="http://www.surlatable.com/category/cat2482088/" target="_top" rel="noFollow" class="orange">Cart Talk</a> |
+	            <a href="http://www.surlatable.com/category/cat2482088/" target="_top" rel="noFollow" class="green">Cart Talk</a> |
 				<a href="http://www.surlatable.com/browse/storeLocator/landingPage.jsp" target="_top" rel="noFollow" class="green">Find a Store</a>
 		    </div>
             <div id="search-bar">
@@ -181,12 +181,10 @@
         </script>
 
         <script type="text/template" id="product_price_template">
-            <% if (obj.price_range) { %>
-                <%- obj.price_range %>
-            <% } else if (obj.sale_price) { %>
-                <%- obj.sale_price %>
+            <% if (obj.sale_price) { %>
+                <span class="current"><%- obj.sale_price %></span>
             <% } else { %>
-                <%- obj.price %>
+                <span class="current"><%- obj.price %></span>
             <% } %>
         </script>
 
