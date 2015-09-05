@@ -26,49 +26,49 @@ $slt-thumbnail-height: 111px;
                 
 @font-face {
     font-family: MrEavesModern;
+    font-weight: bold;
     src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.eot');
     src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
          url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.woff') format('woff');
-    font-weight: bold;
 }
 @font-face {
     font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-BookItalic.otf') format("opentype");
     font-weight: 600;
     font-style: italic;
+    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-BookItalic.otf') format("opentype");
 }
 @font-face {
     font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-RegItalic.otf') format("opentype");
     font-weight: 500;
     font-style: italic;
+    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-RegItalic.otf') format("opentype");
 }
 @font-face {
     font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-ThinItalic.otf') format("opentype");
     font-weight: 400;
     font-style: italic;
+    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-ThinItalic.otf') format("opentype");
 }
 
 @font-face {
     font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-BoldItalic.otf') format("opentype");
     font-weight: 700;
     font-style: italic;
+    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-BoldItalic.otf') format("opentype");
 }
 
 @font-face {
     font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-Light.otf') format("opentype");
     font-weight: 200;
     font-style: normal;
+    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-Light.otf') format("opentype");
 }
 
 @font-face {
     font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-LightItalic.otf') format("opentype");
     font-weight: 200;
     font-style: italic;
+    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-LightItalic.otf') format("opentype");
 }
             
 @font-face {
@@ -726,6 +726,12 @@ body {
                 bottom: .5em;
                 display: inline-block;
             }
+            .cents {
+                font-size: .6em;
+                position: relative;
+                bottom: .43em;
+                display: inline-block;
+            }
         }
         .description {
             overflow: hidden;
@@ -742,7 +748,9 @@ body {
             position: relative;
             font-size: 18px;
             font-family: $slt-modern-font;
+            font-weight: bold;
             line-height: 40px;
+            text-transform: uppercase;
             width: 100%;
             border-radius: 10px;
             border: 1px solid $slt-green-color;
@@ -1260,8 +1268,8 @@ body {
                 margin-bottom: 5px;
             }
             .price {
-                line-height: 12px;
-                font-size: 12px;
+                line-height: 20px;
+                font-size: 20px;
                 margin-bottom: 0;
             }
         }
