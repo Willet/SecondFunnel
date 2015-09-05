@@ -181,11 +181,16 @@
         </script>
 
         <script type="text/template" id="product_price_template">
-            <% if (obj.sale_price) { %>
-                <span class="current"><%- obj.sale_price %></span>
-            <% } else { %>
-                <span class="current"><%- obj.price %></span>
-            <% } %>
+            <% var splitprice;
+            if (obj.sale_price) {
+                splitprice = String(obj.sale_price).split('.')
+            } else {
+                splitprice = String(obj.price).split('.')
+            }
+            var dollars = splitprice[0],
+                cents = splitprice[1];
+            %>
+            <span class="current"><%= dollars %><span class="cents"><%= cents %></span></span>
         </script>
 
         <script type="text/template" id="product_buy_template">
