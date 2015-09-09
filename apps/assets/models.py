@@ -1390,9 +1390,8 @@ class Tile(BaseModel):
     def clean(self):
         if self.pk:
             in_stock_products = [p.in_stock for p in self.products.all()]
-            if self.content.count():
-                # check 1st piece of content
-                in_stock_products += [p.in_stock for p in self.content.first().tagged_products.all()]
+            for content in self.content.all():
+                in_stock_products += [p.in_stock for p in content.tagged_products.all()]
             # TODO: update ir_cache to hide out-of-stock products?
             self.in_stock = bool(True in in_stock_products)
 
