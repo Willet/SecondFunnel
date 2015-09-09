@@ -687,8 +687,7 @@ class Image(Content):
         if master_size:
             self.width = master_size.get('width', 0)
             self.height = master_size.get('height', 0)
-            logging.info("Setting {} width and height to %dx%d" % (self, self.width,
-                                                                   self.height))
+            logging.info("Setting {} width and height to {}x{}" % (self, self.width, self.height))
 
         return super(Image, self).save(*args, **kwargs)
 
