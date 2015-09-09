@@ -1393,7 +1393,10 @@ class Tile(BaseModel):
             for content in self.content.all():
                 in_stock_products += [p.in_stock for p in content.tagged_products.all()]
             # TODO: update ir_cache to hide out-of-stock products?
-            self.in_stock = bool(True in in_stock_products)
+            if not len(in_stock_products):
+                self.in_stock = True
+            else:
+                self.in_stock = bool(True in in_stock_products)
 
     def deepdelete(self):
         bulk_delete_products = []
