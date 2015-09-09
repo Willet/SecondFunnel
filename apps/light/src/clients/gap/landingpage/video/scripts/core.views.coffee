@@ -254,7 +254,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if @taggedProducts.length > 1 or App.support.mobile()
             # @stlIndex = 0
             carouselInstance = new module.CarouselView(
-                items: @model.get('tagged-products'),
+                items: @taggedProducts,
                 attrs:
                     'lookImageSrc': @model.get('images')[0].url
                     'orientation': @model.get('orientation')

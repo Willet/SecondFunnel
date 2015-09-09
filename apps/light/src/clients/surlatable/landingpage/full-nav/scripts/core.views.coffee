@@ -204,7 +204,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if @model.get("tagged-products")?.length > 0
             @lookProductIndex = -1
             carouselInstance = new module.CarouselView(
-                items: @model.get('tagged-products'),
+                items: @taggedProducts,
                 attrs: { 'lookImageSrc': @model.get('images')[0].url }
             )
             @carouselRegion.show(carouselInstance)
@@ -256,7 +256,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.look-image-container').show()
             @$el.find('.stl-item').removeClass("selected")
             @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
-            if App.support.mobile() and @model.get("tagged-products")?.length > 0
+            if App.support.mobile() and @taggedProducts?.length > 0
                 if App.utils.landscape()
                     @carouselRegion.currentView.calculateVerticalPosition()
                 else
