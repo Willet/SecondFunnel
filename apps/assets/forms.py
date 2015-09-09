@@ -1,11 +1,12 @@
 from django.template import loader
 from django.forms import ModelForm
-from django.utils.http import int_to_base36
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.sites.models import get_current_site
 from django.core.mail import EmailMessage, get_connection
 from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import int_to_base36
+from django.utils.translation import ugettext as _
 
 from apps.assets.models import Category, Tag
 
@@ -88,7 +89,8 @@ class TagForm(ModelForm):
         if products:
             for p in products.all():
                 if not p.store == store:
-                    raise ValidationError("Products in tag must have same store as tag.")
+                    raise ValidationError(_(u"Products in tag must have same store as tag."),
+                                          code='invalid')
 
         return self.cleaned_data
 
@@ -109,6 +111,7 @@ class CategoryForm(ModelForm):
             for t in tiles.all():
                 feed = Feed.objects.get(tiles__in=[t])
                 if not feed.store == store:
-                    raise ValidationError("Tiles in category must have same store as category.")
+                    raise ValidationError(_(u"Tiles in category must have same store as category."),
+                                          code='invalid')
 
         return self.cleaned_data

@@ -161,7 +161,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.Product extends Backbone.Model
-
+        initialize: (attributes, options) ->
+            # Turn images into Image's
+            if @get("images")?.length
+                newImages = (new module.Image($.extend(true, {}, image)) for image in @get("images"))
+            else
+                newImages = []
+            @set
+                images: newImages
+            return
 
     class module.SimilarProduct extends module.Product
         ### 
@@ -169,13 +177,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         initialize: (attributes, options) ->
             # Convert image json into objects
-            imgInstances = _.map(@get("images"), (image) ->
-                new module.Image($.extend(true, {}, image))
-            ) or []
+            if @get("images")?.length
+                imgInstance = (new module.Image($.extend(true, {}, image)) for image in @get("images"))
+            else
+                imgInstance = []
             defaultImage = imgInstances[0]
             @set
                 images: imgInstances
-                image: defaultImage
                 defaultImage: defaultImage
                 "tagged-products": []
                 "dominant-color": defaultImage.get("dominant-color")
@@ -264,46 +272,41 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             resp
 
         initialize: (attributes, options) ->
+            ###
+            When tile initialization is finished, it is expected that:
+            a) product and tagged products are converted to <Product>s,
+            b) images, default image and tagged products default image are converted
+            to <Image>s.
+            ###
 
-            # turn image json into image objects for easier access.
-            defaultImage = undefined
-            imgInstances = undefined
-            relatedProducts = undefined
+            # Most tile types define images. Replace all image json with their objects.
+            if @get("images")?.length
+                imgInstances = (new module.Image($.extend(true, {}, image)) for image in @get("images"))
+            else
+                imgInstances = []
 
-            # replace all image json with their objects.
-            imgInstances = _.map(@get("images"), (image) ->
-                new module.Image($.extend(true, {}, image))
-            ) or []
-
-            # this tile has no images, or can be an image itself
+            # If no images, this tile is an image itself. Backup for one-off types
             if imgInstances.length is 0
-                imgInstances.push new module.Image(
-                    "dominant-color": @get("dominant-color")
-                    url: @get("url")
+                imgInstances.push(
+                    new module.Image(
+                        "dominant-color": @get("dominant-color")
+                        url: @get("url")
+                        orientation: @get("orientation")
+                    )
                 )
+
             defaultImage = @getDefaultImage()
 
-            # Transform related-product image, if necessary
-            # Merge tagged-products (content tiles) & similar-products (product tiles)
-            # Let view deal with the difference
-            relatedProducts = @get("tagged-products") or []
-            unless _.isEmpty(relatedProducts)
-                relatedProducts = _.map(relatedProducts, (product) ->
-                    originalImages = product.images or []
-                    newImages = []
-                    _.each(originalImages, (image) ->
-                        imgObj = $.extend(true, {}, image)
-                        newImages.push(new module.Image(imgObj))
-                        return
-                    )
-                    product.images = newImages
-                    return product
-                )
+            # If tagged-products, transform json into <Product>s
+            if @get('tagged-products')?.length
+                taggedProducts = (new module.Product(product) for product in @get('tagged-products'))
+            else
+                taggedProducts = []
+
             @set
                 images: imgInstances
-                image: defaultImage
                 defaultImage: defaultImage
-                "tagged-products": relatedProducts
+                "tagged-products": taggedProducts
                 "dominant-color": defaultImage.get("dominant-color")
 
             App.vent.trigger("tileModelInitialized", @)
@@ -400,7 +403,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             "dominant-color": "transparent"
 
         initialize: (attributes, options) ->
-
             # add a name, colour, and a sized url to each size datum
             self = this
             color = @get("dominant-color")
@@ -448,15 +450,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @dimens 0, height, obj
 
 
-    ###
-    An ImageTile    *is* an image JSON, so we need to allocate all of its
-    attributes inside an 'images' field.
+    class module.ProductTile extends module.Tile
+        # A ProductTile is a product JSON. Convert to a Product
+        initialize: (attributes, options) ->
+            @set
+                product: new module.Product(attributes)
+            super
 
-    @param resp
-    @param options
-    @returns {*}
-    ###
+
     class module.ImageTile extends module.Tile
+        # An ImageTile is an image JSON, so we need to allocate all of its
+        # attributes inside an 'images' field.
         parse: (resp, options) ->
             # create tile-like attributes
             resp["default-image"] = 0
