@@ -1,3 +1,4 @@
+// A copy of page settings for reference
 {
   "tiles":{
     "wideableTemplates":{

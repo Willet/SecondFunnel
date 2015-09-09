@@ -78,7 +78,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onRender: ->
             # Get rid of that pesky wrapping-div
-            @$el = @$el.children() # NOTE 1st child will be come element, all other children will be dropped
+            @$el = @$el.children() # NOTE 1st child will become element, all other children will be dropped
             @$el.unwrap() # Unwrap the element to prevent infinitely nesting elements during re-render
             @setElement(@$el)
             return
@@ -231,6 +231,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {LayoutView}
     ###
     class module.ExpandedContent extends Marionette.LayoutView
+        ###
+        A container for viewing a tile.  If the tile has a product attribute,
+        it is treated as a product view (product featured, tagged products in 
+        carousel).  If the tile does not, it is treated as a content view (content
+        featured, tagged products in carousel).
+        ###
         regions:
             productInfo: ".product-info"
             carouselRegion: ".carousel-region"
@@ -259,8 +265,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @_currentIndex = -1 # Track which product is being displayed
 
             # Product pop-up
-            if @model.get("template") == "product"
-                @product = new module.Product(@model.attributes)
+            if @model.get("product")
+                @product = @model.get("product")
                 @taggedProductIndex = -1
                     
             # Content pop-up
@@ -275,9 +281,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @model.set("tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
                         -1 * parseFloat((obj.price or "$0").substr(1), 10)
                     ))
-                @taggedProducts = (new module.Product(product) for product in @model.get('tagged-products'))
-            else
-                @taggedProducts = []
+            @taggedProducts = @model.get('tagged-products') or []
             return
         
         onBeforeRender: ->
@@ -292,8 +296,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 else
                     @model.set("orientation", "portrait")
             # Need to get an appropriate sized image
-            image = $.extend(true, {}, @model.get("defaultImage").attributes)
-            image = new module.Image(image)
+            image = @model.get("defaultImage")
             if App.support.mobile()
                 image.url = image.height($window.height())
             else
@@ -330,9 +333,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # Return model of product being displayed
             return product
 
-        # Returns a callback that sizes the preview container, making the featured area sized
-        # to the viewport & allowing the overflow area to continue below the fold.
-        # Meant to be called when all images finish loading
+        ###
+        Returns a callback that sizes the preview container, making the featured area sized
+        to the viewport & allowing the overflow area to continue below the fold.
+        Meant to be called when all images finish loading
+        ###
         shrinkContainerCallback: ->
             =>
                 $window = $(window)
@@ -435,7 +440,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # Initialize carousel
             if not _.isEmpty(@taggedProducts)
                 carouselInstance = new module.CarouselView(
-                    items: @model.get('tagged-products')
+                    items: @taggedProducts
                     attrs:
                         'lookImageSrc': @model.get('images')[0].url
                         'lookName': @model.get('name')

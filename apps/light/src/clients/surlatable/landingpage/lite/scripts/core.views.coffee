@@ -213,9 +213,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         
         # Main content selected
         else
-            @_currentIndex = -1
+            @_currentIndex = @taggedProductIndex = -1
             # Product popup
-            if @product
+            if @product?
                 product = @product
                 @$el.find('.info').show()
                 @$el.find('.look-image-container').hide()
@@ -291,7 +291,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             category = App.intentRank.currentCategory() || App.option('page:home:category')
             catObj = App.categories.findModelByName(category)
 
-            # If category can't be found, default to 'The Chef'
+            # If category can't be found, default to 'Gifts'
             if not catObj? then catObj = displayName: 'Gifts'
 
             tile =

@@ -35,11 +35,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
 
         serializeData: ->
-            data = {
-                items: @items,
-                index: @index,
+            # If items are Backbone models, flatten them to their attributes
+            data =
+                items: ((if item.toJSON? then item.toJSON() else item) for item in @items)
+                index: @index
                 attrs: @attrs
-            }
             return data
 
         getTemplate: ->

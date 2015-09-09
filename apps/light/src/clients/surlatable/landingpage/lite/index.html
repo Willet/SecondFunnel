@@ -181,16 +181,7 @@
         </script>
 
         <script type="text/template" id="product_price_template">
-            <% var splitprice;
-            if (obj.sale_price) {
-                splitprice = String(obj.sale_price).split('.')
-            } else {
-                splitprice = String(obj.price).split('.')
-            }
-            var dollars = splitprice[0],
-                cents = splitprice[1];
-            %>
-            <span class="current"><%= dollars %><span class="cents"><%= cents %></span></span>
+            <span class="current"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
         </script>
 
         <script type="text/template" id="product_buy_template">
@@ -426,11 +417,11 @@
                                 <%= obj.attrs['lookName'] %>
                             </div>
                         </div>
-                        <% var related = obj.items; %>
-                        <% for (var i = 0; i < related.length; i++) { %>
+                        <% for (var i = 0, item; i < obj.items.length; i++) { 
+                            item = obj.items[i]; %>
                         <div class="stl-item" data-index="<%- i %>">
-                            <img src="<%- related[i].images[0].url %>" class="image" />
-                            <div class="name desktop-only"><%- related[i].title || related[i].name %></div>
+                            <img src="<%- item.images[0].url %>" class="image" />
+                            <div class="name desktop-only"><%- item.title || item.name %></div>
                         </div>
                         <% } %>
                     </div>
