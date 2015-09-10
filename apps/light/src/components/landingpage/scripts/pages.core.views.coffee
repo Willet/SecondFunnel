@@ -442,10 +442,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # tile can be a {Tile} or {object} tileJson
             @tileLoaded.done((tile) =>
                 @model = if _.isObject(tile) and not _.isEmpty(tile) then module.Tile.selectTileSubclass(tile) else undefined
-                App.heroArea.show(@)
+                @render()
 
                 @listenTo(App.vent, "windowResize", =>
-                    @.render()
+                    @render()
                 )
                 if updateWithCategory
                     @listenTo(App.vent, "change:category", @updateCategoryHeroImages)
