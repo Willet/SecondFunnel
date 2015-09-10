@@ -161,7 +161,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         productImageIndex = @productInfo.currentView?.galleryIndex or 0
         numberOfImages = (@productInfo.currentView?.numberOfImages - 1) or 0
         index = @_taggedProductIndex # local copy to modify
-        if taggedProductIndex > -1
+        if @taggedProductIndex > -1
             # delegate swipe to ProductView to swipe through images
             unless (direction is 'left' and productImageIndex is numberOfImages) or (direction is 'right' and productImageIndex is 0)
                 @productInfo.currentView.swipeStatus(event, phase, direction, distance, fingers, duration)

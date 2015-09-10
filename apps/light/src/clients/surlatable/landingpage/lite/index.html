@@ -146,6 +146,10 @@
             <% include("image_tile_template") %>
         </script>
 
+        <script type="text/template" id="recipe_tile_template">
+            <% include("image_tile_template") %>
+        </script>
+
         <script type="text/template" id="image_tile_template">
             <div class='relative'>
                 <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
@@ -155,16 +159,14 @@
                     <div class='cell'>
                         <% /* "Shop product" is actually wanted for the tile overlay */ %>
                         <div class="title">
-                        <% if (obj.template === "product") { %>
-                            <span>Get Details</span>
-                            <br/>
-                            <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
-                        <% } else if (obj.template === "image") { %>
+                        <% if (obj.template === "recipe") { %>
                             <span>See the Recipe</span>
                             <br/>
                             <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
                         <% } else { %>
                             <span>Get Details</span>
+                            <br/>
+                            <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
                         <% } %>
                         </div>
                     </div>
@@ -342,18 +344,10 @@
                 </div>
             </div>
             <div class="cell look-image-container">
-                <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
-                <div class="recipe-container">
-                    <div class="title">
-                        <% include("product_title_template") %>
-                    </div>
-                    <div class="recipe">
-                        <% include("product_description_template") %>
-                    </div>
-                    <div class="scroll-cta">
-                        Scroll to see more
-                    </div>
-                </div>
+                <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
+                <% if (template === "recipe") { %>
+                    <% include("recipe_template") %>
+                <% } %>
             </div>
             <div class="cell info <% if (tagged) { %>tagged<% } %>">
                 <div class="product-info"></div>
@@ -378,18 +372,10 @@
             <% var tagged = Boolean(obj['tagged-products'].length > 0) %>
             <div class="look-product-carousel">
                 <div class="cell look-image-container">
-                    <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
-                    <div class="recipe-container">
-                        <div class="title">
-                            <% include("product_title_template") %>
-                        </div>
-                        <div class="recipe">
-                            <%= obj.description %>
-                        </div>
-                        <div class="scroll-cta">
-                            Scroll to see more
-                        </div>
-                    </div>
+                    <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
+                    <% if (template === "recipe") { %>
+                        <% include("recipe_template") %>
+                    <% } %>
                 </div>
                 <div class="cell info <% if (tagged) { %>tagged<% } %>">
                     <div class="product-info"></div>
@@ -409,6 +395,20 @@
                 <div class="carousel-region"></div>
             </div>
             <% } %>
+        </script>
+
+        <script type="text/template" id="recipe_template">
+            <div class="recipe-container">
+                <div class="title">
+                    <% include("product_title_template") %>
+                </div>
+                <div class="recipe">
+                    <% include("product_description_template") %>
+                </div>
+                <div class="scroll-cta">
+                    Scroll to see more
+                </div>
+            </div>
         </script>
 
         <script type="text/template" id="carousel_template">
