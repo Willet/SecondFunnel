@@ -1391,12 +1391,15 @@ class Tile(BaseModel):
 
     def clean(self):
         if self.pk:
-            in_stock_products = [p.in_stock for p in self.products.all()]
-            if self.content.count():
-                # check 1st piece of content
-                in_stock_products += [p.in_stock for p in self.content.first().tagged_products.all()]
-            # TODO: update ir_cache to hide out-of-stock products?
-            self.in_stock = bool(True in in_stock_products)
+            products_stock_status = [p.in_stock for p in self.products.all()]
+            for content in self.content.all():
+                products_stock_status += [p.in_stock for p in content.tagged_products.all()]
+            if not len(products_stock_status):
+                # This tile has no tagged products, default to in_stock = True
+                # Example: banner tile
+                self.in_stock = True
+            else:
+                self.in_stock = bool(True in products_stock_status)
 
     def deepdelete(self):
         bulk_delete_products = []
