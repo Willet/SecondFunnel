@@ -659,7 +659,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     ###
-    Container for categories, does nothing for now.
+    Container for categories.
 
     @constructor
     @type {Collection}

@@ -309,7 +309,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if not @.isDestroyed
                 @.render()
 
-        initialize: ->
+        initialize: (options) ->
             if App.intentRank.currentCategory and App.categories
                 @generateHeroArea()
             else
@@ -322,4 +322,3 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @loadHeroArea()
             )
             return @
-
