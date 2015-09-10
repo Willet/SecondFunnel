@@ -430,8 +430,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # no tile, get category from intentRank
             else
                 if App.intentRank?.currentCategory?
-                    tile = @getCategoryHeroImages(App.intentRank.currentCategory())
-                    @tileLoaded = $.when(tile)
+                    tileJson = @getCategoryHeroImages(App.intentRank.currentCategory())
+                    @tileLoaded = $.when(tileJson)
                 # get category from intentRank when its ready
                 else
                     @tileLoaded = $.Deferred()
@@ -442,15 +442,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # tile can be a {Tile} or {object} tileJson
             @tileLoaded.done((tile) =>
                 @model = if _.isObject(tile) and not _.isEmpty(tile) then module.Tile.selectTileSubclass(tile) else undefined
-                App.heroArea.show(@)
+                @render()
 
                 @listenTo(App.vent, "windowResize", =>
-                    #App.heroArea.show(@, forceShow: true) # remove
-                    @.render()
+                    @render()
                 )
                 if updateWithCategory
                     @listenTo(App.vent, "change:category", @updateCategoryHeroImages)
-                return
+                return @
             )
 
         onRender: ->
@@ -615,17 +614,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return parent: @
 
         initialize: (options) ->
-            mobileCatArr = App.option("page:mobileCategories", [])
-            if App.support.mobile() and _.isArray(mobileCatArr) and not _.isEmpty(mobileCatArr)
-                catArr = mobileCatArr
-            else
-                catArr = App.option("page:categories", [])
-            categories = for category in catArr
-                if typeof(category) is "string"
-                    category = {name: category}
-                category
-
-            @collection = new module.CategoryCollection(categories, model: module.Category)
+            @collection = new module.CategoryCollection(_.get(options, 'categories', []),
+                                                        model: module.Category)
 
             # Watch for updates to feed, generally from intentRank
             @listenTo(App.vent, "change:category", @selectCategory)
