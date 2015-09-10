@@ -50,8 +50,17 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
             // Prevent categories from reloading
             if (!App.categoryArea.currentView) {
-                var categoriesView = new App.core.CategoryCollectionView();
-                App.categoryArea.show(categoriesView);
+                // Get appropriate categories for this page
+                var catArr = App.option("page:categories", []),
+                    mobileCatArr = App.option("page:mobileCategories", [])
+                if (App.support.mobile() && _.isArray(mobileCatArr) && !_.isEmpty(mobileCatArr)) {
+                    catArr = mobileCatArr;
+                }
+
+                var categoriesView = new App.core.CategoryCollectionView({categories: catArr});
+                if (categoriesView.collection.length) {
+                    App.categoryArea.show(categoriesView);
+                }
                 // Global reference to the category collection
                 App.categories = categoriesView.collection;
             }

@@ -346,7 +346,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         // Change to valid category
         $(".loading").show();
 
-        catObj = App.categories.findModelByName(category) || {};
+        catObj = App.categories ? App.categories.findModelByName(category) || {} : {};
 
         module._category = category;
         // tileSet is an optional paramter which can force a category to be
