@@ -1394,9 +1394,9 @@ class Tile(BaseModel):
             products_stock_status = [p.in_stock for p in self.products.all()]
             for content in self.content.all():
                 products_stock_status += [p.in_stock for p in content.tagged_products.all()]
-            # TODO: update ir_cache to hide out-of-stock products?
             if not len(products_stock_status):
-                # tiles should default to in_stock = true so that they get shown
+                # This tile has no tagged products, default to in_stock = True
+                # Example: banner tile
                 self.in_stock = True
             else:
                 self.in_stock = bool(True in products_stock_status)
