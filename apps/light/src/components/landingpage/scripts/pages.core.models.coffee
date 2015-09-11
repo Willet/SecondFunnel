@@ -313,7 +313,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         ###
-        @param byImgId     if omitted, the default image id
+        @param byImgId - if omitted, the default image id
         @returns {module.Image}
         ###
         getImage: (byImgId) ->
@@ -348,7 +348,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         getDefaultImageId: ->
             try
-
                 # product tiles
                 if @get("default-image")
                     defaultImageAttr = @get("default-image")
@@ -356,7 +355,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return defaultImageAttr
 
                 # product tiles without a default-image attr, guess it
-                if @get("images") and @get("images").length
+                if @get("images")?.length
 
                     # product tiles (or tiles with images:[...])
 
