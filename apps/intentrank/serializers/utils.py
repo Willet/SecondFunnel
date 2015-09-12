@@ -9,3 +9,4 @@ class SerializerError(Exception):
 class IRSerializer(RawSerializer):
     MEMCACHE_PREFIX = 'ir'
     MEMCACHE_TIMEOUT = 0  # use db cache
+
