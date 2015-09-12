@@ -2,7 +2,6 @@ from datetime import datetime
 from django.conf import settings
 import json
 
-from apps.assets.models import Image, Video, Review
 from apps.utils.functional import find_where, get_image_file_type, may_be_json
 
 from .utils import IRSerializer, SerializerError
@@ -38,33 +37,28 @@ class TileSerializer(IRSerializer):
         return data
 
     def get_dump_model(self, model):
+        """ shortcut for calling a serializer on a model """
         return model.serializer().get_dump_object(model)
 
     def get_separated_content(self, tile):
-        """ Returns object with content sorted into images & videos 
-        Update as more content models are invented
+        """ Gets content in json-dict sorted by class
+        returns {
+            'images': assets.Image's (inc gif)
+            'videos': assets.Video's
+            'reviews': assets.Review's
+        }
         """
-        contents = tile.content.select_subclasses()
-        images = [self.get_dump_model(image) for image in contents if isinstance(image, Image)]
-        videos = [self.get_dump_model(video) for video in contents if isinstance(video, Video)]
-        reviews = [self.get_dump_model(review) for review in contents if isinstance(review, Review)]
         data = {}
-        if images:
-            # covers Image & Gif
-            data["images"] = images
-        if videos:
-            data["videos"] = videos
-        if reviews:
-            data["reviews"] = reviews    
+        # convert to json
+        for (k, v) in tile.separated_content.items():
+            data[k] = [self.get_dump_model(c) for c in v]
+           
         return data
 
-    def get_first_content_of(self, cls, tile):
-        contents = tile.content.select_subclasses()
-        try:
-            return next(c for c in contents if isinstance(c, cls))
-        except StopIteration:
-            raise LookupError
-
+    def get_dump_first_content_of(self, cls, tile):
+        """ Return content json of first content of cls """
+        content = tile.get_first_content_of(cls)
+        return self.get_dump_model(content)
 
 class ProductTileSerializer(TileSerializer):
     def get_dump_object(self, product_tile):
@@ -119,6 +113,7 @@ class ImageTileSerializer(ContentTileSerializer):
             ...
         }
         """
+        from apps.assets.models import Image # lazy import avoids circular reference
         try:
             # cleanly handles subclasses (ie: Gif uses GifSerializer)
             image = self.get_dump_first_content_of(Image, image_tile)
@@ -145,6 +140,7 @@ class VideoTileSerializer(TileSerializer):
             ...
         }
         """
+        from apps.assets.models import Video # lazy import avoids circular reference
         try:
             video = self.get_dump_first_content_of(Video, video_tile)
         except LookupError:
@@ -170,6 +166,7 @@ class BannerTileSerializer(TileSerializer):
             ...
         }
         """
+        from apps.assets.models import Image # lazy import avoids circular reference
         redirect_url = (banner_tile.attributes.get('redirect_url') or
                         banner_tile.attributes.get('redirect-url'))
         if not redirect_url:
@@ -185,11 +182,11 @@ class BannerTileSerializer(TileSerializer):
         else:
             product = banner_tile.products.first() # Could return None
             try:
-                image = product.default_image.to_json()
+                image = self.get_dump_model(product.default_image)
             except AttributeError:
                 # fall back to first image
                 try:
-                    image = product.product_images.first().to_json()
+                    image = self.get_dump_model(product.product_images.first())
                 except AttributeError:
                     # Ran out of options
                     raise SerializerError('Banner tile must have an image or a product with an image')
@@ -211,17 +208,18 @@ class HeroTileSerializer(TileSerializer):
             ...
         }
         """
+        from apps.assets.models import Image # lazy import avoids circular reference
         try:
-            image = self.get_dump_first_content_of(Image, hero_tile)
+            image = hero_tile.get_first_content_of(Image)
         except LookupError:
             raise SerializerError('Hero tile expecting content to include an image')
 
-        products = ([product.to_json for product in hero_tile.products.all()] or
-                    [product.to_json for product in image.products.all()])
+        products = ([self.get_dump_model(p) for p in hero_tile.products.all()] or
+                    [self.get_dump_model(p) for p in image.products.all()])
 
         data = super(HeroTileSerializer, self).get_dump_object(hero_tile)
         data.update({
-            "image": image,
+            "image": self.get_dump_model(image),
             "tagged-products": products,
         })
         return data
@@ -237,26 +235,27 @@ class HerovideoTileSerializer(TileSerializer):
             ...
         }
         """
+        from apps.assets.models import Image, Video # lazy import avoids circular reference
         try:
-            video = self.get_dump_first_content_of(Video, hero_tile)
+            video = hero_tile.get_first_content_of(Video)
         except LookupError:
             raise SerializerError('Herovideo tile expecting content to include a video')
         try:
-            image = self.get_dump_first_content_of(Image, hero_tile)
+            image = hero_tile.get_first_content_of(Image)
         except LookupError:
             # optional
             image = None
         
-        products = ([p.to_json for p in hero_tile.products.all()] or
-                    [p.to_json for p in video.products.all()] or
-                    ([p.to_json for p in image.products.all()] if image else []))
+        products = ([self.get_dump_model(p) for p in hero_tile.products.all()] or
+                    [self.get_dump_model(p) for p in video.products.all()] or
+                    ([self.get_dump_model(p) for p in image.products.all()] if image else []))
 
         data = super(HeroTileSerializer, self).get_dump_object(hero_tile)
         data.update({
-            "video": video,
+            "video": self.get_dump_model(video),
             "tagged-products": products,
         })
         if image:
-            data['image'] = image
+            data['image'] = self.get_dump_model(image)
         return data
 

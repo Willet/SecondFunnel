@@ -36,8 +36,7 @@ class SerializableMixin(object):
     To implement specific json formats, override these methods.
     """
 
-    serializer = ir_serializers.RawSerializer
-    cg_serializer = cg_serializers.RawSerializer
+    serializer = cg_serializer = cg_serializers.RawSerializer
 
     def to_json(self, skip_cache=False):
         """default method for all models to have a json representation."""
@@ -1451,4 +1450,25 @@ class Tile(BaseModel):
                 if content.tagged_products.count():
                     return content.tagged_products.first()
         return None
+
+    @property
+    def separated_content(self):
+        """ a <dict> of content indexed by class 'images', 'videos', 'reviews' """
+        contents = tile.content.select_subclasses()
+        return {
+            'images': [image for image in contents if isinstance(image, Image)],
+            'videos': [video for video in contents if isinstance(video, Video)],
+            'reviews': [review for review in contents if isinstance(review, Review)],
+        }
+
+    def get_first_content_of(self, cls):
+        """
+        returns first content of type cls in tile 
+        raises LookupError if no content of type cls is found
+        """
+        contents = self.content.select_subclasses()
+        try:
+            return next(c for c in contents if isinstance(c, cls))
+        except StopIteration:
+            raise LookupError
 
