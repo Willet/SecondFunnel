@@ -15,8 +15,12 @@ App.module('utils', require('./utils'));
 App.module('core', require('./core.views'));
 App.module('core', require('./core.views.tiles'));
 
-// Replace CJ links on base page
+// Run Application
+App.init.initialize();
+App.start();
+
 (function () {
+    // Wrap SLT links with CJ link
     var re = /^https?\:\/\/www\.surlatable\.com/i;
     $('a').each(function (el) {
         if (this.href.match(re)) {
@@ -24,13 +28,7 @@ App.module('core', require('./core.views.tiles'));
                         App.option('page:slug') + '/' + this.href;
         }
     });
-}());
 
-// Run Application
-App.init.initialize();
-App.start();
-
-(function () {
     var $topNavWrappers = $('.topNavWrapper'),
         $topSecNavWrappers = $('.topSecNavWrapper'),
         $topProductSecNavPromo = $('.topProductSecNavPromo'),

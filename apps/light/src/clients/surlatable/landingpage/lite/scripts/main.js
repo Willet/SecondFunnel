@@ -20,8 +20,12 @@ if (App.option("generateHeroArea")) {
     App.core.HeroAreaView = App.core.SLTHeroAreaView;
 }
 
-// Replace CJ links on base page
+// Run Application
+App.init.initialize();
+App.start();
+
 (function () {
+    // Wrap SLT links with CJ link
     var re = /^https?\:\/\/www\.surlatable\.com/i;
     $('a').each(function (el) {
         if (this.href.match(re)) {
@@ -29,13 +33,7 @@ if (App.option("generateHeroArea")) {
                         App.option('page:slug') + '/' + this.href;
         }
     });
-}());
 
-// Run Application
-App.init.initialize();
-App.start();
-
-(function () {
     // Send search bar inqueries to surlatable.com
     $('#submit-search').click(function(ev){
         var searchUrl,
