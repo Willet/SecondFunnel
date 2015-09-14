@@ -15,6 +15,17 @@ App.module('utils', require('./utils'));
 App.module('core', require('./core.views'));
 App.module('core', require('./core.views.tiles'));
 
+// Replace CJ links on base page
+(function () {
+    var re = /^https?\:\/\/www\.surlatable\.com/i;
+    $('a').each(function (el) {
+        if (this.href.match(re)) {
+            this.href = 'http://www.qksrv.net/links/7774943/type/am/sid/' +
+                        App.option('page:slug') + '/' + this.href;
+        }
+    });
+}());
+
 // Run Application
 App.init.initialize();
 App.start();
@@ -89,11 +100,14 @@ App.start();
     // Send search bar inqueries to surlatable.com
     $('#submit-search').click(function(ev){
         var searchUrl,
+            baseUrl = "http://www.anrdoezrs.net/links/7774943/sid/" +
+                      App.option('page:slug') +
+                      "/type/dlg/http://www.surlatable.com/search/search.jsp",
             $this = $(this),
             $inputBox = $this.siblings().first(),
             $topNavSearch = $this.parents('#topNavSearch');
         if ($topNavSearch.length && $inputBox.length) {
-            searchUrl = $topNavSearch.data('nonsecureurl') + "?Ntt=" + $inputBox.val();
+            searchUrl = baseUrl + "?Ntt=" + $inputBox.val();
             App.utils.openUrl(searchUrl, "_top");
         }
         return false;
