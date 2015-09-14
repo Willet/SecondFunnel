@@ -267,7 +267,7 @@ class HerovideoTileSerializer(TileSerializer):
             image = {}
         
         products = ([p.to_json() for p in tile.products.all()] or
-                    video['tagged-products'] or image.get('tagged-products', [])
+                    video['tagged-products'] or image.get('tagged-products', []))
 
         data = super(HerovideoTileSerializer, self).get_dump_object(tile)
         data.update({
