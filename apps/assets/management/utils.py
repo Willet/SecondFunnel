@@ -8,8 +8,10 @@ import random
 
 from apps.assets.models import Category, Feed, Page, Product, Tile
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
-from django.db import transaction
+from django.db import transaction, models
+from django.db.models.signals import post_save
 
+from apps.assets.tasks import tile_saved
 from apps.intentrank.serializers import SerializerError
 
 
@@ -128,14 +130,17 @@ def set_random_priorities(tiles, max_priority=0, min_priority=0):
 
 def update_tiles_ir_cache(tiles):
     """
-    Updates the ir_cache of tiles by calling save on them
+    Updates the ir_cache of tiles. Does not run full clean!
 
     Returns: <list> of <tuple>(Tile, Error) for failed updates
     """
+    post_save.disconnect(tile_saved, sender=Tile) 
     dts = []
     for t in tiles:
         try:
-            t.save()
+            ir_cache, updated = t.update_ir_cache() # sets tile.ir_cache
+            if updated:
+                models.Model.save(t, update_fields=['ir_cache']) # skip full_clean
             print "{}: updated".format(t)
         except SerializerError as e:
             print "\t{}: {}".format(t, e)
@@ -143,4 +148,5 @@ def update_tiles_ir_cache(tiles):
         except ValidationError as e:
             print "\t{}: {}".format(t, e)
             dts.append((t, e))
+    post_save.connect(tile_saved, sender=Tile)
     return dts
