@@ -345,7 +345,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 target: @
                 data: 2
             )
-            @player.destroy()
+            @player?.destroy()
 
     
     ###
