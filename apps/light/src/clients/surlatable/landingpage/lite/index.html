@@ -146,9 +146,13 @@
             <% include("image_tile_template") %>
         </script>
 
+        <script type="text/template" id="banner_tile_template">
+            <% include("image_tile_template") %>
+        </script>
+
         <script type="text/template" id="image_tile_template">
             <div class='relative'>
-                <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
+                <img class="focus" src="<%= obj.defaultImage.url %>" />
             </div>
             <div class="overlay">
                 <div class='table'>
@@ -158,11 +162,11 @@
                         <% if (obj.template === "product") { %>
                             <span>Get Details</span>
                             <br/>
-                            <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
+                            <span class="tile-name"><%= obj.product.get('name') %></span>
                         <% } else if (obj.template === "image") { %>
                             <span>See the Recipe</span>
                             <br/>
-                            <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
+                            <span class="tile-name"><%= obj.image.get('name') %></span>
                         <% } else { %>
                             <span>Get Details</span>
                         <% } %>

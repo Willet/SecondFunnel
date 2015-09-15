@@ -2,7 +2,7 @@ import inspect
 
 from .surlatable import SurLaTableDatafeed
 
-help = """ DEPRECATED: downloads XML files from CJ & updates projects """
+""" DEPRECATED: downloads XML files from CJ & updates projects """
 
 datafeeds = { 'surlatable': SurLaTableDatafeed }
 
