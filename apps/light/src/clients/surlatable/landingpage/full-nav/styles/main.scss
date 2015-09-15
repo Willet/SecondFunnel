@@ -566,6 +566,7 @@ body {
     }
     .overlay {
         background: rgba(255,255,255,0.80);
+        @include no-select;
     }
     .name {
         font-size: 0.9em;
