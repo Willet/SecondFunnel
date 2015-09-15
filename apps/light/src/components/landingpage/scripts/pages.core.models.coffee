@@ -348,36 +348,39 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             to <Image>s.
             ###
             
-            images = ((new module.Image(im) for im in @get("images"))
-                      if @get("images")?.length else [])
+            images = if _.isArray(@get("images")) \
+                     then (new module.Image(im) for im in @get("images")) \
+                     else []
 
             # used by some tiles where a video is the primary content
-            image = (new model.Image(@get("image")) if @get("image")? else undefined)
+            image = if @get("image")? then new module.Image(@get("image")) else undefined
 
             if @get('default-image')?
-                if _.isNumber(@get('default-image'))
-                    defaultImage = @getImage(@get('default-image'))
-                else
-                    defaultImage = new model.Image(@get('default-image'))
+                defaultImage = if _.isNumber(@get('default-image')) \
+                               then @getImage(@get('default-image')) \
+                               else new module.Image(@get('default-image'))
             else
                 defaultImage = undefined
 
             if @get('video')?
-                if @get('video')['source'] == 'youtube'
-                    video = new model.YoutubeVideo(@get('video'))
-                else
-                    video = new model.Video($.extend(@get('video'))
+                video = if (@get('video')['source'] == 'youtube') \
+                        then new module.YoutubeVideo(@get('video')) \
+                        else video = new module.Video(@get('video'))
             else
                 video = undefined
 
-            taggedProducts = ((new module.Product(p) for p in @get('tagged-products'))
-                              if @get('tagged-products')?.length else [])
+            product = if @get('product')? then new module.Product(@get('product')) else undefined
+
+            taggedProducts = if _.isArray(@get('tagged-products')) \
+                             then (new module.Product(p) for p in @get('tagged-products')) \
+                             else []
 
             @set
                 images: images
                 defaultImage: defaultImage
                 image: image
                 video: video
+                product: product
                 "tagged-products": taggedProducts
 
             if defaultImage
@@ -436,9 +439,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             desktopHeroImage = undefined
             mobileHeroImage = undefined
             if attrs.desktopHeroImage
-                desktopHeroImage = new module.Image({ "url" : attrs.desktopHeroImage }, {"suppress_resize": true})
+                desktopHeroImage = new module.Image(
+                    url: attrs.desktopHeroImage
+                    suppress_resize: true
+                )
             if attrs.mobileHeroImage
-                mobileHeroImage = new module.Image({ "url" : attrs.mobileHeroImage }, {"suppress_resize": true})
+                mobileHeroImage = new module.Image(
+                    url: attrs.mobileHeroImage
+                    suppress_resize: true
+                )
 
             if desktopHeroImage
                 @set(

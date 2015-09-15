@@ -84,7 +84,7 @@ class ProductTileSerializer(TileSerializer):
             # Product tile should only have 1 product
             product = tile.products.first().to_json()
         except AttributeError:
-            raise SerializerError('Product tile has no products')
+            raise SerializerError('Product Tile #{} has no products'.format(tile.id))
 
         data = super(ProductTileSerializer, self).get_dump_object(tile)
         data.update({
@@ -128,7 +128,7 @@ class ImageTileSerializer(ContentTileSerializer):
             # cleanly handles subclasses (ie: Gif uses GifSerializer)
             image = self.get_dump_first_content_of(self.contenttype, tile)
         except LookupError:
-            raise SerializerError('Image tile must be tagged with an image')
+            raise SerializerError('Image Tile #{} must be tagged with an image'.format(tile.id))
 
         products = ([p.to_json() for p in tile.products.all()] or
                     image['tagged-products'])
@@ -159,7 +159,7 @@ class VideoTileSerializer(TileSerializer):
         try:
             video = self.get_dump_first_content_of(self.contenttype, tile)
         except LookupError:
-            raise SerializerError('Video tile must be tagged with a video')
+            raise SerializerError('Video Tile #{} must be tagged with a video'.format(tile.id))
         products = ([p.to_json() for p in tile.products.all()] or
                     video['tagged-products'])
 
@@ -188,7 +188,7 @@ class BannerTileSerializer(TileSerializer):
         redirect_url = (tile.attributes.get('redirect_url') or
                         tile.attributes.get('redirect-url'))
         if not redirect_url:
-            raise SerializerError('Banner tile must have redirect url')
+            raise SerializerError('Banner Tile #{} must have redirect url'.format(tile.id))
 
         # Needs one image
         # We prefer content over products
@@ -196,7 +196,8 @@ class BannerTileSerializer(TileSerializer):
             try:
                 image = self.get_dump_first_content_of(self.contenttype, tile)
             except LookupError:
-                raise SerializerError('Banner tile expecting content to be an image')
+                raise SerializerError("Banner Tile #{} expecting \
+                                       content to be an image".format(tile.id))
         else:
             product = tile.products.first() # Could return None
             try:
@@ -207,7 +208,8 @@ class BannerTileSerializer(TileSerializer):
                     image = product.product_images.first().to_json()
                 except AttributeError:
                     # Ran out of options
-                    raise SerializerError('Banner tile must have an image or a product with an image')
+                    raise SerializerError("Banner Tile #{} must have an image \
+                                           or a product with an image".format(tile.id))
 
         data = super(BannerTileSerializer, self).get_dump_object(tile)
         data.update({
@@ -231,7 +233,7 @@ class HeroTileSerializer(TileSerializer):
         try:
             image = self.get_dump_first_content_of(self.contenttype)
         except LookupError:
-            raise SerializerError('Hero tile expecting content to include an image')
+            raise SerializerError("Hero Tile expecting content to include an image".format(tile.id))
 
         products = ([p.to_json() for p in tile.products.all()] or
                     image['tagged-products'])
@@ -259,7 +261,8 @@ class HerovideoTileSerializer(TileSerializer):
         try:
             video = self.get_dump_first_content_of(self.contenttype, tile)
         except LookupError:
-            raise SerializerError('Herovideo tile expecting content to include a video')
+            raise SerializerError("Herovideo Tile #{} expecting \
+                                   content to include a video".format(tile.id))
         try:
             image = self.get_dump_first_content_of('assets.Image', tile)
         except LookupError:

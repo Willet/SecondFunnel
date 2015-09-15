@@ -26,6 +26,7 @@ class ProductSerializer(IRSerializer):
             "name": product.name,
             "tagged-products": [],
             "id": product.id,
+            "in-stock": product.in_stock,
         }
 
         data.update(product.attributes)
@@ -41,6 +42,8 @@ class ProductSerializer(IRSerializer):
                 data["sizes"] = product_images[0].get('sizes', None)
                 data["orientation"] = product_images[0].orientation
             except (IndexError, AttributeError):
+                data['default-image'] = {}
+                data['sizes'] = {}
                 data['orientation'] = "portrait"
 
         
