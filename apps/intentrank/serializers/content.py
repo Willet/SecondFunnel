@@ -111,9 +111,7 @@ class ContentSerializer(IRSerializer):
             'status': content.status,
         }
 
-        if content.tagged_products.count() > 0:
-            data['tagged-products'] = []
-
+        data['tagged-products'] = []
         for product in content.tagged_products.filter(in_stock=True):
             data['tagged-products'].append(product.to_json())
 
