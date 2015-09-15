@@ -10,7 +10,7 @@ class Migration(DataMigration):
 
     def forwards(self, orm):
         # Update currently live pages
-        pages = Page.objects.filter(url_slug__in=['giftideas','halloween'])
+        pages = orm.Page.objects.filter(url_slug__in=['giftideas','halloween'])
         feeds = [p.feed for p in pages]
         tiles = orm.Tile.objects.filter(feed__in=feeds)
         update_tiles_ir_cache(tiles)
