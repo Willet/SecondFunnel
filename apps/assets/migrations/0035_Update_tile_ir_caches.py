@@ -9,12 +9,14 @@ from apps.assets.management.utils import update_tiles_ir_cache
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        # Update them all
-        update_tiles_ir_cache(orm.Tile.objects.all())
+        # Update currently live pages
+        pages = Page.objects.filter(url_slug__in=['giftideas','halloween'])
+        feeds = [p.feed for p in pages]
+        tiles = orm.Tile.objects.filter(feed__in=feeds)
+        update_tiles_ir_cache(tiles)
 
     def backwards(self, orm):
-        # Update them all
-        update_tiles_ir_cache(orm.Tile.objects.all())
+        raise RuntimeError('Manully control which tiles to update, takes too long to do them all')
 
     models = {
         u'assets.category': {
