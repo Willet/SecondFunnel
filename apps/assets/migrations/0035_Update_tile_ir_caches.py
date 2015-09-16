@@ -3,8 +3,12 @@ from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import DataMigration
 from django.db import models
+from django.core.exceptions import ValidationError
 
+from apps.assets.models import Tile
 from apps.assets.management.utils import update_tiles_ir_cache
+from apps.intentrank.serializers import SerializerError
+
 
 class Migration(DataMigration):
 
@@ -12,8 +16,21 @@ class Migration(DataMigration):
         # Update currently live pages
         pages = orm.Page.objects.filter(url_slug__in=['giftideas','halloween'])
         feeds = [p.feed for p in pages]
-        tiles = orm.Tile.objects.filter(feed__in=feeds)
-        update_tiles_ir_cache(tiles)
+        
+        for t in orm.Tile.objects.filter(feed__in=feeds).order_by('-priority'):
+            # Convert orm.Tile into Tile model to access serialization mixin
+            tile = Tile(**{k:v for (k,v) in t.__dict__.iteritems() if not k.startswith('_')})
+            try:
+                ir_cache, updated = tile.update_ir_cache()
+                if updated:
+                    # update the orm.Tile model with new ir_cache
+                    t.ir_cache = ir_cache
+                    t.save(update_fields=['ir_cache'])
+                    print "{}: updated".format(t)
+                else:
+                    print "{}: not updated".format(t)
+            except (SerializerError, ValidationError) as e:
+                print "{}: {}".format(t, e)
 
     def backwards(self, orm):
         raise RuntimeError('Manully control which tiles to update, takes too long to do them all')
