@@ -6,11 +6,11 @@ import csv
 import pprint
 import random
 
-from apps.assets.models import Category, Feed, Page, Product, Tile
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import transaction, models
 from django.db.models.signals import post_save
 
+from apps.assets.models import Category, Feed, Page, Product, Tile
 from apps.assets.tasks import tile_saved
 from apps.intentrank.serializers import SerializerError
 
@@ -134,7 +134,7 @@ def update_tiles_ir_cache(tiles):
 
     Returns: <list> of <tuple>(Tile, Error) for failed updates
     """
-    post_save.disconnect(tile_saved, sender=Tile) 
+    post_save.disconnect(tile_saved, sender=Tile)
     dts = []
     for t in tiles:
         try:
