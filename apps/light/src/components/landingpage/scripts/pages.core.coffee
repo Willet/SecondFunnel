@@ -1,7 +1,5 @@
 "use strict"
 
-json = require("json3")
-
 module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     ###
