@@ -1,5 +1,7 @@
 "use strict"
 
+json = require("json3")
+
 module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     ###
@@ -168,7 +170,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     Replaces all include tags within a given template with cached templates.
     Returns the resulting partially-compiled template.
 
-    @method loadSubtemplate
+    @method compileSubtemplate
     @param str
     @returns {string} template
     ###
@@ -183,3 +185,31 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
         
         return str
+
+    ###
+    Wraps Marionette.Renderer to catch and report templating errors
+
+    @method 
+    @returns
+    ###
+    baseRenderer = Marionette.Renderer.render
+    Marionette.Renderer.    render = (template, data) ->
+        try
+            return baseRenderer(template, data)
+        catch e
+            if App.option('debug', false)
+                try
+                    rawTemplate = Marionette.TemplateCache::loadTemplate(template)
+                    expandedTemplate = Marionette.TemplateCache::compileSubtemplate(rawTemplate)
+                catch e
+                    # template error
+                    expandedTemplate = ''
+                console.warn(
+                    """Template error: %s: %s
+                    %s: %s
+                    data: %O
+                    """,
+                    e.name, e.message, template, $.trim(expandedTemplate), data
+                )
+            return ''
+        
