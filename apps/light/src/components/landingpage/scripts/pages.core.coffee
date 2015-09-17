@@ -191,7 +191,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @returns
     ###
     baseRenderer = Marionette.Renderer.render
-    Marionette.Renderer.    render = (template, data) ->
+    Marionette.Renderer.render = (template, data) ->
         try
             return baseRenderer(template, data)
         catch e

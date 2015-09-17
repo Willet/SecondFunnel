@@ -156,7 +156,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 data = this.model.attributes,
                 page = App.option('page', {}),
                 product = data || page.product || {},
-                related = data['tagged-products'] && data['tagged-products'].length ? data['tagged-products'][App.option('galleryIndex', 0)] : {},
+                related = data['taggedProducts'] && data['taggedProducts'].length ? data['taggedProducts'][App.option('galleryIndex', 0)] : {},
                 image;
 
             data.image = data.image ? data.image : {};

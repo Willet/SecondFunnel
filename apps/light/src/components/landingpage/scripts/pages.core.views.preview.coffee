@@ -275,13 +275,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # Load up zeroth tagged product
                 @taggedProductIndex = 0
 
-            if @model.get("tagged-products")?.length > 0
-                # order tagged-products by price
-                if @model.get("tagged-products")?.length > 1
-                    @model.set("tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
+            if @model.get("taggedProducts")?.length > 0
+                # order taggedProducts by price
+                if @model.get("taggedProducts")?.length > 1
+                    @model.set("taggedProducts", _.sortBy(@model.get("taggedProducts"), (obj) ->
                         -1 * parseFloat((obj.price or "$0").substr(1), 10)
                     ))
-            @taggedProducts = @model.get('tagged-products') or []
+            @taggedProducts = @model.get('taggedProducts') or []
             return
         
         onBeforeRender: ->
@@ -448,7 +448,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @carouselRegion.show(carouselInstance)
 
                 # Add some logic here to decide if carouselview or similarproductsview
-                    #similarProductsInstance = new module.SimilarProductsView(@model.get("tagged-products"))
+                    #similarProductsInstance = new module.SimilarProductsView(@model.get("taggedProducts"))
                     #@similarProducts.show(similarProductsInstance)
 
             @resizeContainer()

@@ -328,7 +328,7 @@
                         <div class='cell'>
                             <% /* "shop" is actually wanted for the tile overlay */ %>
                             <div class="title">
-                                <% var products = obj['tagged-products'] ? obj['tagged-products'] : []; %>
+                                <% var products = obj.taggedProducts ? obj.taggedProducts : []; %>
                                 <% if (obj.title || obj.name || obj.caption || obj.hoverText) { %>
                                     <span><%= (obj.title || obj.name || obj.caption || obj.hoverText) %></span>
                                     <% if (products.length > 0) { %>
@@ -424,13 +424,13 @@
 
         <script type="text/template" id="desktop_tagged_products">
             <% var orientation = (obj.orientation || "square"); %>
-            <% var oneProduct = (obj['tagged-products'].length < 2); %>
+            <% var oneProduct = (obj.taggedProducts.length < 2); %>
             <div class="cell look-image-container desktop-only <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
                 <div class="look-image"
                     style="background-image: url('<%= image_src %>');">
                 </div>
             </div>
-            <% if (obj['tagged-products'].length > 1) { %>
+            <% if (obj.taggedProducts.length > 1) { %>
                 <div class="cell desktop-only shop <%= orientation %>">
                     <div class="stl-title">
                         shop the look

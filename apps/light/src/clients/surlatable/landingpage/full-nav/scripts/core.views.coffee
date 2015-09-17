@@ -30,8 +30,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ProductView::onBeforeRender = ->
-        linkName = "More on #{@model.attributes.name or @model.attributes.title} »"
-        inlineLink = "<a href='#{@model.attributes.cj_link or @model.attributes.url}'>#{linkName}</a>"
+        linkName = "More on #{@model.get('name') or @model.get('title')} »"
+        inlineLink = "<a href='#{@model.get('cj_link') or @model.get('url')}'>#{linkName}</a>"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
             @model.set("truncated_description", truncatedDescription + " " + inlineLink)
@@ -109,7 +109,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if App.support.mobile() and not @$el.find('.look-thumbnail').is(':visible')
                 @carouselRegion.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @carouselRegion.currentView.index + 1)
             @updateContent()
-            product = new App.core.Product(@model.get("tagged-products")[@lookProductIndex])
+            product = new App.core.Product(@model.get("taggedProducts")[@lookProductIndex])
             App.vent.trigger('tracking:product:thumbnailClick', product)
             return
 
@@ -201,11 +201,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.closest(".previewContainer").removeClass("landscape")
             @$el.closest(".fullscreen").addClass("loading-images")
         @$el.find('.info').hide()
-        if @model.get("tagged-products")?.length > 0
+        if @model.get("taggedProducts")?.length > 0
             @lookProductIndex = -1
             carouselInstance = new module.CarouselView(
-                items: @taggedProducts,
-                attrs: { 'lookImageSrc': @model.get('images')[0].url }
+                items: @taggedProducts
+                attrs: 'lookImageSrc': @model.get('images')[0].url
             )
             @carouselRegion.show(carouselInstance)
         @$el.find('.look-thumbnail').hide()
@@ -231,7 +231,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @lookProductIndex--
                 # swipe from recipe to last product
                 if @lookProductIndex < -1
-                    @lookProductIndex = @model.get('tagged-products').length - 1
+                    @lookProductIndex = @model.get('taggedProducts').length - 1
                     if App.support.mobile()
                         @carouselRegion.currentView.index = Math.min($('.stl-look').children().length - 1, @carouselRegion.currentView.index + 1)
                 # swipe from first product to recipe
@@ -240,7 +240,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else if direction is 'left'
                 @lookProductIndex++
                 # swipe from last product to recipe
-                if @lookProductIndex is @model.get('tagged-products')?.length
+                if @lookProductIndex is @model.get('taggedProducts')?.length
                     @lookProductIndex = -1
                     if App.support.mobile()
                         @carouselRegion.currentView.index = Math.max(0, @carouselRegion.currentView.index - 1)
@@ -269,8 +269,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.look-thumbnail').show()
             if @model.get("type") is "product"
                 product = new module.Product(@model.attributes)
-            else if @model.get("tagged-products")?.length > 0
-                product = new module.Product(@model.get("tagged-products")[@lookProductIndex])
+            else if @model.get("taggedProducts")?.length > 0
+                product = new module.Product(@model.get("taggedProducts")[@lookProductIndex])
             unless product is undefined
                 product.set("recipe-name", @model.get('name') or @model.get('title'))
                 productInstance = new module.ProductView(
@@ -278,7 +278,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                 @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
                 @productInfo.show(productInstance)
-            if App.support.mobile() and @model.get("tagged-products")?.length > 0
+            if App.support.mobile() and @model.get("taggedProducts")?.length > 0
                 if App.utils.landscape()
                     @carouselRegion.currentView.calculateVerticalPosition()
                 else

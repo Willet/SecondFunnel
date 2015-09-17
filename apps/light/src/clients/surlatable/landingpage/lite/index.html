@@ -163,14 +163,18 @@
                     <div class='cell'>
                         <% /* "Shop product" is actually wanted for the tile overlay */ %>
                         <div class="title">
-                        <% if (obj.template === "product" || obj.template === "image") { %>
+                        <% if (obj.template === "product") { %>
                             <span>Get Details</span>
                             <br/>
                             <span class="tile-name"><%= obj.product.get('name') %></span>
+                        <% } else if (obj.template === "image") { %>
+                            <span>Get Details</span>
+                            <br/>
+                            <span class="tile-name"><%= obj.defaultImage.get('name') %></span>
                         <% } else if (obj.template === "recipe") { %>
                             <span>See the Recipe</span>
                             <br/>
-                            <span class="tile-name"><%= obj.image.get('name') %></span>
+                            <span class="tile-name"><%= obj.defaultImage.get('name') %></span>
                         <% } else { %>
                             <span>Get Details</span>
                             <br/>
@@ -187,7 +191,7 @@
 
         <script type="text/template" id="preview_container_template">
             <% var template = (obj.template || "image") %>
-            <% var tagged = false; try { tagged = !_.isEmpty(obj['tagged-products']); } catch (e) {} %>
+            <% var tagged = false; try { tagged = !_.isEmpty(obj.taggedProducts); } catch (e) {} %>
             <div class="fullscreen scrollable <%= template %> <% if (tagged) { %>tagged<% } %>">
                 <div class="content">
                     <span class="close desktop-only">Keep Shopping <img src="/static/light/surlatable/landingpage/lite/images/close.gif"></span>
@@ -297,7 +301,7 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <% var tagged = Boolean(obj['tagged-products'].length > 0) %>
+            <% var tagged = Boolean(obj.taggedProducts.length > 0) %>
             <div class="table <%= obj.orientation %>">
                 <div class="row">
                     <div class="cell title-banner desktop-only">
@@ -345,7 +349,7 @@
         </script>
 
         <script type="text/template" id="desktop_tagged_products">
-            <% var tagged = Boolean(obj['tagged-products'].length > 0) %>
+            <% var tagged = Boolean(obj.taggedProducts.length > 0) %>
             <div class="cell title-banner">
                 <div class="title">
                     <% include("product_title_template") %>
@@ -377,7 +381,7 @@
         </script>
 
         <script type="text/template" id="mobile_tagged_products">
-            <% var tagged = Boolean(obj['tagged-products'].length > 0) %>
+            <% var tagged = Boolean(obj.taggedProducts.length > 0) %>
             <div class="look-product-carousel">
                 <div class="cell look-image-container">
                     <div class="look-image" style="background-image: url('<%= image.url %>');"></div>

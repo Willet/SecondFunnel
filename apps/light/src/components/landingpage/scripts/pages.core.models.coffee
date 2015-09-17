@@ -186,7 +186,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @set
                 images: imgInstances
                 defaultImage: defaultImage
-                "tagged-products": []
+                taggedProducts: []
                 "dominant-color": defaultImage.get("dominant-color")
             return
 
@@ -371,8 +371,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             product = if @get('product')? then new module.Product(@get('product')) else undefined
 
-            taggedProducts = if _.isArray(@get('tagged-products')) \
-                             then (new module.Product(p) for p in @get('tagged-products')) \
+            taggedProducts = if _.isArray(@get('taggedProducts')) \
+                             then (new module.Product(p) for p in @get('taggedProducts')) \
                              else []
 
             @set
@@ -381,7 +381,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 image: image
                 video: video
                 product: product
-                "tagged-products": taggedProducts
+                taggedProducts: taggedProducts
 
             if defaultImage
                 @set
@@ -493,7 +493,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if tile["tile-id"]
                     return true
                 else
-                    console.warn("Rejected tile during parse because it has no tile-id: #{tile}")
+                    console.warn("Rejected tile during parse beecause it has no tile-id: %O", tile)
                     return false
             )
             tiles = _.map(respBuilder, (jsonEntry) ->

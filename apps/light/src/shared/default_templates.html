@@ -158,8 +158,8 @@
 
 <script type="text/template" id="image_preview_template">
     <% var image_src = (obj.gifUrl || obj.images[0].url); %>
-    <% if (obj['tagged-products'].length) { %>
-    <% var product = obj['tagged-products'][0]; %>
+    <% if (obj.taggedProducts.length) { %>
+    <% var product = obj.taggedProducts[0]; %>
         <div class="image-with-tagged-products">
             <div class="table <%= obj.orientation %>">
                 <div class="row">

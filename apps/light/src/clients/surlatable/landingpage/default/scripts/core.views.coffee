@@ -10,18 +10,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     _.extend module.ExpandedContent.prototype, 
         reorderProductImages: ->
             try 
-                imageUrl = @model.attributes.url
-                prodImages = @model.attributes['tagged-products'][0].images
+                imageUrl = @model.get('url')
+                prodImages = @model.get('taggedProducts')[0].images
             catch err
                 # One of the required objects in the accessor chains doesn't exist
                 return
             if imageUrl and prodImages
-                matchImgObj = _.find prodImages, (imgObj) ->
+                matchImgObj = _.find(prodImages, (imgObj) ->
                     # Remove Cloudinary url API operations before doing url comparison
                     # .../upload/c_fit,q_75,w_700/v... -> .../upload/v...
-                    baseImgUrl = imgObj.url.replace /(upload)(.*)(\/v)/, "$1$3"
+                    baseImgUrl = imgObj.url.replace(/(upload)(.*)(\/v)/, "$1$3")
                     return  (baseImgUrl == imageUrl)
-
+                )
                 if matchImgObj
                     # prodImages is a reference, will modify product images in place
                     matchImgObjIndex = prodImages.indexOf(matchImgObj)
@@ -73,7 +73,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @generateHeroArea()
             # If view is already visible, update with new category
             if not @.isDestroyed
-                App.heroArea.show @
+                App.heroArea.show(@)
 
         initialize: ->
             if App.intentRank.currentCategory and App.categories
@@ -84,8 +84,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 App.vent.once('intentRankInitialized', =>
                     @loadHeroArea()
                 )
-            @listenTo App.vent, "change:category", =>
+            @listenTo(App.vent, "change:category", =>
                 @loadHeroArea()
+            )
             return @
 
             

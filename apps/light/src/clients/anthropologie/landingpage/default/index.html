@@ -208,13 +208,13 @@
         <script type="text/template" id="desktop_tagged_products">
             <div class="cell desktop-only image-cell">
                 <img src="<%= image_src %>" alt="image" class="image look-image"/>
-                <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                <% if (obj.taggedProducts.length > 1 && obj.orientation === 'landscape') { %>
                     <div class="landscape">
                         <div class="stl-title">
                             <img src="/static/light/anthropologie/landingpage/default/images/getthelook.png" />
                         </div>
                         <div class="stl-look">
-                            <% var related = obj['tagged-products']; %>
+                            <% var related = obj.taggedProducts; %>
                             <% for (var i = 0; i < related.length; i++) { %>
                                 <div class="stl-item" data-index="<%- i %>">
                                     <img src="<%- related[i].images[0].url %>" />
@@ -225,13 +225,13 @@
                     </div>
                 <% } %>
             </div>
-            <% if (obj['tagged-products'].length > 1 && obj.orientation === 'portrait') { %>
+            <% if (obj.taggedProducts.length > 1 && obj.orientation === 'portrait') { %>
                 <div class="cell desktop-only shop">
                     <div class="stl-title">
                         <img src="/static/light/anthropologie/landingpage/default/images/getthelook.png" />
                     </div>
                     <div class="stl-look">
-                        <% var related = obj['tagged-products']; %>
+                        <% var related = obj.taggedProducts; %>
                         <% for (var i = 0; i < related.length; i++) { %>
                             <div class="stl-item" data-index="<%- i %>">
                                 <img src="<%- related[i].images[0].url %>" />
@@ -253,13 +253,13 @@
             <div class="cell mobile-only info">
                 <div class="product-info"></div>
             </div>
-            <% if (obj['tagged-products'].length > 1) { %>
+            <% if (obj.taggedProducts.length > 1) { %>
                 <div class="cell mobile-only">
                     <div class="stl-title stick-bottom">
                         <img src="/static/light/anthropologie/landingpage/default/images/getthelook.png" />
                     </div>
                     <div class="stl-look">
-                        <% var related = obj['tagged-products'] %>
+                        <% var related = obj.taggedProducts; %>
                         <% for (var i = 0; i < related.length; i++) { %>
                             <div class="stl-item" data-index="<%- i %>">
                                 <img src="<%- related[i].images[0].url %>" />

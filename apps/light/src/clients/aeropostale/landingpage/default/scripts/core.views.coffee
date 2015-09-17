@@ -147,7 +147,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             unless @$el.find('.look-thumbnail').is(':visible')
                 @carouselRegion.currentView.index = Math.min($('.stl-look').children(':visible').length - 1, @carouselRegion.currentView.index + 1)
             @updateContent()
-            App.vent.trigger('tracking:stlItemClick', @model.get("tagged-products")[@lookProductIndex])
+            App.vent.trigger('tracking:stlItemClick', @model.get("taggedProducts")[@lookProductIndex])
             return
 
     module.ExpandedContent::resizeContainer = ->
@@ -247,7 +247,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if @taggedProducts.length > 1 or App.support.mobile()
             # @stlIndex = 0
             carouselInstance = new module.CarouselView(
-                items: @taggedProducts,
+                items: @taggedProducts
                 attrs:
                     'lookImageSrc': @model.get('images')[0].url
                     'orientation': @model.get('orientation')

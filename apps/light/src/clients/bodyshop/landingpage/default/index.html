@@ -213,20 +213,20 @@
     </script>
 
     <script type="text/template" id="image_preview_template">
-        <% if (obj['tagged-products'].length) { %>
-            <% var product = obj['tagged-products'][0]; %>
+        <% if (obj.taggedProducts.length) { %>
+            <% var product = obj.taggedProducts[0]; %>
             <div class="image-with-tagged-products">
                 <div class="table">
                     <div class="row">
                         <div class="cell desktop-only image-cell">
                             <img src="<%= obj.images[0].url %>" alt="image" class="image look-image" />
-                                <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                                <% if (obj.taggedProducts.length > 1 && obj.orientation === 'landscape') { %>
                                 <div class="landscape">
                                     <div class="stl-title">
                                         Shop The Set
                                     </div>
                                     <div class="stl-look">
-                                        <% var related = obj['tagged-products']; %>
+                                        <% var related = obj.taggedProducts; %>
                                         <% for (var i = 0; i < related.length; i++) { %>
                                             <div class="stl-item" data-index="<%- i %>">
                                                 <div class="image-container">
@@ -249,13 +249,13 @@
                         <div class="cell mobile-only image-cell">
                             <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
                         </div>
-                        <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
+                        <% if (obj.taggedProducts.length > 1 && obj.orientation !== 'landscape') { %>
                             <div class="cell desktop-only shop-set">
                                 <div class="stl-title">
                                     Shop The Set
                                 </div>
                                 <div class="stl-look">
-                                    <% var related = obj['tagged-products']; %>
+                                    <% var related = obj.taggedProducts; %>
                                     <% for (var i = 0; i < related.length; i++) { %>
                                         <div class="stl-item" data-index="<%- i %>">
                                             <div class="holder">
@@ -292,13 +292,13 @@
                                 </div>
                             </div>
                         <% } %>
-                        <% if (obj['tagged-products'].length > 1) { %>
+                        <% if (obj.taggedProducts.length > 1) { %>
                             <div class="cell mobile-only shop-set">
                                 <div class="stl-title">
                                     Shop The Set
                                 </div>
                                 <div class="stl-look">
-                                    <% var related = obj['tagged-products']; %>
+                                    <% var related = obj.taggedProducts; %>
                                     <% for (var i = 0; i < related.length; i++) { %>
                                         <div class="stl-item" data-index="<%- i %>">
                                             <div class="holder">
@@ -335,7 +335,7 @@
                                 </div>
                             </div>
                         <% } %>
-                        <% if (obj['tagged-products'].length === 1) { %>
+                        <% if (obj.taggedProducts.length === 1) { %>
                             <div class="cell info">
                                 <div class="product-info"></div>
                             </div>

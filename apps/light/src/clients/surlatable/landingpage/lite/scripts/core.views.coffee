@@ -10,7 +10,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.ProductView::onShow = ->
         if App.support.mobile()
             # Add one for description slide unless it's a product popup in portrait mode without tagged products
-            if @model.get('type') is "product" and App.utils.portrait() and _.isEmpty(@model.get('tagged-products'))
+            if @model.get('type') is "product" and App.utils.portrait() and _.isEmpty(@model.get('taggedProducts'))
                 @numberOfImages = @model.get('images').length
             else
                 @numberOfImages = @model.get('images').length + 1
@@ -31,8 +31,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ProductView::onBeforeRender = ->
-        linkName = "More on #{@model.attributes.name or @model.attributes.title} »"
-        inlineLink = "<a href='#{@model.attributes.cj_link or @model.attributes.url}'>#{linkName}</a>"
+        linkName = "More on #{@model.get('name') or @model.get('title')} »"
+        inlineLink = "<a href='#{@model.get('cj_link') or @model.get('url')}'>#{linkName}</a>"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
             @model.set("truncated_description", truncatedDescription + " " + inlineLink)

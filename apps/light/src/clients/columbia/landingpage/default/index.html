@@ -238,15 +238,15 @@
         </script>
 
         <script type="text/template" id="image_preview_template">
-            <% if (obj['tagged-products'].length) { %>
+            <% if (obj.taggedProducts.length) { %>
                 <div class="image-with-tagged-products">
                     <div class="table">
                         <div class="row">
-                            <% if (obj['tagged-products'].length > 1 && obj.orientation !== 'landscape') { %>
+                            <% if (obj.taggedProducts.length > 1 && obj.orientation !== 'landscape') { %>
                                 <div class="cell desktop-only shop">
                                     <div class="stl-title">The Look</div>
                                     <div class="stl-look">
-                                        <% var related = obj['tagged-products']; %>
+                                        <% var related = obj.taggedProducts; %>
                                         <% for (var i = 0; i < related.length; i++) { %>
                                             <div class="stl-item" data-index="<%- i %>">
                                                 <img src="<%- related[i].images[0].url %>" />
@@ -260,11 +260,11 @@
                             <% } %>
                             <div class="cell desktop-only">
                                 <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
-                                <% if (obj['tagged-products'].length > 1 && obj.orientation === 'landscape') { %>
+                                <% if (obj.taggedProducts.length > 1 && obj.orientation === 'landscape') { %>
                                     <div class="landscape">
                                         <div class="stl-title">The Look</div>
                                         <div class="stl-look">
-                                            <% var related = obj['tagged-products']; %>
+                                            <% var related = obj.taggedProducts; %>
                                             <% for (var i = 0; i < related.length; i++) { %>
                                                 <div class="stl-item" data-index="<%- i %>">
                                                     <img src="<%- related[i].images[0].url %>" />
@@ -280,11 +280,11 @@
                             <div class="cell mobile-only">
                                 <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
                             </div>
-                            <% if (obj['tagged-products'].length > 1) { %>
+                            <% if (obj.taggedProducts.length > 1) { %>
                                 <div class="cell mobile-only">
                                     <div class="stl-title">The Look</div>
                                     <div class="stl-look">
-                                        <% var  related = obj['tagged-products'] %>
+                                        <% var  related = obj.taggedProducts; %>
                                         <% for (var i = 0; i < related.length; i++) { %>
                                             <div class="stl-item" data-index="<%- i %>">
                                                 <img src="<%- related[i].images[0].url %>" />
