@@ -15,6 +15,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             target = module.openInWindow();
         }
         App.vent.trigger("tracking:click", url);
+        // Add CJ page-id tracking parameter
+        url = App.utils.urlAddParams(url, {'sid': App.option('page:slug')});
         window.open(url, target);
         return;
     };

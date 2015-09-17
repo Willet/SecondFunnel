@@ -123,7 +123,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 4: "full"
 
             # templates use this as obj.image.url
-            @model.set "image", @model.get("defaultImage")
+            @model.set("image", @model.get("defaultImage"))
             wideable = wideableTemplates[@model.get("template")]
             showWide = (Math.random() < App.option("page:tiles:imageTileWideProb", 0.5))
             if _.isNumber(@model.get("colspan"))
@@ -142,15 +142,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 imageInfo = @model.get("image").width(idealWidth, true)
                 if imageInfo
                     break
-            @model.set image: imageInfo
-            @$el.addClass columnDetails[columns]
+            @model.set(image: imageInfo)
+            @$el.addClass(columnDetails[columns])
 
             # Listen for the image being removed from the DOM, if it is, remove
             # the View/Model to free memory
-            @$el.on "remove", (ev) =>
+            @$el.on("remove", (ev) =>
                 if ev.target is @el
                     @destroy
-
+            )
             return
 
         onMissingTemplate: ->
@@ -175,12 +175,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if @model.get("dominant-color")
                 hexColor = @model.get("dominant-color")
                 rgbaColor = App.utils.hex2rgba(hexColor, 0.5)
-                $tileImg.css "background-color": rgbaColor
+                $tileImg.css("background-color": rgbaColor)
 
             # this is the 'image 404' event
             if $tileImg and $tileImg.length >= 1
                 $tileImg[0].onerror = =>
-                    console.warn "Image error, closing views: " + arguments
+                    console.warn("Image error, closing views: " + arguments)
                     @destroy()
                     return
 
@@ -190,11 +190,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     model: @model
                     buttonTypes: App.option("conditionalSocialButtons", {})[@model.get("colspan")]
                 )
-                socialButtons.append buttons.render().$el
+                socialButtons.append(buttons.render().$el)
             @$el.addClass @model.get("orientation") or "portrait"
 
             if App.utils.isIframe() and @$el.hasClass("landscape")
-                @$el.addClass "full"
+                @$el.addClass("full")
 
             # add view to our database
             App.vent.trigger("tracking:tile:view", @model.get("tile-id"))
@@ -257,7 +257,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onClick: ->
             if @model.get("redirect-url")
-                App.utils.openUrl @model.get("redirect-url")
+                App.utils.openUrl(@model.get("redirect-url"))
             else
                 super
             return
@@ -268,11 +268,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onClick: ->
             if @model.get("url")
-                App.utils.openUrl @model.get("url")
+                App.utils.openUrl(@model.get("url"))
             return
 
         onPlaybackEnd: (ev) ->
-            App.vent.trigger "videoEnded", ev, this
+            App.vent.trigger("videoEnded", ev, @)
             return
 
 

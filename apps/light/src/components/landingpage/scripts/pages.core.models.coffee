@@ -171,6 +171,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 images: newImages
             return
 
+
     class module.SimilarProduct extends module.Product
         ### 
         A SimilarProduct has tile-like attributes so that it can be mapped to tile templates
@@ -192,6 +193,75 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.ProductCollection extends Backbone.Collection
         model: module.Product
+
+
+    ###
+    The Image object (url, width, height, ...)
+
+    @constructor
+    @type {*}
+    ###
+    class module.Image extends Backbone.Model
+        defaults:
+            url: "http://placehold.it/2048&text=blank"
+            "dominant-color": "transparent"
+
+        initialize: (attributes, options) ->
+            # add a name, colour, and a sized url to each size datum
+            self = this
+            color = @get("dominant-color")
+
+            # the template needs something simpler.
+            @color = color
+            if options and options["suppress_resize"]
+                @url = @get("url")
+            else
+                @url = @width(App.feed.width())
+
+            return
+
+        sync: ->
+            false
+
+
+        ###
+        @param width                     in px; 0 means no width restrictions
+        @param height                    in px; 0 means no height restrictions
+        @param {boolean} obj     whether the complete object or the url
+        will be returned
+        @returns {*}
+        ###
+        dimens: (width, height, obj) ->
+            options = $.extend({}, obj)
+            resized = $.extend({}, @defaults, @attributes)
+            if width > 0
+                options.width = width
+            if height > 0
+                options.height = height
+            unless width or height
+                options.width = App.feed.width()
+            resized.url = App.utils.getResizedImage(@get("url"), options)
+            if obj
+                return resized
+            resized.url
+
+        width: (width, obj) ->
+            # get url by min width
+            @dimens(width, 0, obj)
+
+        height: (height, obj) ->
+            # get url by min height
+            @dimens(0, height, obj)
+
+
+    class module.Video extends Backbone.Model
+
+
+    class module.YoutubeVideo extends module.Video
+        parse: (attrs, options) ->
+            if attrs['original-id'] and not attrs["thumbnail"]
+                attrs["thumbnail"] = "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
+            super
 
 
     class module.Tile extends Backbone.Model
@@ -257,7 +327,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             caption: ""
             description: ""
             "tile-id": 0
-            "tagged-products": []
             "dominant-color": "transparent"
 
         parse: (resp, options) ->
@@ -278,110 +347,57 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             b) images, default image and tagged products default image are converted
             to <Image>s.
             ###
+            
+            images = if _.isArray(@get("images")) \
+                     then (new module.Image(im) for im in @get("images")) \
+                     else []
 
-            # Most tile types define images. Replace all image json with their objects.
-            if @get("images")?.length
-                imgInstances = (new module.Image($.extend(true, {}, image)) for image in @get("images"))
+            # used by some tiles where a video is the primary content
+            image = if @get("image")? then new module.Image(@get("image")) else undefined
+
+            if @get('default-image')?
+                defaultImage = if _.isNumber(@get('default-image')) \
+                               then @getImage(@get('default-image')) \
+                               else new module.Image(@get('default-image'))
             else
-                imgInstances = []
+                defaultImage = undefined
 
-            # If no images, this tile is an image itself. Backup for one-off types
-            if imgInstances.length is 0
-                imgInstances.push(
-                    new module.Image(
-                        "dominant-color": @get("dominant-color")
-                        url: @get("url")
-                        orientation: @get("orientation")
-                    )
-                )
-
-            defaultImage = @getDefaultImage()
-
-            # If tagged-products, transform json into <Product>s
-            if @get('tagged-products')?.length
-                taggedProducts = (new module.Product(product) for product in @get('tagged-products'))
+            if @get('video')?
+                video = if (@get('video')['source'] == 'youtube') \
+                        then new module.YoutubeVideo(@get('video')) \
+                        else video = new module.Video(@get('video'))
             else
-                taggedProducts = []
+                video = undefined
+
+            product = if @get('product')? then new module.Product(@get('product')) else undefined
+
+            taggedProducts = if _.isArray(@get('tagged-products')) \
+                             then (new module.Product(p) for p in @get('tagged-products')) \
+                             else []
 
             @set
-                images: imgInstances
+                images: images
                 defaultImage: defaultImage
+                image: image
+                video: video
+                product: product
                 "tagged-products": taggedProducts
-                "dominant-color": defaultImage.get("dominant-color")
+
+            if defaultImage
+                @set
+                    'dominant-color': defaultImage.get('dominant-color')
 
             App.vent.trigger("tileModelInitialized", @)
             return
 
         ###
-        @param byImgId     if omitted, the default image id
+        @param byImgId
         @returns {module.Image}
         ###
-        getImage: (byImgId) ->
-            imgId = parseInt(byImgId or @getDefaultImageId(), 10)
-            defImg = undefined
-
-            # find default image for image-child tiles (e.g. product tile)
-            defImg = _.findWhere(@get("images"),
+        getImage: (imgId) ->
+            return _.findWhere(@get("images"),
                 id: imgId
-
-            # find default image for image-root tiles
-            ) or _.findWhere(@get("images"),
-                "tile-id": imgId
             )
-            unless defImg
-                try
-                    if @get("images")[0] instanceof module.Image
-                        return @get("images")[0]
-                    return new module.Image(@get("images")[0])
-                catch err
-
-                    # if all fails, this is most likely a lifestyle image
-                    return new module.Image(
-                        "dominant-color": @get("dominant-color")
-                        url: @get("url")
-                    )
-            # found default image
-            # timing: attributes.images already coverted to Images
-            else if defImg instanceof module.Image
-                return defImg
-            return new module.Image(defImg)
-
-        getDefaultImageId: ->
-            try
-
-                # product tiles
-                if @get("default-image")
-                    defaultImageAttr = @get("default-image")
-                    delete @attributes['default-image']
-                    return defaultImageAttr
-
-                # product tiles without a default-image attr, guess it
-                if @get("images") and @get("images").length
-
-                    # product tiles (or tiles with images:[...])
-
-                    # just going to try everything
-                    guess = @get("images")[0]["tile-id"] or
-                        @get("images")[0].get("tile-id") or
-                        @get("images")[0].id or
-                        @get("images")[0].get("id")
-                if guess
-                    return guess
-
-                # image tiles (or tiles that are root-level images)
-                # note: might be wrong if product tiles still fall through
-                return @get("tile-id").toString()
-            catch e # no images
-                console.warn "This object does not have a default image.", this
-                return undefined
-            return
-
-        ###
-        Get the tile's default image as an object.
-        @returns {Image|undefined}
-        ###
-        getDefaultImage: ->
-            @getImage()
 
         url: ->
             App.options.IRSource + "/page/" + App.options.campaign + "/tile/" + @get("tile-id")
@@ -392,157 +408,53 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     ###
-    The Image object (url, width, height, ...)
-
-    @constructor
-    @type {*}
+    Tile's are automatically subclassed by TileCollection's model() method
     ###
-    class module.Image extends Backbone.Model
-        defaults:
-            url: "http://placehold.it/2048&text=blank"
-            "dominant-color": "transparent"
-
-        initialize: (attributes, options) ->
-            # add a name, colour, and a sized url to each size datum
-            self = this
-            color = @get("dominant-color")
-
-            # the template needs something simpler.
-            @color = color
-            if options and options["suppress_resize"]
-                @url = @get("url")
-            else
-                @url = @width(App.feed.width())
-
-            return
-
-        sync: ->
-            false
-
-
-        ###
-        @param width                     in px; 0 means no width restrictions
-        @param height                    in px; 0 means no height restrictions
-        @param {boolean} obj     whether the complete object or the url
-        will be returned
-        @returns {*}
-        ###
-        dimens: (width, height, obj) ->
-            options = $.extend({}, obj)
-            resized = $.extend({}, @defaults, @attributes)
-            if width > 0
-                options.width = width
-            if height > 0
-                options.height = height
-            unless width or height
-                options.width = App.feed.width()
-            resized.url = App.utils.getResizedImage(@get("url"), options)
-            if obj
-                return resized
-            resized.url
-
-        width: (width, obj) ->
-            # get url by min width
-            @dimens width, 0, obj
-
-        height: (height, obj) ->
-            # get url by min height
-            @dimens 0, height, obj
-
 
     class module.ProductTile extends module.Tile
-        # A ProductTile is a product JSON. Convert to a Product
-        initialize: (attributes, options) ->
-            @set
-                product: new module.Product(attributes)
-            super
 
 
     class module.ImageTile extends module.Tile
-        # An ImageTile is an image JSON, so we need to allocate all of its
-        # attributes inside an 'images' field.
-        parse: (resp, options) ->
-            # create tile-like attributes
-            resp["default-image"] = 0
-
-            # image tile contains image:[one copy of itself]
-            resp.images = [$.extend(true, {}, resp)]
-            return resp
 
 
     class module.GifTile extends module.ImageTile
-        parse: (resp, options) ->
-            # images field will contain gif object as JSON
-            super
-
-    
-    class module.Video extends Backbone.Model
 
 
-    class module.YoutubeVideo extends module.Video
-    
-
-    ###
-    automatically subclassed by TileCollection's model() method
-    @type {Tile}
-    ###
     class module.VideoTile extends module.Tile
         defaults:
             type: "video"
 
 
-    ###
-    A YoutubeTile is instantiated with a Youtube model json
-    @type {Tile}
-    ###
     class module.YoutubeTile extends module.VideoTile
-        parse: (attrs, options) ->
-            if attrs['original-id'] and not attrs["thumbnail"]
-                attrs["thumbnail"] = "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
-            super
-
-        initialize: (attrs, options) ->
-            @set(
-                video: new module.YoutubeVideo(attrs)
-            )
-            super
 
 
     class module.HeroTile extends module.Tile
-        type: "hero"
-
-        parse: (attrs, options) ->
-            # WARNING: this only allows 1 content of each type
-            # ex: Video, Image
-            for content in _.get(attrs, "contents", [])
-                content["template"] = content.type
-                attrs[content.type] = content
-            super
+        defaults:
+            type: "hero"
 
 
     class module.HerovideoTile extends module.HeroTile
-        parse: (attrs, options) ->
-            for content in _.get(attrs, "contents", [])
-                if content.type == "video" and content["original-id"] and not content["thumbnail"]
-                    content["thumbnail"] = "http://i.ytimg.com/vi/#{content["original-id"]}/hqdefault.jpg"
-                content["template"] = content.type
-                attrs[content.type] = content
-            super
-
         initialize: (attrs, options) ->
+            super
             desktopHeroImage = undefined
             mobileHeroImage = undefined
             if attrs.desktopHeroImage
-                desktopHeroImage = new module.Image({ "url" : attrs.desktopHeroImage }, {"suppress_resize": true})
+                desktopHeroImage = new module.Image(
+                    url: attrs.desktopHeroImage
+                    suppress_resize: true
+                )
             if attrs.mobileHeroImage
-                mobileHeroImage = new module.Image({ "url" : attrs.mobileHeroImage }, {"suppress_resize": true})
+                mobileHeroImage = new module.Image(
+                    url: attrs.mobileHeroImage
+                    suppress_resize: true
+                )
 
-            @set(
-                video: new module.YoutubeVideo(attrs['video'])
-                image: desktopHeroImage
-                images: [desktopHeroImage, mobileHeroImage]
-                defaultImage: desktopHeroImage
-            )
+            if desktopHeroImage
+                @set(
+                    image: desktopHeroImage
+                    images: [desktopHeroImage, (mobileHeroImage or desktopHeroImage)]
+                    defaultImage: desktopHeroImage
+                )
             App.vent.trigger("tileModelInitialized", @)
 
 

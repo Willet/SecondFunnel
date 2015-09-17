@@ -6,13 +6,13 @@
 <head>
     @@include('shared/campaign_head.html')
     @@include('shared/campaign_opengraph_tags.html')
-    <!-- End Optimizer Tests -->
     <link rel="shortcut icon"
          href="/static/light/surlatable/landingpage/lite/images/surlatable-favicon.png" />
     <link rel="stylesheet" href="/static/light/surlatable/landingpage/lite/styles/main.css" />
 
     @@include('shared/campaign_respond.html')
-    <!-- Add Optimizer Tests here -->
+    <!-- Begin Optimizer Tests -->
+    <!-- End Optimizer Tests -->
     <script type="text/javascript">
         window.TRACKING_PIXELS = {
             'A': {
@@ -146,23 +146,31 @@
             <% include("image_tile_template") %>
         </script>
 
+        <script type="text/template" id="banner_tile_template">
+            <% include("image_tile_template") %>
+        </script>
+
         <script type="text/template" id="recipe_tile_template">
             <% include("image_tile_template") %>
         </script>
 
         <script type="text/template" id="image_tile_template">
             <div class='relative'>
-                <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
+                <img class="focus" src="<%= obj.defaultImage.url %>" />
             </div>
             <div class="overlay">
                 <div class='table'>
                     <div class='cell'>
                         <% /* "Shop product" is actually wanted for the tile overlay */ %>
                         <div class="title">
-                        <% if (obj.template === "recipe") { %>
+                        <% if (obj.template === "product" || obj.template === "image") { %>
+                            <span>Get Details</span>
+                            <br/>
+                            <span class="tile-name"><%= obj.product.get('name') %></span>
+                        <% } else if (obj.template === "recipe") { %>
                             <span>See the Recipe</span>
                             <br/>
-                            <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
+                            <span class="tile-name"><%= obj.image.get('name') %></span>
                         <% } else { %>
                             <span>Get Details</span>
                             <br/>
@@ -523,6 +531,5 @@
         @@include('shared/default_templates.html')
     </div>
     <script type="text/javascript" src="/static/light/surlatable/landingpage/lite/scripts/main.js"></script>
-    <script type="text/javascript" src="http://www.anrdoezrs.net/am/7774943/include/joined/generate/onLoad/am.js"></script>
 </body>
 </html>
