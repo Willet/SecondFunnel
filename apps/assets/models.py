@@ -36,8 +36,7 @@ class SerializableMixin(object):
     To implement specific json formats, override these methods.
     """
 
-    serializer = ir_serializers.RawSerializer
-    cg_serializer = cg_serializers.RawSerializer
+    serializer = cg_serializer = cg_serializers.RawSerializer
 
     def to_json(self, skip_cache=False):
         """default method for all models to have a json representation."""
@@ -195,7 +194,11 @@ class BaseModel(models.Model, SerializableMixin):
         """
         old_ir_cache = self.ir_cache
         self.ir_cache = ''  # force tile to regenerate itself
-        new_ir_cache = self.to_str(skip_cache=True)
+        if not getattr(self, 'placeholder', False):
+            new_ir_cache = self.to_str(skip_cache=True)
+        else:
+            # if placeholder, leave ir_cache empty
+            new_ir_cache = ''
 
         if new_ir_cache == old_ir_cache:
             return new_ir_cache, False
@@ -381,7 +384,7 @@ class Store(BaseModel):
 
 
 class Product(BaseModel):
-    store = models.ForeignKey(Store, related_name='products', on_delete=models.CASCADE)
+    store = models.ForeignKey('Store', related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=1024, default="")
     description = models.TextField(blank=True, null=True, default="")
     # point form stuff like <li>hand wash</li> that isn't in the description already
@@ -506,7 +509,7 @@ class ProductImage(BaseModel):
 
     TODO: make it subclass of Image
     """
-    product = models.ForeignKey(Product, related_name="product_images",
+    product = models.ForeignKey('Product', related_name="product_images",
                                 on_delete=models.CASCADE, blank=True, null=True,
                                 default=None)
 
@@ -566,7 +569,7 @@ class ProductImage(BaseModel):
 
 
 class Tag(BaseModel):
-    products = models.ManyToManyField(Product, related_name='tags')
+    products = models.ManyToManyField('Product', related_name='tags')
 
     store = models.ForeignKey(Store, related_name='tags', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
@@ -591,14 +594,14 @@ class Content(BaseModel):
     # http://django-model-utils.readthedocs.org/en/latest/managers.html#inheritancemanager
     objects = InheritanceManager()
 
-    store = models.ForeignKey(Store, related_name='content', on_delete=models.CASCADE)
+    store = models.ForeignKey('Store', related_name='content', on_delete=models.CASCADE)
 
     url = models.TextField()  # 2f.com/.jpg
     source = models.CharField(max_length=255)
     source_url = models.TextField(blank=True, null=True)  # gap/.jpg
     author = models.CharField(max_length=255, blank=True, null=True)
 
-    tagged_products = models.ManyToManyField(Product, null=True, blank=True,
+    tagged_products = models.ManyToManyField('Product', null=True, blank=True,
                                              related_name='content')
     # tiles = <RelatedManager> Tiles (many-to-many relationship)
 
@@ -773,9 +776,9 @@ class Page(BaseModel):
 
     Store -> Page -> Feed
     """
-    store = models.ForeignKey(Store, related_name='pages', on_delete=models.CASCADE)
+    store = models.ForeignKey('Store', related_name='pages', on_delete=models.CASCADE)
     name = models.CharField(max_length=256)  # e.g. Lived In
-    theme = models.ForeignKey(Theme, related_name='pages', blank=True, null=True)
+    theme = models.ForeignKey('Theme', related_name='pages', blank=True, null=True)
             #on_delete=models.SET_NULL,
 
     # attributes named differently
@@ -1001,7 +1004,7 @@ class Feed(BaseModel):
     """
     # pages = <RelatedManager> Pages (many-to-one relationship)
     # tiles = <RelatedManager> Tiles (many-to-one relationship)
-    store = models.ForeignKey(Store, related_name='feeds', on_delete=models.CASCADE)
+    store = models.ForeignKey('Store', related_name='feeds', on_delete=models.CASCADE)
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. magic, priority
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently unused by any algo
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
@@ -1291,7 +1294,7 @@ class Category(BaseModel):
     Category.objects.get(name=cat_name, store=store)
     """
     tiles = models.ManyToManyField('Tile', related_name='categories')
-    store = models.ForeignKey(Store, related_name='categories', on_delete=models.CASCADE)
+    store = models.ForeignKey('Store', related_name='categories', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     url = models.TextField(blank=True, null=True)
 
@@ -1332,14 +1335,14 @@ class Tile(BaseModel):
     Feed -> Tile -> Products / Content
     """
     # <Feed>.tiles.all() gives you... all its tiles
-    feed = models.ForeignKey(Feed, related_name='tiles', on_delete=models.CASCADE)
+    feed = models.ForeignKey('Feed', related_name='tiles', on_delete=models.CASCADE)
     # Universal templates: 'product', 'image', 'banner', 'youtube'
     # Invent templates as needed
     template = models.CharField(max_length=128)
-    products = models.ManyToManyField(Product, blank=True, null=True,
+    products = models.ManyToManyField('Product', blank=True, null=True,
                                       related_name='tiles')
     # use content.select_subclasses() instead of content.all()!
-    content = models.ManyToManyField(Content, blank=True, null=True,
+    content = models.ManyToManyField('Content', blank=True, null=True,
                                      related_name='tiles')
     # categories = <RelatedManager> Category (many-to-one relationship)
 
@@ -1451,4 +1454,25 @@ class Tile(BaseModel):
                 if content.tagged_products.count():
                     return content.tagged_products.first()
         return None
+
+    @property
+    def separated_content(self):
+        """ a <dict> of content indexed by class 'images', 'videos', 'reviews' """
+        contents = tile.content.select_subclasses()
+        return {
+            'images': [image for image in contents if isinstance(image, Image)],
+            'videos': [video for video in contents if isinstance(video, Video)],
+            'reviews': [review for review in contents if isinstance(review, Review)],
+        }
+
+    def get_first_content_of(self, cls):
+        """
+        returns first content of type cls in tile 
+        raises LookupError if no content of type cls is found
+        """
+        contents = self.content.select_subclasses()
+        try:
+            return next(c for c in contents if isinstance(c, cls))
+        except StopIteration:
+            raise LookupError
 

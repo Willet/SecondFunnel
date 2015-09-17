@@ -25,10 +25,21 @@ App.init.initialize();
 App.start();
 
 (function () {
+    // Wrap SLT links with CJ link
+    var re = /^https?\:\/\/www\.surlatable\.com/i;
+    $('a').each(function (el) {
+        if (this.href.match(re)) {
+            this.href = 'http://www.qksrv.net/links/7774943/type/am/sid/' +
+                        App.option('page:slug') + '/' + this.href;
+        }
+    });
+
     // Send search bar inqueries to surlatable.com
     $('#submit-search').click(function(ev){
         var searchUrl,
-            baseUrl = "http://www.anrdoezrs.net/links/7774943/type/dlg/http://www.surlatable.com/search/search.jsp",
+            baseUrl = "http://www.anrdoezrs.net/links/7774943/sid/" +
+                      App.option('page:slug') +
+                      "/type/dlg/http://www.surlatable.com/search/search.jsp",
             $this = $(this),
             $inputBox = $this.siblings().first(),
             $topNavSearch = $this.parents('#search-bar');

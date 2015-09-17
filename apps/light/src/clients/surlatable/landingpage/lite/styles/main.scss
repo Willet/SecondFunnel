@@ -370,6 +370,7 @@ body {
     }
     .overlay {
         background: rgba(255,255,255,0.80);
+        @include no-select;
     }
     .name {
         font-size: 0.9em;
@@ -426,8 +427,7 @@ body {
         }
     }
 }
-.tile.image .overlay .title,
-.tile.product .overlay .title,
+.tile .overlay .title,
 .image-with-tagged-products .caption,
 .image-without-tagged-products .caption {
     color: #333333;

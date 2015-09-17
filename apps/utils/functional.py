@@ -10,7 +10,10 @@ def autodiscover_module_classes(name, path, baseclass=None):
     Discover every class defined in this package at the immediate depth
     Optionally filter for children of baseclass
 
-    NOTE: usually used in an __init__.py file. Populate globals or __all__ with the output
+    NOTE: use in an __init__.py file to populate globals and __all__ with the output
+        Ex: to_export = autodiscover_module_classes(__name__, __path__, SomeBaseClass)
+            globals.update(to_export)
+            __all__ = [ref for _, ref in to_export]
 
     returns: <list> (<str> name, <type> class) for every class found (same as inspect.getmembers)
     """
