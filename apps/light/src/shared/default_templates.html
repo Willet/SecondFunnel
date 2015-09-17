@@ -157,11 +157,11 @@
 </script>
 
 <script type="text/template" id="image_preview_template">
-    <% var image_src = (obj.gifUrl || obj.images[0].url); %>
+    <% var image = obj.defaultImage; %>
     <% if (obj.taggedProducts.length) { %>
     <% var product = obj.taggedProducts[0]; %>
         <div class="image-with-tagged-products">
-            <div class="table <%= obj.orientation %>">
+            <div class="table <%= image.orientation %>">
                 <div class="row">
                 <% if (App.support.mobile()) { %>
                     <% include("mobile_tagged_products") %>
@@ -174,7 +174,7 @@
         </div>
     <% } else { %>
         <div class="image-without-tagged-products">
-            <div class="table <%= obj.orientation %>">
+            <div class="table <%= image.orientation %>">
                 <div class="row">
                     <% include("no_tagged_products") %>
                 </div>

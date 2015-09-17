@@ -163,12 +163,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.Product extends Backbone.Model
         initialize: (attributes, options) ->
             # Turn images into Image's
-            if @get("images")?.length
-                newImages = (new module.Image($.extend(true, {}, image)) for image in @get("images"))
-            else
-                newImages = []
+            images =
+                if @get("images")?.length \
+                then (new module.Image($.extend(true, {}, image)) for image in @get("images")) \
+                else []
+            taggedProducts =
+                if _.isArray(@get('tagged-products')) \
+                then (new module.Product(p) for p in @get('tagged-products')) \
+                else []
+            defaultImage = images[0]
             @set
-                images: newImages
+                images: images
+                defaultImage: defaultImage
+                taggedProducts: taggedProducts
+                "dominant-color": defaultImage.get("dominant-color")
+            @unset('default-image')
+            @unset('tagged-products')
             return
 
 
@@ -178,16 +188,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         initialize: (attributes, options) ->
             # Convert image json into objects
-            if @get("images")?.length
-                imgInstance = (new module.Image($.extend(true, {}, image)) for image in @get("images"))
-            else
-                imgInstance = []
-            defaultImage = imgInstances[0]
+            super
             @set
-                images: imgInstances
-                defaultImage: defaultImage
                 taggedProducts: []
-                "dominant-color": defaultImage.get("dominant-color")
             return
 
 
@@ -347,15 +350,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             b) images, default image and tagged products default image are converted
             to <Image>s.
             ###
-            
-            images = if _.isArray(@get("images")) \
-                     then (new module.Image(im) for im in @get("images")) \
-                     else []
-
-            # used by some tiles where a video is the primary content
-            image = if @get("image")? then new module.Image(@get("image")) else undefined
+            @set
+                images: if _.isArray(@get("images")) \
+                        then (new module.Image(im) for im in @get("images")) \
+                        else []
+                image: if @get("image")? then new module.Image(@get("image")) else undefined
+                product: if @get('product')? then new module.Product(@get('product')) else undefined
+                taggedProducts: if _.isArray(@get('tagged-products')) \
+                                then (new module.Product(p) for p in @get('tagged-products')) \
+                                else []
 
             if @get('default-image')?
+                # getImage uses images, so set first
                 defaultImage = if _.isNumber(@get('default-image')) \
                                then @getImage(@get('default-image')) \
                                else new module.Image(@get('default-image'))
@@ -365,23 +371,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if @get('video')?
                 video = if (@get('video')['source'] == 'youtube') \
                         then new module.YoutubeVideo(@get('video')) \
-                        else video = new module.Video(@get('video'))
+                        else new module.Video(@get('video'))
             else
                 video = undefined
 
-            product = if @get('product')? then new module.Product(@get('product')) else undefined
-
-            taggedProducts = if _.isArray(@get('taggedProducts')) \
-                             then (new module.Product(p) for p in @get('taggedProducts')) \
-                             else []
-
             @set
-                images: images
                 defaultImage: defaultImage
-                image: image
                 video: video
-                product: product
-                taggedProducts: taggedProducts
+            @unset('default-image')
+            @unset('tagged-products')
 
             if defaultImage
                 @set
@@ -395,9 +393,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @returns {module.Image}
         ###
         getImage: (imgId) ->
-            return _.findWhere(@get("images"),
+            imageAttr = _.findWhere(@get("images"),
                 id: imgId
             )
+            return new module.Image(imageAttr)
 
         url: ->
             App.options.IRSource + "/page/" + App.options.campaign + "/tile/" + @get("tile-id")

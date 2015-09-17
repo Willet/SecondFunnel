@@ -297,6 +297,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @model.set("orientation", "portrait")
             # Need to get an appropriate sized image
             image = @model.get("defaultImage")
+            
             if App.support.mobile()
                 image.url = image.height($window.height())
             else

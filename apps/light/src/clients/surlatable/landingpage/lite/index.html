@@ -365,13 +365,14 @@
                 <div class="product-info"></div>
             </div>
             <% if (tagged) { %>
+                <% var product = obj.taggedProducts[0]; %>
             <div class="cell shop">
                 <div class="stl-title"><span>Perfect Gifts For This Recipe</span></div>
                 <div class="look-thumbnail mobile-only">
                     <div>
-                        <img src="<%= obj.images[0].url %>" class="image" />
+                        <img src="<%= product.get('defaultImage').url %>" class="image" />
                         <div class="name desktop-only">
-                            <%= obj.name %>
+                            <%= product.get('name') %>
                         </div>
                     </div>
                 </div>
@@ -394,13 +395,14 @@
                 </div>
             </div>
             <% if (tagged) { %>
+                <% var product = obj.taggedProducts[0]; %>
             <div class="cell shop">
                 <div class="stl-title">Perfect Gifts For This Recipe</div>
                 <div class="look-thumbnail mobile-only">
                     <div>
-                        <img src="<%= obj.images[0].url %>" class="image" />
+                        <img src="<%= product.get('defaultImage').url %>" class="image" />
                         <div class="name desktop-only">
-                            <%= obj.name %>
+                            <%= product.get('name') %>
                         </div>
                     </div>
                 </div>
@@ -454,7 +456,7 @@
                 <div class="table">
                     <div>
                         <div class="image">
-                            <img src="<%= image_src %>" alt="image" class="image look-image" />
+                            <img src="<%= image.url %>" alt="image" class="image look-image" />
                         </div>
                         <div>
                             <div class="info">
