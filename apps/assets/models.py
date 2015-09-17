@@ -194,7 +194,11 @@ class BaseModel(models.Model, SerializableMixin):
         """
         old_ir_cache = self.ir_cache
         self.ir_cache = ''  # force tile to regenerate itself
-        new_ir_cache = self.to_str(skip_cache=True)
+        if not getattr(self, 'placeholder', False):
+            new_ir_cache = self.to_str(skip_cache=True)
+        else:
+            # if placeholder, leave ir_cache empty
+            new_ir_cache = ''
 
         if new_ir_cache == old_ir_cache:
             return new_ir_cache, False
