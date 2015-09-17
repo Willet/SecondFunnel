@@ -3,7 +3,6 @@
 module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.List
-
         model: Backbone.Model
 
         constructor: (models, options={}) ->
@@ -145,6 +144,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.Store extends Backbone.Model
+        type: "Store"
         defaults:
             id: "0"
             name: "Store"
@@ -161,6 +161,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.Product extends Backbone.Model
+        type: "Product"
+
         initialize: (attributes, options) ->
             # Turn images into Image's
             images =
@@ -183,6 +185,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.SimilarProduct extends module.Product
+        type: "SimilarProduct"
         ### 
         A SimilarProduct has tile-like attributes so that it can be mapped to tile templates
         ###
@@ -195,6 +198,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.ProductCollection extends Backbone.Collection
+        type: "ProductCollection"
         model: module.Product
 
 
@@ -205,6 +209,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {*}
     ###
     class module.Image extends Backbone.Model
+        type: "Image"
         defaults:
             url: "http://placehold.it/2048&text=blank"
             "dominant-color": "transparent"
@@ -258,9 +263,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.Video extends Backbone.Model
+        type: "Video"
 
 
     class module.YoutubeVideo extends module.Video
+        type: "YoutubeVideo"
         parse: (attrs, options) ->
             if attrs['original-id'] and not attrs["thumbnail"]
                 attrs["thumbnail"] = "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
@@ -268,6 +275,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.Tile extends Backbone.Model
+        type: "Tile"
         ###
         Attempt to retrieve tile and instantiate it as the correct Tile subclass,
         then execute success_cb or failure_cb
@@ -411,28 +419,31 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
 
     class module.ProductTile extends module.Tile
+        type: "ProductTile"
 
 
     class module.ImageTile extends module.Tile
+        type: "ImageTile"
 
 
     class module.GifTile extends module.ImageTile
+        type: "GifTile"
 
 
     class module.VideoTile extends module.Tile
-        defaults:
-            type: "video"
+        type: "VideoTile"
 
 
     class module.YoutubeTile extends module.VideoTile
+        type: "YoutubeTile"
 
 
     class module.HeroTile extends module.Tile
-        defaults:
-            type: "hero"
+        type: "HeroTile"
 
 
     class module.HerovideoTile extends module.HeroTile
+        type: "HerovideoTile"
         initialize: (attrs, options) ->
             super
             desktopHeroImage = undefined
@@ -464,7 +475,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {Collection}
     ###
     class module.TileCollection extends module.List
-
+        type: "TileCollection"
         ###
         Subclass each tile JSON into their specific containers.
         @param item            model attributes
@@ -564,6 +575,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {Model}
     ###
     class module.Category extends Backbone.Model
+        type: "Category"
         url: ->
             compiledTemplate = _.template("<%=IRSource%>/page/<%=campaign%>/getresults?results=<%=IRResultsCount%>&category=<%=name%>")
             return compiledTemplate(_.extend({}, options: App.options, @attributes))
@@ -576,6 +588,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {Collection}
     ###
     class module.CategoryCollection extends Backbone.Collection
+        type: "CategoryCollection"
         model: module.Category
 
         initialize: ->

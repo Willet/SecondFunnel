@@ -441,7 +441,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     )
             # tile can be a {Tile} or {object} tileJson
             @tileLoaded.done((tile) =>
-                @model = if _.isObject(tile) and not _.isEmpty(tile) then module.Tile.selectTileSubclass(tile) else undefined
+                if _.isObject(tile) and not _.isEmpty(tile)
+                    @model = if _.contains(tile.type, 'Tile') \
+                             then tile \
+                             else module.Tile.selectTileSubclass(tile)
+                else
+                    @model = undefined
+                @model = if _.isObject(tile) and not _.isEmpty(tile) then  else undefined
                 @render()
 
                 @listenTo(App.vent, "windowResize", =>

@@ -321,7 +321,7 @@
 
         <script type="text/template" id="image_tile_template">
             <div class='relative'>
-                <img class="focus" src="<%= obj.images[0].url %>" alt="<%= obj.caption %>" />
+                <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
                 <!-- Varies depending on source (e.g. facebook, styldby, etc) -->
                 <div class="overlay">
                     <div class='table'>
@@ -329,21 +329,21 @@
                             <% /* "shop" is actually wanted for the tile overlay */ %>
                             <div class="title">
                                 <% var products = obj.taggedProducts ? obj.taggedProducts : []; %>
-                                <% if (obj.title || obj.name || obj.caption || obj.hoverText) { %>
-                                    <span><%= (obj.title || obj.name || obj.caption || obj.hoverText) %></span>
+                                <% if (obj.hoverText) { %>
+                                    <span><%= (obj.hoverText) %></span>
                                     <% if (products.length > 0) { %>
                                     <br />
                                     <span class='shop-products'>shop now</span>
                                     <br />
                                         <% _.each(products, function (related) { %>
-                                            <span class='shop-products'><%= related.title || related.name || related.caption %></span>
+                                            <span class='shop-products'><%= related.get('name') %></span>
                                         <% }); %>
                                     <% } %>
                                 <% } else if (products.length > 0) { %>
                                     <span>shop</span>
                                     <br />
                                     <% _.each(products, function (related) { %>
-                                        <span class='shop-products'><%= related.title || related.name || related.caption %></span>
+                                        <span class='shop-products'><%= related.get('name') %></span>
                                     <% }); %>
                                 <% } else { %>
                                     shop
@@ -353,9 +353,6 @@
                     </div>
                 </div>
             </div>
-            <% if (App.option("debug", 0) > 1) { %>
-                <span class="type"><%= obj["content-type"] %></span>
-            <% } %>
         </script>
 
         <script type="text/template" id="hypem_tile_template">

@@ -443,8 +443,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 carouselInstance = new module.CarouselView(
                     items: @taggedProducts
                     attrs:
-                        'lookImageSrc': @model.get('images')[0].url
-                        'lookName': @model.get('name')
+                        'lookImageSrc': @model.get('defaultImage').url
+                        'lookName': @model.get('defaultImage').get('name')
                 )
                 @carouselRegion.show(carouselInstance)
 
