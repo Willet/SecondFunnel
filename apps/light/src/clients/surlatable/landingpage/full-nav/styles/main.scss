@@ -645,18 +645,21 @@ body {
         font-weight: normal;  
     }
 }
-.tile.banner .overlay .button {
-    color: #333333;
-    font-family: $slt-basic-font;
-    font-size: 18px;
-    font-weight: normal;
-    text-decoration: none;
-    span:first-child:after {
-        content: '\00bb';
-        position: relative;
-        font-style: normal;
-        top: -1px;
-        left: 5px;
+.tile.banner .overlay {
+    cursor:pointer;
+    .button {
+        color: #333333;
+        font-family: $slt-basic-font;
+        font-size: 18px;
+        font-weight: normal;
+        text-decoration: none;
+        span:first-child:after {
+            content: '\00bb';
+            position: relative;
+            font-style: normal;
+            top: -1px;
+            left: 5px;
+        }
     }
 }
 
