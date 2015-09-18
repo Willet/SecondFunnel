@@ -1,13 +1,15 @@
 import json
 
+from celery import Celery       
+from celery.utils.log import get_task_logger
 from django.db import models, transaction
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 
 from apps.assets.models import Tile, Product, Content, ProductImage
 
-import logging
-logger = logging.debug(__name__)
+celery = Celery()
+logger = get_task_logger(__name__)
 
 
 @receiver(post_save, sender=ProductImage)
