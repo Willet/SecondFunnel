@@ -36,8 +36,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         },
 
         getKeenInfo = function(model) {
-            var related = _.isEmpty(model.get('tagged-products')) ?
-                    model : model.get('tagged-products')[0];
+            var related = _.isEmpty(model.get('taggedProducts')) ?
+                    model : model.get('taggedProducts')[0];
 
             var analyticsProduct = _.pick(
                 related.attributes || related,

@@ -113,7 +113,7 @@ class ContentTileSerializer(TileSerializer):
         return data
 
 
-class ImageTileSerializer(ContentTileSerializer):
+class ImageTileSerializer(TileSerializer):
     contenttype = 'assets.Image'
 
     def get_dump_object(self, tile):
@@ -133,7 +133,7 @@ class ImageTileSerializer(ContentTileSerializer):
         products = ([p.to_json() for p in tile.products.all()] or
                     image['tagged-products'])
 
-        data = super(TileSerializer, self).get_dump_object(tile)
+        data = super(ImageTileSerializer, self).get_dump_object(tile)
         data.update({
             'default-image': image,
             'tagged-products': products,

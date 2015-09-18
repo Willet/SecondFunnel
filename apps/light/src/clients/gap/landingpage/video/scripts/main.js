@@ -144,7 +144,7 @@ App.start();
         'click .tile.image': function () {
             var cid = $(this).attr('id'),
                 obj = App.discovery.collection.get(cid),
-                products = obj.get('tagged-products');
+                products = obj.get('taggedProducts');
             if (products && products.length > 0) {
                 productName = products[0].name;
                 recordEvent('lifestyle_feed', 'lifestyle feed', 'pop-up open', productName);
@@ -163,7 +163,7 @@ App.start();
         'click .tile.youtube.wide': function () {
             var cid = $(this).attr('id'),
                 obj = App.discovery.collection.get(cid),
-                products = obj.get('tagged-products');
+                products = obj.get('taggedProducts');
             if (products && products.length > 0) {
                 recordEvent('lifestyle_video', 'lifestyle_feed', 'video play', products[0].name);
             }

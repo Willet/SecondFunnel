@@ -3,7 +3,6 @@
 module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.List
-
         model: Backbone.Model
 
         constructor: (models, options={}) ->
@@ -145,6 +144,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.Store extends Backbone.Model
+        type: "Store"
         defaults:
             id: "0"
             name: "Store"
@@ -161,37 +161,44 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.Product extends Backbone.Model
+        type: "Product"
+
         initialize: (attributes, options) ->
             # Turn images into Image's
-            if @get("images")?.length
-                newImages = (new module.Image($.extend(true, {}, image)) for image in @get("images"))
-            else
-                newImages = []
+            images =
+                if @get("images")?.length \
+                then (new module.Image($.extend(true, {}, image)) for image in @get("images")) \
+                else []
+            taggedProducts =
+                if _.isArray(@get('tagged-products')) \
+                then (new module.Product(p) for p in @get('tagged-products')) \
+                else []
+            defaultImage = images[0]
             @set
-                images: newImages
+                images: images
+                defaultImage: defaultImage
+                taggedProducts: taggedProducts
+                "dominant-color": defaultImage.get("dominant-color")
+            @unset('default-image')
+            @unset('tagged-products')
             return
 
 
     class module.SimilarProduct extends module.Product
+        type: "SimilarProduct"
         ### 
         A SimilarProduct has tile-like attributes so that it can be mapped to tile templates
         ###
         initialize: (attributes, options) ->
             # Convert image json into objects
-            if @get("images")?.length
-                imgInstance = (new module.Image($.extend(true, {}, image)) for image in @get("images"))
-            else
-                imgInstance = []
-            defaultImage = imgInstances[0]
+            super
             @set
-                images: imgInstances
-                defaultImage: defaultImage
-                "tagged-products": []
-                "dominant-color": defaultImage.get("dominant-color")
+                taggedProducts: []
             return
 
 
     class module.ProductCollection extends Backbone.Collection
+        type: "ProductCollection"
         model: module.Product
 
 
@@ -202,6 +209,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {*}
     ###
     class module.Image extends Backbone.Model
+        type: "Image"
         defaults:
             url: "http://placehold.it/2048&text=blank"
             "dominant-color": "transparent"
@@ -255,9 +263,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.Video extends Backbone.Model
+        type: "Video"
 
 
     class module.YoutubeVideo extends module.Video
+        type: "YoutubeVideo"
         parse: (attrs, options) ->
             if attrs['original-id'] and not attrs["thumbnail"]
                 attrs["thumbnail"] = "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
@@ -265,6 +275,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.Tile extends Backbone.Model
+        type: "Tile"
         ###
         Attempt to retrieve tile and instantiate it as the correct Tile subclass,
         then execute success_cb or failure_cb
@@ -347,15 +358,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             b) images, default image and tagged products default image are converted
             to <Image>s.
             ###
-            
-            images = if _.isArray(@get("images")) \
-                     then (new module.Image(im) for im in @get("images")) \
-                     else []
-
-            # used by some tiles where a video is the primary content
-            image = if @get("image")? then new module.Image(@get("image")) else undefined
+            @set
+                images: if _.isArray(@get("images")) \
+                        then (new module.Image(im) for im in @get("images")) \
+                        else []
+                image: if @get("image")? then new module.Image(@get("image")) else undefined
+                product: if @get('product')? then new module.Product(@get('product')) else undefined
+                taggedProducts: if _.isArray(@get('tagged-products')) \
+                                then (new module.Product(p) for p in @get('tagged-products')) \
+                                else []
 
             if @get('default-image')?
+                # getImage uses images, so set first
                 defaultImage = if _.isNumber(@get('default-image')) \
                                then @getImage(@get('default-image')) \
                                else new module.Image(@get('default-image'))
@@ -365,23 +379,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if @get('video')?
                 video = if (@get('video')['source'] == 'youtube') \
                         then new module.YoutubeVideo(@get('video')) \
-                        else video = new module.Video(@get('video'))
+                        else new module.Video(@get('video'))
             else
                 video = undefined
 
-            product = if @get('product')? then new module.Product(@get('product')) else undefined
-
-            taggedProducts = if _.isArray(@get('tagged-products')) \
-                             then (new module.Product(p) for p in @get('tagged-products')) \
-                             else []
-
             @set
-                images: images
                 defaultImage: defaultImage
-                image: image
                 video: video
-                product: product
-                "tagged-products": taggedProducts
+            @unset('default-image')
+            @unset('tagged-products')
 
             if defaultImage
                 @set
@@ -395,9 +401,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @returns {module.Image}
         ###
         getImage: (imgId) ->
-            return _.findWhere(@get("images"),
+            imageAttr = _.findWhere(@get("images"),
                 id: imgId
             )
+            return new module.Image(imageAttr)
 
         url: ->
             App.options.IRSource + "/page/" + App.options.campaign + "/tile/" + @get("tile-id")
@@ -412,28 +419,31 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
 
     class module.ProductTile extends module.Tile
+        type: "ProductTile"
 
 
     class module.ImageTile extends module.Tile
+        type: "ImageTile"
 
 
     class module.GifTile extends module.ImageTile
+        type: "GifTile"
 
 
     class module.VideoTile extends module.Tile
-        defaults:
-            type: "video"
+        type: "VideoTile"
 
 
     class module.YoutubeTile extends module.VideoTile
+        type: "YoutubeTile"
 
 
     class module.HeroTile extends module.Tile
-        defaults:
-            type: "hero"
+        type: "HeroTile"
 
 
     class module.HerovideoTile extends module.HeroTile
+        type: "HerovideoTile"
         initialize: (attrs, options) ->
             super
             desktopHeroImage = undefined
@@ -465,7 +475,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {Collection}
     ###
     class module.TileCollection extends module.List
-
+        type: "TileCollection"
         ###
         Subclass each tile JSON into their specific containers.
         @param item            model attributes
@@ -493,7 +503,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if tile["tile-id"]
                     return true
                 else
-                    console.warn("Rejected tile during parse because it has no tile-id: #{tile}")
+                    console.warn("Rejected tile during parse beecause it has no tile-id: %O", tile)
                     return false
             )
             tiles = _.map(respBuilder, (jsonEntry) ->
@@ -565,6 +575,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {Model}
     ###
     class module.Category extends Backbone.Model
+        type: "Category"
         url: ->
             compiledTemplate = _.template("<%=IRSource%>/page/<%=campaign%>/getresults?results=<%=IRResultsCount%>&category=<%=name%>")
             return compiledTemplate(_.extend({}, options: App.options, @attributes))
@@ -577,6 +588,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {Collection}
     ###
     class module.CategoryCollection extends Backbone.Collection
+        type: "CategoryCollection"
         model: module.Category
 
         initialize: ->

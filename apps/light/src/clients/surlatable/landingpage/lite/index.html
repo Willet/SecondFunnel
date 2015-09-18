@@ -150,6 +150,10 @@
             <% include("image_tile_template") %>
         </script>
 
+        <script type="text/template" id="recipe_tile_template">
+            <% include("image_tile_template") %>
+        </script>
+
         <script type="text/template" id="image_tile_template">
             <div class='relative'>
                 <img class="focus" src="<%= obj.defaultImage.url %>" />
@@ -164,11 +168,17 @@
                             <br/>
                             <span class="tile-name"><%= obj.product.get('name') %></span>
                         <% } else if (obj.template === "image") { %>
+                            <span>Get Details</span>
+                            <br/>
+                            <span class="tile-name"><%= obj.defaultImage.get('name') %></span>
+                        <% } else if (obj.template === "recipe") { %>
                             <span>See the Recipe</span>
                             <br/>
-                            <span class="tile-name"><%= obj.image.get('name') %></span>
+                            <span class="tile-name"><%= obj.defaultImage.get('name') %></span>
                         <% } else { %>
                             <span>Get Details</span>
+                            <br/>
+                            <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
                         <% } %>
                         </div>
                     </div>
@@ -181,7 +191,7 @@
 
         <script type="text/template" id="preview_container_template">
             <% var template = (obj.template || "image") %>
-            <% var tagged = false; try { tagged = !_.isEmpty(obj['tagged-products']); } catch (e) {} %>
+            <% var tagged = false; try { tagged = !_.isEmpty(obj.taggedProducts); } catch (e) {} %>
             <div class="fullscreen scrollable <%= template %> <% if (tagged) { %>tagged<% } %>">
                 <div class="content">
                     <span class="close desktop-only">Keep Shopping <img src="/static/light/surlatable/landingpage/lite/images/close.gif"></span>
@@ -291,7 +301,7 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <% var tagged = Boolean(obj['tagged-products'].length > 0) %>
+            <% var tagged = Boolean(obj.taggedProducts.length > 0) %>
             <div class="table <%= obj.orientation %>">
                 <div class="row">
                     <div class="cell title-banner desktop-only">
@@ -339,37 +349,30 @@
         </script>
 
         <script type="text/template" id="desktop_tagged_products">
-            <% var tagged = Boolean(obj['tagged-products'].length > 0) %>
+            <% var tagged = Boolean(obj.taggedProducts.length > 0) %>
             <div class="cell title-banner">
                 <div class="title">
                     <% include("product_title_template") %>
                 </div>
             </div>
             <div class="cell look-image-container">
-                <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
-                <div class="recipe-container">
-                    <div class="title">
-                        <% include("product_title_template") %>
-                    </div>
-                    <div class="recipe">
-                        <% include("product_description_template") %>
-                    </div>
-                    <div class="scroll-cta">
-                        Scroll to see more
-                    </div>
-                </div>
+                <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
+                <% if (template === "recipe") { %>
+                    <% include("recipe_template") %>
+                <% } %>
             </div>
             <div class="cell info <% if (tagged) { %>tagged<% } %>">
                 <div class="product-info"></div>
             </div>
             <% if (tagged) { %>
+                <% var product = obj.taggedProducts[0]; %>
             <div class="cell shop">
                 <div class="stl-title"><span>Perfect Gifts For This Recipe</span></div>
                 <div class="look-thumbnail mobile-only">
                     <div>
-                        <img src="<%= obj.images[0].url %>" class="image" />
+                        <img src="<%= product.get('defaultImage').url %>" class="image" />
                         <div class="name desktop-only">
-                            <%= obj.name %>
+                            <%= product.get('name') %>
                         </div>
                     </div>
                 </div>
@@ -379,40 +382,47 @@
         </script>
 
         <script type="text/template" id="mobile_tagged_products">
-            <% var tagged = Boolean(obj['tagged-products'].length > 0) %>
+            <% var tagged = Boolean(obj.taggedProducts.length > 0) %>
             <div class="look-product-carousel">
                 <div class="cell look-image-container">
-                    <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
-                    <div class="recipe-container">
-                        <div class="title">
-                            <% include("product_title_template") %>
-                        </div>
-                        <div class="recipe">
-                            <%= obj.description %>
-                        </div>
-                        <div class="scroll-cta">
-                            Scroll to see more
-                        </div>
-                    </div>
+                    <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
+                    <% if (template === "recipe") { %>
+                        <% include("recipe_template") %>
+                    <% } %>
                 </div>
                 <div class="cell info <% if (tagged) { %>tagged<% } %>">
                     <div class="product-info"></div>
                 </div>
             </div>
             <% if (tagged) { %>
+                <% var product = obj.taggedProducts[0]; %>
             <div class="cell shop">
                 <div class="stl-title">Perfect Gifts For This Recipe</div>
                 <div class="look-thumbnail mobile-only">
                     <div>
-                        <img src="<%= obj.images[0].url %>" class="image" />
+                        <img src="<%= product.get('defaultImage').url %>" class="image" />
                         <div class="name desktop-only">
-                            <%= obj.name %>
+                            <%= product.get('name') %>
                         </div>
                     </div>
                 </div>
                 <div class="carousel-region"></div>
             </div>
             <% } %>
+        </script>
+
+        <script type="text/template" id="recipe_template">
+            <div class="recipe-container">
+                <div class="title">
+                    <% include("product_title_template") %>
+                </div>
+                <div class="recipe">
+                    <% include("product_description_template") %>
+                </div>
+                <div class="scroll-cta">
+                    Scroll to see more
+                </div>
+            </div>
         </script>
 
         <script type="text/template" id="carousel_template">
@@ -446,7 +456,7 @@
                 <div class="table">
                     <div>
                         <div class="image">
-                            <img src="<%= image_src %>" alt="image" class="image look-image" />
+                            <img src="<%= image.url %>" alt="image" class="image look-image" />
                         </div>
                         <div>
                             <div class="info">

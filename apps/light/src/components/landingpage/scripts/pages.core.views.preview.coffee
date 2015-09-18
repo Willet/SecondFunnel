@@ -275,13 +275,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # Load up zeroth tagged product
                 @taggedProductIndex = 0
 
-            if @model.get("tagged-products")?.length > 0
-                # order tagged-products by price
-                if @model.get("tagged-products")?.length > 1
-                    @model.set("tagged-products", _.sortBy(@model.get("tagged-products"), (obj) ->
+            if @model.get("taggedProducts")?.length > 0
+                # order taggedProducts by price
+                if @model.get("taggedProducts")?.length > 1
+                    @model.set("taggedProducts", _.sortBy(@model.get("taggedProducts"), (obj) ->
                         -1 * parseFloat((obj.price or "$0").substr(1), 10)
                     ))
-            @taggedProducts = @model.get('tagged-products') or []
+            @taggedProducts = @model.get('taggedProducts') or []
             return
         
         onBeforeRender: ->
@@ -297,6 +297,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @model.set("orientation", "portrait")
             # Need to get an appropriate sized image
             image = @model.get("defaultImage")
+            
             if App.support.mobile()
                 image.url = image.height($window.height())
             else
@@ -442,13 +443,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 carouselInstance = new module.CarouselView(
                     items: @taggedProducts
                     attrs:
-                        'lookImageSrc': @model.get('images')[0].url
-                        'lookName': @model.get('name')
+                        'lookImageSrc': @model.get('defaultImage').url
+                        'lookName': @model.get('defaultImage').get('name')
                 )
                 @carouselRegion.show(carouselInstance)
 
                 # Add some logic here to decide if carouselview or similarproductsview
-                    #similarProductsInstance = new module.SimilarProductsView(@model.get("tagged-products"))
+                    #similarProductsInstance = new module.SimilarProductsView(@model.get("taggedProducts"))
                     #@similarProducts.show(similarProductsInstance)
 
             @resizeContainer()
