@@ -424,7 +424,7 @@
             <% var oneProduct = (obj.taggedProducts.length < 2); %>
             <div class="cell look-image-container desktop-only <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
                 <div class="look-image"
-                    style="background-image: url('<%= image_src %>');">
+                    style="background-image: url('<%= image.url %>');">
                 </div>
             </div>
             <% if (obj.taggedProducts.length > 1) { %>
@@ -444,7 +444,7 @@
         <script type="text/template" id="mobile_tagged_products">
             <div class="look-product-carousel">
                 <div class="cell look-image-container mobile-only">
-                    <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
+                    <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
                 </div>
                 <div class="cell info mobile-only">
                     <div class="product-info"></div>
@@ -459,7 +459,7 @@
 
         <script type="text/template" id="no_tagged_products">
             <div class="look-image-container cell desktop-only">
-                <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
+                <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
             </div>
             <div class="cell info">
                 <div class='title'><%= obj.title || obj.name || "Coming soon to Gap!" %></div>
@@ -478,7 +478,7 @@
                 </div>
             </div>
             <div class="look-image-container cell mobile-only">
-                <div class="look-image" style="background-image: url('<%= image_src %>');"></div>
+                <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
             </div>
             <div class="buy mobile-only">
                 <a class="button" href="http://m.gap.com/" target="_blank">

@@ -9,6 +9,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {LayoutView}
     ###
     class module.TileView extends Marionette.LayoutView
+        type: "TileView"
         tagName: App.option("tileElement", "div")
         className: "tile"
 
@@ -209,6 +210,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {LayoutView}
     ###
     class module.ProductTileView extends module.TileView
+        type: "ProductTileView"
         template: "#product_tile_template"
 
         onClick: ->
@@ -253,6 +255,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {LayoutView}
     ###
     class module.BannerTileView extends module.TileView
+        type: "BannerTileView"
         template: "#image_tile_template"
 
         onClick: ->
@@ -264,6 +267,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.VideoTileView extends module.TileView
+        type: "VideoTileView"
         template: "#video_tile_template"
 
         onClick: ->
@@ -277,6 +281,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.YoutubeTileView extends module.TileView
+        type: "YoutubeTileView"
         template: "youtube_tile_template"
 
         constructor: () ->
@@ -298,9 +303,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.HeroTileView extends module.TileView
+        type: "HeroTileView"
         template: "#hero_template"
 
 
     class module.HerovideoTileView extends module.HeroTileView
+        type: "HerovideoTileView"
         template: "#herovideo_template"
 

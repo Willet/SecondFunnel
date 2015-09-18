@@ -87,18 +87,18 @@
 <script type="text/template" id="product_tile_template">
     <div class="tile-border">
         <div class="image-container">
-            <img class="focus" src="<%= obj.images[0].url %>" alt="<%= caption %>" />
+            <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= caption %>" />
         </div>
         <% if (App.option('debug', 0) > 1) { %>
             <span class="type"><%= obj['content-type'] %></span>
         <% } %>
-        <div class="name"><%= obj.title || obj.name %></div>
+        <div class="name"><%= obj.name %></div>
     </div>
 </script>
 
 <script type="text/template" id="image_tile_template">
     <div class='relative'>
-        <img class="focus" src="<%= obj.images[0].url %>" alt="<%= obj.caption %>" />
+        <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
     </div>
     <% if (App.option("debug", 0) > 1) { %>
         <span class="type"><%= obj["content-type"] %></span>
@@ -107,7 +107,7 @@
 
 <script type="text/template" id="banner_tile_template">
     <div class='relative'>
-        <img class="focus" src="<%= obj.source_url %>" alt="<%= obj.caption %>" />
+        <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
     </div>
     <% if (App.option("debug", 0) > 1) { %>
         <span class="type"><%= obj["content-type"] %></span>
@@ -133,7 +133,7 @@
 </script>
 
 <script type="text/template" id="video_tile_template">
-    <iframe src="<%- obj.url %>" width="100%" height="425" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+    <iframe src="<%- obj.video.url %>" width="100%" height="425" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
 </script>
 
 <script type="text/template" id="youtube_tile_template">

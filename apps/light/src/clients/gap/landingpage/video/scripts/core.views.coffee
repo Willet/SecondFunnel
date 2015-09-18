@@ -256,8 +256,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             carouselInstance = new module.CarouselView(
                 items: @taggedProducts
                 attrs:
-                    'lookImageSrc': @model.get('images')[0].url
-                    'orientation': @model.get('orientation')
+                    'lookImageSrc': @model.get('defaultImage').url
+                    'orientation': @model.get('defaultImage').get('orientation')
                     'landscape':
                         'height': '95%'
                     'portrait':

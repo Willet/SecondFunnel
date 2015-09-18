@@ -447,7 +447,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                              else module.Tile.selectTileSubclass(tile)
                 else
                     @model = undefined
-                @model = if _.isObject(tile) and not _.isEmpty(tile) then  else undefined
                 @render()
 
                 @listenTo(App.vent, "windowResize", =>
