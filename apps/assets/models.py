@@ -1435,8 +1435,9 @@ class Tile(BaseModel):
             target_class = self.template.capitalize()
             serializer = getattr(ir_serializers,
                                  '{}TileSerializer'.format(target_class))
-        except AttributeError:  # cannot find e.g. 'Youtube'TileSerializer -- use default
-            serializer = ir_serializers.TileSerializer
+        except AttributeError:
+            # cannot find e.g. 'Youtube'TileSerializer -- use default
+            serializer = ir_serializers.DefaultTileSerializer
         
         return serializer().to_str([self], skip_cache=skip_cache)
 

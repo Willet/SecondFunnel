@@ -15,13 +15,19 @@ To avoid circular imports, it utilizes django model name strings like 'assets.Im
 
 
 class TileSerializer(IRSerializer):
-    """This will dump absolutely everything in a tile as JSON."""
+    """Abstract base class for all tile serializers."""
 
     def __call__(self, tile_class):
         """Returns a subclass of the tile serializer if you already know it."""
-        return globals()[tile_class.capitalize() + self.__class__.__name__]
+        try:
+            return globals()[tile_class.capitalize() + self.__class__.__name__]
+        except KeyError:
+            return DefaultTileSerializer
 
     def get_dump_object(self, tile):
+        raise NotImplementedError
+
+    def get_core_attributes(self, tile):
         """This will be the data used to generate the object.
         These are core attributes that every tile has.
         """
@@ -43,15 +49,26 @@ class TileSerializer(IRSerializer):
     def get_dump_separated_content(self, tile):
         """ Gets content in json-dict sorted by class
         returns {
-            'images': assets.Image's (including assets.Gif)
-            'videos': assets.Video's
-            'reviews': assets.Review's
+            'images': assets.Image's (including assets.Gif) OR 'image': ...
+            'videos': assets.Video's OR 'video': ...
+            'reviews': assets.Review's OR 'review': ...
         }
         """
         data = {}
-        # convert to json
-        for (k, v) in tile.separated_content.items():
-            data[k] = [c.to_json() for c in v]
+        # copy over images, videos and reviews as json dicts
+        # if there is just 1 of something, use its singular name image / video / review
+        for (key, v) in tile.separated_content.items():
+            if len(v) == 1:
+                # key[:-1] removes trailing 's' from key name
+                # ex: image: <Image> dict
+                data.update({
+                    key[:-1]: v[0].to_json()
+                })
+            else:
+                # images: [<Image> dict]
+                data.update({
+                    key: [c.to_json() for c in v]
+                })
            
         return data  
 
@@ -67,6 +84,28 @@ class TileSerializer(IRSerializer):
         cls = get_model(*django_cls_str.rsplit('.',1))
         content = tile.get_first_content_of(cls).to_json()
         return content
+
+
+class DefaultTileSerializer(TileSerializer):
+    """ For unknown tile templates, populate with all the content we can """
+    def get_dump_object(self, tile):
+        """
+        returns {
+            'image'/'images': image or [ images ]
+            'video'/'videos': video or [ videos ]
+            'review'/'reviews': review or [ reviews ]
+            'tagged-products': [ products ]
+        }
+        """
+        content = self.get_dump_separated_content(tile)
+        products = [p.to_json() for p in tile.products.all()]
+
+        data = self.get_core_attributes(tile)
+        data.update(content)
+        data.update({
+            'tagged-products': products,
+        })
+        return data
 
 
 class ProductTileSerializer(TileSerializer):
@@ -86,30 +125,13 @@ class ProductTileSerializer(TileSerializer):
         except AttributeError:
             raise SerializerError('Product Tile #{} has no products'.format(tile.id))
 
-        data = super(ProductTileSerializer, self).get_dump_object(tile)
+        data = self.get_core_attributes(tile)
         data.update({
             'product': product,
             'images': product['images'],
             'default-image': product['default-image'],
             'tagged-products': product['tagged-products'],
         })
-        return data
-
-
-class ContentTileSerializer(TileSerializer):
-    def get_dump_object(self, tile):
-        """
-        Content is mostly an abstract class, not intended for regular use
-        Just dumps of all content
-
-        returns {
-            'images': [ all images ]
-            'videos': [ all videos ]
-            ...
-        }
-        """
-        data = super(ContentTileSerializer, self).get_dump_object(tile)
-        data.update(self.get_dump_separated_content(tile))
         return data
 
 
@@ -133,7 +155,7 @@ class ImageTileSerializer(TileSerializer):
         products = ([p.to_json() for p in tile.products.all()] or
                     image['tagged-products'])
 
-        data = super(ImageTileSerializer, self).get_dump_object(tile)
+        data = self.get_core_attributes(tile)
         data.update({
             'default-image': image,
             'tagged-products': products,
@@ -163,7 +185,7 @@ class VideoTileSerializer(TileSerializer):
         products = ([p.to_json() for p in tile.products.all()] or
                     video['tagged-products'])
 
-        data = super(VideoTileSerializer, self).get_dump_object(tile)
+        data = self.get_core_attributes(tile)
         data.update({
             'video': video,
             'tagged-products': products,
@@ -211,7 +233,7 @@ class BannerTileSerializer(TileSerializer):
                     raise SerializerError("Banner Tile #{} must have an image \
                                            or a product with an image".format(tile.id))
 
-        data = super(BannerTileSerializer, self).get_dump_object(tile)
+        data = self.get_core_attributes(tile)
         data.update({
             'default-image': image,
             'redirect-url': redirect_url,
@@ -238,7 +260,7 @@ class HeroTileSerializer(TileSerializer):
         products = ([p.to_json() for p in tile.products.all()] or
                     image['tagged-products'])
 
-        data = super(HeroTileSerializer, self).get_dump_object(tile)
+        data = self.get_core_attributes(tile)
         data.update({
             "default-image": image,
             "tagged-products": products,
@@ -272,7 +294,7 @@ class HerovideoTileSerializer(TileSerializer):
         products = ([p.to_json() for p in tile.products.all()] or
                     video['tagged-products'] or image.get('tagged-products', []))
 
-        data = super(HerovideoTileSerializer, self).get_dump_object(tile)
+        data = self.get_core_attributes(tile)
         data.update({
             "video": video,
             "tagged-products": products,
