@@ -6,6 +6,8 @@ from django.dispatch import receiver
 
 from apps.assets.models import Tile, Product, Content, ProductImage
 
+import logging
+logger = logging.debug(__name__)
 
 @receiver(post_save, sender=ProductImage)
 def productimage_saved(sender, **kwargs):
@@ -49,19 +51,33 @@ def content_m2m_changed(sender, **kwargs):
     TODO: this is CPU-intensive. How can tile freshness be checked without
           first computing the updated cache?
     """
+    pk_set = kwargs.get('pk_set')
+
+    reverse = kwargs.get('reverse')
     instance = kwargs.pop('instance', None)
     actionable = kwargs.get('action') in ('post_add', 'post_clear', 'post_remove')
 
-    if not (type(sender) is type(Content.tagged_products.through) or
-            type(sender) is type(Product.similar_products.through)):
+    instances = []
+    if reverse:
+        for pk in pk_set:
+            inst = kwargs.get('model').objects.get(pk=pk)
+            instances.append(inst)
+    else:
+        instances.append(instance)
+
+    if not (sender is Content.tagged_products.through or
+            sender is Product.similar_products.through):
         return
 
     if not actionable:
         return
 
-    with transaction.atomic():
-        for tile in instance.tiles.all():
-            tile.save()
+    if not reverse:
+        for inst in instances:
+            with transaction.atomic():
+                for tile in instance.tiles.all():
+                    tile.save()
+
 
 
 @receiver(post_save, sender=Tile)
