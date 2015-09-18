@@ -6,9 +6,6 @@ from django.dispatch import receiver
 
 from apps.assets.models import Tile, Product, Content, ProductImage
 
-import logging
-logger = logging.debug(__name__)
-
 @receiver(post_save, sender=ProductImage)
 def productimage_saved(sender, **kwargs):
     """Generate cache for IR tiles if a product is saved."""
