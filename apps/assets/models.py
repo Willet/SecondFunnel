@@ -139,7 +139,11 @@ class BaseModel(models.Model, SerializableMixin):
 
         with transaction.atomic():
             # skip full_clean for this save which creates pk, required by m2m_fields
-            super(BaseModel, new_obj).save()
+            try:
+                super(BaseModel, new_obj).save()
+            except ir_serializers.SerializerError:
+                # ignore errors on serialization of incomplete model
+                pass
 
             for (k,v) in m2m_kwargs.iteritems():
                 if isinstance(v,list) or isinstance(v, models.query.QuerySet):
@@ -194,7 +198,11 @@ class BaseModel(models.Model, SerializableMixin):
         """
         old_ir_cache = self.ir_cache
         self.ir_cache = ''  # force tile to regenerate itself
-        new_ir_cache = self.to_str(skip_cache=True)
+        if not getattr(self, 'placeholder', False):
+            new_ir_cache = self.to_str(skip_cache=True)
+        else:
+            # if placeholder, leave ir_cache empty
+            new_ir_cache = ''
 
         if new_ir_cache == old_ir_cache:
             return new_ir_cache, False
