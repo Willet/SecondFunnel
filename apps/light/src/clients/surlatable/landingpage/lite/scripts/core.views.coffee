@@ -193,6 +193,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.ExpandedContent::renderView = () ->
         # Tagged product selected
         if -1 < @taggedProductIndex < @taggedProducts.length
+            console.error('here! %O', @product)
             @_currentIndex = @taggedProductIndex
 
             product = @taggedProducts[@taggedProductIndex]
