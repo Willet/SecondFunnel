@@ -52,17 +52,18 @@ def content_m2m_changed(sender, **kwargs):
     TODO: this is CPU-intensive. How can tile freshness be checked without
           first computing the updated cache?
     """
-    content = kwargs.pop('instance', None)
-    actionable = kwargs.get('action') in ('post_add', 'post_clear')
+    instance = kwargs.pop('instance', None)
+    actionable = kwargs.get('action') in ('post_add', 'post_clear', 'post_remove')
 
-    if not isinstance(content, Content):
+    if not (type(sender) is type(Content.tagged_products.through) or
+            type(sender) is type(Product.similar_products.through)):
         return
 
     if not actionable:
         return
 
     with transaction.atomic():
-        for tile in content.tiles.all():
+        for tile in instance.tiles.all():
             tile.save()
 
 
