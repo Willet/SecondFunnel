@@ -304,6 +304,16 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         });
     };
 
+    module.moreInfoClick = function (model) {
+        var trackingInfo = getTrackingInformation(model, true);
+
+        module.trackEvent({
+            'category': trackingInfo.category,
+            'action': 'Product More Info Click',
+            'label': trackingInfo.label
+        });
+    };
+
     module.thumbnailClick = function (model) {
         var trackingInfo = getTrackingInformation(model, true),
             sku = model.get('sku'),
@@ -584,6 +594,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         'tracking:product:buyClick': module.buyClick,
         'tracking:product:findStoreClick': module.findStoreClick,
         'tracking:product:thumbnailClick': module.thumbnailClick,
+        'tracking:product:moreInfoClick': module.moreInfoClick,
         'tracking:product:imageView': module.imageView
     });
 };
