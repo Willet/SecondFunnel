@@ -17,10 +17,13 @@ To avoid circular imports, it utilizes django model name strings like 'assets.Im
 class TileSerializer(IRSerializer):
     """Abstract base class for all tile serializers."""
 
-    def __call__(self, tile_class):
-        """Returns a subclass of the tile serializer if you already know it."""
+    def __call__(self, tile_template):
+        """Returns a subclass of the tile serializer if you already know it.
+
+        ie: for template 'image' -> returns ImageTileTemplate
+        """
         try:
-            return globals()[tile_class.capitalize() + self.__class__.__name__]
+            return globals()[tile_template.capitalize() + self.__class__.__name__]
         except KeyError:
             return DefaultTileSerializer
 
