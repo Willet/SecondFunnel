@@ -57,17 +57,17 @@ class TileSerializer(IRSerializer):
         data = {}
         # copy over images, videos and reviews as json dicts
         # if there is just 1 of something, use its singular name image / video / review
-        for (key, v) in tile.separated_content.items():
-            if len(v) == 1:
+        for (key, val) in tile.separated_content.items():
+            if len(val) == 1:
                 # key[:-1] removes trailing 's' from key name
                 # ex: image: <Image> dict
                 data.update({
-                    key[:-1]: v[0].to_json()
+                    key[:-1]: val[0].to_json()
                 })
             else:
                 # images: [<Image> dict]
                 data.update({
-                    key: [c.to_json() for c in v]
+                    key: [c.to_json() for c in val]
                 })
            
         return data  

@@ -1463,7 +1463,7 @@ class Tile(BaseModel):
     @property
     def separated_content(self):
         """ a <dict> of content indexed by class 'images', 'videos', 'reviews' """
-        contents = tile.content.select_subclasses()
+        contents = self.content.select_subclasses()
         return {
             'images': [image for image in contents if isinstance(image, Image)],
             'videos': [video for video in contents if isinstance(video, Video)],
