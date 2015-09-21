@@ -87,25 +87,40 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
         getTrackingInformation = function (model, isPreview) {
             // Given a model, return information for tracking purposes
-            var category, label, name, sku;
+            var category, label, name, sku, image, video, product,
+                template = model.get('template'),
+                tileId = model.get('tile-id');
 
             if (!model) {
                 throw 'Lost reference to model (check if correct template is used)';
             }
 
-            switch (model.get('template')) {
+            switch (template) {
                 case 'product':
                     category = 'Product';
-                    sku = model.get('sku');
-                    label = sku ? sku+' '+model.get('name') : model.get('name');
+                    product = model.get('product');
+                    sku = product.get('sku');
+                    name = product.get('name')+' ('+tileId+')';
+                    label = sku ? sku+' '+name : name;
                     break;
                 case 'banner':
                     category = 'Banner';
-                    label = model.get('name', 'Banner '+model.get('id'));
+                    label = model.get('name')+' ('+tileId+')';
+                    break;
+                case 'image':
+                    category = 'Content';
+                    image = model.get('defaultImage')
+                    label = 'Image '+image.get('name')+' ('+tileId+')';
+                    break;
+                 case 'video':
+                    category = 'Content';
+                    video = model.get('video');
+                    label = 'Video '+video.get('name')+' ('+tileId+')';
                     break;
                 default:
                     category = 'Content';
-                    label = model.get('id')
+                    name = model.get('name');
+                    label = template+' ('+tileId+')';
                     break;
             }
 
@@ -290,6 +305,16 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         module.trackEvent({
             'category': trackingInfo.category,
             'action': 'Product Find Store',
+            'label': trackingInfo.label
+        });
+    };
+
+    module.bannerExit = function (model) {
+        var trackingInfo = getTrackingInformation(model, false);
+
+        module.trackEvent({
+            'category': trackingInfo.category,
+            'action': 'Banner Click',
             'label': trackingInfo.label
         });
     };
@@ -591,6 +616,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         'tracking:changeCategory': module.changeCategory,
         'tracking:page:scroll': module.pageScroll,
         'tracking:page:externalUrlClick': module.pageClickout,
+        'tracking:tile:bannerExit': module.bannerExit,
         'tracking:product:buyClick': module.buyClick,
         'tracking:product:findStoreClick': module.findStoreClick,
         'tracking:product:thumbnailClick': module.thumbnailClick,

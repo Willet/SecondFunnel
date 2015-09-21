@@ -256,14 +256,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.BannerTileView extends module.TileView
         type: "BannerTileView"
-        template: "#image_tile_template"
+        template: "#banner_tile_template"
 
         onClick: ->
+            App.vent.trigger('tracking:tile:bannerExit', @model)
             if @model.get("redirect-url")
                 App.utils.openUrl(@model.get("redirect-url"))
             else
                 super
-            return
+            return false # stop event propogation
 
 
     class module.VideoTileView extends module.TileView
