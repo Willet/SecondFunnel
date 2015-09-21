@@ -1,16 +1,10 @@
 import json
 
-from celery import Celery
-from celery.utils.log import get_task_logger
 from django.db import models, transaction
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 
 from apps.assets.models import Tile, Product, Content, ProductImage
-
-celery = Celery()
-logger = get_task_logger(__name__)
-
 
 @receiver(post_save, sender=ProductImage)
 def productimage_saved(sender, **kwargs):
@@ -49,32 +43,36 @@ def content_saved(sender, **kwargs):
 
 @receiver(m2m_changed)
 def content_m2m_changed(sender, **kwargs):
-    """Generate cache for IR tiles if it was change.
+    """Generate cache for IR tiles if related products or content changed."""
+    if (sender is Content.tagged_products.through or
+            sender is Product.similar_products.through) and \
+            kwargs.get('action') in ('post_add', 'post_clear', 'post_remove') and \
+            len(kwargs.get('pk_set')) > 0:
+        # populate set of objects whose tiles need to be refreshed
+        instances = []
+        if kwargs.get('reverse'):
+            # update tiles of other side of m2m relationship
+            for pk in kwargs.get('pk_set'):
+                inst = kwargs.get('model').objects.get(pk=pk)
+                instances.append(inst)
+        else:
+            instance = kwargs.pop('instance', None)
+            instances.append(instance)
 
-    TODO: this is CPU-intensive. How can tile freshness be checked without
-          first computing the updated cache?
-    """
-    content = kwargs.pop('instance', None)
-    actionable = kwargs.get('action') in ('post_add', 'post_clear')
-
-    if not isinstance(content, Content):
-        return
-
-    if not actionable:
-        return
-
-    with transaction.atomic():
-        for tile in content.tiles.all():
-            tile.save()
+        for inst in instances:
+            for tile in inst.tiles.all():
+                # validation can be skipped because 
+                # only product/content relationships are changed
+                ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
+                if updated:
+                    post_save.disconnect(tile_saved, sender=Tile)
+                    models.Model.save(tile, update_fields=['ir_cache'])
+                    post_save.connect(tile_saved, sender=Tile)
 
 
 @receiver(post_save, sender=Tile)
 def tile_saved(sender, **kwargs):
-    """Generate cache for IR tiles if it was change.
-
-    TODO: this is CPU-intensive. How can tile freshness be checked without
-          first computing the updated cache?
-    """
+    """Generate cache for IR tiles if it was change."""
     tile = kwargs.pop('instance', None)
     if not tile:
         return

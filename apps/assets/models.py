@@ -1435,8 +1435,9 @@ class Tile(BaseModel):
             target_class = self.template.capitalize()
             serializer = getattr(ir_serializers,
                                  '{}TileSerializer'.format(target_class))
-        except AttributeError:  # cannot find e.g. 'Youtube'TileSerializer -- use default
-            serializer = ir_serializers.TileSerializer
+        except AttributeError:
+            # cannot find e.g. 'Youtube'TileSerializer -- use default
+            serializer = ir_serializers.DefaultTileSerializer
         
         return serializer().to_str([self], skip_cache=skip_cache)
 
@@ -1462,7 +1463,7 @@ class Tile(BaseModel):
     @property
     def separated_content(self):
         """ a <dict> of content indexed by class 'images', 'videos', 'reviews' """
-        contents = tile.content.select_subclasses()
+        contents = self.content.select_subclasses()
         return {
             'images': [image for image in contents if isinstance(image, Image)],
             'videos': [video for video in contents if isinstance(video, Video)],

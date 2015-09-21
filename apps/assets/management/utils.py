@@ -11,7 +11,7 @@ from django.db import transaction, models
 from django.db.models.signals import post_save
 
 from apps.assets.models import Category, Feed, Page, Product, Tile
-from apps.assets.tasks import tile_saved
+from apps.assets.signals import tile_saved
 from apps.intentrank.serializers import SerializerError
 
 
