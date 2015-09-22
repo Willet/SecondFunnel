@@ -163,6 +163,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.Product extends Backbone.Model
         type: "Product"
 
+        parse: (resp, options) ->
+            resp['salePrice'] = resp['sale-price']
+            delete resp['sale-price']
+            return resp
+
         initialize: (attributes, options) ->
             # Turn images into Image's
             images =
@@ -349,7 +354,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if App.option('ad:forceTwoColumns', false)
                 resp.orientation = 'portrait'
 
-            resp
+            return resp
 
         initialize: (attributes, options) ->
             ###
