@@ -203,7 +203,13 @@
         </script>
 
         <script type="text/template" id="product_price_template">
-            <span class="current"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
+            <% if (obj.sale) { %>
+                <span class="current sale"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
+                <span class="suggested-price">Sugg. $<%= obj.saleString %></span></span>
+                <span class="save-percent">You save <%= Math.round(20 * (1 - (parseInt(obj.displayPrice.dollars) + (parseInt(obj.displayPrice.cents)/100)) / obj.saleString)) * 5 %>%</span>
+            <% } else { %>
+                <span class="current no-sale"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
+            <% } %>
         </script>
 
         <script type="text/template" id="product_buy_template">
