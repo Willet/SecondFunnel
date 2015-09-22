@@ -187,12 +187,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     difference = @container.width()
                     index = _.findIndex($items, (item) ->
                         # true if item is visible after moving leftmost item
-                        return ($(item).width() + $(item).offset().left + difference) > $container.offset().left
+                        return Math.round($(item).width() + $(item).offset().left + difference) > Math.round($container.offset().left)
                     )
             else if direction is "right"
                 index = _.findIndex($items, (item) ->
                     # true if item is only partially visible
-                    return ($(item).width() + $(item).offset().left) > ($container.width() + $container.offset().left)
+                    return Math.round($(item).width() + $(item).offset().left) > Math.round($container.width() + $container.offset().left)
                 )
             else
                 # reposition only if items overflow
@@ -252,10 +252,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             calculateDistance = =>
                 if --imageCount isnt 0
                     return
-                if App.support.mobile() and App.utils.landscape()
-                    @calculateVerticalPosition()
-                else
+                if App.support.mobile()
+                    if App.utils.landscape()
+                        @calculateVerticalPosition()
+                    else
+                        @calculateHorizontalPosition()
+                else if @attrs['orientation'] is "landscape"
                     @calculateHorizontalPosition()
+                else if @attrs['orientation'] is "portrait"
+                    @calculateVerticalPosition()
                 return
 
             imageCount = $("img", @$el).length

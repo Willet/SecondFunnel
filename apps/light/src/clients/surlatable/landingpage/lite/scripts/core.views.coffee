@@ -4,7 +4,6 @@
 
 char_limit = 243
 swipe = require('jquery-touchswipe')
-Modernizr = require('modernizr')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.ProductView::coreOnShow = module.ProductView::onShow
@@ -20,7 +19,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @coreOnShow()
         return
 
+    module.ProductView::coreOnBeforeRender = module.ProductView::onBeforeRender
     module.ProductView::onBeforeRender = ->
+        @coreOnBeforeRender()
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
         inlineLink = "<a href='#{@model.get('cj_link') or @model.get('url')}'>#{linkName}</a>"
         if @model.get("description")

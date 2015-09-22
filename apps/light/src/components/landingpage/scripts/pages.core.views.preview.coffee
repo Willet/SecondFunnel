@@ -2,6 +2,7 @@
 
 imagesLoaded = require('imagesLoaded')
 swipe = require('jquery-touchswipe')
+Modernizr = require('modernizr')
 require("jquery-scrollto")
 require("jquery-waypoints") # register $.fn.waypoint
 require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
@@ -326,38 +327,43 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         # Update the current view
         # If taggedProductIndex < 0, then hide products
-        updateContent = ->
-        if App.support.mobile() and @taggedProductIndex < 0
-            # only one thing visible at a time on mobile
-            # Show content
-            @_currentIndex = @taggedProductIndex = -1
-            @$el.find('.look-thumbnail').hide()
-            @$el.find('.info').hide()
-            @$el.find('.look-image-container').show()
-            @$el.find(".stl-item").removeClass("selected")
-            if App.utils.landscape()
-                @carouselRegion.currentView.calculateVerticalPosition()
-            else
-                @carouselRegion.currentView.calculateHorizontalPosition()
-        else
-            # Show tagged product
-            @_currentIndex = @taggedProductIndex
-            if @carouselRegion.hasView()
-                @$el.find(".stl-item").filter("[data-index=#{@taggedProductIndex}]")
-                    .addClass("selected").siblings().removeClass("selected")
-            productInstance = new module.ProductView(
-                model: @taggedProducts[@taggedProductIndex]
-            )
-            @productInfo.show(productInstance)
-            if App.support.mobile()
-                @$el.find('.look-thumbnail').show()
-                @$el.find('.info').show()
-                @$el.find('.look-image-container').hide()
+        updateContent: ->
+            if App.support.mobile() and @taggedProductIndex < 0
+                # only one thing visible at a time on mobile
+                # Show content
+                @_currentIndex = @taggedProductIndex = -1
+                @$el.find('.look-thumbnail').hide()
+                @$el.find('.info').hide()
+                @$el.find('.look-image-container').show()
+                @$el.find(".stl-item").removeClass("selected")
                 if App.utils.landscape()
                     @carouselRegion.currentView.calculateVerticalPosition()
                 else
                     @carouselRegion.currentView.calculateHorizontalPosition()
-        return
+            else
+                # Show tagged product
+                @_currentIndex = @taggedProductIndex
+                if @carouselRegion.hasView()
+                    @$el.find(".stl-item").filter("[data-index=#{@taggedProductIndex}]")
+                        .addClass("selected").siblings().removeClass("selected")
+                productInstance = new module.ProductView(
+                    model: @taggedProducts[@taggedProductIndex]
+                )
+                @productInfo.show(productInstance)
+                if App.support.mobile()
+                    @$el.find('.look-thumbnail').show()
+                    @$el.find('.info').show()
+                    @$el.find('.look-image-container').hide()
+                    if App.utils.landscape()
+                        @carouselRegion.currentView.calculateVerticalPosition()
+                    else
+                        @carouselRegion.currentView.calculateHorizontalPosition()
+            if @model.get("type") is "image" or @model.get("type") is "gif"
+                if @taggedProductIndex > -1
+                    @$el.find(".look-thumbnail").show()
+                else
+                    @$el.find(".look-thumbnail").hide()
+            return
 
         ###
         Returns a callback that sizes the preview container, making the featured area sized
@@ -383,14 +389,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return
 
                 # All images are loaded to frame content, render it now
-                @updateContent()
-
-                ### THIS CODE SHOULD EXIST SOMEWHERE ELSE ###
-                if @model.get("type") is "image" or @model.get("type") is "gif"
-                    if @taggedProductIndex > -1
-                        @$el.find(".look-thumbnail").show()
-                    else
-                        @$el.find(".look-thumbnail").hide()
+                if not @productInfo.hasView()
+                    @updateContent()
 
                 $container.css(
                     top: "0"
@@ -439,7 +439,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     'margin-bottom': heightReduction
                 )
                 $container.removeClass("loading-images")
-                @updateScrollCta()
                 return
 
         # shrinks container to images once images are loaded
@@ -456,6 +455,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     ), 1)
                 return
             )
+            return
+
+        initializeThumbnails: ->
+            # A hook to customize the thumbnails initialization
+            carouselInstance = new module.CarouselView(
+                items: @taggedProducts
+                attrs:
+                    'lookImageSrc': @model.get('defaultImage').url
+                    'lookName': @model.get('defaultImage').get('name')
+                    'orientation': @model.get('defaultImage').get('orientation')
+            )
+            @carouselRegion.show(carouselInstance)
+            @$el.find('.look-thumbnail').hide()
+
+            # Add some logic here to decide if carouselview or similarproductsview
+                #similarProductsInstance = new module.SimilarProductsView(@model.get("taggedProducts"))
+                #@similarProducts.show(similarProductsInstance)
             return
 
         # Disable scrolling body when preview is shown
@@ -478,18 +494,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # Initialize carousel
             if not _.isEmpty(@taggedProducts)
-                carouselInstance = new module.CarouselView(
-                    items: @taggedProducts
-                    attrs:
-                        'lookImageSrc': @model.get('defaultImage').url
-                        'lookName': @model.get('defaultImage').get('name')
-                        'orientation': @model.get('defaultImage').get('orientation')
-                )
-                @carouselRegion.show(carouselInstance)
-
-                # Add some logic here to decide if carouselview or similarproductsview
-                    #similarProductsInstance = new module.SimilarProductsView(@model.get("taggedProducts"))
-                    #@similarProducts.show(similarProductsInstance)
+                @initializeThumbnails()
 
             @resizeContainer()
 
@@ -498,6 +503,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     offset: "bottom-in-view"
                     direction: "up"
                 )
+            return
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
             # Control gallery swiping
@@ -508,8 +514,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if @taggedProductIndex > -1
                 # delegate swipe to ProductView to swipe through images
                 # unless going beyond last / first image
-                unless (direction is 'left' and productImageIndex is numberOfImages) \
-                    or (direction is 'right' and productImageIndex is 0)
+                unless (direction is 'left' and productImageIndex is numberOfImages) or \
+                       (direction is 'right' and productImageIndex is 0)
                     @productInfo.currentView.swipeStatus(event, phase, direction,
                                                          distance, fingers, duration)
                     return
