@@ -256,7 +256,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.BannerTileView extends module.TileView
         type: "BannerTileView"
-        template: "#banner_tile_template"
+        template: "#image_tile_template"
 
         onClick: ->
             App.vent.trigger('tracking:tile:bannerExit', @model)
