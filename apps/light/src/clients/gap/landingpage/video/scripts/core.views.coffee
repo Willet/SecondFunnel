@@ -72,89 +72,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @updateCarousel(distance, "landscape")
         return
 
-    module.ProductView::onShow = ->
-        @leftArrow = @$el.find('.gallery-swipe-left')
-        @rightArrow = @$el.find('.gallery-swipe-right')
-        @mainImage = @$el.find('.main-image')
-        @resizeProductImages()
-        if @numberOfImages > 1
-            @scrollImages(@mainImage.width()*@galleryIndex, 0)
-            @updateGallery()
-        return
-
-    module.HeroContent.prototype.events =
-        'click #more-button': ->
-            numDefaultThumbnails = 1
-            @$("#more-button").attr("style", "display: none;")
-            table = @$(".thumbnail-table>tbody")[0]
-            thumbnailTemplate = _.template("<td><div class='thumbnail-item' data-index='<%- i %>'>
-                    <div class='thumbnail-image<% if (thumbnail.youtubeId) { %> playing<% } %>' style='background-image: url(\"<%= thumbnail.url %>\");'></div>
-                    <p>Episode <%= i + 1 %> <br><%= thumbnail.date %></p>
-                </div></td>")
-            if table
-                for thumbnail, i in @model.get('thumbnails') when i >= numDefaultThumbnails
-                    thumbnailElem = thumbnailTemplate({ "thumbnail" : thumbnail, "i" : i })
-                    table.insertRow(-1).innerHTML = thumbnailElem
-            return
-
-        'click .thumbnail-item': (ev) ->
-            $ev = $(ev.target)
-            if not $ev.hasClass('thumbnail-item')
-                $ev = $ev.parent('.thumbnail-item')
-            try
-                i = $ev.data('index')
-                thumbnails = @model.get('thumbnails')
-                youtubeId = thumbnails[i]['youtubeId']
-            catch error
-                return
-            finally
-                unless youtubeId?
-                    return
-
-            App.vent.trigger("tracking:videoClick", youtubeId)
-
-            # Youtube player may not yet be initialized
-            player = @video?.currentView?.player
-            if player?.cueVideoById
-                @video.currentView.player.cueVideoById(String(youtubeId))?.playVideo()
-            else
-                App.vent.once('tracking:videoPlay', (videoId, event) ->
-                    event.target.cueVideoById(String(youtubeId))?.playVideo()
-                )
-
-    App.vent.once('tracking:videoFinish', (videoId, event) ->
-        event.target.cuePlaylist(
-            "listType": "list"
-            "list": "PLGlQfj8yOxeh5TYm3LbIkSwUh9RMxJFwi"
-        )
-    )
-
     module.ExpandedContent.prototype.events =
         "click .look-image": (event) ->
             $image = $(event.target)
             $image.toggleClass("full-image")
-            return
-
-        "click .look-thumbnail": (event) ->
-            @$el.find('.look-thumbnail').hide()
-            @$el.find('.info').hide()
-            @$el.find('.look-image-container').show()
-            @carouselRegion.currentView.index = Math.max(@carouselRegion.currentView.index - 1, 0)
-            @lookProductIndex = -1
-            if App.utils.landscape()
-                @carouselRegion.currentView.calculateVerticalPosition()
-            else
-                @carouselRegion.currentView.calculateHorizontalPosition()
-            return
-
-        "click .stl-look .stl-item": (event) ->
-            $ev = $(event.target)
-            $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
-            @lookProductIndex = $targetEl.data("index")
-            unless @$el.find('.look-thumbnail').is(':visible')
-                @carouselRegion.currentView.index = Math.min($('.stl-look').children(':visible').length - 1, @carouselRegion.currentView.index + 1)
-            @updateContent()
-            App.vent.trigger('tracking:stlItemClick', @model.get("taggedProducts")[@lookProductIndex])
             return
 
     module.ExpandedContent::resizeContainer = ->
@@ -173,7 +94,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if @productInfo.currentView is undefined
                     @updateContent()
                 if @model.get("type") is "image" or @model.get("type") is "gif"
-                    if @lookProductIndex > -1
+                    if @taggedProductIndex > -1
                         @$el.find(".look-thumbnail").show()
                     else
                         @$el.find(".look-thumbnail").hide()
@@ -235,23 +156,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::onShow = ->
-        if App.support.mobile()
-            @lookProductIndex = -1
-            if App.utils.landscape()
-                @$el.closest(".previewContainer").addClass("landscape")
-            else
-                @$el.closest(".previewContainer").removeClass("landscape")
-            @$el.find('.info').hide()
-            @$el.find(".look-product-carousel").swipe(
-                triggerOnTouchEnd: true,
-                swipeStatus: _.bind(@swipeStatus, @),
-                allowPageScroll: 'vertical'
-            )
-        else
-            @lookProductIndex = 0
-            @$el.closest(".fullscreen").addClass("loading-images")
-
-        if @taggedProducts.length > 1 or App.support.mobile()
+        if not _.isEmpty(@taggedProducts) or App.support.mobile()
             # @stlIndex = 0
             carouselInstance = new module.CarouselView(
                 items: @taggedProducts
@@ -279,67 +184,45 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
         return
 
-    module.ExpandedContent::swipeStatus = (event, phase, direction, distance, fingers, duration) ->
-        productImageIndex = @productInfo.currentView?.galleryIndex or 0
-        numberOfImages = (@productInfo.currentView?.numberOfImages - 1) or 0
-        if @lookProductIndex >= 0
-            # delegate swipe to ProductView to swipe through images
-            unless (direction is 'left' and productImageIndex is numberOfImages) or (direction is 'right' and productImageIndex is 0)
-                @productInfo.currentView.swipeStatus(event, phase, direction, distance, fingers, duration)
-                return
-        if phase is 'end'
-            if direction is 'right'
-                @lookProductIndex--
-                # swipe from look image to last product
-                if @lookProductIndex < -1
-                    @lookProductIndex = @taggedProducts.length - 1
-                    if App.support.mobile()
-                        @carouselRegion.currentView.index = Math.min($('.stl-look').children().length - 1, @carouselRegion.currentView.index + 1)
-                # swipe from first product to look image
-                else if @lookProductIndex is -1 and App.support.mobile()
-                    @carouselRegion.currentView.index = Math.max(@carouselRegion.currentView.index - 1, 0)
-            else if direction is 'left'
-                @lookProductIndex++
-                # swipe from last product to look image
-                if @lookProductIndex is @taggedProducts.length
-                    if App.support.mobile()
-                        @lookProductIndex = -1
-                        @carouselRegion.currentView.index = Math.max(@carouselRegion.currentView.index - 1, 0)
-                    else
-                        @lookProductIndex = 0
-                # swipe from look image to first product
-                else if @lookProductIndex is 0 and App.support.mobile()
-                    @carouselRegion.currentView.index = Math.min($('.stl-look').children(':visible').length - 1, @carouselRegion.currentView.index + 1)
-            @updateContent()
-        return @
+    module.HeroContent.prototype.events =
+        'click #more-button': ->
+            numDefaultThumbnails = 1
+            @$("#more-button").attr("style", "display: none;")
+            table = @$(".thumbnail-table>tbody")[0]
+            thumbnailTemplate = _.template("<td><div class='thumbnail-item' data-index='<%- i %>'>
+                    <div class='thumbnail-image<% if (thumbnail.youtubeId) { %> playing<% } %>' style='background-image: url(\"<%= thumbnail.url %>\");'></div>
+                    <p>Episode <%= i + 1 %> <br><%= thumbnail.date %></p>
+                </div></td>")
+            if table
+                for thumbnail, i in @model.get('thumbnails') when i >= numDefaultThumbnails
+                    thumbnailElem = thumbnailTemplate({ "thumbnail" : thumbnail, "i" : i })
+                    table.insertRow(-1).innerHTML = thumbnailElem
+            return
 
-    module.ExpandedContent::updateContent = ->
-        if App.support.mobile() and @lookProductIndex < 0
-            @$el.find('.look-thumbnail').hide()
-            @$el.find('.info').hide()
-            @$el.find('.look-image-container').show()
-            @$el.find(".stl-item").removeClass("selected")
-            if App.utils.landscape()
-                @carouselRegion.currentView.calculateVerticalPosition()
+        'click .thumbnail-item': (ev) ->
+            $ev = $(ev.target)
+            if not $ev.hasClass('thumbnail-item')
+                $ev = $ev.parent('.thumbnail-item')
+            try
+                i = $ev.data('index')
+                thumbnails = @model.get('thumbnails')
+                youtubeId = thumbnails[i]['youtubeId']
+            catch error
+                return
+            finally
+                unless youtubeId?
+                    return
+
+            App.vent.trigger("tracking:videoClick", youtubeId)
+
+            # Youtube player may not yet be initialized
+            player = @video?.currentView?.player
+            if player?.cueVideoById
+                @video.currentView.player.cueVideoById(String(youtubeId))?.playVideo()
             else
-                @carouselRegion.currentView.calculateHorizontalPosition()
-        else
-            if @carouselRegion.hasView()
-                @$el.find(".stl-item").filter("[data-index=#{@lookProductIndex}]")
-                    .addClass("selected").siblings().removeClass("selected")
-            productInstance = new module.ProductView(
-                model: @taggedProducts[@lookProductIndex]
-            )
-            @productInfo.show(productInstance)
-            if App.support.mobile()
-                @$el.find('.look-thumbnail').show()
-                @$el.find('.info').show()
-                @$el.find('.look-image-container').hide()
-                if App.utils.landscape()
-                    @carouselRegion.currentView.calculateVerticalPosition()
-                else
-                    @carouselRegion.currentView.calculateHorizontalPosition()
-        return
+                App.vent.once('tracking:videoPlay', (videoId, event) ->
+                    event.target.cueVideoById(String(youtubeId))?.playVideo()
+                )
 
     module.HeroContent::onShow = ->
         video = @model.get('video')
@@ -357,3 +240,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
             @carouselRegion.show(carouselInstance)
         return
+
+    App.vent.once('tracking:videoFinish', (videoId, event) ->
+        event.target.cuePlaylist(
+            "listType": "list"
+            "list": "PLGlQfj8yOxeh5TYm3LbIkSwUh9RMxJFwi"
+        )
+    )

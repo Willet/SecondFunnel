@@ -243,19 +243,36 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             similarProducts: ".similar-products"
 
         events:
+            "click .look-thumbnail": (event) ->
+                # Look thumbnail is generally only visible/clickable on mobile
+                # when it is in the carousel
+                @$el.find('.look-thumbnail').hide()
+                @$el.find('.info').hide()
+                @$el.find('.look-image-container').show()
+                @carouselRegion.currentView.index = Math.max(@carouselRegion.currentView.index - 1, 0)
+                @taggedProductIndex = -1
+                if App.utils.landscape()
+                    @carouselRegion.currentView.calculateVerticalPosition()
+                else
+                    @carouselRegion.currentView.calculateHorizontalPosition()
+                return
+
             "click .stl-look .stl-item": (event) ->
-                $el = @$el
                 $ev = $(event.target)
                 $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
-                
                 @taggedProductIndex = $targetEl.data("index")
-                
+
+                unless @$el.find('.look-thumbnail').is(':visible')
+                    @carouselRegion.currentView.index = Math.min(
+                        $('.stl-look').children(':visible').length - 1,
+                        @carouselRegion.currentView.index + 1
+                    )
                 if App.support.mobile()
                     # Scroll up to product view
                     $('body').scrollTo(".cell.info", 500)
-                product = @renderView()
-
-                App.vent.trigger('tracking:product:thumbnailClick', product)
+                @updateContent()
+                App.vent.trigger('tracking:product:thumbnailClick',
+                                 @model.get("taggedProducts")[@taggedProductIndex])
                 return
 
         initialize: ->
@@ -307,32 +324,40 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @model.set("image", image)
             return
 
-        # Updating the current view with product or tagged product
-        # Returns product that is currently displayed
-        renderView: () ->
-            if @taggedProductIndex is not @_currentIndex
-                if -1 < @taggedProductIndex < @taggedProducts.length
-                    @_currentIndex = @taggedProductIndex
-                    @carouselRegion.currentView.selectItem(@taggedProductIndex)
-                    product = @taggedProducts[@taggedProductIndex]
-                else
-                    @_currentIndex = @taggedProductIndex = -1
-                    @carouselRegion.currentView.deselectItems()
-                    if @product?
-                        product = @product
-
-            if product
-                productInstance = new module.ProductView(
-                    model: product
-                )
-                @productInfo.show(productInstance)
-                @$el.find('.info').show()
+        # Update the current view
+        # If taggedProductIndex < 0, then hide products
+        updateContent = ->
+        if App.support.mobile() and @taggedProductIndex < 0
+            # only one thing visible at a time on mobile
+            # Show content
+            @_currentIndex = @taggedProductIndex = -1
+            @$el.find('.look-thumbnail').hide()
+            @$el.find('.info').hide()
+            @$el.find('.look-image-container').show()
+            @$el.find(".stl-item").removeClass("selected")
+            if App.utils.landscape()
+                @carouselRegion.currentView.calculateVerticalPosition()
             else
-                # Neither product or tagged product
-                @productInfo.empty()
-                @$el.find('.info').hide()
-            # Return model of product being displayed
-            return product
+                @carouselRegion.currentView.calculateHorizontalPosition()
+        else
+            # Show tagged product
+            @_currentIndex = @taggedProductIndex
+            if @carouselRegion.hasView()
+                @$el.find(".stl-item").filter("[data-index=#{@taggedProductIndex}]")
+                    .addClass("selected").siblings().removeClass("selected")
+            productInstance = new module.ProductView(
+                model: @taggedProducts[@taggedProductIndex]
+            )
+            @productInfo.show(productInstance)
+            if App.support.mobile()
+                @$el.find('.look-thumbnail').show()
+                @$el.find('.info').show()
+                @$el.find('.look-image-container').hide()
+                if App.utils.landscape()
+                    @carouselRegion.currentView.calculateVerticalPosition()
+                else
+                    @carouselRegion.currentView.calculateHorizontalPosition()
+        return
 
         ###
         Returns a callback that sizes the preview container, making the featured area sized
@@ -358,11 +383,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return
 
                 # All images are loaded to frame content, render it now
-                @renderView()
+                @updateContent()
 
                 ### THIS CODE SHOULD EXIST SOMEWHERE ELSE ###
                 if @model.get("type") is "image" or @model.get("type") is "gif"
-                    if @lookProductIndex > -1
+                    if @taggedProductIndex > -1
                         @$el.find(".look-thumbnail").show()
                     else
                         @$el.find(".look-thumbnail").hide()
@@ -435,7 +460,20 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         # Disable scrolling body when preview is shown
         onShow: ->
-            unless App.support.mobile()
+            if App.support.mobile()
+                if App.utils.landscape()
+                    @$el.closest(".previewContainer").addClass("landscape")
+                else
+                    @$el.closest(".previewContainer").removeClass("landscape")
+                @$el.find('.info').hide()
+                @$el.find(".look-product-carousel")?.swipe(
+                    triggerOnTouchEnd: true,
+                    swipeStatus: _.bind(@swipeStatus, @),
+                    allowPageScroll: 'vertical'
+                )
+            else
+                @$el.closest(".previewContainer").removeClass("landscape")
+                # will be removed by shrinkCallback
                 @$el.closest(".fullscreen").addClass("loading-images")
 
             # Initialize carousel
@@ -445,6 +483,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     attrs:
                         'lookImageSrc': @model.get('defaultImage').url
                         'lookName': @model.get('defaultImage').get('name')
+                        'orientation': @model.get('defaultImage').get('orientation')
                 )
                 @carouselRegion.show(carouselInstance)
 
@@ -454,23 +493,73 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             @resizeContainer()
 
+            if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
+                $(".stick-bottom", @$el).addClass("stuck").waypoint("sticky",
+                    offset: "bottom-in-view"
+                    direction: "up"
+                )
+
+        swipeStatus: (event, phase, direction, distance, fingers, duration) ->
+            # Control gallery swiping
+            # Allow swiping from content through products, in a cycle
+            productImageIndex = @productInfo.currentView?.galleryIndex or 0
+            numberOfImages = (@productInfo.currentView?.numberOfImages - 1) or 0
+            index = @taggedProductIndex # local copy to modify
+            if @taggedProductIndex > -1
+                # delegate swipe to ProductView to swipe through images
+                # unless going beyond last / first image
+                unless (direction is 'left' and productImageIndex is numberOfImages) \
+                    or (direction is 'right' and productImageIndex is 0)
+                    @productInfo.currentView.swipeStatus(event, phase, direction,
+                                                         distance, fingers, duration)
+                    return
+            if phase is 'end'
+                if direction is 'right'
+                    index--
+                    # swipe from content to last product
+                    if index < -1
+                        index = @taggedProducts.length - 1
+                        if App.support.mobile()
+                            @carouselRegion.currentView.index = Math.min(
+                                $('.stl-look').children().length - 1,
+                                @carouselRegion.currentView.index + 1
+                            )
+                    # swipe from first product to content
+                    else if index is -1 and App.support.mobile()
+                        @carouselRegion.currentView.index = Math.max(
+                            0,
+                            @carouselRegion.currentView.index - 1
+                        )
+                else if direction is 'left'
+                    index++
+                    # swipe from last product to content
+                    if index is @taggedProducts.length
+                        index = -1
+                        if App.support.mobile()
+                            @carouselRegion.currentView.index = Math.max(
+                                0, 
+                                @carouselRegion.currentView.index - 1
+                            )
+                    else if index is 0 and App.support.mobile()
+                        @carouselRegion.currentView.index = Math.min(
+                            $('.stl-look').children(':visible').length - 1,
+                            @carouselRegion.currentView.index + 1
+                        )
+                @taggedProductIndex = index
+                @renderView()
+            return @
+
         destroy: ->
-            # See NOTE in onShow
             unless App.support.mobile()
                 $(document.body).removeClass("no-scroll")
 
             @$(".stick-bottom").waypoint("destroy")
+            @$el.find(".look-product-carousel").swipe("destroy")
             return
 
 
-    ###
-    Contents inside a PreviewWindow
-
-    @constructor
-    @type {LayoutView}
-    ###
     class module.PreviewContent extends module.ExpandedContent
-
+        # Content inside a PreviewWindow or HeroAreaView
         template: "#tile_preview_template"
         templates: ->
             templateRules = [
@@ -506,17 +595,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onShow: ->
             super
 
-            #  NOTE: Previously, it was thought that adding `no-scroll`
-            #  to android devices was OK, because no problems were observed
-            #  on some device.
-            #
-            #  Turns out, that was wrong.
-            #
-            #  It seems like no-scroll prevent scrolling on *some* android
-            #  devices, but not others.
-            #
-            #  So, for now, only add no-scroll if the device is NOT an android.
-            #
             unless App.support.mobile()
                 width = Marionette.getOption(@, "width")
                 if width
