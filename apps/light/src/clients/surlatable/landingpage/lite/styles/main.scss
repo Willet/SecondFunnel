@@ -10,6 +10,8 @@ $slt-green-color: #6b8e00;
 $slt-pastel-green-color: #829253;
 $slt-purple-color: #651e44;
 $slt-orange-color: #F05423;
+$slt-sale-price-color: #F00;
+$slt-dark-grey-color: #828282;
 $slt-categories-height: 140px;
 $slt-thumbnail-height: 111px;
 
@@ -722,6 +724,9 @@ body {
             margin-bottom: 15px;
         }
         .price {
+            .current.sale {
+                color: $slt-sale-price-color;
+            }
             .current:before {
                 content: "$";
                 font-size: .6em;
@@ -734,6 +739,22 @@ body {
                 position: relative;
                 bottom: .43em;
                 display: inline-block;
+            }
+            .suggested-price {
+                margin-left: 22px;
+                font-size: 16px;
+                color: $slt-dark-grey-color;
+                .dollar-amount {
+                    text-decoration: line-through;
+                }
+            }
+            .save-percent {
+                font-size: 16px;
+                color: $slt-dark-grey-color;
+                &:before {
+                    content: " | ";
+                    padding: 0 2px;
+                }
             }
         }
         .description {
