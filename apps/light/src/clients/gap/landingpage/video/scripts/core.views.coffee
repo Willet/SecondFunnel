@@ -4,35 +4,20 @@ swipe = require('jquery-touchswipe')
 Modernizr = require('modernizr')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
-    module.CarouselView::calculateDistanceOnLoad = ->
-        # This includes a herovideo thumbnail modifications that would have been
-        # better as a subclass to CarouselView. Not worth the effort now
-        calculateDistance = =>
-            if --imageCount isnt 0
-                return
-            if App.support.mobile()
-                if App.utils.landscape()
-                    @calculateVerticalPosition()
-                else
-                    @calculateHorizontalPosition()
-            else if @attrs['type'] is "herovideo"
-                @calculateHorizontalPosition()
-            else if @attrs['orientation'] is "landscape"
-                @calculateHorizontalPosition()
-            else if @attrs['orientation'] is "portrait"
+    # This includes a herovideo thumbnail modifications that would have been
+    # better as a subclass to CarouselView. Not worth the effort now
+    module.CarouselView::calculateDistance = ->
+        if App.support.mobile()
+            if App.utils.landscape()
                 @calculateVerticalPosition()
-            return
-
-        imageCount = $("img", @$el).length
-        # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
-        $("img", @$el).one("load", calculateDistance).each ->
-            if @complete
-                # Without the timeout the box may not be rendered. This lets the onShow method return
-                setTimeout (=>
-                    $(@).load()
-                    return
-                ), 1
-            return
+            else
+                @calculateHorizontalPosition()
+        else if @attrs['type'] is "herovideo"
+            @calculateHorizontalPosition()
+        else if @attrs['orientation'] is "landscape"
+            @calculateHorizontalPosition()
+        else if @attrs['orientation'] is "portrait"
+            @calculateVerticalPosition()
         return
 
     module.CarouselView::calculateHorizontalPosition = (direction='none') ->
@@ -77,11 +62,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @updateCarousel(distance, "landscape")
         return
 
-    module.ExpandedContent.prototype.events =
+    _.extend(module.ExpandedContent.prototype.events,
         "click .look-image": (event) ->
             $image = $(event.target)
             $image.toggleClass("full-image")
             return
+    )
 
     module.ExpandedContent::shrinkContainerCallback = ->
         # Fits content to window, doesn't support overflow content
@@ -145,20 +131,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
     module.ExpandedContent::initializeThumbnails = ->
-        # Make room for arrows
-        carouselInstance = new module.CarouselView(
-            items: @taggedProducts
-            attrs:
-                'lookImageSrc': @model.get('defaultImage').url
-                'orientation': @model.get('defaultImage').get('orientation')
-                'landscape':
-                    'height': '95%'
-                'portrait':
-                    'fullHeight': '95%'
-                    'reducedHeight': '90%'
-        )
-        @carouselRegion.show(carouselInstance)
-        @$el.find('.look-thumbnail').hide()
+        if @taggedProducts.length > 1 or \
+           (App.support.mobile() and @taggedProducts.length > 0)
+            # Make room for arrows
+            carouselInstance = new module.CarouselView(
+                items: @taggedProducts
+                attrs:
+                    'lookImageSrc': @model.get('defaultImage').url
+                    'orientation': @model.get('defaultImage').get('orientation')
+                    'landscape':
+                        'height': '95%'
+                    'portrait':
+                        'fullHeight': '95%'
+                        'reducedHeight': '90%'
+            )
+            @carouselRegion.show(carouselInstance)
+            @$el.find('.look-thumbnail').hide()
         return
 
     module.HeroContent.prototype.events =

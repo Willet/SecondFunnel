@@ -45,11 +45,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
 
-    module.ExpandedContent.prototype.events =
+    _.extend(module.ExpandedContent.prototype.events,
         "click .look-image": (event) ->
             $image = $(event.target)
             $image.toggleClass("full-image")
             return
+    )
 
     module.ExpandedContent::shrinkContainerCallback = ->
             =>
@@ -111,18 +112,20 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
 
     module.ExpandedContent::initializeThumbnails = ->
-        # Make room for arrows
-        carouselInstance = new module.CarouselView(
-            items: @taggedProducts
-            attrs:
-                'lookImageSrc': @model.get('defaultImage').url
-                'orientation': @model.get('defaultImage').get('orientation')
-                'landscape':
-                    'height': '95%'
-                'portrait':
-                    'fullHeight': '95%'
-                    'reducedHeight': '90%'
-        )
-        @carouselRegion.show(carouselInstance)
-        @$el.find('.look-thumbnail').hide()
+        if @taggedProducts.length > 1 or \
+           (App.support.mobile() and @taggedProducts.length > 0)
+            # Make room for arrows
+            carouselInstance = new module.CarouselView(
+                items: @taggedProducts
+                attrs:
+                    'lookImageSrc': @model.get('defaultImage').url
+                    'orientation': @model.get('defaultImage').get('orientation')
+                    'landscape':
+                        'height': '95%'
+                    'portrait':
+                        'fullHeight': '95%'
+                        'reducedHeight': '90%'
+            )
+            @carouselRegion.show(carouselInstance)
+            @$el.find('.look-thumbnail').hide()
         return

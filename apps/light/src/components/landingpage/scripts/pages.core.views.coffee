@@ -79,7 +79,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     swipeStatus: _.bind(@swipeStatus, @)
                     allowPageScroll: 'auto'
                 )
-            @calculateDistanceOnLoad()
+            @$el.imagesLoaded(=> @calculateDistance())
             return
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
@@ -169,6 +169,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         ###
+        Helper method that calls the correct carousel slide translation depending on the use case
+        ###
+        calculateDistance: ->
+            if App.support.mobile()
+                if App.utils.landscape()
+                    @calculateVerticalPosition()
+                else
+                    @calculateHorizontalPosition()
+            else if @attrs['orientation'] is "landscape"
+                @calculateHorizontalPosition()
+            else if @attrs['orientation'] is "portrait"
+                @calculateVerticalPosition()
+                return
+
+        ###
         Calculates number of pixels to translate the carousel slide horizontally based on direction and @index.
 
         @param direction : left  -> after moving the leftmost item to the end of the carousel, finds the first
@@ -242,37 +257,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @index = index
                 distance = @slide.offset().top - $($items[@index]).offset().top
                 @updateCarousel(distance, "portrait")
-            return
-
-        ###
-        Calculates distance after DOM elements are loaded. Assumes carousel is vertical on mobile-landscape,
-        and horizontal otherwise (desktop, mobile-portrait).
-        ###
-        calculateDistanceOnLoad: ->
-            calculateDistance = =>
-                if --imageCount isnt 0
-                    return
-                if App.support.mobile()
-                    if App.utils.landscape()
-                        @calculateVerticalPosition()
-                    else
-                        @calculateHorizontalPosition()
-                else if @attrs['orientation'] is "landscape"
-                    @calculateHorizontalPosition()
-                else if @attrs['orientation'] is "portrait"
-                    @calculateVerticalPosition()
-                return
-
-            imageCount = $("img", @$el).length
-            # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
-            $("img", @$el).one("load", calculateDistance).each ->
-                if @complete
-                    # Without the timeout the box may not be rendered. This lets the onShow method return
-                    setTimeout (=>
-                        $(@).load()
-                        return
-                    ), 1
-                return
             return
 
         destroy: ->
@@ -350,7 +334,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 target: @
                 data: 2
             )
-            @player?.destroy()
+            try
+                @player?.destroy()
+            catch error
+                # Ignore errors destroying the Youtube player
+                # Can happen while it is still initializing
+            return
 
     
     ###

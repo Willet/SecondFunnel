@@ -19,9 +19,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @coreOnShow()
         return
 
-    module.ProductView::coreOnBeforeRender = module.ProductView::onBeforeRender
     module.ProductView::onBeforeRender = ->
-        @coreOnBeforeRender()
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
         inlineLink = "<a href='#{@model.get('cj_link') or @model.get('url')}'>#{linkName}</a>"
         if @model.get("description")
@@ -150,10 +148,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     0,
                     @carouselRegion.currentView.index - 1
                 )
-                if App.utils.landscape()
-                    @carouselRegion.currentView.calculateVerticalPosition()
-                else
-                    @carouselRegion.currentView.calculateHorizontalPosition()
+                @carouselRegion.currentView.calculateDistance()
         else
             # Show tagged product
             @_currentIndex = @taggedProductIndex
@@ -169,10 +164,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             
             @carouselRegion.currentView?.selectItem(@taggedProductIndex)
             if App.support.mobile() and @taggedProducts.length > 0 and @carouselRegion.currentView?
-                if App.utils.landscape()
-                    @carouselRegion.currentView.calculateVerticalPosition()
-                else
-                    @carouselRegion.currentView.calculateHorizontalPosition()
+                @carouselRegion.currentView.calculateDistance()
 
         if product
             productInstance = new module.ProductView(

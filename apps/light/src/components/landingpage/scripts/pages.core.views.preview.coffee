@@ -247,15 +247,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             "click .look-thumbnail": (event) ->
                 # Look thumbnail is generally only visible/clickable on mobile
                 # when it is in the carousel
-                @$el.find('.look-thumbnail').hide()
-                @$el.find('.info').hide()
-                @$el.find('.look-image-container').show()
-                @carouselRegion.currentView.index = Math.max(@carouselRegion.currentView.index - 1, 0)
                 @taggedProductIndex = -1
-                if App.utils.landscape()
-                    @carouselRegion.currentView.calculateVerticalPosition()
-                else
-                    @carouselRegion.currentView.calculateHorizontalPosition()
+                @updateContent()
                 return
 
             "click .stl-look .stl-item": (event) ->
@@ -271,7 +264,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if App.support.mobile()
                     # Scroll up to product view
                     $('body').scrollTo(".cell.info", 500)
+
                 @updateContent()
+
                 App.vent.trigger('tracking:product:thumbnailClick',
                                  @model.get("taggedProducts")[@taggedProductIndex])
                 return
@@ -336,10 +331,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.find('.info').hide()
                 @$el.find('.look-image-container').show()
                 @$el.find(".stl-item").removeClass("selected")
-                if App.utils.landscape()
-                    @carouselRegion.currentView.calculateVerticalPosition()
-                else
-                    @carouselRegion.currentView.calculateHorizontalPosition()
+                @carouselRegion.currentView?.calculateDistance()
             else
                 # Show tagged product
                 @_currentIndex = @taggedProductIndex
@@ -354,10 +346,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @$el.find('.look-thumbnail').show()
                     @$el.find('.info').show()
                     @$el.find('.look-image-container').hide()
-                    if App.utils.landscape()
-                        @carouselRegion.currentView.calculateVerticalPosition()
-                    else
-                        @carouselRegion.currentView.calculateHorizontalPosition()
+                    @carouselRegion.currentView?.calculateDistance()
             if @model.get("type") is "image" or @model.get("type") is "gif"
                 if @taggedProductIndex > -1
                     @$el.find(".look-thumbnail").show()
@@ -372,6 +361,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         shrinkContainerCallback: ->
             =>
+                # must wait for all images to load
+                if --@_imageCount isnt 0
+                    return
+                
                 $window = $(window)
                 $container = @$el.closest(".fullscreen")
                 $containedItem = @$el.closest(".content")
@@ -383,10 +376,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     $feature = $containedItem.find(".feature")
                 # Content that will run below the fold
                 $overflow = $containedItem.find(".overflow")
-                
-                # must wait for all images to load
-                if --@_imageCount isnt 0
-                    return
 
                 # All images are loaded to frame content, render it now
                 if not @productInfo.hasView()
@@ -459,19 +448,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         initializeThumbnails: ->
             # A hook to customize the thumbnails initialization
-            carouselInstance = new module.CarouselView(
-                items: @taggedProducts
-                attrs:
-                    'lookImageSrc': @model.get('defaultImage').url
-                    'lookName': @model.get('defaultImage').get('name')
-                    'orientation': @model.get('defaultImage').get('orientation')
-            )
-            @carouselRegion.show(carouselInstance)
-            @$el.find('.look-thumbnail').hide()
+            if @taggedProducts.length > 1 or \
+               (App.support.mobile() and @taggedProducts.length > 0)
+                # Initialize carousel if this is mobile with tagged product
+                # or desktop/tablet with more than one product
+                carouselInstance = new module.CarouselView(
+                    items: @taggedProducts
+                    attrs:
+                        'lookImageSrc': @model.get('defaultImage').url
+                        'lookName': @model.get('defaultImage').get('name')
+                        'orientation': @model.get('defaultImage').get('orientation')
+                )
+                @carouselRegion.show(carouselInstance)
+                @$el.find('.look-thumbnail').hide()
 
-            # Add some logic here to decide if carouselview or similarproductsview
-                #similarProductsInstance = new module.SimilarProductsView(@model.get("taggedProducts"))
-                #@similarProducts.show(similarProductsInstance)
+                # Add some logic here to decide if carouselview or similarproductsview
+                    #similarProductsInstance = new module.SimilarProductsView(@model.get("taggedProducts"))
+                    #@similarProducts.show(similarProductsInstance)
             return
 
         # Disable scrolling body when preview is shown
@@ -492,10 +485,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # will be removed by shrinkCallback
                 @$el.closest(".fullscreen").addClass("loading-images")
 
-            # Initialize carousel
-            if not _.isEmpty(@taggedProducts)
-                @initializeThumbnails()
-
+            @initializeThumbnails()
             @resizeContainer()
 
             if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
@@ -717,8 +707,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @$el.closest(".previewContainer").addClass("landscape")
                 else
                     @$el.closest(".previewContainer").removeClass("landscape")
-                if @content.currentView?.resizeContainer()
+                if @content.currentView?
                     @content.currentView.resizeContainer()
+                    # Refactor to use region.currentView.render
                     if @content.currentView.productInfo?.currentView
                         productRegion = @content.currentView.productInfo
                         productRegion.show(productRegion.currentView,
