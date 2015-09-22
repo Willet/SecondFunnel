@@ -430,6 +430,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         type: "GifTile"
 
 
+    class module.CollectionTile extends module.Tile
+        # Similar to Image Tile, but has mini-feed of products
+        type: "CollectionTile"
+
+
     class module.VideoTile extends module.Tile
         type: "VideoTile"
 

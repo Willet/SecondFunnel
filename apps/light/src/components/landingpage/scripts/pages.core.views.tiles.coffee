@@ -202,14 +202,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
 
-    ###
-    View for Product Tile
-    A product tile displays one product
-
-    @constructor
-    @type {LayoutView}
-    ###
     class module.ProductTileView extends module.TileView
+        # A product tile displays one product
         type: "ProductTileView"
         template: "#product_tile_template"
 
@@ -221,22 +215,20 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return        
 
 
-    ###
-    View for Image Tile
-    An image tile is an image that is tagged with one or more products
-
-    @constructor
-    @type {LayoutView}
-    ###
     class module.ImageTileView extends module.TileView
+        # An image tile is an image that is tagged with one or more products
+        type: "ImageTileView"
         template: "#image_tile_template"
 
 
     class module.GifTileView extends module.TileView
+        # An image tile that has a gif - enables progressive loading
+        type: "GifTileView"
         template: "#gif_tile_template"
 
         initialize: ->
             @listenToOnce App.vent, "layoutCompleted", =>
+                # First load image, then load gif
                 try
                     if @model.get("images") and @model.get("images")[0].get("gifUrl")
                         gifUrl = @model.get("images")[0].get("gifUrl")
@@ -246,15 +238,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             super
 
 
-    ###
-    View for Banner Tile
-    A banner tile is any piece of content that links to a 3rd party site
-    To be used sparingly to achieve client requests
+    class module.CollectionTileView extends module.ImageTileView
+        # An image with a feed of products
+        type: "CollectionTileView"
+        template: "#collection_tile_template"
 
-    @constructor
-    @type {LayoutView}
-    ###
+
     class module.BannerTileView extends module.TileView
+        ###
+        A banner tile is any piece of content that links to a 3rd party site
+        To be used sparingly to achieve client requests
+        ###
         type: "BannerTileView"
         template: "#image_tile_template"
 
