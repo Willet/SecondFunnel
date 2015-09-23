@@ -203,7 +203,13 @@
         </script>
 
         <script type="text/template" id="product_price_template">
-            <span class="current"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
+            <% if (obj.sale) { %>
+                <span class="current sale"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
+                <span class="suggested-price">Sugg. <span class="dollar-amount">$<%= obj.saleString %></span></span></span>
+                <span class="save-percent">You save <%= obj.savePercent %>%</span>
+            <% } else { %>
+                <span class="current no-sale"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
+            <% } %>
         </script>
 
         <script type="text/template" id="product_buy_template">

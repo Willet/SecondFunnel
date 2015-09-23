@@ -7,12 +7,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.Product::initialize = (attributes, options) ->
         coreProductInitialize.apply(@, arguments)
         # Convert price into dollars & cents
-        if attributes.salePrice?
+        priceParts = String(attributes.price).split('.')
+        saleString = ""
+        savePercent = 0
+        on_sale = attributes.salePrice? and attributes.salePrice < attributes.price
+        if on_sale
+            saleString = attributes.price
             priceParts = String(attributes.salePrice).split('.')
-        else
-            priceParts = String(attributes.price).split('.')
+            savePercent = Math.round(20 * (1 - (attributes.salePrice / attributes.price))) * 5
         @set(
             displayPrice:
                 dollars: priceParts[0] or "0"
                 cents: priceParts[1] or "00"
+            saleString: saleString
+            sale: on_sale
+            savePercent: savePercent
         )
