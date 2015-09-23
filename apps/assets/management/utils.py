@@ -159,17 +159,16 @@ def remove_product_tiles_from_page(page_slug, prod_url_id_list, fake=False):
     fake: if True, nothing is deleted
 
     """
-    if fake:
-        print "Fake run, will not delete tiles"
+    fake_str = "FAKE: " if fake else ''
     page = Page.objects.get(url_slug=page_slug)
     for prod in prod_url_id_list:
         try:
             ps = Product.objects.filter(url__contains=prod)
         except Product.DoesNotExist:
-            print "No tiles containing {}".format(prod)
+            print "{}No tiles containing {}".format(fake_str, prod)
         else:
             for p in ps:
                 tiles = p.tiles.filter(feed=page.feed, template="product")
-                print "Deleting {} tiles containing {}".format(tiles.count(), prod)
+                print "{}Deleting {} tiles containing {}".format(fake_str, tiles.count(), prod)
                 if not fake:
                     tiles.delete()
