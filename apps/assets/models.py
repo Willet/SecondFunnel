@@ -138,12 +138,7 @@ class BaseModel(models.Model, SerializableMixin):
         new_obj = cls(**local_kwargs)
 
         with transaction.atomic():
-            # skip full_clean for this save which creates pk, required by m2m_fields
-            try:
-                super(BaseModel, new_obj).save()
-            except ir_serializers.SerializerError:
-                # ignore errors on serialization of incomplete model
-                pass
+            new_obj.get_pk()
 
             for (k,v) in m2m_kwargs.iteritems():
                 if isinstance(v,list) or isinstance(v, models.query.QuerySet):
@@ -338,6 +333,18 @@ class BaseModel(models.Model, SerializableMixin):
             MemcacheSetting.set(obj_key, None)  # save
 
         super(BaseModel, self).save(*args, **kwargs)
+
+    def get_pk(self, *args, **kwargs):
+        """
+        gets pk from database required when setting m2m fields on new instance
+        skip full_clean for this save
+        suppress any serialization errors that arise due to incomplete models
+        """
+        try:
+            super(BaseModel, new_tile).save(*args, **kwargs)
+        except ir_serializers.SerializerError:
+            # ignore errors on serialization of incomplete model
+            pass
 
     @property
     def cg_created_at(self):
@@ -1199,13 +1206,14 @@ class Feed(BaseModel):
                 logging.info("<Product {0}> already in the feed. \
                               Updated <Tile {1}>.".format(product.id, tile.id))
                 return (tile, False)
+        
+        # create new tile
+        with transaction.atomic():
+            new_tile = Tile(feed=self, template='product', priority=priority)
+            new_tile.get_pk()
+            new_tile.products.add(product)
+            new_tile.save() # generate ir_cache
 
-        # Create new tile
-        new_tile = self.tiles.create(feed=self,
-                                     template='product',
-                                     priority=priority)
-        new_tile.products.add(product)
-        new_tile.save() # generate ir_cache
         if category:
             category.tiles.add(new_tile)
         logging.info("<Product {0}> added to the feed in \
@@ -1248,15 +1256,13 @@ class Feed(BaseModel):
                 template = 'video'
         else:
             template = 'image'
-
-        new_tile = self.tiles.create(feed=self,
-                                     template=template,
-                                     priority=priority)
-
-        new_tile.content.add(content)
-        product_qs = content.tagged_products.all()
-        new_tile.products.add(*product_qs)
-        new_tile.save() # generate ir_cache
+        with transaction.atomic():
+            new_tile = Tile(feed=self, template=template, priority=priority)
+            new_tile.get_pk()
+            new_tile.content.add(content)
+            product_qs = content.tagged_products.all()
+            new_tile.products.add(*product_qs)
+            new_tile.save() # generate ir_cache
         if category:
             category.tiles.add(new_tile)
         logging.info("<Content {0}> added to the feed. Created \
