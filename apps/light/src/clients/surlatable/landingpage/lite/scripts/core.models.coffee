@@ -7,13 +7,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         module.Product::initialize,
         (initialize, attributes, options) ->
             initialize.call(@, attributes, options)
-            
+
             # Convert price into dollars & cents
             priceParts = String(attributes.price).split('.')
             saleString = ""
             savePercent = 0
-            on_sale = attributes.salePrice? and attributes.salePrice < attributes.price
-            if on_sale
+            onSale = attributes.salePrice? and attributes.salePrice < attributes.price
+            if onSale
                 saleString = attributes.price
                 priceParts = String(attributes.salePrice).split('.')
                 # round percent saved to nearest 5% like slt main site
@@ -23,6 +23,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     dollars: priceParts[0] or "0"
                     cents: priceParts[1] or "00"
                 saleString: saleString
-                sale: on_sale
+                sale: onSale
                 savePercent: savePercent
             )
