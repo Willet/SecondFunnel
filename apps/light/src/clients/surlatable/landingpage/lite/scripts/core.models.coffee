@@ -14,6 +14,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if on_sale
             saleString = attributes.price
             priceParts = String(attributes.salePrice).split('.')
+            # round percent saved to nearest 5% like slt main site
             savePercent = Math.round(20 * (1 - (attributes.salePrice / attributes.price))) * 5
         @set(
             displayPrice:
