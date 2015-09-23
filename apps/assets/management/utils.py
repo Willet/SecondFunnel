@@ -150,3 +150,26 @@ def update_tiles_ir_cache(tiles):
             dts.append((t, e))
     post_save.connect(tile_saved, sender=Tile)
     return dts
+
+def remove_product_tiles_from_page(page_slug, prod_url_id_list, fake=False):
+    """
+    Deletes all product tiles in page that contain a product in prod_list
+
+    prod_list: list of product identifiers that would be in the URL
+    fake: if True, nothing is deleted
+
+    """
+    if fake:
+        print "Fake run, will not delete tiles"
+    page = Page.objects.get(url_slug=page_slug)
+    for prod in prod_url_id_list:
+        try:
+            ps = Product.objects.filter(url__contains=prod)
+        except Product.DoesNotExist:
+            print "No tiles containing {}".format(prod)
+        else:
+            for p in ps:
+                tiles = p.tiles.filter(feed=page.feed, template="product")
+                print "Deleting {} tiles containing {}".format(tiles.count(), prod)
+                if not fake:
+                    tiles.delete()
