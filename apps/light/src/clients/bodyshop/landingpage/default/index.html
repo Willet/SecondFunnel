@@ -129,8 +129,8 @@
             <% } %>
             <div class="name"><%= obj.title || obj.name %></div>
             <div class="price">
-                <% if (obj.sale_price) { %>
-                    <%- obj.sale_price %>
+                <% if (obj.salePrice) { %>
+                    <%- obj.salePrice %>
                     <span class="strike">
                         <%- obj.price %>
                     </span>
@@ -266,11 +266,11 @@
                                                 </div>
                                                 <div class="name"><%= related[i].name %></div>
                                                 <div class="price">
-                                                    <% if (related[i].sale_price) { %>
+                                                    <% if (related[i].salePrice) { %>
                                                     <span class="strike">
                                                         <%- related[i].price %>
                                                     </span>
-                                                    <%- related[i].sale_price %>
+                                                    <%- related[i].salePrice %>
                                                 <% } else { %>
                                                     <%- related[i].price %>
                                                 <% } %>
@@ -309,11 +309,11 @@
                                                 </div>
                                                 <div class="name"><%= related[i].name %></div>
                                                 <div class="price">
-                                                    <% if (related[i].sale_price) { %>
+                                                    <% if (related[i].salePrice) { %>
                                                     <span class="strike">
                                                         <%- related[i].price %>
                                                     </span>
-                                                    Now <%- related[i].sale_price %>
+                                                    Now <%- related[i].salePrice %>
                                                 <% } else { %>
                                                     <%- related[i].price %>
                                                 <% } %>

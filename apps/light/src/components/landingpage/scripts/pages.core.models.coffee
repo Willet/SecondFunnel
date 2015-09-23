@@ -143,14 +143,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return _[method].apply(_, args)
 
 
-    class module.Model extends Backbone.Model
-        # Force parse of attributes
-        constructor: (attributes, options={}) ->
-            _.extend(options, parse: true)
-            super(attributes, options)
-
-
-    class module.Store extends module.Model
+    class module.Store extends Backbone.Model
         type: "Store"
         defaults:
             id: "0"
@@ -167,13 +160,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
 
-    class module.Product extends module.Model
+    class module.Product extends Backbone.Model
         type: "Product"
-
-        parse: (resp, options) ->
-            resp['salePrice'] = resp['sale-price']
-            delete resp['sale-price']
-            return resp
 
         initialize: (attributes, options) ->
             # Turn images into Image's
@@ -220,7 +208,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @constructor
     @type {*}
     ###
-    class module.Image extends module.Model
+    class module.Image extends Backbone.Model
         type: "Image"
         defaults:
             url: "http://placehold.it/2048&text=blank"
@@ -274,19 +262,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @dimens(0, height, obj)
 
 
-    class module.Video extends module.Model
+    class module.Video extends Backbone.Model
         type: "Video"
 
 
     class module.YoutubeVideo extends module.Video
         type: "YoutubeVideo"
-        parse: (attrs, options) ->
+        
+        initialize: (attributes, options) ->
             if attrs['original-id'] and not attrs["thumbnail"]
-                attrs["thumbnail"] = "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
+                @set(
+                    thumbnail: "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
+                )
             super
 
 
-    class module.Tile extends module.Model
+    class module.Tile extends Backbone.Model
         type: "Tile"
         ###
         Attempt to retrieve tile and instantiate it as the correct Tile subclass,
@@ -586,7 +577,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @constructor
     @type {Model}
     ###
-    class module.Category extends module.Model
+    class module.Category extends Backbone.Model
         type: "Category"
         url: ->
             compiledTemplate = _.template("<%=IRSource%>/page/<%=campaign%>/getresults?results=<%=IRResultsCount%>&category=<%=name%>")
