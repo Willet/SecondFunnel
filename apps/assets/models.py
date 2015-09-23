@@ -341,7 +341,7 @@ class BaseModel(models.Model, SerializableMixin):
         suppress any serialization errors that arise due to incomplete models
         """
         try:
-            super(BaseModel, new_tile).save(*args, **kwargs)
+            super(BaseModel, self).save(*args, **kwargs)
         except ir_serializers.SerializerError:
             # ignore errors on serialization of incomplete model
             pass
