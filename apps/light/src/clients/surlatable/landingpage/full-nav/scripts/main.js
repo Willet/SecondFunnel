@@ -12,7 +12,6 @@ var Page = require('landingpage'),
 
 // Import client customizations
 App.module('utils', require('./utils'));
-App.module('core', require('./core.models'));
 App.module('core', require('./core.views'));
 App.module('core', require('./core.views.tiles'));
 
