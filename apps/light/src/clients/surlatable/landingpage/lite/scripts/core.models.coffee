@@ -7,10 +7,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.Product::initialize = (attributes, options) ->
         coreProductInitialize.apply(@, arguments)
         # Convert price into dollars & cents
-        if attributes.salePrice?
-            priceParts = String(attributes.salePrice).split('.')
+        if @get('salePrice')?
+            priceParts = String(@get('salePrice')).split('.')
         else
-            priceParts = String(attributes.price).split('.')
+            priceParts = String(@get('price')).split('.')
         @set(
             displayPrice:
                 dollars: priceParts[0] or "0"

@@ -144,10 +144,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     class module.Model extends Backbone.Model
-        # Force parse of attributes
+        # Parse attributes but default
         constructor: (attributes, options={}) ->
-            _.extend(options, parse: true)
-            super(attributes, options)
+            opts = _.extend({}, options)
+            opts['parse'] = if opts['parse'] is false then false else true
+            super(attributes, opts)
 
 
     class module.Store extends module.Model
@@ -171,9 +172,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         type: "Product"
 
         parse: (resp, options) ->
-            resp['salePrice'] = resp['sale-price']
-            delete resp['sale-price']
-            return resp
+            attrs = _.extend({}, resp) # modify own copy
+            attrs['salePrice'] = attrs['sale-price']
+            delete attrs['sale-price']
+            return attrs
 
         initialize: (attributes, options) ->
             # Turn images into Image's
