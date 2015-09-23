@@ -105,10 +105,6 @@ module.exports = function (module, App, Backhone, Marionette, $, _) {
             } else {
                 return collectionContains(collection_or_str, needle);
             }
-        },
-        'wrapMethod': function(method, wrapper) {
-            method = _.partial(wrapper, method);
-            return
         }
     });
 };

@@ -181,7 +181,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @calculateHorizontalPosition()
             else if @attrs['orientation'] is "portrait"
                 @calculateVerticalPosition()
-                return
+            return
 
         ###
         Calculates number of pixels to translate the carousel slide horizontally based on direction and @index.

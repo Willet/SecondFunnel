@@ -6,8 +6,7 @@ char_limit = 243
 swipe = require('jquery-touchswipe')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
-    module.ProductView::coreOnShow = module.ProductView::onShow
-    module.ProductView::onShow = ->
+    module.ProductView::onShow = _.wrap(module.ProductView::onShow, (onShow) ->
         if App.support.mobile()
             # Add one for description slide unless it's a product popup
             # in portrait mode without tagged products
@@ -16,8 +15,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @numberOfImages = @model.get('images').length
             else
                 @numberOfImages = @model.get('images').length + 1
-        @coreOnShow()
+        onShow.call(@)
         return
+    )
 
     module.ProductView::onBeforeRender = ->
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
@@ -107,20 +107,20 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $recipe.siblings(".scroll-cta").show()
         return
 
-    
-    module.ExpandedContent::coreShrinkContainerCallback = module.ExpandedContent::shrinkContainerCallback
-    module.ExpandedContent::shrinkContainerCallback = ->
-        # Patch shrinkContainerCallback to enble recipe scrolling when images are loaded
-        cb = @coreShrinkContainerCallback()
-        return =>
-            cb(arguments)
-            # must wait for all images to load
-            if @_imageCount is 0
-                $(".recipe").scroll(=>
-                    @updateScrollCta()
-                    return
-                )
-            return
+    module.ExpandedContent::shrinkContainerCallback = _.wrap(
+        module.ExpandedContent::shrinkContainerCallback,
+        (shrinkContainerCallback) ->
+            # Patch shrinkContainerCallback to enble recipe scrolling when images are loaded
+            return =>
+                shrinkContainerCallback.call(@, arguments)
+                # must wait for all images to load
+                if @_imageCount is 0
+                    $(".recipe").scroll(=>
+                        @updateScrollCta()
+                        return
+                    )
+                return
+    )
 
     module.ExpandedContent::updateContent = ->
         ###
@@ -174,11 +174,27 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
         return product
 
-    module.ExpandedContent::coreDestroy = module.ExpandedContent::destroy
-    module.ExpandedContent::destroy = ->
-        $(".recipe").off()
-        @coreDestroy()
+    module.ExpandedContent::initializeThumbnails = ->
+        # SLT thumbnails are always across the bottom
+        if @taggedProducts.length > 0 or \
+           (App.support.mobile() and @taggedProducts.length > 0)
+            # Initialize carousel if this has tagged products
+            carouselInstance = new module.CarouselView(
+                items: @taggedProducts
+                attrs:
+                    'lookImageSrc': @model.get('defaultImage').url
+                    'lookName': @model.get('defaultImage').get('name')
+                    'orientation': 'landscape'
+            )
+            @carouselRegion.show(carouselInstance)
+            @$el.find('.look-thumbnail').hide()
         return
+
+    module.ExpandedContent::destroy = _.wrap(module.ExpandedContent::destroy, (destroy) ->
+        $(".recipe").off()
+        destroy.call(@)
+        return
+    )
 
     module.CategoryCollectionView::onShow = ->
         # Enable sticky category bar
