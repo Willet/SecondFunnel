@@ -158,6 +158,7 @@ def remove_product_tiles_from_page(page_slug, prod_url_id_list, fake=False):
     prod_list: list of product identifiers that would be in the URL
     fake: if True, nothing is deleted
 
+    Ex: remove_product_tiles_from_page("halloween", ["PRO-23545"])
     """
     fake_str = "FAKE: " if fake else ''
     page = Page.objects.get(url_slug=page_slug)
