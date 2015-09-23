@@ -1206,8 +1206,10 @@ class Feed(BaseModel):
                 logging.info("<Product {0}> already in the feed. \
                               Updated <Tile {1}>.".format(product.id, tile.id))
                 return (tile, False)
-        new_tile = Tile(feed=self, template='product', priority=priority)
+        
+        # create new tile
         with transaction.atomic():
+            new_tile = Tile(feed=self, template='product', priority=priority)
             new_tile.get_pk()
             new_tile.products.add(product)
             new_tile.save() # generate ir_cache
@@ -1254,9 +1256,8 @@ class Feed(BaseModel):
                 template = 'video'
         else:
             template = 'image'
-
-        new_tile = Tile(feed=self, template=template, priority=priority)
         with transaction.atomic():
+            new_tile = Tile(feed=self, template=template, priority=priority)
             new_tile.get_pk()
             new_tile.content.add(content)
             product_qs = content.tagged_products.all()
