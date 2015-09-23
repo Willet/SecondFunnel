@@ -221,10 +221,10 @@
         </script>
 
         <script type="text/template" id="product_price_template">
-            <div class="price-wrapper <% if (obj.sale_price) { %>sale<% } %>">
-                <% if (obj.sale_price) { %>
+            <div class="price-wrapper <% if (obj.salePrice) { %>sale<% } %>">
+                <% if (obj.salePrice) { %>
                     <% if (App.support.mobile()) { %>
-                        <%- obj.sale_price %>
+                        <%- obj.salePrice %>
                         <div class="strike">
                             <%- obj.price %>
                         </div>
@@ -232,7 +232,7 @@
                         <div class="strike inline">
                             <%- obj.price %>
                         </div>
-                        <%- obj.sale_price %>
+                        <%- obj.salePrice %>
                     <% } %>
                 <% } else { %>
                     <%- obj.price %>

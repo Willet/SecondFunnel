@@ -94,11 +94,11 @@
         </script>
 
         <script type="text/template" id="product_price_template">
-            <% if (obj.sale_price) { %>
+            <% if (obj.salePrice) { %>
                 <span class="strike">
                     <%- obj.price %>
                 </span>
-                Now <%- obj.sale_price %>
+                Now <%- obj.salePrice %>
             <% } else { %>
                 <%- obj.price %>
             <% } %>

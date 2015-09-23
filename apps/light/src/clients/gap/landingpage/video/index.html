@@ -584,9 +584,9 @@
         </script>
 
         <script type="text/template" id="product_price_template">
-            <% if (obj.sale_price) { %>
+            <% if (obj.salePrice) { %>
                 <strike><%- obj.price %></strike> 
-                <b>NOW:</b> <%- obj.sale_price %>
+                <b>NOW:</b> <%- obj.salePrice %>
             <% } else { %>
                 <%- obj.price %>
             <% } %>
