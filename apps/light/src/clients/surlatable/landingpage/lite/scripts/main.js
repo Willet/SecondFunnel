@@ -45,6 +45,7 @@ App.start();
             $topNavSearch = $this.parents('#search-bar');
         if ($topNavSearch.length && $inputBox.length) {
             searchUrl = baseUrl + "?Ntt=" + $inputBox.val();
+            App.vent.trigger("tracking:page:externalUrlClick", searchUrl, "search-bar");
             App.utils.openUrl(searchUrl, "_top");
         }
         return false;

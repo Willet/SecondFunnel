@@ -7,13 +7,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         wrappedFunc.apply(@, _.toArray(arguments.slice(1)))
 
         # Convert price into dollars & cents
-        if attributes.sale_price?
-            price_parts = String(attributes.sale_price).split('.')
+        if attributes.salePrice?
+            priceParts = String(attributes.salePrice).split('.')
         else
-            price_parts = String(attributes.price).split('.')
+            priceParts = String(attributes.price).split('.')
         @set(
             displayPrice:
-                dollars: price_parts[0] or "0"
-                cents: price_parts[1] or "00"
+                dollars: priceParts[0] or "0"
+                cents: priceParts[1] or "00"
         )
     )

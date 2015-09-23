@@ -72,6 +72,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # Stop propogation to avoid double-opening url
                 return false
 
+            'click .description': (ev) ->
+                # Assumes 'Read more' in the description goes to product page
+                $evTarget = $(ev.target)
+                if $evTarget.is("a")
+                    $target = $evTarget
+                else if $evTarget.children("a").length
+                    $target = $evTarget.children("a")
+                else
+                    return false
+
+                App.vent.trigger('tracking:product:moreInfoClick', @model)
+                App.utils.openUrl(url)
+                # Stop propogation to avoid double-opening url
+                return false
+
         initialize: ->
             @numberOfImages = @model.get('images')?.length or 0
             @galleryIndex = 0
