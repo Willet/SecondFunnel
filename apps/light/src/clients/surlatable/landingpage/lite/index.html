@@ -206,7 +206,7 @@
             <% if (obj.sale) { %>
                 <span class="current sale"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
                 <span class="suggested-price">Sugg. <span class="dollar-amount">$<%= obj.saleString %></span></span></span>
-                <span class="save-percent">You save <%= Math.round(20 * (1 - (parseInt(obj.displayPrice.dollars) + (parseInt(obj.displayPrice.cents)/100)) / obj.saleString)) * 5 %>%</span>
+                <span class="save-percent">You save <%= obj.savePercent %>%</span>
             <% } else { %>
                 <span class="current no-sale"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
             <% } %>
