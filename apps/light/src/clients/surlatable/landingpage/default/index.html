@@ -224,9 +224,9 @@
             <% } %>
             <div class="name"><%= obj.title || obj.name %></div>
             <div class="price">
-                <% if (obj.sale_price) { %>
+                <% if (obj.salePrice) { %>
                     <span class="sale">
-                        Now: <%- obj.sale_price %>
+                        Now: <%- obj.salePrice %>
                     </span>
                     <span class="original">
                         Was: <%- obj.price %>
@@ -280,9 +280,9 @@
         </script>
 
         <script type="text/template" id="product_price_template">
-            <% if (obj.sale_price) { %>
+            <% if (obj.salePrice) { %>
                 <span class="sale">
-                    Now: <%- obj.sale_price %>
+                    Now: <%- obj.salePrice %>
                 </span>
                 <span class="original">
                     Was: <%- obj.price %>
