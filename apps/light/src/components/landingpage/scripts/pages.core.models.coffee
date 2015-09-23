@@ -163,12 +163,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.Product extends Backbone.Model
         type: "Product"
 
-        parse: (resp, options) ->
-            attrs = _.extend({}, resp) # modify own copy
-            attrs['salePrice'] = attrs['sale-price']
-            delete attrs['sale-price']
-            return attrs
-
         initialize: (attributes, options) ->
             # Turn images into Image's
             images =
@@ -274,9 +268,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.YoutubeVideo extends module.Video
         type: "YoutubeVideo"
-        parse: (attrs, options) ->
+        
+        initialize: (attributes, options) ->
             if attrs['original-id'] and not attrs["thumbnail"]
-                attrs["thumbnail"] = "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
+                @set(
+                    thumbnail: "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
+                )
             super
 
 
