@@ -111,8 +111,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         module.ExpandedContent::shrinkContainerCallback,
         (shrinkContainerCallback) ->
             # Patch shrinkContainerCallback to enble recipe scrolling when images are loaded
+            cb = shrinkContainerCallback.call(@)
             return =>
-                shrinkContainerCallback.call(@, arguments)
+                cb(arguments)
                 # must wait for all images to load
                 if @_imageCount is 0
                     $(".recipe").scroll(=>
