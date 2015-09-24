@@ -13,7 +13,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @models = []
             @_byId = {}
             if models
-                @add models, _.extend({silent: true}, options)
+                @add(models, _.extend({silent: true}, options))
 
         initialize: ->
             # do nothing
@@ -268,9 +268,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.YoutubeVideo extends module.Video
         type: "YoutubeVideo"
-        parse: (attrs, options) ->
-            if attrs['original-id'] and not attrs["thumbnail"]
-                attrs["thumbnail"] = "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
+        
+        initialize: (attributes, options) ->
+            if attributes['original-id'] and not attributes["thumbnail"]
+                @set(
+                    thumbnail: "http://i.ytimg.com/vi/#{attributes["original-id"]}/hqdefault.jpg"
+                )
             super
 
 
@@ -349,7 +352,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if App.option('ad:forceTwoColumns', false)
                 resp.orientation = 'portrait'
 
-            resp
+            return resp
 
         initialize: (attributes, options) ->
             ###

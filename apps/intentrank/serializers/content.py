@@ -21,6 +21,7 @@ class ProductSerializer(IRSerializer):
             # -- nor are they necessarily numbers
             "sku": getattr(product, "sku", ""),
             "price": product.price,
+            "salePrice": product.sale_price,
             "description": product.description,
             "details": product.details,
             "name": product.name,
