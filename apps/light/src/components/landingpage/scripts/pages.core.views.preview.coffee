@@ -313,26 +313,25 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
         
         onBeforeRender: ->
-            # orient image
-            if @model.get("sizes")?.master
-                width = @model.get("sizes").master.width
-                height = @model.get("sizes").master.height
-                if Math.abs((height-width)/width) <= 0.02
-                    @model.set("orientation", "square")
-                else if width > height
-                    @model.set("orientation", "landscape")
-                else
-                    @model.set("orientation", "portrait")
             # Need to get an appropriate sized image
-            image = @model.get("defaultImage")
+            image = @model.get("defaultImage") or @model.get("image")
             
-            if App.support.mobile()
-                image.url = image.height($window.height())
-            else
-                image = image.height(App.utils.getViewportSized(true), true)
-
-            # templates use this as obj.image.url
-            @model.set("image", image)
+            if image?
+                # orient image
+                if image.get("sizes")?.master
+                    width = image.get("sizes").master.width
+                    height = image.get("sizes").master.height
+                    if Math.abs((height-width)/width) <= 0.02
+                        @model.set("orientation", "square")
+                    else if width > height
+                        @model.set("orientation", "landscape")
+                    else
+                        @model.set("orientation", "portrait")
+                
+                if App.support.mobile()
+                    image.url = image.height($window.height())
+                else
+                    image = image.height(App.utils.getViewportSized(true), true)
             return
 
         # Update the current view
