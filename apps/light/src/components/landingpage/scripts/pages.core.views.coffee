@@ -337,8 +337,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             try
                 @player?.destroy()
             catch error
+                console.error("Youtube Error: %O", error)
                 # Ignore errors destroying the Youtube player
                 # Can happen while it is still initializing
+                # This will kill all youtube videos on the page!
             return
 
     
@@ -451,7 +453,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return @
             )
 
-        onRender: ->
+        onShow: ->
             @tileLoaded.done(=>
                 if @model?
                     contentOpts = model: @model

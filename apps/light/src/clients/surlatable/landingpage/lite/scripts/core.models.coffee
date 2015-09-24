@@ -26,3 +26,4 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 sale: onSale
                 savePercent: savePercent
             )
+    )
