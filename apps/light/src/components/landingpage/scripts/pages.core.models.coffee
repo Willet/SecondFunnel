@@ -270,9 +270,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         type: "YoutubeVideo"
         
         initialize: (attributes, options) ->
-            if attrs['original-id'] and not attrs["thumbnail"]
+            if attributes['original-id'] and not attributes["thumbnail"]
                 @set(
-                    thumbnail: "http://i.ytimg.com/vi/#{attrs["original-id"]}/hqdefault.jpg"
+                    thumbnail: "http://i.ytimg.com/vi/#{attributes["original-id"]}/hqdefault.jpg"
                 )
             super
 
