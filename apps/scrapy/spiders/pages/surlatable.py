@@ -126,7 +126,8 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
                 reg_price = sel.css('.product-priceMain span.hide::text').extract()[0].split('-')[0]
             else:
                 sale_price = sel.css('.product-priceMain span.hide::text').extract()[0].split('-')[0]
-                l.add_value('sale_price', sale_price)
+                l.add_value('sale_price', '{}'.format(sale_price)[1:])
+            attributes['suggested_price'] = '{}'.format(reg_price)[1:]
             if price_range:
                 attributes['price_range'] = price_range
         except IndexError:
