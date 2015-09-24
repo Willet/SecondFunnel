@@ -44,15 +44,17 @@ def content_saved(sender, **kwargs):
 @receiver(m2m_changed)
 def content_m2m_changed(sender, **kwargs):
     """Generate cache for IR tiles if related products or content changed."""
+    added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
+    
     if (sender is Content.tagged_products.through or
             sender is Product.similar_products.through) and \
             kwargs.get('action') in ('post_add', 'post_clear', 'post_remove') and \
-            len(kwargs.get('pk_set')) > 0:
+            len(added_or_removed_keys) > 0:
         # populate set of objects whose tiles need to be refreshed
         instances = []
         if kwargs.get('reverse'):
             # update tiles of other side of m2m relationship
-            for pk in kwargs.get('pk_set'):
+            for pk in added_or_removed_keys:
                 inst = kwargs.get('model').objects.get(pk=pk)
                 instances.append(inst)
         else:
