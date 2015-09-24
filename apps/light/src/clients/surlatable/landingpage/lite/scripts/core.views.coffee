@@ -175,7 +175,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
         return product
 
-    module.ExpandedContent::initializeThumbnails = ->
+    module.ExpandedContent::showThumbnails = ->
         # SLT thumbnails are always across the bottom
         if @taggedProducts.length > 0 or \
            (App.support.mobile() and @taggedProducts.length > 0)

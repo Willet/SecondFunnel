@@ -436,6 +436,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CollectionTile extends module.Tile
         # Similar to Image Tile, but has mini-feed of products
         type: "CollectionTile"
+        defaults:
+            options:
+                previewFeed: true
 
 
     class module.VideoTile extends module.Tile

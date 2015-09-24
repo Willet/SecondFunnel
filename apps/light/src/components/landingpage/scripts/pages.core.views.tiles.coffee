@@ -241,7 +241,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CollectionTileView extends module.ImageTileView
         # An image with a feed of products
         type: "CollectionTileView"
-        template: "#collection_tile_template"
 
 
     class module.BannerTileView extends module.TileView

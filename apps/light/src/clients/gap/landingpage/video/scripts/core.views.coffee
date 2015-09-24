@@ -130,7 +130,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $container.removeClass("loading-images")
             return
 
-    module.ExpandedContent::initializeThumbnails = ->
+    module.ExpandedContent::showThumbnails = ->
         if @taggedProducts.length > 1 or \
            (App.support.mobile() and @taggedProducts.length > 0)
             # Make room for arrows

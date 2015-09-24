@@ -461,27 +461,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
             return
 
-        initializeThumbnails: ->
-            # A hook to customize the thumbnails initialization
-            if @taggedProducts.length > 1 or \
-               (App.support.mobile() and @taggedProducts.length > 0)
-                # Initialize carousel if this is mobile with tagged product
-                # or desktop/tablet with more than one product
-                carouselInstance = new module.CarouselView(
-                    items: @taggedProducts
-                    attrs:
-                        'lookImageSrc': @model.get('defaultImage').url
-                        'lookName': @model.get('defaultImage').get('name')
-                        'orientation': @model.get('defaultImage').get('orientation')
-                )
-                @carouselRegion.show(carouselInstance)
-                @$el.find('.look-thumbnail').hide()
-
-                # Add some logic here to decide if carouselview or similarproductsview
-                    #similarProductsInstance = new module.SimilarProductsView(@model.get("taggedProducts"))
-                    #@similarProducts.show(similarProductsInstance)
-            return
-
         # Disable scrolling body when preview is shown
         onShow: ->
             if App.support.mobile()
@@ -500,7 +479,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # will be removed by shrinkCallback
                 @$el.closest(".fullscreen").addClass("loading-images")
 
-            @initializeThumbnails()
+            if @model.get('options')?.previewFeed
+                @showSimilarProducts()
+            else
+                @showThumbnails()
             @resizeContainer()
 
             if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
@@ -509,6 +491,30 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     direction: "up"
                 )
             return
+
+        showThumbnails: ->
+            # A hook to customize the thumbnails initialization
+            if @taggedProducts.length > 1 or \
+               (App.support.mobile() and @taggedProducts.length > 0)
+                # Initialize carousel if this is mobile with tagged product
+                # or desktop/tablet with more than one product
+                carouselInstance = new module.CarouselView(
+                    items: @taggedProducts
+                    attrs:
+                        'lookImageSrc': @model.get('defaultImage').url
+                        'lookName': @model.get('defaultImage').get('name')
+                        'orientation': @model.get('defaultImage').get('orientation')
+                )
+                @carouselRegion.show(carouselInstance)
+                @$el.find('.look-thumbnail').hide()
+            return
+
+        showSimilarProducts: ->
+            # A hook to customize the pop-up feed initialization
+            if @taggedProducts.length > 2 or \
+               (App.support.mobile() and @taggedProducts.length > 0)
+                similarProductsInstance = new module.SimilarProductsView(@taggedProducts)
+                @similarProducts.show(similarProductsInstance)
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
             # Control gallery swiping
