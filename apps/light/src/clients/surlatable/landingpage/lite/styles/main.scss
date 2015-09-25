@@ -1,7 +1,6 @@
 $icon-font-path: "/static/light/fonts/";
 $slt-modern-font: MrEavesModern, Verdana, Arial, Helvetica, sans-serif;
 $slt-sans-font: MrEavesSans, Verdana, Arial, Helvetica, sans-serif;
-$slt-sans-bold: MrEavesSansBold, Verdana, Arial, Helvetica, sans-serif;
 $slt-basic-font: Verdana, Arial, Helvetica, sans-serif;
 $slt-main-color: #405700;
 $slt-basic-color: #444444;
@@ -83,28 +82,25 @@ $slt-thumbnail-height: 111px;
 }
 
 @font-face {
-    font-family: MrEavesSansBold;
+    font-family: MrEavesSans;
+    font-weight: bold;
     src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltb-071211002EmigreWebOnly.eot");
     src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltb-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
          url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltb-071211002EmigreWebOnly.woff") format("woff");
 }
 
 @font-face {
-    font-family: MrEavesSansRegular;
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.eot");
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
-         url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.woff") format("woff");
-}
-
-@font-face {
     font-family: MrEavesSansBoldItalic;
+    font-weight: bold;
+    text-decoration: italic;
     src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltbi-071211002EmigreWebOnly.eot");
     src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltbi-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
          url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltbi-071211002EmigreWebOnly.woff") format("woff")
 }
 
 @font-face {
-    font-family: MrEavesSansRegularItalic;
+    font-family: MrEavesSans;
+    text-decoration: italic;
     src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltri-071211002EmigreWebOnly.eot");
     src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltri-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
          url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltri-071211002EmigreWebOnly.woff") format("woff")
@@ -754,7 +750,7 @@ body {
             margin-bottom: 15px;
         }
         .price {
-            font-family: $slt-sans-bold;
+            font-weight: bold;
             .current.sale {
                 color: $slt-sale-price-color;
             }
