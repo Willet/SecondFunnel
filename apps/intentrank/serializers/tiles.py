@@ -58,20 +58,24 @@ class TileSerializer(IRSerializer):
         }
         """
         data = {}
+        content = tile.separated_content
         # copy over images, videos and reviews as json dicts
         # if there is just 1 of something, use its singular name image / video / review
-        for (key, val) in tile.separated_content.items():
-            if len(val) == 1:
-                # key[:-1] removes trailing 's' from key name
-                # ex: image: <Image> dict
-                data.update({
-                    key[:-1]: val[0].to_json()
-                })
+        if len(content['images']):
+            if len(content['images']) == 1:
+                data['default-image'] = content['images'][0].to_json()
             else:
-                # images: [<Image> dict]
-                data.update({
-                    key: [c.to_json() for c in val]
-                })
+                data['images'] = [c.to_json() for c in content['images']]
+        if len(content['videos']):
+            if len(content['videos']) == 1:
+                data['video'] = content['video'][0].to_json()
+            else:
+                data['videos'] = [c.to_json() for c in content['videos']]
+        if len(content['reviews']):
+            if len(content['reviews']) == 1:
+                data['review'] = content['review'][0].to_json()
+            else:
+                data['reviews'] = [c.to_json() for c in content['reviews']]
            
         return data  
 
@@ -94,7 +98,7 @@ class DefaultTileSerializer(TileSerializer):
     def get_dump_object(self, tile):
         """
         returns {
-            'image'/'images': image or [ images ]
+            'defaultImage'/'images': image or [ images ]
             'video'/'videos': video or [ videos ]
             'review'/'reviews': review or [ reviews ]
             'tagged-products': [ products ]
