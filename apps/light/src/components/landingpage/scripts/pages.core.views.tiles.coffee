@@ -10,10 +10,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.TileView extends Marionette.LayoutView
         type: "TileView"
-        tagName: App.option("tileElement", "div")
-        className: "tile"
-
+        tagName: "div"
         template: "#product_tile_template"
+        id: -> return @model.cid
+        className: -> return "tile #{String(@model.get('template'))}"
         templates: ->
             templateRules = [
                 "#<%= options.store.slug %>_<%= data.source %>_<%= data.template %>_mobile_tile_template" # gap_instagram_image_mobile_tile_template
@@ -52,25 +52,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             product: false
 
         initialize: (options) ->
-            data = options.model.attributes
-            classNames = ['tile', String(data.template)]
-
-            # expose tile "types" as classes on the dom
-            if data.type
-                classNames.push(data.type.toLowerCase().split())
-            # Eliminate duplicates
-            @className = _.uniq(classNames).join(' ')
-
             # expose model reference in form of id
-            @$el.attr
-                class: @className
-                id: @model.cid
-                data:
-                    tile_id: @model.id
+            @$el.attr("data-tile-id": "#{@model.get('tile-id')}")
 
             # If the tile model is changed, re-render the tile
-            @listenTo @model, "changed", (=> @modelChanged)
-
+            @listenTo(@model, "changed", (=> @modelChanged))
             super
 
         modelChanged: (model, value) ->
@@ -192,7 +178,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     buttonTypes: App.option("conditionalSocialButtons", {})[@model.get("colspan")]
                 )
                 socialButtons.append(buttons.render().$el)
-            @$el.addClass @model.get("orientation") or "portrait"
+            @$el.addClass(@model.get("orientation") or "portrait")
 
             if App.utils.isIframe() and @$el.hasClass("landscape")
                 @$el.addClass("full")
@@ -227,6 +213,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#gif_tile_template"
 
         initialize: ->
+            super
             @listenToOnce App.vent, "layoutCompleted", =>
                 # First load image, then load gif
                 try
@@ -235,7 +222,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         @$("img.focus").attr("src", gifUrl)
                 catch e
                     console.warn "This gif does not have a base image.", @get("images")
-            super
 
 
     class module.CollectionTileView extends module.ImageTileView
