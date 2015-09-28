@@ -2,6 +2,7 @@ gulp = require("gulp")
 path = require("path")
 merge = require('merge-stream')
 $ = require("gulp-load-plugins")() # load all gulp plugins
+gutil = require('gulp-util')
 mainBowerFiles = require("main-bower-files")
 browserify = require("browserify")
 browserifyShim = require("browserify-shim")
@@ -67,7 +68,7 @@ config = production: true
 
 onError = (err) ->
     $.util.log($.util.colors.red("\n\nPlumber: Error: #{err}\n\n"))
-    $.util.beep()
+    gutil.beep(3)
     console.error err
     return
 
