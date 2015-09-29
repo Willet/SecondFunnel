@@ -97,6 +97,8 @@ class ProductImageSerializer(IRSerializer):
             "orientation": product_image.orientation,
         }
 
+        data.update(product_image.attributes)
+
         return data
 
 
