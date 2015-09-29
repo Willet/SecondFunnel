@@ -12,7 +12,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             priceParts = String(attributes.price).split('.')
             saleString = ""
             savePercent = 0
-            onSale = attributes.salePrice? and attributes.salePrice < attributes.price
+            onSale = attributes.salePrice? and parseInt(attributes.salePrice) < parseInt(attributes.price)
             if onSale
                 saleString = attributes.price
                 priceParts = String(attributes.salePrice).split('.')

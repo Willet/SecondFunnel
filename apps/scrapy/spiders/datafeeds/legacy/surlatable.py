@@ -52,7 +52,11 @@ class SurLaTableDatafeed(CJDatafeed):
 
     @staticmethod
     def _update_product_cj_fields(product, data):
-        product.price = float(data['PRICE'])
+        # product price should always be the largest price on record
+        # so that products appear to be more on sale
+        new_price = float(data['PRICE'])
+        if new_price > product.price:
+            product.price = new_price
         product.sale_price = float(data['SALEPRICE'])
         product.in_stock = True if data['INSTOCK'] == 'yes' else False
         product.attributes['cj_link'] = data['BUYURL']

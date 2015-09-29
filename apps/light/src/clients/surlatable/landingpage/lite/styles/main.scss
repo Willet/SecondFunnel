@@ -5,13 +5,14 @@ $slt-basic-font: Verdana, Arial, Helvetica, sans-serif;
 $slt-main-color: #405700;
 $slt-basic-color: #444444;
 $slt-grey-color: #a8a8a8;
-$slt-dark-green-color: #536122;
+$slt-dark-grey-color: #828282;
+$slt-black-color: #333333;
 $slt-green-color: #6b8e00;
+$slt-dark-green-color: #536122;
 $slt-pastel-green-color: #829253;
 $slt-purple-color: #651e44;
 $slt-orange-color: #F05423;
 $slt-sale-price-color: #F00;
-$slt-dark-grey-color: #828282;
 $slt-categories-height: 140px;
 $slt-thumbnail-height: 111px;
 
@@ -72,12 +73,37 @@ $slt-thumbnail-height: 111px;
     font-style: italic;
     src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-LightItalic.otf') format("opentype");
 }
-            
+
 @font-face {
     font-family: MrEavesSans;
     src: url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.eot');
     src: url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
          url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.woff') format('woff');
+}
+
+@font-face {
+    font-family: MrEavesSans;
+    font-weight: bold;
+    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltb-071211002EmigreWebOnly.eot");
+    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltb-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
+         url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltb-071211002EmigreWebOnly.woff") format("woff");
+}
+
+@font-face {
+    font-family: MrEavesSans;
+    font-weight: bold;
+    font-style: italic;
+    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltbi-071211002EmigreWebOnly.eot");
+    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltbi-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
+         url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltbi-071211002EmigreWebOnly.woff") format("woff")
+}
+
+@font-face {
+    font-family: MrEavesSans;
+    font-style: italic;
+    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltri-071211002EmigreWebOnly.eot");
+    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltri-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
+         url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltri-071211002EmigreWebOnly.woff") format("woff")
 }
 
 body {
@@ -724,6 +750,7 @@ body {
             margin-bottom: 15px;
         }
         .price {
+            font-weight: bold;
             .current.sale {
                 color: $slt-sale-price-color;
             }
@@ -740,17 +767,18 @@ body {
                 bottom: .43em;
                 display: inline-block;
             }
-            .suggested-price {
-                margin-left: 22px;
+            .suggested-price, .save-percent {
                 font-size: 16px;
+            }
+            .suggested-price {
+                margin-left: 16px;
                 color: $slt-dark-grey-color;
                 .dollar-amount {
                     text-decoration: line-through;
                 }
             }
             .save-percent {
-                font-size: 16px;
-                color: $slt-dark-grey-color;
+                color: $slt-black-color;
                 &:before {
                     content: " | ";
                     padding: 0 2px;
