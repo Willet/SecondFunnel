@@ -392,6 +392,11 @@
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
         </script>
 
+        <script type="text/template" id="product_thumbnails_template">
+            <div class="stl-title">shop the look</div>
+            <% include("carousel_template") %>
+        </script>
+
         <script type="text/template" id="carousel_template">
             <div class="stl-carousel carousel-view">
                 <div class="stl-swipe-left carousel-swipe-left"></div>
@@ -429,10 +434,7 @@
             </div>
             <% if (obj.taggedProducts.length > 1) { %>
                 <div class="cell desktop-only shop <%= orientation %>">
-                    <div class="stl-title">
-                        shop the look
-                    </div>
-                    <div class="carousel-region"></div>
+                    <div class="product-thumbnails"></div>
                 </div>
             <% } %>
             <div class="cell info <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
@@ -451,9 +453,7 @@
                 </div>
             </div>
             <div class="cell shop mobile-only">
-                <div class="stl-title">shop the look</div>
-                <div class="carousel-region"></div>
-                </div>
+                <div class="product-thumbnails"></div>
             </div>
         </script>
 
