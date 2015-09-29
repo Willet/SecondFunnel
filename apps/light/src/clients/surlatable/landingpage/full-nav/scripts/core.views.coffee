@@ -36,7 +36,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else
                 maxWidth = App.option("minImageWidth") or 300
                 maxHeight = App.option("minImageHeight") or 300
-            for image, i in productImages
+            for image, i in @$el.find(".main-image .hi-res")
                 $cachedImage = $(image).parent()
                 if $cachedImage.is("img")
                     imageUrl = App.utils.getResizedImage($cachedImage.attr("src"),

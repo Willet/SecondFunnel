@@ -114,7 +114,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
             return
 
-        replaceImages = ->
+        replaceImages: ->
             unless App.support.mobile()
                 $container = @$el.find(".main-image-container")
                 if $container.is(":visible")
@@ -123,7 +123,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 else
                     maxWidth = App.option("minImageWidth") or 300
                     maxHeight = App.option("minImageHeight") or 300
-                for image, i in productImages
+                for image, i in @$el.find(".main-image .image")
                     if $(image).is("img")
                         imageUrl = App.utils.getResizedImage($(image).attr("src"),
                             width: maxWidth,
