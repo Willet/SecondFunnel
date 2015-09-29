@@ -3,6 +3,7 @@
 require("jquery-waypoints") # register $.fn.waypoint
 require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
 swipe = require('jquery-touchswipe')
+imagesLoaded = require('imagesLoaded')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     $window = $(window)
@@ -79,7 +80,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     swipeStatus: _.bind(@swipeStatus, @)
                     allowPageScroll: 'auto'
                 )
-            @$el.imagesLoaded(=> @calculateDistance())
+            imagesLoaded($("img", @el), (=> @calculateDistance()))
             return
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->

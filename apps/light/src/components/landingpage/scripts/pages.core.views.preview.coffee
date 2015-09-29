@@ -217,6 +217,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {ItemView}
     ###
     class module.ProductThumbnailsView extends module.CarouselView
+        className: "thumbnails-container"
         template: "#product_thumbnails_template"
         getTemplate: -> return @template
 
@@ -403,10 +404,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     if @productThumbnails.hasView()
                         @productThumbnails.currentView.deselectItems()
                         if App.support.mobile()
-                            #@productThumbnails.currentView.index = Math.max(
-                            #    0,
-                            #    @productThumbnails.currentView.index - 1
-                            #)
+                            @productThumbnails.currentView.index = Math.max(
+                                0,
+                                @productThumbnails.currentView.index - 1
+                            )
                             @productThumbnails.currentView.calculateDistance()
                 else
                     # Show tagged product
@@ -498,7 +499,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         resizeContainer: ->
             # shrinks container once main image product thumbnails are loaded
-            imagesLoaded($("img.main-image, img.image", @$el), (=> @shrinkContainerCallback()))
+            imagesLoaded($("img.main-image, img.image", @$el),(=> @shrinkContainerCallback()))
             return
 
         # Disable scrolling body when preview is shown
@@ -617,7 +618,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             @productThumbnails.currentView.index + 1
                         )
                 @taggedProductIndex = index
-                @renderView()
+                @updateContent()
             return @
 
         destroy: ->
