@@ -56,9 +56,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $table = @$el.find(".table")
             $container = @$el.closest(".fullscreen")
             $containedItem = @$el.closest(".content")
-            # must wait for all images to load
-            if --@_imageCount isnt 0
-                return
 
             if @productInfo.currentView is undefined
                 @updateContent()
@@ -67,8 +64,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @$el.find(".look-thumbnail").show()
                 else
                     @$el.find(".look-thumbnail").hide()
+
             if App.support.mobile()
                 return
+
             tableHeight = undefined
             numProducts = @taggedProducts.length
             if @model.get("template") is "image" or @model.get("template") is "gif"
@@ -86,9 +85,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         height: $lookImage.height()*1.3
                     )
                     $lookImage.css("background-image", "url(#{imageUrl})")
+            
             # loading hero area
             unless $container?.length
                 return
+
             $container.css(
                 top: "0"
                 bottom: "0"
