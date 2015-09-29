@@ -24,7 +24,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         inlineLink = "<a href='#{@model.get('cj_link') or @model.get('url')}'>#{linkName}</a>"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
-            @model.set("truncated_description", truncatedDescription + " " + inlineLink)
+            @model.set("truncatedDescription", truncatedDescription + " " + inlineLink)
         return
 
     module.ProductView::resizeProductImages = ->
@@ -70,14 +70,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
         return
 
-    _.extend(module.ProductView.prototype.events, 
+    _.extend(module.ProductView::events, 
         "click .main-image .hi-res": (event) ->
             $image = $(event.target)
             $image.toggleClass("full-image")
             return
     )
 
-    module.ExpandedContent.prototype.events =
+    module.ExpandedContent::events =
         "click .look-thumbnail, .back-to-recipe": (event) ->
             # Hide products, show content
             @taggedProductIndex = -1
@@ -92,11 +92,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             ### Uncomment to enable switching view to product ###
             #@taggedProductIndex = $targetEl.data("index")
             #if App.support.mobile() and not @$el.find('.look-thumbnail').is(':visible')
-            #    @carouselRegion.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @carouselRegion.currentView.index + 1)
+            #    @productThumbnails.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @productThumbnails.currentView.index + 1)
             #product = @updateContent()
             App.vent.trigger('tracking:product:thumbnailClick', product)
             App.utils.openUrl(url)
             return
+
+    # SLT shows one piece of content at a time
+    _.extend(module.ExpandedContent::defaultViewOptions, featureSingleItem: true)
 
     module.ExpandedContent::updateScrollCta = ->
         $recipe = @$el.find(".recipe")
@@ -111,83 +114,37 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         module.ExpandedContent::shrinkContainerCallback,
         (shrinkContainerCallback) ->
             # Patch shrinkContainerCallback to enble recipe scrolling when images are loaded
-            cb = shrinkContainerCallback.call(@)
-            return =>
-                cb(arguments)
-                # must wait for all images to load
-                if @_imageCount is 0
-                    $(".recipe").scroll(=>
-                        @updateScrollCta()
-                        return
-                    )
+            shrinkContainerCallback.call(@)
+            $(".recipe").scroll(=>
+                @updateScrollCta()
                 return
+            )
     )
 
-    module.ExpandedContent::updateContent = ->
-        ###
-        SLT pop-ups are primarily product tiles
-        ###
-        if @taggedProductIndex < 0
-            # Show content
-            @_currentIndex = @taggedProductIndex = -1
-            # Product popup
-            if @product?
-                product = @product
-                @$el.find('.info').show()
-                @$el.find('.look-image-container').hide()
-            # Image popup
-            else
-                @$el.find('.info').hide()
-                @$el.find('.look-image-container').show()
-                @$el.find('.title-banner .title').html(@model.get('name') or @model.get('title'))
-
-            if App.support.mobile() then @$el.find('.look-thumbnail').hide()
-            
-            @carouselRegion.currentView?.deselectItems()
-            if App.support.mobile() and @carouselRegion.hasView()
-                @carouselRegion.currentView.index = Math.max(
-                    0,
-                    @carouselRegion.currentView.index - 1
-                )
-                @carouselRegion.currentView.calculateDistance()
-        else
-            # Show tagged product
-            @_currentIndex = @taggedProductIndex
-
-            product = @taggedProducts[@taggedProductIndex]
-            if not @product
-                # Recipes have "back to recipe" links
-                product.set("recipe-name", @model.get('name') or @model.get('title'))
-
-            @$el.find('.info').show()
-            @$el.find('.look-image-container').hide()
-            if App.support.mobile() then @$el.find('.look-thumbnail').show()
-            
-            @carouselRegion.currentView?.selectItem(@taggedProductIndex)
-            if App.support.mobile() and @taggedProducts.length > 0 and @carouselRegion.currentView?
-                @carouselRegion.currentView.calculateDistance()
-
-        if product
-            productInstance = new module.ProductView(
-                model: product
-            )
-            @productInfo.show(productInstance)
-            @$el.find('.title-banner .title').html(productInstance.model.get('title') or productInstance.model.get('name'))
-        return product
+    module.ExpandedContent::updateContent = _.wrap(
+        module.ExpandedContent::updateContent,
+        (updateContent) ->
+            updateContent.call(@)
+            # set name of pop-up to currently visible 
+            if @productInfo.hasView()
+                currentProduct = @productInfo.currentView.model
+                title = currentProduct.get('title') or currentProduct.get('name')
+                @$el.find('.title-banner .title').html(title)
+            return
+    )
 
     module.ExpandedContent::showThumbnails = ->
         # SLT thumbnails are always across the bottom
-        if @taggedProducts.length > 0 or \
-           (App.support.mobile() and @taggedProducts.length > 0)
+        if @taggedProducts.length > 0
             # Initialize carousel if this has tagged products
-            carouselInstance = new module.CarouselView(
+            thumbnailsInstance = new module.ProductThumbnailsView(
                 items: @taggedProducts
                 attrs:
                     'lookImageSrc': @model.get('defaultImage').url
                     'lookName': @model.get('defaultImage').get('name')
                     'orientation': 'landscape'
             )
-            @carouselRegion.show(carouselInstance)
+            @productThumbnails.show(thumbnailsInstance)
             @$el.find('.look-thumbnail').hide()
         return
 

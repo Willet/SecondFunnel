@@ -184,19 +184,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
 
-    class module.SimilarProduct extends module.Product
-        type: "SimilarProduct"
-        ### 
-        A SimilarProduct has tile-like attributes so that it can be mapped to tile templates
-        ###
-        initialize: (attributes, options) ->
-            # Convert image json into objects
-            super
-            @set
-                taggedProducts: []
-            return
-
-
     class module.ProductCollection extends Backbone.Collection
         type: "ProductCollection"
         model: module.Product
@@ -231,16 +218,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         sync: ->
             false
 
-
         ###
-        @param width                     in px; 0 means no width restrictions
-        @param height                    in px; 0 means no height restrictions
-        @param {boolean} obj     whether the complete object or the url
+        @param width - in px; 0 means no width restrictions
+        @param height - in px; 0 means no height restrictions
+        @param {boolean} returnInstance - whether the complete object or the url
         will be returned
         @returns {*}
         ###
-        dimens: (width, height, obj) ->
-            options = $.extend({}, obj)
+        dimens: (width, height, returnInstance=false) ->
+            options = {}
             resized = $.extend({}, @defaults, @attributes)
             if width > 0
                 options.width = width
@@ -249,17 +235,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             unless width or height
                 options.width = App.feed.width()
             resized.url = App.utils.getResizedImage(@get("url"), options)
-            if obj
-                return resized
-            resized.url
+            if returnInstance
+                # Create a new instance of (Image or a subclass)
+                return new module[@type](resized)
+            else
+                return resized.url
 
-        width: (width, obj) ->
+        width: (width, returnInstance=false) ->
             # get url by min width
-            @dimens(width, 0, obj)
+            @dimens(width, 0, returnInstance)
 
-        height: (height, obj) ->
+        height: (height, returnInstance=false) ->
             # get url by min height
-            @dimens(0, height, obj)
+            @dimens(0, height, returnInstance)
 
 
     class module.Video extends Backbone.Model
@@ -361,41 +349,36 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             b) images, default image and tagged products default image are converted
             to <Image>s.
             ###
-            @set
-                images: if _.isArray(@get("images")) \
-                        then (new module.Image(im) for im in @get("images")) \
-                        else []
-                image: if @get("image")? then new module.Image(@get("image")) else undefined
-                product: if @get('product')? then new module.Product(@get('product')) else undefined
-                taggedProducts: if _.isArray(@get('tagged-products')) \
-                                then (new module.Product(p) for p in @get('tagged-products')) \
-                                else []
+            if @get("image")? 
+                @set(image: new module.Image(@get("image")))
+
+            if _.isArray(@get("images"))
+                @set(images: (new module.Image(im) for im in @get("images")))
+
+            if @get('product')?
+                @set(product: new module.Product(@get('product')))
+
+            if _.isArray(@get('tagged-products'))
+                @set(taggedProducts: (new module.Product(p) for p in @get('tagged-products')))
+                @unset('tagged-products')
 
             if @get('default-image')?
                 # getImage uses images, so set first
                 defaultImage = if _.isNumber(@get('default-image')) \
                                then @getImage(@get('default-image')) \
                                else new module.Image(@get('default-image'))
-            else
-                defaultImage = undefined
+                @set(
+                    defaultImage: defaultImage
+                    'dominant-color': defaultImage.get('dominant-color')
+                )
+                @unset('default-image')
 
             if @get('video')?
                 video = if (@get('video')['source'] == 'youtube') \
                         then new module.YoutubeVideo(@get('video')) \
                         else new module.Video(@get('video'))
-            else
-                video = undefined
-
-            @set
-                defaultImage: defaultImage
-                video: video
-            @unset('default-image')
-            @unset('tagged-products')
-
-            if defaultImage
-                @set
-                    'dominant-color': defaultImage.get('dominant-color')
-
+                @set(video: video)
+            
             App.vent.trigger("tileModelInitialized", @)
             return
 
@@ -436,9 +419,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CollectionTile extends module.Tile
         # Similar to Image Tile, but has mini-feed of products
         type: "CollectionTile"
-        defaults:
-            options:
-                previewFeed: true
+        displayOptions:
+            previewFeed: true
 
 
     class module.VideoTile extends module.Tile

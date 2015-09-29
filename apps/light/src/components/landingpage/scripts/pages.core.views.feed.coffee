@@ -8,6 +8,7 @@ imagesLoaded = require('imagesLoaded')
 module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.FeedView extends Marionette.CollectionView
+        id: "feed"
         constructor: () ->
             @collection = new App.core.TileCollection()
             super  # this is magic, it passes forward arguments
@@ -141,7 +142,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.MasonryFeedView extends module.FeedView
 
-        default_options:
+        defaultViewOptions:
             isAnimated: Modernizr.csstransforms3d
             transitionDuration: '0s',
             isInitLayout: false,
@@ -154,7 +155,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: (options) ->
             super # this is magic, it passes forward arguments
             # only care about the masonry options, parent class will care about rest
-            @options = _.extend({}, @default_options, options.masonry)
+            @options = _.extend({}, @defaultViewOptions, options.masonry)
             @recently_added = []
             @layoutInProgress = false
 

@@ -219,7 +219,7 @@
         </script>
 
         <script type="text/template" id="product_description_template">
-            <%= obj.truncated_description || obj.description %>
+            <%= obj.truncatedDescription || obj.description %>
         </script>
 
         <script type="text/template" id="product_info_template">
@@ -299,7 +299,7 @@
                     </div>
                     <% if (obj['recipe-name']) { %>
                     <div class="back-to-recipe">
-                        Back to <%- obj['recipe-name'] %> Recipe
+                        Back to <%- obj['recipeName'] %> Recipe
                     </div>
                     <% } %>
                 </div>
@@ -320,39 +320,18 @@
                     </div>
                     <% if (tagged) { %>
                     <div class="cell shop">
-                        <div class="stl-title"><span>You May Also Like</span></div>
-                        <div class="carousel-region"></div>
+                        <div class="product-thumbnails"></div>
                     </div>
+                    <div class="cell similar-products overflow"></div>
                     <% } %>
                 </div>
-                <div class="similar-products cell overflow"></div>
             </div>
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
         </script>
 
         <script type="text/template" id="similar_products_template">
             <div class="similar-cta">You May Also Like</div>
-            <div class="tiles">
-            <% _.each(items, function(item){ %>
-                <div class="tile product" data-id="<%- item.id %>">
-                    <div class='relative'>
-                        <img class="focus" src="<%= item.defaultImage.url %>" alt="<%= item.caption %>" />
-                    </div>
-                    <div class="overlay">
-                        <div class='table'>
-                            <div class='cell'>
-                                <div class="title">
-                                    <span>Get Details</span>
-                                    <br/>
-                                    <span class="tile-name"><%= (item.title || item.name || item.caption) %></span>
-                                    <span class="tile-price"><%= (item.price_range || item.salePrice || item.price)%></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <% }); %>
-            </div>
+            <div class="tiles"></div>
         </script>
 
         <script type="text/template" id="desktop_tagged_products">
@@ -372,19 +351,10 @@
                 <div class="product-info"></div>
             </div>
             <% if (tagged) { %>
-                <% var product = obj.taggedProducts[0]; %>
             <div class="cell shop">
-                <div class="stl-title"><span>Perfect Gifts For This Recipe</span></div>
-                <div class="look-thumbnail mobile-only">
-                    <div>
-                        <img src="<%= product.get('defaultImage').url %>" class="image" />
-                        <div class="name desktop-only">
-                            <%= product.get('name') %>
-                        </div>
-                    </div>
-                </div>
-                <div class="carousel-region"></div>
+                <div class="product-thumbnails"></div>
             </div>
+            <div class="cell similar-products overflow"></div>
             <% } %>
         </script>
 
@@ -402,19 +372,10 @@
                 </div>
             </div>
             <% if (tagged) { %>
-                <% var product = obj.taggedProducts[0]; %>
             <div class="cell shop">
-                <div class="stl-title">Perfect Gifts For This Recipe</div>
-                <div class="look-thumbnail mobile-only">
-                    <div>
-                        <img src="<%= product.get('defaultImage').url %>" class="image" />
-                        <div class="name desktop-only">
-                            <%= product.get('name') %>
-                        </div>
-                    </div>
-                </div>
-                <div class="carousel-region"></div>
+                <div class="product-thumbnails"></div>
             </div>
+            <div class="cell similar-products overflow"></div>
             <% } %>
         </script>
 
@@ -428,32 +389,6 @@
                 </div>
                 <div class="scroll-cta">
                     Scroll to see more
-                </div>
-            </div>
-        </script>
-
-        <script type="text/template" id="carousel_template">
-            <div class="stl-carousel carousel-view">
-                <div class="stl-swipe-left carousel-swipe-left"></div>
-                <div class="stl-swipe-right carousel-swipe-right"></div>
-                <div class="stl-swipe-up carousel-swipe-up"></div>
-                <div class="stl-swipe-down carousel-swipe-down"></div>
-                <div class="stl-look-container carousel-container">
-                    <div class="stl-look carousel-slide">
-                        <div class="look-thumbnail mobile-only">
-                            <img src="<%= obj.attrs['lookImageSrc'] %>" class="image" />
-                            <div class="name">
-                                <%= obj.attrs['lookName'] %>
-                            </div>
-                        </div>
-                        <% for (var i = 0, item; i < obj.items.length; i++) { 
-                            item = obj.items[i]; %>
-                        <div class="stl-item" data-index="<%- i %>">
-                            <img src="<%- item.images[0].url %>" class="image" />
-                            <div class="name desktop-only"><%- item.title || item.name %></div>
-                        </div>
-                        <% } %>
-                    </div>
                 </div>
             </div>
         </script>

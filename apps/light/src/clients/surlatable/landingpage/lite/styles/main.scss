@@ -524,7 +524,7 @@ body {
 
 .previewContainer,
 .heroContainer {
-    .carousel-region, .content, .image-with-tagged-products, .image-without-tagged-products,
+    .product-thumbnails, .content, .image-with-tagged-products, .image-without-tagged-products,
     .main-image-container, .main-image, .preview-container, .product-info,
     .row, .scrollable, .table, .tagged-product, .template.target {
         width: 100%;
@@ -814,7 +814,7 @@ body {
             }
         }
     }
-    .carousel-region {
+    .product-thumbnails {
         .stl-carousel {
             display: block;
             width: 100%;
