@@ -46,6 +46,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     ###
+    Marionette adds a wrapper div to everything.  In some cases, this is unnecessary.
+    If a region is adding a view, and there is an id-less, class-less wrapper div, then
+    remove it before attaching
+    ###
+    Marionette.Region::attachHtml = (view) ->
+        @$el.contents().detach()
+        if view.el.tagName.toLowerCase() is "div" and view.el.className is "" and view.el.id is ""
+            # Unwrap children
+            @$el.append(view.$el.children())
+        else
+            @el.appendChild(view.el)
+
+
+
+    ###
     Marionette TemplateCache extension to allow checking cache for template
     Checks if the Template exists in the cache, if not found
     updates the cache with the template (if it exists), otherwise fail
@@ -182,7 +197,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @returns {string} template
     ###
     Marionette.TemplateCache::compileSubtemplate = (str) ->
-        includeRegex = /<%\sinclude(\("(.*?)"\)|\s"(.*?)");?\s%>/g
+        includeRegex = /<%\sinclude(\(['"](.*?)['"]\)|\s['"](.*?)['"]);?\s%>/g
         str = str.replace(
             includeRegex,
             (match, result, javascriptId, coffeescriptId) ->
