@@ -232,7 +232,7 @@ body {
 }
 
 .tile .buy .button,
-.previewContainer .buy .button {
+.preview-container .buy .button {
     font-family: $aero-fonts;
     font-size: 21px;
     line-height: 18px;
@@ -250,11 +250,11 @@ body {
 }
 
 .tile .buy .button:hover,
-.previewContainer .buy .button {
+.preview-container .buy .button {
     text-decoration: none;
 }
 
-.previewContainer {
+.preview-container {
     color: #000;
     font-family: Arial, sans-serif;
     .buy {
@@ -636,7 +636,7 @@ body {
         width: 50% !important;
     }
     .tile .buy .button,
-    .previewContainer .buy .button {
+    .preview-container .buy .button {
         font-size: 16px;
     }
 
@@ -650,12 +650,12 @@ body {
         line-height: 17px;
     }
 
-    .previewContainer .cell.info {
+    .preview-container .cell.info {
         padding-top: 5px;
         width: auto;
     }
 
-    .previewContainer .cell.image-cell {
+    .preview-container .cell.image-cell {
         padding-top: 0;
         padding-left: 20px;
         padding-right: 20px;

@@ -172,7 +172,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         an overlay with the category name is used (ex: The Chef, Top 25)
         ###
         model: module.Tile
-        className: "previewContainer"
+        className: "preview-container"
         template: "#hero_template"
         regions:
             content: ".content"

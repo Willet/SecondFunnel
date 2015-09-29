@@ -67,12 +67,12 @@ body > .container {
     margin-top: 5px;
 }
 
-#hero-area .heroContainer .content {
+#hero-area .hero-container .content {
     max-width: 920px;
 }
 
-.previewContainer,
-.heroContainer {
+.preview-container,
+.hero-container {
     .close {
         padding: 6px;
         color: rgba(93, 96, 117, 0.5);
@@ -198,7 +198,7 @@ body > .container {
     }
 }
 
-#hero-area .heroContainer .stick-bottom.stuck {
+#hero-area .hero-container .stick-bottom.stuck {
     background-color: #FFF;
     background-image: url('/static/light/anthropologie/landingpage/default/images/body_background.png');
     background-position: center;
@@ -217,8 +217,8 @@ body > .container {
         position: static;
     }
 
-    .previewContainer,
-    .heroContainer {
+    .preview-container,
+    .hero-container {
         .content>div {
             padding: 0;
             padding-bottom: 20px;

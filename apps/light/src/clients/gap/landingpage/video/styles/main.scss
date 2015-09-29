@@ -10,7 +10,7 @@ $icon-font-path: "/static/light/fonts/";
 
 /* overrides for this theme */
 
-#discovery-area, .previewContainer, .heroContainer {
+#discovery-area, .preview-container, .hero-container {
   user-select: none;
 }
 
@@ -542,8 +542,8 @@ div.header {
     }
 }
 
-.previewContainer,
-.heroContainer {
+.preview-container,
+.hero-container {
     height: 100%;
 
     .fullscreen {
@@ -1410,8 +1410,8 @@ div.header {
         position: absolute;
     }
 
-    #hero-area .previewContainer,
-    #hero-area .heroContainer {
+    #hero-area .preview-container,
+    #hero-area .hero-container {
         .image-with-tagged-products {
             position: relative;
         }
@@ -1424,8 +1424,8 @@ div.header {
         height: 100%;
     }
 
-    .previewContainer,
-    .heroContainer {
+    .preview-container,
+    .hero-container {
         &.landscape {
             height: 100% !important;
 

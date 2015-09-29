@@ -520,7 +520,7 @@ body {
     }
 }
 
-.previewContainer {
+.preview-container {
     .fullscreen {
         top: 0px;
         bottom: 0px;
@@ -539,7 +539,7 @@ body {
         height: auto;
     }
 }
-.heroContainer {
+.hero-container {
     .fullscreen {
         max-height: 760px;
     }
@@ -548,8 +548,8 @@ body {
     }
 }
 
-.previewContainer,
-.heroContainer {
+.preview-container,
+.hero-container {
     .product-thumbnails, .content, .image-with-tagged-products, .image-without-tagged-products,
     .main-image-container, .main-image, .preview-container, .product-info,
     .row, .scrollable, .table, .tagged-product, .template.target {
@@ -1078,7 +1078,7 @@ body {
             }
         }
     }
-    .previewContainer {
+    .preview-container {
         max-height: 100%;
         .tagged-product {
             padding: 65px 0 50px 0; // top - .product-details, bottom - .buy

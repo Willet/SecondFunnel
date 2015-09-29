@@ -31,11 +31,11 @@ App.start();
         $('head').append(
             [
                 '<style type="text/css">',
-                '.tile .buy .button, .previewContainer .buy .button {',
+                '.tile .buy .button, .preview-container .buy .button {',
                 '	padding-top: 18px;',
                 '}',
                 '@media (max-width: 768px) {',
-                '	.tile .buy .button, .previewContainer .buy .button {',
+                '	.tile .buy .button, .preview-container .buy .button {',
                 '		padding-top: 16px;',
                 '	}',
                 '}',

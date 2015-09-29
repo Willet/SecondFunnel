@@ -707,12 +707,12 @@ body {
     }
 }
 
-.previewContainer .content {
+.preview-container .content {
     padding: 40px 10px 10px !important;
 }
 
-.previewContainer,
-.heroContainer {
+.preview-container,
+.hero-container {
     .scrollable, .content, .preview-container, .template.target, .table,
     .row, .image-with-tagged-products, .image-without-tagged-products {
         width: 100%;
@@ -1336,7 +1336,7 @@ body {
             }
         }
     }
-    .previewContainer {
+    .preview-container {
         max-height: 100%;
         &.landscape {
             .close {

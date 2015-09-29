@@ -506,9 +506,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             if App.support.mobile()
                 if App.utils.landscape()
-                    @$el.closest(".previewContainer").addClass("landscape")
+                    @$el.closest(".preview-container").addClass("landscape")
                 else
-                    @$el.closest(".previewContainer").removeClass("landscape")
+                    @$el.closest(".preview-container").removeClass("landscape")
                 @$el.find('.info').hide() # hide tagged product
                 # enable swiping of thumbnails
                 @$el.find(".look-product-carousel")?.swipe(
@@ -517,7 +517,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     allowPageScroll: 'vertical'
                 )
             else
-                @$el.closest(".previewContainer").removeClass("landscape")
+                @$el.closest(".preview-container").removeClass("landscape")
                 # will be removed by shrinkCallback
                 @$el.closest(".fullscreen").addClass("loading-images")
 
@@ -679,7 +679,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.PreviewWindow extends Marionette.LayoutView
         tagName: "div"
-        className: "previewContainer"
+        className: "preview-container"
         template: "#preview_container_template"
         templates: ->
             templateRules = [
@@ -767,9 +767,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     height: (if App.support.mobile() then heightMultiplier * $window.height() else "")
                 )
                 if App.utils.landscape()
-                    @$el.closest(".previewContainer").addClass("landscape")
+                    @$el.closest(".preview-container").addClass("landscape")
                 else
-                    @$el.closest(".previewContainer").removeClass("landscape")
+                    @$el.closest(".preview-container").removeClass("landscape")
                 if @content.hasView()
                     @content.currentView.resizeContainer()
                     # Refactor to use region.currentView.render

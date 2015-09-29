@@ -124,7 +124,7 @@ body {
 }
 .tile .explore .button,
 .tile .buy .button,
-.previewContainer .buy .button {
+.preview-container .buy .button {
     font-family: $bs-font;
     font-size: 21px;
     line-height: 18px;
@@ -142,7 +142,7 @@ body {
     text-shadow: $bs-green 1px 0, $bs-green -1px 0, $bs-green 0 1px, $bs-green 0 -1px;
 }
 .tile .buy .button,
-.previewContainer .buy .button {
+.preview-container .buy .button {
     color: #FFF;
     background-color: $bs-green;
 }
@@ -211,7 +211,7 @@ body {
         }
     }
 }
-.previewContainer {
+.preview-container {
     color: #000;
     font-family: proxima-nova-soft, sans-serif, Helvetica, Arial, sans-serif;
     .buy {
@@ -406,8 +406,8 @@ body {
     #discovery-area {
         margin-top: -6px;
     }
-    .previewContainer .cell.shop-set,
-    .previewContainer .cell.shop-set .landscape {
+    .preview-container .cell.shop-set,
+    .preview-container .cell.shop-set .landscape {
         margin: 10px 0 20px 0;
         padding: 0;
         width: 100%;

@@ -73,7 +73,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @rightArrow = @$el.find(".carousel-swipe-right")
             @upArrow = @$el.find(".carousel-swipe-up")
             @downArrow = @$el.find(".carousel-swipe-down")
-            @slide = @$el.find(".carousel-slide")
+            @slide = @$el.find(".carousel-slide")   
             if App.support.mobile()
                 @slide.swipe(
                     triggerOnTouchEnd: true,
@@ -389,7 +389,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @type {LayoutView}
     ###
     class module.HeroAreaView extends Marionette.LayoutView
-        className: "heroContainer"
+        className: "hero-container"
         template: "#hero_container_template"
         regions:
             content: ".content"
