@@ -44,6 +44,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             console.warn "Missing option: " + name
         defaultValue # ...and defaultValue defaults to undefined
 
+    ###
+    Attach behaviors
+    ###
+    Marionette.Behaviors.behaviorsLookup = ->
+        return App.core.behaviors
 
     ###
     Marionette TemplateCache extension to allow checking cache for template

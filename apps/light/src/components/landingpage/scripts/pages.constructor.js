@@ -30,9 +30,7 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     // combines PAGES_INFO.urlParams (default to nothing) with the params
     // in the page url right now.
 
-    $(document).on('click', 'a', function (ev) {
-        // ev.target can be a child element
-        // this === ev.currentTarget
+    $(document).on('click', 'a', function () {
         App.vent.trigger("tracking:page:externalUrlClick", this.href, String(this.classList));
         App.utils.openUrl(this.href, this.target);
         return false; // stop default action
@@ -178,6 +176,7 @@ App.CLOUDINARY_DOMAIN = 'http://' + Cloudinary.SHARED_CDN + '/' + Cloudinary.con
  */
 App.module('utils', require('pages.utils'));
 App.module('core', require('pages.core'));
+App.module('core.behaviors', require('pages.core.behaviors'));
 App.module('intentRank', require('pages.intentrank'));
 App.module('core', require('pages.core.models'));
 App.module('core', require('pages.core.views'));
