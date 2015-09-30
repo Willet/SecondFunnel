@@ -62,6 +62,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     $target = $evTarget.parents("a")
                 else
                     return false
+                url = $target.attr('href')
 
                 if $target.hasClass('find-store')
                     App.vent.trigger('tracking:product:findStoreClick', @model)
@@ -81,6 +82,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     $target = $evTarget.children("a")
                 else
                     return false
+                url = $target.attr('href')
 
                 App.vent.trigger('tracking:product:moreInfoClick', @model)
                 App.utils.openUrl(url)
