@@ -36,7 +36,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @scrollImages(@mainImage.width()*@galleryIndex)
                 @updateGallery()
 
-                App.vent.trigger("tracking:product:imageView", @model)
+                @triggerMethod('click:imageView')
                 return
 
             'click .gallery-swipe-left, .gallery-swipe-right': (ev) ->
@@ -49,7 +49,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @scrollImages(@mainImage.width()*@galleryIndex)
                     @updateGallery()
 
-                    App.vent.trigger("tracking:product:imageView", @model)
+                    @triggerMethod('click:imageView')
                 return
 
             'click .buy': (ev) ->
@@ -65,9 +65,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 url = $target.attr('href')
 
                 if $target.hasClass('find-store')
-                    App.vent.trigger('tracking:product:findStoreClick', @model)
+                    @triggerMethod('click:findStore')
                 else
-                    App.vent.trigger('tracking:product:buyClick', @model)
+                    @triggerMethod('click:buy')
 
                 App.utils.openUrl(url)
                 # Stop propogation to avoid double-opening url
@@ -84,7 +84,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return false
                 url = $target.attr('href')
 
-                App.vent.trigger('tracking:product:moreInfoClick', @model)
+                @triggerMethod('click:moreInfo')
                 App.utils.openUrl(url)
                 # Stop propogation to avoid double-opening url
                 return false
@@ -292,6 +292,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productThumbnails: ".product-thumbnails"
             similarProducts: ".similar-products"
 
+        behaviors:
+            # Mediate tracking events from the currently shown product
+            childProductViewTracking: {}
+
         defaultViewOptions:
             # previewFeed: have an overflowing tile feed in the pop-up instead of thumbnails
             previewFeed: false
@@ -327,6 +331,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 App.vent.trigger('tracking:product:thumbnailClick',
                                  @model.get("taggedProducts")[@taggedProductIndex])
                 return
+
+        childEvents:
+            'click:buy': (childView) ->
+                console.warn("This just fired click:buy: %O", childView)
 
         initialize: (options) ->
             # Order of priority for display options:
