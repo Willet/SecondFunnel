@@ -155,13 +155,24 @@
         </script>
 
         <script type="text/template" id="image_tile_template">
+            <% if(obj.defaultImage.get('product-shot') == true && obj.template === "product") { %>
+            <div class='relative product-shot'>
+                <div class="text-expansion-container">
+                    <p><%= obj.product.get('name') %></p>
+                    <div class='image-expansion-container'>
+                        <img class="focus" src="<%= obj.defaultImage.url %>" />
+                    </div>
+                </div>
+            </div>
+            <% } else { %>
             <div class='relative'>
                 <img class="focus" src="<%= obj.defaultImage.url %>" />
             </div>
+            <% } %>
             <div class="overlay">
                 <div class='table'>
                     <div class='cell'>
-                        <% /* "Shop product" is actually wanted for the tile overlay */ %>
+                        <% /* "Shop product" is actually wanted for the tile overlay */  %>
                         <div class="title">
                         <% if (obj.template === "product") { %>
                             <span>Get Details</span>
