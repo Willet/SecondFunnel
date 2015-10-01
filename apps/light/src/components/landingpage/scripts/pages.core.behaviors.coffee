@@ -6,8 +6,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         #       Once it is fixed, you can use this beautiful clean hash
         #       See: https://github.com/marionettejs/backbone.marionette/issues/2776
         formatTrackingData: (childView) ->
-            data = @view.model.toJSON
-            data.product = childView.model
+            return _.extend({}, @view.model.toJSON, product: childView.model)
 
         childEvents:
             "click:image": (childView) ->
