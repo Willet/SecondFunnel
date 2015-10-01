@@ -578,6 +578,21 @@ class ProductImage(BaseModel):
             delete_cloudinary_resource(self.url)
         super(ProductImage, self).delete(*args, **kwargs)
 
+    def is_product_shot(self):
+        """ 
+        returns true if image is a product shot
+        or in other words, if dominant_color is white 
+        """
+        product_shot = False
+        if self.dominant_color is not None:
+            red   = int("0x{}".format(self.dominant_color[1:3]), 0)
+            blue  = int("0x{}".format(self.dominant_color[3:5]), 0)
+            green = int("0x{}".format(self.dominant_color[5:7]), 0)
+            threshold = 245
+            if red > threshold and blue > threshold and green > threshold:
+                product_shot = True
+        return product_shot
+
 
 class Tag(BaseModel):
     products = models.ManyToManyField('Product', related_name='tags')

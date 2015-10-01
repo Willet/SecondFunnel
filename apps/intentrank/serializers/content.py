@@ -85,8 +85,6 @@ class ProductImageSerializer(IRSerializer):
     def get_dump_object(self, product_image):
         """This will be the data used to generate the object."""
 
-        product_shot = product_image.attributes.get("product_shot", False)
-
         data = {
             "format": product_image.file_type or "jpg",
             "type": "image",
@@ -98,7 +96,6 @@ class ProductImageSerializer(IRSerializer):
                 'height': getattr(product_image, "height", '100%'),
             }),
             "orientation": product_image.orientation,
-            "productShot": product_shot,
         }
 
         data.update(product_image.attributes)

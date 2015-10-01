@@ -155,10 +155,10 @@
         </script>
 
         <script type="text/template" id="image_tile_template">
-            <% if(obj.defaultImage.get('productShot') == true && obj.template === "product") { %>
+            <% if(obj.template === "product" && obj.defaultImage.get('product_shot') === true) { %>
             <div class='relative product-shot'>
                 <div class="text-expansion-container">
-                    <p><%= obj.product.get('name') %></p>
+                    <span><%= obj.product.get('name') %></span>
                     <div class='image-expansion-container'>
                         <img class="focus" src="<%= obj.defaultImage.url %>" />
                     </div>

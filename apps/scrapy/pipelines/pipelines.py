@@ -306,16 +306,8 @@ class ProductImagePipeline(ItemManifold):
             image.file_type = data.get('format')
             image.dominant_color = data['dominant_color']
 
-            # determine if image is a product shot or not
-            product_shot = False
-            color = image.dominant_color
-            if color is not None:
-                red   = int("0x{}".format(color[1:3]), 0)
-                blue  = int("0x{}".format(color[3:5]), 0)
-                green = int("0x{}".format(color[5:7]), 0)
-                threshold = 245
-                if red > threshold and blue > threshold and green > threshold:
-                    product_shot = True
+            product_shot = image.is_product_shot()
+            # product_shot = False;
 
             image.attributes['product_shot'] = product_shot
             image.attributes['sizes'] = data['sizes']
