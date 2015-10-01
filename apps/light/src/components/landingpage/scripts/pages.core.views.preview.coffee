@@ -292,9 +292,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productThumbnails: ".product-thumbnails"
             similarProducts: ".similar-products"
 
-        behaviors:
-            # Mediate tracking events from the currently shown product
-            childProductViewTracking: {}
+        ui:
+            lookImage: '.look-image-container'
+            lookThumbnail: '.look-thumbnail'
 
         defaultViewOptions:
             # previewFeed: have an overflowing tile feed in the pop-up instead of thumbnails
@@ -305,7 +305,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             showLookThumbnail: true
 
         events:
-            "click .look-thumbnail": (event) ->
+            "click @ui.lookThumbnail": (event) ->
                 # Look thumbnail is generally only visible/clickable on mobile
                 # when it is in the thumbnail carousel
                 @taggedProductIndex = -1
@@ -317,7 +317,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
                 @taggedProductIndex = $targetEl.data("index")
 
-                unless @$el.find('.look-thumbnail').is(':visible')
+                unless @ui.lookThumbnail.is(':visible')
                     @productThumbnails.currentView.index = Math.min(
                         $('.stl-look').children(':visible').length - 1,
                         @productThumbnails.currentView.index + 1
@@ -332,9 +332,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                                  @model.get("taggedProducts")[@taggedProductIndex])
                 return
 
+        # Attach tracking info to child events - attach correct product
+        # When Behaviors can read LayoutView childEvents, this can be replaced with
+        # module.behavior.childProductViewTracking
         childEvents:
-            'click:buy': (childView) ->
-                console.warn("This just fired click:buy: %O", childView)
+            "click:image": (childView) ->
+                App.vent.trigger("tracking:product:imageView",
+                    _.extend({}, @model.toJSON(), product: childView.model))
+            "click:moreInfo": (childView) ->
+                App.vent.trigger("tracking:product:moreInfoClick",
+                    _.extend({}, @model.toJSON(), product: childView.model))
+            "click:findStore": (childView) ->
+                App.vent.trigger("tracking:product:findStoreClick",
+                    _.extend({}, @model.toJSON(), product: childView.model))
+            "click:buy": (childView) ->
+                App.vent.trigger("tracking:product:buyClick",
+                    _.extend({}, @model.toJSON(), product: childView.model))
 
         initialize: (options) ->
             # Order of priority for display options:
@@ -392,15 +405,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         )
                         @productInfo.show(productInstance)
                         @$el.find('.info').show() # show product
-                        @$el.find('.look-image-container').hide() # hide image
+                        @ui.lookImage.hide() # hide image
                     else
                         # Featured content (ex: image tile)
                         # will be displayed in .look-image-container, rendered by template
                         @productInfo.destroy()
-                        @$el.find('.look-image-container').show() # show image
+                        @ui.lookImage.show() # show image
                         @$el.find('.info').hide() # hide product
 
-                    @$el.find('.look-thumbnail').hide()
+                    @ui.lookThumbnail.hide()
 
                     if @productThumbnails.hasView()
                         @productThumbnails.currentView.deselectItems()
@@ -419,10 +432,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @$el.find('.info').show()
 
                     if @options.featureSingleItem or App.support.mobile()
-                        @$el.find('.look-image-container').hide() # hide image
+                        @ui.lookImage.hide() # hide image
                     if @options.showLookThumbnail or App.support.mobile()
                         # Some themes use have other links back to the main content/product
-                        @$el.find('.look-thumbnail').show()
+                        @ui.lookThumbnail.show()
 
                     if @productThumbnails.hasView()
                         @productThumbnails.currentView.selectItem(@taggedProductIndex)
@@ -560,7 +573,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         'orientation': @model.get('defaultImage').get('orientation')
                 )
                 @productThumbnails.show(thumbnailsInstance)
-                @$el.find('.look-thumbnail').hide()
+                @ui.lookThumbnail.hide()
             return
 
         showSimilarProducts: ->
