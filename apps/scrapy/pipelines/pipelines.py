@@ -303,7 +303,7 @@ class ProductImagePipeline(ItemManifold):
                                  remove_background=remove_background)
             image.url = data.get('url')
             image.file_type = data.get('format')
-            image.dominant_color = data.get('dominant_colour')
+            image.dominant_color = data['dominant_color']
 
             image.attributes['sizes'] = data['sizes']
 
