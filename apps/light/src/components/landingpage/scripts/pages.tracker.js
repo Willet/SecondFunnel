@@ -288,6 +288,9 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         });
     };
 
+    /* NOTE: tile clicks are generally handled by a document-level `.tile` click event
+             Banner Tiles are unique since they exit and are handled here
+    */
     module.bannerExit = function (model) {
         // Convert model to tile JSON
         var modelData = model.toJSON ? model.toJSON() : model,

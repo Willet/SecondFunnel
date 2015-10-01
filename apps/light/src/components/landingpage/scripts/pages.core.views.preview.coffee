@@ -329,25 +329,24 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @updateContent()
 
                 App.vent.trigger('tracking:product:thumbnailClick',
-                                 @model.get("taggedProducts")[@taggedProductIndex])
+                    @getTrackingData(@model.get("taggedProducts")[@taggedProductIndex]))
                 return
+
+        getTrackingData: (product) ->
+            return _.extend({}, @model.toJSON(), product: product)
 
         # Attach tracking info to child events - attach correct product
         # When Behaviors can read LayoutView childEvents, this can be replaced with
         # module.behavior.childProductViewTracking
         childEvents:
-            "click:image": (childView) ->
-                App.vent.trigger("tracking:product:imageView",
-                    _.extend({}, @model.toJSON(), product: childView.model))
+            "click:imageView": (childView) ->
+                App.vent.trigger("tracking:product:imageView", @getTrackingData(childView.model))
             "click:moreInfo": (childView) ->
-                App.vent.trigger("tracking:product:moreInfoClick",
-                    _.extend({}, @model.toJSON(), product: childView.model))
+                App.vent.trigger("tracking:product:moreInfoClick", @getTrackingData(childView.model))
             "click:findStore": (childView) ->
-                App.vent.trigger("tracking:product:findStoreClick",
-                    _.extend({}, @model.toJSON(), product: childView.model))
+                App.vent.trigger("tracking:product:findStoreClick", @getTrackingData(childView.model))
             "click:buy": (childView) ->
-                App.vent.trigger("tracking:product:buyClick",
-                    _.extend({}, @model.toJSON(), product: childView.model))
+                App.vent.trigger("tracking:product:buyClick", @getTrackingData(childView.model))
 
         initialize: (options) ->
             # Order of priority for display options:

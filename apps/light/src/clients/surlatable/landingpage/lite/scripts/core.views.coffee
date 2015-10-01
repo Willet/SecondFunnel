@@ -85,7 +85,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             #if App.support.mobile() and not @ui.lookThumbnail.is(':visible')
             #    @productThumbnails.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @productThumbnails.currentView.index + 1)
             #product = @updateContent()
-            App.vent.trigger('tracking:product:thumbnailClick', product)
+            App.vent.trigger('tracking:product:thumbnailClick', @getTrackingData(product))
             App.utils.openUrl(url)
             return
 
