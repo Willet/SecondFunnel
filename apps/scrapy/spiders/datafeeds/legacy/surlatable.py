@@ -17,11 +17,14 @@ class SurLaTableDatafeed(CJDatafeed):
         }
         super(SurLaTableDatafeed, self).__init__(store=store, datafeed=datafeed)
 
-    def load(self):
-        """ Import data feed & generate lookup table """
+    def load(self, options={}):
+        """ Import data feed & generate lookup table 
         # THIRDPARTYCATEGORY - product url
         # ADVERTISERCATEGORY - product category breadcrumb
         # ARTIST - large product image url
+        """
+        self.options = options
+
         self.lookup_table = super(SurLaTableDatafeed, self).load(
             collect_fields=["SKU", "NAME", "DESCRIPTION", "PRICE",
                 "SALEPRICE", "BUYURL", "INSTOCK",
@@ -47,7 +50,8 @@ class SurLaTableDatafeed(CJDatafeed):
         """ Updates product with data """
         self._update_product_cj_fields(product, data)
 
-        if product.in_stock:
+        if product.in_stock and self.options.get('similar_products', False):
+            print "Generating similar products"
             self._update_similar_products(product, data)
 
     @staticmethod
