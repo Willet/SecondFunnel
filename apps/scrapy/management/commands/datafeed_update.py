@@ -28,13 +28,26 @@ class Command(BaseCommand):
     Usage:
     python manage.py datafeed_update <url_slug>
 
+    -s, --similar-products
+        Generate similar product recommendations
+
     url_slug
         Url slug of the page to update
     """
-    
+    option_list = BaseCommand.option_list + (
+            make_option('-s','--similar-products',
+                action="store_true",
+                dest="similar_products",
+                default=False,
+                help="Generate similar product recommendations."),
+        )
+
     def handle(self, url_slug, **options):
         page = Page.objects.get(url_slug=url_slug)
         store = page.store
+        opts = {
+            'similar_products': options['similar_products'],
+        }
         results = {
             'logging/errors': {},
             'logging/items dropped': {'match failed': []},
@@ -46,7 +59,7 @@ class Command(BaseCommand):
 
         # Initialize Product Data Feed
         datafeed = find_datafeed(store.slug)()
-        datafeed.load()
+        datafeed.load(opts)
 
         products = page.feed.get_all_products()
         print u"Found {} products for {}".format(len(products), url_slug)
