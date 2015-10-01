@@ -85,17 +85,7 @@ class ProductImageSerializer(IRSerializer):
     def get_dump_object(self, product_image):
         """This will be the data used to generate the object."""
 
-        # determine if image is a product-shot or not
-        product_shot = False
-        color = product_image.dominant_color
-        if color is not None:
-            red   = int("0x{}".format(color[1:3]), 0)
-            blue  = int("0x{}".format(color[3:5]), 0)
-            green = int("0x{}".format(color[5:7]), 0)
-            threshold = 245
-            if red > threshold and blue > threshold and green > threshold:
-                product_shot = True
-        product_image.attributes['product_shot'] = product_shot
+        product_shot = product_image.attributes.get("product_shot", False)
 
         data = {
             "format": product_image.file_type or "jpg",
