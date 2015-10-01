@@ -69,7 +69,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     )
 
     module.ExpandedContent.prototype.events =
-        "click .look-thumbnail, .back-to-recipe": (event) ->
+        "click @ui.lookThumbnail, .back-to-recipe": (event) ->
             # Hide products, show content
             @taggedProductIndex = -1
             @updateContent()
@@ -82,7 +82,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             url = product.get('cj_link') or product.get('url')
             ### Uncomment to enable switching view to product ###
             #@taggedProductIndex = $targetEl.data("index")
-            #if App.support.mobile() and not @$el.find('.look-thumbnail').is(':visible')
+            #if App.support.mobile() and not @ui.lookThumbnail.is(':visible')
             #    @productThumbnails.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @prodcutThumbnails.currentView.index + 1)
             #product = @updateContent()
             App.vent.trigger('tracking:product:thumbnailClick', product)
@@ -134,7 +134,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     'orientation': 'landscape'
             )
             @productThumbnails.show(thumbnailsInstance)
-            @$el.find('.look-thumbnail').hide()
+            @ui.lookThumbnail.hide()
         return
 
     module.ExpandedContent::destroy = _.wrap(module.ExpandedContent::destroy, (destroy) ->
