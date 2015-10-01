@@ -35,39 +35,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             window.ga.apply(window, arguments);
         },
 
-        getKeenInfo = function(model) {
-            var related = _.isEmpty(model.get('taggedProducts')) ?
-                    model : model.get('taggedProducts')[0];
-
-            var analyticsProduct = _.pick(
-                related.attributes || related,
-                ['name', 'description', 'price', 'url']
-            );
-
-            var analyticsTile = {
-                'url': model.get('image').url,
-                'id': model.get('tile-id'),
-                'type': model.get('template')
-            };
-
-            var analyticsPage = _.pick(
-                App.options.page,
-                ['id', 'name', 'pubDate']
-            );
-
-            analyticsPage.url = window.location.protocol +
-                '//' +
-                window.location.hostname +
-                window.location.pathname;
-
-            return {
-                'store': App.options.store,
-                'tile': analyticsTile,
-                'product': analyticsProduct,
-                'page': analyticsPage
-            };
-        },
-
         setCustomVar = function (o) {
             var index = o.index,
                 type = o.type,
@@ -85,41 +52,45 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             addItem('set', type + index, value);
         },
 
-        getTrackingInformation = function (model, isPreview) {
+        getTrackingInformation = function (modelData, isPreview) {
+            if (!modelData && App.option('debug', false)) {
+                console.error('Lost reference to model (check if correct template is used)');
+            }
+
             // Given a model, return information for tracking purposes
             var category, label, name, sku, image, video, product,
-                template = model.get('template'),
-                tileId = model.get('tile-id');
-
-            if (!model) {
-                throw 'Lost reference to model (check if correct template is used)';
-            }
+                template = modelData.template,
+                tileId = modelData['tile-id'];
 
             switch (template) {
                 case 'product':
                     category = 'Product';
-                    product = model.get('product');
+                    product = modelData.product;
                     sku = product.get('sku');
                     name = product.get('name')+' ('+tileId+')';
                     label = sku ? sku+' '+name : name;
                     break;
                 case 'banner':
                     category = 'Banner';
-                    label = model.get('name')+' ('+tileId+')';
+                    label = modelData.name+' ('+tileId+')';
                     break;
                 case 'image':
                     category = 'Content';
-                    image = model.get('defaultImage')
+                    image = modelData.defaultImage;
                     label = 'Image '+image.get('name')+' ('+tileId+')';
                     break;
                  case 'video':
                     category = 'Content';
-                    video = model.get('video');
+                    video = modelData.video;
                     label = 'Video '+video.get('name')+' ('+tileId+')';
                     break;
                 default:
+                    if (App.option('debug', false)) {
+                        console.warn("getTrackingInformation: could not find template: \n%O", 
+                                     modelData);
+                    }
                     category = 'Content';
-                    name = model.get('name');
+                    name = modelData.name;
                     label = template+' ('+tileId+')';
                     break;
             }
@@ -299,8 +270,16 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         });
     };
 
+    /**
+     * NOTE: the following event tracking handlers expect model to be
+     * a tile model or tile JSON!  If you need track specific information,
+     * like which product was clicked, convert your tile to JSON & then
+     * replace the product attribute!
+     */
     module.findStoreClick = function (model) {
-        var trackingInfo = getTrackingInformation(model, true);
+        // Convert model to tile JSON
+        var modelData = model.toJSON ? model.toJSON() : model,
+            trackingInfo = getTrackingInformation(modelData, true);
 
         module.trackEvent({
             'category': trackingInfo.category,
@@ -309,8 +288,13 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         });
     };
 
+    /* NOTE: tile clicks are generally handled by a document-level `.tile` click event
+             Banner Tiles are unique since they exit and are handled here
+    */
     module.bannerExit = function (model) {
-        var trackingInfo = getTrackingInformation(model, false);
+        // Convert model to tile JSON
+        var modelData = model.toJSON ? model.toJSON() : model,
+            trackingInfo = getTrackingInformation(modelData, false);
 
         module.trackEvent({
             'category': trackingInfo.category,
@@ -320,7 +304,9 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     module.buyClick = function (model) {
-        var trackingInfo = getTrackingInformation(model, true);
+        // Convert model to tile JSON
+        var modelData = model.toJSON ? model.toJSON() : model,
+            trackingInfo = getTrackingInformation(modelData, true);
 
         module.trackEvent({
             'category': trackingInfo.category,
@@ -330,7 +316,9 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     module.moreInfoClick = function (model) {
-        var trackingInfo = getTrackingInformation(model, true);
+        // Convert model to tile JSON
+        var modelData = model.toJSON ? model.toJSON() : model,
+            trackingInfo = getTrackingInformation(modelData, true);
 
         module.trackEvent({
             'category': trackingInfo.category,
@@ -340,9 +328,11 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     module.thumbnailClick = function (model) {
-        var trackingInfo = getTrackingInformation(model, true),
-            sku = model.get('sku'),
-            label = sku ? sku+' '+model.get('name') : model.get('name');
+        // Convert model to tile JSON
+        var modelData = model.toJSON ? model.toJSON() : model,
+            trackingInfo = getTrackingInformation(modelData, true),
+            sku = model.product.get('sku'),
+            label = sku ? sku+' '+model.product.get('name') : model.product.get('name');
 
         module.trackEvent({
             'category': trackingInfo.category,
@@ -352,7 +342,9 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     module.imageView = function (model) {
-        var trackingInfo = getTrackingInformation(model, true);
+        // Convert model to tile JSON
+        var modelData = model.toJSON ? model.toJSON() : model,
+            trackingInfo = getTrackingInformation(modelData, true);
 
         module.trackEvent({
             'category': trackingInfo.category,
@@ -399,14 +391,16 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         // Content Preview
         // Product Preview
         'click .tile': function () {
-            var modelId = $(this).attr('id'),
-                model = App.discovery.collection.get(modelId) ||
+            var hash,
+                modelId = $(this).attr('id'),
+                model = (App.discovery.collection.get(modelId) ||
                         // {cXXX} models could be here instead, for some reason
-                        App.discovery.collection._byId[modelId],
-                trackingInfo = getTrackingInformation(model),
-                tileId = model.get('tile-id') || 0,
-                label = trackingInfo.label || '',
-                hash;
+                        App.discovery.collection._byId[modelId]),
+                // Convert model to tile JSON
+                modelData = model.toJSON ? model.toJSON() : model,
+                trackingInfo = getTrackingInformation(modelData, true),
+                tileId = modelData['tile-id'] || 0,
+                label = trackingInfo.label || '';
 
             if (!label) {
                 console.warn('Not tracking event with no label');
@@ -429,10 +423,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 'action': $(this).hasClass('banner') ? 'Purchase' : 'Preview',
                 'label': label
             });
-
-            try {
-                Keen.addEvent('preview', getKeenInfo(model));
-            } catch(err) {}
         },
 
         // Content Share
@@ -453,6 +443,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             }
 
             model = App.discovery.collection.get(modelId);
+            // Convert model to tile JSON
+            model = model.toJSON ? model.toJSON() : model;
             trackingInfo = getTrackingInformation(model);
 
             classes = $(this).getClasses();
@@ -505,51 +497,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
         /* jshint ignore:end */
     });
-
-    /**
-     * Add an initializer to fetch Keen.io asynchronously
-     * asynchronously.
-     *
-     */
-    module.addInitializer(function() {
-        var Keen = window.Keen = Keen || {
-            configure: function (e) {
-                this._cf = e;
-            },
-            addEvent: function (e, t, n, i) {
-                this._eq = this._eq || [];
-                this._eq.push([e, t, n, i]);
-            },
-            setGlobalProperties: function (e) {
-                this._gp = e;
-            },
-            onChartsReady: function (e) {
-                this._ocrq = this._ocrq || [];
-                this._ocrq.push(e);
-            }
-        };
-        (function () {
-            var e = document.createElement('script');
-            e.type = 'text/javascript';
-            e.async = !0;
-            e.src = ('https:' === document.location.protocol ? 'https://' : 'http://') + 'dc8na2hxrj29i.cloudfront.net/code/keen-2.1.0-min.js';
-            var t = document.getElementsByTagName('script')[0];
-            t.parentNode.insertBefore(e, t);
-        })();
-
-        // Configure the Keen object with your Project ID and (optional) access keys.
-        var options = App.option('keen');
-
-        if (!options.projectId || !options.writeKey) {
-            return;
-        }
-
-        Keen.configure({
-            projectId: options.projectId,
-            writeKey: options.writeKey
-        });
-    });
-
 
     /**
      * Starts the module.
@@ -606,7 +553,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         // setTrackingDomHooks() on $.ready
     };
 
-    // add mediator triggers if the module exists.
+    // add mediator triggers if the module exists
     App.vent.on({
         'tracking:trackEvent': module.trackEvent,
         'tracking:registerTwitterListeners': module.registerTwitterListeners,

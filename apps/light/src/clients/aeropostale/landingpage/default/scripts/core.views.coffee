@@ -61,9 +61,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @updateContent()
             if @model.get("type") is "image" or @model.get("type") is "gif"
                 if @lookProductIndex > -1
-                    @$el.find(".look-thumbnail").show()
+                    @ui.lookThumbnail.show()
                 else
-                    @$el.find(".look-thumbnail").hide()
+                    @ui.lookThumbnail.hide()
 
             if App.support.mobile()
                 return
@@ -127,5 +127,5 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         'reducedHeight': '90%'
             )
             @productThumbnails.show(thumbnailsInstance)
-            @$el.find('.look-thumbnail').hide()
+            @ui.lookThumbnail.hide()
         return

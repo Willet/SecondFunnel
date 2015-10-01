@@ -86,12 +86,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # this is a dirty check
             if $(ev.target).parents(".button").length
                 return
-
-            # open tile in hero area
             else if App.option("page:tiles:openTileInHero", false)
+                # open tile in hero area
                 App.router.navigate("tile/#{String(@model.get('tile-id'))}", trigger: true)
-            # open tile in popup
             else
+                # open tile in popup
                 App.router.navigate("preview/#{String(@model.get('tile-id'))}", trigger: true)
             
             return
