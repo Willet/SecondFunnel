@@ -158,11 +158,9 @@
             <% if (obj.template === "product" && obj.defaultImage.get('productShot') === true) { %>
             <div class='relative product-shot'>
                 <div>
-                    <div>
-                        <img class="focus" src="<%= obj.defaultImage.url %>" />
-                    </div>
-                    <span class="product-label"><%= obj.product.get('name') %></span>
+                    <img class="focus" src="<%= obj.defaultImage.url %>" />
                 </div>
+                <span class="product-label"><%= obj.product.get('name') %></span>
             </div>
             <% } else { %>
             <div class='relative'>
