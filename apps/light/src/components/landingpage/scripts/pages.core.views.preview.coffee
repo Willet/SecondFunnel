@@ -36,7 +36,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @scrollImages(@mainImage.width()*@galleryIndex)
                 @updateGallery()
 
-                App.vent.trigger("tracking:product:imageView", @model)
+                @triggerMethod('click:imageView')
                 return
 
             'click .gallery-swipe-left, .gallery-swipe-right': (ev) ->
@@ -49,7 +49,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @scrollImages(@mainImage.width()*@galleryIndex)
                     @updateGallery()
 
-                    App.vent.trigger("tracking:product:imageView", @model)
+                    @triggerMethod('click:imageView')
                 return
 
             'click .buy': (ev) ->
@@ -62,11 +62,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     $target = $evTarget.parents("a")
                 else
                     return false
+                url = $target.attr('href')
 
                 if $target.hasClass('find-store')
-                    App.vent.trigger('tracking:product:findStoreClick', @model)
+                    @triggerMethod('click:findStore')
                 else
-                    App.vent.trigger('tracking:product:buyClick', @model)
+                    @triggerMethod('click:buy')
 
                 App.utils.openUrl(url)
                 # Stop propogation to avoid double-opening url
@@ -81,8 +82,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     $target = $evTarget.children("a")
                 else
                     return false
+                url = $target.attr('href')
 
-                App.vent.trigger('tracking:product:moreInfoClick', @model)
+                @triggerMethod('click:moreInfo')
                 App.utils.openUrl(url)
                 # Stop propogation to avoid double-opening url
                 return false
@@ -114,46 +116,37 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
             return
 
+        replaceImages: ->
+            unless App.support.mobile()
+                $container = @$el.find(".main-image-container")
+                if $container.is(":visible")
+                    maxWidth = $container.width()*1.3
+                    maxHeight = $container.height()*1.3
+                else
+                    maxWidth = App.option("minImageWidth") or 300
+                    maxHeight = App.option("minImageHeight") or 300
+                for image, i in @$el.find(".main-image .image")
+                    if $(image).is("img")
+                        imageUrl = App.utils.getResizedImage($(image).attr("src"),
+                            width: maxWidth,
+                            height: maxHeight
+                        )
+                        $(image).attr("src", imageUrl)
+                    else if $(image).is("div")
+                        imageUrl = $(image).css("background-image").replace('url(','').replace(')','')
+                        imageUrl = App.utils.getResizedImage(imageUrl,
+                            width: maxWidth,
+                            height: maxHeight
+                        )
+                        $(image).css("background-image", "'url(#{imageUrl})'")
+            return
+
         resizeProductImages: ->
-            replaceImages = =>
-                unless App.support.mobile()
-                    unless --productImageCount is 0 or productImages.first().is("div")
-                        return
-                    $container = @$el.find(".main-image-container")
-                    if $container.is(":visible")
-                        maxWidth = $container.width()*1.3
-                        maxHeight = $container.height()*1.3
-                    else
-                        maxWidth = App.option("minImageWidth") or 300
-                        maxHeight = App.option("minImageHeight") or 300
-                    for image, i in productImages
-                        if $(image).is("img")
-                            imageUrl = App.utils.getResizedImage($(image).attr("src"),
-                                width: maxWidth,
-                                height: maxHeight
-                            )
-                            $(image).attr("src", imageUrl)
-                        else if $(image).is("div")
-                            imageUrl = $(image).css("background-image").replace('url(','').replace(')','')
-                            imageUrl = App.utils.getResizedImage(imageUrl,
-                                width: maxWidth,
-                                height: maxHeight
-                            )
-                            $(image).css("background-image", "'url(#{imageUrl})'")
-                return
             productImages = @$el.find(".main-image .image")
-            productImageCount = productImages.length
-            if productImageCount > 0 and productImages.first().is("div")
-                replaceImages()
+            if productImages.length > 0 and productImages.first().is("div")
+                @replaceImages()
             else
-                productImages.one("load", replaceImages).each( ->
-                    if @complete
-                        setTimeout( =>
-                            $(@).load()
-                            return
-                        , 1)
-                    return
-                )
+                imagesLoaded(productImages, (=> @replaceImages()))
             return
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
@@ -211,33 +204,72 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
 
     ###
-    Similar products look like tiles in a feed
-    Should have a tile-id attribute to allow continuous browsing
+    View for product thumbnails in a preview or hero area
+    
+    @constructor
+    @type {ItemView}
     ###
-    class module.SimilarProductsView extends Marionette.ItemView
-        template: "#similar_products_template"
+    class module.ProductThumbnailsView extends module.CarouselView
+        className: "thumbnails-container"
+        template: "#product_thumbnails_template"
+        getTemplate: -> return @template
+
+        onRender: -> return
+
+        selectItem: (index) ->
+            @$el.find(".stl-item").filter("[data-index=#{index}]")
+                .addClass("selected").siblings().removeClass("selected")
+
+        deselectItems: () ->
+            @$el.find(".stl-item").removeClass("selected")
+
+
+    ###
+    Similar product should have a tile-id attribute to allow continuous browsing
+    ###
+    class module.SimilarProductView extends Marionette.ItemView
+        type: "SimilarProductView"
+        tagName: "div"
+        className: "tile product"
+        id: -> return @model.cid
+        template: "#similar_product_template"
+
+        initialize: ->
+            @$el.attr(
+                "data-id": @model.get('id')
+                "data-sku": @model.get('sku')
+            )
 
         events:
-            "click .tile": (event) ->
-                id = $(event.currentTarget).data("id")
-                product = @collection.get(id)
-                if product.get('tile-id', false)
-                    # open tile in hero area
-                    if App.option("page:tiles:openTileInHero", false)
-                        App.router.navigate("tile/#{String(product.get('tile-id'))}", trigger: true)
-                    # open tile in popup
-                    else
-                        App.router.navigate("preview/#{String(product.get('tile-id'))}", trigger: true)
-                else
-                    # go to PDP
-                    App.utils.openUrl(product.get("url"))
+            click: "onClick"
 
-        initialize: (products) ->
-            @collection = new module.ProductCollection()
-            for product in products
-                product.template = 'product'
-                @collection.add(new module.SimilarProduct(product))
-            return
+        onClick: (event) ->
+            if @model.get('sku', false)
+                # open tile in hero area
+                #if App.option("page:tiles:openTileInHero", false)
+                #    App.router.navigate("tile/#{String(@model.get('tile-id'))}", trigger: true)
+                # open tile in popup
+                #else
+                #    App.router.navigate("preview/#{String(@model.get('tile-id'))}", trigger: true)
+                App.router.navigate("sku/#{String(@model.get('sku'))}", trigger: true)
+            else
+                # go to PDP
+                App.utils.openUrl(@model.get("url"))
+
+
+    ###
+    Similar products look like tiles in a feed
+    ###
+    class module.SimilarProductsView extends Marionette.CompositeView
+        type: "SimilarProductsView"
+        childView: module.SimilarProductView
+        childViewContainer: ".tiles"
+        template: "#similar_products_template"
+
+        initialize: (options) ->
+            productAttrs = ((if p.toJSON? then p.toJSON() else p) \
+                             for p in (options['products'] or []))
+            @collection = new module.ProductCollection(productAttrs)
 
 
     ###
@@ -250,18 +282,32 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         A container for viewing a tile.  If the tile has a product attribute,
         it is treated as a product view (product featured, tagged products in 
-        carousel).  If the tile does not, it is treated as a content view (content
-        featured, tagged products in carousel).
+        thumbnails carousel).  If the tile does not, it is treated as a content view (content
+        featured, tagged products in thumbnails carousel).
         ###
+        id: -> return "preview-#{@model.cid}"
+        className: "preview-container"
         regions:
             productInfo: ".product-info"
-            carouselRegion: ".carousel-region"
+            productThumbnails: ".product-thumbnails"
             similarProducts: ".similar-products"
 
+        ui:
+            lookImage: '.look-image-container'
+            lookThumbnail: '.look-thumbnail'
+
+        defaultViewOptions:
+            # previewFeed: have an overflowing tile feed in the pop-up instead of thumbnails
+            previewFeed: false
+            # featureSingleItem: display only one thing (image, product, etc) at a time on desktop
+            featureSingleItem: false
+            # showLookThumbnail: show look thumbnail in carousel when tagged product selected
+            showLookThumbnail: true
+
         events:
-            "click .look-thumbnail": (event) ->
+            "click @ui.lookThumbnail": (event) ->
                 # Look thumbnail is generally only visible/clickable on mobile
-                # when it is in the carousel
+                # when it is in the thumbnail carousel
                 @taggedProductIndex = -1
                 @updateContent()
                 return
@@ -271,10 +317,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
                 @taggedProductIndex = $targetEl.data("index")
 
-                unless @$el.find('.look-thumbnail').is(':visible')
-                    @carouselRegion.currentView.index = Math.min(
+                unless @ui.lookThumbnail.is(':visible')
+                    @productThumbnails.currentView.index = Math.min(
                         $('.stl-look').children(':visible').length - 1,
-                        @carouselRegion.currentView.index + 1
+                        @productThumbnails.currentView.index + 1
                     )
                 if App.support.mobile()
                     # Scroll up to product view
@@ -283,90 +329,117 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @updateContent()
 
                 App.vent.trigger('tracking:product:thumbnailClick',
-                                 @model.get("taggedProducts")[@taggedProductIndex])
+                    @getTrackingData(@model.get("taggedProducts")[@taggedProductIndex]))
                 return
 
-        initialize: ->
-            @$el.attr
-                id: "preview-#{@model.cid}"
-                class: "preview-container"
-            @_currentIndex = -1 # Track which product is being displayed
+        getTrackingData: (product) ->
+            return _.extend({}, @model.toJSON(), product: product)
 
-            # Product pop-up
-            if @model.get("product")
-                @product = @model.get("product")
-                @taggedProductIndex = -1
-                    
-            # Content pop-up
-            else
-                # Content is contained in .look-image-container, loaded by template
-                # Load up zeroth tagged product
-                @taggedProductIndex = 0
+        # Attach tracking info to child events - attach correct product
+        # When Behaviors can read LayoutView childEvents, this can be replaced with
+        # module.behavior.childProductViewTracking
+        childEvents:
+            "click:imageView": (childView) ->
+                App.vent.trigger("tracking:product:imageView", @getTrackingData(childView.model))
+            "click:moreInfo": (childView) ->
+                App.vent.trigger("tracking:product:moreInfoClick", @getTrackingData(childView.model))
+            "click:findStore": (childView) ->
+                App.vent.trigger("tracking:product:findStoreClick", @getTrackingData(childView.model))
+            "click:buy": (childView) ->
+                App.vent.trigger("tracking:product:buyClick", @getTrackingData(childView.model))
 
-            if @model.get("taggedProducts")?.length > 0
-                # order taggedProducts by price
-                if @model.get("taggedProducts")?.length > 1
-                    @model.set("taggedProducts", _.sortBy(@model.get("taggedProducts"), (obj) ->
-                        -1 * parseFloat((obj.price or "$0").substr(1), 10)
-                    ))
+        initialize: (options) ->
+            # Order of priority for display options:
+            # view options > model display options > default options
+            viewOptions = _.pick(options, _.keys(@defaultViewOptions))
+            @options = _.extend({}, @defaultViewOptions, @model.displayOptions or {}, viewOptions)
+
+            # Track which tagged product is being displayed
+            @taggedProductIndex = @_currentIndex = undefined
+
+            @product = @model.get('product') # could be undefined
             @taggedProducts = @model.get('taggedProducts') or []
+            # order taggedProducts by price
+            if @taggedProducts.length > 1
+                @taggedProducts = _.sortBy(
+                    @taggedProducts,
+                    (obj) -> -1 * parseFloat((obj.price or "$0").substr(1), 10)
+                )
             return
         
         onBeforeRender: ->
-            # orient image
-            if @model.get("sizes")?.master
-                width = @model.get("sizes").master.width
-                height = @model.get("sizes").master.height
-                if Math.abs((height-width)/width) <= 0.02
-                    @model.set("orientation", "square")
-                else if width > height
-                    @model.set("orientation", "landscape")
-                else
-                    @model.set("orientation", "portrait")
             # Need to get an appropriate sized image
-            image = @model.get("defaultImage")
-            
-            if App.support.mobile()
-                image.url = image.height($window.height())
-            else
-                image = image.height(App.utils.getViewportSized(true), true)
+            if @model.get("defaultImage")?
+                image = @model.get("defaultImage")
+                # orient image
+                if image.get("sizes")?.master
+                    width = image.get("sizes").master.width
+                    height = image.get("sizes").master.height
+                    if Math.abs((height-width)/width) <= 0.02
+                        @model.set("orientation", "square")
+                    else if width > height
+                        @model.set("orientation", "landscape")
+                    else
+                        @model.set("orientation", "portrait")
+                
+                # Get new resized image
+                if App.support.mobile()
+                    image = image.height($window.height(), true)
+                else
+                    image = image.height(App.utils.getViewportSized(true), true)
 
-            # templates use this as obj.image.url
-            @model.set("image", image)
+                # simplify templates, only look for defaultImage
+                @model.set(defaultImage: image)
             return
 
-        # Update the current view
-        # If taggedProductIndex < 0, then hide products
         updateContent: ->
-            if App.support.mobile() and @taggedProductIndex < 0
-                # only one thing visible at a time on mobile
-                # Show content
-                @_currentIndex = @taggedProductIndex = -1
-                @$el.find('.look-thumbnail').hide()
-                @$el.find('.info').hide()
-                @$el.find('.look-image-container').show()
-                @$el.find(".stl-item").removeClass("selected")
-                @carouselRegion.currentView?.calculateDistance()
-            else
-                # Show tagged product
+            # Update the current view if its changed
+            if @_currentIndex isnt @taggedProductIndex
                 @_currentIndex = @taggedProductIndex
-                if @carouselRegion.hasView()
-                    @$el.find(".stl-item").filter("[data-index=#{@taggedProductIndex}]")
-                        .addClass("selected").siblings().removeClass("selected")
-                productInstance = new module.ProductView(
-                    model: @taggedProducts[@taggedProductIndex]
-                )
-                @productInfo.show(productInstance)
-                if App.support.mobile()
-                    @$el.find('.look-thumbnail').show()
-                    @$el.find('.info').show()
-                    @$el.find('.look-image-container').hide()
-                    @carouselRegion.currentView?.calculateDistance()
-            if @model.get("type") is "image" or @model.get("type") is "gif"
-                if @taggedProductIndex > -1
-                    @$el.find(".look-thumbnail").show()
+                if @taggedProductIndex is -1
+                    if @product
+                        # Featured product (ex: product tile)
+                        productInstance = new module.ProductView(
+                            model: @product
+                        )
+                        @productInfo.show(productInstance)
+                        @$el.find('.info').show() # show product
+                        @ui.lookImage.hide() # hide image
+                    else
+                        # Featured content (ex: image tile)
+                        # will be displayed in .look-image-container, rendered by template
+                        @productInfo.destroy()
+                        @ui.lookImage.show() # show image
+                        @$el.find('.info').hide() # hide product
+
+                    @ui.lookThumbnail.hide()
+
+                    if @productThumbnails.hasView()
+                        @productThumbnails.currentView.deselectItems()
+                        if App.support.mobile()
+                            @productThumbnails.currentView.index = Math.max(
+                                0,
+                                @productThumbnails.currentView.index - 1
+                            )
+                            @productThumbnails.currentView.calculateDistance()
                 else
-                    @$el.find(".look-thumbnail").hide()
+                    # Show tagged product
+                    productInstance = new module.ProductView(
+                        model: @taggedProducts[@taggedProductIndex]
+                    )
+                    @productInfo.show(productInstance)
+                    @$el.find('.info').show()
+
+                    if @options.featureSingleItem or App.support.mobile()
+                        @ui.lookImage.hide() # hide image
+                    if @options.showLookThumbnail or App.support.mobile()
+                        # Some themes use have other links back to the main content/product
+                        @ui.lookThumbnail.show()
+
+                    if @productThumbnails.hasView()
+                        @productThumbnails.currentView.selectItem(@taggedProductIndex)
+                        if App.support.mobile()
+                            @productThumbnails.currentView.calculateDistance()
             return
 
         ###
@@ -375,121 +448,91 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         Meant to be called when all images finish loading
         ###
         shrinkContainerCallback: ->
-            =>
-                # must wait for all images to load
-                if --@_imageCount isnt 0
-                    return
-                
-                $window = $(window)
-                $container = @$el.closest(".fullscreen")
-                $containedItem = @$el.closest(".content")
-                # Content that will be sized to the viewport
-                $feature = $containedItem.find(".feature") 
-                if _.isEmpty($containedItem.find(".feature"))
-                    $feature = $containedItem.find(".preview-container")
-                else
-                    $feature = $containedItem.find(".feature")
-                # Content that will run below the fold
-                $overflow = $containedItem.find(".overflow")
+            $window = $(window)
+            $container = @$el.closest(".fullscreen")
+            $containedItem = @$el.closest(".content")
+            # Content that will be sized to the viewport
+            $feature = if _.isEmpty($containedItem.find(".feature")) \
+                       then $containedItem.find(".preview-container") \
+                       else $containedItem.find(".feature")
+            # Content that will run below the fold
+            $overflow = $containedItem.find(".overflow")
 
-                # All images are loaded to frame content, render it now
-                if not @productInfo.hasView()
-                    @updateContent()
+            # All images are loaded to frame content, render it now
+            @updateContent()
 
-                $container.css(
-                    top: "0"
-                    bottom: "0"
-                    left: "0"
-                    right: "0"
-                )
-                # Reset feature and container height
-                $containedItem.css(
-                    'height': '100%'
-                )
-                $feature.css('height', '100%')
-
-                # Popup sizing works by the featured area filling up as much room as the container will let it
-                # In order to support overlowing content, need to let the featured content expand in the
-                # constrained container, lock in the size, then let the container expand to fit the overflow content
-                if _.some($overflow.map(-> return $(@).outerHeight()))
-                    # Content overflows (one or more .overflow elements have non-zero height)
-                    $overflow.hide()
-                    # Lock in featured content height
-                    $feature.css('height', $feature.outerHeight())
-                    # Reveal overflow
-                    $overflow.show()
-                    heightValue = 'auto'
-                    heightReduction =  10
-                    widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
-                else
-                    # Content fits in window, center it
-                    heightValue = '100%'
-                    heightReduction = ($window.height() - $containedItem.outerHeight()) / 2
-                    widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
-                    if heightReduction <= 0 # String because jQuery checks for falsey values
-                        heightReduction = "0"
-                    if widthReduction <= 0 # String because jQuery checks for falsey values
-                        widthReduction = "0"
-                if App.support.mobile()
-                    heightReduction = widthReduction = 0
-                    
-                $container.css(
-                    left: widthReduction
-                    right: widthReduction
-                )
-                $containedItem.css(
-                    'height': heightValue
-                    'margin-top': heightReduction
-                    'margin-bottom': heightReduction
-                )
-                $container.removeClass("loading-images")
-                return
-
-        # shrinks container to images once images are loaded
-        resizeContainer: ->
-            @_imageCount = $("img.main-image, img.image", @$el).length
-
-            # http://stackoverflow.com/questions/3877027/jquery-callback-on-image-load-even-when-the-image-is-cached
-            $("img.main-image, img.image", @$el).one("load", @shrinkContainerCallback()).each(->
-                if @complete
-                    # Without the timeout the box may not be rendered. This lets the onShow method return
-                    setTimeout((=>
-                        $(@).load()
-                        return
-                    ), 1)
-                return
+            $container.css(
+                top: "0"
+                bottom: "0"
+                left: "0"
+                right: "0"
             )
+            # Reset feature and container height
+            $containedItem.css(
+                'height': '100%'
+            )
+            $feature.css('height', '100%')
+
+            # Popup sizing works by the featured area filling up as much room as the container will let it
+            # In order to support overlowing content, need to let the featured content expand in the
+            # constrained container, lock in the size, then let the container expand to fit the overflow content
+            if _.some($overflow.map(-> return $(@).outerHeight()))
+                # Content overflows (one or more .overflow elements have non-zero height)
+                $overflow.hide()
+                # Lock in featured content height
+                $feature.css('height', $feature.outerHeight())
+                # Reveal overflow
+                $overflow.show()
+                heightValue = 'auto'
+                heightReduction =  10
+                widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
+            else
+                # Content fits in window, center it
+                heightValue = '100%'
+                heightReduction = ($window.height() - $containedItem.outerHeight()) / 2
+                widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
+                if heightReduction <= 0 # String because jQuery checks for falsey values
+                    heightReduction = "0"
+                if widthReduction <= 0 # String because jQuery checks for falsey values
+                    widthReduction = "0"
+            if App.support.mobile()
+                heightReduction = widthReduction = 0
+                
+            $container.css(
+                left: widthReduction
+                right: widthReduction
+            )
+            $containedItem.css(
+                'height': heightValue
+                'margin-top': heightReduction
+                'margin-bottom': heightReduction
+            )
+            $container.removeClass("loading-images")
             return
 
-        initializeThumbnails: ->
-            # A hook to customize the thumbnails initialization
-            if @taggedProducts.length > 1 or \
-               (App.support.mobile() and @taggedProducts.length > 0)
-                # Initialize carousel if this is mobile with tagged product
-                # or desktop/tablet with more than one product
-                carouselInstance = new module.CarouselView(
-                    items: @taggedProducts
-                    attrs:
-                        'lookImageSrc': @model.get('defaultImage').url
-                        'lookName': @model.get('defaultImage').get('name')
-                        'orientation': @model.get('defaultImage').get('orientation')
-                )
-                @carouselRegion.show(carouselInstance)
-                @$el.find('.look-thumbnail').hide()
-
-                # Add some logic here to decide if carouselview or similarproductsview
-                    #similarProductsInstance = new module.SimilarProductsView(@model.get("taggedProducts"))
-                    #@similarProducts.show(similarProductsInstance)
+        resizeContainer: ->
+            # shrinks container once main image product thumbnails are loaded
+            imagesLoaded($("img.main-image, img.image", @$el),(=> @shrinkContainerCallback()))
             return
 
         # Disable scrolling body when preview is shown
         onShow: ->
+            if @product
+                # Product is featured (ex: product pop-up)
+                @taggedProductIndex = -1
+            else
+                # Content is featured (ex: image pop-up)
+                # Note: Content is contained in .look-image-container, loaded by template
+                @taggedProductIndex = (if App.support.mobile() or @options.featureSingleItem \
+                                       then -1 else 0)
+
             if App.support.mobile()
                 if App.utils.landscape()
                     @$el.closest(".previewContainer").addClass("landscape")
                 else
                     @$el.closest(".previewContainer").removeClass("landscape")
-                @$el.find('.info').hide()
+                @$el.find('.info').hide() # hide tagged product
+                # enable swiping of thumbnails
                 @$el.find(".look-product-carousel")?.swipe(
                     triggerOnTouchEnd: true,
                     swipeStatus: _.bind(@swipeStatus, @),
@@ -500,15 +543,46 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # will be removed by shrinkCallback
                 @$el.closest(".fullscreen").addClass("loading-images")
 
-            @initializeThumbnails()
+            if @options.previewFeed
+                @showSimilarProducts()
+            else
+                @showThumbnails()
+
             @resizeContainer()
 
+            # If this is in a hero area, enable some of it to stick as scroll down(?)
             if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
                 $(".stick-bottom", @$el).addClass("stuck").waypoint("sticky",
                     offset: "bottom-in-view"
                     direction: "up"
                 )
             return
+
+        showThumbnails: ->
+            # A hook to customize the thumbnails initialization
+            if @taggedProducts.length > 1 or \
+               (App.support.mobile() and @taggedProducts.length > 0)
+                # Initialize carousel if this is mobile with tagged product
+                # or desktop/tablet with more than one product
+                thumbnailsInstance = new module.ProductThumbnailsView(
+                    items: @taggedProducts
+                    attrs:
+                        'lookImageSrc': @model.get('defaultImage').url
+                        'lookName': @model.get('defaultImage').get('name')
+                        'orientation': @model.get('defaultImage').get('orientation')
+                )
+                @productThumbnails.show(thumbnailsInstance)
+                @ui.lookThumbnail.hide()
+            return
+
+        showSimilarProducts: ->
+            # A hook to customize the pop-up feed initialization
+            if @taggedProducts.length > 2 or \
+               (App.support.mobile() and @taggedProducts.length > 0)
+                similarProductsInstance = new module.SimilarProductsView(
+                    products: @taggedProducts
+                )
+                @similarProducts.show(similarProductsInstance)
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
             # Control gallery swiping
@@ -531,15 +605,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     if index < -1
                         index = @taggedProducts.length - 1
                         if App.support.mobile()
-                            @carouselRegion.currentView.index = Math.min(
+                            @productThumbnails.currentView.index = Math.min(
                                 $('.stl-look').children().length - 1,
-                                @carouselRegion.currentView.index + 1
+                                @productThumbnails.currentView.index + 1
                             )
                     # swipe from first product to content
                     else if index is -1 and App.support.mobile()
-                        @carouselRegion.currentView.index = Math.max(
+                        @productThumbnails.currentView.index = Math.max(
                             0,
-                            @carouselRegion.currentView.index - 1
+                            @productThumbnails.currentView.index - 1
                         )
                 else if direction is 'left'
                     index++
@@ -547,17 +621,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     if index is @taggedProducts.length
                         index = -1
                         if App.support.mobile()
-                            @carouselRegion.currentView.index = Math.max(
+                            @productThumbnails.currentView.index = Math.max(
                                 0, 
-                                @carouselRegion.currentView.index - 1
+                                @productThumbnails.currentView.index - 1
                             )
                     else if index is 0 and App.support.mobile()
-                        @carouselRegion.currentView.index = Math.min(
+                        @productThumbnails.currentView.index = Math.min(
                             $('.stl-look').children(':visible').length - 1,
-                            @carouselRegion.currentView.index + 1
+                            @productThumbnails.currentView.index + 1
                         )
                 @taggedProductIndex = index
-                @renderView()
+                @updateContent()
             return @
 
         destroy: ->
@@ -678,10 +752,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         templateHelpers: ->
 
-        # return {data: $.extend({}, this.options, {template: this.template})};
         onRender: ->
-            heightMultiplier = undefined
-
             # cannot declare display:table in marionette class.
             heightMultiplier = (if App.utils.portrait() then 1 else 2)
             @$el.css
@@ -689,7 +760,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 height: (if App.support.mobile() then heightMultiplier * $window.height() else "")
 
             contentOpts = model: @options.model
-            contentInstance = undefined
             contentInstance = new module.PreviewContent(contentOpts)
 
             # remember if $.fn.swapWith is called so the feed can be swapped back
@@ -722,17 +792,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @$el.closest(".previewContainer").addClass("landscape")
                 else
                     @$el.closest(".previewContainer").removeClass("landscape")
-                if @content.currentView?
+                if @content.hasView()
                     @content.currentView.resizeContainer()
                     # Refactor to use region.currentView.render
-                    if @content.currentView.productInfo?.currentView
+                    if @content.currentView.productInfo?.hasView()
                         productRegion = @content.currentView.productInfo
                         productRegion.show(productRegion.currentView,
                             forceShow: true
                         )
-                    if @content.currentView.carouselRegion?.currentView
-                        carouselRegion = @content.currentView.carouselRegion
-                        carouselRegion.show(carouselRegion.currentView,
+                    if @content.currentView.productThumbnails?.hasView()
+                        productThumbnails = @content.currentView.productThumbnails
+                        productThumbnails.show(productThumbnails.currentView,
                             forceShow: true
                         )
                 return

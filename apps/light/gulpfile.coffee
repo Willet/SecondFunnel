@@ -67,7 +67,7 @@ config = production: true
 
 onError = (err) ->
     $.util.log($.util.colors.red("\n\nPlumber: Error: #{err}\n\n"))
-    $.util.beep()
+    $.util.beep(3)
     console.error err
     return
 

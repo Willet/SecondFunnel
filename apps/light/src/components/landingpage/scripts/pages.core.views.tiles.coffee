@@ -10,10 +10,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.TileView extends Marionette.LayoutView
         type: "TileView"
-        tagName: App.option("tileElement", "div")
-        className: "tile"
-
+        tagName: "div"
         template: "#product_tile_template"
+        id: -> return @model.cid
+        className: -> return "tile #{String(@model.get('template'))}"
         templates: ->
             templateRules = [
                 "#<%= options.store.slug %>_<%= data.source %>_<%= data.template %>_mobile_tile_template" # gap_instagram_image_mobile_tile_template
@@ -52,25 +52,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             product: false
 
         initialize: (options) ->
-            data = options.model.attributes
-            classNames = ['tile', String(data.template)]
-
-            # expose tile "types" as classes on the dom
-            if data.type
-                classNames.push(data.type.toLowerCase().split())
-            # Eliminate duplicates
-            @className = _.uniq(classNames).join(' ')
-
             # expose model reference in form of id
-            @$el.attr
-                class: @className
-                id: @model.cid
-                data:
-                    tile_id: @model.id
+            @$el.attr("data-tile-id": "#{@model.get('tile-id')}")
 
             # If the tile model is changed, re-render the tile
-            @listenTo @model, "changed", (=> @modelChanged)
-
+            @listenTo(@model, "changed", (=> @modelChanged))
             super
 
         modelChanged: (model, value) ->
@@ -100,12 +86,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # this is a dirty check
             if $(ev.target).parents(".button").length
                 return
-
-            # open tile in hero area
             else if App.option("page:tiles:openTileInHero", false)
+                # open tile in hero area
                 App.router.navigate("tile/#{String(@model.get('tile-id'))}", trigger: true)
-            # open tile in popup
             else
+                # open tile in popup
                 App.router.navigate("preview/#{String(@model.get('tile-id'))}", trigger: true)
             
             return
@@ -192,7 +177,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     buttonTypes: App.option("conditionalSocialButtons", {})[@model.get("colspan")]
                 )
                 socialButtons.append(buttons.render().$el)
-            @$el.addClass @model.get("orientation") or "portrait"
+            @$el.addClass(@model.get("orientation") or "portrait")
 
             if App.utils.isIframe() and @$el.hasClass("landscape")
                 @$el.addClass("full")
@@ -202,14 +187,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
 
-    ###
-    View for Product Tile
-    A product tile displays one product
-
-    @constructor
-    @type {LayoutView}
-    ###
     class module.ProductTileView extends module.TileView
+        # A product tile displays one product
         type: "ProductTileView"
         template: "#product_tile_template"
 
@@ -221,40 +200,39 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return        
 
 
-    ###
-    View for Image Tile
-    An image tile is an image that is tagged with one or more products
-
-    @constructor
-    @type {LayoutView}
-    ###
     class module.ImageTileView extends module.TileView
+        # An image tile is an image that is tagged with one or more products
+        type: "ImageTileView"
         template: "#image_tile_template"
 
 
     class module.GifTileView extends module.TileView
+        # An image tile that has a gif - enables progressive loading
+        type: "GifTileView"
         template: "#gif_tile_template"
 
         initialize: ->
+            super
             @listenToOnce App.vent, "layoutCompleted", =>
+                # First load image, then load gif
                 try
                     if @model.get("images") and @model.get("images")[0].get("gifUrl")
                         gifUrl = @model.get("images")[0].get("gifUrl")
                         @$("img.focus").attr("src", gifUrl)
                 catch e
                     console.warn "This gif does not have a base image.", @get("images")
-            super
 
 
-    ###
-    View for Banner Tile
-    A banner tile is any piece of content that links to a 3rd party site
-    To be used sparingly to achieve client requests
+    class module.CollectionTileView extends module.ImageTileView
+        # An image with a feed of products
+        type: "CollectionTileView"
 
-    @constructor
-    @type {LayoutView}
-    ###
+
     class module.BannerTileView extends module.TileView
+        ###
+        A banner tile is any piece of content that links to a 3rd party site
+        To be used sparingly to achieve client requests
+        ###
         type: "BannerTileView"
         template: "#image_tile_template"
 

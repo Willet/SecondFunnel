@@ -44,6 +44,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             console.warn "Missing option: " + name
         defaultValue # ...and defaultValue defaults to undefined
 
+    ###
+    Attach behaviors
+    ###
+    Marionette.Behaviors.behaviorsLookup = ->
+        return App.core.behaviors
 
     ###
     Marionette TemplateCache extension to allow checking cache for template
@@ -156,13 +161,22 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return @rawTemplate
 
     ###
-    Replaces default compileTempalte method. Removes include tags before
+    Replaces default compileTemplate method. Removes include tags before
     compiling the template.
     ###
     Marionette.TemplateCache::compileTemplate = (rawTemplate) ->
         rawTemplate = @compileSubtemplate(rawTemplate)
-        
-        return _.template(rawTemplate)
+        try
+            return _.template(rawTemplate)
+        catch e
+            if App.option('debug', false)
+                console.error(
+                    """Compile template error: %s: %s
+                    %s: %s
+                    """,
+                    e.name, e.message, @templateId, $.trim(rawTemplate)
+                )
+            return ''
 
     ###
     Replaces all include tags within a given template with cached templates.
@@ -173,13 +187,25 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @returns {string} template
     ###
     Marionette.TemplateCache::compileSubtemplate = (str) ->
-        includeRegex = /<%\sinclude(\("(.*?)"\)|\s"(.*?)");?\s%>/g
+        includeRegex = /<%\sinclude(\(['"](.*?)['"]\)|\s['"](.*?)['"]);?\s%>/g
         str = str.replace(
             includeRegex,
             (match, result, javascriptId, coffeescriptId) ->
                 templateId = "##{javascriptId or coffeescriptId}"
+                try
+                    return Marionette.TemplateCache.getSubtemplate(templateId)
+                catch e
+                    if App.option('debug', false)
+                        $template = $(templateId)
+                        templateStr = if $template.length then $template.html() else ''
 
-                return Marionette.TemplateCache.getSubtemplate(templateId)
+                        console.error(
+                            """Compile subtemplate error: %s: %s
+                            %s: %s
+                            """,
+                            e.name, e.message, templateId, $.trim(templateStr)
+                        )
+                    return ''
             )
         
         return str
@@ -190,10 +216,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     @method 
     @returns
     ###
-    baseRenderer = Marionette.Renderer.render
-    Marionette.Renderer.render = (template, data) ->
+    Marionette.Renderer.render = _.wrap(Marionette.Renderer.render, (render, template, data) ->
         try
-            return baseRenderer(template, data)
+            return render(template, data)
         catch e
             if App.option('debug', false)
                 try
@@ -202,12 +227,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 catch e
                     # template error
                     expandedTemplate = ''
-                console.warn(
-                    """Template error: %s: %s
+                console.error(
+                    """Render template error: %s: %s
                     %s: %s
                     data: %O
                     """,
                     e.name, e.message, template, $.trim(expandedTemplate), data
                 )
             return ''
+    )
         

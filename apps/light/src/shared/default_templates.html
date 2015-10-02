@@ -161,7 +161,7 @@
     <% if (obj.taggedProducts.length) { %>
     <% var product = obj.taggedProducts[0]; %>
         <div class="image-with-tagged-products">
-            <div class="table <%= image.orientation %>">
+            <div class="table <%= image.get('orientation') %>">
                 <div class="row">
                 <% if (App.support.mobile()) { %>
                     <% include("mobile_tagged_products") %>
@@ -174,7 +174,7 @@
         </div>
     <% } else { %>
         <div class="image-without-tagged-products">
-            <div class="table <%= image.orientation %>">
+            <div class="table <%= image.get('orientation') %>">
                 <div class="row">
                     <% include("no_tagged_products") %>
                 </div>
@@ -185,6 +185,10 @@
 </script>
 
 <script type="text/template" id="gif_preview_template">
+    <% include("image_preview_template") %>
+</script>
+
+<script type="text/template" id="collection_preview_template">
     <% include("image_preview_template") %>
 </script>
 
@@ -279,26 +283,51 @@
 
 <script type="text/template" id="similar_products_template">
     <div class="similar-cta desktop-only">Similar products</div>
-    <div class="tiles">
-    <% _.each(items, function(item){ %>
-        <div class="tile">
-            <div class='relative'>
-                <img class="focus" src="<%= item.defaultImage.url %>" alt="<%= item.caption %>" />
-            </div>
-            <div class="overlay">
-                <div class='table'>
-                    <div class='cell'>
-                        <div class="title">
-                            <span>Get Details</span>
-                            <br/>
-                            <span class="tile-name"><%= (item.title || item.name || item.caption) %></span>
-                            <span class="tile-price"><% (item.price_range || item.salePrice || item.price )%></span>
-                        </div>
-                    </div>
+    <div class="tiles"></div>
+</script>
+
+<script type="text/template" id="similar_product_template">
+    <div class='relative'>
+        <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
+    </div>
+    <div class="overlay">
+        <div class='table'>
+            <div class='cell'>
+                <div class="title">
+                    <span>Get Details</span>
+                    <br/>
+                    <span class="tile-name"><%= (obj.name) %></span>
+                    <span class="tile-price"><% (obj.salePrice || obj.price )%></span>
                 </div>
             </div>
         </div>
-    <% } %>
+    </div>
+</script>
+
+<script type="text/template" id="product_thumbnails_template">
+    <div class="stl-title"><span>You May Also Like</span></div>
+    <div class="stl-carousel carousel-view">
+        <div class="stl-swipe-left carousel-swipe-left"></div>
+        <div class="stl-swipe-right carousel-swipe-right"></div>
+        <div class="stl-swipe-up carousel-swipe-up"></div>
+        <div class="stl-swipe-down carousel-swipe-down"></div>
+        <div class="stl-look-container carousel-container">
+            <div class="stl-look carousel-slide">
+                <div class="look-thumbnail mobile-only">
+                    <img src="<%= obj.attrs['lookImageSrc'] %>" class="image" />
+                    <div class="name">
+                        <%= obj.attrs['lookName'] %>
+                    </div>
+                </div>
+                <% for (var i = 0, item; i < obj.items.length; i++) { 
+                    item = obj.items[i]; %>
+                <div class="stl-item" data-index="<%- i %>">
+                    <img src="<%- item.images[0].url %>" class="image" />
+                    <div class="name desktop-only"><%- item.title || item.name %></div>
+                </div>
+                <% } %>
+            </div>
+        </div>
     </div>
 </script>
 

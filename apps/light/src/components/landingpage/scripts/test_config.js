@@ -28,7 +28,6 @@ window.PAGES_INFO = {
     'showSharingCount': true,  // optional, for social buttons (default: true)
     'enableTracking': true, // optional; default: true
     'eventMap': undefined,  // optional
-    'tileElement': undefined,  // optional. alters the type of tag used by tiles.
     'imageTileWide': 0.0,
     'imageSizes': undefined,  // optional, overrides built-in size map
     'tapIndicatorText': undefined,  // optional

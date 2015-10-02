@@ -8,6 +8,7 @@ imagesLoaded = require('imagesLoaded')
 module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.FeedView extends Marionette.CollectionView
+        id: "feed"
         constructor: () ->
             @collection = new App.core.TileCollection()
             super  # this is magic, it passes forward arguments
@@ -56,6 +57,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             App.feed = @
             return @
 
+        childView: module.TileView
+        getChildView: (item) ->
+            # Lookup the class to use based on the template specified on the item
+            return App.utils.findClass('TileView', item.get('template'), @childView)
+
         onShow: ->
             @attachListeners()
             @fetchTiles()
@@ -64,14 +70,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if @isLoading
                 return (new $.Deferred()).promise()
             xhr = @collection.fetch()
-            xhr.done (tileInfo) =>
+            xhr.done((tileInfo) =>
                 @isLoading = false
                 # TODO: this is not really a good identifier for end of feed
                 if tileInfo and tileInfo.length is 0
                     @ended = true
                     $(".loading").hide()
 
-                _.delay @pageScroll, 500
+                _.delay(@pageScroll, 500)
+            )
             @lastRequest = xhr
             xhr
 
@@ -132,19 +139,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @lastRequest.abort()
             @detachListeners()
 
-        childView: (childViewOptions) ->
-            # Lookup the class to use based on the template specified on the item
-            model = childViewOptions.model
-            childViewClass = App.utils.findClass('TileView',
-                model.get('template'),
-                App.core.TileView
-            ) || App.core.TileView
-            return new childViewClass(childViewOptions)
-
 
     class module.MasonryFeedView extends module.FeedView
 
-        default_options:
+        defaultViewOptions:
             isAnimated: Modernizr.csstransforms3d
             transitionDuration: '0s',
             isInitLayout: false,
@@ -157,7 +155,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: (options) ->
             super # this is magic, it passes forward arguments
             # only care about the masonry options, parent class will care about rest
-            @options = _.extend({}, @default_options, options.masonry)
+            @options = _.extend({}, @defaultViewOptions, options.masonry)
             @recently_added = []
             @layoutInProgress = false
 

@@ -3,6 +3,7 @@
 require("jquery-waypoints") # register $.fn.waypoint
 require("jquery-waypoints-sticky") # register $.fn.waypoint.sticky
 swipe = require('jquery-touchswipe')
+imagesLoaded = require('imagesLoaded')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     $window = $(window)
@@ -53,10 +54,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @param index : index of leftmost/topmost item in the carousel
         @param items : array of items to display in the carousel
         ###
-        initialize: (data) ->
-            @attrs = data['attrs'] or []
-            @index = data['index'] or 0
-            @items = data['items'] or []
+        initialize: (options) ->
+            @attrs = options['attrs'] or []
+            @index = options['index'] or 0
+            @items = options['items'] or []
             return
 
         onRender: ->
@@ -79,7 +80,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     swipeStatus: _.bind(@swipeStatus, @)
                     allowPageScroll: 'auto'
                 )
-            @$el.imagesLoaded(=> @calculateDistance())
+            imagesLoaded($("img", @el), (=> @calculateDistance()))
             return
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
@@ -92,13 +93,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     direction = if direction is 'up' then 'down' else 'up'
                     @calculateVerticalPosition(direction)
             return @
-
-        selectItem: (index) ->
-            @$el.find(".stl-item").filter("[data-index=#{index}]")
-                    .addClass("selected").siblings().removeClass("selected")
-
-        deselectItems: () ->
-            @$el.find(".stl-item").removeClass("selected")
 
         ###
         Moves carousel and shows/hides arrows based on updated carousel position.
@@ -352,6 +346,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.HeroContent extends Marionette.LayoutView
         template: "#herovideo_template"
+        id: -> return "hero-#{@model.cid}"
         regions:
             video: ".hero-video"
             carouselRegion: ".hero-carousel-region"

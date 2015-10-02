@@ -209,10 +209,7 @@
             </div>
             <% if (obj.taggedProducts.length > 1) { %>
                 <div class="cell desktop-only shop <%= orientation %>">
-                    <div class="stl-title">
-                        Shop the look
-                    </div>
-                    <div class="carousel-region"></div>
+                    <div class="product-thumbnails"></div>
                 </div>
             <% } %>
             <div class="cell info <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
@@ -231,8 +228,7 @@
                 </div>
             </div>
             <div class="cell shop mobile-only">
-                <div class="stl-title">Shop the look</div>
-                <div class="carousel-region"></div>
+                <div class="product-thumbnails"></div>
                 </div>
             </div>
         </script>
@@ -356,7 +352,8 @@
             <% include("image_info_template") %>
         </script>
 
-        <script type="text/template" id="carousel_template">
+        <script type="text/template" id="product_thumbnails_template">
+            <div class="stl-title">Shop the look</div>
             <div class="stl-carousel carousel-view">
                 <div class="stl-swipe-left carousel-swipe-left"></div>
                 <div class="stl-swipe-right carousel-swipe-right"></div>
@@ -364,13 +361,13 @@
                 <div class="stl-swipe-down carousel-swipe-down"></div>
                 <div class="stl-look-container carousel-container">
                     <div class="stl-look carousel-slide">
-                        <% include("carousel_items_template") %>
+                        <% include("thumbnails_items_template") %>
                     </div>
                 </div>
             </div>
         </script>
 
-        <script type="text/template" id="carousel_items_template">
+        <script type="text/template" id="thumbnails_items_template">
             <div class="look-thumbnail mobile-only">
                 <img src="<%= obj.attrs['lookImageSrc'] %>" class="image"/>
             </div>
