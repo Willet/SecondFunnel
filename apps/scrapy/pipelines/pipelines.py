@@ -140,7 +140,7 @@ class ContentImagePipeline(ItemManifold):
 
             spider.logger.info(u"\nprocessing image - {}".format(source_url))
             data = process_image(source_url, create_image_path(store.id), 
-                remove_background=remove_background)
+                                 remove_background=remove_background)
             item['url'] = data.get('url')
             item['file_type'] = data.get('format')
             item['dominant_color'] = data.get('dominant_color')
