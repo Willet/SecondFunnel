@@ -1,7 +1,6 @@
 from apps.utils.functional import find_where, get_image_file_type
 
-from .utils import IRSerializer, SerializerError
-import inflection
+from .utils import IRSerializer, SerializerError, camelize_JSON
 
 
 """ Serializers for models that make up tiles """
@@ -31,12 +30,7 @@ class ProductSerializer(IRSerializer):
             "in-stock": product.in_stock,
         }
 
-        # camelize the JSON attributes
-        camel_attributes = {}
-        for attribute in product.attributes:
-            camel_attributes[inflection.camelize(attribute, False)] = \
-                product.attributes[attribute]
-        data.update(camel_attributes)
+        data.update(camelize_JSON(product.attributes))
 
         try:
             data["default-image"] = product.default_image.to_json()
@@ -104,12 +98,7 @@ class ProductImageSerializer(IRSerializer):
             "orientation": product_image.orientation,
         }
 
-        # camelize the JSON attributes
-        camel_attributes = {}
-        for attribute in product_image.attributes:
-            camel_attributes[inflection.camelize(attribute, False)] = \
-                product_image.attributes[attribute]
-        data.update(camel_attributes)
+        data.update(camelize_JSON(product_image.attributes))
 
         return data
 
