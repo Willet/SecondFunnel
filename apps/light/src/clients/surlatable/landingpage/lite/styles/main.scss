@@ -400,9 +400,9 @@ body {
         border: 1px solid #CCCCCC;
         border-radius: 5px;
         padding: 6%;
-        div {
+        > div {
             position: relative;
-            span {
+            span.product-label {
                 font-size: 18px;
                 margin: 0;
                 line-height: 20px;
@@ -1110,7 +1110,7 @@ body {
     }
     .relative.product-shot {
         div {
-            span {
+            span.product-label {
                 font-size: 13px !important;
                 line-height: normal !important;
             }
