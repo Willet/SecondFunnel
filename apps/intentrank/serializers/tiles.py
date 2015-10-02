@@ -6,6 +6,7 @@ import json
 from apps.utils.functional import find_where, get_image_file_type, may_be_json
 
 from .utils import IRSerializer, SerializerError
+import inflection
 
 
 """ Serializers for tile models
@@ -45,7 +46,13 @@ class TileSerializer(IRSerializer):
         if hasattr(tile, 'priority'):
             data['priority'] = tile.priority
 
-        data.update(tile.attributes)
+        
+        # camelize the JSON attributes
+        camel_attributes = {}
+        for attribute in tile.attributes:
+            camel_attributes[inflection.camelize(attribute, False)] = \
+                tile.attributes[attribute]
+        data.update(camel_attributes)
 
         return data
 
