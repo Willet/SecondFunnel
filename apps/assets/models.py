@@ -578,11 +578,9 @@ class ProductImage(BaseModel):
             delete_cloudinary_resource(self.url)
         super(ProductImage, self).delete(*args, **kwargs)
 
-    def is_product_shot(self):
-        """ 
-        returns true if image is a product shot
-        or in other words, if dominant_color is white 
-        """
+    @property
+    def product_shot():
+        """The product_shot property."""
         product_shot = False
         if self.dominant_color is not None:
             red   = int("0x{}".format(self.dominant_color[1:3]), 0)
