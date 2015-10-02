@@ -157,9 +157,9 @@
         <script type="text/template" id="image_tile_template">
             <% if(obj.template === "product" && obj.defaultImage.get('product_shot') === true) { %>
             <div class='relative product-shot'>
-                <div class="text-expansion-container">
+                <div>
                     <span><%= obj.product.get('name') %></span>
-                    <div class='image-expansion-container'>
+                    <div>
                         <img class="focus" src="<%= obj.defaultImage.url %>" />
                     </div>
                 </div>
