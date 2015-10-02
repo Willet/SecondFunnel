@@ -139,10 +139,11 @@ class ContentImagePipeline(ItemManifold):
                 return item
 
             spider.logger.info(u"\nprocessing image - {}".format(source_url))
-            data = process_image(source_url, create_image_path(store.id), remove_background=remove_background)
+            data = process_image(source_url, create_image_path(store.id), 
+                                 remove_background=remove_background)
             item['url'] = data.get('url')
             item['file_type'] = data.get('format')
-            item['dominant_color'] = data.get('dominant_colour')
+            item['dominant_color'] = data.get('dominant_color')
             item['source_url'] = source_url
             if not item.get('attributes', False):
                 item['attributes'] = {}
@@ -303,8 +304,9 @@ class ProductImagePipeline(ItemManifold):
                                  remove_background=remove_background)
             image.url = data.get('url')
             image.file_type = data.get('format')
-            image.dominant_color = data.get('dominant_colour')
+            image.dominant_color = data['dominant_color']
 
+            image.attributes['product_shot'] = image.is_product_shot
             image.attributes['sizes'] = data['sizes']
 
             # save the image
