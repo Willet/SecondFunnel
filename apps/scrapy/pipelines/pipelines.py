@@ -307,7 +307,6 @@ class ProductImagePipeline(ItemManifold):
             image.dominant_color = data['dominant_color']
 
             product_shot = image.is_product_shot()
-            # product_shot = False;
 
             image.attributes['product_shot'] = product_shot
             image.attributes['sizes'] = data['sizes']
