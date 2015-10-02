@@ -14,8 +14,4 @@ class IRSerializer(RawSerializer):
 
 def camelize_JSON(attributes):
     """ camelize JSON attributes """
-    camel_attributes = { \
-    	inflection.camelize(attribute, False):attributes[attribute] \
-    	for attribute in attributes \
-    	}
-    return camel_attributes
+    return { inflection.camelize(attr, False):attributes[attr] for attr in attributes }
