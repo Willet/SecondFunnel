@@ -6,8 +6,8 @@ from django.forms import SelectMultiple, ModelMultipleChoiceField
 
 
 from .forms import CategoryForm, TagForm
-from .models import (BaseModel, Category, Store, Page, Tile, Feed, Product,
-                                ProductImage, Image, Content, Theme, Review, Video, Tag, Gif)
+from .models import BaseModel, Category, Store, Page, Tile, Feed, Product, \
+                    ProductImage, Image, Content, Theme, Review, Video, Tag, Gif
 from .utils import disable_tile_serialization
 
 
