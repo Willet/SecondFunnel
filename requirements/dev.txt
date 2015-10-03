@@ -1,15 +1,17 @@
 -r common.txt
 Werkzeug==0.9.4
-coverage==3.7.1
-epydoc==3.0.1
-fuzzywuzzy==0.2
-mimeparse==0.1.3
-nose==1.3.0
-rednose==0.4.1
-sure==1.2.5
-pep8==1.4.6
 django-jenkins==0.14.1
-pylint==1.1.0
 django-devserver==0.8.0
-honcho==0.5.0
+epydoc==3.0.1 # automated API documentation
+honcho==0.5.0 # Run light app in separate process
+
+# Code analysis
+pep8==1.4.6
+pylint==1.1.0
+
+# Testing
 pytest==2.6.2
+nose==1.3.0
+django-nose==1.2
+rednose==0.4.1
+coverage==3.7.1
