@@ -16,7 +16,6 @@ from apps.assets.utils import disable_tile_serialization
 from apps.intentrank.serializers import SerializerError
 
 
-
 def set_negative_priorities(tile_id_list):
     """Set tile priority to -1 for tiles in tile_id_list
 
