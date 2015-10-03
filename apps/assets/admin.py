@@ -4,9 +4,26 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db import models
 from django.forms import SelectMultiple, ModelMultipleChoiceField
 
-from apps.assets.forms import CategoryForm, TagForm
-from apps.assets.models import (Category, Store, Page, Tile, Feed, Product, ProductImage,
-                                Image, Content, Theme, Review, Video, Tag, Gif)
+
+from .forms import CategoryForm, TagForm
+from .models import (BaseModel, Category, Store, Page, Tile, Feed, Product,
+                                ProductImage, Image, Content, Theme, Review, Video, Tag, Gif)
+from .utils import disable_tile_serialization
+
+
+# Custom list display fields
+def tile_count(obj):
+    return obj.tiles.count()
+tile_count.short_description = 'Tile Count'
+
+def product_count(obj):
+    return obj.product.count()
+product_count.short_description = 'Product Count'
+
+def tag_names(obj):
+    tags = [tag.name for tag in obj.tags.all()]
+    return ", ".join(tags)
+tag_names.short_description = 'Tags'
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -80,6 +97,18 @@ class TileAdmin(BaseAdmin):
     list_filter = ('feed',)
     filter_horizontal = ('products', 'content',)
 
+    def save_model(self, request, obj, form, change):
+        """
+        This method does not save m2m fields, they are split into a different call
+        Skip full clean and tile serialization until saving m2m relations
+        see: https://github.com/django/django/blob/stable/1.6.x/django/contrib/admin/options.py#L1263
+        """
+        if not change:
+            with disable_tile_serialization():
+                super(BaseModel, obj).save()
+        else:
+            obj.save()
+
 
 class FeedAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display
@@ -138,7 +167,6 @@ class ReviewAdmin(BaseAdmin):
 class VideoAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display + ['url', 'source_url']
     search_fields = ('id', 'url', 'source_url',)
-
 
 
 admin.site.register(Store, StoreAdmin)

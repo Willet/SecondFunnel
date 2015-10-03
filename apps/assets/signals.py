@@ -67,7 +67,7 @@ def content_m2m_changed(sender, **kwargs):
         for inst in instances:
             for tile in inst.tiles.all():
                 # validation can be skipped because 
-                # only product/content relationships are changed
+                # only 2nd order product/content relationships are changed
                 ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
                 if updated:
                     post_save.disconnect(tile_saved, sender=Tile)
@@ -95,12 +95,11 @@ def tile_m2m_changed(sender, **kwargs):
             tiles.append(tile)
 
         for tile in tiles:
-            # validation can be skipped because 
-            # only product/content relationships are changed
+            # must validate
             ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
             if updated:
                 post_save.disconnect(tile_saved, sender=Tile)
-                models.Model.save(tile, update_fields=['ir_cache'])
+                tile.save() # run full clean before saving ir cache
                 post_save.connect(tile_saved, sender=Tile)
 
 
