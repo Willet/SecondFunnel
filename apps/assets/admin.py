@@ -4,10 +4,11 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db import models
 from django.forms import SelectMultiple, ModelMultipleChoiceField
 
-from apps.assets.forms import CategoryForm, TagForm
-from apps.assets.models import (BaseModel, Category, Store, Page, Tile, Feed, Product,
+from .forms import CategoryForm, TagForm
+from .models import (BaseModel, Category, Store, Page, Tile, Feed, Product,
                                 ProductImage, Image, Content, Theme, Review, Video, Tag, Gif)
-from apps.intentrank.serializers import SerializerError
+from .utils import disable_tile_serialization
+
 
 # Custom list display fields
 def tile_count(obj):
@@ -73,15 +74,14 @@ class TileAdmin(BaseAdmin):
     filter_horizontal = ('products', 'content',)
 
     def save_model(self, request, obj, form, change):
-        """ Ignore SerializerError's before saving m2m relations
-            see: https://github.com/django/django/blob/stable/1.6.x/django/contrib/admin/options.py#L1263
+        """
+        This method does not save m2m fields, they are split into a different call
+        Skip full clean and tile serialization until saving m2m relations
+        see: https://github.com/django/django/blob/stable/1.6.x/django/contrib/admin/options.py#L1263
         """
         if not change:
-            try:
+            with disable_tile_serialization():
                 super(BaseModel, obj).save()
-            except SerializerError:
-                # ignore errors on serialization of incomplete model
-                pass
         else:
             obj.save()
 
