@@ -1,0 +1,25 @@
+// May not end up using this
+// Fixtures are apparently really slow and its better to use
+// fake models via mock, factory_boy or model_mommy
+[
+  {
+    "model": "assets.Store",
+    "pk": 1,
+    "fields": {
+      "name": "MyStore",
+      "description": "",
+      "slug": "store_slug", 
+      "default_theme": null,
+      "default_page": null,
+      "public_base_url": "gifts.mystore.com"
+    }
+  },
+  {
+    "model": "assets.Theme",
+    "pk": 2,
+    "fields": {
+      "name": "Default",
+      "template": "mystore/landingpage/default/index.html"
+    }
+  }
+]
