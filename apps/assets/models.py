@@ -394,6 +394,17 @@ class Store(BaseModel):
         return instance
 
 
+class Theme(BaseModel):
+    """
+    A light page theme in apps/light/src/clients/
+    """
+    name = models.CharField(max_length=1024, blank=True, null=True)
+    template = models.CharField(
+        max_length=1024,
+        # we should have a better default...
+        default="gap/landingpage/default/index.html")
+
+
 class Product(BaseModel):
     store = models.ForeignKey('Store', related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=1024, default="")
@@ -742,43 +753,6 @@ class Review(Content):
     product = models.ForeignKey(Product)
 
     body = models.TextField()
-
-
-class Theme(BaseModel):
-    """
-    :attr template either a local path or a remote path, e.g.
-        "apps/pinpoint/templates/pinpoint/campaign_base.html"
-        "apps/pinpoint/static/pinpoint/themes/gap/index.html"
-        "https://static-misc-secondfunnel/themes/campaign_base.html"
-    """
-    name = models.CharField(max_length=1024, blank=True, null=True)
-    template = models.CharField(
-        max_length=1024,
-        # backward compatibility for pages that don't specify themes
-        default="apps/pinpoint/templates/pinpoint/campaign_base.html")
-
-    @returns_unicode
-    def load_theme(self):
-        """download/open the template as a string."""
-        from apps.light.utils import read_a_file, read_remote_file
-
-        if 'static-misc-secondfunnel/themes/gap.html' in self.template:
-            # exception for task "Get all pages on tng-test and tng-master using gap theme as code"
-            self.template = 'apps/pinpoint/static/pinpoint/themes/gap/index.html'
-
-        local_theme = read_a_file(self.template, '')
-        if local_theme:
-            return local_theme
-
-        remote_theme = read_remote_file(self.template, '')[0]
-        if remote_theme:
-            logging.info("speed up page load times by placing the theme \
-                         '{0}' locally.".format(self.template))
-            return remote_theme
-
-        logging.warn("template '{0}' was neither local nor remote".format(
-            self.template))
-        return self.template
 
 
 class Page(BaseModel):
