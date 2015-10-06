@@ -90,7 +90,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
     # SLT shows one piece of content at a time
-    _.extend(module.ExpandedContent::defaultViewOptions, featureSingleItem: true)
+    _.extend(module.ExpandedContent::defaultOptions, featureSingleItem: true)
 
     module.ExpandedContent::updateScrollCta = ->
         $recipe = @$el.find(".recipe")

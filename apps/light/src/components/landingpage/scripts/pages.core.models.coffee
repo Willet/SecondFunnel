@@ -419,8 +419,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CollectionTile extends module.Tile
         # Similar to Image Tile, but has mini-feed of products
         type: "CollectionTile"
-        displayOptions:
+        options:
             previewFeed: true
+        initialize: ->
+            super
+            # A CollectionTile pop-up supports a different image than the tile view
+            if @get("expandedImage")?
+                expandedImage = if _.isNumber(@get('expandedImage')) \
+                                then @getImage(@get('expandedImage')) \
+                                else new module.Image(@get('expandedImage'))
+                @set(expandedImage: expandedImage)
 
 
     class module.VideoTile extends module.Tile

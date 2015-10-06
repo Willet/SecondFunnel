@@ -146,7 +146,7 @@
 </script>
 
 <script type="text/template" id="preview_container_template">
-    <div class="fullscreen scrollable">
+    <div class="fullscreen <% if (scrollable) { %>scrollable<% } %>">
         <div class="content">
             <span class="close">X</span>
             <div class="template target"></div>

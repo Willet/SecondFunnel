@@ -201,7 +201,7 @@
         <script type="text/template" id="preview_container_template">
             <% var template = (obj.template || "image") %>
             <% var tagged = false; try { tagged = !_.isEmpty(obj.taggedProducts); } catch (e) {} %>
-            <div class="fullscreen scrollable <%= template %> <% if (tagged) { %>tagged<% } %>">
+            <div class="fullscreen <% if (scrollable) { %>scrollable<% } %> <%= template %> <% if (tagged) { %>tagged<% } %>">
                 <div class="content">
                     <span class="close desktop-only">Keep Shopping <img src="/static/light/surlatable/landingpage/lite/images/close.gif"></span>
                     <span class="close mobile-only">Back</span>
@@ -345,23 +345,30 @@
 
         <script type="text/template" id="desktop_tagged_products">
             <% var tagged = Boolean(obj.taggedProducts.length > 0) %>
-            <div class="cell title-banner">
-                <div class="title">
-                    <% include("product_title_template") %>
+            <div class="feature">
+                <div class="cell title-banner">
+                    <div class="title">
+                        <% include("product_title_template") %>
+                    </div>
                 </div>
-            </div>
-            <div class="cell look-image-container">
-                <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
-                <% if (template === "recipe") { %>
-                    <% include("recipe_template") %>
+                <div class="cell look-image-container">
+                    <% if (template === "collection") { %>
+                        <% var url = obj.expandedImage ? obj.expandedImage.url : image.url; %>
+                        <img src="<%= url %>" alt="image" class="look-image collection" />
+                    <% } else if (template === "recipe") { %>
+                        <% include("recipe_template") %>
+                    <% } else { %>
+                        <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
+                    <% } %>
+                </div>
+                <div class="cell info <% if (tagged) { %>tagged<% } %>">
+                    <div class="product-info"></div>
+                </div>
+                <% if (tagged) { %>
+                <div class="cell shop">
+                    <div class="product-thumbnails"></div>
+                </div>
                 <% } %>
-            </div>
-            <div class="cell info <% if (tagged) { %>tagged<% } %>">
-                <div class="product-info"></div>
-            </div>
-            <% if (tagged) { %>
-            <div class="cell shop">
-                <div class="product-thumbnails"></div>
             </div>
             <div class="cell similar-products overflow"></div>
             <% } %>
@@ -371,9 +378,10 @@
             <% var tagged = Boolean(obj.taggedProducts.length > 0) %>
             <div class="look-product-carousel">
                 <div class="cell look-image-container">
-                    <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
                     <% if (template === "recipe") { %>
                         <% include("recipe_template") %>
+                    <% } else { %>
+                        <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
                     <% } %>
                 </div>
                 <div class="cell info <% if (tagged) { %>tagged<% } %>">
@@ -389,6 +397,7 @@
         </script>
 
         <script type="text/template" id="recipe_template">
+            <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
             <div class="recipe-container">
                 <div class="title">
                     <% include("product_title_template") %>

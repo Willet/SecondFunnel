@@ -554,6 +554,11 @@ div.loading {
         &.loading-images {
             visibility: hidden;
         }
+        &.scrollable {
+            .content {
+                max-height: none;
+            }
+        }
     }
     .content {
         width: 100%;

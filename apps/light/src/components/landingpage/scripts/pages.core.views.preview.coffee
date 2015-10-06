@@ -239,22 +239,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 "data-id": @model.get('id')
                 "data-sku": @model.get('sku')
             )
-
-        events:
-            click: "onClick"
-
-        onClick: (event) ->
-            if @model.get('sku', false)
-                # open tile in hero area
-                #if App.option("page:tiles:openTileInHero", false)
-                #    App.router.navigate("tile/#{String(@model.get('tile-id'))}", trigger: true)
-                # open tile in popup
-                #else
-                #    App.router.navigate("preview/#{String(@model.get('tile-id'))}", trigger: true)
-                App.router.navigate("sku/#{String(@model.get('sku'))}", trigger: true)
-            else
-                # go to PDP
-                App.utils.openUrl(@model.get("url"))
+        triggers:
+            "click": "click" # trigger parentview
 
 
     ###
@@ -270,6 +256,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productAttrs = ((if p.toJSON? then p.toJSON() else p) \
                              for p in (options['products'] or []))
             @collection = new module.ProductCollection(productAttrs)
+
+        childEvents:
+            "click": (childView) ->
+                @triggerMethod('click:similarProduct', childView.model.get('id'))
+                #if @model.get('sku', false)
+                    # open tile in hero area
+                    #if App.option("page:tiles:openTileInHero", false)
+                    #    App.router.navigate("tile/#{String(@model.get('tile-id'))}", trigger: true)
+                    # open tile in popup
+                    #else
+                    #    App.router.navigate("preview/#{String(@model.get('tile-id'))}", trigger: true)
+                    #App.router.navigate("sku/#{String(@model.get('sku'))}", trigger: true)
+                #else
+                    # go to PDP
+                    #App.utils.openUrl(@model.get("url"))
 
 
     ###
@@ -296,7 +297,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             lookImage: '.look-image-container'
             lookThumbnail: '.look-thumbnail'
 
-        defaultViewOptions:
+        defaultOptions:
             # previewFeed: have an overflowing tile feed in the pop-up instead of thumbnails
             previewFeed: false
             # featureSingleItem: display only one thing (image, product, etc) at a time on desktop
@@ -347,12 +348,24 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 App.vent.trigger("tracking:product:findStoreClick", @getTrackingData(childView.model))
             "click:buy": (childView) ->
                 App.vent.trigger("tracking:product:buyClick", @getTrackingData(childView.model))
+            "click:similarProduct": "similarProduct"
+
+        similarProduct: (childView, productId) ->
+            @taggedProductIndex = _.findIndex(@taggedProducts, 
+                                              (prod) -> return prod.get('id') is productId)
+            @resizeContainer()
+            @$el.animate(scrollTop: 0, 1000)
+            App.vent.trigger("tracking:product:thumbnailClick",
+                             @getTrackingData(@taggedProducts[@taggedProductIndex]))
 
         initialize: (options) ->
             # Order of priority for display options:
             # view options > model display options > default options
-            viewOptions = _.pick(options, _.keys(@defaultViewOptions))
-            @options = _.extend({}, @defaultViewOptions, @model.displayOptions or {}, viewOptions)
+            optionsOptions = _.pick(options, _.keys(@defaultOptions))
+            modelOptions = if @model.options? \
+                           then _.pick(@model.options,  _.keys(@defaultOptions)) \
+                           else {}
+            @options = _.extend({}, @defaultOptions, modelOptions, optionsOptions)
 
             # Track which tagged product is being displayed
             @taggedProductIndex = @_currentIndex = undefined
@@ -363,7 +376,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if @taggedProducts.length > 1
                 @taggedProducts = _.sortBy(
                     @taggedProducts,
-                    (obj) -> -1 * parseFloat((obj.price or "$0").substr(1), 10)
+                    (obj) -> return -1 * parseFloat((obj.price or "$0").substr(1), 10)
                 )
             return
         
@@ -398,13 +411,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @_currentIndex = @taggedProductIndex
                 if @taggedProductIndex is -1
                     if @product
+                        # Featured product
+                        @$el.find('.info').show() # display product before rendering
+                        @ui.lookImage.hide() # hide image
                         # Featured product (ex: product tile)
                         productInstance = new module.ProductView(
                             model: @product
                         )
                         @productInfo.show(productInstance)
-                        @$el.find('.info').show() # show product
-                        @ui.lookImage.hide() # hide image
                     else
                         # Featured content (ex: image tile)
                         # will be displayed in .look-image-container, rendered by template
@@ -424,14 +438,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             @productThumbnails.currentView.calculateDistance()
                 else
                     # Show tagged product
+                    @$el.find('.info').show() # display product before rendering
+                    if @options.featureSingleItem or App.support.mobile()
+                        @ui.lookImage.hide() # hide image
+
                     productInstance = new module.ProductView(
                         model: @taggedProducts[@taggedProductIndex]
                     )
                     @productInfo.show(productInstance)
-                    @$el.find('.info').show()
 
-                    if @options.featureSingleItem or App.support.mobile()
-                        @ui.lookImage.hide() # hide image
                     if @options.showLookThumbnail or App.support.mobile()
                         # Some themes use have other links back to the main content/product
                         @ui.lookThumbnail.show()
@@ -448,18 +463,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         Meant to be called when all images finish loading
         ###
         shrinkContainerCallback: ->
+            # All images are loaded to frame content, render it now
+            @updateContent()
+
             $window = $(window)
             $container = @$el.closest(".fullscreen")
             $containedItem = @$el.closest(".content")
             # Content that will be sized to the viewport
-            $feature = if _.isEmpty($containedItem.find(".feature")) \
+            $feature = if not $containedItem.find(".feature").length \
                        then $containedItem.find(".preview-container") \
-                       else $containedItem.find(".feature")
+                       else $containedItem.find(".feature").first()
             # Content that will run below the fold
             $overflow = $containedItem.find(".overflow")
-
-            # All images are loaded to frame content, render it now
-            @updateContent()
 
             $container.css(
                 top: "0"
@@ -727,6 +742,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         regions:
             content: ".template.target"
 
+        defaultOptions:
+            # Toggle content scroll
+            scrollable: false
+
         events:
             "click .close, .mask": ->
                 # If we have been home then it's safe to use back()
@@ -743,7 +762,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
 
         initialize: (options) ->
-            @options = options
+            if options.scrollable is undefined
+                options.scrollable = Marionette.getOption(@options.model, 'previewFeed')
+            @options = _.extend({}, @defaultOptions, options)
             return
 
         onMissingTemplate: ->
@@ -751,6 +772,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         templateHelpers: ->
+            scrollable: @getOption('scrollable')
 
         onRender: ->
             # cannot declare display:table in marionette class.
