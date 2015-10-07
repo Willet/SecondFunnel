@@ -283,7 +283,8 @@ class ProductImagePipeline(ItemManifold):
                 # Product is good, delete any out of date images
                 old_pks = [pi.pk for pi in old_images]
                 product.product_images.filter(pk__in=old_pks).delete()
-
+                product.default_image = spider.choose_default_image(product)
+                product.save()
                 spider.logger.info(u"<Product {}> has {} images, {} processed and {} deleted".format(
                                                     product, len(images), processed, len(old_pks)))
                

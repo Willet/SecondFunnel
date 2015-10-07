@@ -28,6 +28,18 @@ class SecondFunnelScraper(object):
         # Skip processing of images (and if spider supports it, scraping of images)
         self.skip_images = kwargs.get('skip_images', False)
 
+    # The functions below are hooks meant to be overwritten 
+    # in the spiders for individual clients
+    @staticmethod
+    def choose_default_image(self, product):
+        """Hook for choosing non-product-shot default image on slt"""
+        pass
+
+    @staticmethod
+    def clean_url(self, url):
+        """Hook for cleaning url before scraping"""
+        return url
+
 
 class SecondFunnelCrawlScraper(SecondFunnelScraper):
     # These fields are expected to be completed by subclass crawlers

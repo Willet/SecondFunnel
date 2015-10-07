@@ -60,11 +60,18 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
     def is_sold_out(self, response):
         return False
 
-    def clean_surlatable_url(self, url):
-        clean_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/product/(?:REC|PRO)-\d+/).*?',
+    @staticmethod
+    def clean_url(self, url):
+        cleaned_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/product/(?:REC|PRO)-\d+/).*?',
                              url).group(1)
-        self.logger.info(u"Cleaned url '{}' into '{}'".format(url, clean_url))
-        return clean_url
+        return cleaned_url
+
+    @staticmethod
+    def choose_default_image(product):
+        for p in product.product_images.all():
+            if not p.attributes['product_shot']:
+                return p
+        return product.product_images.first
         
     def parse_product(self, response, force_skip_tiles=False, force_skip_images=False):
         if not self.is_product_page(response):
@@ -88,7 +95,6 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         l.add_value('force_skip_tiles', skip_tiles)
         
         l.add_css('name', 'h1#product-title::text')
-        l.add_css('url', 'link[rel="canonical"]::attr(href)')
         l.add_css('description', '#product-description div::text')
         l.add_css('details', '#product-moreInfo-features li')
 
@@ -138,7 +144,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         l.add_value('attributes', attributes)
         
         item = l.load_item()
-        item['url'] = self.clean_surlatable_url(item.get('url', response.url))
+        item['url'] = response.request.url
 
         if skip_images:
             yield item
