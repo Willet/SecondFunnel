@@ -538,16 +538,23 @@ body {
     text-align: center;
     line-height: 16px;
     font-size: 17px;
-    font-style: italic;
-    font-family: $slt-sans-font;
+    font-family: $slt-modern-font;
     font-weight: bold;
-    color: $slt-orange-color;
-    &:after {
-        content: '\25be';
+    .subtext {
         position: relative;
-        top: 1px;
-        left: 2px;
+        left: 0;
+        top: 0;
+        font-style: italic;
+        font-weight: normal;
+        font-size: 14px;
+        font-family: $slt-basic-font;
     }
+}
+.shop-cta {
+    color: $slt-orange-color;
+}
+.similar-cta {
+    color: $slt-green-color;
 }
 
 .previewContainer {
@@ -661,7 +668,8 @@ body {
             padding: 10px 0 170px 0;
         }
         text-align: left;
-        .back-to-recipe {
+        .back-to-recipe,
+        .back-to-collection {
             color: $slt-purple-color;
             font-size: 18px;
             font-weight: bold;
@@ -686,12 +694,12 @@ body {
             background-position: center;
             background-repeat: no-repeat;
             border-radius: 10px;
-            &.collection {
-                width: auto;
-                min-width: 70%;
-                max-width: 100%;
-                display: block;
-                margin: auto;
+        }
+        &.contain {
+            /* don't scale to vertical space */
+            .look-image {
+                width: 100%;
+                height: auto;
             }
         }
         .recipe-container {
@@ -1153,7 +1161,7 @@ body {
                     width: 100% !important;
                 }
             }
-            .info, .product .info, .product .info {
+            .info, .product .info {
                 .tagged-product {
                     padding-bottom: 0px;
                     position: relative;

@@ -298,12 +298,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             lookThumbnail: '.look-thumbnail'
 
         defaultOptions:
+            # productThumbnails: show thumbnails carousel below products / images
+            showThumbnails: true
             # previewFeed: have an overflowing tile feed in the pop-up instead of thumbnails
             previewFeed: false
             # featureSingleItem: display only one thing (image, product, etc) at a time on desktop
             featureSingleItem: false
             # showLookThumbnail: show look thumbnail in carousel when tagged product selected
             showLookThumbnail: true
+            # when a preview has overflow, what percentage of the viewport should the feature take up
+            overflowFeaturePercent: '80%'
 
         events:
             "click @ui.lookThumbnail": (event) ->
@@ -348,24 +352,25 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 App.vent.trigger("tracking:product:findStoreClick", @getTrackingData(childView.model))
             "click:buy": (childView) ->
                 App.vent.trigger("tracking:product:buyClick", @getTrackingData(childView.model))
-            "click:similarProduct": "similarProduct"
-
-        similarProduct: (childView, productId) ->
-            @taggedProductIndex = _.findIndex(@taggedProducts, 
-                                              (prod) -> return prod.get('id') is productId)
-            @resizeContainer()
-            @$el.animate(scrollTop: 0, 1000)
-            App.vent.trigger("tracking:product:thumbnailClick",
-                             @getTrackingData(@taggedProducts[@taggedProductIndex]))
+            "click:similarProduct": (childView, productId) ->
+                @taggedProductIndex = _.findIndex(@taggedProducts, 
+                                                  (prod) -> return prod.get('id') is productId)
+                @resizeContainer()
+                @$el.animate(scrollTop: 0, 1000)
+                App.vent.trigger("tracking:product:thumbnailClick",
+                                 @getTrackingData(@taggedProducts[@taggedProductIndex]))
 
         initialize: (options) ->
             # Order of priority for display options:
             # view options > model display options > default options
             optionsOptions = _.pick(options, _.keys(@defaultOptions))
             modelOptions = if @model.options? \
-                           then _.pick(@model.options,  _.keys(@defaultOptions)) \
+                           then _.pick(@model.options, _.keys(@defaultOptions)) \
                            else {}
             @options = _.extend({}, @defaultOptions, modelOptions, optionsOptions)
+            # preview feed takes precedence over product thumbnails
+            if @options.previewFeed
+                @options.showThumbnails = false
 
             # Track which tagged product is being displayed
             @taggedProductIndex = @_currentIndex = undefined
@@ -458,7 +463,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         ###
-        Returns a callback that sizes the preview container, making the featured area sized
+        Sizes the preview container, making the featured area sized
         to the viewport & allowing the overflow area to continue below the fold.
         Meant to be called when all images finish loading
         ###
@@ -493,11 +498,20 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # constrained container, lock in the size, then let the container expand to fit the overflow content
             if _.some($overflow.map(-> return $(@).outerHeight()))
                 # Content overflows (one or more .overflow elements have non-zero height)
-                $overflow.hide()
-                # Lock in featured content height
-                $feature.css('height', $feature.outerHeight())
-                # Reveal overflow
-                $overflow.show()
+                if not @productInfo.hasView() and not @productThumbnails.hasView()
+                    # shrink wrap to content
+                    # ex: collection tile -> single image with preview feed.
+                    # There must be a better way to decide when to shrink-to-content vs scale-content
+                    $feature.css('height', 'auto')
+                else
+                    $overflow.hide()
+                    # Leave 25% of the viewport for the overflow to start
+                    $feature.css('height', @options.overflowFeaturePercent)
+                    # Lock in featured content height
+                    $feature.css('height', $feature.outerHeight())
+                    # Reveal overflow
+                    $overflow.show()
+
                 heightValue = 'auto'
                 heightReduction =  10
                 widthReduction = ($window.width() - $containedItem.outerWidth()) / 2
@@ -511,7 +525,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if widthReduction <= 0 # String because jQuery checks for falsey values
                     widthReduction = "0"
             if App.support.mobile()
-                heightReduction = widthReduction = 0
+                heightReduction = widthReduction = "0"
                 
             $container.css(
                 left: widthReduction
@@ -560,8 +574,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             if @options.previewFeed
                 @showSimilarProducts()
-            else
+            else if @options.showThumbnails
                 @showThumbnails()
+                # When .product-info is merged with .info, get rid of .parent()
+                # investigate replacing with sibling selectors .shop:empty ~ .info
+                @productInfo.$el.parent().addClass('tagged')
 
             @resizeContainer()
 

@@ -420,6 +420,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         # Similar to Image Tile, but has mini-feed of products
         type: "CollectionTile"
         options:
+            showThumbnails: false
             previewFeed: true
         initialize: ->
             super
@@ -429,6 +430,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                                 then @getImage(@get('expandedImage')) \
                                 else new module.Image(@get('expandedImage'))
                 @set(expandedImage: expandedImage)
+            # Used to create a `back to collection description` link
+            collectionName = @get('name') or @get('title')
+            for product in @get('taggedProducts')
+                product.set("collectionName", collectionName)
 
 
     class module.VideoTile extends module.Tile
