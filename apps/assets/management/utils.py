@@ -13,6 +13,7 @@ from django.db.models.signals import post_save
 from apps.assets.models import Category, Feed, Page, Product, Tile
 from apps.assets.signals import tile_saved
 from apps.intentrank.serializers import SerializerError
+from apps.imageservice.tasks import process_image
 
 
 def set_negative_priorities(tile_id_list):
@@ -127,6 +128,16 @@ def set_random_priorities(tiles, max_priority=0, min_priority=0):
             t.save()
             print u"{} priority set to {}".format(t, t.priority)
     print u"Random priorities set for {} Tiles".format(len(tiles))
+
+def update_dominant_color(tiles):
+    """Updates dominant color of all the images in the provided tiles"""
+    for t in tiles:
+        if isinstance(t, Tile) and isinstance(t.product, Product):
+            for i in t.product.product_images.all():
+                data = process_image(i.url)
+                i.dominant_color = data['dominant_color']
+                i.save()
+    update_tiles_ir_cache(tiles)
 
 def update_tiles_ir_cache(tiles):
     """
