@@ -534,26 +534,27 @@ body {
 }
 
 .shop-cta,
-.similar-cta {
+.similar-cta,
+.similar-subtext {
     text-align: center;
     line-height: 16px;
+}
+.shop-cta,
+.similar-cta {
     font-size: 17px;
     font-family: $slt-modern-font;
     font-weight: bold;
-    .subtext {
-        position: relative;
-        left: 0;
-        top: 0;
-        font-style: italic;
-        font-weight: normal;
-        font-size: 14px;
-        font-family: $slt-basic-font;
-    }
+}
+.similar-subtext {
+    font-size: 14px;
+    font-family: $slt-basic-font;
+    font-style: italic;
 }
 .shop-cta {
     color: $slt-orange-color;
 }
-.similar-cta {
+.similar-cta,
+.similar-subtext {
     color: $slt-green-color;
 }
 
@@ -668,8 +669,7 @@ body {
             padding: 10px 0 170px 0;
         }
         text-align: left;
-        .back-to-recipe,
-        .back-to-collection {
+        .back {
             color: $slt-purple-color;
             font-size: 18px;
             font-weight: bold;
@@ -968,6 +968,12 @@ body {
             font-size: 22px;
             line-height: 22px;
             padding: 10px 0 6px 0;
+        }
+        .similar-subtext ~ .similar-cta {
+            padding-bottom: 0px;
+        }
+        .similar-subtext {
+            padding: 0 0 6px 0;
         }
         .tile {
             .table {

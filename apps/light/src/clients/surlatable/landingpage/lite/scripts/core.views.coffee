@@ -68,13 +68,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
     )
 
-    module.ExpandedContent::events =
-        "click @ui.lookThumbnail, .back-to-recipe": (event) ->
-            # Hide products, show content
-            @taggedProductIndex = -1
-            @updateContent()
-            return
-
+    _.extend(module.ExpandedContent::events,
         "click .stl-look .stl-item": (event) ->
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
@@ -88,6 +82,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             App.vent.trigger('tracking:product:thumbnailClick', @getTrackingData(product))
             App.utils.openUrl(url)
             return
+    )
 
     # SLT shows one piece of content at a time
     _.extend(module.ExpandedContent::defaultOptions, featureSingleItem: true)

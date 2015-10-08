@@ -89,6 +89,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # Stop propogation to avoid double-opening url
                 return false
 
+            'click .back': (ev) ->
+                @triggerMethod('click:back')
+
         initialize: ->
             @numberOfImages = @model.get('images')?.length or 0
             @galleryIndex = 0
@@ -301,8 +304,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             similarProducts: ".similar-products"
 
         ui:
-            lookImage: '.look-image-container'
-            lookThumbnail: '.look-thumbnail'
+            # merge .product-info into .info, .product-thumbnails into .shop
+            productInfo: ".info"
+            productThumbnails: ".shop"
+            similarProducts: ".similar-products"
+            lookImage: ".look-image-container"
+            lookThumbnail: ".look-thumbnail"
 
         defaultOptions:
             # productThumbnails: show thumbnails carousel below products / images
@@ -344,9 +351,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @getTrackingData(@model.get("taggedProducts")[@taggedProductIndex]))
                 return
 
-        getTrackingData: (product) ->
-            return _.extend({}, @model.toJSON(), product: product)
-
         # Attach tracking info to child events - attach correct product
         # When Behaviors can read LayoutView childEvents, this can be replaced with
         # module.behavior.childProductViewTracking
@@ -366,6 +370,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.animate(scrollTop: 0, 1000)
                 App.vent.trigger("tracking:product:thumbnailClick",
                                  @getTrackingData(@taggedProducts[@taggedProductIndex]))
+            "click:back": (childView) ->
+                # Reload featured content/product
+                @taggedProductIndex = -1
+                if @options.previewFeed
+                    @resizeContainer() # will call updateContent
+                else
+                    @updateContent()
+                return
+
+        getTrackingData: (product) ->
+            return _.extend({}, @model.toJSON(), product: product)
 
         initialize: (options) ->
             # Order of priority for display options:
@@ -434,7 +449,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     else
                         # Featured content (ex: image tile)
                         # will be displayed in .look-image-container, rendered by template
-                        @productInfo.destroy()
+                        @productInfo.empty()
                         @ui.lookImage.show() # show image
                         @$el.find('.info').hide() # hide product
 
@@ -583,9 +598,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @showSimilarProducts()
             else if @options.showThumbnails
                 @showThumbnails()
-                # When .product-info is merged with .info, get rid of .parent()
-                # investigate replacing with sibling selectors .shop:empty ~ .info
-                @productInfo.$el.parent().addClass('tagged')
+                # can replace with sibling selectors .shop:empty ~ .info
+                # when .product-info merged into .shop
+                @ui.productInfo.addClass('tagged')
 
             @resizeContainer()
 

@@ -307,12 +307,12 @@
                         <% include("product_buy_template") %>
                     </div>
                     <% if (obj['recipeName']) { %>
-                    <div class="back-to-recipe">
+                    <div class="back">
                         Back to <%- obj['recipeName'] %> Recipe
                     </div>
                     <% } %>
                     <% if (obj['collectionName']) { %>
-                    <div class="back-to-collection">
+                    <div class="back">
                         Back to Collection Description
                     </div>
                     <% } %>
@@ -344,7 +344,8 @@
 
         <script type="text/template" id="similar_products_template">
             <% if (parentTemplate === "collection") { %>
-                <div class="similar-cta">Shop the Collection<span class='subtext'>by clicking the images below</span></div>
+                <div class="similar-cta">Shop the Collection</div>
+                <div class='similar-subtext'>by clicking the images below</div>
             <% } else { %>
                 <div class="similar-cta">You May Also Like</div>
             <% } %>
