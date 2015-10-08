@@ -31,12 +31,12 @@ class SecondFunnelScraper(object):
     # The functions below are hooks meant to be overwritten 
     # in the spiders for individual clients
     @staticmethod
-    def choose_default_image(self, product):
+    def choose_default_image(product):
         """Hook for choosing non-product-shot default image on slt"""
         pass
 
     @staticmethod
-    def clean_url(self, url):
+    def clean_url(url):
         """Hook for cleaning url before scraping"""
         return url
 

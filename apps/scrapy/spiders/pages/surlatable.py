@@ -61,7 +61,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         return False
 
     @staticmethod
-    def clean_url(self, url):
+    def clean_url(url):
         cleaned_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/product/(?:REC|PRO)-\d+/).*?',
                              url).group(1)
         return cleaned_url
