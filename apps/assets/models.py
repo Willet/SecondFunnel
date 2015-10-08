@@ -579,7 +579,7 @@ class ProductImage(BaseModel):
         super(ProductImage, self).delete(*args, **kwargs)
 
     @property
-    def is_product_shot():
+    def is_product_shot(self):
         """The product_shot property."""
         product_shot = False
         if self.dominant_color is not None:
