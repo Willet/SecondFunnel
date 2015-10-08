@@ -40,12 +40,6 @@ class PageMaintainer(object):
                                                                       self.spider_name))
         self.url_validator = URLValidator()
 
-    def _get_spider(self, project, spidername):
-        """Return spider for given spider name"""
-        spiders_export = autodiscover_module_classes(project.__name__, project.__path__, SecondFunnelCrawlScraper)
-        spiders = dict((x.lower(), y) for x, y in spiders_export)
-        return spiders["{}spider".format(spidername)]
-
     def add(self, source_urls, categories=[], options={}):
         """
         1. Adds new source urls to a page
@@ -133,6 +127,12 @@ class PageMaintainer(object):
                           categories=[],
                           options=opts,
                           project=datafeeds)
+
+    def _get_spider(self, project, spidername):
+        """Return spider for given spider name"""
+        spiders_export = autodiscover_module_classes(project.__name__, project.__path__, SecondFunnelCrawlScraper)
+        spiders = dict((x.lower(), y) for x, y in spiders_export)
+        return spiders["{}spider".format(spidername)]
 
     def _run_scraper(self, spider_name, start_urls, categories, options, project):
         """
