@@ -245,6 +245,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     ###
     Similar products look like tiles in a feed
+
+    Options:
+        template - expose parent template name to similar products template
     ###
     class module.SimilarProductsView extends Marionette.CompositeView
         type: "SimilarProductsView"
@@ -256,6 +259,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             productAttrs = ((if p.toJSON? then p.toJSON() else p) \
                              for p in (options['products'] or []))
             @collection = new module.ProductCollection(productAttrs)
+
+            if options.template
+                @templateHelpers =
+                    parentTemplate: options.template
 
         childEvents:
             "click": (childView) ->
@@ -613,6 +620,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                (App.support.mobile() and @taggedProducts.length > 0)
                 similarProductsInstance = new module.SimilarProductsView(
                     products: @taggedProducts
+                    template: @model.get('template')
                 )
                 @similarProducts.show(similarProductsInstance)
 
@@ -737,7 +745,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#preview_container_template"
         templates: ->
             templateRules = [
-                # supported contexts: options, data
+                # supported contexts: options -> App.options, data -> model.attributes
                 "#<%= options.store.slug %>_<%= data.template %>_mobile_preview_container_template"
                 "#<%= data.template %>_mobile_preview_container_template"
                 "#<%= options.store.slug %>_<%= data.template %>_preview_container_template"
