@@ -132,7 +132,10 @@ class PageMaintainer(object):
         """Return spider for given spider name"""
         spiders_export = autodiscover_module_classes(project.__name__, project.__path__, SecondFunnelCrawlScraper)
         spiders = dict((x.lower(), y) for x, y in spiders_export)
-        return spiders["{}spider".format(spidername)]
+        try:
+            return spiders["{}spider".format(spidername)]
+        except KeyError:
+            raise LookupError("Could not find spider called \"{}\"".format(spidername))
 
     def _run_scraper(self, spider_name, start_urls, categories, options, project):
         """
