@@ -593,7 +593,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @$el.closest(".previewContainer").removeClass("landscape")
                 # will be removed by shrinkCallback
                 @$el.closest(".fullscreen").addClass("loading-images")
-
+            
             if @options.previewFeed
                 @showSimilarProducts()
             else if @options.showThumbnails

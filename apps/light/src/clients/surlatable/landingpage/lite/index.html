@@ -380,20 +380,26 @@
         </script>
 
         <script type="text/template" id="mobile_tagged_products">
-            <div class="look-product-carousel">
-                <div class="cell look-image-container">
-                    <% if (template === "recipe") { %>
-                        <% include("recipe_template") %>
-                    <% } else { %>
-                        <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
-                    <% } %>
+            <div class="feature">
+                <div class="look-product-carousel">
+                    <div class="cell look-image-container <% if (template === 'collection') {%>contain<% } %>">
+                        <% if (template === "collection") { %>
+                            <% var url = obj.expandedMobileImage ? obj.expandedMobileImage.url :
+                                        ( obj.expandedImage ? obj.expandedImage.url : image.url); %>
+                            <img src="<%= url %>" alt="image" class="look-image" />
+                        <% } else if (template === "recipe") { %>
+                            <% include("recipe_template") %>
+                        <% } else { %>
+                            <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
+                        <% } %>
+                    </div>
+                    <div class="cell info">
+                        <div class="product-info"></div>
+                    </div>
                 </div>
-                <div class="cell info">
-                    <div class="product-info"></div>
+                <div class="cell shop">
+                    <div class="product-thumbnails"></div>
                 </div>
-            </div>
-            <div class="cell shop">
-                <div class="product-thumbnails"></div>
             </div>
             <div class="cell similar-products overflow"></div>
         </script>
