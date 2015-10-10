@@ -1417,9 +1417,11 @@ class Tile(BaseModel):
 
     def clean(self):
         if self.pk:
-            products_stock_status = [p.in_stock for p in self.products.all()]
+            products_stock_status = [bool(p.in_stock and not p.is_placeholder) \
+                                     for p in self.products.all()]
             for content in self.content.all():
-                products_stock_status += [p.in_stock for p in content.tagged_products.all()]
+                products_stock_status += [bool(p.in_stock and not p.is_placeholder) \
+                                          for p in content.tagged_products.all()]
             if not len(products_stock_status):
                 # This tile has no tagged products, default to in_stock = True
                 # Example: banner tile
