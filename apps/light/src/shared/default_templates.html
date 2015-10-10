@@ -161,23 +161,19 @@
     <% if (obj.taggedProducts.length) { %>
     <% var product = obj.taggedProducts[0]; %>
         <div class="image-with-tagged-products">
-            <div class="table <%= image.get('orientation') %>">
-                <div class="row">
+            <div class="table <%= image.get('orientation') %> <% if (showFeed) { %>feed<% } %>">
                 <% if (App.support.mobile()) { %>
                     <% include("mobile_tagged_products") %>
                 <% } else { %>
                     <% include("desktop_tagged_products") %>
                 <% } %>
-                </div>
             </div>
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
         </div>
     <% } else { %>
         <div class="image-without-tagged-products">
             <div class="table <%= image.get('orientation') %>">
-                <div class="row">
-                    <% include("no_tagged_products") %>
-                </div>
+                <% include("no_tagged_products") %>
             </div>
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
         </div>
@@ -193,7 +189,7 @@
 </script>
 
 <script type="text/template" id="product_preview_template">
-    <div class="product-info table feature"></div>
+    <div class="product-info table feature <% if (showFeed) { %>feed<% } %>"></div>
     <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
     <div class="similar-products cell overflow"></div>
 </script>

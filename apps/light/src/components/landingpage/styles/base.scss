@@ -250,8 +250,6 @@ div.loading {
     font-size: 15px;
     color: #b5b5b5;
 
-    float: left;
-
     /* http://css-tricks.com/box-sizing/ */
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -490,19 +488,9 @@ div.loading {
 .previewContainer,
 .heroContainer {
     .table {
-        display: table;
-        table-layout: fixed;
+        display: block;
         margin-bottom: 0;
         width: 100%;
-    }
-    .row {
-        display: table-row;
-        width: 100%;
-        margin: 0;
-        &:before,
-        &:after {
-            content: none;
-        }
     }
     .product-info .tagged-product {
         &:first-child {
@@ -748,6 +736,12 @@ div.loading {
                 filter: alpha(opacity=100);
                 cursor: default;
             }
+        }
+    }
+    /* feed within a content */
+    .tiles {
+        .tile {
+            float: left;
         }
     }
     .landscape {
@@ -1017,11 +1011,6 @@ div.spinner {
             background: #fff;
             border: 0;
             box-shadow: none;
-        }
-        .row {
-            max-width: 100%;
-            margin-left: 0;
-            margin-right: 0;
         }
         .cell {
             display: block;

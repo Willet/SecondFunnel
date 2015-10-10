@@ -322,22 +322,20 @@
 
         <script type="text/template" id="product_preview_template">
             <div class="table <%= obj.orientation %>">
-                <div class="row">
-                    <div class="feature">
-                        <div class="cell title-banner desktop-only">
-                            <div class="title">
-                                <% include("product_title_template") %>
-                            </div>
-                        </div>
-                        <div class="cell info">
-                            <div class="product-info"></div>
-                        </div>
-                        <div class="cell shop">
-                            <div class="product-thumbnails"></div>
+                <div class="feature">
+                    <div class="cell title-banner desktop-only">
+                        <div class="title">
+                            <% include("product_title_template") %>
                         </div>
                     </div>
-                    <div class="cell similar-products overflow"></div>
+                    <div class="cell info">
+                        <div class="product-info"></div>
+                    </div>
+                    <div class="cell shop">
+                        <div class="product-thumbnails"></div>
+                    </div>
                 </div>
+                <div class="cell similar-products overflow"></div>
             </div>
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
         </script>
@@ -359,7 +357,7 @@
                         <% include("product_title_template") %>
                     </div>
                 </div>
-                <div class="cell look-image-container <% if (template === 'collection') {%>contain<% } %>">
+                <div class="cell look-image-container">
                     <% if (template === "collection") { %>
                         <% var url = obj.expandedImage ? obj.expandedImage.url : image.url; %>
                         <img src="<%= url %>" alt="image" class="look-image" />
@@ -382,7 +380,7 @@
         <script type="text/template" id="mobile_tagged_products">
             <div class="feature">
                 <div class="look-product-carousel">
-                    <div class="cell look-image-container <% if (template === 'collection') {%>contain<% } %>">
+                    <div class="cell look-image-container">
                         <% if (template === "collection") { %>
                             <% var url = obj.expandedMobileImage ? obj.expandedMobileImage.url :
                                         ( obj.expandedImage ? obj.expandedImage.url : image.url); %>

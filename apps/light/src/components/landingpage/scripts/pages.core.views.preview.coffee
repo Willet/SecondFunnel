@@ -305,11 +305,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         ui:
             # merge .product-info into .info, .product-thumbnails into .shop
-            productInfo: ".info"
-            productThumbnails: ".shop"
-            similarProducts: ".similar-products"
-            lookImage: ".look-image-container"
+            productInfo: ".info" # region
+            productThumbnails: ".shop" # region
+            similarProducts: ".similar-products" # region
+            lookImage: ".look-image-container" # convert to region?
             lookThumbnail: ".look-thumbnail"
+            lookProductCarousel: ".look-product-carousel" # mobile only, contains lookImage and productInfo
 
         defaultOptions:
             # productThumbnails: show thumbnails carousel below products / images
@@ -584,7 +585,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @$el.closest(".previewContainer").removeClass("landscape")
                 @$el.find('.info').hide() # hide tagged product
                 # enable swiping of thumbnails
-                @$el.find(".look-product-carousel")?.swipe(
+                @ui.lookProductCarousel?.swipe(
                     triggerOnTouchEnd: true,
                     swipeStatus: _.bind(@swipeStatus, @),
                     allowPageScroll: 'vertical'
@@ -596,11 +597,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             
             if @options.previewFeed
                 @showSimilarProducts()
+                @ui.productThumbnails.hide()
             else if @options.showThumbnails
                 @showThumbnails()
+                @ui.similarProducts.hide()
                 # can replace with sibling selectors .shop:empty ~ .info
                 # when .product-info merged into .shop
-                @ui.productInfo.addClass('tagged')
+                if App.support.mobile()
+                    @ui.lookProductCarousel?.addClass('tagged')
+                else
+                    @ui.productInfo.addClass('tagged')
 
             @resizeContainer()
 
@@ -721,6 +727,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return _.contains(t, "mobile")
                 )
             templateRules
+
+        templateHelpers: ->
+            return showFeed: @options.previewFeed
 
         onRender: ->
             # hide discovery, then show this window as a page.
