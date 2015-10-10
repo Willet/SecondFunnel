@@ -349,20 +349,20 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             b) images, default image and tagged products default image are converted
             to <Image>s.
             ###
-            if @get("image")? 
+            if @get("image")? and not _.isEmpty(@get('image'))
                 @set(image: new module.Image(@get("image")))
 
             if _.isArray(@get("images"))
-                @set(images: (new module.Image(im) for im in @get("images")))
+                @set(images: (new module.Image(im) for im in @get("images") when not _.isEmpty(im)))
 
-            if @get('product')?
+            if @get('product')? and not _.isEmpty(@get('product'))
                 @set(product: new module.Product(@get('product')))
 
             if _.isArray(@get('tagged-products'))
-                @set(taggedProducts: (new module.Product(p) for p in @get('tagged-products')))
+                @set(taggedProducts: (new module.Product(p) for p in @get('tagged-products') when not _.isEmpty(p)))
                 @unset('tagged-products')
 
-            if @get('default-image')?
+            if @get('default-image')? and not _.isEmpty(@get('default-image'))
                 # getImage uses images, so set first
                 defaultImage = if _.isNumber(@get('default-image')) \
                                then @getImage(@get('default-image')) \
@@ -373,7 +373,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                 @unset('default-image')
 
-            if @get('video')?
+            if @get('video')? and not _.isEmpty(@get('video'))
                 video = if (@get('video')['source'] == 'youtube') \
                         then new module.YoutubeVideo(@get('video')) \
                         else new module.Video(@get('video'))

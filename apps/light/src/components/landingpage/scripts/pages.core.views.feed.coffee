@@ -65,6 +65,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onShow: ->
             @attachListeners()
             @fetchTiles()
+            return
 
         fetchTiles: ->
             if @isLoading
@@ -80,7 +81,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 _.delay(@pageScroll, 500)
             )
             @lastRequest = xhr
-            xhr
+            return xhr
 
         pageScroll: ->
             if @ended
@@ -106,6 +107,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else if windowTop < @lastScrollTop
                 App.vent.trigger('scrollUp', @)
             @lastScrollTop = windowTop
+            return
 
         attachListeners: ->
             globals = App._globals
