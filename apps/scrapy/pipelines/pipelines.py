@@ -47,7 +47,7 @@ class ForeignKeyPipeline(ItemManifold):
         return item
 
 
-class ValidationPipeline(ItemManifold, PlaceholderMixin):
+class ValidationPipeline(ItemManifold, PlaceholderMixin, TilesMixin):
     """
     If item fails validation:
      - if product exists in database, set it to out of stock
@@ -62,8 +62,10 @@ class ValidationPipeline(ItemManifold, PlaceholderMixin):
 
         if missing_fields or empty_fields:
             # Attempt to find the product & mark it as out of stock
-            # If we are creating tiles, create a placeholder
-            self.update_or_save_placeholder(item, spider)
+            item['instance'], item['created'] = self.update_or_save_placeholder(item)
+            # If we are creating tiles, add (placeholder) to the feed
+            if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
+                self.add_to_feed(item, spider)
             raise DropItem('Required fields missing ({}) or empty ({})'.format(
                     ', '.join(missing_fields),
                     ', '.join(empty_fields)
@@ -155,7 +157,7 @@ class ContentImagePipeline(ItemManifold):
             return item
 
 
-class ItemPersistencePipeline(PlaceholderMixin):
+class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
     """
     Save item as model
 
@@ -173,7 +175,11 @@ class ItemPersistencePipeline(PlaceholderMixin):
         try:
             update_model(model, item)
         except ValidationError as e:
-            self.update_or_save_placeholder(item, spider)
+            # Attempt to find the product & mark it as out of stock
+            item['instance'], item['created'] = self.update_or_save_placeholder(item)
+            # If we are creating tiles, add (placeholder) to the feed
+            if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
+                self.add_to_feed(item, spider)
             raise DropItem('DB item validation failed: ({})'.format(e))
 
         item['instance'] = model # save reference for further pipeline steps
@@ -239,7 +245,7 @@ class TagPipeline(ItemManifold):
         tag.save()
 
 
-class ProductImagePipeline(ItemManifold):
+class ProductImagePipeline(ItemManifold, PlaceholderMixin):
     """
     If product has image_urls, turn them into <Product Image> and delete
     all other <Product Image>s that exist already
@@ -274,10 +280,8 @@ class ProductImagePipeline(ItemManifold):
                     images.append(existing_image)
 
             if not images:
-                # Product has no images, something is wrong with it
-                # Implementation is not very idiomatic unfortunately
-                product.in_stock = False
-                product.save()
+                # Product has no images, convert to placeholder
+                self.convert_to_placeholder(product)
                 spider.logger.info(u"<Product {}> failed image processing!".format(product))
             else:
                 # Product is good, delete any out of date images

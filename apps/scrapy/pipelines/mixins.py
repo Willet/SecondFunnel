@@ -63,18 +63,18 @@ class TilesMixin(object):
         else:
             return False
 
-    def add_to_feed(self, item, spider, placeholder=False):
+    def add_to_feed(self, item, spider):
+        obj = item['instance']
         feed_id = getattr(spider, 'feed_id', None)
         recreate_tiles = getattr(spider, 'recreate_tiles', False)
         categories = getattr(spider, 'categories', False)
+        placeholder = getattr(obj, 'is_placeholder', False)
 
         try:
             feed = Feed.objects.get(id=feed_id)
         except Feed.DoesNotExist:
             spider.log(u"Error adding to <Feed #{}> because feed does not exist".format(feed_id))
             raise CloseSpider(reason='Invalid feed id')
-
-        obj = item['instance']
 
         if not item['created'] and recreate_tiles:
             spider.log(u"Recreating tile for <{}>".format(obj))
@@ -101,21 +101,25 @@ class TilesMixin(object):
             return (tile, created)
 
 
-class PlaceholderMixin(TilesMixin):
+class PlaceholderMixin(object):
     """
-    Adds methods to create placeholder products and tiles
-
-    NOTE: Assumes a global _category_cache <SimpleCache> exists
+    Adds methods to manage placeholder products
     """
     def __init__(self, *args, **kwargs):
         super(PlaceholderMixin, self).__init__(*args, **kwargs)
 
-    def update_or_save_placeholder(self, item, spider):
+    def update_or_save_placeholder(self, item):
+        """ When a product is invalid for any reason:
+
+        if it exists, set it to out of stock
+        if it is a duplicate, merge and set to out of stock
+        if it doesn't exist, create a placeholder
+
+        Returns (<Product>, <Boolean> created)
+        """
         url = item['url']
         store = item['store']
         sku = item.get('sku', None)
-
-        feed_id = getattr(spider, 'feed_id', None)
 
         try:
             product = Product.objects.get(url=url, store=store)
@@ -129,16 +133,17 @@ class PlaceholderMixin(TilesMixin):
         except MultipleObjectsReturned:
             qs = Product.objects.filter(url=url, store=store)
             product = Product.merge_products(qs)
+            product.in_stock = False
+            product.save()
             created = False
-        finally:
-            # If we are creating tiles, add a placeholder to the feed
-            if not self.skip_tiles(item, spider) and feed_id:
-                item['instance'] = product
-                item['created'] = created
-                spider.log(u"Adding '{}' to <Feed #{}>".format(product, feed_id))
+        return (product, created)
 
-                recreate_tiles = getattr(spider, 'recreate_tiles', False)
-                categories = getattr(spider, 'categories', False)
-
-                self.add_to_feed(item, spider, placeholder=product.is_placeholder)
+    def convert_product_to_placeholder(self, product):
+        """ Takes an existing product and converts it and its product tiles to placeholders """
+        placeholder = PlaceholderProduct.objects.get(id=product.id)
+        placeholder.save()
+        for t in placeholder.tiles.all():
+            if t.template == "product":
+                t.placeholder = True
+                t.save()
 
