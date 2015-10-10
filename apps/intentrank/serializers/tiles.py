@@ -131,6 +131,8 @@ class ProductTileSerializer(TileSerializer):
             product = tile.products.first().to_json()
         except AttributeError:
             raise SerializerError('Product Tile #{} has no products'.format(tile.id))
+        if not product['default-image']:
+            raise SerializerError('Product Tile #{} must have a default image'.format(tile.id))
 
         data = self.get_core_attributes(tile)
         data.update({
