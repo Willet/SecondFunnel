@@ -27,18 +27,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # DEFER: this assumes it is always just an add operation
             options = _.defaults({}, options)
             if options.parse
-                models = @parse models, options
+                models = @parse(models, options)
             @add(models, options)
 
         parse: (resp, options) ->
             return resp
 
         add: (models, options) ->
-            if singular = not _.isArray(models)
-                if models
-                    models = [models]
-                else
-                    models = []
+            singular = not _.isArray(models)
+            if singular
+                models = if models then [models] else []
             at = options["at"] || 0
             newModels = _.map models, (attrs) =>
                 if attrs instanceof Backbone.Model
@@ -49,56 +47,50 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     new @model(attrs)
             @models[at..0] = newModels
             if not options.silent
-                _.each newModels, (model) =>
-                    @trigger 'add', model, @, options
-                @trigger 'add:many', newModels, @, options
-            _.each newModels, (model) =>
-                @_addReference model
+                _.each(newModels, (model) => @trigger('add', model, @, options))
+                @trigger('add:many', newModels, @, options)
+            _.each(newModels, (model) => @_addReference(model))
 
         remove: (models, options={}) ->
-            if singular = not _.isArray(models)
-                if models
-                    models = [models]
-                else
-                    models = []
+            singular = not _.isArray(models)
+            if singular
+                models = if models then [models] else []
             for model in models
                 t = _.indexOf(@models, model)
                 if t > -1
                     @models[t..t] = []
                     @length = @length - 1
                     if not options.silent
-                        @trigger 'remove', model, @, options
-                    @_removeReference model, options
-            if singular
-                return models[0]
-            return models
+                        @trigger('remove', model, @, options)
+                    @_removeReference(model, options)
+            
+            return if singular then models[0] else models
 
         reset: (models, options) ->
-            _.each @models, (model) ->
-                @_removeReference(model, options)
+            _.each(@models, (model) -> @_removeReference(model, options))
             options.previousModels = @models
             @_reset()
-            models = @add models, _.extend({silent: true}, options)
+            models = @add(models, _.extend({silent: true}, options))
             if not options.silent
-                @trigger 'reset', @, options
+                @trigger('reset', @, options)
             return models
 
         push: (model, options) ->
-            @add model, _.extend({at: @length}, options)
+            @add(model, _.extend({at: @length}, options))
             return model
 
         pop: (options) ->
             model = @at(@length - 1)
-            @remove model, options
+            @remove(model, options)
             return model
 
         unshift: (model, options) ->
-            @add model, options
+            @add(model, options)
             return model
 
         shift: (options) ->
             model = @at 0
-            @remove model
+            @remove(model)
             return model
 
         at: (index) ->
@@ -136,11 +128,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         'tail', 'drop', 'last', 'without', 'difference', 'indexOf', 'shuffle',
         'lastIndexOf', 'isEmpty', 'chain', 'sample']
 
-    _.each underscore_methods, (method) ->
+    _.each(underscore_methods, (method) ->
         module.List.prototype[method] = () ->
             args = [].slice(arguments) # convert to regular array
             args.unshift(@models)
             return _[method].apply(_, args)
+    )
 
 
     class module.Store extends Backbone.Model
@@ -156,7 +149,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             unless data.slug
                 throw new Error("Missing store slug")
             unless data.displayName
-                @set "displayName", @get("name")
+                @set("displayName", @get("name"))
             return
 
 
@@ -208,11 +201,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # the template needs something simpler.
             @color = color
-            if options and options["suppress_resize"]
-                @url = @get("url")
-            else
-                @url = @width(App.feed.width())
-
+            @url = if options? and options["suppress_resize"] \
+                   then @get("url") \
+                   else @width(App.feed.width())
             return
 
         sync: ->
@@ -496,12 +487,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if tile["tile-id"]
                     return true
                 else
-                    console.warn("Rejected tile during parse beecause it has no tile-id: %O", tile)
+                    console.warn("Rejected tile during parse because it has no tile-id: %O", tile)
                     return false
             )
             tiles = _.map(respBuilder, (jsonEntry) ->
-                TileClass = App.utils.findClass("Tile", jsonEntry.template or jsonEntry.type, module.Tile)
-                return new TileClass(jsonEntry, parse: true)
+                try
+                    TileClass = App.utils.findClass("Tile", jsonEntry.template or jsonEntry.type, module.Tile)
+                    return new TileClass(jsonEntry, parse: true)
+                catch e
+                    console.warn("Tile threw error (%s: %s) during initialization: %O", e.name, e.message, tile)
+                    return false
             )
             return tiles
 

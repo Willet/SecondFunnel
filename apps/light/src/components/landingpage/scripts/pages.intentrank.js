@@ -155,7 +155,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 // reset fail counter
                 collection.ajaxFailCount = 0;
                 collection.offset += opts.results;
-                // udpate collection
+                // update collection
                 collection[method](results, opts);
                 // manually fire event for any listeners
                 collection.trigger('sync', collection, results, opts);
