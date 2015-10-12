@@ -12,6 +12,7 @@ from django.db.models.signals import post_save
 
 from apps.assets.models import Category, Feed, Page, Product, Tile
 from apps.assets.signals import tile_saved
+from apps.assets.utils import disable_tile_serialization
 from apps.intentrank.serializers import SerializerError
 
 
@@ -128,16 +129,17 @@ def set_random_priorities(tiles, max_priority=0, min_priority=0):
             print u"{} priority set to {}".format(t, t.priority)
     print u"Random priorities set for {} Tiles".format(len(tiles))
 
+@disable_tile_serialization
 def update_tiles_ir_cache(tiles):
     """
     Updates the ir_cache of tiles. Does not run full clean!
 
     Returns: <list> of <tuple>(Tile, Error) for failed updates
     """
-    post_save.disconnect(tile_saved, sender=Tile)
     dts = []
     for t in tiles:
         try:
+            # "manually" update tile ir cache
             ir_cache, updated = t.update_ir_cache() # sets tile.ir_cache
             if updated:
                 models.Model.save(t, update_fields=['ir_cache']) # skip full_clean
@@ -148,7 +150,6 @@ def update_tiles_ir_cache(tiles):
         except ValidationError as e:
             print "\t{}: {}".format(t, e)
             dts.append((t, e))
-    post_save.connect(tile_saved, sender=Tile)
     return dts
 
 def remove_product_tiles_from_page(page_slug, prod_url_id_list, fake=False):
