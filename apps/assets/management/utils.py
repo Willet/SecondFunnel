@@ -5,15 +5,18 @@ Intended to be run from a shell"""
 import csv
 import pprint
 import random
+import requests
+import json
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import transaction, models
 from django.db.models.signals import post_save
+from django.conf import settings
 
-from apps.assets.models import Category, Feed, Page, Product, Tile
-from apps.assets.signals import tile_saved
+from apps.assets.models import Category, Feed, Page, Product, ProductImage, Tile
+from apps.assets.signals import tile_saved, productimage_saved
 from apps.intentrank.serializers import SerializerError
-from apps.imageservice.tasks import process_image
+from apps.imageservice.utils import get_public_id
 
 
 def set_negative_priorities(tile_id_list):
@@ -129,14 +132,34 @@ def set_random_priorities(tiles, max_priority=0, min_priority=0):
             print u"{} priority set to {}".format(t, t.priority)
     print u"Random priorities set for {} Tiles".format(len(tiles))
 
+def get_resource_url(public_id):
+    return "https:{}/resources/image/upload/{}?colors=1".format(settings.CLOUDINARY_API_URL, public_id)
+
 def update_dominant_color(tiles):
     """Updates dominant color of all the images in the provided tiles"""
-    for t in tiles:
-        if isinstance(t, Tile) and isinstance(t.product, Product):
-            for i in t.product.product_images.all():
-                data = process_image(i.url)
-                i.dominant_color = data['dominant_color']
-                i.save()
+    post_save.disconnect(productimage_saved, sender=ProductImage)
+    with requests.Session() as s:
+        s.auth = requests.auth.HTTPBasicAuth(settings.CLOUDINARY_API_KEY, settings.CLOUDINARY_API_SECRET)
+        for i, t in enumerate(tiles.iterator()):
+            try:
+                pis = t.product.product_images.all()
+                print "{} {}: getting dominant_color for {} images".format(i, t, pis.count())
+            except AttributeError:
+                print "{} {}: no product".format(i, t)
+                continue
+            for j, pi in enumerate(pis):
+                public_id = get_public_id(pi.url)
+                url = get_resource_url(public_id)
+                data = s.get(url)
+                result = json.loads(data.text)
+                if "error" in result:
+                    print "\t{} Error: {}".format(j, result['error']['message'])
+                    continue
+                else:
+                    pi.dominant_color = result['colors'][0][0]
+                    pi.save()
+                    print "\t{} {}".format(j, pi.dominant_color)
+    post_save.connect(productimage_saved, sender=ProductImage)
     update_tiles_ir_cache(tiles)
 
 def update_tiles_ir_cache(tiles):
