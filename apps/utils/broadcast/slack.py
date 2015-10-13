@@ -20,7 +20,7 @@ def msg(channel, sender, title, message, level="info"):
 #   Library docs: https://github.com/iktakahiro/slackpy
 #   Slack API docs: https://api.slack.com/incoming-webhooks
 
-class SlackLogger:
+class SlackLogger(object):
     def __init__(self, web_hook_url, channel, username='Logger'):
 
         self.web_hook_url = web_hook_url

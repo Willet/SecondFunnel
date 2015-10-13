@@ -208,7 +208,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # the template needs something simpler.
             @color = color
-            if options and options["suppress_resize"]
+            if options and options["suppressResize"]
                 @url = @get("url")
             else
                 @url = @width(App.feed.width())
@@ -234,10 +234,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 options.height = height
             unless width or height
                 options.width = App.feed.width()
-            resized.url = App.utils.getResizedImage(@get("url"), options)
+            # first check if the resized url exists in sizes
+            if options.width?
+                size = _.findWhere(_.values(@attributes['sizes']), width: options.width)
+            else 
+                size = _.findWhere(_.values(@attributes['sizes']), height: options.height)
+            if size?.url?
+                resized.url = size.url
+            else
+                # else, generate it from Cloudinary
+                resized.url = App.utils.getResizedImage(@get("url"), options)
             if returnInstance
                 # Create a new instance of (Image or a subclass)
-                return new module[@type](resized)
+                return new module[@type](resized, suppressResize: true)
             else
                 return resized.url
 
@@ -444,12 +453,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if attrs.desktopHeroImage
                 desktopHeroImage = new module.Image(
                     url: attrs.desktopHeroImage
-                    suppress_resize: true
+                    suppressResize: true
                 )
             if attrs.mobileHeroImage
                 mobileHeroImage = new module.Image(
                     url: attrs.mobileHeroImage
-                    suppress_resize: true
+                    suppressResize: true
                 )
 
             if desktopHeroImage
