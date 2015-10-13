@@ -138,7 +138,7 @@ class PlaceholderMixin(object):
             created = False
         return (product, created)
 
-    def convert_product_to_placeholder(self, product):
+    def convert_to_placeholder(self, product):
         """ Takes an existing product and converts it and its product tiles to placeholders """
         placeholder = PlaceholderProduct.objects.get(id=product.id)
         placeholder.save()
