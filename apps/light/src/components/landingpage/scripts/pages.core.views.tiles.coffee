@@ -86,13 +86,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # this is a dirty check
             if $(ev.target).parents(".button").length
                 return
-            else if App.option("page:tiles:openTileInHero", false)
+
+            App.vent.trigger("tracking:tile:open", @model)
+
+            if App.option("page:tiles:openTileInHero", false)
                 # open tile in hero area
                 App.router.navigate("tile/#{String(@model.get('tile-id'))}", trigger: true)
             else
                 # open tile in popup
                 App.router.navigate("preview/#{String(@model.get('tile-id'))}", trigger: true)
-            
             return
 
 
@@ -193,11 +195,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#product_tile_template"
 
         onClick: ->
-        	if App.option('page:tiles:openProductTileInPDP')
+            App.vent.trigger('tracking:tile:bannerExit', @model)
+            if App.option('page:tiles:openProductTileInPDP')
                 App.utils.openUrl(@model.get("url"))
             else
                 super
-            return        
+            return
 
 
     class module.ImageTileView extends module.TileView
