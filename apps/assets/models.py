@@ -15,7 +15,7 @@ from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
 import apps.api.serializers as cg_serializers
-from apps.imageservice.utils import delete_cloudinary_resource
+from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource
 import apps.intentrank.serializers as ir_serializers
 from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
@@ -574,8 +574,11 @@ class ProductImage(BaseModel):
         return super(ProductImage, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
-            delete_cloudinary_resource(self.url)
+        if settings.ENVIRONMENT == "production":
+            if settings.CLOUDINARY_BASE_URL in self.url:
+                delete_cloudinary_resource(self.url)
+            elif settings.IMAGE_SERVICE_BUCKET in self.url:
+                delete_s3_resource(self.url)
         super(ProductImage, self).delete(*args, **kwargs)
 
     @property
@@ -720,9 +723,11 @@ class Image(Content):
 
 
     def delete(self, *args, **kwargs):
-        if settings.ENVIRONMENT == "production" and \
-           settings.CLOUDINARY_BASE_URL in self.url:
-            delete_cloudinary_resource(self.url)
+        if settings.ENVIRONMENT == "production":
+            if settings.CLOUDINARY_BASE_URL in self.url:
+                delete_cloudinary_resource(self.url)
+            elif settings.IMAGE_SERVICE_BUCKET in self.url:
+                delete_s3_resource(self.url)
         super(Image, self).delete(*args, **kwargs)
 
 
