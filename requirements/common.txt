@@ -39,7 +39,6 @@ python-termstyle==0.1.10
 pytz==2013.9
 six==1.5.2 # compatibility extension PY2->PY3
 simplejson==3.5.2 # for escaping json properly in HTML
-contextlib2==0.4.0 # backport Py3 contextlib
 
 ## Server
 httplib2==0.8
@@ -99,6 +98,7 @@ oauth2==1.5.211
 oauthlib==0.6.1
 paramiko==1.12.1
 pycrypto==2.6.1
+django-nose==1.2
 raven==4.2.0
 inflection==0.3.1 # intentrank json output
 
