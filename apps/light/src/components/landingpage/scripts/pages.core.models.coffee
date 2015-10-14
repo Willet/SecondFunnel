@@ -495,31 +495,27 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         loading: false
 
         ###
-        process common attributes, then delegate the collection's parsing
-        method to their individual tiles.
+        Process tileJSON's into tiles if they are valid. If invalid, warn and discard.
 
-        @param resp
+        @param resp - a list of tile's in json
         @param options
         @returns {Array}
         ###
         parse: (resp, options) ->
-            tileIds = App.intentRank.getTileIds()
-
-            respBuilder = _.filter(resp, (tile) =>
-                if tile["tile-id"]
-                    return true
-                else
+            reduceToTiles = (memo, tileJson) ->
+                if not tileJson["tile-id"]
                     console.warn("Rejected tile during parse because it has no tile-id: %O", tile)
-                    return false
-            )
-            tiles = _.map(respBuilder, (jsonEntry) ->
-                try
-                    TileClass = App.utils.findClass("Tile", jsonEntry.template or jsonEntry.type, module.Tile)
-                    return new TileClass(jsonEntry, parse: true)
-                catch e
-                    console.warn("Tile threw error (%s: %s) during initialization: %O", e.name, e.message, tile)
-                    return false
-            )
+                else
+                    try
+                        TileClass = App.utils.findClass("Tile", tileJson.template or tileJson.type, module.Tile)
+                        tile = new TileClass(tileJson, parse: true)
+                        memo.push(tile) # everything worked, let tile through
+                    catch e
+                        console.warn("Rejecting tile that threw error (%s: %s) during initialization: %O",
+                                     e.name, e.message, tile)
+                return memo
+
+            tiles = _.reduce(resp, reduceToTiles, [])
             return tiles
 
         ###
