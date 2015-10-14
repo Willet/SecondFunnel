@@ -64,7 +64,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         @trigger('remove', model, @, options)
                     @_removeReference(model, options)
             
-            return if singular then models[0] else models
+            return (if singular then models[0] else models)
 
         reset: (models, options) ->
             _.each(@models, (model) -> @_removeReference(model, options))
