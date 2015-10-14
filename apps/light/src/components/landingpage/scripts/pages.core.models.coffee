@@ -340,6 +340,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             b) images, default image and tagged products default image are converted
             to <Image>s.
             ###
+            if App.support.mobile() and @mobileOptions?
+                # update options on mobile
+                @options = _.extend({}, @options, @mobileOptions)
+
             if @get("image")? and not _.isEmpty(@get('image'))
                 @set(image: new module.Image(@get("image")))
 
@@ -410,8 +414,26 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CollectionTile extends module.Tile
         # Similar to Image Tile, but has mini-feed of products
         type: "CollectionTile"
-        displayOptions:
+        options:
+            showThumbnails: false
             previewFeed: true
+        initialize: ->
+            super
+            # A CollectionTile pop-up supports a different image than the tile view
+            if @get("expandedImage")?
+                image = if _.isNumber(@get('expandedImage')) \
+                        then @getImage(@get('expandedImage')) \
+                        else new module.Image(@get('expandedImage'))
+                @set(expandedImage: image)
+            if @get("expandedMobileImage")?
+                image = if _.isNumber(@get('expandedMobileImage')) \
+                        then @getImage(@get('expandedMobileImage')) \
+                        else new module.Image(@get('expandedMobileImage'))
+                @set(expandedMobileImage: image)
+            # Used to create a `back to collection description` link
+            collectionName = @get('name') or @get('title')
+            for product in @get('taggedProducts')
+                product.set("collectionName", collectionName)
 
 
     class module.VideoTile extends module.Tile
