@@ -131,6 +131,8 @@ class ProductTileSerializer(TileSerializer):
             product = tile.products.first().to_json()
         except AttributeError:
             raise SerializerError('Product Tile #{} has no products'.format(tile.id))
+        if not product['default-image']:
+            raise SerializerError('Product Tile #{} must have a default image'.format(tile.id))
 
         data = self.get_core_attributes(tile)
         data.update({
@@ -245,6 +247,58 @@ class BannerTileSerializer(TileSerializer):
             'default-image': image,
             'redirect-url': redirect_url,
         })
+        return data
+
+
+class CollectionTileSerializer(TileSerializer):
+    contenttype = 'assets.Image'
+
+    def get_dump_object(self, tile):
+        """
+        Attributes specify a default image id (and optionally an expanded image id) that is also
+        tagged to the tile.  Default image is used for the tile view and expanded image for a pop-up.
+
+        returns {
+            'default-image': image
+            'expandedImage': image (optional)
+            'tagged-products': [ products ]
+        }
+        """
+        images = tile.separated_content['images']
+        defaultImageId = tile.attributes.get('defaultImage') or tile.attributes.get('default-image')
+        if defaultImageId:
+            # expecting it to be an ID of one of the tagged content
+            try:
+                image = [i.to_json() for i in images if i.id == defaultImageId][0]
+            except IndexError:
+                raise SerializerError("Collection Tile #{} is not tagged with its \
+                                       default Image #{}".format(tile.id, defaultImageId))
+        else:
+            # Grab first tagged image
+            try:
+                image = self.get_dump_first_content_of(self.contenttype)
+            except LookupError:
+                raise SerializerError("Collection Tile #{} expecting content to \
+                                       include an image".format(tile.id))
+
+        expandedImageId = tile.attributes.get('expandedImage') or tile.attributes.get('expanded-image')
+        expandedImage = None
+        if expandedImageId:
+            try:
+                expandedImage = [i.to_json() for i in images if i.id == expandedImageId][0]
+            except IndexError:
+                raise SerializerError(" Collection Tile #{} is not tagged with its \
+                                       expanded Image #{}".format(tile.id, expandedImageId))
+
+        products = [p.to_json() for p in tile.products.all()]
+
+        data = self.get_core_attributes(tile)
+        data.update({
+            "default-image": image,
+            "tagged-products": products,
+        })
+        if expandedImage:
+            data['expandedImage'] = expandedImage
         return data
 
 

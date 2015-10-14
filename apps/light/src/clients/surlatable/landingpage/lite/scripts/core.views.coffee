@@ -21,7 +21,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ProductView::onBeforeRender = ->
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
-        inlineLink = "<a href='#{@model.get('cj_link') or @model.get('url')}'>#{linkName}</a>"
+        inlineLink = "<a href='#{@model.get('cjLink') or @model.get('url')}'>#{linkName}</a>"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
             @model.set("truncatedDescription", truncatedDescription + " " + inlineLink)
@@ -36,27 +36,36 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else
                 maxWidth = App.option("minImageWidth") or 300
                 maxHeight = App.option("minImageHeight") or 300
+
             for image, i in @$el.find(".main-image .hi-res")
-                $cachedImage = $(image).parent()
+                $image = $(image)
+                $cachedImage = $image.parent()
+
+                # get base image url
                 if $cachedImage.is("img")
-                    imageUrl = App.utils.getResizedImage($cachedImage.attr("src"),
-                        width: maxWidth,
-                        height: maxHeight
-                    )
-                    $(image).attr("src", imageUrl)
+                    imageUrl = $cachedImage.attr("src") or @model.get("images")[i].url
                 else if $cachedImage.is("div")
-                    imageUrl = $cachedImage.css("background-image").replace('url(','').replace(')','')
-                    imageUrl = App.utils.getResizedImage(imageUrl,
-                        width: maxWidth,
-                        height: maxHeight
-                    )
-                    $(image).css("background-image", "url('#{imageUrl}')")
+                    imageUrl = if $cachedImage.css("background-image") is "none" \
+                               then @model.get("images")[i].url \
+                               else $cachedImage.css("background-image").replace('url(','').replace(')','')
+
+                imageUrl = App.utils.getResizedImage(imageUrl,
+                    width: maxWidth,
+                    height: maxHeight
+                )
+
+                if $image.is("img")
+                    $image.attr("src", imageUrl)
+                else if $image.is("div")
+                    $image.css("background-image", "url('#{imageUrl}')")
         return
 
     module.ProductView::resizeProductImages = ->
         productImages = @$el.find(".main-image .hi-res")
         if productImages.length > 0 and productImages.first().is("div")
-            @replaceImages()
+            # Let the browser execute the resizing window callbacks
+            # otherwise, container height is 0 & images are resized to 0 height.
+            setTimeout((=> @replaceImages()), 1)
         else
             imagesLoaded(productImages, (=> @replaceImages()))
         return
@@ -68,18 +77,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
     )
 
-    module.ExpandedContent::events =
-        "click @ui.lookThumbnail, .back-to-recipe": (event) ->
-            # Hide products, show content
-            @taggedProductIndex = -1
-            @updateContent()
-            return
-
+    _.extend(module.ExpandedContent::events,
         "click .stl-look .stl-item": (event) ->
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
             product = @taggedProducts[$targetEl.data("index")]
-            url = product.get('cj_link') or product.get('url')
+            url = product.get('cjLink') or product.get('url')
             ### Uncomment to enable switching view to product ###
             #@taggedProductIndex = $targetEl.data("index")
             #if App.support.mobile() and not @ui.lookThumbnail.is(':visible')
@@ -88,9 +91,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             App.vent.trigger('tracking:product:thumbnailClick', @getTrackingData(product))
             App.utils.openUrl(url)
             return
+    )
 
     # SLT shows one piece of content at a time
-    _.extend(module.ExpandedContent::defaultViewOptions, featureSingleItem: true)
+    _.extend(module.ExpandedContent::defaultOptions, featureSingleItem: true)
 
     module.ExpandedContent::updateScrollCta = ->
         $recipe = @$el.find(".recipe")

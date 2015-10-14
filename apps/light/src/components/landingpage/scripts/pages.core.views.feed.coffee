@@ -65,6 +65,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         onShow: ->
             @attachListeners()
             @fetchTiles()
+            return
 
         fetchTiles: ->
             if @isLoading
@@ -80,7 +81,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 _.delay(@pageScroll, 500)
             )
             @lastRequest = xhr
-            xhr
+            return xhr
 
         pageScroll: ->
             if @ended
@@ -106,6 +107,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else if windowTop < @lastScrollTop
                 App.vent.trigger('scrollUp', @)
             @lastScrollTop = windowTop
+            return
 
         attachListeners: ->
             globals = App._globals
@@ -142,7 +144,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.MasonryFeedView extends module.FeedView
 
-        defaultViewOptions:
+        defaultOptions:
             isAnimated: Modernizr.csstransforms3d
             transitionDuration: '0s',
             isInitLayout: false,
@@ -155,7 +157,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: (options) ->
             super # this is magic, it passes forward arguments
             # only care about the masonry options, parent class will care about rest
-            @options = _.extend({}, @defaultViewOptions, options.masonry)
+            @options = _.extend({}, @defaultOptions, options.masonry)
             @recently_added = []
             @layoutInProgress = false
 
