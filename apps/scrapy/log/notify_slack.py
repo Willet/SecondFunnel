@@ -30,11 +30,12 @@ def dump_stats(stats, spider, reason, s3_urls):
     total = float(sum(map(len, stats_collection.values())))
 
     result_codes = {
-        "shutdown": "Spider {} squashed like a bug (ctrl-C)",
-        "finished": "Ran spider {}"
+        "shutdown": "Spider {0} squashed like a bug (ctrl-C)",
+        "finished": "Ran spider {0} for {1}"
     }
     unknown_result_msg = "Spider {} died with unknown exit condition.  Investigate!"
-    title = result_codes.get(reason, unknown_result_msg).format(spider.name.upper())
+    title = result_codes.get(reason, unknown_result_msg).format(
+        spider.name.upper(), getattr(spider, 'reporting_name', '- unspecified -'))
 
     level = False if reason == 'finished' else 'error'
     report = []
