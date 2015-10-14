@@ -595,18 +595,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # will be removed by shrinkCallback
                 @$el.closest(".fullscreen").addClass("loading-images")
             
-            if @options.previewFeed
-                @showSimilarProducts()
-                @ui.productThumbnails.hide()
-            else if @options.showThumbnails
-                @showThumbnails()
-                @ui.similarProducts.hide()
-                # can replace with sibling selectors .shop:empty ~ .info
-                # when .product-info merged into .shop
-                if App.support.mobile()
-                    @ui.lookProductCarousel?.addClass('tagged')
-                else
-                    @ui.productInfo.addClass('tagged')
+            if @taggedProducts.length
+                if @options.previewFeed
+                    @showSimilarProducts()
+                    @ui.productThumbnails.hide()
+                else if @options.showThumbnails
+                    @showThumbnails()
+                    @ui.similarProducts.hide()
+                    # can replace with sibling selectors .shop:empty ~ .info
+                    # when .product-info merged into .shop
+                    if App.support.mobile()
+                        @ui.lookProductCarousel?.addClass('tagged')
+                    else
+                        @ui.productInfo.addClass('tagged')
+            else
+                # templates may not implement these if no tagged products
+                @ui.productThumbnails?.hide()
+                @ui.similarProducts?.hide()
 
             @resizeContainer()
 
