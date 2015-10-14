@@ -129,7 +129,7 @@ def set_random_priorities(tiles, max_priority=0, min_priority=0):
             print u"{} priority set to {}".format(t, t.priority)
     print u"Random priorities set for {} Tiles".format(len(tiles))
 
-@disable_tile_serialization
+@disable_tile_serialization()
 def update_tiles_ir_cache(tiles):
     """
     Updates the ir_cache of tiles. Does not run full clean!
