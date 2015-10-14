@@ -56,7 +56,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.ProductView::resizeProductImages = ->
         productImages = @$el.find(".main-image .hi-res")
         if productImages.length > 0 and productImages.first().is("div")
-            @replaceImages()
+            # Let the browser execute the resizing window callbacks
+            # otherwise, container height is 0 & images are resized to 0 height.
+            setTimeout((=> @replaceImages()), 1)
         else
             imagesLoaded(productImages, (=> @replaceImages()))
         return
