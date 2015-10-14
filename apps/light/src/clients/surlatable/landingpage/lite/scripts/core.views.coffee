@@ -36,21 +36,28 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else
                 maxWidth = App.option("minImageWidth") or 300
                 maxHeight = App.option("minImageHeight") or 300
+
             for image, i in @$el.find(".main-image .hi-res")
-                $cachedImage = $(image).parent()
+                $image = $(image)
+                $cachedImage = $image.parent()
+
+                # get base image url
                 if $cachedImage.is("img")
-                    imageUrl = App.utils.getResizedImage($cachedImage.attr("src"),
-                        width: maxWidth,
-                        height: maxHeight
-                    )
-                    $(image).attr("src", imageUrl)
+                    imageUrl = $cachedImage.attr("src") or @model.get("images")[i].url
                 else if $cachedImage.is("div")
-                    imageUrl = $cachedImage.css("background-image").replace('url(','').replace(')','')
-                    imageUrl = App.utils.getResizedImage(imageUrl,
-                        width: maxWidth,
-                        height: maxHeight
-                    )
-                    $(image).css("background-image", "url('#{imageUrl}')")
+                    imageUrl = if $cachedImage.css("background-image") is "none" \
+                               then @model.get("images")[i].url \
+                               else $cachedImage.css("background-image").replace('url(','').replace(')','')
+
+                imageUrl = App.utils.getResizedImage(imageUrl,
+                    width: maxWidth,
+                    height: maxHeight
+                )
+
+                if $image.is("img")
+                    $image.attr("src", imageUrl)
+                else if $image.is("div")
+                    $image.css("background-image", "url('#{imageUrl}')")
         return
 
     module.ProductView::resizeProductImages = ->

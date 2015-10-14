@@ -130,11 +130,18 @@
         <script type="text/template" id="product_galleryMainImage_template">
             <div class="main-image-container">
                 <div class="main-image">
-                    <% for (var j = 0; j < obj.images.length; j++) { %>
-                        <div class="image" style="background-image: url('<%= obj.images[j].url %>');">
-                            <div class="hi-res image"></div>
-                        </div>
-                    <% } %>
+                    <% for (var j = 0; j < obj.images.length; j++) {
+                        // only 1st image is progressively loaded, others load hi-res version
+                        if (j === 0) { %>
+                            <div class="image" style="background-image: url('<%= obj.images[j].url %>');">
+                                <div class="hi-res image"></div>
+                            </div>
+                        <% } else { %>
+                            <div class="image">
+                                <div class="hi-res image"></div>
+                            </div>
+                        <% }
+                    } %>
                     <div class="description mobile-only">
                         <% include("product_description_template") %>
                     </div>
