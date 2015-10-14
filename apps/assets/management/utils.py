@@ -3,10 +3,10 @@
 Intended to be run from a shell"""
 
 import csv
-import pprint
 import random
 import requests
 import json
+from pprint import pprint
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import transaction, models
@@ -138,9 +138,11 @@ def get_resource_url(public_id):
 def update_dominant_color(tiles):
     """Updates dominant color of all the images in the provided tiles"""
     post_save.disconnect(productimage_saved, sender=ProductImage)
+    # list of product urls that must be re-scraped
+    rescrape = []
     with requests.Session() as s:
         s.auth = requests.auth.HTTPBasicAuth(settings.CLOUDINARY_API_KEY, settings.CLOUDINARY_API_SECRET)
-        for i, t in enumerate(tiles.iterator()):
+        for i, t in enumerate(tiles):
             try:
                 pis = t.product.product_images.all()
                 print "{} {}: getting dominant_color for {} images".format(i, t, pis.count())
@@ -154,13 +156,22 @@ def update_dominant_color(tiles):
                 result = json.loads(data.text)
                 if "error" in result:
                     print "\t{} Error: {}".format(j, result['error']['message'])
+                    rescrape.append(t.product.url)
                     continue
                 else:
                     pi.dominant_color = result['colors'][0][0]
                     pi.save()
                     print "\t{} {}".format(j, pi.dominant_color)
+            t.product.choose_lifestyle_shot_default_image()
+            if t.product.default_image.is_product_shot:
+                print "Default image search failed. Chose first"
+                t.attributes['colspan'] = 1
+                t.save()
     post_save.connect(productimage_saved, sender=ProductImage)
     update_tiles_ir_cache(tiles)
+    if len(rescrape):
+        print "Rescrape these product urls with {'refresh-images': True}:"
+        pprint(rescrape)
 
 def update_tiles_ir_cache(tiles):
     """
