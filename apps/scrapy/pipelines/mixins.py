@@ -3,6 +3,7 @@ from scrapy.exceptions import CloseSpider
 
 from apps.assets.models import Category, Feed, Product
 from apps.assets.utils import disable_tile_serialization
+from apps.intentrank.serializers import SerializerError
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.models import PlaceholderProduct
 

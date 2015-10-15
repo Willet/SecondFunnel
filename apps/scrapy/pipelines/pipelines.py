@@ -176,7 +176,9 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
 
         try:
              with disable_tile_serialization():
-                # In case this item already exists, avoid serialization errors until later
+                # Disable tile serialization because of "refresh_images"
+                # Aa existing valid product temporarily without product images will 
+                # throw a serialization error 
                 update_model(model, item)
         except ValidationError as e:
             # Attempt to find the product & mark it as out of stock
@@ -212,7 +214,7 @@ class AssociateWithProductsPipeline(ItemManifold):
             image = self.images.get(content_id)
             if image:
                 product = item['instance']
-                product_id = productsuct.id
+                product_id = product.id
                 tagged_product_ids = image.tagged_products.values_list('id', flat=True)
                 if not product_id in tagged_product_ids:
                     spider.logger.info(u'Tagging <Image {}> with <Product {}>'.format(image.id, product_id))
