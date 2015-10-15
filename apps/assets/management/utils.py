@@ -151,6 +151,9 @@ def update_dominant_color(tiles):
             except AttributeError:
                 print "{} {}: no product".format(i, t)
                 continue
+            if not len(t.product.product_images.all()):
+                print "{}: no product images".format(t)
+                continue
             for j, pi in enumerate(pis):
                 public_id = get_public_id(pi.url)
                 url = get_resource_url(public_id)
