@@ -311,7 +311,6 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
             image.file_type = data.get('format')
             image.dominant_color = data['dominant_color']
 
-            image.attributes['product_shot'] = image.is_product_shot
             image.attributes['sizes'] = data['sizes']
 
             # save the image

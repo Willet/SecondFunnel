@@ -99,6 +99,7 @@ class ProductImageSerializer(IRSerializer):
         }
 
         data.update(camelize_JSON(product_image.attributes))
+        data['productShot'] = product_image.is_product_shot
 
         return data
 

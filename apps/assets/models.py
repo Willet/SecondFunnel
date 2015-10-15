@@ -462,6 +462,20 @@ class Product(BaseModel):
             # there is no default image
             self.default_image = self.product_images.first()
 
+    def choose_lifestyle_shot_default_image(self):
+        """Set a default_image that is not a product shot for the given tile"""
+        if self.default_image and self.default_image != self.product_images.first():
+            return
+        for i, img in enumerate(self.product_images.all()):
+            if not img.is_product_shot:
+                # found a good image - make it the default & return
+                self.default_image = img
+                self.save()
+                return
+        # couldn't find a good image - just use the first one
+        self.default_image = self.product_images.first()
+        self.save()
+
     @property
     def is_placeholder(self):
         # A placeholder product is created by the scraper, starts with name 'placeholder'
