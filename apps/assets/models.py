@@ -467,11 +467,7 @@ class Product(BaseModel):
         if self.default_image and self.default_image != self.product_images.first():
             return
         for i, img in enumerate(self.product_images.all()):
-            if img.is_product_shot:
-                img.attributes['product_shot'] = True
-                img.save()
-                continue
-            else:
+            if not img.is_product_shot:
                 self.default_image = img
                 self.save()
                 return
