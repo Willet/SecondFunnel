@@ -468,9 +468,11 @@ class Product(BaseModel):
             return
         for i, img in enumerate(self.product_images.all()):
             if not img.is_product_shot:
+                # found a good image - make it the default & return
                 self.default_image = img
                 self.save()
                 return
+        # couldn't find a good image - just use the first one
         self.default_image = self.product_images.first()
         self.save()
 
