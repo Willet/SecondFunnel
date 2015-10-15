@@ -7,17 +7,21 @@ from django.db.models.signals import post_save, m2m_changed
 class disable_tile_serialization(ContextDecorator):
     """ Context manager that suppresses tile serialization until exit
         
-        Useful when creating a new tile that requires multiple steps before serializing
-        ex: adding multiple different m2m keys
+        Useful when 
+        a) creating a new tile that requires multiple steps before safely serializing
+            ex: adding multiple different m2m keys
+        b) performing many operations that can trigger repeat serializations on the same tiles
+            ex: updating a lot of products
+        
 
         Can safely be nested
     """
     # Avoid pre-maturally re-enabling signals if this context manager is nested
-    # Keep track of how many this has been entered
+    # Keep track of how many times this has been entered
     disabled_counter = 0
 
     def __enter__(self):
-        # lazy load circular import signals -> models -> utils -> signals
+        # lazy load circular import (signals.py -> models.py -> utils.py -> signals.py)
         import apps.assets.signals as signals
         import apps.assets.models as models
 
@@ -32,12 +36,12 @@ class disable_tile_serialization(ContextDecorator):
             try:
                 self.__exit__(*sys.exc_info())
             except:
-                # Suppress the 2nd exception
+                # Suppress any additional exception from __exit__
                 pass
             raise
 
     def __exit__(self, type, value, traceback):
-        # lazy load circular import models -> signals -> utils -> models
+        # lazy load circular import (signals.py -> models.py -> utils.py -> signals.py)
         import apps.assets.signals as signals
         import apps.assets.models as models
 

@@ -45,8 +45,8 @@ def content_saved(sender, **kwargs):
 def content_m2m_changed(sender, **kwargs):
     """Re-generate cache for IR tiles if contained product or content has its 
        related products changed
-       ex: Tile -> Product -> similar products updated
-           Til -> Content -> tagged products updated
+       ex: Tile -> Content -> tagged products updated
+           Tile -> Product -> similar products updated
     """
     added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
     
