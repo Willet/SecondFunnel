@@ -604,10 +604,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @ui.similarProducts.hide()
                     # can replace with sibling selectors .shop:empty ~ .info
                     # when .product-info merged into .shop
+                    @ui.productInfo.addClass('tagged')
                     if App.support.mobile()
                         @ui.lookProductCarousel?.addClass('tagged')
-                    else
-                        @ui.productInfo.addClass('tagged')
+                        
             else
                 # templates may not implement these if no tagged products
                 @ui.productThumbnails?.hide()

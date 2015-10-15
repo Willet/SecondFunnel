@@ -1339,7 +1339,7 @@ body {
             }
         }
         .info.tagged {
-            padding: 0; // repeated to beat specaficity
+            padding: 0; // repeated to beat specificity
             height: 72.1%; // .1% to ensure there is no sub-pixel gap
             position: relative;
         }
@@ -1431,7 +1431,7 @@ body {
                 padding-top: 0;
             }
             .stl-title {
-                top: 5px;
+                top: -5px;
                 font-family: $slt-modern-font;
                 >span {
                     top: 0;
