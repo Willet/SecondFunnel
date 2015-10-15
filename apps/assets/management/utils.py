@@ -132,11 +132,12 @@ def set_random_priorities(tiles, max_priority=0, min_priority=0):
             print u"{} priority set to {}".format(t, t.priority)
     print u"Random priorities set for {} Tiles".format(len(tiles))
 
-def get_resource_url(public_id):
-    return "https:{}/resources/image/upload/{}?colors=1".format(settings.CLOUDINARY_API_URL, public_id)
+
 
 def update_dominant_color(tiles):
     """Updates dominant color of all the images in the provided tiles"""
+    def get_resource_url(public_id):
+        return "https:{}/resources/image/upload/{}?colors=1".format(settings.CLOUDINARY_API_URL, public_id)
     post_save.disconnect(productimage_saved, sender=ProductImage)
     # list of product urls that must be re-scraped
     rescrape = []
