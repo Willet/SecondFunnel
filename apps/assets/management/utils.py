@@ -135,7 +135,8 @@ def set_random_priorities(tiles, max_priority=0, min_priority=0):
 
 
 def update_dominant_color(tiles):
-    """Updates dominant color of all the images in the provided tiles"""
+    """Updates dominant color of all the images in the provided tiles
+    Chooses non-product-shot default images for all tiles provided"""
     def get_resource_url(public_id):
         return "https:{}/resources/image/upload/{}?colors=1".format(settings.CLOUDINARY_API_URL, public_id)
     post_save.disconnect(productimage_saved, sender=ProductImage)
