@@ -483,7 +483,7 @@ class Product(BaseModel):
         for p in other_products:
             if self.store != p.store:
                 raise ValueError('Can not merge products from different stores')
-
+        
         self._replace_relations(other_products,
             exclude_fields=['product_images', 'similar_products'])
         for product in other_products:
@@ -1227,6 +1227,7 @@ class Feed(BaseModel):
         with transaction.atomic():
             with disable_tile_serialization():
                 new_tile = Tile(feed=self, template='product', priority=priority)
+                new_tile.placeholder = product.is_placeholder
                 new_tile.get_pk()
                 new_tile.products.add(product)
             new_tile.save() # full clean & generate ir_cache

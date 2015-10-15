@@ -15,6 +15,7 @@ from scrapy.exceptions import DropItem, CloseSpider
 from urlparse import urlparse
 
 from apps.assets.models import Category, Feed, Image, Page, Product, ProductImage, Store, Tag
+from apps.assets.utils import disable_tile_serialization
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 from apps.scrapy.utils.djangotools import item_to_model, get_or_create, update_model
@@ -161,7 +162,7 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
     """
     Save item as model
 
-    Any changes to the item after this pipeline will not be automaticlaly persisted!
+    Any changes to the item after this pipeline will not be automatically persisted!
     """
     def process_item(self, item, spider):
         try:
@@ -172,8 +173,11 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
         model, was_it_created = get_or_create(item_model)
         item['created'] = was_it_created
         spider.logger.info(u"item: {}, created: {}".format(item, was_it_created))
+
         try:
-            update_model(model, item)
+             with disable_tile_serialization():
+                # In case this item already exists, avoid serialization errors until later
+                update_model(model, item)
         except ValidationError as e:
             # Attempt to find the product & mark it as out of stock
             item['instance'], item['created'] = self.update_or_save_placeholder(item)
@@ -208,7 +212,7 @@ class AssociateWithProductsPipeline(ItemManifold):
             image = self.images.get(content_id)
             if image:
                 product = item['instance']
-                product_id = product.id
+                product_id = productsuct.id
                 tagged_product_ids = image.tagged_products.values_list('id', flat=True)
                 if not product_id in tagged_product_ids:
                     spider.logger.info(u'Tagging <Image {}> with <Product {}>'.format(image.id, product_id))

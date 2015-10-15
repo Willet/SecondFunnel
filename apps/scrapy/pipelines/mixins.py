@@ -2,6 +2,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from scrapy.exceptions import CloseSpider
 
 from apps.assets.models import Category, Feed, Product
+from apps.assets.utils import disable_tile_serialization
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.models import PlaceholderProduct
 
@@ -124,7 +125,10 @@ class PlaceholderMixin(object):
         try:
             product = Product.objects.get(url=url, store=store)
             product.in_stock = False
-            product.save()
+            try:
+                product.save()
+            except SerializerError:
+                self.convert_to_placeholder(product)
             created = False
         except Product.DoesNotExist:
             product = PlaceholderProduct(store=store, url=url, sku=sku)
@@ -134,16 +138,16 @@ class PlaceholderMixin(object):
             qs = Product.objects.filter(url=url, store=store)
             product = Product.merge_products(qs)
             product.in_stock = False
-            product.save()
             created = False
         return (product, created)
 
     def convert_to_placeholder(self, product):
         """ Takes an existing product and converts it and its product tiles to placeholders """
-        placeholder = PlaceholderProduct.objects.get(id=product.id)
-        placeholder.save()
+        with disable_tile_serialization():
+            placeholder = PlaceholderProduct.objects.get(id=product.id)
+            placeholder.save()
         for t in placeholder.tiles.all():
             if t.template == "product":
-                t.placeholder = True
+                t.placeholder = True # will skip update_ir_cache
                 t.save()
 
