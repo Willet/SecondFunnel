@@ -68,7 +68,7 @@ class PageMaintainer(object):
         # Ensure source urls look good
         for url in source_urls:
             self.url_validator(url)
-            url = spider.clean_url(url)
+        source_urls = [spider.clean_url(url) for url in source_urls]
 
         # If source urls are not already in the page, add new source urls
         source_urls = set(source_urls)
