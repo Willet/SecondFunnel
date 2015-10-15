@@ -176,9 +176,10 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
 
         try:
              with disable_tile_serialization():
-                # Disable tile serialization because of "refresh_images"
-                # Aa existing valid product temporarily without product images will 
-                # throw a serialization error 
+                # Disable tile serialization because if running "refresh_images"
+                # an existing valid product will have no product images at this step 
+                # and could trigger a tile serialization error.
+                # Products without product images will get caught by ProductImagePipeline
                 update_model(model, item)
         except ValidationError as e:
             # Attempt to find the product & mark it as out of stock
