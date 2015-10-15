@@ -1143,12 +1143,15 @@ body {
                 width: 100px;
             }
             .info,
-                ,
             .look-product-carousel {
                 position: absolute;
                 top: 0;
                 left: 20%;
                 width: 80%;
+                height: 100%;
+            }
+            .info.tagged {
+                position: absolute; // repeated for specificity
                 height: 100%;
             }
             .look-product-carousel {
