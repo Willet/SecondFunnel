@@ -323,10 +323,8 @@ def generate_public_id(url, store=None, cloudinary_compatible=True):
 def is_hex_color(color_string):
     """returns True if color_string is a hex color of the form '#FFFFFF'"""
     if not color_string or len(color_string) != 7:
-        print "The length is wrong"
         return False
     search_result = re.search("^[0-9ABCDEF]*$", color_string[1:7])
-    print "search_result: {}".format(search_result)
     return search_result is not None and color_string[:1] == "#"
 
 
