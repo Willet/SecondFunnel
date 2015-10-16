@@ -7,6 +7,7 @@ from scrapy.crawler import Crawler, CrawlerProcess
 from apps.assets.models import Product
 from apps.utils.functional import autodiscover_module_classes
 from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper
+from apps.assets.utils import disable_tile_serialization
 
 from .spiders import datafeeds, pages
 
@@ -168,6 +169,7 @@ class PageMaintainer(object):
         })
         return settings
 
+    @disable_tile_serialization()
     def _delete_product_images(self, urls):
         for url in urls:
             # This should be unique, but quietly handle multiples
