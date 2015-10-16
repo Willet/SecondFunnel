@@ -319,3 +319,13 @@ def generate_public_id(url, store=None, cloudinary_compatible=True):
     if cloudinary_compatible:
         return url_hash[:16]
     return url_hash
+
+def is_hex_color(color_string):
+    """returns True if color_string is a hex color of the form '#FFFFFF'"""
+    try:
+        search_result = re.search("^#[0-9ABCDEF]{6}$", color_string)
+        return bool(search_result is not None)
+    except ValueError:
+        return False
+
+

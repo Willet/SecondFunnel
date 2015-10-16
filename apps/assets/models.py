@@ -15,7 +15,7 @@ from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
 import apps.api.serializers as cg_serializers
-from apps.imageservice.utils import delete_cloudinary_resource
+from apps.imageservice.utils import delete_cloudinary_resource, is_hex_color
 import apps.intentrank.serializers as ir_serializers
 from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
@@ -600,7 +600,7 @@ class ProductImage(BaseModel):
     def is_product_shot(self):
         """The product_shot property."""
         product_shot = False
-        if self.dominant_color is not None:
+        if is_hex_color(self.dominant_color):
             red   = int("0x{}".format(self.dominant_color[1:3]), 0)
             blue  = int("0x{}".format(self.dominant_color[3:5]), 0)
             green = int("0x{}".format(self.dominant_color[5:7]), 0)
