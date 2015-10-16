@@ -339,9 +339,10 @@ class BaseModel(models.Model, SerializableMixin):
 
     def get_pk(self, *args, **kwargs):
         """
-        gets pk from database required when setting m2m fields on new instance
-        skip full_clean for this save
-        suppress any serialization errors that arise due to incomplete models
+        Get pk for new model - required to set m2m fields on new instance
+        
+        This performs a save while skipping full_clean and ignoring any
+        serialization errors that arise due to incomplete models.
         """
         try:
             super(BaseModel, self).save(*args, **kwargs)
@@ -483,7 +484,7 @@ class Product(BaseModel):
         for p in other_products:
             if self.store != p.store:
                 raise ValueError('Can not merge products from different stores')
-        
+
         self._replace_relations(other_products,
             exclude_fields=['product_images', 'similar_products'])
         for product in other_products:
