@@ -69,7 +69,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
     @staticmethod
     def choose_default_image(product):
         for p in product.product_images.all():
-            if not p.attributes['product_shot']:
+            if not p.is_product_shot:
                 return p
         return product.product_images.first()
         

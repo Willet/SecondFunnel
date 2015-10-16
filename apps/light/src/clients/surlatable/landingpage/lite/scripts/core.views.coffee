@@ -28,36 +28,39 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ProductView::replaceImages = ->
-        unless App.support.mobile()
-            $container = @$el.find(".main-image-container")
-            if $container.is(":visible")
+        $container = @$el.find(".main-image-container")
+        if $container.is(":visible")
+            if App.support.mobile()
+                maxWidth = $container.width()
+                maxHeight = $container.height()
+            else
                 maxWidth = $container.width()*1.3
                 maxHeight = $container.height()*1.3
-            else
-                maxWidth = App.option("minImageWidth") or 300
-                maxHeight = App.option("minImageHeight") or 300
+        else
+            maxWidth = App.option("minImageWidth") or 300
+            maxHeight = App.option("minImageHeight") or 300
 
-            for image, i in @$el.find(".main-image .hi-res")
-                $image = $(image)
-                $cachedImage = $image.parent()
+        for image, i in @$el.find(".main-image .hi-res")
+            $image = $(image)
+            $cachedImage = $image.parent()
 
-                # get base image url
-                if $cachedImage.is("img")
-                    imageUrl = $cachedImage.attr("src") or @model.get("images")[i].url
-                else if $cachedImage.is("div")
-                    imageUrl = if $cachedImage.css("background-image") is "none" \
-                               then @model.get("images")[i].url \
-                               else $cachedImage.css("background-image").replace('url(','').replace(')','')
+            # get base image url
+            if $cachedImage.is("img")
+                imageUrl = $cachedImage.attr("src") or @model.get("images")[i].url
+            else if $cachedImage.is("div")
+                imageUrl = if $cachedImage.css("background-image") is "none" \
+                           then @model.get("images")[i].url \
+                           else $cachedImage.css("background-image").replace('url(','').replace(')','')
 
-                imageUrl = App.utils.getResizedImage(imageUrl,
-                    width: maxWidth,
-                    height: maxHeight
-                )
+            imageUrl = App.utils.getResizedImage(imageUrl,
+                width: maxWidth,
+                height: maxHeight
+            )
 
-                if $image.is("img")
-                    $image.attr("src", imageUrl)
-                else if $image.is("div")
-                    $image.css("background-image", "url('#{imageUrl}')")
+            if $image.is("img")
+                $image.attr("src", imageUrl)
+            else if $image.is("div")
+                $image.css("background-image", "url('#{imageUrl}')")
         return
 
     module.ProductView::resizeProductImages = ->

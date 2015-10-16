@@ -1142,8 +1142,7 @@ body {
             .close {
                 width: 100px;
             }
-            .info,
-                ,
+            .info.tagged,
             .look-product-carousel {
                 position: absolute;
                 top: 0;
@@ -1339,39 +1338,25 @@ body {
             }
         }
         .info.tagged {
-            padding: 0; // repeated to beat specaficity
+            padding: 0; // repeated to beat specificity
             height: 72.1%; // .1% to ensure there is no sub-pixel gap
             position: relative;
         }
         .product {
             .info {
-                .tagged-product {
-                    padding-bottom: 190px; // .buy + .description
-                }
-                .description {
-                    display: block;
-                }
-                .main-image .description {
-                    display: none;
-                }
-                .gallery-dots .description-dot {
-                    display: none;
-                }
-            }
-            .info.tagged {
                 padding: 0;
                 .tagged-product {
                     padding-bottom: 50px; // .buy
                 }
-                .description {
-                    display: none;
-                }
                 .main-image .description {
                     display: inline-block;
                 }
                 .gallery-dots .description-dot {
                     display: inline-block;
                 }
+            }
+            .info.tagged {
+                padding: 0;
             }
         }
         .look-product-carousel {
@@ -1431,7 +1416,7 @@ body {
                 padding-top: 0;
             }
             .stl-title {
-                top: 5px;
+                top: -5px;
                 font-family: $slt-modern-font;
                 >span {
                     top: 0;
