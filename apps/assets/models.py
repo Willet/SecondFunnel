@@ -600,7 +600,7 @@ class ProductImage(BaseModel):
     def is_product_shot(self):
         """The product_shot property."""
         product_shot = False
-        if self.dominant_color is not None:
+        if self.dominant_color is not None and re.search("^[0-9ABCDEF]*$", self.dominant_color[1:7]) is not None:
             red   = int("0x{}".format(self.dominant_color[1:3]), 0)
             blue  = int("0x{}".format(self.dominant_color[3:5]), 0)
             green = int("0x{}".format(self.dominant_color[5:7]), 0)
