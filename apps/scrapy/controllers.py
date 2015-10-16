@@ -171,6 +171,7 @@ class PageMaintainer(object):
 
     @disable_tile_serialization()
     def _delete_product_images(self, urls):
+        """This function triggers tile serialization because it saves the products after remving the images"""
         for url in urls:
             # This should be unique, but quietly handle multiples
             try:
