@@ -21,6 +21,8 @@ from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
 from apps.utils.classes import MemcacheSetting
 
+from .utils import disable_tile_serialization
+
 
 default_master_size = {
     'master': {
@@ -138,17 +140,18 @@ class BaseModel(models.Model, SerializableMixin):
         new_obj = cls(**local_kwargs)
 
         with transaction.atomic():
-            new_obj.get_pk()
+            with disable_tile_serialization():
+                new_obj.get_pk()
 
-            for (k,v) in m2m_kwargs.iteritems():
-                if isinstance(v,list) or isinstance(v, models.query.QuerySet):
-                    setattr(new_obj, k, v)
-                elif callable(getattr(v, 'all', None)):
-                    # assume this is a RelatedManager, can't check directly b/c generated at runtime
-                    setattr(new_obj, k, v.all())
-                else:
-                    raise TypeError("Value '{}' can't be assigned to \
-                                     ManyToManyField '{}'".format(v, k))
+                for (k,v) in m2m_kwargs.iteritems():
+                    if isinstance(v,list) or isinstance(v, models.query.QuerySet):
+                        setattr(new_obj, k, v)
+                    elif callable(getattr(v, 'all', None)):
+                        # assume this is a RelatedManager, can't check directly b/c generated at runtime
+                        setattr(new_obj, k, v.all())
+                    else:
+                        raise TypeError("Value '{}' can't be assigned to \
+                                         ManyToManyField '{}'".format(v, k))
 
             new_obj.save() # run full_clean to validate
         return new_obj
@@ -336,9 +339,10 @@ class BaseModel(models.Model, SerializableMixin):
 
     def get_pk(self, *args, **kwargs):
         """
-        gets pk from database required when setting m2m fields on new instance
-        skip full_clean for this save
-        suppress any serialization errors that arise due to incomplete models
+        Get pk for new model - required to set m2m fields on new instance
+        
+        This performs a save while skipping full_clean and ignoring any
+        serialization errors that arise due to incomplete models.
         """
         try:
             super(BaseModel, self).save(*args, **kwargs)
@@ -409,8 +413,8 @@ class Product(BaseModel):
 
     default_image = models.ForeignKey('ProductImage', related_name='default_image',
                                       blank=True, null=True, on_delete=models.SET_NULL)
-    # product_images is an array of ProductImages (many-to-one relationship)
-    # tiles is an array of Tiles (many-to-many relationship)
+    # product_images  = <RelatedManager> ProductImages (many-to-one relationship)
+    # tiles  = <RelatedManager> Tiles (many-to-many relationship)
     
     last_scraped_at = models.DateTimeField(blank=True, null=True)
 
@@ -1236,10 +1240,12 @@ class Feed(BaseModel):
         
         # create new tile
         with transaction.atomic():
-            new_tile = Tile(feed=self, template='product', priority=priority)
-            new_tile.get_pk()
-            new_tile.products.add(product)
-            new_tile.save() # generate ir_cache
+            with disable_tile_serialization():
+                new_tile = Tile(feed=self, template='product', priority=priority)
+                new_tile.placeholder = product.is_placeholder
+                new_tile.get_pk()
+                new_tile.products.add(product)
+            new_tile.save() # full clean & generate ir_cache
 
         if category:
             category.tiles.add(new_tile)
@@ -1284,12 +1290,13 @@ class Feed(BaseModel):
         else:
             template = 'image'
         with transaction.atomic():
-            new_tile = Tile(feed=self, template=template, priority=priority)
-            new_tile.get_pk()
-            new_tile.content.add(content)
-            product_qs = content.tagged_products.all()
-            new_tile.products.add(*product_qs)
-            new_tile.save() # generate ir_cache
+            with disable_tile_serialization():
+                new_tile = Tile(feed=self, template=template, priority=priority)
+                new_tile.get_pk()
+                new_tile.content.add(content)
+                product_qs = content.tagged_products.all()
+                new_tile.products.add(*product_qs)
+            new_tile.save() # full clean & generate ir_cache
         if category:
             category.tiles.add(new_tile)
         logging.info("<Content {0}> added to the feed. Created \
@@ -1423,10 +1430,10 @@ class Tile(BaseModel):
         # If the tile has been saved before, validate its m2m relations
         if self.pk:
             if not 'products' in exclude and \
-                self.products.exclude(store__id=self.feed.store.id).count():
+                    self.products.exclude(store__id=self.feed.store.id).count():
                 raise ValidationError({'products': [u'Products may not be from a different store']})
             if not 'content' in exclude and \
-                self.content.exclude(store__id=self.feed.store.id).count():
+                    self.content.exclude(store__id=self.feed.store.id).count():
                 raise ValidationError({'content': [u'Content may not be from a different store']})
 
     def clean(self):
