@@ -28,35 +28,47 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ProductView::replaceImages = ->
-        unless App.support.mobile()
-            $container = @$el.find(".main-image-container")
-            if $container.is(":visible")
+        $container = @$el.find(".main-image-container")
+        if $container.is(":visible")
+            if App.support.mobile()
+                maxWidth = $container.width()
+                maxHeight = $container.height()
+            else
                 maxWidth = $container.width()*1.3
                 maxHeight = $container.height()*1.3
-            else
-                maxWidth = App.option("minImageWidth") or 300
-                maxHeight = App.option("minImageHeight") or 300
-            for image, i in @$el.find(".main-image .hi-res")
-                $cachedImage = $(image).parent()
-                if $cachedImage.is("img")
-                    imageUrl = App.utils.getResizedImage($cachedImage.attr("src"),
-                        width: maxWidth,
-                        height: maxHeight
-                    )
-                    $(image).attr("src", imageUrl)
-                else if $cachedImage.is("div")
-                    imageUrl = $cachedImage.css("background-image").replace('url(','').replace(')','')
-                    imageUrl = App.utils.getResizedImage(imageUrl,
-                        width: maxWidth,
-                        height: maxHeight
-                    )
-                    $(image).css("background-image", "url('#{imageUrl}')")
+        else
+            maxWidth = App.option("minImageWidth") or 300
+            maxHeight = App.option("minImageHeight") or 300
+
+        for image, i in @$el.find(".main-image .hi-res")
+            $image = $(image)
+            $cachedImage = $image.parent()
+
+            # get base image url
+            if $cachedImage.is("img")
+                imageUrl = $cachedImage.attr("src") or @model.get("images")[i].url
+            else if $cachedImage.is("div")
+                imageUrl = if $cachedImage.css("background-image") is "none" \
+                           then @model.get("images")[i].url \
+                           else $cachedImage.css("background-image").replace('url(','').replace(')','')
+
+            imageUrl = App.utils.getResizedImage(imageUrl,
+                width: maxWidth,
+                height: maxHeight
+            )
+
+            if $image.is("img")
+                $image.attr("src", imageUrl)
+            else if $image.is("div")
+                $image.css("background-image", "url('#{imageUrl}')")
         return
 
     module.ProductView::resizeProductImages = ->
         productImages = @$el.find(".main-image .hi-res")
         if productImages.length > 0 and productImages.first().is("div")
-            @replaceImages()
+            # Let the browser execute the resizing window callbacks
+            # otherwise, container height is 0 & images are resized to 0 height.
+            setTimeout((=> @replaceImages()), 1)
         else
             imagesLoaded(productImages, (=> @replaceImages()))
         return
@@ -68,13 +80,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
     )
 
-    module.ExpandedContent::events =
-        "click @ui.lookThumbnail, .back-to-recipe": (event) ->
-            # Hide products, show content
-            @taggedProductIndex = -1
-            @updateContent()
-            return
-
+    _.extend(module.ExpandedContent::events,
         "click .stl-look .stl-item": (event) ->
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
@@ -88,9 +94,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             App.vent.trigger('tracking:product:thumbnailClick', @getTrackingData(product))
             App.utils.openUrl(url)
             return
+    )
 
     # SLT shows one piece of content at a time
-    _.extend(module.ExpandedContent::defaultViewOptions, featureSingleItem: true)
+    _.extend(module.ExpandedContent::defaultOptions, featureSingleItem: true)
 
     module.ExpandedContent::updateScrollCta = ->
         $recipe = @$el.find(".recipe")

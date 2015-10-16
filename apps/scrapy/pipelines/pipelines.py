@@ -15,6 +15,7 @@ from scrapy.exceptions import DropItem, CloseSpider
 from urlparse import urlparse
 
 from apps.assets.models import Category, Feed, Image, Page, Product, ProductImage, Store, Tag
+from apps.assets.utils import disable_tile_serialization
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 from apps.scrapy.utils.djangotools import item_to_model, get_or_create, update_model
@@ -47,7 +48,7 @@ class ForeignKeyPipeline(ItemManifold):
         return item
 
 
-class ValidationPipeline(ItemManifold, PlaceholderMixin):
+class ValidationPipeline(ItemManifold, PlaceholderMixin, TilesMixin):
     """
     If item fails validation:
      - if product exists in database, set it to out of stock
@@ -62,8 +63,10 @@ class ValidationPipeline(ItemManifold, PlaceholderMixin):
 
         if missing_fields or empty_fields:
             # Attempt to find the product & mark it as out of stock
-            # If we are creating tiles, create a placeholder
-            self.update_or_save_placeholder(item, spider)
+            item['instance'], item['created'] = self.update_or_save_placeholder(item)
+            # If we are creating tiles, add (placeholder) to the feed
+            if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
+                self.add_to_feed(item, spider)
             raise DropItem('Required fields missing ({}) or empty ({})'.format(
                     ', '.join(missing_fields),
                     ', '.join(empty_fields)
@@ -155,11 +158,11 @@ class ContentImagePipeline(ItemManifold):
             return item
 
 
-class ItemPersistencePipeline(PlaceholderMixin):
+class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
     """
     Save item as model
 
-    Any changes to the item after this pipeline will not be automaticlaly persisted!
+    Any changes to the item after this pipeline will not be automatically persisted!
     """
     def process_item(self, item, spider):
         try:
@@ -170,10 +173,20 @@ class ItemPersistencePipeline(PlaceholderMixin):
         model, was_it_created = get_or_create(item_model)
         item['created'] = was_it_created
         spider.logger.info(u"item: {}, created: {}".format(item, was_it_created))
+
         try:
-            update_model(model, item)
+             with disable_tile_serialization():
+                # Disable tile serialization because if running "refresh_images"
+                # an existing valid product will have no product images at this step 
+                # and could trigger a tile serialization error.
+                # Products without product images will get caught by ProductImagePipeline
+                update_model(model, item)
         except ValidationError as e:
-            self.update_or_save_placeholder(item, spider)
+            # Attempt to find the product & mark it as out of stock
+            item['instance'], item['created'] = self.update_or_save_placeholder(item)
+            # If we are creating tiles, add (placeholder) to the feed
+            if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
+                self.add_to_feed(item, spider)
             raise DropItem('DB item validation failed: ({})'.format(e))
 
         item['instance'] = model # save reference for further pipeline steps
@@ -239,7 +252,7 @@ class TagPipeline(ItemManifold):
         tag.save()
 
 
-class ProductImagePipeline(ItemManifold):
+class ProductImagePipeline(ItemManifold, PlaceholderMixin):
     """
     If product has image_urls, turn them into <Product Image> and delete
     all other <Product Image>s that exist already
@@ -274,10 +287,8 @@ class ProductImagePipeline(ItemManifold):
                     images.append(existing_image)
 
             if not images:
-                # Product has no images, something is wrong with it
-                # Implementation is not very idiomatic unfortunately
-                product.in_stock = False
-                product.save()
+                # Product has no images, convert to placeholder
+                self.convert_to_placeholder(product)
                 spider.logger.info(u"<Product {}> failed image processing!".format(product))
             else:
                 # Product is good, delete any out of date images
@@ -307,7 +318,6 @@ class ProductImagePipeline(ItemManifold):
             image.file_type = data.get('format')
             image.dominant_color = data['dominant_color']
 
-            image.attributes['product_shot'] = image.is_product_shot
             image.attributes['sizes'] = data['sizes']
 
             # save the image

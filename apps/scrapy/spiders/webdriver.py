@@ -27,6 +27,8 @@ class SecondFunnelScraper(object):
         self.skip_tiles = kwargs.get('skip_tiles', False)
         # Skip processing of images (and if spider supports it, scraping of images)
         self.skip_images = kwargs.get('skip_images', False)
+        # For reporting
+        self.reporting_name = kwargs.get('reporting_name', '')
 
     # The functions below are hooks meant to be overwritten 
     # in the spiders for individual clients

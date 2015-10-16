@@ -3,16 +3,21 @@
 Intended to be run from a shell"""
 
 import csv
-import pprint
 import random
+import requests
+import json
+from pprint import pprint
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import transaction, models
 from django.db.models.signals import post_save
+from django.conf import settings
 
-from apps.assets.models import Category, Feed, Page, Product, Tile
-from apps.assets.signals import tile_saved
+from apps.assets.models import Category, Feed, Page, Product, ProductImage, Tile
+from apps.assets.signals import productimage_saved
+from apps.assets.utils import disable_tile_serialization
 from apps.intentrank.serializers import SerializerError
+from apps.imageservice.utils import get_public_id
 
 
 def set_negative_priorities(tile_id_list):
@@ -128,16 +133,70 @@ def set_random_priorities(tiles, max_priority=0, min_priority=0):
             print u"{} priority set to {}".format(t, t.priority)
     print u"Random priorities set for {} Tiles".format(len(tiles))
 
+def update_dominant_color(tiles):
+    """
+    Updates dominant color of all the images in the provided tiles
+    Chooses non-product-shot default images for all tiles provided
+    """
+
+    def get_resource_url(public_id):
+        return "https:{}/resources/image/upload/{}?colors=1".format(settings.CLOUDINARY_API_URL, public_id)
+
+    post_save.disconnect(productimage_saved, sender=ProductImage)
+    rescrape = [] # list of product urls that must be re-scraped
+
+    with disable_tile_serialization():
+        with requests.Session() as s:
+            s.auth = requests.auth.HTTPBasicAuth(settings.CLOUDINARY_API_KEY, settings.CLOUDINARY_API_SECRET)
+            for i, t in enumerate(tiles):
+                try:
+                    pis = t.product.product_images.all()
+                    print "{} {}: getting dominant_color for {} images".format(i, t, pis.count())
+                except AttributeError:
+                    print "{} {}: no product".format(i, t)
+                    continue
+                if not len(t.product.product_images.all()):
+                    print "{}: no product images".format(t)
+                    continue
+                for j, pi in enumerate(pis):
+                    # Download image information from cloudinary
+                    public_id = get_public_id(pi.url)
+                    url = get_resource_url(public_id)
+                    data = s.get(url)
+                    result = json.loads(data.text)
+                    if "error" in result:
+                        print "\t{} Error: {}".format(j, result['error']['message'])
+                        rescrape.append(t.product.url)
+                        continue
+                    else:
+                        pi.dominant_color = result['colors'][0][0]
+                        pi.save()
+                        print "\t{} {}".format(j, pi.dominant_color)
+                # Now that product images have dominant color, update default image
+                t.product.choose_lifestyle_shot_default_image()
+                if t.product.default_image.is_product_shot:
+                    print "Default image search failed. Chose first"
+                    t.attributes['colspan'] = 1
+                    t.save()
+
+    post_save.connect(productimage_saved, sender=ProductImage)
+    update_tiles_ir_cache(tiles)
+    if len(rescrape):
+        print "Rescrape these product urls with {'refresh-images': True}:"
+        pprint(rescrape)
+    return rescrape
+
+@disable_tile_serialization()
 def update_tiles_ir_cache(tiles):
     """
     Updates the ir_cache of tiles. Does not run full clean!
 
     Returns: <list> of <tuple>(Tile, Error) for failed updates
     """
-    post_save.disconnect(tile_saved, sender=Tile)
     dts = []
     for t in tiles:
         try:
+            # "manually" update tile ir cache
             ir_cache, updated = t.update_ir_cache() # sets tile.ir_cache
             if updated:
                 models.Model.save(t, update_fields=['ir_cache']) # skip full_clean
@@ -148,7 +207,6 @@ def update_tiles_ir_cache(tiles):
         except ValidationError as e:
             print "\t{}: {}".format(t, e)
             dts.append((t, e))
-    post_save.connect(tile_saved, sender=Tile)
     return dts
 
 def remove_product_tiles_from_page(page_slug, prod_url_id_list, fake=False):

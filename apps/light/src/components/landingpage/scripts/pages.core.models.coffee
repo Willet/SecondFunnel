@@ -27,18 +27,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # DEFER: this assumes it is always just an add operation
             options = _.defaults({}, options)
             if options.parse
-                models = @parse models, options
+                models = @parse(models, options)
             @add(models, options)
 
         parse: (resp, options) ->
             return resp
 
         add: (models, options) ->
-            if singular = not _.isArray(models)
-                if models
-                    models = [models]
-                else
-                    models = []
+            singular = not _.isArray(models)
+            if singular
+                models = if models then [models] else []
             at = options["at"] || 0
             newModels = _.map models, (attrs) =>
                 if attrs instanceof Backbone.Model
@@ -49,56 +47,50 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     new @model(attrs)
             @models[at..0] = newModels
             if not options.silent
-                _.each newModels, (model) =>
-                    @trigger 'add', model, @, options
-                @trigger 'add:many', newModels, @, options
-            _.each newModels, (model) =>
-                @_addReference model
+                _.each(newModels, (model) => @trigger('add', model, @, options))
+                @trigger('add:many', newModels, @, options)
+            _.each(newModels, (model) => @_addReference(model))
 
         remove: (models, options={}) ->
-            if singular = not _.isArray(models)
-                if models
-                    models = [models]
-                else
-                    models = []
+            singular = not _.isArray(models)
+            if singular
+                models = if models then [models] else []
             for model in models
                 t = _.indexOf(@models, model)
                 if t > -1
                     @models[t..t] = []
                     @length = @length - 1
                     if not options.silent
-                        @trigger 'remove', model, @, options
-                    @_removeReference model, options
-            if singular
-                return models[0]
-            return models
+                        @trigger('remove', model, @, options)
+                    @_removeReference(model, options)
+            
+            return (if singular then models[0] else models)
 
         reset: (models, options) ->
-            _.each @models, (model) ->
-                @_removeReference(model, options)
+            _.each(@models, (model) -> @_removeReference(model, options))
             options.previousModels = @models
             @_reset()
-            models = @add models, _.extend({silent: true}, options)
+            models = @add(models, _.extend({silent: true}, options))
             if not options.silent
-                @trigger 'reset', @, options
+                @trigger('reset', @, options)
             return models
 
         push: (model, options) ->
-            @add model, _.extend({at: @length}, options)
+            @add(model, _.extend({at: @length}, options))
             return model
 
         pop: (options) ->
             model = @at(@length - 1)
-            @remove model, options
+            @remove(model, options)
             return model
 
         unshift: (model, options) ->
-            @add model, options
+            @add(model, options)
             return model
 
         shift: (options) ->
             model = @at 0
-            @remove model
+            @remove(model)
             return model
 
         at: (index) ->
@@ -136,11 +128,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         'tail', 'drop', 'last', 'without', 'difference', 'indexOf', 'shuffle',
         'lastIndexOf', 'isEmpty', 'chain', 'sample']
 
-    _.each underscore_methods, (method) ->
+    _.each(underscore_methods, (method) ->
         module.List.prototype[method] = () ->
             args = [].slice(arguments) # convert to regular array
             args.unshift(@models)
             return _[method].apply(_, args)
+    )
 
 
     class module.Store extends Backbone.Model
@@ -156,7 +149,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             unless data.slug
                 throw new Error("Missing store slug")
             unless data.displayName
-                @set "displayName", @get("name")
+                @set("displayName", @get("name"))
             return
 
 
@@ -208,11 +201,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # the template needs something simpler.
             @color = color
-            if options and options["suppressResize"]
-                @url = @get("url")
-            else
-                @url = @width(App.feed.width())
-
+            @url = if options? and options["suppressResize"] \
+                   then @get("url") \
+                   else @width(App.feed.width())
             return
 
         sync: ->
@@ -358,20 +349,24 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             b) images, default image and tagged products default image are converted
             to <Image>s.
             ###
-            if @get("image")? 
+            if App.support.mobile() and @mobileOptions?
+                # update options on mobile
+                @options = _.extend({}, @options, @mobileOptions)
+
+            if @get("image")? and not _.isEmpty(@get('image'))
                 @set(image: new module.Image(@get("image")))
 
             if _.isArray(@get("images"))
-                @set(images: (new module.Image(im) for im in @get("images")))
+                @set(images: (new module.Image(im) for im in @get("images") when not _.isEmpty(im)))
 
-            if @get('product')?
+            if @get('product')? and not _.isEmpty(@get('product'))
                 @set(product: new module.Product(@get('product')))
 
             if _.isArray(@get('tagged-products'))
-                @set(taggedProducts: (new module.Product(p) for p in @get('tagged-products')))
+                @set(taggedProducts: (new module.Product(p) for p in @get('tagged-products') when not _.isEmpty(p)))
                 @unset('tagged-products')
 
-            if @get('default-image')?
+            if @get('default-image')? and not _.isEmpty(@get('default-image'))
                 # getImage uses images, so set first
                 defaultImage = if _.isNumber(@get('default-image')) \
                                then @getImage(@get('default-image')) \
@@ -382,7 +377,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
                 @unset('default-image')
 
-            if @get('video')?
+            if @get('video')? and not _.isEmpty(@get('video'))
                 video = if (@get('video')['source'] == 'youtube') \
                         then new module.YoutubeVideo(@get('video')) \
                         else new module.Video(@get('video'))
@@ -428,8 +423,26 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CollectionTile extends module.Tile
         # Similar to Image Tile, but has mini-feed of products
         type: "CollectionTile"
-        displayOptions:
+        options:
+            showThumbnails: false
             previewFeed: true
+        initialize: ->
+            super
+            # A CollectionTile pop-up supports a different image than the tile view
+            if @get("expandedImage")?
+                image = if _.isNumber(@get('expandedImage')) \
+                        then @getImage(@get('expandedImage')) \
+                        else new module.Image(@get('expandedImage'))
+                @set(expandedImage: image)
+            if @get("expandedMobileImage")?
+                image = if _.isNumber(@get('expandedMobileImage')) \
+                        then @getImage(@get('expandedMobileImage')) \
+                        else new module.Image(@get('expandedMobileImage'))
+                @set(expandedMobileImage: image)
+            # Used to create a `back to collection description` link
+            collectionName = @get('name') or @get('title')
+            for product in @get('taggedProducts')
+                product.set("collectionName", collectionName)
 
 
     class module.VideoTile extends module.Tile
@@ -491,27 +504,27 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         loading: false
 
         ###
-        process common attributes, then delegate the collection's parsing
-        method to their individual tiles.
+        Process tileJSON's into tiles if they are valid. If invalid, warn and discard.
 
-        @param resp
+        @param resp - a list of tile's in json
         @param options
         @returns {Array}
         ###
         parse: (resp, options) ->
-            tileIds = App.intentRank.getTileIds()
-
-            respBuilder = _.filter(resp, (tile) =>
-                if tile["tile-id"]
-                    return true
+            reduceToTiles = (memo, tileJson) ->
+                if not tileJson["tile-id"]
+                    console.warn("Rejected tile during parse because it has no tile-id: %O", tile)
                 else
-                    console.warn("Rejected tile during parse beecause it has no tile-id: %O", tile)
-                    return false
-            )
-            tiles = _.map(respBuilder, (jsonEntry) ->
-                TileClass = App.utils.findClass("Tile", jsonEntry.template or jsonEntry.type, module.Tile)
-                return new TileClass(jsonEntry, parse: true)
-            )
+                    try
+                        TileClass = App.utils.findClass("Tile", tileJson.template or tileJson.type, module.Tile)
+                        tile = new TileClass(tileJson, parse: true)
+                        memo.push(tile) # everything worked, let tile through
+                    catch e
+                        console.warn("Rejecting tile that threw error (%s: %s) during initialization: %O",
+                                     e.name, e.message, tile)
+                return memo
+
+            tiles = _.reduce(resp, reduceToTiles, [])
             return tiles
 
         ###

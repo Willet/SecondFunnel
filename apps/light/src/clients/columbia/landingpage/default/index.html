@@ -241,9 +241,26 @@
             <% if (obj.taggedProducts.length) { %>
                 <div class="image-with-tagged-products">
                     <div class="table">
-                        <div class="row">
-                            <% if (obj.taggedProducts.length > 1 && obj.orientation !== 'landscape') { %>
-                                <div class="cell desktop-only shop">
+                        <% if (obj.taggedProducts.length > 1 && obj.orientation !== 'landscape') { %>
+                            <div class="cell desktop-only shop">
+                                <div class="stl-title">The Look</div>
+                                <div class="stl-look">
+                                    <% var related = obj.taggedProducts; %>
+                                    <% for (var i = 0; i < related.length; i++) { %>
+                                        <div class="stl-item" data-index="<%- i %>">
+                                            <img src="<%- related[i].images[0].url %>" />
+                                            <div class="name">
+                                                <%- related[i].title || related[i].name %>
+                                            </div>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
+                        <div class="cell desktop-only">
+                            <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
+                            <% if (obj.taggedProducts.length > 1 && obj.orientation === 'landscape') { %>
+                                <div class="landscape">
                                     <div class="stl-title">The Look</div>
                                     <div class="stl-look">
                                         <% var related = obj.taggedProducts; %>
@@ -258,67 +275,46 @@
                                     </div>
                                 </div>
                             <% } %>
-                            <div class="cell desktop-only">
-                                <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
-                                <% if (obj.taggedProducts.length > 1 && obj.orientation === 'landscape') { %>
-                                    <div class="landscape">
-                                        <div class="stl-title">The Look</div>
-                                        <div class="stl-look">
-                                            <% var related = obj.taggedProducts; %>
-                                            <% for (var i = 0; i < related.length; i++) { %>
-                                                <div class="stl-item" data-index="<%- i %>">
-                                                    <img src="<%- related[i].images[0].url %>" />
-                                                    <div class="name">
-                                                        <%- related[i].title || related[i].name %>
-                                                    </div>
-                                                </div>
-                                            <% } %>
-                                        </div>
-                                    </div>
-                                <% } %>
-                            </div>
+                        </div>
+                        <div class="cell mobile-only">
+                            <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
+                        </div>
+                        <% if (obj.taggedProducts.length > 1) { %>
                             <div class="cell mobile-only">
-                                <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
-                            </div>
-                            <% if (obj.taggedProducts.length > 1) { %>
-                                <div class="cell mobile-only">
-                                    <div class="stl-title">The Look</div>
-                                    <div class="stl-look">
-                                        <% var  related = obj.taggedProducts; %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <img src="<%- related[i].images[0].url %>" />
-                                                <div class="name">
-                                                    <%- related[i].title || related[i].name %>
-                                                </div>
+                                <div class="stl-title">The Look</div>
+                                <div class="stl-look">
+                                    <% var  related = obj.taggedProducts; %>
+                                    <% for (var i = 0; i < related.length; i++) { %>
+                                        <div class="stl-item" data-index="<%- i %>">
+                                            <img src="<%- related[i].images[0].url %>" />
+                                            <div class="name">
+                                                <%- related[i].title || related[i].name %>
                                             </div>
-                                        <% } %>
-                                    </div>
+                                        </div>
+                                    <% } %>
                                 </div>
-                            <% } %>
-                            <div class="cell info">
-                                <div class="product-info"></div>
                             </div>
+                        <% } %>
+                        <div class="cell info">
+                            <div class="product-info"></div>
                         </div>
                     </div>
                 </div>
             <% } else { %>
                 <div class="image-without-tagged-products">
                     <div class="table">
-                        <div class="row">
-                            <div class="cell capped-width">
-                                <img src="<%= obj.images[0].url %>" alt="image" class="image look-image" />
-                            </div>
-                            <div class="cell">
-                                <div class="info">
-                                    <div class="title">
-                                        Coming soon to Columbia!
-                                    </div>
-                                    <div class="buy">
-                                        <a class='button' href='http://www.columbia.com/fishing/Collection_PFG,default,pg.html' target='_blank'>
-                                            Shop On Columbia
-                                        </a>
-                                    </div>
+                        <div class="cell capped-width">
+                            <img src="<%= obj.images[0].url %>" alt="image" class="image look-image" />
+                        </div>
+                        <div class="cell">
+                            <div class="info">
+                                <div class="title">
+                                    Coming soon to Columbia!
+                                </div>
+                                <div class="buy">
+                                    <a class='button' href='http://www.columbia.com/fishing/Collection_PFG,default,pg.html' target='_blank'>
+                                        Shop On Columbia
+                                    </a>
                                 </div>
                             </div>
                         </div>

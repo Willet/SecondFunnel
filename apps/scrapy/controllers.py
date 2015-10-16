@@ -68,7 +68,7 @@ class PageMaintainer(object):
         # Ensure source urls look good
         for url in source_urls:
             self.url_validator(url)
-            url = spider.clean_url(url)
+        source_urls = [spider.clean_url(url) for url in source_urls]
 
         # If source urls are not already in the page, add new source urls
         source_urls = set(source_urls)
@@ -79,7 +79,8 @@ class PageMaintainer(object):
         opts = {
             'recreate_tiles': options.get('recreate_tiles', False), # In case you screwed up? Not very useful
             'skip_images': options.get('skip_images', False),
-            'skip_tiles': options.get('skip_tiles', False)
+            'skip_tiles': options.get('skip_tiles', False),
+            'reporting_name': 'page {}'.format(self.page.url_slug.upper()),
         }
         
         if options.get('refresh_images', False):
@@ -120,6 +121,7 @@ class PageMaintainer(object):
             'skip_images': options.get('skip_images', True),
             'skip_tiles': options.get('skip_tiles', True),
             'page_update': True,
+            'reporting_name': 'page {}'.format(self.page.url_slug.upper()),
         }
 
         self._run_scraper(spider_name=spider_name,

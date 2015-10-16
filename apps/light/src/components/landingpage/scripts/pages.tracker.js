@@ -303,6 +303,33 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         });
     };
 
+    module.tileOpen = function (model) {
+        // Convert model to tile JSON
+        var modelData = model.toJSON ? model.toJSON() : model,
+            trackingInfo = getTrackingInformation(modelData, false),
+            tileId = modelData['tile-id'] || 0,
+            label = trackingInfo.label || '';
+
+        if (!label) {
+            console.warn('Not tracking event with no label');
+            return;
+        }
+
+        // for distinguishing product or (mostly content) tiles that
+        // have different ids
+        if (tileId) {
+            label += ' (Tile ' + tileId + ')';
+        } else {
+            console.warn('No tile id present for for tile: ' + label);
+        }
+
+        module.trackEvent({
+            'category': trackingInfo.category,
+            'action': 'Preview',
+            'label': label
+        });
+    };
+
     module.buyClick = function (model) {
         // Convert model to tile JSON
         var modelData = model.toJSON ? model.toJSON() : model,
@@ -387,44 +414,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
     // Backbone format: { '(event) (selectors)': function(ev), ...  }
     module.defaultEventMap = {
-        // Events that we care about:
-        // Content Preview
-        // Product Preview
-        'click .tile': function () {
-            var hash,
-                modelId = $(this).attr('id'),
-                model = (App.discovery.collection.get(modelId) ||
-                        // {cXXX} models could be here instead, for some reason
-                        App.discovery.collection._byId[modelId]),
-                // Convert model to tile JSON
-                modelData = model.toJSON ? model.toJSON() : model,
-                trackingInfo = getTrackingInformation(modelData, true),
-                tileId = modelData['tile-id'] || 0,
-                label = trackingInfo.label || '';
-
-            if (!label) {
-                console.warn('Not tracking event with no label');
-                return;
-            }
-
-            // for distinguishing product or (mostly content) tiles that
-            // have different ids
-            if (tileId) {
-                label += ' (Tile ' + tileId + ')';
-
-                // add click to our database
-                App.vent.trigger('tracking:tile:click', tileId);
-            } else {
-                console.warn('No tile id present for for tile: ' + label);
-            }
-
-            module.trackEvent({
-                'category': trackingInfo.category,
-                'action': $(this).hasClass('banner') ? 'Purchase' : 'Preview',
-                'label': label
-            });
-        },
-
         // Content Share
         // Product Share
         //
@@ -564,6 +553,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         'tracking:page:scroll': module.pageScroll,
         'tracking:page:externalUrlClick': module.pageClickout,
         'tracking:tile:bannerExit': module.bannerExit,
+        'tracking:tile:open': module.tileOpen,
         'tracking:product:buyClick': module.buyClick,
         'tracking:product:findStoreClick': module.findStoreClick,
         'tracking:product:thumbnailClick': module.thumbnailClick,
