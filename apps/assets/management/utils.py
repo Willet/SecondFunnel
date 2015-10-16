@@ -13,14 +13,9 @@ from django.db import transaction, models
 from django.db.models.signals import post_save
 from django.conf import settings
 
-<<<<<<< HEAD
-from apps.assets.models import Category, Feed, Page, Product, Tile
-from apps.assets.signals import tile_saved
-from apps.assets.utils import disable_tile_serialization
-=======
 from apps.assets.models import Category, Feed, Page, Product, ProductImage, Tile
-from apps.assets.signals import tile_saved, productimage_saved
->>>>>>> dev
+from apps.assets.signals import productimage_saved
+from apps.assets.utils import disable_tile_serialization
 from apps.intentrank.serializers import SerializerError
 from apps.imageservice.utils import get_public_id
 
@@ -183,6 +178,7 @@ def update_dominant_color(tiles):
                     print "Default image search failed. Chose first"
                     t.attributes['colspan'] = 1
                     t.save()
+
     post_save.connect(productimage_saved, sender=ProductImage)
     update_tiles_ir_cache(tiles)
     if len(rescrape):
