@@ -322,12 +322,10 @@ def generate_public_id(url, store=None, cloudinary_compatible=True):
 
 def is_hex_color(color_string):
     """returns True if color_string is a hex color of the form '#FFFFFF'"""
-    if color_string is None:
-        return False
     try:
         search_result = re.search("^#[0-9ABCDEF]{6}$", color_string)
         return bool(search_result is not None)
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         return False
 
 
