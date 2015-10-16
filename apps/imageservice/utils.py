@@ -325,7 +325,7 @@ def is_hex_color(color_string):
     try:
         search_result = re.search("^#[0-9ABCDEF]{6}$", color_string)
         return bool(search_result is not None)
-    except ValueError:
+    except (ValueError, TypeError):
         return False
 
 
