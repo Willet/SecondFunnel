@@ -199,6 +199,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     /**
      * Returns a formatted url for a cloudinary image
      *
+     * NOTE: DEPRECATED IN FAVOR OF LETTING IMAGE MODEL HANDLE RESIZING
+     *
      * @param {string} url
      * @param {Object} options
      *

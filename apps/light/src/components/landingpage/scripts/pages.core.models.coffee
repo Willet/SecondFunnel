@@ -166,6 +166,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if _.isArray(@get('tagged-products')) \
                 then (new module.Product(p) for p in @get('tagged-products')) \
                 else []
+            # defaultImage shares some object as images[0] for image caching (urls)
             defaultImage = images[0]
             @set
                 images: images
@@ -195,12 +196,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             "dominant-color": "transparent"
 
         initialize: (attributes, options) ->
-            # add a name, colour, and a sized url to each size datum
-            self = this
-            color = @get("dominant-color")
-
-            # the template needs something simpler.
-            @color = color
+            @color = @get("dominant-color")
+            # sizes cloudinary url
             @url = if options? and options["suppressResize"] \
                    then @get("url") \
                    else @width(App.feed.width())
@@ -209,6 +206,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         sync: ->
             false
 
+        width: (width, returnInstance=false) ->
+            # get url by minimum width
+            # See resizeForDimens for documentation
+            @resizeForDimens(width, 0, returnInstance)
+
+        height: (height, returnInstance=false) ->
+            # get url by minimum height
+            # See resizeForDimens for documentation
+            @resizeForDimens(0, height, returnInstance)
+
         ###
         @param width - in px; 0 means no width restrictions
         @param height - in px; 0 means no height restrictions
@@ -216,7 +223,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         will be returned
         @returns {*}
         ###
-        dimens: (width, height, returnInstance=false) ->
+        resizeForDimens: (width, height, returnInstance=false) ->
             options = {}
             resized = $.extend({}, @defaults, @attributes)
             if width > 0
@@ -224,30 +231,107 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if height > 0
                 options.height = height
             unless width or height
+                # App.feed.width is a generic width that doesn't
+                # correspond to an image actually displayed
+                # (tile image width is slightly smaller to account for tile border)
                 options.width = App.feed.width()
+
             # first check if the resized url exists in sizes
-            if options.width?
-                size = _.findWhere(_.values(@attributes['sizes']), width: options.width)
-            else 
-                size = _.findWhere(_.values(@attributes['sizes']), height: options.height)
-            if size?.url?
-                resized.url = size.url
-            else
-                # else, generate it from Cloudinary
-                resized.url = App.utils.getResizedImage(@get("url"), options)
+            size = @_lookForSize(options)
+
+            # second check for resized url with the rounded size
+            if not size?
+                options = @_roundSizes(options)
+                size = @_lookForSize(options)
+                        
+            resized.url = if size?.url? \
+                          then size.url \
+                          # third generate it from cloudinary url
+                          else @resizeCloudinaryImage(@get("url"), options)
+
             if returnInstance
                 # Create a new instance of (Image or a subclass)
                 return new module[@type](resized, suppressResize: true)
             else
                 return resized.url
 
-        width: (width, returnInstance=false) ->
-            # get url by min width
-            @dimens(width, 0, returnInstance)
+        _updateUrl: (options, url) ->
+            # Update url if this image url is bigger than the current one
+            ...
 
-        height: (height, returnInstance=false) ->
-            # get url by min height
-            @dimens(0, height, returnInstance)
+        _lookForSize: (options) ->
+            # Check attributes.sizes if we have image url's specified for this size
+            if options.width?
+                return _.findWhere(_.values(@attributes['sizes']), width: options.width)
+            else 
+                return _.findWhere(_.values(@attributes['sizes']), height: options.height)
+
+        _roundSizes: (options, width, height) ->
+            ###
+            Round to the nearest whole hundred pixel dimension
+            prevents creating a ridiculous number of images.
+
+            options: width, height
+            width: (optional) width to round
+            height: (optional) height to round
+            ###
+            width = width or options.width
+            height = height or options.height
+            ratio = Math.ceil(window.devicePixelRatio * 2) / 2
+
+            if options.width? and options.height?
+                options.width = Math.ceil(width / 100.0) * (100 * ratio)
+                options.height = Math.ceil(height / 100.0) * (100 * ratio)
+            else if options.height?
+                options.height = Math.ceil(height / 100.0) * (100 * ratio)
+            else if App.feed.width() > 0 and not options.width?
+                options.width = Math.ceil(App.feed.width()) * ratio
+            else
+                options.width = Math.ceil(width / 100.0) * (100 * ratio)
+            return options
+
+
+        resizeCloudinaryImage: (url, options) ->
+            ###
+            Class method which resizes a Cloudinary url
+
+            url - a cloudinary url
+
+            options:
+                originalSize: boolean return original url
+                width: width to use (given priority over height)
+                height: height to use
+
+            returns: resized url
+            ###
+            if _.contains(url, ".gif")
+                # Do NOT transform animated gifs
+                return url
+
+            if _.contains(url, "c_fit")
+                # Transformation has been applied to this url, Cloudinary is not smart
+                # with these, so strip back to original url
+                url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, '/')
+
+            if options.originalSize
+                # return cleaned url
+                return url
+            
+            width = Math.max(options.width || 300, App.option('minImageWidth'))
+            height = Math.max(options.height || 300, App.option('minImageHeight'))
+
+            # Round to 100px increments to avoid 
+            options = @_roundSizes(options, width, height)
+
+            options =
+                crop: 'fit'
+                quality: 75
+                width: options.width
+                height: options.height
+
+            url = url.replace(App.CLOUDINARY_DOMAIN, '') #remove absolute uri
+            url = $.cloudinary.url(url, options)
+            return url
 
 
     class module.Video extends Backbone.Model
@@ -276,8 +360,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         # Cache of tile JSON index by tile-id's shared amongst all feeds
         # Currently only used by tiles inserted at page caching
-        @tilecache = []
-        @getTileById = (tileId, success_cb, failure_cb) ->
+        @tilecache: []
+        @getTileById: (tileId, success_cb, failure_cb) ->
             if App.utils.isNumber(tileId)
                 if App.option('debug', false)
                     console.warn('Router getting tile: '+tileId)
@@ -311,7 +395,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @param tile - {Tile}
         @returns {_*_Tile}
         ###
-        @selectTileSubclass = (tile) ->
+        @selectTileSubclass: (tile) ->
             if tile instanceof module.Tile
                 TileClass = App.utils.findClass('Tile',
                     tile.get('type') || tile.get('template'), App.core.Tile)
@@ -353,11 +437,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # update options on mobile
                 @options = _.extend({}, @options, @mobileOptions)
 
-            if @get("image")? and not _.isEmpty(@get('image'))
-                @set(image: new module.Image(@get("image")))
-
+            # Instantiate images first, because we will try to re-use these image models
+            # so that image size caching is maximally used.
             if _.isArray(@get("images"))
                 @set(images: (new module.Image(im) for im in @get("images") when not _.isEmpty(im)))
+
+            if @get("image")? and not _.isEmpty(@get('image'))
+                @set(image: @getOrCreate(@get("image")))
 
             if @get('product')? and not _.isEmpty(@get('product'))
                 @set(product: new module.Product(@get('product')))
@@ -368,9 +454,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             if @get('default-image')? and not _.isEmpty(@get('default-image'))
                 # getImage uses images, so set first
-                defaultImage = if _.isNumber(@get('default-image')) \
-                               then @getImage(@get('default-image')) \
-                               else new module.Image(@get('default-image'))
+                defaultImage = @getOrCreateImage(@get('default-image'))
                 @set(
                     defaultImage: defaultImage
                     'dominant-color': defaultImage.get('dominant-color')
@@ -391,10 +475,27 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         @returns {module.Image}
         ###
         getImage: (imgId) ->
-            imageAttr = _.findWhere(@get("images"),
+            # returns undefined if @get("images") is undefined
+            return _.findWhere(
+                @get("images"),
                 id: imgId
             )
-            return new module.Image(imageAttr)
+
+        ###
+        Attempt to find the same image by id before creating a new one
+        Helps with caching images
+
+        @param imgObj - either (Number) image ID or (Object) image attributes
+        @returns {module.Image} 
+        ###
+        getOrCreateImage: (imgObj) ->
+            if _.isNumber(imgObj)
+                # Number is an id in images
+                image = @getImage(imgObj)
+            else
+                # Try to find image before generating a new model
+                image = @getImage(imgObj.id) or new module.Image(imgObj)
+            return image
 
         url: ->
             App.options.IRSource + "/page/" + App.options.campaign + "/tile/" + @get("tile-id")
