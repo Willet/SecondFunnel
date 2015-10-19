@@ -1,16 +1,18 @@
-import cStringIO
-import mimetypes
-from threading import Semaphore
-import os
-import urllib, base64
+import base64
+from cloudinary.utils import cloudinary_url as generate_cloudinary_url
 from django.conf import settings
+import mimetypes
+import os
 from PIL import ImageFilter, Image
+import re
+from StringIO import StringIO
+from threading import Semaphore
+import urllib2
 
 from apps.imageservice.models import SizeConf
-from apps.imageservice.utils import IMAGE_SIZES, within_color_range, upload_to_cloudinary, delete_cloudinary_resource
-from lib.aws_utils import upload_to_bucket
-
-
+from apps.imageservice.utils import create_image, create_image_path, delete_cloudinary_resource, get_filetype, \
+                                    get_public_id, IMAGE_SIZES, upload_to_cloudinary, within_color_range
+from apps.utils.aws import upload_to_bucket
 
 
 # Use a semaphore as image processing is an CPU expensive operation
@@ -49,6 +51,18 @@ def resize_images(sizes, img):
     return image_sizes
 
 
+def download_image(source_url):
+    """
+    Downloads an image from source_url
+
+    @param source_url
+    @return: ExtendedImage object
+    """
+    # download here
+    download = urllib2.urlopen(source_url, timeout=10)
+    return create_image(download)
+
+
 def upload_to_local(path, folder, img, size):
     """
     Uploads an image locally.
@@ -74,27 +88,28 @@ def upload_to_local(path, folder, img, size):
     return filename
 
 
-def upload_to_s3(path, folder, img, size):
+def upload_to_s3(path, folder, img, file_id):
     """
     Uploads an image to S3, avoids a disk write by keeping the image
     in memory.
 
-    @param bucket: prefixed path name
+    @param path: prefixed path name
     @param folder: The unique folder to store it in
-    @param img: ExtendedImage object
-    @param size: SizeConf object
-    @return: None
+    @param img: <ExtendedImage> object
+    @param size: <SizeConf> object
+    @return: url of s3 resouce
     """
-    output = cStringIO.StringIO()  # save into a string to avoid disk write
-    img.save(output)
+    buff = StringIO()  # save into a string to avoid disk write
+    img.save(buff)
+    buff.seek(0) # rewind to start of file
 
-    file_format = "jpg" if img.format is None else img.format
-    filename = "{0}.{1}".format(size.name, file_format)
+    file_format = "jpg" if img.format is None else img.format.lower()
+    filename = "{0}.{1}".format(file_id, file_format)
     bucket = os.path.join(settings.IMAGE_SERVICE_BUCKET, path, folder)
 
     if not upload_to_bucket(
             bucket_name=bucket,
-            filename=filename, content=output,
+            filename=filename, content=buff,
             content_type=mimetypes.MimeTypes().guess_type(filename)[0],
             public=True,
             do_gzip=True):
@@ -121,7 +136,6 @@ def upload_gif_to_s3(folder, source):
         raise IOError("ImageService could not upload size.")
 
     return os.path.join(bucket, filename)
-
 
 
 def process_gif(source, path='', sizes=None, remove_background=False):
@@ -235,3 +249,45 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
     })
 
     return data
+
+
+def transfer_cloudinary_image_to_s3(cloudinary_url, store, size):
+    """ Transfer one size of cloudinary image to S3.
+
+    Acquires a lock in order to process the image.
+
+    @param source: Name of the image source
+    @param path: The path to save the object to
+    @param sizes: List of sizes to create (unused)
+    @return: object
+
+    Returns (<ExtendedImage>, s3 url)
+    """
+    with PROCESSING_SEM:
+        data = transfer_image_now(cloudinary_url, store, size)
+
+    return data
+
+
+def transfer_image_now(cloudinary_url, store, size):
+    # cloudinary resizes images on their end
+    # Ex: http://res.cloudinary.com/secondfunnel/image/upload/c_fit,q_75,w_700
+    #            /v1441808046/sur%20la%20table/539a3d9b66907635.jpg
+    # is saved as:
+    #     http://images.secondfunnel.com/store/surlatable/tile/539a3d9b66907635.jpg
+    cloudinary_public_id = get_public_id(cloudinary_url)
+    filetype = get_filetype(cloudinary_url)
+    path = create_image_path(store.id, 'sizes') # returns ex: "/surlatable/sizes/"
+    # NOTE: if JS resizing changes, need to update this:
+    cloudinary_url = generate_cloudinary_url(u"{}.{}".format(cloudinary_public_id, filetype),
+                                             width=size.width, height=size.height,
+                                             crop="fit", quality=75)[0]
+    img = download_image(cloudinary_url)
+
+    # Cloudinary ids include store name and sometimes other folders, grab just the end ID
+    # Turns sur%20la%20table/539a3d9b66907635 into 539a3d9b66907635
+    s3_public_id = re.search(r"/([^/]+)$", cloudinary_public_id).group(1)
+    s3_url = u"http://" + upload_to_s3(path, size.name, img, s3_public_id)
+
+    return (img, s3_url)
+    

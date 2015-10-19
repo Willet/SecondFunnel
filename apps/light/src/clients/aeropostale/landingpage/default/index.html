@@ -112,7 +112,7 @@
             <div class="main-image-container">
                 <div class="main-image">
                     <% for (var i = 0; i < obj.images.length; i++) { %>
-                        <img class="image" src="<%- obj.images[i].url %>" />
+                        <img class="image" data-id="<%= obj.images[i].id %>" src="<%= obj.images[i].url %>" />
                     <% } %>
                 </div>
             </div>

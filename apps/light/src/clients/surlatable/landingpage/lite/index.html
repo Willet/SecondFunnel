@@ -133,11 +133,11 @@
                     <% for (var j = 0; j < obj.images.length; j++) {
                         // only 1st image is progressively loaded, others load hi-res version
                         if (j === 0) { %>
-                            <div class="image" style="background-image: url('<%= obj.images[j].url %>');">
+                            <div class="image" data-id="<%= obj.images[j].id %>" style="background-image: url('<%= obj.images[j].url %>');">
                                 <div class="hi-res image"></div>
                             </div>
                         <% } else { %>
-                            <div class="image">
+                            <div class="image" data-id="<%= obj.images[j].id %>" >
                                 <div class="hi-res image"></div>
                             </div>
                         <% }

@@ -110,8 +110,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 3: "three-col"
                 4: "full"
 
-            # templates use this as obj.image.url
-            @model.set("image", @model.get("defaultImage"))
             wideable = wideableTemplates[@model.get("template")]
             showWide = (Math.random() < App.option("page:tiles:imageTileWideProb", 0.5))
             if _.isNumber(@model.get("colspan"))
@@ -125,12 +123,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     columns = 1
                 else
                     columns = 2
-            for column in columns
-                idealWidth = normalTileWidth * columns
-                imageInfo = @model.get("image").width(idealWidth, true)
-                if imageInfo
-                    break
-            @model.set(image: imageInfo)
+            idealWidth = normalTileWidth * columns
+            # Update default image width to at least idealWidth
+            @model.get("defaultImage").width(idealWidth)
             @$el.addClass(columnDetails[columns])
 
             # Listen for the image being removed from the DOM, if it is, remove

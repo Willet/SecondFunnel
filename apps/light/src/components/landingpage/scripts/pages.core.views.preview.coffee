@@ -120,34 +120,40 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         replaceImages: ->
-            unless App.support.mobile()
-                $container = @$el.find(".main-image-container")
-                if $container.is(":visible")
+            $container = @$el.find(".main-image-container")
+            if $container.is(":visible")
+                if App.support.mobile()
+                    maxWidth = $container.width()
+                    maxHeight = $container.height()
+                else
                     maxWidth = $container.width()*1.3
                     maxHeight = $container.height()*1.3
+            else
+                maxWidth = App.option("minImageWidth") or 300
+                maxHeight = App.option("minImageHeight") or 300
+
+            for imageEl, i in @$el.find(".main-image .image")
+                $image = $(imageEl)
+                # find image from id
+                image = _.findWhere(@model.get('images'), id: $image.data('id'))
+                if image
+                    imageUrl = image.resizeForDimens(maxWidth, maxHeight)
+                
+                if imageUrl?
+                    if $image.is("img")
+                        $image.attr("src", imageUrl)
+                    else if $image.is("div")
+                        $image.css("background-image", "url('#{imageUrl}')")
                 else
-                    maxWidth = App.option("minImageWidth") or 300
-                    maxHeight = App.option("minImageHeight") or 300
-                for image, i in @$el.find(".main-image .image")
-                    if $(image).is("img")
-                        imageUrl = App.utils.getResizedImage($(image).attr("src"),
-                            width: maxWidth,
-                            height: maxHeight
-                        )
-                        $(image).attr("src", imageUrl)
-                    else if $(image).is("div")
-                        imageUrl = $(image).css("background-image").replace('url(','').replace(')','')
-                        imageUrl = App.utils.getResizedImage(imageUrl,
-                            width: maxWidth,
-                            height: maxHeight
-                        )
-                        $(image).css("background-image", "'url(#{imageUrl})'")
+                    console.warn("Can't get resized image for %O", @)
             return
 
         resizeProductImages: ->
             productImages = @$el.find(".main-image .image")
             if productImages.length > 0 and productImages.first().is("div")
-                @replaceImages()
+                # Let the browser execute the resizing window callbacks
+                # otherwise, container height is 0 & images are resized to 0 height.
+                setTimeout((=> @replaceImages()), 1)
             else
                 imagesLoaded(productImages, (=> @replaceImages()))
             return
@@ -259,9 +265,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#similar_products_template"
 
         initialize: (options) ->
-            productAttrs = ((if p.toJSON? then p.toJSON() else p) \
-                             for p in (options['products'] or []))
-            @collection = new module.ProductCollection(productAttrs)
+            @collection = new module.ProductCollection(options['products'])
 
             if options.template
                 @templateHelpers =

@@ -44,8 +44,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return data
 
         getTemplate: ->
-            if @attrs.type
-                return "##{@attrs.type}_carousel_template"
+            if @attrs.template
+                return "##{@attrs.template}_carousel_template"
             else
                 return "#carousel_template"
 
@@ -417,7 +417,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @tileLoaded.resolve(arguments[0])
                 tileLoadedFailed = =>
                     @tileLoaded.resolve()
-                module.Tile.getTileById(tileId, tileLoadedResolve, tileLoadedFailed)
+                module.Tile.getById(tileId, tileLoadedResolve, tileLoadedFailed)
             # no tile, get category from intentRank
             else
                 if App.intentRank?.currentCategory?
@@ -435,7 +435,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if _.isObject(tile) and not _.isEmpty(tile)
                     @model = if _.contains(tile.type, 'Tile') \
                              then tile \
-                             else module.Tile.selectTileSubclass(tile)
+                             else module.Tile.getOrCreate(tile)
                 else
                     @model = undefined
                 @render()
@@ -453,7 +453,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if @model?
                     contentOpts = model: @model
                     contentInstance = undefined
-                    if _.contains(contentOpts.model.get("type", ""), "hero")
+                    if _.contains(contentOpts.model.type?.toLowerCase(), "hero")
                         contentInstance = new module.HeroContent(contentOpts)
                     else
                         contentInstance = new module.PreviewContent(contentOpts)

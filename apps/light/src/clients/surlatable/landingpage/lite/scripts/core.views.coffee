@@ -40,22 +40,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             maxWidth = App.option("minImageWidth") or 300
             maxHeight = App.option("minImageHeight") or 300
 
-        for image, i in @$el.find(".main-image .hi-res")
-            $image = $(image)
+        for imageEl, i in @$el.find(".main-image .hi-res")
+            $image = $(imageEl)
             $cachedImage = $image.parent()
 
-            # get base image url
-            if $cachedImage.is("img")
-                imageUrl = $cachedImage.attr("src") or @model.get("images")[i].url
-            else if $cachedImage.is("div")
-                imageUrl = if $cachedImage.css("background-image") is "none" \
-                           then @model.get("images")[i].url \
-                           else $cachedImage.css("background-image").replace('url(','').replace(')','')
-
-            imageUrl = App.utils.getResizedImage(imageUrl,
-                width: maxWidth,
-                height: maxHeight
-            )
+            # find image from id
+            image = _.findWhere(@model.get('images'), id: $cachedImage.data('id'))
+            imageUrl = image.resizeForDimens(maxWidth, maxHeight)
 
             if $image.is("img")
                 $image.attr("src", imageUrl)

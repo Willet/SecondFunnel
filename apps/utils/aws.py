@@ -5,7 +5,7 @@ S3 and Route53 helpers
 import gzip
 import json
 import re
-import StringIO
+from StringIO import StringIO
 import functools
 import boto
 
@@ -110,7 +110,12 @@ def get_route53_change_status(change_id, conn=None):
 def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
                      public=False, do_gzip=True):
     """
-    Uploads a key to bucket, setting provided content, content type and publicity
+    Uploads a key to bucket
+
+    @param: content - a file-like object (ex: StringIO.StringIO)
+    @param: content type - <string>
+    @param: public - <boolean> make file publically accessible
+    @param: do_gzip - <boolean> gzip file before transmission (note: does not support cStringIO.StringIO content)
     """
     bucket, _ = get_or_create_website_bucket(bucket_name)
 
@@ -119,19 +124,16 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
     headers = {"Content-Type": content_type}
 
     if do_gzip:
-        zipr = StringIO.StringIO()
-
-        # GzipFile doesn't support 'with', so we close it manually
-        # TODO: why is index.html specified?
-        tmpf = gzip.GzipFile(filename='index.html', mode='wb', fileobj=zipr)
-        tmpf.write(content)
-        tmpf.close()
-
-        content = zipr.getvalue()
-
+        # Wrap content to provide methods gzip expects (ex: __len__)
+        # This is tricky... we write to the file merely to transform zip_buff and read its results
+        # http://www.saltycrane.com/blog/2012/11/using-pythons-gzip-and-stringio-compress-data-memory/
+        zip_buff = StringIO()
+        with gzip.GzipFile(filename="gzip_temp", mode="wb", fileobj=zip_buff) as tmp:
+            tmp.write(content.read())
+        content = StringIO(zip_buff.getvalue())
         headers["Content-Encoding"] = "gzip"
 
-    bytes_written = obj.set_contents_from_string(content, headers=headers)
+    bytes_written = obj.set_contents_from_file(content, headers=headers)
 
     if public:
         obj.set_acl('public-read')

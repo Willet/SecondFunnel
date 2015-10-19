@@ -127,7 +127,7 @@
                 <% } %>
                 <div class="main-image">
                     <% for (var i = 0; i < obj.images.length && i < 8; i++) { %>
-                        <img class="image" src="<%- obj.images[i].url %>" />
+                        <img class="image" data-id="<%= obj.images[i].id %>" src="<%= obj.images[i].url %>" />
                     <% } %>
                 </div>
             </div>
@@ -135,13 +135,13 @@
 
         <script type="text/template" id="product_gallery_template">
             <% for (var i = 0; i < obj.images.length && i < 8; i++) { %>
-                <img class="item" data-index="<%- i %>" src="<%- obj.images[i].url %>" />
+                <img class="item" data-index="<%= i %>" src="<%= obj.images[i].url %>" />
             <% } %>
         </script>
 
         <script type="text/template" id="product_galleryDots_template">
             <% for (var i = 0; i < obj.images.length && i < 8; i++) { %>
-                <div class="item" data-index="<%- i %>"></div>
+                <div class="item" data-index="<%= i %>"></div>
             <% } %>
         </script>
 
