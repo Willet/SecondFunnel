@@ -47,7 +47,7 @@ class Command(BaseCommand):
             #  get the cloudinary image to transfer
             if t.template == "product" and not t.placeholder:
                 cover_image = t.products.first().default_image
-                if not cover_image and hasattr(cover_image, 'url'):
+                if not cover_image and not hasattr(cover_image, 'url'):
                     print "Skipping '{}' {} because it has no default image".format(t.template, t)
             else:
                 # Add hooks for more template types here
