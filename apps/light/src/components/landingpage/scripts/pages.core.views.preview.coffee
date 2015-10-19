@@ -138,18 +138,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 image = _.findWhere(@model.get('images'), id: $image.data('id'))
                 if image
                     imageUrl = image.resizeForDimens(maxWidth, maxHeight)
-                else if $image.is("img")
-                    imageUrl = App.utils.getResizedImage($image.attr("src"),
-                        width: maxWidth,
-                        height: maxHeight
-                    )
-                else if $image.is("div")
-                    imageUrl = $image.css("background-image").replace('url(','').replace(')','')
-                    imageUrl = App.utils.getResizedImage(imageUrl,
-                        width: maxWidth,
-                        height: maxHeight
-                    )
-
+                
                 if imageUrl?
                     if $image.is("img")
                         $image.attr("src", imageUrl)

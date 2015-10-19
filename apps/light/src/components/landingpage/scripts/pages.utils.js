@@ -197,62 +197,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     /**
-     * Returns a formatted url for a cloudinary image
-     *
-     * NOTE: DEPRECATED IN FAVOR OF LETTING IMAGE MODEL HANDLE RESIZING
-     *
-     * @param {string} url
-     * @param {Object} options
-     *
-     * @returns {Object}
-     */
-    module.getResizedImage = function (url, options) {
-        if (options.originalSize && _.contains(url, "c_fit")) {
-            url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, '/');
-        } else {
-            var ratio = Math.ceil(window.devicePixelRatio * 2) / 2,
-                width = Math.max(options.width || 300, App.option('minImageWidth')),
-                height = Math.max(options.height || 300, App.option('minImageHeight'));
-
-            // Do NOT transform animated gifs
-            if (!_.isString(url) || _.contains(url, ".gif")) {
-                return url;
-            }
-
-            // Round to the nearest whole hundred pixel dimension;
-            // prevents creating a ridiculous number of images.
-            if (options.width && options.height) {
-                options.width = Math.ceil(width / 100.0) * (100 * ratio);
-                options.height = Math.ceil(height / 100.0) * 100;
-            } else if (options.height) {
-                options.height = Math.ceil(height / 100.0) * 100;
-            } else if (App.feed.width() > 0 && !options.width) {
-                options.width = Math.ceil(App.feed.width()) * ratio;
-            } else {
-                options.width = Math.ceil(width / 100.0) * (100 * ratio);
-            } 
-
-            options = {
-                crop: 'fit',
-                quality: 75,
-                width: options.width,
-                height: options.height
-            };
-
-            if (_.contains(url, "c_fit")) {
-                // Transformation has been applied to this url, Cloudinary is not smart
-                // with these, so lets be instead.
-                url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, '/');
-            }
-
-            url = url.replace(App.CLOUDINARY_DOMAIN, ''); // remove absolute uri
-            url = $.cloudinary.url(url, options);
-        }
-
-        return url;
-    };
-
-    /**
      * Returns the current page route iff App.option('page:slug') is defined
      * '' is a valid response
      */
