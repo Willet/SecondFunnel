@@ -33,9 +33,11 @@ class Command(BaseCommand):
         page = Page.objects.get(url_slug=url_slug)
         store = page.store
 
-        # TODO: Add default width/height to theme attributes!
-        #       wdith of 700 is for Sur La Table
-        size = SizeConf(name="tile", width=700, height=None)
+        # TODO: Add sizes to theme attributes!
+        #   1-col width is 400px for SLT
+        #   2-col width is 700px for SLT
+        sizes = [SizeConf(name="tile", width=400, height=None),
+                 SizeConf(name="wide", width=700, height=None)]
 
         num_tiles = options.get('num_tiles', 200) # Default is 200 tiles
         tiles = page.feed.tiles.order_by("-priority")[0:num_tiles]
@@ -53,20 +55,21 @@ class Command(BaseCommand):
             if "cloudinary.com" in cover_image.url:
                 # Ex: http://res.cloudinary.com/secondfunnel/image/upload
                 #            /v1441808107/sur%20la%20table/6a6bd03ec8a5b8ce.jpg
-                try:
-                    (s3_image, s3_url) = transfer_cloudinary_image_to_s3(cover_image.url, store, size)
-                except:
-                    traceback.print_exc()
-                    continue
-                else:
-                    # update product image with size / url combo
-                    if not cover_image.attributes['sizes']:
-                        cover_image.attributes['sizes'] = {}
-                    cover_image.attributes['sizes'][size.name] = {
-                        'width': s3_image.width,
-                        'height': s3_image.height,
-                        'url': s3_url,
-                    }
+                for size in sizes:
+                    try:
+                        (s3_image, s3_url) = transfer_cloudinary_image_to_s3(cover_image.url, store, size)
+                    except:
+                        traceback.print_exc()
+                        continue
+                    else:
+                        # update product image with size / url combo
+                        if not cover_image.attributes['sizes']:
+                            cover_image.attributes['sizes'] = {}
+                        cover_image.attributes['sizes'][size.name] = {
+                            'width': s3_image.width,
+                            'height': s3_image.height,
+                            'url': s3_url,
+                        }
                     cover_image.save()
                 print "{} moved to s3.".format(cover_image)
             else:
