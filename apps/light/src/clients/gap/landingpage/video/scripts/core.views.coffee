@@ -197,7 +197,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 index: @model.get('thumbnails').length - 1,
                 items: @model.get('thumbnails'),
                 attrs:
-                    'type': @model.get('type')
+                    'template': @model.get('template')
             )
             @carouselRegion.show(carouselInstance)
         return

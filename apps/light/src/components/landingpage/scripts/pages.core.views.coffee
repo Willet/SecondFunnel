@@ -44,8 +44,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return data
 
         getTemplate: ->
-            if @attrs.type
-                return "##{@attrs.type}_carousel_template"
+            if @attrs.template
+                return "##{@attrs.template}_carousel_template"
             else
                 return "#carousel_template"
 
@@ -453,7 +453,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 if @model?
                     contentOpts = model: @model
                     contentInstance = undefined
-                    if _.contains(contentOpts.model.get("type", ""), "hero")
+                    if _.contains(contentOpts.model.type?.toLowerCase(), "hero")
                         contentInstance = new module.HeroContent(contentOpts)
                     else
                         contentInstance = new module.PreviewContent(contentOpts)
