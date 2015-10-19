@@ -46,15 +46,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
             # find image from id
             image = _.findWhere(@model.get('images'), id: $cachedImage.data('id'))
-
-            ### get base image url
-            if $cachedImage.is("img")
-                imageUrl = $cachedImage.attr("src") or @model.get("images")[i].url
-            else if $cachedImage.is("div")
-                imageUrl = if $cachedImage.css("background-image") is "none" \
-                           then @model.get("images")[i].url \
-                           else $cachedImage.css("background-image").replace('url(','').replace(')','')
-            ###
             imageUrl = image.resizeForDimens(maxWidth, maxHeight)
 
             if $image.is("img")

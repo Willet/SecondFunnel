@@ -124,8 +124,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 else
                     columns = 2
             idealWidth = normalTileWidth * columns
-            resizedImage = @model.get("defaultImage").width(idealWidth, true)
-            @model.set(defaultImage: resizedImage)
+            # Update default image width to at least idealWidth
+            @model.get("defaultImage").width(idealWidth)
             @$el.addClass(columnDetails[columns])
 
             # Listen for the image being removed from the DOM, if it is, remove
