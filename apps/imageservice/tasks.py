@@ -277,15 +277,16 @@ def transfer_image_now(cloudinary_url, store, size):
     #     http://images.secondfunnel.com/store/surlatable/tile/539a3d9b66907635.jpg
     cloudinary_public_id = get_public_id(cloudinary_url)
     filetype = get_filetype(cloudinary_url)
-    path = create_image_path(store.id)
+    path = create_image_path(store.id, 'sizes') # returns ex: "/surlatable/sizes/"
     # NOTE: if JS resizing changes, need to update this:
     cloudinary_url = generate_cloudinary_url(u"{}.{}".format(cloudinary_public_id, filetype),
                                              width=size.width, height=size.height,
                                              crop="fit", quality=75)[0]
     img = download_image(cloudinary_url)
 
-    # Cloudinary ids include store name. Turns sur%20la%20table/539a3d9b66907635 into 539a3d9b66907635
-    s3_public_id = re.search(r"/(.*?)$", cloudinary_public_id).group(1)
+    # Cloudinary ids include store name and sometimes other folders, grab just the end ID
+    # Turns sur%20la%20table/539a3d9b66907635 into 539a3d9b66907635
+    s3_public_id = re.search(r"/([^/]+)$", cloudinary_public_id).group(1)
     s3_url = u"http://" + upload_to_s3(path, size.name, img, s3_public_id)
 
     return (img, s3_url)
