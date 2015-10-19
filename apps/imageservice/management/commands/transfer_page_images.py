@@ -45,7 +45,7 @@ class Command(BaseCommand):
 
         for t in tiles.iterator():
             #  get the cloudinary image to transfer
-            if t.template == "product":
+            if t.template == "product" and not t.placeholder:
                 cover_image = t.products.first().default_image
             else:
                 # Add hooks for more template types here
