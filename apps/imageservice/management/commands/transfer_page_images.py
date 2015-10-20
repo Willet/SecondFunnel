@@ -44,18 +44,17 @@ class Command(BaseCommand):
         print "Will attempt to transfer {} tile images for {}".format(tiles.count(), url_slug)
 
         for t in tiles.iterator():
+            cover_image = None
+
             #  get the cloudinary image to transfer
             if t.template == "product" and not t.placeholder:
                 cover_image = t.products.first().default_image
-                if not cover_image or not hasattr(cover_image, 'url'):
-                    print "Skipping '{}' {} because it has no default image".format(t.template, t)
-                    continue
-            else:
-                # Add hooks for more template types here
-                print "Skipping '{}' {}".format(t.template, t)
-                continue
+            
+            # Add hooks for more template types here
 
-            if "cloudinary.com" in cover_image.url:
+            if not cover_image or not hasattr(cover_image, 'url'):
+                print "Skipping '{}' {} because it has no default image".format(t.template, t)
+            elif "cloudinary.com" in cover_image.url:
                 # Ex: http://res.cloudinary.com/secondfunnel/image/upload
                 #            /v1441808107/sur%20la%20table/6a6bd03ec8a5b8ce.jpg
                 for size in sizes:
@@ -73,7 +72,7 @@ class Command(BaseCommand):
                             'height': s3_image.height,
                             'url': s3_url,
                         }
-                    cover_image.save()
+                    cover_image.save(update_fields=['attributes'])
                 print "{} moved to s3.".format(cover_image)
             else:
                 print "{} is not a cloudinary image.".format(cover_image)
