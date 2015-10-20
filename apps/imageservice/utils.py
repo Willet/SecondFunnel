@@ -3,7 +3,6 @@ import re
 import os
 import math
 import random
-import urlparse
 from StringIO import StringIO
 from collections import namedtuple
 
