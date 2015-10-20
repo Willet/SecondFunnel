@@ -3,7 +3,6 @@ import re
 import os
 import math
 import random
-import urlparse
 from StringIO import StringIO
 from collections import namedtuple
 
@@ -163,11 +162,7 @@ def create_image_path(store_id, *args):
 
     store = Store.objects.get(id=store_id)
     name = store.slug.lower()
-
-    if settings.ENVIRONMENT == 'dev':
-        return os.path.join("store", name, *args)
-
-    return urlparse.urljoin("store", name, *args)
+    return os.path.join("store", name, *args)
 
 
 def hex_to_rgb(hex_color):
