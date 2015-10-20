@@ -49,6 +49,7 @@ class Command(BaseCommand):
                 cover_image = t.products.first().default_image
                 if not cover_image or not hasattr(cover_image, 'url'):
                     print "Skipping '{}' {} because it has no default image".format(t.template, t)
+                    continue
             else:
                 # Add hooks for more template types here
                 print "Skipping '{}' {}".format(t.template, t)
