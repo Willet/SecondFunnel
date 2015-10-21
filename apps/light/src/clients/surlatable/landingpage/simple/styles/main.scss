@@ -215,7 +215,6 @@ body {
 }
 
 #category-area {
-    border-spacing: 2px;
     table-layout: fixed;
     background-color: #FFF;
     z-index: 2;
@@ -537,25 +536,22 @@ body {
 .similar-cta,
 .similar-subtext {
     text-align: center;
-    line-height: 16px;
+    color: $slt-green-color;
 }
 .shop-cta,
 .similar-cta {
     font-size: 17px;
+    line-height: 17px;
     font-family: $slt-modern-font;
+}
+.similar-cta {
     font-weight: bold;
 }
 .similar-subtext {
     font-size: 14px;
+    line-height: 16px;
     font-family: $slt-basic-font;
     font-style: italic;
-}
-.shop-cta {
-    color: $slt-orange-color;
-}
-.similar-cta,
-.similar-subtext {
-    color: $slt-green-color;
 }
 
 .previewContainer {
@@ -575,6 +571,7 @@ body {
         padding: 40px 10px 10px !important;
         max-height: 720px;
         height: auto;
+        border-radius: 10px;
     }
 }
 .heroContainer {
@@ -618,7 +615,6 @@ body {
     .content {
         width: 100%;
         max-width: 1024px !important;
-        border-radius: 10px;
     }
     .close {
         top: 10px;

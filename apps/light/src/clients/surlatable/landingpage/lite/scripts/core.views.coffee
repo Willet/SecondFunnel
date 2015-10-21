@@ -6,17 +6,12 @@ char_limit = 243
 swipe = require('jquery-touchswipe')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
-    module.ProductView::onShow = _.wrap(module.ProductView::onShow, (onShow) ->
-        if App.support.mobile()
-            # Add one for description slide unless it's a product popup
-            # in portrait mode without tagged products
-            if @model.get('type') is "product" and App.utils.portrait() \
-                    and _.isEmpty(@model.get('taggedProducts'))
-                @numberOfImages = @model.get('images').length
-            else
-                @numberOfImages = @model.get('images').length + 1
-        onShow.call(@)
-        return
+    module.ProductView::initialize = _.wrap(
+        module.ProductView::initialize, (initialize) ->
+            initialize.call(@)
+            if App.support.mobile()
+                @numberOfImages += 1 # add slot of description
+            return
     )
 
     module.ProductView::onBeforeRender = ->

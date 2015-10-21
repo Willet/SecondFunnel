@@ -109,14 +109,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @rightArrow = @$el.find('.gallery-swipe-right')
             @mainImage = @$el.find('.main-image')
             @resizeProductImages() # Parent elements must be completely sized before this fires
+            @updateGallery()
             if @numberOfImages > 1
                 @scrollImages(@mainImage.width()*@galleryIndex, 0)
-                @updateGallery()
                 @mainImage.swipe(
                     triggerOnTouchEnd: true,
                     swipeStatus: _.bind(@swipeStatus, @),
                     allowPageScroll: 'vertical'
                 )
+            else
+                @$el.find(".item").hide() # Hide all gallery dots
             return
 
         replaceImages: ->
@@ -196,19 +198,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         updateGallery: ->
-            @$el.find(".item")
-                .removeClass("selected")
-                .filter("[data-index=#{@galleryIndex}]")
-                .addClass("selected")
-            if @galleryIndex is 0
-                @leftArrow.addClass("grey")
-                @rightArrow.removeClass("grey")
-            else if @galleryIndex is @numberOfImages - 1
-                @leftArrow.removeClass("grey")
-                @rightArrow.addClass("grey")
+            if @numberOfImages > 1
+                @$el.find(".item")
+                    .removeClass("selected")
+                    .filter("[data-index=#{@galleryIndex}]")
+                    .addClass("selected")
+                if @galleryIndex is 0
+                    @leftArrow.addClass("grey")
+                    @rightArrow.removeClass("grey")
+                else if @galleryIndex is @numberOfImages - 1
+                    @leftArrow.removeClass("grey")
+                    @rightArrow.addClass("grey")
+                else
+                    @leftArrow.removeClass("grey")
+                    @rightArrow.removeClass("grey")
             else
-                @leftArrow.removeClass("grey")
-                @rightArrow.removeClass("grey")
+                @leftArrow.addClass("grey")
+                @rightArrow.addClass("grey")
             return
 
 
@@ -832,7 +838,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         templateHelpers: ->
             scrollable: @getOption('scrollable')
 
-        onRender: ->
+        onShow: ->
             # cannot declare display:table in marionette class.
             heightMultiplier = (if App.utils.portrait() then 1 else 2)
             @$el.css
@@ -892,6 +898,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @content.currentView?.resizeContainer()
                 return
             )
+            @image_load = imagesLoaded(@$el)
+            @listenTo(@image_load, 'always', =>
+                @positionWindow()
+            )
             return
 
         positionWindow: ->
@@ -901,13 +911,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if App.windowHeight and App.support.mobile()
                 @$el.css("height", App.windowHeight)
             @$el.css("top", Math.max(windowMiddle - (@$el.height() / 2), 0))
-
-        onShow: ->
-            @image_load = imagesLoaded(@$el)
-            @listenTo(@image_load, 'always', =>
-                @positionWindow()
-            )
-            return
 
         onDestroy: ->
             # hide this, then restore discovery.

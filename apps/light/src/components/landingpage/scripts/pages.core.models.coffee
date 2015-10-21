@@ -171,7 +171,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # Turn images into Image's
             images =
                 if @get("images")?.length \
-                then (App.core.Image.getOrCreate(image) for image in @get("images")) \
+                then (module.Image.getOrCreate(image) for image in @get("images")) \
                 else []
             taggedProducts =
                 if _.isArray(@get('tagged-products')) \
@@ -238,9 +238,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if _.isObject(attributes)
                 image = @_imagecache[attributes.id]
                 if not image
-                    image = new App.core.Image(attributes)
+                    image = new module.Image(attributes, options)
                     @_imagecache[image.id] = image
-            else if _.isNumber(attributes, options)
+            else if _.isNumber(attributes)
                 image = @_imagecache[attributes]
             return image
 
@@ -436,7 +436,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
                 console.debug("Tile #{tileId} not found, fetching from IR")
 
-                tile = new App.core.Tile(
+                tile = new module.Tile(
                     'tile-id': tileId
                 )
                 tile.fetch().done(=>
@@ -475,12 +475,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if tile instanceof module.Tile
                 # already type Tile, re-initialize as correct subclass
                 TileClass = App.utils.findClass('Tile',
-                    tile.get('type') || tile.get('template'), App.core.Tile)
+                    tile.get('type') || tile.get('template'), module.Tile)
                 tile = tile.toJSON()
             else
                 # assume tile is json
                 TileClass = App.utils.findClass('Tile',
-                    tile.type || tile.template, App.core.Tile)
+                    tile.type || tile.template, module.Tile)
 
             tile = new TileClass(tile, options)
             
@@ -534,14 +534,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # Instantiate images first, because we will try to re-use these image models
             # so that image size caching is maximally used.
             if _.isArray(@get("images"))
-                @set(images: (App.core.Image.getOrCreate(im) for im in @get("images") when not _.isEmpty(im)))
+                @set(images: (module.Image.getOrCreate(im) for im in @get("images") when not _.isEmpty(im)))
 
             if @get("image")? and not _.isEmpty(@get('image'))
-                @set(image: App.core.Image.getOrCreate(@get("image")))
+                @set(image: module.Image.getOrCreate(@get("image")))
 
             if @get('default-image')? and not _.isEmpty(@get('default-image'))
                 # getImage uses images, so set first
-                defaultImage = App.core.Image.getOrCreate(@get('default-image'))
+                defaultImage = module.Image.getOrCreate(@get('default-image'))
                 @set(
                     defaultImage: defaultImage
                     'dominant-color': defaultImage.get('dominant-color')
@@ -669,7 +669,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # This should never be invoked
             if App.option('debug', false)
                 console.warn("Tile unexpectdly initialized through model creation: %O", attributes)
-            return App.core.Tile.getOrCreate(attributes, options)
+            return module.Tile.getOrCreate(attributes, options)
 
         _config: {}
         loading: false
