@@ -334,14 +334,30 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
         return image
 
 
+class SimilarProductsPipeline(ItemManifold):
+    pass
+
+
+class ItemFinishedPipeline(ItemManifold):
+    """
+    A hook for store/spider specific processing of products
+    """
+    def process_product(self, item, spider):
+        product = item['instance']
+        spider.on_product_finished(product)
+        return
+
+    def process_image(self, item, spider):
+        image = item['instance']
+        spider.on_image_finished(image)
+        return
+
+
 class TileCreationPipeline(TilesMixin):
     """ 
     If spider has feed_id, get or create tile(s) for product or content
     If spider also has category(s), add tile(s) to category(s)
     """
-    def __init__(self, *args, **kwargs):
-        super(TileCreationPipeline, self).__init__(*args, **kwargs)
-
     def process_item(self, item, spider):
         recreate_tiles = getattr(spider, 'recreate_tiles', False)
         categories = getattr(spider, 'categories', False)
@@ -353,12 +369,10 @@ class TileCreationPipeline(TilesMixin):
             if feed_id:
                 spider.logger.info(u"Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
                 tile, _ = self.add_to_feed(item, spider)
+
+                spider.on_tile_saved(tile, item['instance']) # Post-process hook to modify tile
             
             return item
-
-
-class SimilarProductsPipeline(ItemManifold):
-    pass
 
 
 class PageUpdatePipeline(ItemManifold):

@@ -72,6 +72,16 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
             if not p.is_product_shot:
                 return p
         return product.product_images.first()
+
+    @staticmethod
+    def on_tile_finished(tile, obj):
+        """ Set tiles with product shots as their default image to single column """
+        try:
+            if tile.template == 'product' and tile.product.default_image.is_product_shot:
+                tile.attributes['colspan'] = 1
+                tile.save()
+        except AttributeError as e:
+            self.logger.warn(u"Error determining product shot: {}".format(e))
         
     def parse_product(self, response, force_skip_tiles=False, force_skip_images=False):
         if not self.is_product_page(response):
