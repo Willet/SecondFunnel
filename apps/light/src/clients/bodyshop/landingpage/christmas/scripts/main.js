@@ -39,7 +39,7 @@ App.start();
         var searchUrl,
             baseUrl = "http://www.anrdoezrs.net/links/7774943/sid/" +
                       App.option('page:slug') +
-                      "/type/dlg/http://www.surlatable.com/search/search.jsp",
+                      "/type/dlg/http://www.thebodyshop.ca/en/search.aspx",
             $this = $(this),
             $inputBox = $this.siblings().first(),
             $topNavSearch = $this.parents('#search-bar');

@@ -266,7 +266,7 @@ body {
 
         &.selected, &:hover {
             background: $tbs-white url('http://res.cloudinary.com/secondfunnel/image/upload/v1445460163/sparks_ahsrwz.png');
-            background-position: left top;
+            background-position: 5% 50%;
             background-repeat: no-repeat;
             > .name {
                 color: $tbs-red;
@@ -412,6 +412,7 @@ body {
 .tile {
     padding: 5px;
     width: 33.33%;
+    background-color: transparent;
     &.wide {
         width: 66.66%;
     }
