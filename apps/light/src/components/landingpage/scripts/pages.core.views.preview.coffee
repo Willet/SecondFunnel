@@ -109,14 +109,16 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @rightArrow = @$el.find('.gallery-swipe-right')
             @mainImage = @$el.find('.main-image')
             @resizeProductImages() # Parent elements must be completely sized before this fires
+            @updateGallery()
             if @numberOfImages > 1
                 @scrollImages(@mainImage.width()*@galleryIndex, 0)
-                @updateGallery()
                 @mainImage.swipe(
                     triggerOnTouchEnd: true,
                     swipeStatus: _.bind(@swipeStatus, @),
                     allowPageScroll: 'vertical'
                 )
+            else
+                @$el.find(".item").hide() # Hide all gallery dots
             return
 
         replaceImages: ->
@@ -196,19 +198,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         updateGallery: ->
-            @$el.find(".item")
-                .removeClass("selected")
-                .filter("[data-index=#{@galleryIndex}]")
-                .addClass("selected")
-            if @galleryIndex is 0
-                @leftArrow.addClass("grey")
-                @rightArrow.removeClass("grey")
-            else if @galleryIndex is @numberOfImages - 1
-                @leftArrow.removeClass("grey")
-                @rightArrow.addClass("grey")
+            if @numberOfImages > 1
+                @$el.find(".item")
+                    .removeClass("selected")
+                    .filter("[data-index=#{@galleryIndex}]")
+                    .addClass("selected")
+                if @galleryIndex is 0
+                    @leftArrow.addClass("grey")
+                    @rightArrow.removeClass("grey")
+                else if @galleryIndex is @numberOfImages - 1
+                    @leftArrow.removeClass("grey")
+                    @rightArrow.addClass("grey")
+                else
+                    @leftArrow.removeClass("grey")
+                    @rightArrow.removeClass("grey")
             else
-                @leftArrow.removeClass("grey")
-                @rightArrow.removeClass("grey")
+                @leftArrow.addClass("grey")
+                @rightArrow.addClass("grey")
             return
 
 
