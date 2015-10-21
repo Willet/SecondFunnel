@@ -57,6 +57,7 @@ class SecondFunnelScraper(object):
     @staticmethod
     def on_tile_finished(tile, obj):
         """Hook for post-processing a tile after scrapy is finished with it
+        Only called if spider is creating tiles
 
         tile - Tile instance
         obj - Either Product or Image instance"""
