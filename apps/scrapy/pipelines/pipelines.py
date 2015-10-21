@@ -370,7 +370,7 @@ class TileCreationPipeline(TilesMixin):
                 spider.logger.info(u"Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
                 tile, _ = self.add_to_feed(item, spider)
 
-                spider.on_tile_saved(tile, item['instance']) # Post-process hook to modify tile
+                spider.on_tile_finished(tile, item['instance']) # Post-process hook to modify new/updated tiles
             
             return item
 

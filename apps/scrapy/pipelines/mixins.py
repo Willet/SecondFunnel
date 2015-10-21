@@ -56,7 +56,8 @@ class TilesMixin(object):
         self.category_cache = category_cache
         super(TilesMixin, self).__init__(*args, **kwargs)
     
-    def skip_tiles(self, item, spider):
+    @staticmethod
+    def skip_tiles(item, spider):
         skip_tiles = [getattr(spider, 'skip_tiles', False), item.get('force_skip_tiles', False)]
         if True in skip_tiles:
             spider.log(u"Skipping tile creation. \

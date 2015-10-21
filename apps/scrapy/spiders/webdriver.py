@@ -40,7 +40,7 @@ class SecondFunnelScraper(object):
 
     @staticmethod
     def choose_default_image(product):
-        """Hook for choosing non-product-shot default image on slt
+        """ Hook for choosing non-product-shot default image on slt
         Returns: image to set as default image, must be one of product_images """
         return product.product_images.first()
 
