@@ -832,7 +832,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         templateHelpers: ->
             scrollable: @getOption('scrollable')
 
-        onRender: ->
+        onShow: ->
             # cannot declare display:table in marionette class.
             heightMultiplier = (if App.utils.portrait() then 1 else 2)
             @$el.css
@@ -892,6 +892,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @content.currentView?.resizeContainer()
                 return
             )
+            @image_load = imagesLoaded(@$el)
+            @listenTo(@image_load, 'always', =>
+                @positionWindow()
+            )
             return
 
         positionWindow: ->
@@ -901,13 +905,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if App.windowHeight and App.support.mobile()
                 @$el.css("height", App.windowHeight)
             @$el.css("top", Math.max(windowMiddle - (@$el.height() / 2), 0))
-
-        onShow: ->
-            @image_load = imagesLoaded(@$el)
-            @listenTo(@image_load, 'always', =>
-                @positionWindow()
-            )
-            return
 
         onDestroy: ->
             # hide this, then restore discovery.
