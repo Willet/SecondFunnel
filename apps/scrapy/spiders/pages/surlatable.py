@@ -85,8 +85,10 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
             if tile.template == "product":
                 if tile.product.default_image.is_product_shot:
                     tile.attributes['colspan'] = 1
+                    self.logger.info(u"Setting colspan to 1 for {}".format(tile))
                 elif 'colspan' in tile.attributes:
                     del tile.attributes['colspan']
+                    self.logger.info(u"Deleting colspan for {}".format(tile))
                 tile.save()
         except AttributeError as e:
             self.logger.warn(u"Error determining product shot: {}".format(e))
