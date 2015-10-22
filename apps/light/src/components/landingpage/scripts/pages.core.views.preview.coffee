@@ -437,9 +437,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 # TODO: delegated to a view for the look image
                 if @model.get('template') isnt 'product'
                     if App.support.mobile()
-                        image = image.height($window.height())
+                        image.height($window.height())
                     else
-                        image = image.height(App.utils.getViewportSized(true))
+                        image.height(App.utils.getViewportSized(true))
             return
 
         updateContent: ->
