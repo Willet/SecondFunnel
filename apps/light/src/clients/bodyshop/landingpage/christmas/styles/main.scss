@@ -1,20 +1,6 @@
 $icon-font-path: "/static/light/fonts/";
-$slt-modern-font: MrEavesModern, Verdana, Arial, Helvetica, sans-serif;
-$slt-sans-font: MrEavesSans, Verdana, Arial, Helvetica, sans-serif;
-$slt-basic-font: Verdana, Arial, Helvetica, sans-serif;
-$slt-main-color: #405700;
-$slt-basic-color: #444444;
-$slt-grey-color: #a8a8a8;
-$slt-dark-grey-color: #828282;
-$slt-black-color: #333333;
-$slt-green-color: #6b8e00;
-$slt-dark-green-color: #536122;
-$slt-pastel-green-color: #829253;
-$slt-purple-color: #651e44;
-$slt-orange-color: #F05423;
-$slt-sale-price-color: #F00;
-$slt-thumbnail-height: 111px;
 
+$tbs-basic-font: Verdana, Arial, Helvetica, sans-serif;
 $tbs-white: #FFFFFF;
 $tbs-category-height: 60px;
 $tbs-red: #A93032;
@@ -24,97 +10,9 @@ $tbs-black: #000;
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
 
-                
-@font-face {
-    font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltr-071211005EmigreWebOnly.eot');
-    src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltr-071211005EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
-         url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltr-071211005EmigreWebOnly.woff') format('woff');
-}
-                
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: bold;
-    src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.eot');
-    src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
-         url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.woff') format('woff');
-}
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: 600;
-    font-style: italic;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-BookItalic.otf') format("opentype");
-}
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: 500;
-    font-style: italic;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-RegItalic.otf') format("opentype");
-}
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: 400;
-    font-style: italic;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-ThinItalic.otf') format("opentype");
-}
-
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: 700;
-    font-style: italic;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-BoldItalic.otf') format("opentype");
-}
-
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: 200;
-    font-style: normal;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-Light.otf') format("opentype");
-}
-
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: 200;
-    font-style: italic;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-LightItalic.otf') format("opentype");
-}
-
-@font-face {
-    font-family: MrEavesSans;
-    src: url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.eot');
-    src: url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
-         url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.woff') format('woff');
-}
-
-@font-face {
-    font-family: MrEavesSans;
-    font-weight: bold;
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltb-071211002EmigreWebOnly.eot");
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltb-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
-         url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltb-071211002EmigreWebOnly.woff") format("woff");
-}
-
-@font-face {
-    font-family: MrEavesSans;
-    font-weight: bold;
-    font-style: italic;
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltbi-071211002EmigreWebOnly.eot");
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltbi-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
-         url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltbi-071211002EmigreWebOnly.woff") format("woff")
-}
-
-@font-face {
-    font-family: MrEavesSans;
-    font-style: italic;
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltri-071211002EmigreWebOnly.eot");
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltri-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
-         url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltri-071211002EmigreWebOnly.woff") format("woff")
-}
-
 body {
-    /* HELP */
     background-image: url('http://res.cloudinary.com/secondfunnel/image/upload/v1445350375/tessellating_background_y2lpdn.png');
-    font-family: $slt-basic-font;
+    font-family: $tbs-basic-font;
     background-repeat: repeat;
     background-color: transparent;
 }
@@ -131,7 +29,6 @@ body {
     text-align: left;
     font-size: 12px;
     line-height: 18px;
-    font-family: $slt-modern-font;
     text-align: right;
     background-color: $tbs-grey;
     nav {
@@ -189,7 +86,6 @@ body {
             height: 30px;
             line-height: 28px;
             cursor: pointer;
-            background: $slt-main-color;
             transform: translateY(-50%) translateX(-50%);
             > input {
                 position: absolute;
@@ -202,7 +98,7 @@ body {
                 width: 222px;
                 height: 30px;
                 box-sizing: content-box;
-                font-family: $slt-basic-font;
+                font-family: $tbs-basic-font;
             }
             > span {
                 position: absolute;
@@ -257,7 +153,6 @@ body {
         margin-right: 2px;
         position: relative;
         width: 14%;
-        font-family: $slt-modern-font;
         overflow: visible;
         background: transparent;
         height: $tbs-category-height;
@@ -278,9 +173,6 @@ body {
             }
         }
         img {
-            border: 1px solid $slt-grey-color;
-            height: $slt-thumbnail-height;
-            width: $slt-thumbnail-height;
             border-radius: 3px;
         }
         .name {
@@ -312,7 +204,6 @@ body {
             z-index: 1;
             .wrap {
                 width: 100%;
-                border: 2px solid $slt-dark-green-color;
                 border-radius: 6px;
                 padding: 10px 10px 20px 10px;
                 display: table;
@@ -338,15 +229,12 @@ body {
             }
             &.selected, &:hover {
                 > .name {
-                    border-bottom: 1px solid $slt-dark-green-color;
                 }
             }
         }
         .sub-categories-label {
-            font-family: $slt-sans-font;
             font-style: italic;
             font-size: 18px;
-            color: $slt-orange-color;
             line-height: 20px;
             padding: 6px 0 8px 15px;;
             text-indent: 5px;
@@ -370,7 +258,6 @@ body {
         .category-area {
             height: auto;
             /* 2px for border */
-            margin-top: (-2px - $slt-thumbnail-height);
         }
     }
 }
@@ -393,8 +280,6 @@ body {
         .category-name {
             width: 100%;
             line-height: 104px;
-            color: $slt-dark-green-color;
-            font-family: $slt-modern-font;
             font-style: italic;
             font-size: 65px;
             font-weight: 300;
@@ -432,7 +317,6 @@ body {
             left: 6%;
             right: 6%;
             display: block;
-            font-family: $slt-sans-font;
             box-shadow: 0px 0px 5px 7px rgba(255, 255, 255, 0.8);
             background-color: rgba(255, 255, 255, 0.8);
         }
@@ -509,7 +393,6 @@ body {
 .image-with-tagged-products .caption,
 .image-without-tagged-products .caption {
     color: #333333;
-    font-family: $slt-modern-font;
     font-size: 21px;
     font-weight: 200;
     span:first-child:after {
@@ -522,7 +405,7 @@ body {
     .tile-name {
         display: block;
         padding: 0 15px;
-        font-family: $slt-basic-font;
+        font-family: $tbs-basic-font;
         font-size: 18px;
         font-weight: normal;  
     }
@@ -530,8 +413,7 @@ body {
         display: block;
         padding: 0 15px;
         font-size: 15px;
-        color: $slt-basic-color;
-        font-family: $slt-basic-font;
+        font-family: $tbs-basic-font;
         margin-top: 5px;
     }
 }
@@ -539,7 +421,7 @@ body {
     cursor: pointer;
     .button {
         color: #333333;
-        font-family: $slt-basic-font;
+        font-family: $tbs-basic-font;
         font-size: 18px;
         font-weight: normal;
         text-decoration: none;
@@ -562,20 +444,15 @@ body {
 .shop-cta,
 .similar-cta {
     font-size: 17px;
-    font-family: $slt-modern-font;
     font-weight: bold;
 }
 .similar-subtext {
     font-size: 14px;
-    font-family: $slt-basic-font;
+    font-family: $tbs-basic-font;
     font-style: italic;
-}
-.shop-cta {
-    color: $slt-orange-color;
 }
 .similar-cta,
 .similar-subtext {
-    color: $slt-green-color;
 }
 
 .previewContainer {
@@ -663,7 +540,6 @@ body {
         left: 0;
         width: 100%;
         height: 40px;
-        background-color: $slt-purple-color;
         text-align: left;
         border-radius: 10px 10px 0 0;
         padding: 12px !important;
@@ -684,10 +560,8 @@ body {
         }
         text-align: left;
         .back {
-            color: $slt-purple-color;
             font-size: 18px;
             font-weight: bold;
-            font-family: $slt-modern-font;
             text-align: center;
             margin: 25px 0;
             &:before {
@@ -729,10 +603,8 @@ body {
             }
             .scroll-cta {
                 width: 100%;
-                color: $slt-green-color;
                 text-align: center;
                 font-size: 15px;
-                font-family: $slt-modern-font;
                 margin-top: 5px;
                 &:after {
                     content: url('/static/light/surlatable/landingpage/default/images/scroll-more-arrow.png');
@@ -779,10 +651,8 @@ body {
         .item {
             width: 6px;
             height: 6px;
-            border: 1px solid $slt-green-color;
             background-color: white;
             &.selected {
-                background-color: $slt-green-color;
             }
         }
     }
@@ -797,15 +667,11 @@ body {
         .title, .price {
             font-size: 30px;
             line-height: 30px;
-            font-family: $slt-sans-font;
             font-weight: bold;
             margin-bottom: 15px;
         }
         .price {
             font-weight: bold;
-            .current.sale {
-                color: $slt-sale-price-color;
-            }
             .current:before {
                 content: "$";
                 font-size: .6em;
@@ -824,13 +690,11 @@ body {
             }
             .suggested-price {
                 margin-left: 16px;
-                color: $slt-dark-grey-color;
                 .dollar-amount {
                     text-decoration: line-through;
                 }
             }
             .save-percent {
-                color: $slt-black-color;
                 &:before {
                     content: " | ";
                     padding: 0 2px;
@@ -851,18 +715,14 @@ body {
         .button {
             position: relative;
             font-size: 18px;
-            font-family: $slt-modern-font;
             font-weight: bold;
             line-height: 35px;
             padding-top: 5px;
             text-transform: uppercase;
             width: 100%;
             border-radius: 10px;
-            border: 1px solid $slt-green-color;
-            background-color: $slt-green-color;
             &:hover {
                 background-color: #fff;
-                color: $slt-green-color;
                 text-decoration: none;
             }
         }
@@ -882,7 +742,6 @@ body {
             top: 0;
             width: 100%;
             z-index: 2;
-            color: $slt-dark-green-color;
             font-size: 14px;
             line-height: 14px;
             background-color: transparent;
@@ -900,7 +759,6 @@ body {
             width: 100%;
             height: 100%;
             padding-top: 15px;
-            border: 1px solid $slt-grey-color;
             border-radius: 10px;
         }
         .stl-look-container {
@@ -1230,7 +1088,6 @@ body {
                 width: 20% !important;
                 height: 100%;
                 border-top: none;
-                border-right: 1px solid $slt-grey-color;
                 padding-top: 18px;
                 .stl-title {
                     padding: 0 15px;
@@ -1275,9 +1132,7 @@ body {
             right: 0;
             line-height: 65px;
             font-size: 20px;
-            font-family: $slt-modern-font;
             text-transform: uppercase;
-            background-color: $slt-purple-color;
         }
         .content {
             padding: 0 !important;
@@ -1338,7 +1193,6 @@ body {
                         right: 0;
                     }
                     &:hover {
-                        background-color: $slt-green-color;
                         color: white;
                     }
                 }
@@ -1422,7 +1276,6 @@ body {
             }
         }
         .shop {
-            border-top: 1px solid $slt-grey-color;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1437,7 +1290,6 @@ body {
             }
             .stl-title {
                 top: -5px;
-                font-family: $slt-modern-font;
                 >span {
                     top: 0;
                     background: none;
