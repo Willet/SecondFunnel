@@ -336,28 +336,32 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             width: (optional) width to round
             height: (optional) height to round
             ###
+            opts = _.extend({}, options) # new object
+
             width = Math.max(options.width || 300, App.option('minImageWidth'))
             height = Math.max(options.height || 300, App.option('minImageHeight'))
-            ratio = Math.ceil(window.devicePixelRatio * 2) / 2
+
+            # Only scale images if on desktop
+            ratio = if App.support.mobile() \
+                    then 1 \
+                    else ratio = Math.ceil(window.devicePixelRatio * 2) / 2
 
             if options.width? and options.height?
-                options.width = Math.ceil(width / 100.0) * (100 * ratio)
-                options.height = Math.ceil(height / 100.0) * (100 * ratio)
+                opts.width = Math.ceil(width / 100.0) * (100 * ratio)
+                opts.height = Math.ceil(height / 100.0) * (100 * ratio)
             else if options.height?
-                options.height = Math.ceil(height / 100.0) * (100 * ratio)
+                opts.height = Math.ceil(height / 100.0) * (100 * ratio)
             else if App.feed.width() > 0 and not options.width?
-                options.width = Math.ceil(App.feed.width()) * ratio
+                opts.width = Math.ceil(App.feed.width()) * ratio
             else
-                options.width = Math.ceil(width / 100.0) * (100 * ratio)
-            return options
-
+                opts.width = Math.ceil(width / 100.0) * (100 * ratio)
+            return opts
 
         resizeCloudinaryImage: (url, options) ->
             ###
             Class method which resizes a Cloudinary url
 
-            url - a cloudinary url
-
+            url: a cloudinary url
             options:
                 originalSize: boolean return original url
                 width: width to use (given priority over height)

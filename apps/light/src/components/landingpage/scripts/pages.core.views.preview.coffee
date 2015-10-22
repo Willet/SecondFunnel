@@ -434,13 +434,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         @model.set("orientation", "portrait")
                 
                 # Get new resized image
-                if App.support.mobile()
-                    image = image.height($window.height(), true)
-                else
-                    image = image.height(App.utils.getViewportSized(true), true)
-
-                # simplify templates, only look for defaultImage
-                @model.set(defaultImage: image)
+                # TODO: delegated to a view for the look image
+                if @model.get('template') isnt 'product'
+                    if App.support.mobile()
+                        image.height($window.height())
+                    else
+                        image.height(App.utils.getViewportSized(true))
             return
 
         updateContent: ->
