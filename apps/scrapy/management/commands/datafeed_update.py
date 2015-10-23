@@ -7,6 +7,7 @@ from apps.assets.models import Page, Product, ProductImage
 from apps.imageservice.utils import get_filetype
 from apps.scrapy.spiders.datafeeds.legacy import find_datafeed
 from apps.scrapy.log import notify_slack, upload_to_s3
+from apps.assets.utils import disable_tile_serialization
 
 # Required to use scrapy logging
 class FakeSpider(object):
@@ -43,6 +44,7 @@ class Command(BaseCommand):
                 help="Generate similar product recommendations."),
         )
 
+    @disable_tile_serialization()
     def handle(self, url_slug, **options):
         page = Page.objects.get(url_slug=url_slug)
         store = page.store
