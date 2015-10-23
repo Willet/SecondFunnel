@@ -1,10 +1,12 @@
 import inspect
 
 from .surlatable import SurLaTableDatafeed
+from .bodyshop import BodyShopDatafeed
 
 """ DEPRECATED: downloads XML files from CJ & updates projects """
 
-datafeeds = { 'surlatable': SurLaTableDatafeed }
+datafeeds = { 'surlatable': SurLaTableDatafeed,
+   			  'body-shop':  BodyShopDatafeed }
 
 def find_datafeed(name):
     try:
