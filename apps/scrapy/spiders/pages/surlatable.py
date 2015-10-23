@@ -139,7 +139,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
             except (IndexError, AttributeError):
                 # An item with a missing sku will not validate
                 pass
-        l.add_value('sku', sku)
+        l.add_value('sku', unicode(sku))
 
         # prices are sometimes in the forms:
         #    $9.95 - $48.96
@@ -152,26 +152,26 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
                 reg_price = sel.css('.product-priceMain span.hide::text').extract()[0].split('-')[0]
             else:
                 sale_price = sel.css('.product-priceMain span.hide::text').extract()[0].split('-')[0]
-                l.add_value('sale_price', sale_price)
+                l.add_value('sale_price', unicode(sale_price))
             if price_range:
-                attributes['price_range'] = price_range
+                attributes['price_range'] = unicode(price_range)
         except IndexError:
             in_stock = False
             reg_price = u'$0.00'
 
         l.add_value('in_stock', in_stock)
-        l.add_value('price', reg_price)
+        l.add_value('price', unicode(reg_price))
         l.add_value('attributes', attributes)
+        l.add_value('url', unicode(response.request.url))
         
         item = l.load_item()
-        item['url'] = response.request.url
 
         if skip_images:
             yield item
         else:
             try:
                 magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
-                xml_path = '/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
+                xml_path = u"/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml".format(*magic_values)
                 request = WebdriverRequest(self.root_url + xml_path, callback=self.parse_product_images)
 
                 request.meta['item'] = item
@@ -187,7 +187,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         l = ScraperProductLoader(item=item, response=response)
 
         urls = sel.css('image[url*="touchzoom_variation_Default"]::attr(url)').extract()
-        image_urls = set(['{}/{}'.format(response.url.rsplit('/', 1)[0], url.rsplit('/', 1)[1]) for url in urls])
+        image_urls = set([u'{}/{}'.format(response.url.rsplit('/', 1)[0], url.rsplit('/', 1)[1]) for url in urls])
         
         l.add_value('image_urls', image_urls)
 
@@ -207,7 +207,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         l.add_value('force_skip_tiles', skip_tiles)
         l.add_value('content_id', recipe_id)
         l.add_value('tag_with_products', True) # Command to AssociateWithProductsPipeline
-        l.add_value('original_url', response.url)
+        l.add_value('original_url', unicode(response.request.url))
         l.add_value('source', 'Sur La Table')
         l.add_css('name', 'h1.name::text')
         l.add_css('description', '#recipedetail .story')
@@ -218,7 +218,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         else:
             # Continue to XML data to get recipe image
             magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
-            xml_path = '/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
+            xml_path = u'/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml'.format(*magic_values)
             request = WebdriverRequest(self.root_url + xml_path, callback=self.parse_one_image)
 
             request.meta['item'] = item
@@ -243,7 +243,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         except IndexError:
             url = sel.css('image[url*="main"]::attr(url)').extract()[0]
         
-        source_url = '{}/{}'.format(response.url.rsplit('/', 1)[0], url.rsplit('/', 1)[1])
+        source_url = u'{}/{}'.format(response.url.rsplit('/', 1)[0], url.rsplit('/', 1)[1])
         
         l.add_value('source_url', source_url)
 

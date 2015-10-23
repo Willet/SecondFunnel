@@ -38,7 +38,7 @@ class Signals(object):
         # Save logging messages to a buffer that will be saved to S3
         log_buffer = StringIO()
         self.crawler.stats.set_value('log', log_buffer)
-        formatter = logging.Formatter('%(asctime)s [%(name)s] %(levelname)s: %(message)s')
+        formatter = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 
         sh = logging.StreamHandler(log_buffer)
         sh.setLevel(logging.INFO)
@@ -57,6 +57,8 @@ class Signals(object):
 
 
     def item_scraped(self, item, response, spider):
+        # called after an item passes all pipelines without dropping
+        #
         # inc_value uses the + operator!  The __add__ method of lists
         # performs list concatenation.
         # The other methods of this class use the long approach because
@@ -114,3 +116,4 @@ class Signals(object):
         # to be returned to the web page
         self.crawler.stats.set_value('summary_url', summary_url)
         self.crawler.stats.set_value('log_url', log_url)
+

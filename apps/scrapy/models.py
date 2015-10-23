@@ -33,5 +33,5 @@ class PlaceholderProduct(Product):
         self.in_stock = False
         if not self.sku:
             # Make-up a temporary, unique SKU
-            self.sku = "placeholder-{}".format(md5(self.url).hexdigest())
+            self.sku = u"placeholder-{}".format(md5(self.url).hexdigest())
         super(PlaceholderProduct, self).save(*args, **kwargs)

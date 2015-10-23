@@ -4,7 +4,6 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import cloudinary
 import decimal
-import logging
 import traceback
 
 from collections import defaultdict
@@ -67,7 +66,7 @@ class ValidationPipeline(ItemManifold, PlaceholderMixin, TilesMixin):
             # If we are creating tiles, add (placeholder) to the feed
             if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
                 self.add_to_feed(item, spider)
-            raise DropItem(u'Required fields missing ({}) or empty ({})'.format(
+            raise DropItem(u"Required fields missing ({}) or empty ({})".format(
                     ', '.join(missing_fields),
                     ', '.join(empty_fields)
                 ))

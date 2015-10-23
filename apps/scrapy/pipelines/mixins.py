@@ -76,7 +76,7 @@ class TilesMixin(object):
         try:
             feed = Feed.objects.get(id=feed_id)
         except Feed.DoesNotExist:
-            spider.logger.warn(u"Error adding to <Feed #{}> because feed does not exist".format(feed_id))
+            spider.logger.warning(u"Error adding to <Feed #{}> because feed does not exist".format(feed_id))
             raise CloseSpider(reason='Invalid feed id')
 
         if not item['created'] and recreate_tiles:

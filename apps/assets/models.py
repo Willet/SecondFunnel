@@ -89,11 +89,11 @@ class BaseModel(models.Model, SerializableMixin):
             return u'({class_name} #{obj_id}) {obj_name}'.format(
                 class_name=self.__class__.__name__,
                 obj_id=self.pk,
-                obj_name=getattr(self, 'name', ''))
+                obj_name=getattr(self, 'name', '')).encode('ascii', 'ignore')
 
         return u'{class_name} #{obj_id}'.format(
             class_name=self.__class__.__name__,
-            obj_id=self.pk)
+            obj_id=self.pk).encode('ascii', 'ignore')
 
     @classmethod
     def _copy(cls, obj, update_fields={}, exclude_fields=[]):
