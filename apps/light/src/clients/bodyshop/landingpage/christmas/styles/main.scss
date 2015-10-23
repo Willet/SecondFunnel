@@ -73,6 +73,7 @@ body {
             img {
                 width: 260px;
                 display: block;
+                height: auto;
                 &.mobile {
                     display: none;
                 }
