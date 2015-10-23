@@ -60,7 +60,7 @@ class TilesMixin(object):
     def skip_tiles(item, spider):
         skip_tiles = [getattr(spider, 'skip_tiles', False), item.get('force_skip_tiles', False)]
         if True in skip_tiles:
-            spider.log(u"Skipping tile creation. \
+            spider.logger.info(u"Skipping tile creation. \
                          spider.skip_tiles: {0}, item.force_skip_tiles: {1}".format(*skip_tiles))
             return True
         else:
@@ -76,11 +76,11 @@ class TilesMixin(object):
         try:
             feed = Feed.objects.get(id=feed_id)
         except Feed.DoesNotExist:
-            spider.log(u"Error adding to <Feed #{}> because feed does not exist".format(feed_id))
+            spider.logger.warn(u"Error adding to <Feed #{}> because feed does not exist".format(feed_id))
             raise CloseSpider(reason='Invalid feed id')
 
         if not item['created'] and recreate_tiles:
-            spider.log(u"Recreating tile for <{}>".format(obj))
+            spider.logger.info(u"Recreating tile for <{}>".format(obj))
             feed.remove(obj)
 
         if not categories:
@@ -88,7 +88,7 @@ class TilesMixin(object):
         elif len(categories) == 1:
             cname = categories[0]
             cat = self.category_cache.get_or_create(cname, store=item['store'])
-            spider.log(u"Adding <{}> to <{}>".format(obj, cat))
+            spider.logger.info(u"Adding <{}> to <{}>".format(obj, cat))
             tile, created = feed.add(obj, category=cat)
             tile.placeholder = placeholder
             tile.save()
@@ -99,7 +99,7 @@ class TilesMixin(object):
             tile.save()
             for cname in categories:
                 cat = self.category_cache.get_or_create(cname, store=item['store'])
-                spider.log(u"Adding <{}> to <{}>".format(obj, cat))
+                spider.logger.info(u"Adding <{}> to <{}>".format(obj, cat))
                 cat.tiles.add(tile)
             return (tile, created)
 

@@ -23,7 +23,7 @@ class PlaceholderProduct(Product):
     def __init__(self, *args, **kwargs):
         try:
             validator(kwargs['url'])
-        except KeyError, ValidationError:
+        except (KeyError, ValidationError):
             raise ValueError('PlaceholderProduct must be initialized with a valid url')
         super(PlaceholderProduct, self).__init__(*args, **kwargs)
 
