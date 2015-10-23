@@ -64,7 +64,6 @@ class BodyShopDatafeed(RakutenDatafeed):
             mappings=[
                 ("SKU", product.sku),
                 ("NAME", product.name.encode('ascii', errors='ignore')),
-                ("BUYURL", product.url),
             ], first=True)
 
     def update_product(self, product, data):
