@@ -89,11 +89,11 @@ class BaseModel(models.Model, SerializableMixin):
             return u'({class_name} #{obj_id}) {obj_name}'.format(
                 class_name=self.__class__.__name__,
                 obj_id=self.pk,
-                obj_name=getattr(self, 'name', ''))
+                obj_name=getattr(self, 'name', '')).encode('ascii', 'ignore')
 
         return u'{class_name} #{obj_id}'.format(
             class_name=self.__class__.__name__,
-            obj_id=self.pk)
+            obj_id=self.pk).encode('ascii', 'ignore')
 
     @classmethod
     def _copy(cls, obj, update_fields={}, exclude_fields=[]):
@@ -527,7 +527,7 @@ class Product(BaseModel):
             # order doesnt matter with placeholders, take 1st one
             product = products.pop(0)
             other_products = products
-        logging.info('Merging {} into {}'.format(other_products, product))
+        logging.info(u'Merging {} into {}'.format(other_products, product))
         product.merge(other_products)
         return product
 
@@ -735,7 +735,7 @@ class Image(Content):
         if master_size:
             self.width = master_size.get('width', 0)
             self.height = master_size.get('height', 0)
-            logging.info("Setting {} width and height to {}x{}".format(self, self.width, self.height))
+            logging.info(u"Setting {} width and height to {}x{}".format(self, self.width, self.height))
 
         return super(Image, self).save(*args, **kwargs)
 
@@ -808,11 +808,11 @@ class Theme(BaseModel):
 
         remote_theme = read_remote_file(self.template, '')[0]
         if remote_theme:
-            logging.info("speed up page load times by placing the theme \
+            logging.info(u"speed up page load times by placing the theme \
                          '{0}' locally.".format(self.template))
             return remote_theme
 
-        logging.warn("template '{0}' was neither local nor remote".format(
+        logging.warn(u"template '{0}' was neither local nor remote".format(
             self.template))
         return self.template
 
@@ -1239,7 +1239,7 @@ class Feed(BaseModel):
                 tile = existing_tiles[0]
                 tile.priority = priority
                 tile.save() # Update IR Cache
-                logging.info("<Product {0}> already in the feed. \
+                logging.info(u"<Product {0}> already in the feed. \
                               Updated <Tile {1}>.".format(product.id, tile.id))
                 return (tile, False)
         
@@ -1254,7 +1254,7 @@ class Feed(BaseModel):
 
         if category:
             category.tiles.add(new_tile)
-        logging.info("<Product {0}> added to the feed in \
+        logging.info(u"<Product {0}> added to the feed in \
                       <Tile {1}>.".format(product.id, new_tile.id))
 
         return (new_tile, True)
@@ -1282,7 +1282,7 @@ class Feed(BaseModel):
                 product_qs = content.tagged_products.all()
                 tile.products.add(*product_qs)
                 tile.save()
-                logging.info("<Content {0}> already in the feed. Updated \
+                logging.info(u"<Content {0}> already in the feed. Updated \
                               <Tile {1}>".format(content.id, tile.id))
                 return (tile, False)
 
@@ -1304,7 +1304,7 @@ class Feed(BaseModel):
             new_tile.save() # full clean & generate ir_cache
         if category:
             category.tiles.add(new_tile)
-        logging.info("<Content {0}> added to the feed. Created \
+        logging.info(u"<Content {0}> added to the feed. Created \
                       <Tile {1}>".format(content.id, new_tile.id))
         return (new_tile, True)
 

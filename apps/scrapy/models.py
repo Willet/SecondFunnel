@@ -23,7 +23,7 @@ class PlaceholderProduct(Product):
     def __init__(self, *args, **kwargs):
         try:
             validator(kwargs['url'])
-        except KeyError, ValidationError:
+        except (KeyError, ValidationError):
             raise ValueError('PlaceholderProduct must be initialized with a valid url')
         super(PlaceholderProduct, self).__init__(*args, **kwargs)
 
@@ -33,5 +33,5 @@ class PlaceholderProduct(Product):
         self.in_stock = False
         if not self.sku:
             # Make-up a temporary, unique SKU
-            self.sku = "placeholder-{}".format(md5(self.url).hexdigest())
+            self.sku = u"placeholder-{}".format(md5(self.url).hexdigest())
         super(PlaceholderProduct, self).save(*args, **kwargs)

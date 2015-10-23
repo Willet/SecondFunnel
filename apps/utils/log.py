@@ -23,14 +23,14 @@ class AdminSlackHandler(logging.Handler):
     def emit(self, record):
         try:
             request = record.request
-            subject = '%s (%s IP): %s' % (
+            subject = u'%s (%s IP): %s' % (
                 record.levelname,
                 ('internal' if request.META.get('REMOTE_ADDR') in settings.INTERNAL_IPS
                  else 'EXTERNAL'),
                 record.getMessage()
             )
             filter = get_exception_reporter_filter(request)
-            request_repr = '\n{}'.format(force_text(filter.get_request_repr(request)))
+            request_repr = u'\n{}'.format(force_text(filter.get_request_repr(request)))
         except Exception:
             subject = '%s: %s' % (
                 record.levelname,
@@ -49,7 +49,7 @@ class AdminSlackHandler(logging.Handler):
         else:
             channel="#servers"
 
-        title = "{} Server".format(os.getenv("AWS_GROUP", "Dev"))
-        message = "%s\n\nRequest repr(): %s" % (self.format(record), request_repr)
+        title = u"{} Server".format(os.getenv("AWS_GROUP", "Dev"))
+        message = u"%s\n\nRequest repr(): %s" % (self.format(record), request_repr)
 
         slack.msg(channel=channel, sender="django", title=title, message=message, level="error")

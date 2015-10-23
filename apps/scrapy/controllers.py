@@ -1,8 +1,8 @@
 import logging
 from django.core.validators import URLValidator
 
-from scrapy.utils.project import get_project_settings
 from scrapy.crawler import Crawler, CrawlerProcess
+from scrapy.utils.project import get_project_settings
 
 from apps.assets.models import Product
 from apps.utils.functional import autodiscover_module_classes

@@ -4,7 +4,6 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import cloudinary
 import decimal
-import logging
 import traceback
 
 from collections import defaultdict
@@ -67,7 +66,7 @@ class ValidationPipeline(ItemManifold, PlaceholderMixin, TilesMixin):
             # If we are creating tiles, add (placeholder) to the feed
             if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
                 self.add_to_feed(item, spider)
-            raise DropItem('Required fields missing ({}) or empty ({})'.format(
+            raise DropItem(u"Required fields missing ({}) or empty ({})".format(
                     ', '.join(missing_fields),
                     ', '.join(empty_fields)
                 ))
@@ -94,7 +93,7 @@ class DuplicatesPipeline(ItemManifold, TilesMixin):
                 product = Product.objects.get(store=store, sku=sku)
                 item['instance'] = product
                 self.add_to_feed(item, spider, placeholder=product.is_placeholder)
-            raise DropItem("Duplicate item found here: {}".format(item))
+            raise DropItem(u"Duplicate item found here: {}".format(item))
 
         self.products_seen[spider.name].add(sku)
 
@@ -107,7 +106,7 @@ class DuplicatesPipeline(ItemManifold, TilesMixin):
                 content = Content.objects.filter(store=store, source_url=source_url).select_subclasses()[0]
                 item['instance'] = content
                 self.add_to_feed(item, spider)
-            raise DropItem("Duplicate item found: {}".format(item))
+            raise DropItem(u"Duplicate item found: {}".format(item))
 
         self.content_seen[spider.name].add(source_url)
 
@@ -168,7 +167,7 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
         try:
             item_model = item_to_model(item)
         except TypeError:
-            raise DropItem("Item was not a known model, discarding: {}".format(item))
+            raise DropItem(u"Item was not a known model, discarding: {}".format(item))
 
         model, was_it_created = get_or_create(item_model)
         item['created'] = was_it_created

@@ -1,5 +1,4 @@
 import copy
-import logging
 
 from scrapy.spiders import Spider
 from scrapy.utils.spider import iterate_spider_output
