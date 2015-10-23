@@ -8,7 +8,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import int_to_base36
 from django.utils.translation import ugettext as _
 
-from apps.assets.models import Category, Tag, Feed
+from apps.assets.models import Category, Tag
 
 
 class HTMLPasswordResetForm(PasswordResetForm):
