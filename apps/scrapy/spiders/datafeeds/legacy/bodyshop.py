@@ -13,11 +13,11 @@ class BodyShopDatafeed(RakutenDatafeed):
         datafeed = {
             'filename': '13962_3263197_mp.txt.gz',
             'pathname': '',
-            'keys': ['SKU',
+            'field_mapping': ['SKU',
                      'NAME',
                      'numbers??',
                      'category',
-                     'more categories',
+                     'ADVERTISERCATEGORY',
                      'BUYURL',
                      'ARTIST',
                      '',
@@ -51,7 +51,7 @@ class BodyShopDatafeed(RakutenDatafeed):
             collect_fields=["SKU", "NAME", "DESCRIPTION", "PRICE",
                 "SALEPRICE", "BUYURL", "INSTOCK",
                 "ADVERTISERCATEGORY", "ARTIST"],
-            lookup_fields=["SKU","NAME","BUYURL", "ADVERTISERCATEGORY"])
+            lookup_fields=["SKU","NAME"])
     
     def lookup_product(self, product):
         """ Looksup product in datafeed
@@ -83,7 +83,7 @@ class BodyShopDatafeed(RakutenDatafeed):
             product.price = new_price
         product.sale_price = float(data['SALEPRICE'])
         product.in_stock = True if data['INSTOCK'] == 'yes' else False
-        product.attributes['rakuten_link'] = data['BUYURL']
+        product.attributes['affiliate_link'] = data['BUYURL']
 
     def _update_similar_products(self, product, data, max_num=3):
         """

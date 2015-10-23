@@ -17,13 +17,13 @@ class RakutenDatafeed(object):
         """ Expected format of datafeed = {
             'filename': '', # filename for downloading datafeed
             'pathname': '', # path to datafeed on Rakuten FTP
-            'keys': []      # key names for interpreting the raw feed data
+            'field_mapping': [] # key names for interpreting the raw feed data
         }
         """
         self.store = store
         self.datafeed = datafeed
         self.filename = datafeed['filename']
-        self.keys = datafeed['keys']
+        self.keys = datafeed['field_mapping']
 
     def _download(self):
         """ Downloads the Rakuten product datafeed for "store" if it is setup

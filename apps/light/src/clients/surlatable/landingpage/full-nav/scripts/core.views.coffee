@@ -82,7 +82,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
             product = @taggedProducts[$targetEl.data("index")]
-            url = product.get('cj_link') or product.get('url')
+            url = product.get('affiliate_link') or product.get('url')
             ### Uncomment to enable switching view to product ###
             #@taggedProductIndex = $targetEl.data("index")
             #if App.support.mobile() and not @ui.lookThumbnail.is(':visible')
