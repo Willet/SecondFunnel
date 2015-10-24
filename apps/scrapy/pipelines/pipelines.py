@@ -62,7 +62,7 @@ class ValidationPipeline(ItemManifold, PlaceholderMixin, TilesMixin):
 
         if missing_fields or empty_fields:
             # Attempt to find the product & mark it as out of stock
-            item['instance'], item['created'] = self.update_or_save_placeholder(item)
+            item['instance'], item['created'] = self.update_or_save_placeholder(item, spider)
             # If we are creating tiles, add (placeholder) to the feed
             if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
                 self.add_to_feed(item, spider)
@@ -182,7 +182,7 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
                 update_model(model, item)
         except ValidationError as e:
             # Attempt to find the product & mark it as out of stock
-            item['instance'], item['created'] = self.update_or_save_placeholder(item)
+            item['instance'], item['created'] = self.update_or_save_placeholder(item, spider)
             # If we are creating tiles, add (placeholder) to the feed
             if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
                 self.add_to_feed(item, spider)
