@@ -21,7 +21,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ProductView::onBeforeRender = ->
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
-        inlineLink = "<a href='#{@model.get('cjLink') or @model.get('url')}'>#{linkName}</a>"
+        if App.option('useAffiliateLinks') and @model.get("cjLink")
+            inlineLink = "<a href='#{@model.get('cjLink')}'>#{linkName}</a>"
+        else
+            inlineLink = "<a href='#{@model.get('url')}'>#{linkName}</a>"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
             @model.set("truncatedDescription", truncatedDescription + " " + inlineLink)

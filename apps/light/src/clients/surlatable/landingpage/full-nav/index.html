@@ -1242,7 +1242,11 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <a class='button' href='<%= obj.cjLink || obj.url %>' target='_blank'>
+            <a class='button' href='<% if (App.option("useAffiliateLinks") && obj.cjLink) { %>
+                    <%= obj.cjLink || obj.url %>
+                <% } else { %>
+                    <%= obj.url %>
+                <% } %>' target='_blank'>
                 <span>Shop Now</span>
             </a>
         </script>
