@@ -111,7 +111,7 @@ class PlaceholderMixin(object):
     def __init__(self, *args, **kwargs):
         super(PlaceholderMixin, self).__init__(*args, **kwargs)
 
-    def update_or_save_placeholder(self, item):
+    def update_or_save_placeholder(self, item, spider):
         """ When a product is invalid for any reason:
 
         if it exists, set it to out of stock
@@ -129,11 +129,13 @@ class PlaceholderMixin(object):
             product.in_stock = False
             try:
                 product.save()
-            except SerializerError:
+            except SerializerError as e:
+                spider.logger.info("Converting {} to placeholder because: {}".format(product, e))
                 self.convert_to_placeholder(product)
             created = False
-        except Product.DoesNotExist:
+        except Product.DoesNotExist as e:
             product = PlaceholderProduct(store=store, url=url, sku=sku)
+            spider.logger.info("Saving placeholder {} because: {}".format(product, e))
             product.save()
             created = True
         except MultipleObjectsReturned:
