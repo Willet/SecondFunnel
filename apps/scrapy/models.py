@@ -20,13 +20,6 @@ class PlaceholderProduct(Product):
     class Meta:
         proxy = True
 
-    def __init__(self, *args, **kwargs):
-        try:
-            validator(kwargs['url'])
-        except (KeyError, ValidationError):
-            raise ValueError('PlaceholderProduct must be initialized with a valid url')
-        super(PlaceholderProduct, self).__init__(*args, **kwargs)
-
     def save(self, *args, **kwargs):
         self.name = "placeholder"
         self.price = 0
@@ -35,3 +28,13 @@ class PlaceholderProduct(Product):
             # Make-up a temporary, unique SKU
             self.sku = u"placeholder-{}".format(md5(self.url).hexdigest())
         super(PlaceholderProduct, self).save(*args, **kwargs)
+
+    def clean_fields(self, exclude=None):
+        if exclude is None:
+            exclude = []
+
+        if not 'url' in exclude:
+            try:
+                validator(self.url)
+            except ValidationError:
+                raise ValidationError({'url': [u'Must be a valid url']})
