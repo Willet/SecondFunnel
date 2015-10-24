@@ -792,6 +792,14 @@ class Theme(BaseModel):
         max_length=1024,
         # backward compatibility for pages that don't specify themes
         default="apps/pinpoint/templates/pinpoint/campaign_base.html")
+    # Store the image sizes to cache in S3
+    # Size names are keys, with integer pixel values for width and height. None is acceptable
+    # for either width or height, but no both.
+    # example: {
+    #               'w400': { 'width': 500, 'height': None, },
+    #               'tile': { 'width': 700, 'height': 700, }
+    #           }
+    image_sizes = JSONField(blank=True, null=True, default=lambda:{})
 
     @returns_unicode
     def load_theme(self):
@@ -1461,12 +1469,12 @@ class Tile(BaseModel):
 
         # Queue products & content for deletion if they are ONLY tagged in
         # this single Tile
-        for p in tile.products.all():
+        for p in self.products.all():
             if p.tiles.count() == 1:
-                bulk_delete_products.append(p)
-        for c in tile.content.all():
+                bulk_delete_products.append(p.pk)
+        for c in self.content.all():
             if c.tiles.count() == 1:
-                bulk_delete_content.append(c)
+                bulk_delete_content.append(c.pk)
         Product.objects.filter(pk__in=bulk_delete_products).delete()
         Content.objects.filter(pk__in=bulk_delete_content).delete()
 
