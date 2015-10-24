@@ -32,12 +32,18 @@ class Command(BaseCommand):
     def handle(self, url_slug, **options):
         page = Page.objects.get(url_slug=url_slug)
         store = page.store
+        sizes = []
 
-        # TODO: Add sizes to theme attributes!
-        #   1-col width is 400px for SLT
-        #   2-col width is 700px for SLT
-        sizes = [SizeConf(name="tile", width=400, height=None),
-                 SizeConf(name="wide", width=700, height=None)]
+        # theme.image_sizes format: 'tile': { 'width': 700, 'height': 700 }
+        # One of width or height can be None, but not both
+        # Size names are not significant & only used for folder names BUT they must be unique
+        for name, size in page.theme.image_sizes.items():
+            sizes.append(
+                SizeConf(name=name, 
+                         width=size.get('width', None),
+                         height=size.get('height', None)
+                )
+            )
 
         num_tiles = options.get('num_tiles', 200) # Default is 200 tiles
         tiles = page.feed.tiles.order_by("-priority")[0:num_tiles]
