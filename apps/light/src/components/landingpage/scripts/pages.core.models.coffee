@@ -186,6 +186,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 "dominant-color": defaultImage.get("dominant-color")
             @unset('default-image')
             @unset('tagged-products')
+            if App.option("useAffiliateLinks") and @get('cjLink') # rename to affiliateLink
+                @set(url: @get('cjLink'))
             return
 
 

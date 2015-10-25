@@ -1051,7 +1051,7 @@ class Feed(BaseModel):
     Container for tiles for a page / ad
 
     Tiles are THE DEFINITION of what should exist in the feed, so be very careful
-    about deleting tiles.  Hide tiles from a feed by toggling 'Reviewed' to False
+    about deleting tiles.  Hide tiles from a feed by toggling 'Placeholder' to True
 
     Start_url's are an instruction to the scraper about how to update *some* tiles
 

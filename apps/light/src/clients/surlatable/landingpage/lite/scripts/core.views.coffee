@@ -16,10 +16,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ProductView::onBeforeRender = ->
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
-        if App.option('useAffiliateLinks') and @model.get("cjLink")
-            inlineLink = "<a href='#{@model.get('cjLink')}'>#{linkName}</a>"
-        else
-            inlineLink = "<a href='#{@model.get('url')}'>#{linkName}</a>"
+        inlineLink = "<a href='#{@model.get('url')}'>#{linkName}</a>"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
             @model.set("truncatedDescription", truncatedDescription + " " + inlineLink)
@@ -74,10 +71,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
             product = @taggedProducts[$targetEl.data("index")]
-            if App.option('useAffiliateLinks') and @model.get("cjLink")
-                url = product.get('cjLink')
-            else
-                url = product.get('url')
             ### Uncomment to enable switching view to product ###
             #@taggedProductIndex = $targetEl.data("index")
             #if App.support.mobile() and not @ui.lookThumbnail.is(':visible')
