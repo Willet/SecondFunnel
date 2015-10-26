@@ -2,7 +2,7 @@ from django.conf import settings
 import logging
 from scrapy import signals
 
-from .utils.misc import CarefulStringIO as StringIO
+from .utils.misc import CarefulStringIO, ExceptionStatsLogger
 from .log import notify_slack, upload_to_s3
 
 
@@ -36,15 +36,18 @@ class Signals(object):
 
     def engine_started(self):
         # Save logging messages to a buffer that will be saved to S3
-        log_buffer = StringIO()
+        log_buffer = CarefulStringIO()
         self.crawler.stats.set_value('log', log_buffer)
         formatter = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 
         sh = logging.StreamHandler(log_buffer)
         sh.setLevel(logging.INFO)
         sh.setFormatter(formatter)
-
         logging.getLogger().addHandler(sh)
+
+        # Push exceptions into stats['logging/errors']
+        el = ExceptionStatsLogger(self.crawler.stats)
+        logging.getLogger().addHandler(el)
 
     def spider_opened(self, spider):
         self.crawler.stats.set_stats({
