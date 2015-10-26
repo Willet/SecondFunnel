@@ -72,6 +72,14 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                 'trigger': true
             });
 
+            // Now that App.feed is set up, preload tile models
+            // Must happen before hero initialization
+            if (window.PRELOAD && _.isArray(window.PRELOAD.tiles)) {
+                _.each(window.PRELOAD.tiles, function (tile) {
+                    App.core.Tile.cacheTile(tile);
+                });
+            }
+
             // Prevent hero image from resetting to first category on reload
             if (!App.heroArea.currentView) {
                 tileId = App.option('page:init:hero', App.option('page:home:hero', null));
@@ -95,19 +103,10 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                     App.previewLoadingScreen.hide();
                 };
                 App.previewLoadingScreen.show();
-                App.core.Tile.getTileById(tileId, preview_tile, close_preview);
+                App.core.Tile.getById(tileId, preview_tile, close_preview);
             }
 
             App.vent.trigger('afterInit', App.options, App);
-        });
-
-        App.vent.on('beforeInit', function () {
-            // Preload data
-            if (window.PRELOAD && _.isArray(window.PRELOAD.tiles)) {
-                _.each(window.PRELOAD.tiles, function (tile) {
-                    App.core.Tile.tilecache[Number(tile['tile-id'])] = tile;
-                });
-            }
         });
 
         App.vent.on('afterInit', function () {

@@ -109,45 +109,53 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @rightArrow = @$el.find('.gallery-swipe-right')
             @mainImage = @$el.find('.main-image')
             @resizeProductImages() # Parent elements must be completely sized before this fires
+            @updateGallery()
             if @numberOfImages > 1
                 @scrollImages(@mainImage.width()*@galleryIndex, 0)
-                @updateGallery()
                 @mainImage.swipe(
                     triggerOnTouchEnd: true,
                     swipeStatus: _.bind(@swipeStatus, @),
                     allowPageScroll: 'vertical'
                 )
+            else
+                @$el.find(".item").hide() # Hide all gallery dots
             return
 
         replaceImages: ->
-            unless App.support.mobile()
-                $container = @$el.find(".main-image-container")
-                if $container.is(":visible")
+            $container = @$el.find(".main-image-container")
+            if $container.is(":visible")
+                if App.support.mobile()
+                    maxWidth = $container.width()
+                    maxHeight = $container.height()
+                else
                     maxWidth = $container.width()*1.3
                     maxHeight = $container.height()*1.3
+            else
+                maxWidth = App.option("minImageWidth") or 300
+                maxHeight = App.option("minImageHeight") or 300
+
+            for imageEl, i in @$el.find(".main-image .image")
+                $image = $(imageEl)
+                # find image from id
+                image = _.findWhere(@model.get('images'), id: $image.data('id'))
+                if image
+                    imageUrl = image.resizeForDimens(maxWidth, maxHeight)
+                
+                if imageUrl?
+                    if $image.is("img")
+                        $image.attr("src", imageUrl)
+                    else if $image.is("div")
+                        $image.css("background-image", "url('#{imageUrl}')")
                 else
-                    maxWidth = App.option("minImageWidth") or 300
-                    maxHeight = App.option("minImageHeight") or 300
-                for image, i in @$el.find(".main-image .image")
-                    if $(image).is("img")
-                        imageUrl = App.utils.getResizedImage($(image).attr("src"),
-                            width: maxWidth,
-                            height: maxHeight
-                        )
-                        $(image).attr("src", imageUrl)
-                    else if $(image).is("div")
-                        imageUrl = $(image).css("background-image").replace('url(','').replace(')','')
-                        imageUrl = App.utils.getResizedImage(imageUrl,
-                            width: maxWidth,
-                            height: maxHeight
-                        )
-                        $(image).css("background-image", "'url(#{imageUrl})'")
+                    console.warn("Can't get resized image for %O", @)
             return
 
         resizeProductImages: ->
             productImages = @$el.find(".main-image .image")
             if productImages.length > 0 and productImages.first().is("div")
-                @replaceImages()
+                # Let the browser execute the resizing window callbacks
+                # otherwise, container height is 0 & images are resized to 0 height.
+                setTimeout((=> @replaceImages()), 1)
             else
                 imagesLoaded(productImages, (=> @replaceImages()))
             return
@@ -190,19 +198,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         updateGallery: ->
-            @$el.find(".item")
-                .removeClass("selected")
-                .filter("[data-index=#{@galleryIndex}]")
-                .addClass("selected")
-            if @galleryIndex is 0
-                @leftArrow.addClass("grey")
-                @rightArrow.removeClass("grey")
-            else if @galleryIndex is @numberOfImages - 1
-                @leftArrow.removeClass("grey")
-                @rightArrow.addClass("grey")
+            if @numberOfImages > 1
+                @$el.find(".item")
+                    .removeClass("selected")
+                    .filter("[data-index=#{@galleryIndex}]")
+                    .addClass("selected")
+                if @galleryIndex is 0
+                    @leftArrow.addClass("grey")
+                    @rightArrow.removeClass("grey")
+                else if @galleryIndex is @numberOfImages - 1
+                    @leftArrow.removeClass("grey")
+                    @rightArrow.addClass("grey")
+                else
+                    @leftArrow.removeClass("grey")
+                    @rightArrow.removeClass("grey")
             else
-                @leftArrow.removeClass("grey")
-                @rightArrow.removeClass("grey")
+                @leftArrow.addClass("grey")
+                @rightArrow.addClass("grey")
             return
 
 
@@ -259,9 +271,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#similar_products_template"
 
         initialize: (options) ->
-            productAttrs = ((if p.toJSON? then p.toJSON() else p) \
-                             for p in (options['products'] or []))
-            @collection = new module.ProductCollection(productAttrs)
+            @collection = new module.ProductCollection(options['products'])
 
             if options.template
                 @templateHelpers =
@@ -424,13 +434,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         @model.set("orientation", "portrait")
                 
                 # Get new resized image
-                if App.support.mobile()
-                    image = image.height($window.height(), true)
-                else
-                    image = image.height(App.utils.getViewportSized(true), true)
-
-                # simplify templates, only look for defaultImage
-                @model.set(defaultImage: image)
+                # TODO: delegated to a view for the look image
+                if @model.get('template') isnt 'product'
+                    if App.support.mobile()
+                        image.height($window.height())
+                    else
+                        image.height(App.utils.getViewportSized(true))
             return
 
         updateContent: ->
@@ -828,7 +837,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         templateHelpers: ->
             scrollable: @getOption('scrollable')
 
-        onRender: ->
+        onShow: ->
             # cannot declare display:table in marionette class.
             heightMultiplier = (if App.utils.portrait() then 1 else 2)
             @$el.css
@@ -888,6 +897,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @content.currentView?.resizeContainer()
                 return
             )
+            @image_load = imagesLoaded(@$el)
+            @listenTo(@image_load, 'always', =>
+                @positionWindow()
+            )
             return
 
         positionWindow: ->
@@ -897,13 +910,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if App.windowHeight and App.support.mobile()
                 @$el.css("height", App.windowHeight)
             @$el.css("top", Math.max(windowMiddle - (@$el.height() / 2), 0))
-
-        onShow: ->
-            @image_load = imagesLoaded(@$el)
-            @listenTo(@image_load, 'always', =>
-                @positionWindow()
-            )
-            return
 
         onDestroy: ->
             # hide this, then restore discovery.

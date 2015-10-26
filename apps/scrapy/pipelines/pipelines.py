@@ -4,7 +4,6 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import cloudinary
 import decimal
-import logging
 import traceback
 
 from collections import defaultdict
@@ -63,11 +62,11 @@ class ValidationPipeline(ItemManifold, PlaceholderMixin, TilesMixin):
 
         if missing_fields or empty_fields:
             # Attempt to find the product & mark it as out of stock
-            item['instance'], item['created'] = self.update_or_save_placeholder(item)
+            item['instance'], item['created'] = self.update_or_save_placeholder(item, spider)
             # If we are creating tiles, add (placeholder) to the feed
             if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
                 self.add_to_feed(item, spider)
-            raise DropItem('Required fields missing ({}) or empty ({})'.format(
+            raise DropItem(u"Required fields missing ({}) or empty ({})".format(
                     ', '.join(missing_fields),
                     ', '.join(empty_fields)
                 ))
@@ -94,7 +93,7 @@ class DuplicatesPipeline(ItemManifold, TilesMixin):
                 product = Product.objects.get(store=store, sku=sku)
                 item['instance'] = product
                 self.add_to_feed(item, spider, placeholder=product.is_placeholder)
-            raise DropItem("Duplicate item found here: {}".format(item))
+            raise DropItem(u"Duplicate item found here: {}".format(item))
 
         self.products_seen[spider.name].add(sku)
 
@@ -107,7 +106,7 @@ class DuplicatesPipeline(ItemManifold, TilesMixin):
                 content = Content.objects.filter(store=store, source_url=source_url).select_subclasses()[0]
                 item['instance'] = content
                 self.add_to_feed(item, spider)
-            raise DropItem("Duplicate item found: {}".format(item))
+            raise DropItem(u"Duplicate item found: {}".format(item))
 
         self.content_seen[spider.name].add(source_url)
 
@@ -168,7 +167,7 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
         try:
             item_model = item_to_model(item)
         except TypeError:
-            raise DropItem("Item was not a known model, discarding: {}".format(item))
+            raise DropItem(u"Item was not a known model, discarding: {}".format(item))
 
         model, was_it_created = get_or_create(item_model)
         item['created'] = was_it_created
@@ -183,7 +182,7 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
                 update_model(model, item)
         except ValidationError as e:
             # Attempt to find the product & mark it as out of stock
-            item['instance'], item['created'] = self.update_or_save_placeholder(item)
+            item['instance'], item['created'] = self.update_or_save_placeholder(item, spider)
             # If we are creating tiles, add (placeholder) to the feed
             if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
                 self.add_to_feed(item, spider)
@@ -334,14 +333,30 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
         return image
 
 
+class SimilarProductsPipeline(ItemManifold):
+    pass
+
+
+class ItemFinishedPipeline(ItemManifold):
+    """
+    A hook for store/spider specific processing of products
+    """
+    def process_product(self, item, spider):
+        product = item['instance']
+        spider.on_product_finished(product)
+        return
+
+    def process_image(self, item, spider):
+        image = item['instance']
+        spider.on_image_finished(image)
+        return
+
+
 class TileCreationPipeline(TilesMixin):
     """ 
     If spider has feed_id, get or create tile(s) for product or content
     If spider also has category(s), add tile(s) to category(s)
     """
-    def __init__(self, *args, **kwargs):
-        super(TileCreationPipeline, self).__init__(*args, **kwargs)
-
     def process_item(self, item, spider):
         recreate_tiles = getattr(spider, 'recreate_tiles', False)
         categories = getattr(spider, 'categories', False)
@@ -353,12 +368,10 @@ class TileCreationPipeline(TilesMixin):
             if feed_id:
                 spider.logger.info(u"Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
                 tile, _ = self.add_to_feed(item, spider)
+
+                spider.on_tile_finished(tile, item['instance']) # Post-process hook to modify new/updated tiles
             
             return item
-
-
-class SimilarProductsPipeline(ItemManifold):
-    pass
 
 
 class PageUpdatePipeline(ItemManifold):

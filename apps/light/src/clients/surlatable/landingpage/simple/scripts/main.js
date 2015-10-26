@@ -11,10 +11,12 @@ var Page = require('landingpage'),
     App = Page.App;
 
 // Import client customizations
-App.module('utils', require('./utils'));
-App.module('core', require('./core.models'));
-App.module('core', require('./core.views'));
-App.module('core', require('./core.views.tiles'));
+App.module('utils', require('../../lite/scripts/utils'));
+App.module('core', require('../../lite/scripts/core.models'));
+App.module('core', require('../../lite/scripts/core.views'));
+App.module('core', require('../../lite/scripts/core.views.tiles'));
+
+App.module('core', require('./core.views')); // Over-write lite
 
 if (App.option("generateHeroArea")) {
     App.core.HeroAreaView = App.core.SLTHeroAreaView;

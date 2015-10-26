@@ -1,5 +1,4 @@
 import copy
-import logging
 
 from scrapy.spiders import Spider
 from scrapy.utils.spider import iterate_spider_output
@@ -33,14 +32,35 @@ class SecondFunnelScraper(object):
     # The functions below are hooks meant to be overwritten 
     # in the spiders for individual clients
     @staticmethod
+    def clean_url(url):
+        """Hook for cleaning url before scraping
+        Returns: cleaned url """
+        return url
+
+    @staticmethod
     def choose_default_image(product):
-        """Hook for choosing non-product-shot default image on slt"""
+        """ Hook for choosing non-product-shot default image on slt
+        Returns: image to set as default image, must be one of product_images """
+        return product.product_images.first()
+
+    @staticmethod
+    def on_product_finished(product):
+        """Hook for post-processing a product after scrapy is finished with it"""
         pass
 
     @staticmethod
-    def clean_url(url):
-        """Hook for cleaning url before scraping"""
-        return url
+    def on_image_finished(image):
+        """Hook for post-processing a product after scrapy is finished with it"""
+        pass
+
+    @staticmethod
+    def on_tile_finished(tile, obj):
+        """Hook for post-processing a tile after scrapy is finished with it
+        Only called if spider is creating tiles
+
+        tile - Tile instance
+        obj - Either Product or Image instance"""
+        pass
 
 
 class SecondFunnelCrawlScraper(SecondFunnelScraper):
