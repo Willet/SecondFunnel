@@ -137,6 +137,7 @@ class IntentRank(object):
                         raise Category.DoesNotExist("Category '{0}' does not exist for Store '{1}'".format(name, store.name))
                     tiles = tiles.filter(categories__id=filter_category.id)
         else:
+            # no category found - default to all tiles
             tiles = feed.tiles.all()
 
         if not tiles:
