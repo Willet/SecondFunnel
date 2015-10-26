@@ -96,7 +96,7 @@ def upload_to_s3(path, folder, img, file_id):
     @param path: prefixed path name
     @param folder: The unique folder to store it in
     @param img: <ExtendedImage> object
-    @param size: <SizeConf> object
+    @param file_id: desired file name sans extension
     @return: url of s3 resouce
     """
     buff = StringIO()  # save into a string to avoid disk write
@@ -105,6 +105,7 @@ def upload_to_s3(path, folder, img, file_id):
 
     file_format = "jpg" if img.format is None else img.format.lower()
     filename = "{0}.{1}".format(file_id, file_format)
+
     bucket = os.path.join(settings.IMAGE_SERVICE_BUCKET, path, folder)
 
     if not upload_to_bucket(
@@ -286,7 +287,11 @@ def transfer_image_now(cloudinary_url, store, size):
 
     # Cloudinary ids include store name and sometimes other folders, grab just the end ID
     # Turns sur%20la%20table/539a3d9b66907635 into 539a3d9b66907635
-    s3_public_id = re.search(r"/([^/]+)$", cloudinary_public_id).group(1)
+    id_parts = [re.search(r"/([^/]+)$", cloudinary_public_id).group(1), size.width, size.height]
+    id_format = "{0}_{1}x{2}" if size.width and size.height else \
+                "{0}_w{1}" if size.width else "{0}_h{2}"
+    s3_public_id = id_format.format(*id_parts)
+
     s3_url = u"http://" + upload_to_s3(path, size.name, img, s3_public_id)
 
     return (img, s3_url)

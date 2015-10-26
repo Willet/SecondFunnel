@@ -119,34 +119,37 @@ class IntentRank(object):
         if category_name:
             category_names = category_name.split('|')
 
-        # Get first category
-        try:
-            base_category = Category.objects.get(store=store, name=category_names[0])
-        except Category.DoesNotExist:
-            # This text is hardcoded by API consumers, so be careful about changing it
-            raise Category.DoesNotExist("Category '{0}' does not exist for Store '{1}'".format(category_names[0], store.name))
-        else:
-            tiles = feed.tiles.filter(categories__id=base_category.id)
-
-            # Filter tiles with additional categories if they exist
-            for name in category_names[1:]:
-                try:
-                    filter_category = Category.objects.get(store=store, name=name)
-                except Category.DoesNotExist:
-                    # This text is hardcoded by API consumers, so be careful about changing it
-                    raise Category.DoesNotExist("Category '{0}' does not exist for Store '{1}'".format(name, store.name))
-                tiles = tiles.filter(categories__id=filter_category.id)
-
-            if not tiles:
-                return Tile.objects.none()
+            # Get first category
+            try:
+                base_category = Category.objects.get(store=store, name=category_names[0])
+            except Category.DoesNotExist:
+                # This text is hardcoded by API consumers, so be careful about changing it
+                raise Category.DoesNotExist("Category '{0}' does not exist for Store '{1}'".format(category_names[0], store.name))
             else:
-                # Apply filter algorithm
-                tiles = ir_filter(feed=feed, tiles=tiles, exclude_set=exclude_set,
-                                  products_only=products_only, content_only=content_only)
+                tiles = feed.tiles.filter(categories__id=base_category.id)
 
-                return algorithm(tiles=tiles, num_results=results, exclude_set=exclude_set,
-                                 offset=offset, tile_id=tile_id, finite=self._page.is_finite,
-                                 products_only=products_only, content_only=content_only)
+                # Filter tiles with additional categories if they exist
+                for name in category_names[1:]:
+                    try:
+                        filter_category = Category.objects.get(store=store, name=name)
+                    except Category.DoesNotExist:
+                        # This text is hardcoded by API consumers, so be careful about changing it
+                        raise Category.DoesNotExist("Category '{0}' does not exist for Store '{1}'".format(name, store.name))
+                    tiles = tiles.filter(categories__id=filter_category.id)
+        else:
+            # no category found - default to all tiles
+            tiles = feed.tiles.all()
+
+        if not tiles:
+            return Tile.objects.none()
+        else:
+            # Apply filter algorithm
+            tiles = ir_filter(feed=feed, tiles=tiles, exclude_set=exclude_set,
+                              products_only=products_only, content_only=content_only)
+
+            return algorithm(tiles=tiles, num_results=results, exclude_set=exclude_set,
+                             offset=offset, tile_id=tile_id, finite=self._page.is_finite,
+                             products_only=products_only, content_only=content_only)
 
     def to_json(self):
         """
