@@ -43,7 +43,7 @@ class LookupTable(object):
     """
     A one-to-many lookup table that supports 
      - arbitary number of lookup fields
-     - arbitrary data
+     - arbitrary data dictionary
 
     Useful, for example, to store datafeeds & help with matching results to DB entries
 

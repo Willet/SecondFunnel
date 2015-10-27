@@ -1,6 +1,6 @@
 from scrapy.selector import Selector
 from scrapy.spiders import Rule
-from scrapy.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.linkextractors import LinkExtractor
 
 from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
@@ -15,10 +15,10 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
     store_slug = name
     # URLs will be scraped looking for more links that match these rules
     rules = (
-        # Category page
-        Rule(SgmlLinkExtractor(allow=[r'www\.thebodyshop-usa\.com'], restrict_xpaths=
-            "//*[@id='fhContentSection']//ul[contains(@class, 'products-list')//span(@class, 'moreDetails')/a"
-        ), callback="parse_product", follow=False),
+        # Category page, follow these links
+        Rule(LinkExtractor(allow=[r'www\.thebodyshop-usa\.com'], restrict_xpaths=
+            "//*[@id='fhContentSection']//ul[@class='products-list']//span[@class='moreDetails']/a"
+        ), follow=True),
     )
 
     def __init__(self, *args, **kwargs):
