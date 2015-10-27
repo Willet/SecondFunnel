@@ -17,7 +17,17 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         App.vent.trigger("tracking:click", url);
         // Add CJ page-id tracking parameter
         url = App.utils.urlAddParams(url, {'sid': App.option('page:slug')});
+        url = App.utils.addUrlTrackingParameters(url)
         window.open(url, target);
         return;
+    };
+
+    module.addUrlTrackingParameters = function (url) {
+        var params = { 
+            "utm_source":   "SecondFunnel",
+            "utm_medium":   "Pages",
+            "utm_campaign": App.option("page:slug")
+        };
+        return module.urlAddParams(url, _.extend({}, params, App.option["urlParams"]));
     };
 };
