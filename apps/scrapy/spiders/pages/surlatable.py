@@ -1,16 +1,16 @@
 import re
 
 from scrapy.selector import Selector
-from scrapy.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.spiders import Rule
+from scrapy.linkextractors.sgml import SgmlLinkExtractor
 from scrapy_webdriver.http import WebdriverRequest
 
 from apps.scrapy.items import ScraperImage, ScraperProduct
-from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperContentLoader, ScraperProductLoader
 
 
-class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
+class SurLaTableSpider(SecondFunnelCrawlSpider):
     name = 'surlatable'
     root_url = "http://www.surlatable.com"
     allowed_domains = ['surlatable.com']
@@ -42,7 +42,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         elif self.is_recipe_page(response):
             self.rules = ()
             self._rules = []
-            self.visitd.append(response.url)
+            self.visited.append(response.url)
             return self.parse_recipe(response)
         else:
             self.logger.info(u"Not a product or recipe page: {}".format(response.url))
@@ -169,6 +169,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         if skip_images:
             yield item
         else:
+            # Full-sized Sur La Table image URLs found in a magical XML file.
             try:
                 magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
                 xml_path = u"/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml".format(*magic_values)

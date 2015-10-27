@@ -6,7 +6,7 @@ from scrapy.utils.project import get_project_settings
 
 from apps.assets.models import Product
 from apps.utils.functional import autodiscover_module_classes
-from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.assets.utils import disable_tile_serialization
 
 from .spiders import datafeeds, pages
@@ -133,7 +133,8 @@ class PageMaintainer(object):
 
     def _get_spider(self, project, spidername):
         """Return spider for given spider name"""
-        spiders_export = autodiscover_module_classes(project.__name__, project.__path__, SecondFunnelCrawlScraper)
+        spiders_export = autodiscover_module_classes(project.__name__, project.__path__,
+                                                     SecondFunnelCrawlSpider)
         spiders = dict((x.lower(), y) for x, y in spiders_export)
         try:
             return spiders["{}spider".format(spidername)]
@@ -171,7 +172,10 @@ class PageMaintainer(object):
 
     @disable_tile_serialization()
     def _delete_product_images(self, urls):
-        """This function triggers tile serialization because it saves the products after remving the images"""
+        """
+        This function triggers tile serialization because it saves
+        the products after removing the images
+        """
         for url in urls:
             # This should be unique, but quietly handle multiples
             try:

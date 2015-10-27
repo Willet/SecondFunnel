@@ -58,9 +58,15 @@ class Command(BaseCommand):
             
             # Add hooks for more template types here
 
-            if not cover_image or not hasattr(cover_image, 'url'):
+            if t.placeholder:
+                print "Skipping '{}' {} because it is a placeholder".format(t.template, t)
+            elif not cover_image:
+                print "Skipping '{}' {} because template type is not configured".format(t.template, t)
+            elif not hasattr(cover_image, 'url'):
                 print "Skipping '{}' {} because it has no default image".format(t.template, t)
-            elif "cloudinary.com" in cover_image.url:
+            elif not "cloudinary.com" in cover_image.url:
+                print "Skipping '{}' {} because default image is not a cloudinary image.".format(t.template, t)
+            else:
                 # Ex: http://res.cloudinary.com/secondfunnel/image/upload
                 #            /v1441808107/sur%20la%20table/6a6bd03ec8a5b8ce.jpg
                 for size in sizes:
@@ -80,6 +86,5 @@ class Command(BaseCommand):
                         }
                     cover_image.save(update_fields=['attributes'])
                 print "{} moved to s3.".format(cover_image)
-            else:
-                print "{} is not a cloudinary image.".format(cover_image)
+
 

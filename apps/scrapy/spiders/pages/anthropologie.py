@@ -5,11 +5,11 @@ from scrapy.spiders import Rule
 from scrapy.selector import Selector
 
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelCrawlScraper
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class AnthropologieSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class AnthropologieSpider(SecondFunnelCrawlSpider):
     name = 'anthropologie'
     allowed_domains = ['anthropologie.com']
     start_urls = ['http://www.anthropologie.com/']

@@ -5,12 +5,12 @@ from scrapy.spiders import Rule
 from scrapy.selector import Selector
 
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelCrawlScraper
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 from apps.assets.models import Product
 
 
-class ColumbiaSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class ColumbiaSpider(SecondFunnelCrawlSpider):
     name = 'columbia'
     allowed_domains = ['columbia.com']
     start_urls = ['http://www.columbia.com/']

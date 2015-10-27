@@ -9,12 +9,12 @@ from scrapy_webdriver.http import WebdriverRequest
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
-from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 from apps.scrapy.items import ScraperProduct
 from apps.assets.models import Product
 
-class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
+class AeropostaleSpider(SecondFunnelCrawlSpider):
     name = 'aeropostale'
     root_url = "http://www.aeropostale.com"
     allowed_domains = ['aeropostale.com']

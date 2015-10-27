@@ -8,11 +8,11 @@ from scrapy.selector import Selector
 from scrapy.spiders import Spider
 
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class LenovoSpider(SecondFunnelCrawlScraper, Spider):
+class LenovoSpider(SecondFunnelCrawlSpider):
     name = 'lenovo'
     allowed_domains = ['lenovo.com', 'shop.lenovo.com']
     start_urls = ['http://shop.lenovo.com/us/en/tablets/']
