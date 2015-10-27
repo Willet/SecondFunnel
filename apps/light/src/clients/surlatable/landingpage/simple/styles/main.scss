@@ -13,8 +13,8 @@ $slt-pastel-green-color: #829253;
 $slt-purple-color: #651e44;
 $slt-orange-color: #F05423;
 $slt-sale-price-color: #F00;
-$slt-categories-height: 34px;
-$slt-thumbnail-height: 0px;
+$slt-categories-height: 140px;
+$slt-thumbnail-height: 111px;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -346,10 +346,10 @@ body {
         }
     }
     &.stuck {
+        /* 2px for border */
         margin-top: (-2px - $slt-thumbnail-height);
         .category-area {
             height: auto;
-            /* 2px for border */
             margin-top: (-2px - $slt-thumbnail-height);
         }
     }

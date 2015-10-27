@@ -346,10 +346,10 @@ body {
         }
     }
     &.stuck {
-        margin-top: -113px;
+        /* 2px for border */
+        margin-top: (-2px - $slt-thumbnail-height);
         .category-area {
             height: auto;
-            /* 2px for border */
             margin-top: (-2px - $slt-thumbnail-height);
         }
     }

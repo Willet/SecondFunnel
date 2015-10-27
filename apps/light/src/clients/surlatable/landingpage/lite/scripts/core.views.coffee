@@ -77,7 +77,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             #    @productThumbnails.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @productThumbnails.currentView.index + 1)
             #product = @updateContent()
             App.vent.trigger('tracking:product:thumbnailClick', @getTrackingData(product))
-            App.utils.openUrl(url)
+            App.utils.openUrl(product.get("url"))
             return
     )
 

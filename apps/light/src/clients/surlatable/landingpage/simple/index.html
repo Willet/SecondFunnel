@@ -446,6 +446,7 @@
         </script>
 
         <script type="text/template" id="category_template">
+            <img src="<%- obj['thumbnail'] || '/static/light/surlatable/landingpage/lite/images/subcat-placeholder.png' %> " />
             <span class="name <% if (obj.subCategories) { %>subcats<% } %>" data-name="<%- obj.name %>"><%- obj.displayName %></span>
             <% if (obj.subCategories) { %>
             <div class="sub-categories">
@@ -505,7 +506,7 @@
     <div>
         @@include('shared/default_templates.html')
     </div>
-    <script type="text/javascript" src="/static/light/surlatable/landingpage/simple/scripts/main.js"></script>
+    <script type="text/javascript" src="/static/light/surlatable/landingpage/lite/scripts/main.js"></script>
     <script type="text/javascript">
         // Fanplyr
         !function(e,t,a){var n=e.createElement(a),r=e.getElementsByTagName(a)[0];n.async=!0,n.src="//d38nbbai6u794i.cloudfront.net/customers/surlatable/adaptor/surlatable.js",r.parentNode.insertBefore(n,r)}(document,window,"script");
