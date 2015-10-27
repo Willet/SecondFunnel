@@ -1,7 +1,7 @@
 import random
 
 from apps.assets.models import Store, Product, ProductImage
-from apps.imageservice.utils import get_filetype
+from apps.imageservice.utils import get_filetype, upload_to_cloudinary
 
 from .rakuten import RakutenDatafeed
 
@@ -51,7 +51,7 @@ class BodyShopDatafeed(RakutenDatafeed):
             collect_fields=["SKU", "NAME", "DESCRIPTION", "PRICE",
                 "SALEPRICE", "BUYURL", "INSTOCK",
                 "ADVERTISERCATEGORY", "ARTIST"],
-            lookup_fields=["SKU","NAME"])
+            lookup_fields=["SKU","NAME","ADVERTISERCATEGORY"])
     
     def lookup_product(self, product):
         """ Looksup product in datafeed
@@ -82,7 +82,7 @@ class BodyShopDatafeed(RakutenDatafeed):
         if new_price > product.price:
             product.price = new_price
         product.sale_price = float(data['SALEPRICE'])
-        product.in_stock = True if data['INSTOCK'] == 'yes' else False
+        product.in_stock = True if data['INSTOCK'] == 'in-stock' else False
         product.attributes['affiliate_link'] = data['BUYURL']
 
     def _update_similar_products(self, product, data, max_num=3):
@@ -150,15 +150,16 @@ class BodyShopDatafeed(RakutenDatafeed):
             # Add one product image
             # TODO: utilize cloudinary
             product_image_url = data['ARTIST']
+            data = upload_to_cloudinary(product_image_url)
             product_image = ProductImage(product= product,
-                                         url= product_image_url,
+                                         url= data.get('url', product_image_url),
                                          original_url= product_image_url,
-                                         file_type= get_filetype(product_image_url),
+                                         file_type= get_filetype(data.get('url', product_image_url)),
                                          attributes= {
                                             'sizes': {
                                                 'master': {
-                                                    'width': 430,
-                                                    'height': 430,
+                                                    'width': data.get('width', 430),
+                                                    'height': data.get('height', 430),
                                                 },
                                             },
                                          })
@@ -173,11 +174,11 @@ class BodyShopDatafeed(RakutenDatafeed):
         Get similar product data for the product in product_data
         """
         mapping = ("ADVERTISERCATEGORY", product_data["ADVERTISERCATEGORY"])
-        # get similar products data, gaurenteed to be at least the same product
+        # get similar products data, guarenteed to be at least the same product
         (similar_products_data, _) = self.lookup_table.find(mappings=[mapping], first=False)
         # remove same product from similar_products
         similar_products_data.remove(product_data)
         # remove out of stock similar products
-        similar_products_data = [ sp for sp in similar_products_data if sp['INSTOCK'] == 'yes' ]
+        similar_products_data = [ sp for sp in similar_products_data if sp['INSTOCK'] == 'in-stock' ]
 
         return similar_products_data
