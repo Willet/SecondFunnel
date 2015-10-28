@@ -2,26 +2,26 @@ import re
 import time
 from urlparse import urlparse
 
-from scrapy.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule
 from scrapy.selector import Selector
 from scrapy.spiders import Spider
 
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class LenovoSpider(SecondFunnelCrawlScraper, Spider):
+class LenovoSpider(SecondFunnelCrawlSpider):
     name = 'lenovo'
     allowed_domains = ['lenovo.com', 'shop.lenovo.com']
     start_urls = ['http://shop.lenovo.com/us/en/tablets/']
     rules = [
         Rule(
-            SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "next")]')
+            LinkExtractor(restrict_xpaths='//a[contains(@class, "next")]')
         ),
         Rule(
-            SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "button") and contains(@class, "shop") and contains(@class, "fluid")]'),
+            LinkExtractor(restrict_xpaths='//a[contains(@class, "button") and contains(@class, "shop") and contains(@class, "fluid")]'),
             'parse_product', follow=False
         )
     ]

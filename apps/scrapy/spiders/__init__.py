@@ -1,9 +1,38 @@
+import re
+
 from scrapy.contracts import ContractsManager
 from scrapy.http import Request
+from scrapy.linkextractors import _re_type, _matches
 from scrapy.selector import SelectorList
+from scrapy.spiders import Rule as BaseRule
 from scrapy.utils.python import get_spec
+from scrapy.utils.misc import arg_to_iter
 
 from apps.scrapy.utils.misc import monkeypatch_method
+
+
+class Rule(BaseRule):
+    """
+    Rule is extended to support restricting based on the request url
+
+    allow_sources: <regex> or [<regex>] that return True if source url should apply
+    deny_sources: <regex> or [<regex>] that return True if source url should NOT apply
+    """
+    def __init__(self, *args, **kwargs):
+        self.allow_res = [x if isinstance(x, _re_type) else re.compile(x)
+                          for x in arg_to_iter(kwargs.pop('allow_sources', None))]
+
+        self.deny_res = [x if isinstance(x, _re_type) else re.compile(x)
+                         for x in arg_to_iter(kwargs.pop('deny_sources', None))]
+
+        super(Rule, self).__init__(*args, **kwargs)
+
+    def source_allowed(self, url):
+        if self.allow_res and not _matches(url, self.allow_res):
+            return False
+        if self.deny_res and _matches(url, self.deny_res):
+            return False
+        return True
 
 
 # MonkeyPatch SelectorList to add useful methods

@@ -358,9 +358,6 @@ class TileCreationPipeline(TilesMixin):
     If spider also has category(s), add tile(s) to category(s)
     """
     def process_item(self, item, spider):
-        recreate_tiles = getattr(spider, 'recreate_tiles', False)
-        categories = getattr(spider, 'categories', False)
-
         if self.skip_tiles(item, spider):
             return item
         else:

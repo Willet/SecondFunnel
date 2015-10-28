@@ -4,88 +4,7 @@ from scrapy.spiders import Spider
 from scrapy.utils.spider import iterate_spider_output
 from scrapy_webdriver.http import WebdriverRequest, WebdriverResponse
 
-
-class SecondFunnelScraper(object):
-    def __init__(self, *args, **kwargs):
-        super(SecondFunnelScraper, self).__init__(*args, **kwargs)
-
-        # Explicit `start_urls` override other `start_urls`
-        if kwargs.get('start_urls'):
-            separator = getattr(self, "start_urls_separator", ",")
-            self.start_urls = kwargs.get('start_urls').split(separator)
-
-        if kwargs.get('feed_id'):
-            self.feed_id = kwargs.get('feed_id')
-
-        if kwargs.get('categories'):
-            self.categories = kwargs.get('categories').split(',')
-
-        # Recreate existing tiles
-        self.recreate_tiles = kwargs.get('recreate_tiles', False)
-        # Skip creation of new tiles
-        self.skip_tiles = kwargs.get('skip_tiles', False)
-        # Skip processing of images (and if spider supports it, scraping of images)
-        self.skip_images = kwargs.get('skip_images', False)
-        # For reporting
-        self.reporting_name = kwargs.get('reporting_name', '')
-
-    # The functions below are hooks meant to be overwritten 
-    # in the spiders for individual clients
-    @staticmethod
-    def clean_url(url):
-        """Hook for cleaning url before scraping
-        Returns: cleaned url """
-        return url
-
-    @staticmethod
-    def choose_default_image(product):
-        """ Hook for choosing non-product-shot default image on slt
-        Returns: image to set as default image, must be one of product_images """
-        return product.product_images.first()
-
-    @staticmethod
-    def on_product_finished(product):
-        """Hook for post-processing a product after scrapy is finished with it"""
-        pass
-
-    @staticmethod
-    def on_image_finished(image):
-        """Hook for post-processing a product after scrapy is finished with it"""
-        pass
-
-    @staticmethod
-    def on_tile_finished(tile, obj):
-        """Hook for post-processing a tile after scrapy is finished with it
-        Only called if spider is creating tiles
-
-        tile - Tile instance
-        obj - Either Product or Image instance"""
-        pass
-
-
-class SecondFunnelCrawlScraper(SecondFunnelScraper):
-    # These fields are expected to be completed by subclass crawlers
-    name = ''
-    allowed_domains = []
-    store_slug = ''
-
-    # see documentation for remove_background in apps.imageservice.tasks
-    remove_background = '#FFF'
-
-    def parse_start_url(self, response):
-        if self.is_product_page(response):
-            self.rules = ()
-            self._rules = []
-            return self.parse_product(response)
-        else:
-            self.logger.info(u"Not a product page: {}".format(response.url))
-            return []
-
-    def is_product_page(self, response):
-        raise NotImplementedError
-
-    def parse_product(self, response):
-        raise NotImplementedError
+from .mixins import ProcessingHooksMixin
 
 
 class WebdriverCrawlSpider(Spider):
@@ -110,8 +29,8 @@ class WebdriverCrawlSpider(Spider):
     request_cls = WebdriverRequest
     response_cls = WebdriverResponse
 
-    def __init__(self, *a, **kw):
-        super(WebdriverCrawlSpider, self).__init__(*a, **kw)
+    def __init__(self, *args, **kwargs):
+        super(WebdriverCrawlSpider, self).__init__(*args, **kwargs)
         self._compile_rules()
 
     def _requests_to_follow(self, response):
@@ -120,6 +39,9 @@ class WebdriverCrawlSpider(Spider):
             return
         seen = set()
         for n, rule in enumerate(self._rules):
+            if not rule.source_allowed(response.url):
+                # This rule is skipped for this request url
+                continue
             links = [l for l in rule.link_extractor.extract_links(response) if l not in seen]
             if links and rule.process_links:
                 links = rule.process_links(links)
@@ -184,3 +106,46 @@ class WebdriverCrawlSpider(Spider):
         spider._follow_links = crawler.settings.getbool(
             'CRAWLSPIDER_FOLLOW_LINKS', True)
         return spider
+
+
+class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingHooksMixin):
+    """
+    A base spider for Second Funnel Use
+    """
+    # These fields are expected to be completed by subclass crawlers
+    name = ''
+    allowed_domains = []
+    store_slug = ''
+
+    # see documentation for remove_background in apps.imageservice.tasks
+    remove_background = '#FFF'
+
+    def __init__(self, *args, **kwargs):
+        # Set Options:
+        # Feed to add tiles to:
+        self.feed_id = kwargs.pop('feed_id', None)
+        # Categories to add tiles to:
+        self.categories = kwargs.pop('categories', [])
+        # Recreate existing tiles
+        self.recreate_tiles = kwargs.pop('recreate_tiles', False)
+        # Skip creation of new tiles
+        self.skip_tiles = kwargs.pop('skip_tiles', False)
+        # Skip processing of images (and if spider supports it, scraping of images)
+        self.skip_images = kwargs.pop('skip_images', False)
+        # For reporting
+        self.reporting_name = kwargs.pop('reporting_name', '')
+
+        super(SecondFunnelCrawlSpider, self).__init__(*args, **kwargs)
+
+    def parse_start_url(self, response):
+        if self.is_product_page(response):
+            return self.parse_product(response)
+        else:
+            self.logger.info(u"Not a product page: {}".format(response.url))
+            return []
+
+    def is_product_page(self, response):
+        raise NotImplementedError
+
+    def parse_product(self, response):
+        raise NotImplementedError

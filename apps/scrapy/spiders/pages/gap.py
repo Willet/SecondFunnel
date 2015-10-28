@@ -1,19 +1,19 @@
-from scrapy.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
 
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelCrawlScraper
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class GapSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class GapSpider(SecondFunnelCrawlSpider):
     name = 'gap'
     allowed_domains = ['gap.com']
     start_urls = ['http://www.gap.com/']
     rules = [
-        Rule(SgmlLinkExtractor(allow=[
+        Rule(LinkExtractor(allow=[
             r'/browse/product.do\?.*?pid=\d+'
         ]), 'parse_product', follow=False)
     ]

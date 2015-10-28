@@ -1,4 +1,4 @@
-from scrapy.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule
 
 from .gap import GapSpider
@@ -9,7 +9,7 @@ class OldNavySpider(GapSpider):
     allowed_domains = ['oldnavy.gap.com']
     start_urls = ['http://oldnavy.gap.com/']
     rules = [
-        Rule(SgmlLinkExtractor(allow=[
+        Rule(LinkExtractor(allow=[
             r'/browse/product.do\?.*?pid=\d+'
         ]), 'parse_product', follow=False)
     ]

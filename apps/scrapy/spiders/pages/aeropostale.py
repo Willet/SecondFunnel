@@ -4,29 +4,29 @@ import time
 
 from scrapy.selector import Selector
 from scrapy.spiders import CrawlSpider, Rule
-from scrapy.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.linkextractors import LinkExtractor
 from scrapy_webdriver.http import WebdriverRequest
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
-from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 from apps.scrapy.items import ScraperProduct
 from apps.assets.models import Product
 
-class AeropostaleSpider(SecondFunnelCrawlScraper, CrawlSpider):
+class AeropostaleSpider(SecondFunnelCrawlSpider):
     name = 'aeropostale'
     root_url = "http://www.aeropostale.com"
     allowed_domains = ['aeropostale.com']
     
     store_slug = name
     rules = [
-        Rule(SgmlLinkExtractor(restrict_xpaths='//div[contains(@class, "details-image")]'), 
+        Rule(LinkExtractor(restrict_xpaths='//div[contains(@class, "details-image")]'), 
                            callback='parse_product', follow=False),
-        Rule(SgmlLinkExtractor(restrict_xpaths='//div[contains(@class, "childProduct")]//h2'),
+        Rule(LinkExtractor(restrict_xpaths='//div[contains(@class, "childProduct")]//h2'),
                            callback='parse_product', follow=False),
-        Rule(SgmlLinkExtractor(restrict_xpaths='//area[contains(@title, "Shop the Look")]')),
-        Rule(SgmlLinkExtractor(restrict_xpaths='//li[contains(@class, "viewAll")]/a[contains(text(), "100")]'))
+        Rule(LinkExtractor(restrict_xpaths='//area[contains(@title, "Shop the Look")]')),
+        Rule(LinkExtractor(restrict_xpaths='//li[contains(@class, "viewAll")]/a[contains(text(), "100")]'))
     ]
 
     def __init__(self, *args, **kwargs):

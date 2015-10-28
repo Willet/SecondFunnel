@@ -1,48 +1,48 @@
 import re
 
 from scrapy.selector import Selector
-from scrapy.linkextractors.sgml import SgmlLinkExtractor
-from scrapy.spiders import Rule
+from scrapy.linkextractors import LinkExtractor
 from scrapy_webdriver.http import WebdriverRequest
 
 from apps.scrapy.items import ScraperImage, ScraperProduct
-from apps.scrapy.spiders.webdriver import SecondFunnelCrawlScraper, WebdriverCrawlSpider
+from apps.scrapy.spiders import Rule
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperContentLoader, ScraperProductLoader
 
 
-class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
+class SurLaTableSpider(SecondFunnelCrawlSpider):
     name = 'surlatable'
     root_url = "http://www.surlatable.com"
     allowed_domains = ['surlatable.com']
     store_slug = name
-    visited = []
 
     remove_background = False
     
     # URLs will be scraped looking for more links that match these rules
     rules = (
         # Category page
-        Rule(SgmlLinkExtractor(allow=[r'surlatable\.com/product/PRO-\d+(/.*)?'], restrict_xpaths=
-            "//div[contains(@id, 'items')]/div[contains(@class, 'row')]/dl[contains(@class, 'item')]"
-        ), callback="parse_product", follow=False),
+        Rule(LinkExtractor(allow=[r'surlatable\.com/product/PRO-\d+/?'], restrict_xpaths=
+                "//div[contains(@id, 'items')]//dl[contains(@class, 'item')]//a"
+            ),
+            allow_sources=[r'www\.surlatable\.com/category/'],
+            callback="parse_product",
+            follow=False),
+        # Collection page
+        Rule(LinkExtractor(allow=[r'surlatable\.com/product/PRO-\d+/?'], restrict_xpaths=
+                "//div[contains(@id, 'items')]//dl[contains(@class, 'item')]//a"
+            ),
+            allow_sources=[r'www\.surlatable\.com/product/prod\d+/?'],
+            callback="parse_product",
+            follow=False),
     )
 
     def __init__(self, *args, **kwargs):
         super(SurLaTableSpider, self).__init__(*args, **kwargs)
 
     def parse_start_url(self, response):
-        if response.url in self.visited:
-            self.logger.info(u"Already scraped {}, skipping".format(response.url))
-            return []
         if self.is_product_page(response):
-            self.rules = ()
-            self._rules = []
-            self.visited.append(response.url)
             return self.parse_product(response)
         elif self.is_recipe_page(response):
-            self.rules = ()
-            self._rules = []
-            self.visitd.append(response.url)
             return self.parse_recipe(response)
         else:
             self.logger.info(u"Not a product or recipe page: {}".format(response.url))
@@ -62,7 +62,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
 
     @staticmethod
     def clean_url(url):
-        cleaned_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/product/(?:REC|PRO)-\d+/).*?',
+        cleaned_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/(?:category/TCA-\d+|product/(?:REC-|PRO-|prod)\d+)/).*?',
                              url).group(1)
         return cleaned_url
 
@@ -169,6 +169,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         if skip_images:
             yield item
         else:
+            # Full-sized Sur La Table image URLs found in a magical XML file.
             try:
                 magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
                 xml_path = u"/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml".format(*magic_values)
