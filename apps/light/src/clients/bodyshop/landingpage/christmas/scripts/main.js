@@ -37,16 +37,14 @@ App.start();
     // Send search bar inqueries to surlatable.com
     $('#submit-search').click(function(ev){
         var searchUrl,
-            baseUrl = "http://www.anrdoezrs.net/links/7774943/sid/" +
-                      App.option('page:slug') +
-                      "/type/dlg/http://www.thebodyshop.ca/en/search.aspx",
+            baseUrl = "http://www.thebodyshop-usa.com/search.aspx",
             $this = $(this),
             $inputBox = $this.siblings().first(),
             $topNavSearch = $this.parents('#search-bar');
         if ($topNavSearch.length && $inputBox.length) {
             searchUrl = baseUrl + "?Ntt=" + $inputBox.val();
             App.vent.trigger("tracking:page:externalUrlClick", searchUrl, "search-bar");
-            App.utils.openUrl(searchUrl, "_top");
+            //App.utils.openUrl(searchUrl, "_top");
         }
         return false;
     });
