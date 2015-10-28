@@ -1,6 +1,6 @@
 import re
 
-from scrapy.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule
 from scrapy.selector import Selector
 
@@ -16,7 +16,7 @@ class ColumbiaSpider(SecondFunnelCrawlSpider):
     start_urls = ['http://www.columbia.com/']
     start_urls_separator = '|'
     rules = [
-        Rule(SgmlLinkExtractor(restrict_xpaths=['//div[contains(@class, "product-image")]']), callback='parse_product', follow=False)
+        Rule(LinkExtractor(restrict_xpaths=['//div[contains(@class, "product-image")]']), callback='parse_product', follow=False)
     ]
 
     store_slug = name

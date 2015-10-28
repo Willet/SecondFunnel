@@ -39,6 +39,9 @@ class WebdriverCrawlSpider(Spider):
             return
         seen = set()
         for n, rule in enumerate(self._rules):
+            if not rule.source_allowed(response.url):
+                # This rule is skipped for this request url
+                continue
             links = [l for l in rule.link_extractor.extract_links(response) if l not in seen]
             if links and rule.process_links:
                 links = rule.process_links(links)
@@ -136,8 +139,6 @@ class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingHooksMixin):
 
     def parse_start_url(self, response):
         if self.is_product_page(response):
-            self.rules = ()
-            self._rules = []
             return self.parse_product(response)
         else:
             self.logger.info(u"Not a product page: {}".format(response.url))

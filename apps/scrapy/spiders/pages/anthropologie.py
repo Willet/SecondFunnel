@@ -1,6 +1,6 @@
 from urlparse import urlparse
 
-from scrapy.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule
 from scrapy.selector import Selector
 
@@ -15,10 +15,10 @@ class AnthropologieSpider(SecondFunnelCrawlSpider):
     start_urls = ['http://www.anthropologie.com/']
     rules = [
         Rule(
-            SgmlLinkExtractor(restrict_xpaths='//a[contains(@class, "next")]')
+            LinkExtractor(restrict_xpaths='//a[contains(@class, "next")]')
         ),
         Rule(
-            SgmlLinkExtractor(allow=[
+            LinkExtractor(allow=[
                 r'/anthro/product/.+'
             ]),
             'parse_product', follow=False
