@@ -1,6 +1,7 @@
 $icon-font-path: "/static/light/fonts/";
 
 $tbs-basic-font: Verdana, Arial, Helvetica, sans-serif;
+$tbs-font: gill-ss-std, Verdana, Geneva, sans-serif;
 $tbs-white: #FFFFFF;
 $tbs-category-height: 60px;
 $tbs-red: #A93032;
@@ -12,7 +13,7 @@ $tbs-black: #000;
 
 body {
     background-image: url('http://res.cloudinary.com/secondfunnel/image/upload/v1445350375/tessellating_background_y2lpdn.png');
-    font-family: $tbs-basic-font;
+    font-family: $tbs-font;
     background-repeat: repeat;
     background-color: transparent;
 }
@@ -162,7 +163,7 @@ body {
 
         &.selected, &:hover {
             background: $tbs-white url('http://res.cloudinary.com/secondfunnel/image/upload/v1445460163/sparks_ahsrwz.png');
-            background-position: 5% 50%;
+            background-position: 3% 15%;
             background-repeat: no-repeat;
             > .name {
                 color: $tbs-red;
