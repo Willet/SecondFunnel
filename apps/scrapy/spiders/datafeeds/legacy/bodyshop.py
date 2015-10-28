@@ -6,7 +6,7 @@ from apps.imageservice.utils import get_filetype, upload_to_cloudinary
 from .rakuten import RakutenDatafeed
 
 class BodyShopDatafeed(RakutenDatafeed):
-    name = 'body-shop'
+    name = 'bodyshop'
 
     def __init__(self):
         store = Store.objects.get(slug=self.name)

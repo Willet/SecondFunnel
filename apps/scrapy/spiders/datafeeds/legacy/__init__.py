@@ -6,7 +6,7 @@ from .bodyshop import BodyShopDatafeed
 """ DEPRECATED: downloads XML files from CJ & updates projects """
 
 datafeeds = { 'surlatable': SurLaTableDatafeed,
-   			  'body-shop':  BodyShopDatafeed }
+   			  'bodyshop':  BodyShopDatafeed }
 
 def find_datafeed(name):
     try:
