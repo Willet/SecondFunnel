@@ -44,18 +44,20 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
             self._rules = []
             self.visitd.append(response.url)
             return self.parse_recipe(response)
+        elif self.is_collection_page(response):
+            return self.parse_collection(response)
         else:
             self.logger.info(u"Not a product or recipe page: {}".format(response.url))
             return []
 
     def is_product_page(self, response):
-        #sel = Selector(response)
-        #return sel.css('#productdetail label#productPriceValue')
         return bool('surlatable.com/product/PRO-' in response.url)
 
     def is_recipe_page(self, response):
-        # Could be more elaborate, but works
         return bool('surlatable.com/product/REC-' in response.url)
+
+    def is_collection_page(self, response):
+        return bool('surlatable.com/product/prod' in response.url)
 
     def is_sold_out(self, response):
         return False
@@ -105,11 +107,11 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         attributes = {}
         in_stock = True
-        recipe_id = response.meta.get('recipe_id', False)
+        content_id = response.meta.get('recipe_id', False) or response.meta.get('collection_id', False)
 
-        if recipe_id:
+        if content_id:
             skip_tiles = True
-            l.add_value('content_id_to_tag', recipe_id)
+            l.add_value('content_id_to_tag', content_id)
 
         # Don't create tiles when gathering products for a recipe
         l.add_value('force_skip_tiles', skip_tiles)
@@ -248,3 +250,15 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
         l.add_value('source_url', source_url)
 
         yield l.load_item()
+
+    def parse_collection(self, response):
+        raise NotImplementedError
+
+        collection_id = re.match(r'(?:http://|https://)?www\.surlatable\.com/product/prod(\d+)(?:/.*)?', response.url).group(1)
+
+        # Scrape associated products
+        url_paths = sel.css('.productinfo .itemwrapper>a::attr(href)').extract()
+        for url_path in url_paths:
+            req = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
+            req.meta['collection_id'] = collection_id
+            yield req
