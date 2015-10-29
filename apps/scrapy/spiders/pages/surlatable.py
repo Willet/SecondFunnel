@@ -91,7 +91,7 @@ class SurLaTableSpider(WebdriverCrawlSpider, SecondFunnelCrawlScraper):
                     self.logger.info(u"Deleting colspan for {}".format(tile))
                 tile.save()
         except AttributeError as e:
-            self.logger.warn(u"Error determining product shot: {}".format(e))
+            self.logger.warning(u"Error determining product shot: {}".format(e))
         
     def parse_product(self, response, force_skip_tiles=False, force_skip_images=False):
         if not self.is_product_page(response):
