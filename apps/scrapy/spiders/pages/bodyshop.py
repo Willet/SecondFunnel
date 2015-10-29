@@ -31,6 +31,8 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         return bool(response.selector.css('a.outofstockbtn'))
 
     def parse_product(self, response):
+        l.add_value('force_skip_tiles', self.skip_tiles)
+
         sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         attributes = {}
@@ -39,6 +41,9 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         l.add_css('name', 'h1.title::attr(title)')
         l.add_css('description', 'section.product-infos')
         l.add_css('sku', '.volume .title::text', re=r'(\d+)')
+        l.add_value('tag_with_products', True) # Command to AssociateWithProductsPipeline
+
+        self.if_similar_product(l, response.meta.get('tag_product_id', False))
 
         old_price = sel.css('p.price.old::text').extract()
         new_price = sel.css('p.price.new::text').extract()
@@ -56,5 +61,13 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
             img = img.replace('med_large', 'large').replace('_m_l', '_l')
             image_urls.append(img) 
         l.add_value('image_urls', image_urls)
+        item = l.load_item()
         
-        yield l.load_item()
+        yield item
+
+        # Scrape similar products
+        url_paths = sel.css('.top-products .content>a::attr(href)').extract()
+        for url_path in url_paths:
+            req = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
+            req.meta['tag_product_id'] = item['sku']
+            yield req

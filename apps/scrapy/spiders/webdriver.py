@@ -4,7 +4,7 @@ from scrapy.spiders import Spider
 from scrapy.utils.spider import iterate_spider_output
 from scrapy_webdriver.http import WebdriverRequest, WebdriverResponse
 
-from .mixins import ProcessingHooksMixin
+from .mixins import ProcessingMixin
 
 
 class WebdriverCrawlSpider(Spider):
@@ -108,7 +108,7 @@ class WebdriverCrawlSpider(Spider):
         return spider
 
 
-class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingHooksMixin):
+class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingMixin):
     """
     A base spider for Second Funnel Use
     """

@@ -22,7 +22,9 @@ class ScraperProduct(ScraperBase):
     image_urls = Field()
     images = Field()
     created = Field()
+    tag_with_products = Field()
     content_id_to_tag = Field()
+    product_id_to_tag = Field()
     store = Field(serializer=store_serializer)
 
 

@@ -1,8 +1,34 @@
 
 
-class ProcessingHooksMixin(object):
+class ProcessingMixin(object):
     """
-    A Spider Mixin: hooks can be optionally overwritten in the spiders for individual clients
+    A Spider Mixin: hooks and methods to make spiders more useful in scraping
+    """
+    """
+    Pipeline control methods
+    """
+    def if_similar_product(self, loader, *args):
+        """
+        If one of args has an id, self is a similar product. Let AssociateWithProductsPipeline
+        handle it
+        """
+        for arg in args if arg:
+            l.add_value('force_skip_tiles', True)
+            loader.add_value('product_id_to_tag', arg)
+            return
+
+    def if_tagged_product(self, loader, *args):
+        """
+        If one of args has an id, self is a tagged product. Let AssociateWithProductsPipeline
+        handle it
+        """
+        for arg in args if arg:
+            l.add_value('force_skip_tiles', True)
+            loader.add_value('content_id_to_tag', arg)
+            return
+
+    """
+    hooks can be optionally overwritten in the spiders for individual clients
 
     Various parts of the scrapy app call these hooks (controller, pipelines, etc)
     """

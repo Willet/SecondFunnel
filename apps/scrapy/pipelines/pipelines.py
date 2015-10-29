@@ -3,14 +3,14 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import cloudinary
-import decimal
-import traceback
-
 from collections import defaultdict
+import decimal
 from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.db import transaction
 from django.db.models import Model, Q
+from itertools import chain
 from scrapy.exceptions import DropItem, CloseSpider
+import traceback
 from urlparse import urlparse
 
 from apps.assets.models import Category, Feed, Image, Page, Product, ProductImage, Store, Tag
@@ -199,6 +199,10 @@ class AssociateWithProductsPipeline(ItemManifold):
     If a content has 'tag_with_products' field True and a 'content_id' field
     then tag with any subsequent products with 'content_id_to_tag' field matching
     'content_id'
+
+    If a product has 'tag_with_products' field True and a 'product_id' field
+    then tag with any subsequent products with 'product_id_to_tag' field matching
+    'product_id'
     """
     def __init__(self, *args, **kwargs):
         self.images = {}
@@ -206,28 +210,45 @@ class AssociateWithProductsPipeline(ItemManifold):
 
     def process_image(self, item, spider):
         if item.get('tag_with_products') and item.get('content_id'):
-            self.images[item.get('content_id')] = Image.objects.get(store=item['store'], url=item['url'])
+            self.images[item.get('content_id')] = item['instance']
 
     def process_product(self, item, spider):
+        if item.get('tag_with_products') and item.get('product_id'):
+            self.products[item.get('product_id')] = item['instance']
+
         if item.get('content_id_to_tag'):
             content_id = item.get('content_id_to_tag')
             image = self.images.get(content_id)
             if image:
                 product = item['instance']
-                product_id = product.id
                 tagged_product_ids = image.tagged_products.values_list('id', flat=True)
-                if not product_id in tagged_product_ids:
-                    spider.logger.info(u'Tagging <Image {}> with <Product {}>'.format(image.id, product_id))
+                if not product.id in tagged_product_ids:
+                    spider.logger.info(u'Tagging <Image {}> with <Product {}>'.format(image.id, product.id))
                     image.tagged_products.add(product)
                 else:
-                    spider.logger.info(u'<Image {}> already tagged with <Product {}>'.format(image.id, product_id))
+                    spider.logger.info(u'<Image {}> already tagged with <Product {}>'.format(image.id, product.id))
+
+        if item.get('product_id_to_tag'):
+            product_id = item.get('product_id_to_tag')
+            product = self.products.get(product_id)
+            if product:
+                similar_product = item['instance']
+                similar_product_ids = product.similar_products.values_list('id', flat=True)
+                if not similar_product.id in similar_product_ids:
+                    spider.logger.info(u'Tagging <Product {}> with <Product {}>'.format(product.id,
+                                                                                        similar_product.id))
+                    product.similar_products.add(similar_product)
+                else:
+                    spider.logger.info(u'<Product {}> already tagged with <Product {}>'.format(product.id,
+                                                                                               similar_product.id))
 
     def close_spider(self, spider):
-        # Save images in one transaction
+        # Save images and products in one transaction
         with transaction.atomic():
-            for id in self.images:
-                self.images[id].save()
-        spider.logger.info(u'Saved {} tagged images'.format(len(self.images)))
+            for item in chain(self.images.values(), self.products.values()):
+                item.save()
+        spider.logger.info(u'Saved {} tagged images and {} tagged products'.format(len(self.images),
+                                                                                   len(self.products)))
 
 
 class TagPipeline(ItemManifold):
@@ -331,10 +352,6 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
         print image.to_json()
 
         return image
-
-
-class SimilarProductsPipeline(ItemManifold):
-    pass
 
 
 class ItemFinishedPipeline(ItemManifold):

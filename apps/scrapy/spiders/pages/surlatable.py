@@ -93,26 +93,21 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         except AttributeError as e:
             self.logger.warning(u"Error determining product shot: {}".format(e))
         
-    def parse_product(self, response, force_skip_tiles=False, force_skip_images=False):
+    def parse_product(self, response):
         if not self.is_product_page(response):
             self.logger.info(u"Not a product page: {}".format(response.url))
             return
         
-        skip_images = (self.skip_images or force_skip_images)
-        skip_tiles = (self.skip_tiles or force_skip_tiles)
+        skip_images = self.skip_images
+        skip_tiles = self.skip_tiles
+        l.add_value('force_skip_tiles', skip_tiles)
 
         sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         attributes = {}
         in_stock = True
-        recipe_id = response.meta.get('recipe_id', False)
 
-        if recipe_id:
-            skip_tiles = True
-            l.add_value('content_id_to_tag', recipe_id)
-
-        # Don't create tiles when gathering products for a recipe
-        l.add_value('force_skip_tiles', skip_tiles)
+        self.if_tagged_product(l, response.meta.get('recipe_id', False))  
         
         l.add_css('name', 'h1#product-title::text')
         l.add_css('description', '#product-description div::text')
@@ -194,18 +189,16 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
 
         yield l.load_item()
 
-    def parse_recipe(self, response, force_skip_tiles=False, force_skip_images=False):
+    def parse_recipe(self, response):
         if not self.is_recipe_page(response):
             self.logger.info(u"Not a recipe page: {}".format(response.url))
             return
-        skip_images = (self.skip_images or force_skip_images)
-        skip_tiles = (self.skip_tiles or force_skip_tiles)
 
         recipe_id = re.match(r'(?:http://|https://)?www\.surlatable\.com/product/REC-(\d+)(/.*)?', response.url).group(1)
         sel = Selector(response)
 
         l = ScraperContentLoader(item=ScraperImage(), response=response)
-        l.add_value('force_skip_tiles', skip_tiles)
+        l.add_value('force_skip_tiles', self.skip_tiles)
         l.add_value('content_id', recipe_id)
         l.add_value('tag_with_products', True) # Command to AssociateWithProductsPipeline
         l.add_value('original_url', unicode(response.request.url))
@@ -214,7 +207,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         l.add_css('description', '#recipedetail .story')
         item = l.load_item()
 
-        if skip_images:
+        if self.skip_images:
             yield item
         else:
             # Continue to XML data to get recipe image
@@ -226,7 +219,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
 
             yield request
 
-        # Scrape associated products
+        # Scrape tagged products
         url_paths = sel.css('.productinfo .itemwrapper>a::attr(href)').extract()
         for url_path in url_paths:
             req = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
