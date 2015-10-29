@@ -41,9 +41,6 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         l.add_css('name', 'h1.title::attr(title)')
         l.add_css('description', 'section.product-infos')
         l.add_css('sku', '.volume .title::text', re=r'(\d+)')
-        l.add_value('tag_with_products', True) # Command to AssociateWithProductsPipeline
-
-        self.if_similar_product(l, response.meta.get('tag_product_id', False))
 
         old_price = sel.css('p.price.old::text').extract()
         new_price = sel.css('p.price.new::text').extract()
@@ -62,6 +59,10 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
             image_urls.append(img) 
         l.add_value('image_urls', image_urls)
         item = l.load_item()
+
+        # If this is a similar_product and tagged_product, handle it
+        # If not, it enables it to be tagged
+        self.handle_product_tagging(response, item, product_id=item['url'])
         
         yield item
 
@@ -69,5 +70,5 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         url_paths = sel.css('.top-products .content>a::attr(href)').extract()
         for url_path in url_paths:
             req = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
-            req.meta['tag_product_id'] = item['sku']
+            req.meta['product_id_to_tag'] = item['product_id']
             yield req

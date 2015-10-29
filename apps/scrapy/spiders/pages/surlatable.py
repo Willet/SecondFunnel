@@ -96,7 +96,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
     def parse_product(self, response):
         if not self.is_product_page(response):
             self.logger.info(u"Not a product page: {}".format(response.url))
-            return
+            yield []
         
         skip_images = self.skip_images
         skip_tiles = self.skip_tiles
@@ -106,8 +106,6 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         attributes = {}
         in_stock = True
-
-        self.if_tagged_product(l, response.meta.get('recipe_id', False))  
         
         l.add_css('name', 'h1#product-title::text')
         l.add_css('description', '#product-description div::text')
@@ -160,6 +158,9 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         l.add_value('url', unicode(response.request.url))
         
         item = l.load_item()
+
+        # If this is a similar_product and tagged_product, handle it
+        self.handle_tagging(response, item)
 
         if skip_images:
             yield item
@@ -223,7 +224,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         url_paths = sel.css('.productinfo .itemwrapper>a::attr(href)').extract()
         for url_path in url_paths:
             req = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
-            req.meta['recipe_id'] = recipe_id
+            req.meta['content_id_to_tag'] = recipe_id
             yield req
 
     def parse_one_image(self, response):

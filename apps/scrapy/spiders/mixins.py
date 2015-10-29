@@ -5,30 +5,34 @@ class ProcessingMixin(object):
     A Spider Mixin: hooks and methods to make spiders more useful in scraping
     """
     """
-    Pipeline control methods
+    Pipeline item preparation methods, to be called within a spider
     """
-    def if_similar_product(self, loader, *args):
+    def handle_product_tagging(response, item, product_id=None):
         """
-        If one of args has an id, self is a similar product. Let AssociateWithProductsPipeline
-        handle it
-        """
-        for arg in args if arg:
-            l.add_value('force_skip_tiles', True)
-            loader.add_value('product_id_to_tag', arg)
-            return
+        If this product is to be tagged to content or product, skip turning it into a tile
 
-    def if_tagged_product(self, loader, *args):
+        Else if this spider provides a product_id, then prep for this to be tagged
+
+        Note: a) should only be called on products
+              b) this method should be called after item is loaded but before yield'ing
         """
-        If one of args has an id, self is a tagged product. Let AssociateWithProductsPipeline
-        handle it
-        """
-        for arg in args if arg:
-            l.add_value('force_skip_tiles', True)
-            loader.add_value('content_id_to_tag', arg)
-            return
+        # Handle tagged products for content
+        if response.meta.get('content_id_to_tag', False):
+            item['force_skip_tiles'] = True
+            item['content_id_to_tag'] = response.meta.get('content_id_to_tag', False)
+
+        # Handle similar products for a product
+        elif response.meta.get('product_id_to_tag', False):
+            item['force_skip_tiles'] = True
+            item['product_id_to_tag'] = response.meta.get('product_id_to_tag', False)
+
+        elif product_id:
+            # Not a similar product, prep for tagging
+            item['tag_with_products'] = True # Command to AssociateWithProductsPipeline
+            item['product_id'] = product_id
 
     """
-    hooks can be optionally overwritten in the spiders for individual clients
+    The hooks can be optionally overwritten in the spiders for individual clients
 
     Various parts of the scrapy app call these hooks (controller, pipelines, etc)
     """
