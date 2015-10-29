@@ -65,10 +65,11 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         self.handle_product_tagging(response, item, product_id=item['url'])
         
         yield item
-
-        # Scrape similar products
-        url_paths = sel.css('.top-products .content>a::attr(href)').extract()
-        for url_path in url_paths:
-            req = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
-            req.meta['product_id_to_tag'] = item['product_id']
-            yield req
+        
+        if item['tag_with_products']:
+            # Scrape similar products
+            url_paths = sel.css('.top-products .content>a::attr(href)').extract()
+            for url_path in url_paths:
+                req = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
+                req.meta['product_id_to_tag'] = item['product_id']
+                yield req

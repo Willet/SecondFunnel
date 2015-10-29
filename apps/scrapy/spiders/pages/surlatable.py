@@ -200,13 +200,14 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
 
         l = ScraperContentLoader(item=ScraperImage(), response=response)
         l.add_value('force_skip_tiles', self.skip_tiles)
-        l.add_value('content_id', recipe_id)
-        l.add_value('tag_with_products', True) # Command to AssociateWithProductsPipeline
         l.add_value('original_url', unicode(response.request.url))
         l.add_value('source', 'Sur La Table')
         l.add_css('name', 'h1.name::text')
         l.add_css('description', '#recipedetail .story')
         item = l.load_item()
+
+        item['content_id'] = recipe_id
+        item['tag_with_products'] = True # Command to AssociateWithProductsPipeline
 
         if self.skip_images:
             yield item

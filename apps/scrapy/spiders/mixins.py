@@ -7,6 +7,7 @@ class ProcessingMixin(object):
     """
     Pipeline item preparation methods, to be called within a spider
     """
+    @staticmethod
     def handle_product_tagging(response, item, product_id=None):
         """
         If this product is to be tagged to content or product, skip turning it into a tile
