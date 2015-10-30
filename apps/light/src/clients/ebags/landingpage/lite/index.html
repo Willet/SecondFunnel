@@ -7,8 +7,8 @@
     @@include('shared/campaign_head.html')
     @@include('shared/campaign_opengraph_tags.html')
     <link rel="shortcut icon"
-         href="/static/light/surlatable/landingpage/lite/images/surlatable-favicon.png" />
-    <link rel="stylesheet" href="/static/light/surlatable/landingpage/lite/styles/main.css" />
+         href="/static/light/ebags/landingpage/lite/images/surlatable-favicon.png" />
+    <link rel="stylesheet" href="/static/light/ebags/landingpage/lite/styles/main.css" />
 
     @@include('shared/campaign_respond.html')
     <!-- Begin Optimizer Tests -->
@@ -70,7 +70,7 @@
             }, 1000);
         </script>
     {% endif %}
-    <title>{{ page.name|default:"Sur la Table" }}</title>
+    <title>{{ page.name|default:"eBags" }}</title>
     <!-- Begin CRAZY EGG -->
     <script type="text/javascript">
         setTimeout(function(){var a=document.createElement("script");
@@ -82,22 +82,24 @@
 </head>
 <body>
     <div class='navbar'>
+        <div class="header-links-bar">
+            <p>
+                <span class="priceGuaranteeCon"><a href="http://www.ebags.com/help/priceguarantee">110% Price Guarantee</a>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+                <span class="freeShippingCon"><a href="http://www.ebags.com/help/shippingrates">Free Shipping Over $49</a> + <a href="http://www.ebags.com/help/returnpolicy">Free Returns</a></span>
+            </p>
+        </div>
         <div class="container">
             <a href="http://www.surlatable.com/" target="_top" class="logo logoA">
-                <img class="desktop" src="/static/light/surlatable/landingpage/lite/images/SLT-logo.png" />
+                <img class="desktop" src="http://cdn-us-ec.yottaa.net/54636bb786305e35ea00040e/ca3ea000f77501321219123dfe2baf36.yottaa.net/v~c.7e/is/image/img01/logo/ebags-logo-02?qlt=100,1&align=0,1&wid=240&fmt=png-alpha&yocs=2i_&yoloc=us" />
                 <img class="mobile" src="/static/light/surlatable/landingpage/lite/images/slt-logo-mobile_300.png" />
             </a>
-
-            <div class="header-links-bar">
-			    <a href="https://www.surlatable.com/account/login.jsp" target="_top" rel="noFollow" >Log In or Register</a> |
-				<a href="https://www.surlatable.com/account/anonymousOrderTracking.jsp" target="_top" rel="noFollow">Track My Order</a> |
-                <a href="http://blog.surlatable.com/" target="_top" rel="noFollow" class="orange">Blog</a> |
-	            <a href="http://www.surlatable.com/category/cat2482088/" target="_top" rel="noFollow" class="green">Cart Talk</a> |
-				<a href="http://www.surlatable.com/browse/storeLocator/landingPage.jsp" target="_top" rel="noFollow" class="green">Find a Store</a>
-		    </div>
             <div id="search-bar">
-                <input type="text" placeholder="SEARCH" id="searchQuestionDisplayed" style="font-style: normal; z-index: 500; outline: none;" autocomplete="off">
-                <span id="submit-search">›</span>
+                <form><div class="input-group">
+                    <input type="text" class="form-control">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button"></button>
+                    </span>
+                </div></form>
             </div>
             <div style="clear:both;"></div>
         </div>
@@ -483,13 +485,16 @@
         <!-- custom templates -->
     </div>
 
-    <div class="container">
-        <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
-        <div id="category-area">
+    <div id="category-area">
+        <div class="container">
+            <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
             <div id="category-closer"></div>
         </div>
+    </div>
+
+    <div class="container">
         <div id="hero-area"></div>
-        <div class="shop-cta desktop-only">Click to shop the images below</div>
+        <!-- <div class="shop-cta desktop-only">Click to shop the images below</div> -->
         <div id="discovery-area" class="discovery-area"></div>
         <div class="tile-sizer tile"></div>
         <div class="no-noscript loading"></div>
@@ -500,8 +505,7 @@
             <div class="alert alert-danger">
                 <b>Oh no!</b> We need JavaScript enabled to show you this page.
             </div>
-        </noscript>
-    </div>
+        </noscript></div>
     <img src="{% url 'apps.tracking.views.pixel' %}"/>
     <div>
         @@include('shared/default_templates.html')

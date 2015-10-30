@@ -1,140 +1,69 @@
 $icon-font-path: "/static/light/fonts/";
-$slt-modern-font: MrEavesModern, Verdana, Arial, Helvetica, sans-serif;
-$slt-sans-font: MrEavesSans, Verdana, Arial, Helvetica, sans-serif;
-$slt-basic-font: Verdana, Arial, Helvetica, sans-serif;
-$slt-main-color: #405700;
-$slt-basic-color: #444444;
-$slt-grey-color: #a8a8a8;
-$slt-dark-grey-color: #828282;
-$slt-black-color: #333333;
-$slt-green-color: #6b8e00;
-$slt-dark-green-color: #536122;
-$slt-pastel-green-color: #829253;
-$slt-purple-color: #651e44;
-$slt-orange-color: #F05423;
-$slt-sale-price-color: #F00;
-$slt-categories-height: 140px;
-$slt-thumbnail-height: 111px;
+$ebags-basic-font: "Helvetica Neue",Helvetica,Arial,sans-serif;
+$ebags-sans-font: open_sanssemibold, Arial, sans-serif;
+$ebags-thumbnail-height: 111px;
+$ebags-dark-color: #333;
+$ebags-highlight-red: #DD0F21;
+$ebags-dark-blue: #063a69;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
 
-                
 @font-face {
-    font-family: MrEavesModern;
-    src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltr-071211005EmigreWebOnly.eot');
-    src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltr-071211005EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
-         url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltr-071211005EmigreWebOnly.woff') format('woff');
-}
-                
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: bold;
-    src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.eot');
-    src: url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
-         url('/static/light/surlatable/landingpage/default/fonts/mreavesmodaltb-071211001EmigreWebOnly.woff') format('woff');
-}
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: 600;
-    font-style: italic;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-BookItalic.otf') format("opentype");
-}
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: 500;
-    font-style: italic;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-RegItalic.otf') format("opentype");
-}
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: 400;
-    font-style: italic;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-ThinItalic.otf') format("opentype");
-}
-
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: 700;
-    font-style: italic;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-BoldItalic.otf') format("opentype");
-}
-
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: 200;
-    font-style: normal;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-Light.otf') format("opentype");
-}
-
-@font-face {
-    font-family: MrEavesModern;
-    font-weight: 200;
-    font-style: italic;
-    src: url('/static/light/surlatable/landingpage/lite/fonts/MrEavesModOT-LightItalic.otf') format("opentype");
-}
-
-@font-face {
-    font-family: MrEavesSans;
-    src: url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.eot');
-    src: url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.eot?#iefix') format('embedded-opentype'),
-         url('/static/light/surlatable/landingpage/default/fonts/mreavessanaltr-071211002EmigreWebOnly.woff') format('woff');
-}
-
-@font-face {
-    font-family: MrEavesSans;
-    font-weight: bold;
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltb-071211002EmigreWebOnly.eot");
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltb-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
-         url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltb-071211002EmigreWebOnly.woff") format("woff");
-}
-
-@font-face {
-    font-family: MrEavesSans;
-    font-weight: bold;
-    font-style: italic;
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltbi-071211002EmigreWebOnly.eot");
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltbi-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
-         url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltbi-071211002EmigreWebOnly.woff") format("woff")
-}
-
-@font-face {
-    font-family: MrEavesSans;
-    font-style: italic;
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltri-071211002EmigreWebOnly.eot");
-    src: url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltri-071211002EmigreWebOnly.eot?#iefix") format("embedded-opentype"),
-         url("/static/light/surlatable/landingpage/default/fonts/mreavessanaltri-071211002EmigreWebOnly.woff") format("woff")
+    font-family: 'open_sanssemibold';
+    src: url('//cdn-us-ec.yottaa.net/54636bb786305e35ea00040e/45edf120566d0133846b0a3ba3fac80a.yottaa.net/v~c.7e/Content/Fonts/OpenSans-Semibold.eot?yocs=_&yoloc=us');
+    src: url('//cdn-us-ec.yottaa.net/54636bb786305e35ea00040e/45edf120566d0133846b0a3ba3fac80a.yottaa.net/v~c.7e/Content/Fonts/OpenSans-Semibold.eot?#iefix&yocs=_&yoloc=us') format('embedded-opentype'),
+        url('//cdn-us-ec.yottaa.net/54636bb786305e35ea00040e/45edf120566d0133846b0a3ba3fac80a.yottaa.net/v~c.7e/Content/Fonts/OpenSans-Semibold.woff?yocs=_&yoloc=us') format('woff'), 
+        url('//cdn-us-ec.yottaa.net/54636bb786305e35ea00040e/45edf120566d0133846b0a3ba3fac80a.yottaa.net/v~c.7e/Content/Fonts/OpenSans-Semibold.ttf?yocs=_&yoloc=us') format('truetype')
 }
 
 body {
     background: none;
-    font-family: $slt-basic-font;
+    font-family: $ebags-basic-font;
 }
 
 .container {
     position: relative;
     z-index: 1;
+    max-width: 1170px;
 }
 
 .navbar {
-    height: 86px;
+    height: auto;
     border: none;
-    margin-top: 10px;
+    .header-links-bar {
+        height: 24px;
+        background-color: $ebags-dark-blue;
+        padding-top: 2px;
+        padding-bottom: 2px;
+        text-align: center;
+        span {
+            position: relative;
+            top: -19px;
+            z-index: 1;
+            color: white;
+            text-transform: uppercase;
+            font-size: 12px;
+            font-family: open_sanssemibold, Arial, sans-serif;
+            a {
+                text-decoration: none;
+            }
+        }
+    }
     .container {
         position: relative;
+        height: 70px;
+        margin-bottom: 10px;
         a.logo {
-            cursor: pointer;
-            display: inline-block;
-            opacity: 1;
-            filter: alpha(opacity=100);
-            padding-left: 2px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
             img {
-                width: 260px;
+                width: 120px;
+                height: auto;
+                vertical-align: bottom;
                 &.mobile {
                     display: none;
-                }
-                &.desktop {
-                    height: 86px;
                 }
             }
             .logoA {
@@ -146,71 +75,25 @@ body {
                 margin-top: 10px;
             }
         }
-        .header-links-bar {
-            position: absolute;
-            top: 2px;
-            right: 0;
-            display: inline-block;
-            text-align: left;
-            font-size: 12px;
-            line-height: 18px;
-            font-family: $slt-modern-font;
-            a {
-                margin: 0px 5px;
-                cursor: pointer;
-                line-height: 24px;
-                font-size: 16px;
-            }
-            .orange {
-                color: $slt-orange-color;
-            }
-            .green {
-                color: $slt-dark-green-color;
-            }
-        }
         #search-bar {
             position: absolute;
-            right: 23px;
-            top: 44px;
-            width: 196px;
-            height: 28px;
+            right: 0;
+            bottom: 0;
             line-height: 28px;
-            border: 1px solid #829253;
-            border-radius: 5px;
             cursor: pointer;
-            background: $slt-main-color;
-            > input {
-                position: absolute;
-                left: 0;
-                top: 0;
-                line-height: normal;
-                border: none;
-                border-radius: 5px;
-                padding: 5px;
-                margin: 0;
-                width: 162px;
-                height: 16px;
-                box-sizing: content-box;
-                font-family: $slt-basic-font;
-                font-size: 11px;
-                color: $slt-main-color;
-            }
-            > span {
-                position: absolute;
-                right: 6px;
-                top: -2px;
-                font-size: 26px;
-                font-weight: bold;
-                color: #FFF;
-                @include no-select;
+            width: 450px;
+            .btn {
+                background: $ebags-dark-blue url('http://cdn-us-ec.yottaa.net/54636bb786305e35ea00040e/ca3ea000f77501321219123dfe2baf36.yottaa.net/v~c.7e/is/image/img01/icon/searchIcon-02?qlt=95,1&align=0,1&wid=38&fmt=png-alpha&yocs=2i_&yoloc=us') no-repeat 10px 8px;
+                background-size: 16px 16px;
+                width: 40px;
+                height: 34px;
             }
         }
     }
 }
 
 .sticky-wrapper {
-    margin: 15px 0 0 0;
-    height: $slt-categories-height !important;
+    margin: 5px 0 0 0;
     width: 100%;
 }
 
@@ -220,11 +103,18 @@ body {
     z-index: 2;
     overflow: visible;
     @include no-select;
+    background: #eee;
+    box-shadow: inset 0 5px 7px -6px #999;
+    margin-bottom: 5px;
+    text-align: center;
+    height: 44px;
     .category-area {
         position:relative;
         z-index: 2;
         background-color: transparent;
-        height: $slt-categories-height;
+        .category {
+            display: inline-block;
+        }
     }
     #category-closer {
         display: none;
@@ -237,42 +127,46 @@ body {
 
     .category {
         border: none;
-        background-color: #FFF !important;
-        padding: 0;
+        background-color: transparent !important;
+        padding: 0 3%;
         margin-right: 2px;
         position: relative;
-        width: 14%;
-        height: $slt-categories-height;
         font-size: 20px;
         line-height: 34px;
-        color: $slt-dark-green-color;
-        font-family: $slt-modern-font;
         overflow: visible;
-        &.selected, &:hover {
-            color: $slt-dark-green-color;
+        border-top: 3px solid transparent;
+        height: 44px;
+        width: auto;
+        &.selected, &:hover, &.expanded {
+            background-color: #FFF !important;
+            box-shadow: 0px 4px 6px rgba(0,0,0,0.3);
+            border-top: 3px solid $ebags-dark-blue;
             > .name {
-                text-decoration: underline;
+                text-decoration: none;
             }
         }
         &.expanded {
             .sub-categories {
                 display: block;
+                box-shadow: 0px 3px 3px 1px rgba(0,0,0,0.2);
             }
         }
         img {
-            border: 1px solid $slt-grey-color;
-            height: $slt-thumbnail-height;
-            width: $slt-thumbnail-height;
+            height: $ebags-thumbnail-height;
+            width: $ebags-thumbnail-height;
             border-radius: 3px;
+            display: none;
         }
         .name {
-            display: block;
+            display: inline-block;
             padding-top: 11px;
-            font-size: 16px;
+            font-size: 15px;
             line-height: 16px;
             white-space: nowrap;
-            text-transform: uppercase;
             @include no-select;
+            padding-bottom: 10px;
+            font-weight: bold;
+            font-family: $ebags-sans-font;
         }
         .name.subcats {
             &:after {
@@ -287,15 +181,13 @@ body {
         .sub-categories {
             position: absolute;
             display: none;
-            left: -50%;
+            left: 0;
             z-index: 1;
+            top: 41px;
             .wrap {
                 width: 100%;
-                border: 2px solid $slt-dark-green-color;
-                border-radius: 6px;
                 background-color: #FFF;
                 padding: 10px 10px 20px 10px;
-                display: table;
             }
         }
         .sub-categories-section {
@@ -307,7 +199,7 @@ body {
             width: 240px;
         }
         .sub-category {
-            padding: 6px 0 0 15px;
+            padding: 0 0 1px 15px;
             img {
                 width: 50px;
                 height: 50px;
@@ -315,18 +207,18 @@ body {
             }
             .name {
                 display: inline-block;
+                text-transform: none;
             }
             &.selected, &:hover {
+                padding-bottom: 0;
                 > .name {
-                    border-bottom: 1px solid $slt-dark-green-color;
+                    border-bottom: 1px solid $ebags-dark-color;
                 }
             }
         }
         .sub-categories-label {
-            font-family: $slt-sans-font;
             font-style: italic;
             font-size: 18px;
-            color: $slt-orange-color;
             line-height: 20px;
             padding: 6px 0 8px 15px;;
             text-indent: 5px;
@@ -347,10 +239,10 @@ body {
     }
     &.stuck {
         /* 2px for border */
-        margin-top: (-2px - $slt-thumbnail-height);
+        margin-top: (-2px - $ebags-thumbnail-height);
         .category-area {
             height: auto;
-            margin-top: (-2px - $slt-thumbnail-height);
+            margin-top: (-2px - $ebags-thumbnail-height);
         }
     }
 }
@@ -373,8 +265,6 @@ body {
         .category-name {
             width: 100%;
             line-height: 104px;
-            color: $slt-dark-green-color;
-            font-family: $slt-modern-font;
             font-style: italic;
             font-size: 65px;
             font-weight: 300;
@@ -411,7 +301,6 @@ body {
             left: 6%;
             right: 6%;
             display: block;
-            font-family: $slt-sans-font;
             box-shadow: 0px 0px 5px 7px rgba(255, 255, 255, 0.8);
             background-color: rgba(255, 255, 255, 0.8);
         }
@@ -488,7 +377,6 @@ body {
 .image-with-tagged-products .caption,
 .image-without-tagged-products .caption {
     color: #333333;
-    font-family: $slt-modern-font;
     font-size: 21px;
     font-weight: 200;
     span:first-child:after {
@@ -501,7 +389,6 @@ body {
     .tile-name {
         display: block;
         padding: 0 15px;
-        font-family: $slt-basic-font;
         font-size: 18px;
         font-weight: normal;  
     }
@@ -509,8 +396,6 @@ body {
         display: block;
         padding: 0 15px;
         font-size: 15px;
-        color: $slt-basic-color;
-        font-family: $slt-basic-font;
         margin-top: 5px;
     }
 }
@@ -518,7 +403,6 @@ body {
     cursor: pointer;
     .button {
         color: #333333;
-        font-family: $slt-basic-font;
         font-size: 18px;
         font-weight: normal;
         text-decoration: none;
@@ -541,22 +425,14 @@ body {
 .similar-cta {
     font-size: 17px;
     line-height: 17px;
-    font-family: $slt-modern-font;
     font-weight: bold;
 }
 .similar-subtext {
     font-size: 14px;
     line-height: 16px;
-    font-family: $slt-basic-font;
     font-style: italic;
 }
-.shop-cta {
-    color: $slt-orange-color;
-}
 .similar-cta,
-.similar-subtext {
-    color: $slt-green-color;
-}
 
 .previewContainer {
     .fullscreen {
@@ -643,7 +519,6 @@ body {
         left: 0;
         width: 100%;
         height: 40px;
-        background-color: $slt-purple-color;
         text-align: left;
         border-radius: 10px 10px 0 0;
         padding: 12px !important;
@@ -664,10 +539,8 @@ body {
         }
         text-align: left;
         .back {
-            color: $slt-purple-color;
             font-size: 18px;
             font-weight: bold;
-            font-family: $slt-modern-font;
             text-align: center;
             margin: 25px 0;
             &:before {
@@ -709,10 +582,8 @@ body {
             }
             .scroll-cta {
                 width: 100%;
-                color: $slt-green-color;
                 text-align: center;
                 font-size: 15px;
-                font-family: $slt-modern-font;
                 margin-top: 5px;
                 &:after {
                     content: url('/static/light/surlatable/landingpage/default/images/scroll-more-arrow.png');
@@ -759,10 +630,9 @@ body {
         .item {
             width: 6px;
             height: 6px;
-            border: 1px solid $slt-green-color;
+            border: 1px solid $ebags-dark-color;
             background-color: white;
             &.selected {
-                background-color: $slt-green-color;
             }
         }
     }
@@ -777,14 +647,12 @@ body {
         .title, .price {
             font-size: 30px;
             line-height: 30px;
-            font-family: $slt-sans-font;
             font-weight: bold;
             margin-bottom: 15px;
         }
         .price {
             font-weight: bold;
             .current.sale {
-                color: $slt-sale-price-color;
             }
             .current:before {
                 content: "$";
@@ -804,13 +672,11 @@ body {
             }
             .suggested-price {
                 margin-left: 16px;
-                color: $slt-dark-grey-color;
                 .dollar-amount {
                     text-decoration: line-through;
                 }
             }
             .save-percent {
-                color: $slt-black-color;
                 &:before {
                     content: " | ";
                     padding: 0 2px;
@@ -831,18 +697,14 @@ body {
         .button {
             position: relative;
             font-size: 18px;
-            font-family: $slt-modern-font;
             font-weight: bold;
             line-height: 35px;
             padding-top: 5px;
             text-transform: uppercase;
             width: 100%;
             border-radius: 10px;
-            border: 1px solid $slt-green-color;
-            background-color: $slt-green-color;
             &:hover {
                 background-color: #fff;
-                color: $slt-green-color;
                 text-decoration: none;
             }
         }
@@ -862,7 +724,6 @@ body {
             top: 0;
             width: 100%;
             z-index: 2;
-            color: $slt-dark-green-color;
             font-size: 14px;
             line-height: 14px;
             background-color: transparent;
@@ -880,7 +741,6 @@ body {
             width: 100%;
             height: 100%;
             padding-top: 15px;
-            border: 1px solid $slt-grey-color;
             border-radius: 10px;
         }
         .stl-look-container {
@@ -1210,7 +1070,7 @@ body {
                 width: 20% !important;
                 height: 100%;
                 border-top: none;
-                border-right: 1px solid $slt-grey-color;
+                border-right: 1px solid $ebags-dark-color;
                 padding-top: 18px;
                 .stl-title {
                     padding: 0 15px;
@@ -1255,9 +1115,7 @@ body {
             right: 0;
             line-height: 65px;
             font-size: 20px;
-            font-family: $slt-modern-font;
             text-transform: uppercase;
-            background-color: $slt-purple-color;
         }
         .content {
             padding: 0 !important;
@@ -1318,7 +1176,6 @@ body {
                         right: 0;
                     }
                     &:hover {
-                        background-color: $slt-green-color;
                         color: white;
                     }
                 }
@@ -1402,7 +1259,7 @@ body {
             }
         }
         .shop {
-            border-top: 1px solid $slt-grey-color;
+            border-top: 1px solid $ebags-dark-color;
             left: 0;
             right: 0;
             bottom: 0;
@@ -1417,7 +1274,6 @@ body {
             }
             .stl-title {
                 top: -5px;
-                font-family: $slt-modern-font;
                 >span {
                     top: 0;
                     background: none;
