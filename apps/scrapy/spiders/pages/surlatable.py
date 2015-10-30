@@ -82,7 +82,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
     def on_tile_finished(self, tile, obj):
         """ Set tiles with product shots as their default image to single column """
         try:
-            if tile.template == "product":
+            if not tile.placeholder and tile.template == "product":
                 if tile.product.default_image.is_product_shot:
                     tile.attributes['colspan'] = 1
                     self.logger.info(u"Setting colspan to 1 for {}".format(tile))

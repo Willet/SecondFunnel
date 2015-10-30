@@ -162,6 +162,9 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
     Save item as model
 
     Any changes to the item after this pipeline will not be automatically persisted!
+
+    NOTE: Item save MUST be called after this pipeline step to regenerate tile caches.
+          update_model will merge duplicate Product models with updating Tiles
     """
     def process_item(self, item, spider):
         try:
@@ -193,6 +196,88 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
         return item
 
 # --- Item now has instance reference ---
+
+class ProductImagePipeline(ItemManifold, PlaceholderMixin):
+    """
+    If product has image_urls, turn them into <Product Image> and delete
+    all other <Product Image>s that exist already
+    """
+    def process_product(self, item, spider):
+        remove_background = getattr(spider, 'remove_background', False)
+        skip_images = [getattr(spider, 'skip_images', False), item.get('force_skip_images', False)]
+        store = item['store']
+        sku = item['sku']
+        product = item['instance']
+
+        if True in skip_images:
+            spider.logger.info(u"Skipping product images. item: <{0}>, spider.skip_images: {1}, \
+                         item.force_skip_images: {2}".format(item.__class__.__name__, skip_images[0], skip_images[1]))
+        else:
+            old_images = list(product.product_images.all())
+            images = []
+            processed = 0
+
+            for image_url in item.get('image_urls', []):
+                url = urlparse(image_url, scheme='http').geturl()
+                existing_image = next((old_images.pop(i) for i, pi in enumerate(old_images) \
+                                      if pi.original_url == url), None)
+                if not existing_image:
+                    try:
+                        images.append(self.process_product_image(item, url,
+                                                                 remove_background=remove_background))
+                        processed += 1
+                    except cloudinary.api.Error as e:
+                        spider.logger.info(u"<Product {}> image failed processing:\n{}".format(product, traceback.format_exc()))
+                else:
+                    images.append(existing_image)
+
+            if not images:
+                # Product has no images, convert to placeholder
+                self.convert_to_placeholder(product)
+                spider.logger.info(u"<Product {}> failed image processing!".format(product))
+            else:
+                # Product is good, delete any out of date images
+                old_pks = [pi.pk for pi in old_images]
+                product.product_images.filter(pk__in=old_pks).delete()
+                product.default_image = spider.choose_default_image(product)
+                product.save()
+                spider.logger.info(u"<Product {}> has {} images, {} processed and {} deleted".format(
+                                                    product, len(images), processed, len(old_pks)))
+               
+
+    def process_product_image(self, item, image_url, remove_background=False):
+        store = item['store']
+        product = item['instance']
+
+        try:
+            image = ProductImage.objects.get(original_url=image_url, product=product)
+        except ProductImage.DoesNotExist:
+            image = ProductImage(original_url=image_url, product=product)
+
+        # this image needs to be uploaded
+        if not (image.url and image.file_type):
+            print '\nprocessing image - ' + image_url
+            data = process_image(image_url, create_image_path(store.id),
+                                 remove_background=remove_background)
+            image.url = data.get('url')
+            image.file_type = data.get('format')
+            image.dominant_color = data['dominant_color']
+
+            image.attributes['sizes'] = data['sizes']
+
+            # save the image
+            image.save()
+
+            if product and not product.default_image:
+                product.default_image = image
+                product.save()
+        else:
+            print '\nimage has already been processed'
+
+        print image.to_json()
+
+        return image
+
 
 class AssociateWithProductsPipeline(ItemManifold):
     """
@@ -277,88 +362,6 @@ class TagPipeline(ItemManifold):
         tag = Tag.objects.get(store=item['store'], name__iexact=name)
         tag.products.add(item['instance'])
         tag.save()
-
-
-class ProductImagePipeline(ItemManifold, PlaceholderMixin):
-    """
-    If product has image_urls, turn them into <Product Image> and delete
-    all other <Product Image>s that exist already
-    """
-    def process_product(self, item, spider):
-        remove_background = getattr(spider, 'remove_background', False)
-        skip_images = [getattr(spider, 'skip_images', False), item.get('force_skip_images', False)]
-        store = item['store']
-        sku = item['sku']
-        product = item['instance']
-
-        if True in skip_images:
-            spider.logger.info(u"Skipping product images. item: <{0}>, spider.skip_images: {1}, \
-                         item.force_skip_images: {2}".format(item.__class__.__name__, skip_images[0], skip_images[1]))
-        else:
-            old_images = list(product.product_images.all())
-            images = []
-            processed = 0
-
-            for image_url in item.get('image_urls', []):
-                url = urlparse(image_url, scheme='http').geturl()
-                existing_image = next((old_images.pop(i) for i, pi in enumerate(old_images) \
-                                      if pi.original_url == url), None)
-                if not existing_image:
-                    try:
-                        images.append(self.process_product_image(item, url,
-                                                                 remove_background=remove_background))
-                        processed += 1
-                    except cloudinary.api.Error as e:
-                        spider.logger.info(u"<Product {}> image failed processing:\n{}".format(product, traceback.format_exc()))
-                else:
-                    images.append(existing_image)
-
-            if not images:
-                # Product has no images, convert to placeholder
-                self.convert_to_placeholder(product)
-                spider.logger.info(u"<Product {}> failed image processing!".format(product))
-            else:
-                # Product is good, delete any out of date images
-                old_pks = [pi.pk for pi in old_images]
-                product.product_images.filter(pk__in=old_pks).delete()
-                product.default_image = spider.choose_default_image(product)
-                product.save()
-                spider.logger.info(u"<Product {}> has {} images, {} processed and {} deleted".format(
-                                                    product, len(images), processed, len(old_pks)))
-               
-
-    def process_product_image(self, item, image_url, remove_background=False):
-        store = item['store']
-        product = item['instance']
-
-        try:
-            image = ProductImage.objects.get(original_url=image_url, product=product)
-        except ProductImage.DoesNotExist:
-            image = ProductImage(original_url=image_url, product=product)
-
-        # this image needs to be uploaded
-        if not (image.url and image.file_type):
-            print '\nprocessing image - ' + image_url
-            data = process_image(image_url, create_image_path(store.id),
-                                 remove_background=remove_background)
-            image.url = data.get('url')
-            image.file_type = data.get('format')
-            image.dominant_color = data['dominant_color']
-
-            image.attributes['sizes'] = data['sizes']
-
-            # save the image
-            image.save()
-
-            if product and not product.default_image:
-                product.default_image = image
-                product.save()
-        else:
-            print '\nimage has already been processed'
-
-        print image.to_json()
-
-        return image
 
 
 class ItemFinishedPipeline(ItemManifold):
