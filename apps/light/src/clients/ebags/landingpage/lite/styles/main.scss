@@ -1,6 +1,6 @@
 $icon-font-path: "/static/light/fonts/";
 $ebags-basic-font: "Helvetica Neue",Helvetica,Arial,sans-serif;
-$ebags-sans-font: open_sanssemibold, Arial, sans-serif;
+$ebags-sans-font: "open_sans", Arial, sans-serif;
 $ebags-thumbnail-height: 111px;
 $ebags-dark-color: #333;
 $ebags-highlight-red: #DD0F21;
@@ -10,11 +10,22 @@ $ebags-dark-blue: #063a69;
 @import "src/components/landingpage/styles/base.scss";
 
 @font-face {
-    font-family: 'open_sanssemibold';
-    src: url('//cdn-us-ec.yottaa.net/54636bb786305e35ea00040e/45edf120566d0133846b0a3ba3fac80a.yottaa.net/v~c.7e/Content/Fonts/OpenSans-Semibold.eot?yocs=_&yoloc=us');
-    src: url('//cdn-us-ec.yottaa.net/54636bb786305e35ea00040e/45edf120566d0133846b0a3ba3fac80a.yottaa.net/v~c.7e/Content/Fonts/OpenSans-Semibold.eot?#iefix&yocs=_&yoloc=us') format('embedded-opentype'),
-        url('//cdn-us-ec.yottaa.net/54636bb786305e35ea00040e/45edf120566d0133846b0a3ba3fac80a.yottaa.net/v~c.7e/Content/Fonts/OpenSans-Semibold.woff?yocs=_&yoloc=us') format('woff'), 
-        url('//cdn-us-ec.yottaa.net/54636bb786305e35ea00040e/45edf120566d0133846b0a3ba3fac80a.yottaa.net/v~c.7e/Content/Fonts/OpenSans-Semibold.ttf?yocs=_&yoloc=us') format('truetype')
+    font-family: 'open_sans';
+    src: url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Semibold.eot');
+    src: url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Semibold.eot') format('embedded-opentype'),
+        url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Semibold.woff') format('woff'), 
+        url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Semibold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'open_sans';
+    src: url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Regular.eot');
+    src: url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Regular.eot') format('embedded-opentype'),
+        url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Regular.woff') format('woff'), 
+        url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
 }
 
 body {
@@ -44,7 +55,7 @@ body {
             color: white;
             text-transform: uppercase;
             font-size: 12px;
-            font-family: open_sanssemibold, Arial, sans-serif;
+            font-family: $ebags-sans-font, Arial, sans-serif;
             a {
                 text-decoration: none;
             }
@@ -83,7 +94,7 @@ body {
             cursor: pointer;
             width: 450px;
             .btn {
-                background: $ebags-dark-blue url('http://cdn-us-ec.yottaa.net/54636bb786305e35ea00040e/ca3ea000f77501321219123dfe2baf36.yottaa.net/v~c.7e/is/image/img01/icon/searchIcon-02?qlt=95,1&align=0,1&wid=38&fmt=png-alpha&yocs=2i_&yoloc=us') no-repeat 10px 8px;
+                background: $ebags-dark-blue url('/static/light/ebags/landingpage/lite/images/searchIcon-white.png') no-repeat 10px 8px;
                 background-size: 16px 16px;
                 width: 40px;
                 height: 34px;
@@ -208,6 +219,7 @@ body {
             .name {
                 display: inline-block;
                 text-transform: none;
+                font-weight: normal;
             }
             &.selected, &:hover {
                 padding-bottom: 0;
@@ -220,7 +232,6 @@ body {
             font-style: italic;
             font-size: 18px;
             line-height: 20px;
-            padding: 6px 0 8px 15px;;
             text-indent: 5px;
             text-transform: none;
         }
