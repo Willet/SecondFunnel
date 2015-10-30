@@ -148,12 +148,28 @@ body {
         border-top: 3px solid transparent;
         height: 44px;
         width: auto;
-        &.selected, &:hover, &.expanded {
+        &:hover, &.expanded {
             background-color: #FFF !important;
             box-shadow: 0px 4px 6px rgba(0,0,0,0.3);
             border-top: 3px solid $ebags-dark-blue;
             > .name {
                 text-decoration: none;
+            }
+        }
+        &.selected {
+            background-color: $ebags-dark-blue !important;
+            > .name {
+                color: #FFF;
+            }
+            .sub-categories {
+                .name {
+                    color: #000;
+                }
+                .sub-category.selected {
+                    .name {
+                        font-weight: 700;
+                    }
+                }
             }
         }
         &.expanded {
