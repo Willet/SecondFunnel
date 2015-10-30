@@ -174,7 +174,7 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
         spider.logger.info(u"item: {}, created: {}".format(item, was_it_created))
 
         try:
-             with disable_tile_serialization():
+            with disable_tile_serialization():
                 # Disable tile serialization because if running "refresh_images"
                 # an existing valid product will have no product images at this step 
                 # and could trigger a tile serialization error.
@@ -206,6 +206,7 @@ class AssociateWithProductsPipeline(ItemManifold):
     """
     def __init__(self, *args, **kwargs):
         self.images = {}
+        self.products = {}
         super(AssociateWithProductsPipeline, self).__init__(*args, **kwargs)
 
     def process_image(self, item, spider):
@@ -217,30 +218,36 @@ class AssociateWithProductsPipeline(ItemManifold):
             self.products[item.get('product_id')] = item['instance']
 
         if item.get('content_id_to_tag'):
+            product = item['instance']
             content_id = item.get('content_id_to_tag')
             image = self.images.get(content_id)
             if image:
-                product = item['instance']
                 tagged_product_ids = image.tagged_products.values_list('id', flat=True)
                 if not product.id in tagged_product_ids:
-                    spider.logger.info(u'Tagging <Image {}> with <Product {}>'.format(image.id, product.id))
+                    spider.logger.info(u"Tagging <Image {}> with <Product {}>".format(image.id, product.id))
                     image.tagged_products.add(product)
                 else:
-                    spider.logger.info(u'<Image {}> already tagged with <Product {}>'.format(image.id, product.id))
+                    spider.logger.info(u"<Image {}> already tagged with <Product {}>".format(image.id, product.id))
+            else:
+                spider.logger.warning(u"Tried to tag <Product {}> to content_id {},\
+                                        but it doesn't exist".format(product.id, content_id))
 
         if item.get('product_id_to_tag'):
+            similar_product = item['instance']  
             product_id = item.get('product_id_to_tag')
             product = self.products.get(product_id)
             if product:
-                similar_product = item['instance']
                 similar_product_ids = product.similar_products.values_list('id', flat=True)
                 if not similar_product.id in similar_product_ids:
-                    spider.logger.info(u'Tagging <Product {}> with <Product {}>'.format(product.id,
+                    spider.logger.info(u"Tagging <Product {}> with <Product {}>".format(product.id,
                                                                                         similar_product.id))
                     product.similar_products.add(similar_product)
                 else:
-                    spider.logger.info(u'<Product {}> already tagged with <Product {}>'.format(product.id,
+                    spider.logger.info(u"<Product {}> already tagged with <Product {}>".format(product.id,
                                                                                                similar_product.id))
+            else:
+                spider.logger.warning(u"Tried to tag <Product {}> to product_id {},\
+                                        but it doesn't exist".format(similar_product.id, product_id))
 
     def close_spider(self, spider):
         # Save images and products in one transaction
