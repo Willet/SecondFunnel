@@ -162,6 +162,9 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
     Save item as model
 
     Any changes to the item after this pipeline will not be automatically persisted!
+
+    NOTE: Item save MUST be called after this pipeline step to regenerate tile caches.
+          update_model will merge duplicate Product models with updating Tiles
     """
     def process_item(self, item, spider):
         try:
@@ -193,62 +196,6 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
         return item
 
 # --- Item now has instance reference ---
-
-class AssociateWithProductsPipeline(ItemManifold):
-    """
-    If a content has 'tag_with_products' field True and a 'content_id' field
-    then tag with any subsequent products with 'content_id_to_tag' field matching
-    'content_id'
-    """
-    def __init__(self, *args, **kwargs):
-        self.images = {}
-        super(AssociateWithProductsPipeline, self).__init__(*args, **kwargs)
-
-    def process_image(self, item, spider):
-        if item.get('tag_with_products') and item.get('content_id'):
-            self.images[item.get('content_id')] = Image.objects.get(store=item['store'], url=item['url'])
-
-    def process_product(self, item, spider):
-        if item.get('content_id_to_tag'):
-            content_id = item.get('content_id_to_tag')
-            image = self.images.get(content_id)
-            if image:
-                product = item['instance']
-                product_id = product.id
-                tagged_product_ids = image.tagged_products.values_list('id', flat=True)
-                if not product_id in tagged_product_ids:
-                    spider.logger.info(u'Tagging <Image {}> with <Product {}>'.format(image.id, product_id))
-                    image.tagged_products.add(product)
-                else:
-                    spider.logger.info(u'<Image {}> already tagged with <Product {}>'.format(image.id, product_id))
-
-    def close_spider(self, spider):
-        # Save images in one transaction
-        with transaction.atomic():
-            for id in self.images:
-                self.images[id].save()
-        spider.logger.info(u'Saved {} tagged images'.format(len(self.images)))
-
-
-class TagPipeline(ItemManifold):
-    """
-    If product or spider has tags, add them to <Product> items
-    """
-    def process_product(self, item, spider):
-        # If tags were found by the crawler
-        for name in item.get('attributes', {}).get('tags', []):
-            spider.logger.info(u"Adding scraped tag '{}'".format(name.strip()))
-            self.add_product_to_tag(item, name.strip())
-
-        # If you want all products in a scrape to have a specific tag
-        for name in getattr(spider, 'tags', []):
-            spider.logger.info(u"Adding spider-specified tag '{}'".format(name.strip()))
-            self.add_product_to_tag(item, name.strip())
-
-    def add_product_to_tag(self, item, name):
-        tag = Tag.objects.get(store=item['store'], name__iexact=name)
-        tag.products.add(item['instance'])
-        tag.save()
 
 
 class ProductImagePipeline(ItemManifold, PlaceholderMixin):
@@ -331,6 +278,63 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
         print image.to_json()
 
         return image
+
+
+class AssociateWithProductsPipeline(ItemManifold):
+    """
+    If a content has 'tag_with_products' field True and a 'content_id' field
+    then tag with any subsequent products with 'content_id_to_tag' field matching
+    'content_id'
+    """
+    def __init__(self, *args, **kwargs):
+        self.images = {}
+        super(AssociateWithProductsPipeline, self).__init__(*args, **kwargs)
+
+    def process_image(self, item, spider):
+        if item.get('tag_with_products') and item.get('content_id'):
+            self.images[item.get('content_id')] = Image.objects.get(store=item['store'], url=item['url'])
+
+    def process_product(self, item, spider):
+        if item.get('content_id_to_tag'):
+            content_id = item.get('content_id_to_tag')
+            image = self.images.get(content_id)
+            if image:
+                product = item['instance']
+                product_id = product.id
+                tagged_product_ids = image.tagged_products.values_list('id', flat=True)
+                if not product_id in tagged_product_ids:
+                    spider.logger.info(u'Tagging <Image {}> with <Product {}>'.format(image.id, product_id))
+                    image.tagged_products.add(product)
+                else:
+                    spider.logger.info(u'<Image {}> already tagged with <Product {}>'.format(image.id, product_id))
+
+    def close_spider(self, spider):
+        # Save images in one transaction
+        with transaction.atomic():
+            for id in self.images:
+                self.images[id].save()
+        spider.logger.info(u'Saved {} tagged images'.format(len(self.images)))
+
+
+class TagPipeline(ItemManifold):
+    """
+    If product or spider has tags, add them to <Product> items
+    """
+    def process_product(self, item, spider):
+        # If tags were found by the crawler
+        for name in item.get('attributes', {}).get('tags', []):
+            spider.logger.info(u"Adding scraped tag '{}'".format(name.strip()))
+            self.add_product_to_tag(item, name.strip())
+
+        # If you want all products in a scrape to have a specific tag
+        for name in getattr(spider, 'tags', []):
+            spider.logger.info(u"Adding spider-specified tag '{}'".format(name.strip()))
+            self.add_product_to_tag(item, name.strip())
+
+    def add_product_to_tag(self, item, name):
+        tag = Tag.objects.get(store=item['store'], name__iexact=name)
+        tag.products.add(item['instance'])
+        tag.save()
 
 
 class SimilarProductsPipeline(ItemManifold):
