@@ -1,10 +1,12 @@
 from scrapy.selector import Selector
 from scrapy.linkextractors import LinkExtractor
+from scrapy.loader.processors import Join
+from scrapy_webdriver.http import WebdriverRequest
 
+from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders import Rule
 from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
-from apps.scrapy.items import ScraperProduct
 
 
 class BodyShopSpider(SecondFunnelCrawlSpider):
@@ -31,16 +33,22 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         return bool(response.selector.css('a.outofstockbtn'))
 
     def parse_product(self, response):
-        l.add_value('force_skip_tiles', self.skip_tiles)
+        if not self.is_product_page(response):
+            self.logger.warning(u"Unexpectedly not a product page: {}".format(response.request.url))
+            return
 
         sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
-        attributes = {}
 
+        l.add_value('force_skip_tiles', self.skip_tiles)
         l.add_value('url', response.request.url)
+        l.add_value('attributes', {})
         l.add_css('name', 'h1.title::attr(title)')
-        l.add_css('description', 'section.product-infos')
         l.add_css('sku', '.volume .title::text', re=r'(\d+)')
+
+        l.add_xpath('description', '//section[@class="product-infos"]/node()', Join())
+        #description = unicode(sel.css('section.product-infos').extract())
+        #l.add_value('description', description)
 
         old_price = sel.css('p.price.old::text').extract()
         new_price = sel.css('p.price.new::text').extract()
@@ -65,11 +73,11 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         self.handle_product_tagging(response, item, product_id=item['url'])
         
         yield item
-        
-        if item['tag_with_products']:
+
+        if item.get('tag_with_products', False):
             # Scrape similar products
             url_paths = sel.css('.top-products .content>a::attr(href)').extract()
             for url_path in url_paths:
-                req = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
+                req = WebdriverRequest(url_path, callback=self.parse_product)
                 req.meta['product_id_to_tag'] = item['product_id']
                 yield req

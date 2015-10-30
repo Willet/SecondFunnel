@@ -95,18 +95,15 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         
     def parse_product(self, response):
         if not self.is_product_page(response):
-            self.logger.info(u"Not a product page: {}".format(response.url))
-            yield []
+            self.logger.warning(u"Unexpectedly not a product page: {}".format(response.request.url))
+            return
         
-        skip_images = self.skip_images
-        skip_tiles = self.skip_tiles
-        l.add_value('force_skip_tiles', skip_tiles)
+        attributes = {}
+        in_stock = True
 
         sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
-        attributes = {}
-        in_stock = True
-        
+        l.add_value('force_skip_tiles', self.skip_tiles)
         l.add_css('name', 'h1#product-title::text')
         l.add_css('description', '#product-description div::text')
         l.add_css('details', '#product-moreInfo-features li')
@@ -162,7 +159,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         # If this is a similar_product and tagged_product, handle it
         self.handle_tagging(response, item)
 
-        if skip_images:
+        if self.skip_images:
             yield item
         else:
             # Full-sized Sur La Table image URLs found in a magical XML file.
@@ -192,7 +189,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
 
     def parse_recipe(self, response):
         if not self.is_recipe_page(response):
-            self.logger.info(u"Not a recipe page: {}".format(response.url))
+            self.logger.warning(u"Unexpectedly not a recipe page: {}".format(response.request.url))
             return
 
         recipe_id = re.match(r'(?:http://|https://)?www\.surlatable\.com/product/REC-(\d+)(/.*)?', response.url).group(1)
