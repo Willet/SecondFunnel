@@ -28,7 +28,6 @@ ITEM_PIPELINES = {
     'apps.scrapy.pipelines.AssociateWithProductsPipeline': 41,
     'apps.scrapy.pipelines.TagPipeline': 42,
     'apps.scrapy.pipelines.ProductImagePipeline': 47,
-    'apps.scrapy.pipelines.SimilarProductsPipeline': 48,
     'apps.scrapy.pipelines.ItemFinishedPipeline': 49,
     # 50 - 
     'apps.scrapy.pipelines.TileCreationPipeline': 50,
