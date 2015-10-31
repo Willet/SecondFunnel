@@ -157,7 +157,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         item = l.load_item()
 
         # If this is a similar_product and tagged_product, handle it
-        self.handle_tagging(response, item)
+        self.handle_product_tagging(response, item)
 
         if self.skip_images:
             yield item
@@ -203,8 +203,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         l.add_css('description', '#recipedetail .story')
         item = l.load_item()
 
-        item['content_id'] = recipe_id
-        item['tag_with_products'] = True # Command to AssociateWithProductsPipeline
+        self.handle_product_tagging(response, item, content_id=recipe_id)
 
         if self.skip_images:
             yield item
@@ -222,7 +221,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         url_paths = sel.css('.productinfo .itemwrapper>a::attr(href)').extract()
         for url_path in url_paths:
             req = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
-            req.meta['content_id_to_tag'] = recipe_id
+            req.meta['content_id_to_tag'] = item['content_id']
             yield req
 
     def parse_one_image(self, response):

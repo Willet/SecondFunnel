@@ -337,8 +337,8 @@ class AssociateWithProductsPipeline(ItemManifold):
     def close_spider(self, spider):
         # Save images and products in one transaction
         with transaction.atomic():
-            for item in chain(self.images.values(), self.products.values()):
-                item.save()
+            for instance in chain(self.images.values(), self.products.values()):
+                instance.save()
         spider.logger.info(u'Saved {} tagged images and {} tagged products'.format(len(self.images),
                                                                                    len(self.products)))
 
