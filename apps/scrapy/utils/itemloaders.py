@@ -37,7 +37,7 @@ class ScraperProductLoader(ItemLoader):
 
     name_in = Compose(TakeFirst(), unicode.strip)
 
-    description_in = Compose(Join(), sanitize_html)
+    description_in = Compose(Join(), unicode.strip, sanitize_html)
 
     details_in = Compose(Join(), sanitize_html)
 

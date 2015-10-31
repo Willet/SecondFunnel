@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from django.core.exceptions import MultipleObjectsReturned
 
 from apps.assets.models import Product, Category, Content
@@ -75,7 +77,6 @@ def update_model(destination, source_item, commit=True):
     attrs = destination.get('attributes', {}).copy()
     attrs.update(source_item.get('attributes', {}))
     source_item['attributes'] = attrs
-    print "Setting attributes"
     for (key, value) in django_item_values(source_item):
         setattr(destination, key, value)
 

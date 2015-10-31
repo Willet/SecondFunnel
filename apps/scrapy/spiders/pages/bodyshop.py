@@ -1,6 +1,5 @@
 from scrapy.selector import Selector
 from scrapy.linkextractors import LinkExtractor
-from scrapy.loader.processors import Join
 from scrapy_webdriver.http import WebdriverRequest
 
 from apps.scrapy.items import ScraperProduct
@@ -45,10 +44,7 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         l.add_value('attributes', {})
         l.add_css('name', 'h1.title::attr(title)')
         l.add_css('sku', '.volume .title::text', re=r'(\d+)')
-
-        l.add_xpath('description', '//section[@class="product-infos"]/node()', Join())
-        #description = unicode(sel.css('section.product-infos').extract())
-        #l.add_value('description', description)
+        l.add_css('description', 'section.product-infos')
 
         old_price = sel.css('p.price.old::text').extract()
         new_price = sel.css('p.price.new::text').extract()
