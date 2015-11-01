@@ -218,9 +218,9 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         # Scrape tagged products
         url_paths = sel.css('.productinfo .itemwrapper>a::attr(href)').extract()
         for url_path in url_paths:
-            req = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
-            self.prep_product_tagging(req, item)
-            yield req
+            request = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
+            self.prep_product_tagging(request, item)
+            yield request
 
     def parse_one_image(self, response):
         # For recipes, grab the recipe image
