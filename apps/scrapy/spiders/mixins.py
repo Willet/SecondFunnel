@@ -25,7 +25,7 @@ class ProcessingMixin(object):
 
         Note: this method should be called after item is loaded but before yield'ing
         """
-        if item isinstance ScraperProduct:
+        if isinstance(item, ScraperProduct):
             # Handle tagged products for content
             if response.meta.get('content_id_to_tag', False):
                 item['force_skip_tiles'] = True
@@ -41,7 +41,7 @@ class ProcessingMixin(object):
                 item['tag_with_products'] = True # Command to AssociateWithProductsPipeline
                 item['product_id'] = product_id
 
-        if item isinstance ScraperImage:
+        if isinstance(item, ScraperImage):
             if content_id:
                 item['tag_with_products'] = True # Command to AssociateWithProductsPipeline
                 item['content_id'] = content_id
