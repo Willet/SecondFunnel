@@ -1,5 +1,8 @@
-from scrapy.selector import Selector
 from scrapy.linkextractors import LinkExtractor
+from scrapy.loader.processors import TakeFirst, Join
+from scrapy.selector import Selector
+from urllib import urlencode
+from urlparse import parse_qs, urlsplit, urlunsplit
 
 from apps.scrapy.spiders import Rule
 from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
@@ -37,29 +40,47 @@ class EBagsSpider(SecondFunnelCrawlSpider):
         attributes = {}
 
         l.add_value('url', response.request.url)
-        l.add_css('name', 'h1.title::attr(title)')
         l.add_css('description', "div.productDetailsCon div[itemprop='description']::text")
         l.add_css('sku', 'div#productSpecificationSku + div.specs::text')
 
-        old_price = sel.css("div#divPricing>div:first-child span.bfx-price::text").extract()
-        new_price = sel.css("div#divPricing span.pdpFinalPrice::text").extract()
+        brand = sel.css("div.productCon h1 a[itemprop='brand']::attr(content)", TakeFirst())
+        name = sel.css("div.productCon h1 span[itemprop='name']::text", TakeFirst())
+        l.add_value('name', [brand, u' ', name], Join())
+
+        old_price = sel.css("div#divPricing>div:first-child span.bfx-price::text").extract_first()
+        new_price = sel.css("div#divPricing span.pdpFinalPrice::text").extract_first()
         if old_price:
-            l.add_value('price', old_price[0])
-            l.add_value('sale_price', new_price[0])
+            l.add_value('price', old_price)
+            l.add_value('sale_price', new_price)
         else:
-            l.add_value('price', new_price[0])
+            l.add_value('price', new_price)
 
-        # image urls come in format:
-        # http://cdn1.ebags.com/is/image/im2/13032_1_2?resmode=4&op_usm=1,1,1,&qlt=95,1&hei=65&wid=65&align=0,1
-        # need to convert url params to: ?resmode=4&op_usm=1,1,1,&qlt=80,1&hei=1500&wid=1500&align=0,1&res=1500
-
-        icons = sel.css(".product_views li[data-type='photo'] img::attr(src)").extract()
+        
+        icons = sel.css("div#richMediaIcons>img.iconImage::attr(src)").extract()
         image_urls = []
         for img in icons:
-            if self.root_url not in img:
-                img = self.root_url + img
-            img = img.replace('med_large', 'large').replace('_m_l', '_l')
-            image_urls.append(img) 
+            image_urls.append(update_image_url(img))
         l.add_value('image_urls', image_urls)
         
         yield l.load_item()
+
+    def update_image_url(self, url):
+        """
+        image urls come in format:
+        http://cdn1.ebags.com/is/image/im2/13032_1_2?resmode=4&op_usm=1,1,1,&qlt=95,1&hei=65&wid=65&align=0,1
+        need to convert url params to: ?resmode=4&op_usm=1,1,1,&qlt=80,1&hei=1500&wid=1500&align=0,1&res=1500
+        """
+        scheme, netloc, path, query_string, fragment = urlsplit(url)
+        query_params = parse_qs(query_string)
+
+        query_params.update({
+            'resmode': 4,
+            'op_usm': '1,1,1,',
+            'qlt': '80,1',
+            'hei': 1500,
+            'wid': 1500,
+            'align': '0,1',
+            'res': 1500,
+        })
+        updated_qs = urlencode(query_params, doseq=True)
+        return urlunsplit((scheme, netloc, path, updated_qs, fragment))

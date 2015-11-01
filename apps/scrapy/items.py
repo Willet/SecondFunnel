@@ -18,16 +18,17 @@ class ScraperBase(DjangoItem):
 # Also, fields that override existing fields don't *seem* to affect
 # the underlying model field (e.g. `store` below)
 class ScraperProduct(ScraperBase):
-    django_model = Product
+    django_model = Product # Automatically populates assets.Product fields
     image_urls = Field()
     images = Field()
     created = Field()
+    tag_with_products = Field()
     content_id_to_tag = Field()
     store = Field(serializer=store_serializer)
 
 
 class ScraperContent(ScraperBase):
-    django_model = Content
+    django_model = Content # Automatically populates assets.Content fields
     created = Field()
     tag_with_products = Field()
     content_id = Field()
@@ -35,8 +36,8 @@ class ScraperContent(ScraperBase):
 
 
 class ScraperImage(ScraperContent):
-    django_model = Image
+    django_model = Image # Automatically populates assets.Image fields
 
 
 class ScraperVideo(ScraperContent):
-    django_model = Video
+    django_model = Video # Automatically populates assets.Video fields
