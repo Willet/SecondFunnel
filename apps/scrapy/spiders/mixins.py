@@ -57,7 +57,7 @@ class ProcessingMixin(object):
         """
         if item.get('content_id', False):
             request.meta['content_id_to_tag'] = item['content_id']
-        elif item.get('product_id', False)
+        elif item.get('product_id', False):
             request.meta['product_id_to_tag'] = item['product_id']
 
     """
