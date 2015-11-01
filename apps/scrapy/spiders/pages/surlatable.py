@@ -167,9 +167,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
                 magic_values = sel.css('.fluid-display::attr(id)').extract_first().split(':')
                 xml_path = u"/images/customers/c{1}/{2}/{2}_{3}/pview_{2}_{3}.xml".format(*magic_values)
                 request = WebdriverRequest(self.root_url + xml_path, callback=self.parse_product_images)
-
                 request.meta['item'] = item
-
                 yield request
             except IndexError:
                 yield item
@@ -221,7 +219,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         url_paths = sel.css('.productinfo .itemwrapper>a::attr(href)').extract()
         for url_path in url_paths:
             req = WebdriverRequest(self.root_url + url_path, callback=self.parse_product)
-            req.meta['content_id_to_tag'] = item['content_id']
+            self.prep_product_tagging(req, item)
             yield req
 
     def parse_one_image(self, response):

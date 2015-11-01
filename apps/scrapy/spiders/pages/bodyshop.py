@@ -63,9 +63,7 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
             image_urls.append(img) 
         l.add_value('image_urls', image_urls)
         item = l.load_item()
-
-        # If this is a similar_product and tagged_product, handle it
-        # If not, it enables it to be tagged
+        
         self.handle_product_tagging(response, item, product_id=item['url'])
         
         yield item
@@ -75,5 +73,5 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
             url_paths = sel.css('.top-products .content>a::attr(href)').extract()
             for url_path in url_paths:
                 req = WebdriverRequest(url_path, callback=self.parse_product)
-                req.meta['product_id_to_tag'] = item['product_id']
+                self.prep_product_tagging(request, item)
                 yield req

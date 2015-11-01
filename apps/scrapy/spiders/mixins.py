@@ -11,17 +11,17 @@ class ProcessingMixin(object):
     @staticmethod
     def handle_product_tagging(response, item, product_id=None, content_id=None):
         """
-        Call this on product or content items to handle tagging. If product_id or content_id
-        are provided and this item is not already tagged for another item, then it is
-        caught by the AssociateWithProductsPipeline for tagging.
+        Call this on product or content items to handle tagging. If `product_id`
+        or `content_id` are provided AND this item is not already tagged for another
+        item, then it is caught by the AssociateWithProductsPipeline for tagging.
 
-        Subsequent products that should tag this item should have
-        meta['content_id_to_tag'] = content_id or meta['product_id_to_tag'] = product_id
+        Subsequent product requests that should be tagged to this item MUST
+        run through `prep_product_tagging`
 
-        @response: 
+        @param response: scrapy <Response>
         @param item: <ScraperProduct> or <ScraperImage>
-        @product_id: (optional) <str> or <int> - the id 
-        @content_id: (optional) <str> or <int> - an id to tag 
+        @param product_id: (optional) <str> or <int> - an id to tag 
+        @param content_id: (optional) <str> or <int> - an id to tag 
 
         Note: this method should be called after item is loaded but before yield'ing
         """
@@ -45,6 +45,20 @@ class ProcessingMixin(object):
             if content_id:
                 item['tag_with_products'] = True # Command to AssociateWithProductsPipeline
                 item['content_id'] = content_id
+
+    @staticmethod
+    def prep_product_tagging(request, item):
+        """
+        Call this after loading an item on subsequent product requests that will be tagged
+        to the original item (content or product)
+
+        @param request scrapy <Request>
+        @param item <ScraperProduct> or <ScraperImage>
+        """
+        if item.get('content_id', False):
+            request.meta['content_id_to_tag'] = item['content_id']
+        elif item.get('product_id', False)
+            request.meta['product_id_to_tag'] = item['product_id']
 
     """
     The hooks can be optionally overwritten in the spiders for individual clients
