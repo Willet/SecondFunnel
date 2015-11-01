@@ -72,6 +72,6 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
             # Scrape similar products
             url_paths = sel.css('.top-products .content>a::attr(href)').extract()
             for url_path in url_paths:
-                req = WebdriverRequest(url_path, callback=self.parse_product)
+                request = WebdriverRequest(url_path, callback=self.parse_product)
                 self.prep_product_tagging(request, item)
-                yield req
+                yield request
