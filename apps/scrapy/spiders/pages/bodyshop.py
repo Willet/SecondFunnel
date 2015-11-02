@@ -27,7 +27,7 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
 
     ### Page routing
     def is_product_page(self, response):
-        return bool('www.ebags.com/product/' in response.url)
+        return bool(response.selector.css('div#product-block'))
 
     def is_category_page(self, response):
         return False # update!
