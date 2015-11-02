@@ -94,7 +94,8 @@ body {
             cursor: pointer;
             width: 450px;
             .btn {
-                background: $ebags-dark-blue url('/static/light/ebags/landingpage/lite/images/searchIcon-white.png') no-repeat 10px 8px;
+                background: $ebags-dark-blue url(
+                    '/static/light/ebags/landingpage/lite/images/searchIcon-white.png') no-repeat 10px 8px;
                 background-size: 16px 16px;
                 width: 40px;
                 height: 34px;
@@ -475,7 +476,7 @@ body {
         }
     }
     .content {
-        padding: 40px 10px 10px !important;
+        padding: 40px 40px 40px !important;
         max-height: 720px;
         height: auto;
         border-radius: 10px;
@@ -529,7 +530,7 @@ body {
         text-shadow: none;
         font-size: 12px;
         font-weight: normal;
-        color: #fff;
+        color: #000;
         z-index: 10;
         &:hover {
             opacity: 0.6;
@@ -727,11 +728,12 @@ body {
             font-weight: bold;
             line-height: 35px;
             padding-top: 5px;
+            padding-bottom: 5px;
             text-transform: uppercase;
             width: 100%;
             border-radius: 10px;
             &:hover {
-                background-color: #fff;
+                background-color: $ebags-dark-blue;
                 text-decoration: none;
             }
         }
@@ -912,11 +914,11 @@ body {
         bottom: 0;
     }
     .stl-swipe-left, .gallery-swipe-left {
-        background-image: url('/static/light/surlatable/landingpage/default/images/left.png');
+        background-image: url('/static/light/ebags/landingpage/lite/images/left-block.svg');
         left: 0;
     }
     .stl-swipe-right, .gallery-swipe-right {
-        background-image: url('/static/light/surlatable/landingpage/default/images/right.png');
+        background-image: url('/static/light/ebags/landingpage/lite/images/right-block.svg');
         right: 0;
     }
 }
