@@ -39,6 +39,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
     def __init__(self, *args, **kwargs):
         super(SurLaTableSpider, self).__init__(*args, **kwargs)
 
+    ### Page routing
     def parse_start_url(self, response):
         if self.is_product_page(response):
             return self.parse_product(response)
@@ -53,6 +54,9 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         #return sel.css('#productdetail label#productPriceValue')
         return bool('surlatable.com/product/PRO-' in response.url)
 
+    def is_category_page(self, response):
+        return bool('surlatable.com/category/TCA-' in response.url)
+
     def is_recipe_page(self, response):
         # Could be more elaborate, but works
         return bool('surlatable.com/product/REC-' in response.url)
@@ -60,6 +64,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
     def is_sold_out(self, response):
         return False
 
+    ### Scraper control
     @staticmethod
     def clean_url(url):
         cleaned_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/(?:category/TCA-\d+|product/(?:REC-|PRO-|prod)\d+)/).*?',
@@ -92,7 +97,8 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
                 tile.save()
         except AttributeError as e:
             self.logger.warning(u"Error determining product shot: {}".format(e))
-        
+    
+    ### Parsers
     def parse_product(self, response):
         if not self.is_product_page(response):
             self.logger.warning(u"Unexpectedly not a product page: {}".format(response.request.url))
@@ -135,13 +141,13 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         #    $9.95 - $48.96
         #    Now: $99.96 Was: $139.95 Value: $200.00
         try:
-            price_range = sel.css('meta[property="eb:pricerange"]::attr(content)').extract()[0]
+            price_range = sel.css('meta[property="eb:pricerange"]::attr(content)').extract_first()
             try:
-                reg_price = sel.css('.product-priceInfo #product-priceList span::text').extract()[0].split('-')[0]
+                reg_price = sel.css('.product-priceInfo #product-priceList span::text').extract_first().split('-')[0]
             except IndexError:
-                reg_price = sel.css('.product-priceMain span.hide::text').extract()[0].split('-')[0]
+                reg_price = sel.css('.product-priceMain span.hide::text').extract_first().split('-')[0]
             else:
-                sale_price = sel.css('.product-priceMain span.hide::text').extract()[0].split('-')[0]
+                sale_price = sel.css('.product-priceMain span.hide::text').extract_first().split('-')[0]
                 l.add_value('sale_price', unicode(sale_price))
             if price_range:
                 attributes['price_range'] = unicode(price_range)
@@ -228,10 +234,8 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         item = response.meta.get('item', ScraperImage())
         l = ScraperContentLoader(item=item, response=response)
 
-        try:
-            url = sel.css('image[url*="touchzoom"]::attr(url)').extract()[0]
-        except IndexError:
-            url = sel.css('image[url*="main"]::attr(url)').extract()[0]
+        url = sel.css('image[url*="touchzoom"]::attr(url)').extract_first() or \
+              sel.css('image[url*="main"]::attr(url)').extract_first()
         
         source_url = u'{}/{}'.format(response.url.rsplit('/', 1)[0], url.rsplit('/', 1)[1])
         

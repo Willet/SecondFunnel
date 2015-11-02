@@ -25,12 +25,17 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
     def __init__(self, *args, **kwargs):
     	super(BodyShopSpider, self).__init__(*args, **kwargs)
 
+    ### Page routing
     def is_product_page(self, response):
         return bool(response.selector.css('div#product-block'))
+
+    def is_category_page(self, response):
+        return False # update!
 
     def is_sold_out(self, response):
         return bool(response.selector.css('a.outofstockbtn'))
 
+    ### Parses
     def parse_product(self, response):
         if not self.is_product_page(response):
             self.logger.warning(u"Unexpectedly not a product page: {}".format(response.request.url))
@@ -49,10 +54,10 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         old_price = sel.css('p.price.old::text').extract()
         new_price = sel.css('p.price.new::text').extract()
         if old_price:
-            l.add_value('price', old_price[0])
-            l.add_value('sale_price', new_price[0])
+            l.add_value('price', old_price)
+            l.add_value('sale_price', new_price)
         else:
-            l.add_value('price', new_price[0])
+            l.add_value('price', new_price)
 
         icons = sel.css('.product_views li[data-type="photo"] img::attr(src)').extract()
         image_urls = []

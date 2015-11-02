@@ -18,6 +18,21 @@ def sanitize_html(html):
     return bleach.clean(html, tags=allowed_tags, attributes=allowed_attrs,
                         strip=True)
 
+def default_value(value):
+    """
+    Internally, ItemLoader uses a defaultdict([]). If the `arg` is `[]`, replace
+    it with the desired default `value`.
+
+    Note: if value is a [] or {}, it should be wrapped in a lambda to avoid that
+    object being shared between loader instances
+    """
+    def func(arg):
+        if isinstance(arg, list) and not arg:
+            return value() if callable(value) else value
+        else:
+            return arg
+    return func
+
 
 class ScraperProductLoader(ItemLoader):
     """
@@ -41,7 +56,7 @@ class ScraperProductLoader(ItemLoader):
 
     details_in = Compose(Join(), sanitize_html)
 
-    attributes_out = MergeDicts()
+    attributes_out = Compose(default_value(lambda: {}), MergeDicts())
 
     image_urls_out = Identity()
 
@@ -58,4 +73,4 @@ class ScraperContentLoader(ItemLoader):
 
     details_in = Compose(Join(), sanitize_html)
 
-    attributes_out = MergeDicts()
+    attributes_out = Compose(default_value(lambda: {}), MergeDicts())
