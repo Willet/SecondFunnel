@@ -19,12 +19,13 @@ def sanitize_html(html):
                         strip=True)
 
 def default_value(value):
+    # Note: if value is a [] or {}, it should be wrapped in a lambda
+    # to avoid that object being shared between loader instances
     def func(arg):
         if arg is None:
             return value() if callable(value) else value
         else:
             return arg
-
     return func
 
 
