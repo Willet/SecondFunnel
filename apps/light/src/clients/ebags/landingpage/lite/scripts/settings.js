@@ -1,149 +1,127 @@
 {
   "tiles":{
-    "imageTileWideProb":0.2,
     "wideableTemplates":{
       "image":true,
-      "product": true
-    }
+      "product":true
+    },
+    "imageTileWideProb":0.2
   },
-  "home":{
-    "category":"mothersday"
-  },
-  "social_buttons":null,
-  "desktopHeroImage":"",
-  "ga_account_number":"UA-23764505-25",
-  "mobileHeroImage":"",
-  "column_width":341,
+  "mobileCategories":[],
   "categoryHome":false,
+  "gaAccountNumber":"UA-23764505-25",
+  "column_width":341,
+  "social_buttons":null,
+  "stickyCategories":true,
+  "generateHeroArea":true,
+  "useAffiliateLinks":true,
+  "desktopHeroImage":"",
+  "home":{
+    "category":"all-gifts"
+  },
+  "mobileHeroImage":"",
+  "minImageWidth":400,
   "masonry":{
     "tileAspectRatio":1,
     "forceGrid":true
   },
-  "minImageWidth":675,
-  "stickyCategories":"desktop-only",
   "categories":[
     {
+      "displayName":"For Her",
+      "name":"for-her",
+      "title":"Gifts for Her",
+      "desktopHeroImage":"",
       "mobileHeroImage":"",
-      "displayName":"All Gifts",
-      "name":"mothersday",
-      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760098/AllMothersDayGifts_green_lrcxtv.jpg",
-      "tileSet": "products"
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Cook_111x111.jpg"
     },
     {
+      "displayName":"For Him",
+      "name":"for-him",
+      "title":"Gifts for Him",
+      "desktopHeroImage":"",
       "mobileHeroImage":"",
-      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760099/MothersDayTop25GiftsMom_green_j1xeld.jpg",
-      "displayName":"Top 25",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/Top25GiftsMom_steamgrill_bnsodg.jpg",
-      "name":"top-25",
-      "tileSet": "products"
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Cook_111x111.jpg"
     },
     {
-      "mobileHeroImage":"",
-      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/MothersDayGiftsUnder50_green_jbn8ad.jpg",
-      "displayName":"Under $50",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/GiftsUnder50_apron_glbpne.jpg",
-      "name":"under-50",
-      "tileSet": "products"
-    },
-    {
-      "mobileHeroImage":"",
-      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/MothersDayGiftsUnder100_green_pjny8l.jpg",
-      "displayName":"Under $100",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/GiftsUnder100_skillet_hcqjpw.jpg",
-      "name":"under-100",
-      "tileSet": "products"
-    },
-    {
-      "mobileHeroImage":"",
-      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/GourmetGiftsforMom_green_stnbtt.jpg",
-      "displayName":"Gourmet",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/GiftsForMom_kitchenaid_fjhmiz.jpg",
-      "name":"gourmet",
-      "tileSet": "products"
-    },
-    {
-      "mobileHeroImage":"",
-      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/MothersDayBakingRecipes_green_nyjzqq.jpg",
-      "displayName":"Baking Recipes",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/BakingRecipes_lavender_macarons_ogxrk9.jpg",
-      "name":"baking",
-      "tileSet": "content"
-    },
-    {
-      "mobileHeroImage":"",
-      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/MothersDayBrunchRecipes_green_iz57lz.jpg",
-      "displayName":"Brunch Recipes",
-      "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/BrunchRecipes_eggs_benedict_fat4qs.jpg",
-      "name":"brunch",
-      "tileSet": "content"
-    }
-  ],
-  "mobileCategories":[
-    {
-      "mobileHeroImage":"",
       "subCategories":[
         {
-          "mobileHeroImage":"",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760099/MothersDayTop25GiftsMom_green_j1xeld.jpg",
-          "displayName":"Top 25",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/Top25GiftsMom_steamgrill_bnsodg.jpg",
-          "name":"top-25",
-          "tileSet": "products"
+          "label":"Gifts by Price"
         },
         {
+          "tileSet":"products",
+          "displayName":"Under $30",
+          "name":"under-30",
+          "title":"Gifts Under $30",
+          "desktopHeroImage":"",
           "mobileHeroImage":"",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/MothersDayGiftsUnder50_green_jbn8ad.jpg",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-25_50x50.jpg"
+        },
+        {
+          "tileSet":"products",
           "displayName":"Under $50",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/GiftsUnder50_apron_glbpne.jpg",
           "name":"under-50",
-          "tileSet": "products"
+          "title":"Gifts Under $50",
+          "desktopHeroImage":"",
+          "mobileHeroImage":"",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-50_50x50.jpg"
         },
         {
+          "tileSet":"products",
+          "displayName":"Under $70",
+          "name":"under-70",
+          "title":"Gifts Under $70",
+          "desktopHeroImage":"",
           "mobileHeroImage":"",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/MothersDayGiftsUnder100_green_pjny8l.jpg",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-100_50x50.jpg"
+        },
+        {
+          "tileSet":"products",
           "displayName":"Under $100",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/GiftsUnder100_skillet_hcqjpw.jpg",
           "name":"under-100",
-          "tileSet": "products"
+          "title":"Gifts Under $100",
+          "desktopHeroImage":"",
+          "mobileHeroImage":"",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-100_50x50.jpg"
         },
         {
+          "tileSet":"products",
+          "displayName":"Splurge!",
+          "name":"splurge",
+          "title":"Gifts over $100",
+          "desktopHeroImage":"",
           "mobileHeroImage":"",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/GourmetGiftsforMom_green_stnbtt.jpg",
-          "displayName":"Gourmet",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/GiftsForMom_kitchenaid_fjhmiz.jpg",
-          "name":"gourmet",
-          "tileSet": "products"
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gourmet_50x50.jpg"
         }
       ],
-      "displayName":"<i>Mother\u2019s Day</i> GIFT SHOPS",
-      "name":"mothersday",
-      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760098/AllMothersDayGifts_green_lrcxtv.jpg",
-      "tileSet": "products"
+      "displayName":"Gifts by Price",
+      "name":"",
+      "tileSet":"products",
+      "desktopHeroImage":"",
+      "mobileHeroImage":"",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gifts-By-Price_111x111.jpg"
     },
     {
+      "displayName":"By Recipient",
+      "name":"the-baker",
+      "title":"Gifts for the Baker",
+      "desktopHeroImage":"",
       "mobileHeroImage":"",
-      "subCategories":[
-        {
-          "mobileHeroImage":"",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/MothersDayBakingRecipes_green_nyjzqq.jpg",
-          "displayName":"Baking",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/BakingRecipes_lavender_macarons_ogxrk9.jpg",
-          "name":"baking",
-          "tileSet": "content"
-        },
-        {
-          "mobileHeroImage":"",
-          "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760100/MothersDayBrunchRecipes_green_iz57lz.jpg",
-          "displayName":"Brunch",
-          "thumbnail":"http://res.cloudinary.com/secondfunnel/image/upload/v1426892663/BrunchRecipes_eggs_benedict_fat4qs.jpg",
-          "name":"brunch",
-          "tileSet": "content"
-        }
-      ],
-      "displayName":"<i>Mother\u2019s Day</i> RECIPES",
-      "name":"recipes",
-      "desktopHeroImage":"http://res.cloudinary.com/secondfunnel/image/upload/v1427760033/all_recipes_ussowd.png",
-      "tileSet": "content"
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Baker_111x111.jpg"
+    },
+    {
+      "displayName":"Stocking Stuffers",
+      "name":"stocking-stuffers",
+      "title":"Stocking Stuffers",
+      "desktopHeroImage":"",
+      "mobileHeroImage":"",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Family_111x111.jpg"
+    },
+    {
+      "displayName":"Packing Cubes",
+      "name":"packing-cube",
+      "title":"Packing Cubes",
+      "desktopHeroImage":"",
+      "mobileHeroImage":"",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Host_111x111.jpg"
     }
   ]
 }
