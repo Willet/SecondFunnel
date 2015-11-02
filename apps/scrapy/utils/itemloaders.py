@@ -19,10 +19,15 @@ def sanitize_html(html):
                         strip=True)
 
 def default_value(value):
-    # Note: if value is a [] or {}, it should be wrapped in a lambda
-    # to avoid that object being shared between loader instances
+    """
+    Internally, ItemLoader uses a defaultdict([]). If the `arg` is `[]`, replace
+    it with the desired default `value`.
+
+    Note: if value is a [] or {}, it should be wrapped in a lambda to avoid that
+    object being shared between loader instances
+    """
     def func(arg):
-        if arg is None:
+        if isinstance(arg, list) and not arg:
             return value() if callable(value) else value
         else:
             return arg
