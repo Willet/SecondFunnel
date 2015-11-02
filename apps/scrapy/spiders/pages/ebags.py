@@ -18,13 +18,20 @@ class EBagsSpider(SecondFunnelCrawlSpider):
     store_slug = name
     # URLs will be scraped looking for more links that match these rules
     rules = (
-        # Search, Category, Brand page, follow these links
+        # Search, Category, Brand page: product links on current results page
         Rule(LinkExtractor(allow=[r'www\.ebags\.com'], restrict_xpaths=
             "//div[@class='srList']//div[contains(@class, 'listPageItem')]//div[@class='listPageImage']/a",
             ),
             allow_sources=[r"www\.ebags\.com/(?:search/|brand/|category/)"],
             callback="parse_product",
             follow=False),
+        # Search, Category, Brand page: follow to next results page
+        # canonicalize allows us to follow url fragments like #from120
+        Rule(LinkExtractor(allow=[r'www\.ebags\.com'], canonicalize=False, restrict_xpaths=
+            "//div[@class='sortbynavbg']//div[@class='pageThis']//a[@class='pagingNext']",
+            ),
+            allow_sources=[r"www\.ebags\.com/(?:search/|brand/|category/)"],
+            follow=True),
     )
 
     def __init__(self, *args, **kwargs):

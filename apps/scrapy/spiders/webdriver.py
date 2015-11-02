@@ -144,7 +144,8 @@ class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingMixin):
         if self.is_product_page(response):
             return self.parse_product(response)
         elif self.is_category_page(response):
-            # Don't scrape category pages
+            # Don't parse category pages
+            # Let Rule's follow links category pages
             return []
         else:
             self.logger.error(u"Unrecognized start url: {}".format(response.url))
