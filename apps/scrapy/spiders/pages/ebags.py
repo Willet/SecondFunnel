@@ -45,7 +45,7 @@ class EBagsSpider(SecondFunnelCrawlSpider):
 
         brand = sel.css("div.productCon h1 a[itemprop='brand']::attr(content)", TakeFirst())
         name = sel.css("div.productCon h1 span[itemprop='name']::text", TakeFirst())
-        l.add_value('name', [brand, u' ', name], Join())
+        l.add_value('name', [brand, name], Join())
 
         old_price = sel.css("div#divPricing>div:first-child span.bfx-price::text").extract_first()
         new_price = sel.css("div#divPricing span.pdpFinalPrice::text").extract_first()
