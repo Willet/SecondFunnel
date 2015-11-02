@@ -147,12 +147,7 @@ class ContentImagePipeline(ItemManifold):
             item['file_type'] = data.get('format')
             item['dominant_color'] = data.get('dominant_color')
             item['source_url'] = source_url
-            if not item.get('attributes', False):
-                item['attributes'] = {}
-            try:
-                item['attributes']['sizes'] = data['sizes']
-            except KeyError:
-                item['attributes']['sizes'] = {}
+            item['attributes']['sizes'] = data.get('sizes', {})
 
             return item
 

@@ -18,6 +18,15 @@ def sanitize_html(html):
     return bleach.clean(html, tags=allowed_tags, attributes=allowed_attrs,
                         strip=True)
 
+def default_value(value):
+    def func(arg):
+        if arg is None:
+            return value() if callable(value) else value
+        else:
+            return arg
+
+    return func
+
 
 class ScraperProductLoader(ItemLoader):
     """
@@ -41,7 +50,7 @@ class ScraperProductLoader(ItemLoader):
 
     details_in = Compose(Join(), sanitize_html)
 
-    attributes_out = MergeDicts()
+    attributes_out = Compose(default_value(lambda: {}), MergeDicts())
 
     image_urls_out = Identity()
 
@@ -58,4 +67,4 @@ class ScraperContentLoader(ItemLoader):
 
     details_in = Compose(Join(), sanitize_html)
 
-    attributes_out = MergeDicts()
+    attributes_out = Compose(default_value(lambda: {}), MergeDicts())
