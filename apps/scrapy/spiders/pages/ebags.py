@@ -21,19 +21,26 @@ class EBagsSpider(SecondFunnelCrawlSpider):
         # Search page, Brand page, follow these links
         Rule(LinkExtractor(allow=[r'www\.thebodyshop-usa\.com'], restrict_xpaths=
             "//div[@class='srList']//div[contains(@class, 'listPageItem')]//div[@class='listPageImage']/a",
+            ),
             allow_sources=[r"www\.ebags\.com/(?:search/|search/|brand/|category/)"],
-        ), callback="parse_product", follow=False),
+            callback="parse_product",
+            follow=False),
     )
 
     def __init__(self, *args, **kwargs):
         super(EBagsSpider, self).__init__(*args, **kwargs)
 
+    ### Page routing
     def is_product_page(self, response):
         return bool(response.selector.css('div.add-cart-con'))
+
+    def is_category_page(self, response):
+        return bool(response.selector.css('div.srList'))
 
     def is_sold_out(self, response):
         return False
 
+    ### Parsers
     def parse_product(self, response):
         sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)

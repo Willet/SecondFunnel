@@ -25,12 +25,17 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
     def __init__(self, *args, **kwargs):
     	super(BodyShopSpider, self).__init__(*args, **kwargs)
 
+    ### Page routing
     def is_product_page(self, response):
-        return bool(response.selector.css('div#product-block'))
+        return bool('www.ebags.com/product/' in response.url)
+
+    def is_category_page(self, response):
+        return False # update!
 
     def is_sold_out(self, response):
         return bool(response.selector.css('a.outofstockbtn'))
 
+    ### Parses
     def parse_product(self, response):
         if not self.is_product_page(response):
             self.logger.warning(u"Unexpectedly not a product page: {}".format(response.request.url))

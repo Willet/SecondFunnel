@@ -39,6 +39,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
     def __init__(self, *args, **kwargs):
         super(SurLaTableSpider, self).__init__(*args, **kwargs)
 
+    ### Page routing
     def parse_start_url(self, response):
         if self.is_product_page(response):
             return self.parse_product(response)
@@ -53,6 +54,9 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         #return sel.css('#productdetail label#productPriceValue')
         return bool('surlatable.com/product/PRO-' in response.url)
 
+    def is_category_page(self, response):
+        return bool('surlatable.com/category/TCA-' in response.url)
+
     def is_recipe_page(self, response):
         # Could be more elaborate, but works
         return bool('surlatable.com/product/REC-' in response.url)
@@ -60,6 +64,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
     def is_sold_out(self, response):
         return False
 
+    ### Scraper control
     @staticmethod
     def clean_url(url):
         cleaned_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/(?:category/TCA-\d+|product/(?:REC-|PRO-|prod)\d+)/).*?',
@@ -92,7 +97,8 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
                 tile.save()
         except AttributeError as e:
             self.logger.warning(u"Error determining product shot: {}".format(e))
-        
+    
+    ### Parsers
     def parse_product(self, response):
         if not self.is_product_page(response):
             self.logger.warning(u"Unexpectedly not a product page: {}".format(response.request.url))
