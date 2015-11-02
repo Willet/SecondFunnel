@@ -18,11 +18,11 @@ class EBagsSpider(SecondFunnelCrawlSpider):
     store_slug = name
     # URLs will be scraped looking for more links that match these rules
     rules = (
-        # Search page, Brand page, follow these links
-        Rule(LinkExtractor(allow=[r'www\.thebodyshop-usa\.com'], restrict_xpaths=
+        # Search, Category, Brand page, follow these links
+        Rule(LinkExtractor(allow=[r'www\.ebags\.com'], restrict_xpaths=
             "//div[@class='srList']//div[contains(@class, 'listPageItem')]//div[@class='listPageImage']/a",
             ),
-            allow_sources=[r"www\.ebags\.com/(?:search/|search/|brand/|category/)"],
+            allow_sources=[r"www\.ebags\.com/(?:search/|brand/|category/)"],
             callback="parse_product",
             follow=False),
     )
@@ -32,7 +32,7 @@ class EBagsSpider(SecondFunnelCrawlSpider):
 
     ### Page routing
     def is_product_page(self, response):
-        return bool(response.selector.css('div.add-cart-con'))
+        return bool('www.ebags.com/product/' in response.url)
 
     def is_category_page(self, response):
         return bool(response.selector.css('div.srList'))
@@ -47,12 +47,15 @@ class EBagsSpider(SecondFunnelCrawlSpider):
         attributes = {}
 
         l.add_value('url', response.request.url)
-        l.add_css('description', "div.productDetailsCon div[itemprop='description']::text")
+        l.add_css('description', "div.productDetailsCon div.for-jsFeatures ul>li")
         l.add_css('sku', 'div#productSpecificationSku + div.specs::text')
 
-        brand = sel.css("div.productCon h1 a[itemprop='brand']::attr(content)", TakeFirst())
-        name = sel.css("div.productCon h1 span[itemprop='name']::text", TakeFirst())
-        l.add_value('name', [brand, name], Join())
+        brand = l.get_css("div#productCon h1 a[itemprop='brand']::attr(content)", TakeFirst())
+        name = l.get_css("div#productCon h1 span[itemprop='name']::text", TakeFirst())  
+        if brand:
+            l.add_value('name', [brand, name], Join())
+        else:
+            l.add_value('name', name)
 
         old_price = sel.css("div#divPricing>div:first-child span.bfx-price::text").extract_first()
         new_price = sel.css("div#divPricing span.pdpFinalPrice::text").extract_first()
@@ -63,20 +66,36 @@ class EBagsSpider(SecondFunnelCrawlSpider):
             l.add_value('price', new_price)
 
         
-        icons = sel.css("div#richMediaIcons>img.iconImage::attr(src)").extract()
+        # Image urls can take too long to be loaded by JS (resulting in random errors)
+        # Grab the image id and build the image url ourselves
+        icons = sel.css("div#richMediaIcons>img.iconImage::attr(data-ipsid)").extract()
         image_urls = []
         for img in icons:
-            image_urls.append(update_image_url(img))
+            image_urls.append(self.generate_image_url(img))
         l.add_value('image_urls', image_urls)
         
         yield l.load_item()
 
+    def generate_image_url(self, image_id):
+        """
+        image urls need to be in this format:
+        http://cdn1.ebags.com/is/image/im2/13032_1_2?...
+                    ...resmode=4&op_usm=1,1,1,&qlt=80,1&hei=1500&wid=1500&align=0,1&res=1500
+        """
+        params = {
+            'resmode': 4,
+            'op_usm': '1,1,1,',
+            'qlt': '80,1',
+            'hei': 1500,
+            'wid': 1500,
+            'align': '0,1',
+            'res': 1500,
+        }
+        qs = urlencode(params, doseq=True)
+        return "http://cdn1.ebags.com/is/image/im8/{}?{}".format(image_id, qs)
+
     def update_image_url(self, url):
-        """
-        image urls come in format:
-        http://cdn1.ebags.com/is/image/im2/13032_1_2?resmode=4&op_usm=1,1,1,&qlt=95,1&hei=65&wid=65&align=0,1
-        need to convert url params to: ?resmode=4&op_usm=1,1,1,&qlt=80,1&hei=1500&wid=1500&align=0,1&res=1500
-        """
+        
         scheme, netloc, path, query_string, fragment = urlsplit(url)
         query_params = parse_qs(query_string)
 
