@@ -126,6 +126,8 @@ class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingMixin):
         self.feed_id = kwargs.pop('feed_id', None)
         # Categories to add tiles to:
         self.categories = kwargs.pop('categories', [])
+        if self.categories:
+            self.categories = self.categories.split(',')
         # Recreate existing tiles
         self.recreate_tiles = kwargs.pop('recreate_tiles', False)
         # Skip creation of new tiles
