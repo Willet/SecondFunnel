@@ -211,8 +211,14 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
             old_images = list(product.product_images.all())
             images = []
             processed = 0
+            image_urls = item.get('image_urls', [])
 
-            for image_url in item.get('image_urls', []):
+            if not image_urls:
+                # Product has no images, convert to placeholder
+                self.convert_to_placeholder(product)
+                raise DropItem(u"<Product {}> has no product images!".format(product))
+
+            for image_url in image_urls:
                 url = urlparse(image_url, scheme='http').geturl()
                 existing_image = next((old_images.pop(i) for i, pi in enumerate(old_images) \
                                       if pi.original_url == url), None)
@@ -227,17 +233,17 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
                     images.append(existing_image)
 
             if not images:
-                # Product has no images, convert to placeholder
+                # Product images failed, convert to placeholder
                 self.convert_to_placeholder(product)
-                spider.logger.info(u"<Product {}> failed image processing!".format(product))
-            else:
-                # Product is good, delete any out of date images
-                old_pks = [pi.pk for pi in old_images]
-                product.product_images.filter(pk__in=old_pks).delete()
-                product.default_image = spider.choose_default_image(product)
-                product.save()
-                spider.logger.info(u"<Product {}> has {} images, {} processed and {} deleted".format(
-                                                    product, len(images), processed, len(old_pks)))
+                raise DropItem(u"<Product {}> failed image processing!".format(product))
+            
+            # Product is good, delete any out of date images
+            old_pks = [pi.pk for pi in old_images]
+            product.product_images.filter(pk__in=old_pks).delete()
+            product.default_image = spider.choose_default_image(product)
+            product.save()
+            spider.logger.info(u"<Product {}> has {} images, {} processed and {} deleted".format(
+                                                product, len(images), processed, len(old_pks)))
                
 
     def process_product_image(self, item, image_url, remove_background=False):
