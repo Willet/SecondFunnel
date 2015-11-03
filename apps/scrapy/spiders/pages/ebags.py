@@ -1,3 +1,5 @@
+import json
+from scrapy.http import Request
 from scrapy.linkextractors import LinkExtractor
 from scrapy.loader.processors import TakeFirst, Join
 from scrapy.selector import Selector
@@ -53,9 +55,11 @@ class EBagsSpider(SecondFunnelCrawlSpider):
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         attributes = {}
 
-        l.add_value('url', response.request.url)
+        l.add_css('url', "link[rel='canonical']::attr(href)")
+        sku = sel.css("link[rel='canonical']::attr(href)").re_first(r'/(\d+)$') # use eBags modelId
+        l.add_value('sku', sku)
         l.add_css('description', "div.productDetailsCon div.for-jsFeatures ul>li")
-        l.add_css('sku', 'div#productSpecificationSku + div.specs::text')
+        
 
         brand = l.get_css("div#productCon h1 a[itemprop='brand']::attr(content)", TakeFirst())
         name = l.get_css("div#productCon h1 span[itemprop='name']::text", TakeFirst())  
@@ -72,22 +76,54 @@ class EBagsSpider(SecondFunnelCrawlSpider):
         else:
             l.add_value('price', new_price)
 
-        
-        # Image urls can take too long to be loaded by JS (resulting in random errors)
-        # Grab the image path & image id and build the image url ourselves
+        item = l.load_item()
 
-        # eBags images are spread amongst various paths /is/image/imX/, where X is an integer
-        img_path = sel.css("div#rmvHeroImage>div.inline-block-con>img[itemprop='image']::attr(src)")\
-                      .re_first( r'/(is/image/im\d)/')
-        icons = sel.css("div#richMediaIcons>img.iconImage::attr(data-ipsid)").extract()
-        image_urls = []
-        for img in icons:
-            image_urls.append(self.generate_image_url(img_path, img))
-        l.add_value('image_urls', image_urls)
-        
-        yield l.load_item()
+        if self.skip_images:
+            yield item
+        else:
+            # Image urls can take too long to be loaded by JS (resulting in random errors)
+            # Get the image ids from eBags data API and build the image urls
+            api_url = u"http://externalservice.ebags.com/richmediaservice/api/richmediasets/{}".format(item['sku'])
+            request = Request(api_url, callback=self.parse_product_images)
+            request.meta['item'] = item
+            yield request
+    
+    def parse_product_images(self, response):
+        """
+        Response will be json that looks like:
+        {
+            "Successful":true,
+            "RichMediaSet":{
+                "ModelId":48439,
+                "AssetResourceBaseUri":"http://cdn1.ebags.com/is/image/",
+                "CompanyName":"im9",
+                "ModelDetailAssets":[
+                    "48439_1_2","48439_1_3","48439_1_4","48439_1_5", "48439_1_6","48439_1_7"
+                ],
+                "DefaultAlternateModelDetailAsset":"48439_1_2",
+                "SwatchSetAssets":[
+                    "48439_5_1","48439_6_1","48439_7_1","48439_8_1","48439_10_1","48439_11_1",
+                    "48439_12_1","48439_13_1","48439_14_1","48439_15_1"
+                ],
+                "SpinSets":[]
+            }
+        }
+        """
+        item = response.meta.get('item', ScraperProduct())
+        data = json.loads(response.body)
+        if data['Successful']:
+            # Got data, build image urls
+            assets = data['RichMediaSet']
 
-    def generate_image_url(self, image_path, image_id):
+            img_base_url = "{}{}".format(assets['AssetResourceBaseUri'], assets['CompanyName'])
+            first_img = '{}_1_1'.format(assets['ModelId']) # JSON doesn't include 1st image
+            img_ids = assets['ModelDetailAssets']
+            img_ids.insert(0, first_img)
+
+            item['image_urls'] = [self.generate_image_url(img_base_url, img_id) for img_id in img_ids]
+        yield item
+
+    def generate_image_url(self, base_image_url, image_id):
         """
         image urls need to be in this format:
         http://cdn1.ebags.com/is/image/im2/13032_1_2?...
@@ -103,21 +139,4 @@ class EBagsSpider(SecondFunnelCrawlSpider):
             'res': 1500,
         }
         qs = urlencode(params, doseq=True)
-        return "http://cdn1.ebags.com/{}/{}?{}".format(image_path, image_id, qs)
-
-    def update_image_url(self, url):
-        
-        scheme, netloc, path, query_string, fragment = urlsplit(url)
-        query_params = parse_qs(query_string)
-
-        query_params.update({
-            'resmode': 4,
-            'op_usm': '1,1,1,',
-            'qlt': '80,1',
-            'hei': 1500,
-            'wid': 1500,
-            'align': '0,1',
-            'res': 1500,
-        })
-        updated_qs = urlencode(query_params, doseq=True)
-        return urlunsplit((scheme, netloc, path, updated_qs, fragment))
+        return "{}/{}?{}".format(base_image_url, image_id, qs)
