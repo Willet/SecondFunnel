@@ -74,16 +74,20 @@ class EBagsSpider(SecondFunnelCrawlSpider):
 
         
         # Image urls can take too long to be loaded by JS (resulting in random errors)
-        # Grab the image id and build the image url ourselves
+        # Grab the image path & image id and build the image url ourselves
+
+        # eBags images are spread amongst various paths /is/image/imX/, where X is an integer
+        img_path = sel.css("div#rmvHeroImage>div.inline-block-con>img[itemprop='image']::attr(src)")\
+                      .re_first( r'/(is/image/im\d)/')
         icons = sel.css("div#richMediaIcons>img.iconImage::attr(data-ipsid)").extract()
         image_urls = []
         for img in icons:
-            image_urls.append(self.generate_image_url(img))
+            image_urls.append(self.generate_image_url(img_path, img))
         l.add_value('image_urls', image_urls)
         
         yield l.load_item()
 
-    def generate_image_url(self, image_id):
+    def generate_image_url(self, image_path, image_id):
         """
         image urls need to be in this format:
         http://cdn1.ebags.com/is/image/im2/13032_1_2?...
@@ -99,7 +103,7 @@ class EBagsSpider(SecondFunnelCrawlSpider):
             'res': 1500,
         }
         qs = urlencode(params, doseq=True)
-        return "http://cdn1.ebags.com/is/image/im8/{}?{}".format(image_id, qs)
+        return "http://cdn1.ebags.com/{}/{}?{}".format(image_path, image_id, qs)
 
     def update_image_url(self, url):
         
