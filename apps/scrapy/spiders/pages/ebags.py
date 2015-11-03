@@ -28,7 +28,7 @@ class EBagsSpider(SecondFunnelCrawlSpider):
         # Search, Category, Brand page: follow to next results page
         # canonicalize allows us to follow url fragments like #from120
         Rule(LinkExtractor(allow=[r'www\.ebags\.com'], canonicalize=False, restrict_xpaths=
-            "//div[@class='sortbynavbg']//div[@class='pageThis']//a[@class='pagingNext']",
+            "//div[@class='sortbynavbg']//li[@class='pageNext']//a[@class='pagingNext']",
             ),
             allow_sources=[r"www\.ebags\.com/(?:search/|brand/|category/)"],
             follow=True),
