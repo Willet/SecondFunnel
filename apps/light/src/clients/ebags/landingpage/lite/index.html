@@ -91,7 +91,7 @@
         <div class="container">
             <a href="http://www.ebags.com/" target="_top" class="logo logoA">
                 <img class="desktop" src="/static/light/ebags/landingpage/lite/images/ebags-logo.png" />
-                <img class="mobile" src="/static/light/ebags/landingpage/lite/images/slt-logo-mobile_300.png" />
+                <img class="mobile" src="/static/light/ebags/landingpage/lite/images/ebags-logo.png" />
             </a>
             <div id="search-bar">
                 <form><div class="input-group">
@@ -212,7 +212,7 @@
             <% var tagged = false; try { tagged = !_.isEmpty(obj.taggedProducts); } catch (e) {} %>
             <div class="fullscreen <% if (scrollable) { %>scrollable<% } %> <%= template %> <% if (tagged) { %>tagged<% } %>">
                 <div class="content">
-                    <span class="close desktop-only">Keep Shopping <img src="/static/light/surlatable/landingpage/lite/images/cross.svg"></span>
+                    <span class="close desktop-only">Keep Shopping <img src="/static/light/ebags/landingpage/lite/images/cross.svg"></span>
                     <span class="close mobile-only">Back</span>
                     <div class="template target"></div>
                 </div>
@@ -436,8 +436,8 @@
                                     Coming soon to Sur la Table!
                                 </div>
                                 <div class="buy">
-                                    <a class='button' href='http://www.surlatable.com/' target='_blank'>
-                                        Shop On Sur la Table
+                                    <a class='button' href='http://www.ebags.com/' target='_blank'>
+                                        Shop On eBags
                                     </a>
                                 </div>
                             </div>
@@ -510,10 +510,6 @@
     <div>
         @@include('shared/default_templates.html')
     </div>
-    <script type="text/javascript" src="/static/light/surlatable/landingpage/lite/scripts/main.js"></script>
-    <script type="text/javascript">
-        // Fanplyr
-        !function(e,t,a){var n=e.createElement(a),r=e.getElementsByTagName(a)[0];n.async=!0,n.src="//d38nbbai6u794i.cloudfront.net/customers/surlatable/adaptor/surlatable.js",r.parentNode.insertBefore(n,r)}(document,window,"script");
-    </script>
+    <script type="text/javascript" src="/static/light/ebags/landingpage/lite/scripts/main.js"></script>
 </body>
 </html>

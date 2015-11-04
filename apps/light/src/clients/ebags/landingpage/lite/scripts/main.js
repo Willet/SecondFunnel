@@ -14,10 +14,9 @@ var Page = require('landingpage'),
 App.module('utils', require('./utils'));
 App.module('core', require('./core.models'));
 App.module('core', require('./core.views'));
-App.module('core', require('./core.views.tiles'));
 
 if (App.option("generateHeroArea")) {
-    App.core.HeroAreaView = App.core.SLTHeroAreaView;
+    App.core.HeroAreaView = App.core.GeneratedHeroAreaView;
 }
 
 // Run Application
