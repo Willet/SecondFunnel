@@ -1,4 +1,5 @@
 import json
+import os
 from scrapy.http import Request
 from scrapy.linkextractors import LinkExtractor
 from scrapy.loader.processors import TakeFirst, Join
@@ -115,7 +116,7 @@ class EBagsSpider(SecondFunnelCrawlSpider):
             # Got data, build image urls
             assets = data['RichMediaSet']
 
-            img_base_url = urljoin(assets['AssetResourceBaseUri'], "{}/".format(assets['CompanyName']))
+            img_base_url = urljoin(assets['AssetResourceBaseUri'], assets['CompanyName'])
             first_img = u"{}_1_1".format(assets['ModelId']) # JSON doesn't include 1st image
             img_ids = assets['ModelDetailAssets']
             img_ids.insert(0, first_img)
@@ -130,6 +131,7 @@ class EBagsSpider(SecondFunnelCrawlSpider):
                     ...resmode=4&op_usm=1,1,1,&qlt=80,1&hei=1500&wid=1500&align=0,1&res=1500
         """
         (scheme, netloc, path, _, _) = urlsplit(base_image_url)
+        path = os.path.join(path, image_id)
         params = {
             'resmode': 4,
             'op_usm': '1,1,1,',
