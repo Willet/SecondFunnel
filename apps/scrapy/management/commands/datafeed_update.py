@@ -11,8 +11,9 @@ from apps.scrapy.log import notify_slack, upload_to_s3
 # Required to use scrapy logging
 class FakeSpider(object):
     """ Emulte spider keys """
-    def __init__(self, name):
+    def __init__(self, name, page_name):
         self.name = name
+        self.reporting_name = "page {}".format(page_name.upper())
 
 
 class FakeLog(object):
@@ -104,7 +105,7 @@ class Command(BaseCommand):
 
         print "Updates saved"
 
-        spider = FakeSpider("{} Datafeed".format(store.name))
+        spider = FakeSpider("{} Datafeed".format(store.name), url_slug)
         reason = "finished"
 
         # Save results

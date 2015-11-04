@@ -6,22 +6,17 @@ char_limit = 243
 swipe = require('jquery-touchswipe')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
-    module.ProductView::onShow = _.wrap(module.ProductView::onShow, (onShow) ->
-        if App.support.mobile()
-            # Add one for description slide unless it's a product popup
-            # in portrait mode without tagged products
-            if @model.get('type') is "product" and App.utils.portrait() \
-                    and _.isEmpty(@model.get('taggedProducts'))
-                @numberOfImages = @model.get('images').length
-            else
-                @numberOfImages = @model.get('images').length + 1
-        onShow.call(@)
-        return
+    module.ProductView::initialize = _.wrap(
+        module.ProductView::initialize, (initialize) ->
+            initialize.call(@)
+            if App.support.mobile()
+                @numberOfImages += 1 # add slot of description
+            return
     )
 
     module.ProductView::onBeforeRender = ->
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
-        inlineLink = "<a href='#{@model.get('cjLink') or @model.get('url')}'>#{linkName}</a>"
+        inlineLink = "<a href='#{@model.get('url')}'>#{linkName}</a>"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
             @model.set("truncatedDescription", truncatedDescription + " " + inlineLink)
@@ -40,22 +35,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             maxWidth = App.option("minImageWidth") or 300
             maxHeight = App.option("minImageHeight") or 300
 
-        for image, i in @$el.find(".main-image .hi-res")
-            $image = $(image)
+        for imageEl, i in @$el.find(".main-image .hi-res")
+            $image = $(imageEl)
             $cachedImage = $image.parent()
 
-            # get base image url
-            if $cachedImage.is("img")
-                imageUrl = $cachedImage.attr("src") or @model.get("images")[i].url
-            else if $cachedImage.is("div")
-                imageUrl = if $cachedImage.css("background-image") is "none" \
-                           then @model.get("images")[i].url \
-                           else $cachedImage.css("background-image").replace('url(','').replace(')','')
-
-            imageUrl = App.utils.getResizedImage(imageUrl,
-                width: maxWidth,
-                height: maxHeight
-            )
+            # find image from id
+            image = _.findWhere(@model.get('images'), id: $cachedImage.data('id'))
+            imageUrl = image.resizeForDimens(maxWidth, maxHeight)
 
             if $image.is("img")
                 $image.attr("src", imageUrl)
@@ -85,14 +71,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
             product = @taggedProducts[$targetEl.data("index")]
-            url = product.get('cjLink') or product.get('url')
             ### Uncomment to enable switching view to product ###
             #@taggedProductIndex = $targetEl.data("index")
             #if App.support.mobile() and not @ui.lookThumbnail.is(':visible')
             #    @productThumbnails.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @productThumbnails.currentView.index + 1)
             #product = @updateContent()
             App.vent.trigger('tracking:product:thumbnailClick', @getTrackingData(product))
-            App.utils.openUrl(url)
+            App.utils.openUrl(product.get("url"))
             return
     )
 

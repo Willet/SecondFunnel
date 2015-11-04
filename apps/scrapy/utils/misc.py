@@ -1,8 +1,9 @@
 import base64
 from cloudinary import uploader as uploader
+import decimal
+import logging
 import os
 import re
-import decimal
 import six
 from StringIO import StringIO
 import tempfile
@@ -16,10 +17,36 @@ class CarefulStringIO(StringIO, object):
     """ StringIO.StringIO errors when streamed a mixture of unicode and str. Force
     unicode conversion
 
-    NOTE magic: requires `object` as mixin b/c StringIO is old-style class that super
+    NOTE magic: requires `object` as mixin b/c StringIO is old-style class that `super`
     doesn't recognize. """
     def write(self, string, *args, **kwargs):
         super(CarefulStringIO, self).write(unicode(string), *args, **kwargs)
+
+
+class ExceptionStatsLogger(logging.Handler):
+    """ Log exceptions to the Scrapy stats collection 
+
+    Scrapy exceptions beyond outside of the crawler are not conviently
+    collected. """
+    def __init__(self, stats):
+        self.stats = stats # reference
+        super(ExceptionStatsLogger, self).__init__()
+        self.setLevel(logging.ERROR)
+
+    def emit(self, record):
+        errors = self.stats.get_value('logging/errors')
+        try:
+            # If this exception was raised in a pipeline, the item will be included in args
+            url = record.args['item']['url']
+        except KeyError:
+            url = 'unknown url'
+
+        msg = "{0}: {1}".format(record.exc_info[0].__name__, record.exc_info[1])
+        items = errors.get(msg, [])
+        items.append(url)
+        errors[msg] = items
+
+        self.stats.set_value('logging/errors', errors)
 
 
 def open_in_browser(response, _openfunc=webbrowser.open):

@@ -1,6 +1,9 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from django.core.exceptions import MultipleObjectsReturned
 
 from apps.assets.models import Product, Category, Content
+from apps.assets.utils import disable_tile_serialization
 
 
 def django_item_values(item):
@@ -25,6 +28,10 @@ def get_or_create(model):
     Instead, this does a lookup on a narrow set of reliably distinct fields.
     Update should be manually performed by update_model (see below)
 
+    NOTE: if model is Product and multiple Product's are found, they are merged here.
+    Tile serialization is disabled for this merge and can leave the database in a bad state.
+    Be very careful to run tile serialization soon after this.
+
     Returns: <tuple> (<model_class> obj, <bool> created)
     """
     model_class = type(model)
@@ -41,9 +48,13 @@ def get_or_create(model):
         try:
             (product, created) = get_or_return(model, query)
         except MultipleObjectsReturned:
-            qs = Product.objects.filter(**query)
-            product = Product.merge_products(qs)
-            created = False
+            # If this Product model is incomplete (ex: no images yet), then merging
+            # with existing Products that are already on tiles can trigger serialization
+            # errors. Be careful, possible source of bad tiles!
+            with disable_tile_serialization():
+                qs = Product.objects.filter(**query)
+                product = Product.merge_products(qs)
+                created = False
         return (product, created)
     
     if isinstance(model, Product):
@@ -66,7 +77,6 @@ def update_model(destination, source_item, commit=True):
     attrs = destination.get('attributes', {}).copy()
     attrs.update(source_item.get('attributes', {}))
     source_item['attributes'] = attrs
-
     for (key, value) in django_item_values(source_item):
         setattr(destination, key, value)
 

@@ -1,16 +1,16 @@
 import json
 
-from scrapy.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule
 from scrapy.selector import Selector
 from scrapy_webdriver.http import WebdriverRequest
 
 from apps.scrapy.items import ScraperProduct
-from apps.scrapy.spiders.webdriver import WebdriverCrawlSpider, SecondFunnelCrawlScraper
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
 from apps.scrapy.utils.itemloaders import ScraperProductLoader
 
 
-class TheWarehouseSpider(SecondFunnelCrawlScraper, WebdriverCrawlSpider):
+class TheWarehouseSpider(SecondFunnelCrawlSpider):
     name = 'thewarehouse'
     store_slug = name
     allowed_domains = ['thewarehouse.co.nz']

@@ -72,14 +72,14 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 	        }));
 
 	        var feature_tile = function (tile) {
-	        	var heroArea = new App.core.HeroAreaView({tile: tile.attributes});
+	        	var heroArea = new App.core.HeroAreaView({tile: tile});
 	            App.heroArea.show(heroArea);
 	        };
 
 	        // Ensure any preview area is closed
 	        App.previewArea.empty();
 	        App.previewLoadingScreen.hide();
-	        App.core.Tile.getTileById(tileId, feature_tile, return_home);
+	        App.core.Tile.getById(tileId, feature_tile, return_home);
 	    },
 	    preview: function (tileId) {
 	    	// Load tile in pop-up preview
@@ -96,7 +96,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             };
 
             App.previewLoadingScreen.show();
-            App.core.Tile.getTileById(tileId, preview_tile, return_home);
+            App.core.Tile.getById(tileId, preview_tile, return_home);
 	    },
 	    category: function (category) {
 	    	// Load category

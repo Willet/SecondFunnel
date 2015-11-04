@@ -15,7 +15,7 @@ from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
 import apps.api.serializers as cg_serializers
-from apps.imageservice.utils import delete_cloudinary_resource, is_hex_color
+from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource, is_hex_color
 import apps.intentrank.serializers as ir_serializers
 from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
@@ -89,11 +89,11 @@ class BaseModel(models.Model, SerializableMixin):
             return u'({class_name} #{obj_id}) {obj_name}'.format(
                 class_name=self.__class__.__name__,
                 obj_id=self.pk,
-                obj_name=getattr(self, 'name', ''))
+                obj_name=getattr(self, 'name', '')).encode('ascii', 'ignore')
 
         return u'{class_name} #{obj_id}'.format(
             class_name=self.__class__.__name__,
-            obj_id=self.pk)
+            obj_id=self.pk).encode('ascii', 'ignore')
 
     @classmethod
     def _copy(cls, obj, update_fields={}, exclude_fields=[]):
@@ -498,7 +498,7 @@ class Product(BaseModel):
         for p in other_products:
             if self.store != p.store:
                 raise ValueError('Can not merge products from different stores')
-
+        
         self._replace_relations(other_products,
             exclude_fields=['product_images', 'similar_products'])
         for product in other_products:
@@ -527,7 +527,7 @@ class Product(BaseModel):
             # order doesnt matter with placeholders, take 1st one
             product = products.pop(0)
             other_products = products
-        logging.info('Merging {} into {}'.format(other_products, product))
+        logging.info(u'Merging {} into {}'.format(other_products, product))
         product.merge(other_products)
         return product
 
@@ -592,8 +592,11 @@ class ProductImage(BaseModel):
         return super(ProductImage, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        if settings.ENVIRONMENT == "production" and settings.CLOUDINARY_BASE_URL in self.url:
-            delete_cloudinary_resource(self.url)
+        if settings.ENVIRONMENT == "production":
+            if settings.CLOUDINARY_BASE_URL in self.url:
+                delete_cloudinary_resource(self.url)
+            elif settings.IMAGE_SERVICE_BUCKET in self.url:
+                delete_s3_resource(self.url)
         super(ProductImage, self).delete(*args, **kwargs)
 
     @property
@@ -732,15 +735,17 @@ class Image(Content):
         if master_size:
             self.width = master_size.get('width', 0)
             self.height = master_size.get('height', 0)
-            logging.info("Setting {} width and height to {}x{}".format(self, self.width, self.height))
+            logging.info(u"Setting {} width and height to {}x{}".format(self, self.width, self.height))
 
         return super(Image, self).save(*args, **kwargs)
 
 
     def delete(self, *args, **kwargs):
-        if settings.ENVIRONMENT == "production" and \
-           settings.CLOUDINARY_BASE_URL in self.url:
-            delete_cloudinary_resource(self.url)
+        if settings.ENVIRONMENT == "production":
+            if settings.CLOUDINARY_BASE_URL in self.url:
+                delete_cloudinary_resource(self.url)
+            elif settings.IMAGE_SERVICE_BUCKET in self.url:
+                delete_s3_resource(self.url)
         super(Image, self).delete(*args, **kwargs)
 
 
@@ -787,6 +792,14 @@ class Theme(BaseModel):
         max_length=1024,
         # backward compatibility for pages that don't specify themes
         default="apps/pinpoint/templates/pinpoint/campaign_base.html")
+    # Store the image sizes to cache in S3
+    # Size names are keys, with integer pixel values for width and height. None is acceptable
+    # for either width or height, but no both.
+    # example: {
+    #               'w400': { 'width': 500, 'height': None, },
+    #               'tile': { 'width': 700, 'height': 700, }
+    #           }
+    image_sizes = JSONField(blank=True, null=True, default=lambda:{})
 
     @returns_unicode
     def load_theme(self):
@@ -803,11 +816,11 @@ class Theme(BaseModel):
 
         remote_theme = read_remote_file(self.template, '')[0]
         if remote_theme:
-            logging.info("speed up page load times by placing the theme \
+            logging.info(u"speed up page load times by placing the theme \
                          '{0}' locally.".format(self.template))
             return remote_theme
 
-        logging.warn("template '{0}' was neither local nor remote".format(
+        logging.warn(u"template '{0}' was neither local nor remote".format(
             self.template))
         return self.template
 
@@ -1038,7 +1051,7 @@ class Feed(BaseModel):
     Container for tiles for a page / ad
 
     Tiles are THE DEFINITION of what should exist in the feed, so be very careful
-    about deleting tiles.  Hide tiles from a feed by toggling 'Reviewed' to False
+    about deleting tiles.  Hide tiles from a feed by toggling 'Placeholder' to True
 
     Start_url's are an instruction to the scraper about how to update *some* tiles
 
@@ -1234,7 +1247,7 @@ class Feed(BaseModel):
                 tile = existing_tiles[0]
                 tile.priority = priority
                 tile.save() # Update IR Cache
-                logging.info("<Product {0}> already in the feed. \
+                logging.info(u"<Product {0}> already in the feed. \
                               Updated <Tile {1}>.".format(product.id, tile.id))
                 return (tile, False)
         
@@ -1249,7 +1262,7 @@ class Feed(BaseModel):
 
         if category:
             category.tiles.add(new_tile)
-        logging.info("<Product {0}> added to the feed in \
+        logging.info(u"<Product {0}> added to the feed in \
                       <Tile {1}>.".format(product.id, new_tile.id))
 
         return (new_tile, True)
@@ -1277,7 +1290,7 @@ class Feed(BaseModel):
                 product_qs = content.tagged_products.all()
                 tile.products.add(*product_qs)
                 tile.save()
-                logging.info("<Content {0}> already in the feed. Updated \
+                logging.info(u"<Content {0}> already in the feed. Updated \
                               <Tile {1}>".format(content.id, tile.id))
                 return (tile, False)
 
@@ -1299,7 +1312,7 @@ class Feed(BaseModel):
             new_tile.save() # full clean & generate ir_cache
         if category:
             category.tiles.add(new_tile)
-        logging.info("<Content {0}> added to the feed. Created \
+        logging.info(u"<Content {0}> added to the feed. Created \
                       <Tile {1}>".format(content.id, new_tile.id))
         return (new_tile, True)
 
@@ -1456,12 +1469,12 @@ class Tile(BaseModel):
 
         # Queue products & content for deletion if they are ONLY tagged in
         # this single Tile
-        for p in tile.products.all():
+        for p in self.products.all():
             if p.tiles.count() == 1:
-                bulk_delete_products.append(p)
-        for c in tile.content.all():
+                bulk_delete_products.append(p.pk)
+        for c in self.content.all():
             if c.tiles.count() == 1:
-                bulk_delete_content.append(c)
+                bulk_delete_content.append(c.pk)
         Product.objects.filter(pk__in=bulk_delete_products).delete()
         Content.objects.filter(pk__in=bulk_delete_content).delete()
 

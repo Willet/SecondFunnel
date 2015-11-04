@@ -12,11 +12,38 @@ class AttrDict(dict):
         self[attr] = value
 
 
+class ComparableString(object):
+    """
+    A string that can be compared with others based on its weight
+
+    a = ComparableString("foo", 100)
+    b = ComparableString(string="bar", weight=1000)
+    a > b # False
+    a < b # True
+    unicode(a) # foo
+
+    Useful for choosing the "weightiest" string
+    """
+    def __init__(self, string, weight):
+        self.string = unicode(string)
+        self.weight = int(weight)
+
+    def __cmp__(self, other):
+        assert isinstance(other, ComparableString)
+        return cmp(self.weight, other.weight)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __unicode__(self):
+        return self.string
+
+
 class LookupTable(object):
     """
     A one-to-many lookup table that supports 
      - arbitary number of lookup fields
-     - arbitrary data
+     - arbitrary data dictionary
 
     Useful, for example, to store datafeeds & help with matching results to DB entries
 
