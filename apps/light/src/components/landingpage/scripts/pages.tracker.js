@@ -18,23 +18,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         },
         VIDEO_BASE_URL = 'http://www.youtube.com/watch?v=',
 
-        addItem = function () {
-            // wrap ga to obey our tracking
-            if (!window.ga) {
-                if (console.warn) {
-                    console.warn('Analytics library is not ready. %o', arguments);
-                }
-                return;
-            }
-
-            if (!App.option('enableTracking', true)) {
-                console.warn('addItem was either disabled by the client ' +
-                             'or prevented by the browser. %o', arguments);
-                return;
-            }
-            window.ga.apply(window, arguments);
-        },
-
         setCustomVar = function (o) {
             var index = o.index,
                 type = o.type,
@@ -49,7 +32,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             // name, or named variables with no scope
             // https://developers.google.com/analytics/devguides/collection/upgrade/reference/gajs-analyticsjs#custom-vars
             // so scope + name is used to mimic that
-            addItem('set', type + index, value);
+            module._addItem('set', type + index, value);
         },
 
         getTrackingInformation = function (modelData, isPreview) {
@@ -105,6 +88,23 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             };
         };
 
+    module._addItem = function () {
+        // wrap ga to obey our tracking
+        if (!window.ga) {
+            if (console.warn) {
+                console.warn('Analytics library is not ready. %o', arguments);
+            }
+            return;
+        }
+
+        if (!App.option('enableTracking', true)) {
+            console.warn('addItem was either disabled by the client ' +
+                         'or prevented by the browser. %o', arguments);
+            return;
+        }
+        window.ga.apply(window, arguments);
+    };
+
     module.trackEvent = function (o) {
         // category       - type of object that was acted on
         // action         - type of action that took place (e.g. share, preview)
@@ -116,7 +116,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference
         var nonInteraction = o.nonInteraction || false;
 
-        addItem('send', 'event', o.category, o.action, o.label,
+        module._addItem('send', 'event', o.category, o.action, o.label,
                 o.value || undefined, {'nonInteraction': nonInteraction});
     };
 
@@ -488,13 +488,24 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     });
 
     /**
+     * Hook for customer themes to modify tracking setup
+     * After this function runs, the google analytics account should be created
+     * by calling module._addItem('create', gaAccountNumber, ...)
+     */
+    module.customTrackerSetup = null;
+
+    /**
      * Starts the module.
      * Sets up default tracking events.
      *
      */
     module.initialize = function () {
-        var gaAccountNumber = App.option('store:gaAccountNumber', false) || App.option('page:gaAccountNumber', 'UA-23764505-25');
-        addItem('create', gaAccountNumber, 'auto');
+        if (_.isFunction(module.customTrackerSetup)) {
+            module.customTrackerSetup();
+        } else {
+            var gaAccountNumber = App.option('store:gaAccountNumber', false) || App.option('page:gaAccountNumber', 'UA-23764505-25');
+            module._addItem('create', gaAccountNumber, 'auto');
+        }
 
         // Register custom dimensions in-case they weren't already
         // registered.
@@ -505,7 +516,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         );
 
         // Track a pageview, eg like https://developers.google.com/analytics/devguides/collection/analyticsjs/
-        addItem('send', 'pageview');
+        module._addItem('send', 'pageview');
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?
