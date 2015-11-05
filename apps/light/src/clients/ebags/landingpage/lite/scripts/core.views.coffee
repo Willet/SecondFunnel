@@ -84,38 +84,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     # SLT shows one piece of content at a time
     _.extend(module.ExpandedContent::defaultOptions, featureSingleItem: true)
 
-    module.ExpandedContent::updateScrollCta = ->
-        $recipe = @$el.find(".recipe")
-        unless $recipe.length is 0
-            if ($recipe[0].scrollHeight - $recipe.scrollTop()) is $recipe.outerHeight()
-                $recipe.siblings(".scroll-cta").hide()
-            else
-                $recipe.siblings(".scroll-cta").show()
-        return
-
-    module.ExpandedContent::shrinkContainerCallback = _.wrap(
-        module.ExpandedContent::shrinkContainerCallback,
-        (shrinkContainerCallback) ->
-            # Patch shrinkContainerCallback to enble recipe scrolling when images are loaded
-            shrinkContainerCallback.call(@)
-            $(".recipe").scroll(=>
-                @updateScrollCta()
-                return
-            )
-    )
-
-    module.ExpandedContent::updateContent = _.wrap(
-        module.ExpandedContent::updateContent,
-        (updateContent) ->
-            updateContent.call(@)
-            # set name of pop-up to currently visible 
-            if @productInfo.hasView()
-                currentProduct = @productInfo.currentView.model
-                title = currentProduct.get('title') or currentProduct.get('name')
-                @$el.find('.title-banner .title').html(title)
-            return
-    )
-
     module.ExpandedContent::showThumbnails = ->
         # SLT thumbnails are always across the bottom
         if @taggedProducts.length > 0
@@ -130,12 +98,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @productThumbnails.show(thumbnailsInstance)
             @ui.lookThumbnail.hide()
         return
-
-    module.ExpandedContent::destroy = _.wrap(module.ExpandedContent::destroy, (destroy) ->
-        $(".recipe").off()
-        destroy.call(@)
-        return
-    )
 
     module.CategoryCollectionView::onShow = ->
         # Enable sticky category bar
@@ -156,51 +118,3 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
 
         return @
-
-    class module.SLTHeroAreaView extends Marionette.LayoutView
-        ###
-        View responsible for the Sur La Table Hero Area
-        This Hero's are special in that if there is no hero image specified,
-        an overlay with the category name is used (ex: The Chef, Top 25)
-        ###
-        model: module.Tile
-        className: "previewContainer"
-        template: "#hero_template"
-        regions:
-            content: ".content"
-
-        generateHeroArea: ->
-            category = App.intentRank.currentCategory() || App.option('page:home:category')
-            catObj = App.categories.findModelByName(category)
-
-            # If category can't be found, default to 'Gifts'
-            if not catObj? then catObj = displayName: 'Gifts'
-
-            tile =
-                desktopHeroImage: catObj.desktopHeroImage or ""
-                mobileHeroImage: catObj.mobileHeroImage or ""
-                title: "#{catObj.title or catObj.displayName}"
-            
-            if @model? and @model.destroy then @model.destroy()
-            @model = new module.Tile(tile)
-            return @
-
-        loadHeroArea: ->
-            @generateHeroArea()
-            # If view is already visible, update with new category
-            if not @.isDestroyed
-                @.render()
-
-        initialize: (options) ->
-            if App.intentRank.currentCategory and App.categories
-                @generateHeroArea()
-            else
-                # placeholder to stop error
-                @model = new module.Tile()
-                App.vent.once('intentRankInitialized', =>
-                    @loadHeroArea()
-                )
-            @listenTo(App.vent, "change:category", =>
-                @loadHeroArea()
-            )
-            return @

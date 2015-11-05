@@ -40,7 +40,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
 
             'click .gallery-swipe-left, .gallery-swipe-right': (ev) ->
-                $target = $(ev.target)
+                $target = $(ev.currentTarget)
                 unless $target.hasClass("grey")
                     if $target.hasClass("gallery-swipe-left")
                         @galleryIndex = Math.max(@galleryIndex - 1, 0)
