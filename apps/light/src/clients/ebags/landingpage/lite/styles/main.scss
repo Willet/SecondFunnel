@@ -900,26 +900,24 @@ body {
         background-size: 50%;
         background-position: center 40%;
     }
-    .gallery-swipe-left, .gallery-swipe-right {
+    .gallery-swipe-left,
+    .gallery-swipe-right {
         width: 45px;
         top: 0;
         bottom: 0;
         font-size: 40px;
         font-weight: bold;
         height: 100%;
-        line-height: 100%;
         color: #333;
         &:before {
             content: '';
             display: inline-block;
             height: 100%;
-            vertical-align:middle;
-
+            vertical-align: middle;
         }
         span:before,
         span:after {
             display: inline-block;
-            height: 100%;
             vertical-align: middle;
         }
     }
@@ -931,15 +929,17 @@ body {
         background-image: url('/static/light/ebags/landingpage/lite/images/down.png');
         bottom: 0;
     }
-    .stl-swipe-left, .gallery-swipe-left {
+    .stl-swipe-left,
+    .gallery-swipe-left {
         left: 0;
         span:after {
             content: "\2329";
         }
     }
-    .stl-swipe-right, .gallery-swipe-right {
+    .stl-swipe-right,
+    .gallery-swipe-right {
         right: 0;
-        span:after {
+        span:before {
             content: "\232a";
         }
     }
