@@ -60,14 +60,15 @@ class EBagsSpider(SecondFunnelCrawlSpider):
         sku = sel.css("link[rel='canonical']::attr(href)").re_first(r'/(\d+)$') # use eBags modelId
         l.add_value('sku', sku)
         l.add_css('description', "div.productDetailsCon div.for-jsFeatures ul>li")
-        
+        l.add_css('name', "div#productCon h1 span[itemprop='name']::text")
 
-        brand = l.get_css("div#productCon h1 a[itemprop='brand']::attr(content)", TakeFirst())
-        name = l.get_css("div#productCon h1 span[itemprop='name']::text", TakeFirst())  
-        if brand:
-            l.add_value('name', [brand, name], Join())
-        else:
-            l.add_value('name', name)
+        brand_sel = sel.css("div#productCon h1 a[itemprop='brand']")
+        if brand_sel.extract_first():
+            brand = {
+                'name': brand_sel.css("::attr(content)").extract_first(),
+                'url': urljoin(response.url, brand_sel.css("::attr(href)").extract_first()),
+            }
+            attributes['brand'] = brand
 
         old_price = sel.css("div#divPricing>div:first-child span.bfx-price::text").extract_first()
         new_price = sel.css("div#divPricing span.pdpFinalPrice::text").extract_first()
@@ -76,6 +77,8 @@ class EBagsSpider(SecondFunnelCrawlSpider):
             l.add_value('sale_price', new_price)
         else:
             l.add_value('price', new_price)
+
+        l.add_value('attributes', attributes)
 
         item = l.load_item()
 
