@@ -212,7 +212,7 @@
             <% var tagged = false; try { tagged = !_.isEmpty(obj.taggedProducts); } catch (e) {} %>
             <div class="fullscreen <% if (scrollable) { %>scrollable<% } %> <%= template %> <% if (tagged) { %>tagged<% } %>">
                 <div class="content">
-                    <span class="close desktop-only">Keep Shopping <img src="/static/light/ebags/landingpage/lite/images/cross.svg"></span>
+                    <span class="close desktop-only"></span>
                     <span class="close mobile-only">Back</span>
                     <div class="template target"></div>
                 </div>
@@ -251,8 +251,8 @@
                     </div>
                 </div>
                 <div class="gallery-main-image">
-                    <div class="gallery-swipe-left"></div>
-                    <div class="gallery-swipe-right"></div>
+                    <div class="gallery-swipe-left"><span></span></div>
+                    <div class="gallery-swipe-right"><span></span></div>
                     <% include("product_galleryMainImage_template") %>
                     <div class='gallery-dots'>
                         <% include("product_galleryDots_template") %>
@@ -289,8 +289,8 @@
                     </div>
                 </div>
                 <div class="gallery-main-image">
-                    <div class="gallery-swipe-left"></div>
-                    <div class="gallery-swipe-right"></div>
+                    <div class="gallery-swipe-left"><span></span></div>
+                    <div class="gallery-swipe-right"><span></span></div>
                     <% include("product_galleryMainImage_template") %>
                     <div class='gallery-dots'>
                         <% include("product_galleryDots_template") %>

@@ -479,7 +479,7 @@ body {
         padding: 40px 40px 40px !important;
         max-height: 720px;
         height: auto;
-        border-radius: 10px;
+        border-radius: 3px;
     }
 }
 .heroContainer {
@@ -525,16 +525,16 @@ body {
         max-width: 1024px !important;
     }
     .close {
-        top: 10px;
-        right: 10px;
+        top: 0;
+        right: 0;
+        padding: 10px;
         text-shadow: none;
-        font-size: 12px;
-        font-weight: normal;
-        color: #000;
+        font-size: 35px;
+        font-weight: 200;
+        color: #333;
         z-index: 10;
-        &:hover {
-            opacity: 0.6;
-            filter: alpha(opacity=60);
+        &:after {
+            content: '\2715';
         }
         img {
             vertical-align: -1px;
@@ -661,6 +661,7 @@ body {
             border: 1px solid $ebags-dark-color;
             background-color: white;
             &.selected {
+                background-color: #333;
             }
         }
     }
@@ -901,9 +902,25 @@ body {
     }
     .gallery-swipe-left, .gallery-swipe-right {
         width: 45px;
-        height: 100%;
         top: 0;
-        background-size: 70%;
+        bottom: 0;
+        font-size: 40px;
+        font-weight: bold;
+        height: 100%;
+        line-height: 100%;
+        color: #333;
+        &:before {
+            content: '';
+            display: inline-block;
+            height: 100%;
+            vertical-align:middle;
+
+        }
+        span:before {
+            display: inline-block;
+            height: 100%;
+            vertical-align: middle;
+        }
     }
     .stl-swipe-up {
         background-image: url('/static/light/ebags/landingpage/lite/images/up.png');
@@ -914,12 +931,16 @@ body {
         bottom: 0;
     }
     .stl-swipe-left, .gallery-swipe-left {
-        background-image: url('/static/light/ebags/landingpage/lite/images/left-block.svg');
         left: 0;
+        span:before {
+            content: "\2329";
+        }
     }
     .stl-swipe-right, .gallery-swipe-right {
-        background-image: url('/static/light/ebags/landingpage/lite/images/right-block.svg');
         right: 0;
+        span:after {
+            content: "\232a";
+        }
     }
 }
 
