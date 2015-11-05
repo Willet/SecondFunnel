@@ -4,7 +4,7 @@ from scrapy.spiders import Spider
 from scrapy.utils.spider import iterate_spider_output
 from scrapy_webdriver.http import WebdriverRequest, WebdriverResponse
 
-from .mixins import ProcessingHooksMixin
+from .mixins import ProcessingMixin
 
 
 class WebdriverCrawlSpider(Spider):
@@ -108,7 +108,7 @@ class WebdriverCrawlSpider(Spider):
         return spider
 
 
-class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingHooksMixin):
+class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingMixin):
     """
     A base spider for Second Funnel Use
     """
@@ -138,13 +138,23 @@ class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingHooksMixin):
         super(SecondFunnelCrawlSpider, self).__init__(*args, **kwargs)
 
     def parse_start_url(self, response):
+        """
+        Over-write to add more types of start-urls
+        """
         if self.is_product_page(response):
             return self.parse_product(response)
+        elif self.is_category_page(response):
+            # Don't parse category pages
+            # Let Rule's follow links category pages
+            return []
         else:
-            self.logger.info(u"Not a product page: {}".format(response.url))
+            self.logger.error(u"Unrecognized start url: {}".format(response.url))
             return []
 
     def is_product_page(self, response):
+        raise NotImplementedError
+
+    def is_category_page(self, response):
         raise NotImplementedError
 
     def parse_product(self, response):
