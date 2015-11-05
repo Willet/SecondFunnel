@@ -916,7 +916,8 @@ body {
             vertical-align:middle;
 
         }
-        span:before {
+        span:before,
+        span:after {
             display: inline-block;
             height: 100%;
             vertical-align: middle;
@@ -932,7 +933,7 @@ body {
     }
     .stl-swipe-left, .gallery-swipe-left {
         left: 0;
-        span:before {
+        span:after {
             content: "\2329";
         }
     }
