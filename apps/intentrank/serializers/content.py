@@ -22,6 +22,7 @@ class ProductSerializer(IRSerializer):
             "sku": getattr(product, "sku", ""),
             "price": product.price,
             "salePrice": product.sale_price,
+            "currency": product.currency,
             "description": product.description,
             "details": product.details,
             "name": product.name,
