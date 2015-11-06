@@ -58,7 +58,7 @@
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gourmet_50x50.jpg"
         }
       ],
-      "displayName":"Gifts by Price",
+      "displayName":"By Price",
       "name":"",
       "tileSet":"products",
       "desktopHeroImage":"",
@@ -87,7 +87,7 @@
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Cook_111x111.jpg"
         }
       ],
-      "displayName":"Gifts by Recipient",
+      "displayName":"By Recipient",
       "name":"",
       "tileSet":"products",
       "desktopHeroImage":"",
