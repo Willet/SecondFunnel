@@ -1,31 +1,50 @@
 $icon-font-path: "/static/light/fonts/";
-$ebags-basic-font: "Helvetica Neue",Helvetica,Arial,sans-serif;
-$ebags-sans-font: "open_sans", Arial, sans-serif;
+$ebags-basic-font: Arial, Helvetica, sans-serif;
+$ebags-sans-font: "OpenSans", Arial, sans-serif;
 $ebags-thumbnail-height: 111px;
 $ebags-dark-color: #333;
+$ebags-grey-color: #555;
 $ebags-highlight-red: #DD0F21;
 $ebags-dark-blue: #063a69;
+$ebags-sale-color: #900;
+$ebags-link-color: #2F6BA1;
+$xmas-red-color: #D90011;
 $xmas-green-color: #487343;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
 
 @font-face {
-    font-family: 'open_sans';
+    font-family: 'OpenSans';
     src: url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Semibold.eot');
     src: url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Semibold.eot') format('embedded-opentype'),
         url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Semibold.woff') format('woff'), 
         url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Semibold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'OpenSans';
+    src: url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Bold.ttf') format('truetype');
     font-weight: 700;
     font-style: normal;
 }
 @font-face {
-    font-family: 'open_sans';
+    font-family: 'OpenSans';
     src: url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Regular.eot');
     src: url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Regular.eot') format('embedded-opentype'),
         url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Regular.woff') format('woff'), 
         url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Regular.ttf') format('truetype');
     font-weight: 400;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'OpenSans';
+    src: url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Light.eot');
+    src: url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Light.eot') format('embedded-opentype'),
+        url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Light.woff') format('woff'), 
+        url('/static/light/ebags/landingpage/lite/fonts/OpenSans-Light.ttf') format('truetype');
+    font-weight: 300;
     font-style: normal;
 }
 
@@ -37,7 +56,6 @@ body {
 .container {
     position: relative;
     z-index: 1;
-    max-width: 1170px;
 }
 
 .navbar {
@@ -137,7 +155,6 @@ body {
         width: 100%;
         height: 100%;
     }
-
     .category {
         border: none;
         background-color: transparent !important;
@@ -311,11 +328,8 @@ body {
 .tile {
     padding: 5px;
     width: 33.33%;
-    &.wide {
-        width: 66.66%;
-    }
     .relative.product-shot {
-        border: 4px solid #FFF;
+        border: 4px solid #F1F1F1;
         padding: 6%;
         position: relative;
         ul.label {
@@ -324,27 +338,66 @@ body {
             left: 0;
             z-index: 1;
             background-color: rgba(255, 255, 255, 0.8);
-            color: #555;
-            font-family: $ebags-sans-font;
-            font-size: 15px;
-            font-weight: normal;
-            line-height: 20px;
             list-style-type: none;
             text-align: left;
             padding: 5px 2px 2px 10px;
         }
+        li {
+            font-weight: normal;
+            line-height: 20px;
+            font-size: 15px;
+            color: $ebags-grey-color;
+            font-family: $ebags-sans-font;
+            white-space: normal;
+        }
         li.brand {
             font-weight: bold;
+            margin-bottom: 5px;
         }
         li.name {
+        }
+        li.price {
+            display: none;
+            color: $xmas-red-color;
+            font-size: 35px;
+            font-weight: 900;
         }
         div {
             max-height: 100%;
             margin: 0 5%;
-            padding-bottom: 10%;
+            padding-top: 10%;
             image.focus {
                 max-width: 100%;
                 max-height: 100%;
+            }
+        }
+    }
+    &.wide {
+        width: 66.66%;
+        .relative {
+            padding: 0;
+            ul.label {
+                top: 20%;
+                left: 50%;
+                width: 40%;
+            }
+            li {
+                color: $ebags-dark-color;
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+            li.brand,
+            li.name {
+                margin-bottom: 30px;
+            }
+            li.price {
+                display: initial;
+            }
+            div {
+                /* width determines height */
+                width: calc(50% - 8px); // Subtract border height
+                margin: 0 0;
+                padding: 3%;
             }
         }
     }
@@ -438,6 +491,7 @@ body {
             .content {
                 max-height: 640px;
                 border-radius: 0px;
+                border: 8px solid #F1F1F1;
             }
             &.tagged .content {
                 max-height: 720px;
@@ -503,7 +557,7 @@ body {
         color: #333;
         z-index: 10;
         &:after {
-            content: '\2715';
+            content: '\2573';
         }
         img {
             vertical-align: -1px;
@@ -513,7 +567,7 @@ body {
     .info, .look-image-container {
         width: 100%;
         height: 100%;
-        padding: 10px 0 0 0;
+        padding: 0;
         &.tagged {
             padding: 10px 0 170px 0;
         }
@@ -541,34 +595,6 @@ body {
             background-position: center;
             background-repeat: no-repeat;
             border-radius: 10px;
-        }
-        .recipe-container {
-            display: inline-block;
-            vertical-align: top;
-            width: 42%;
-            height: 100%;
-            padding: 10px 20px;
-            margin: 0;
-            .title {
-                font-size: 20px;
-                line-height: 20px;
-                margin-bottom: 15px;
-                max-height: 60px;
-            }
-            .recipe {
-                font-size: 12px;
-                max-height: 85%;
-                overflow: auto;
-            }
-            .scroll-cta {
-                width: 100%;
-                text-align: center;
-                font-size: 15px;
-                margin-top: 5px;
-                &:after {
-                    content: url('/static/light/ebags/landingpage/lite/images/scroll-more-arrow.png');
-                }
-            }
         }
     }
     .gallery-main-image {
@@ -625,43 +651,46 @@ body {
         padding: 10px 20px;
         margin: 0 !important;
         text-align: left;
-        .title, .price {
-            font-size: 30px;
+        .brand, .title, .price {
+            font-size: 26px;
+            margin-bottom: 20px;
             line-height: 30px;
+        }
+        .brand, .price {
             font-weight: bold;
-            margin-bottom: 15px;
+        }
+        .brand {
+            color: $ebags-link-color;
+        }
+        .title {
+            font-family: $ebags-sans-font;
         }
         .price {
             font-weight: bold;
+            font-famly: $ebags-basic-font;
+            .current {
+                font-family: $ebags-sans-font;
+                font-weight: 900;
+            }
             .current.sale {
+                color: $ebags-sale-color;
             }
             .current:before {
                 content: "$";
-                font-size: .6em;
-                position: relative;
-                bottom: .5em;
-                display: inline-block;
-            }
-            .cents {
-                font-size: .6em;
-                position: relative;
-                bottom: .43em;
-                display: inline-block;
             }
             .suggested-price, .save-percent {
-                font-size: 16px;
+                font-size: 15px;
+                font-weight: normal;
             }
             .suggested-price {
+                color: #777;
                 margin-left: 16px;
                 .dollar-amount {
                     text-decoration: line-through;
                 }
             }
             .save-percent {
-                &:before {
-                    content: " | ";
-                    padding: 0 2px;
-                }
+                color: $ebags-dark-color;
             }
         }
         .description {
@@ -911,6 +940,7 @@ body {
         padding: 2px;
         &.wide {
             width: 100%;
+            min-height: initial;
         }
     }
 }
@@ -993,14 +1023,33 @@ body {
             }
         }
     }
-    .relative.product-shot {
-        div {
-            li.name {
+    .tile {
+        .relative.product-shot {
+            padding: 10% 6% 2% 6%;
+            ul {
+                li {
+                    line-height: 15px;
+                    font-size: 12px;
+                }
+            }
+        }
+        &.wide {
+            .relative.product-shot {
+                ul {
+                    li {
+                        line-height: 15px;
+                        font-size: 15px;
+                    }
+                    li.price {
+                        font-size: 25px;
+                    }
+                }
             }
         }
     }
     .previewContainer {
         max-height: 100%;
+        z-index: 100 !important;
         .tagged-product {
             padding: 65px 0 50px 0; // top - .product-details, bottom - .buy
         }
@@ -1116,11 +1165,9 @@ body {
             max-height: none !important;
         }
         .close {
-            width: 80px;
             top: 0;
             right: 0;
-            line-height: 65px;
-            font-size: 20px;
+            font-size: 30px;
             text-transform: uppercase;
         }
         .content {
@@ -1138,21 +1185,6 @@ body {
                 position: absolute;
                 top: 0;
                 left: 0;
-            }
-            .recipe-container {
-                width: 100%;
-                height: 100%;
-                padding: 0 10px;
-                padding-top: 75px;
-                .title {
-                    line-height: 20px;
-                    font-size: 20px;
-                    margin-bottom: 10px;
-                    max-height: 40px;
-                }
-                .recipe {
-                    max-height: calc(100% - 50px);
-                }
             }
         }
         .feed {

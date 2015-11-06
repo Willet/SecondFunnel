@@ -171,6 +171,7 @@
                     <li class='brand'><%= obj.product.get('brand')['name'] %></span>
                     <% } %>
                     <li class="name"><%= obj.product.get('name') %></span>
+                    <li class="price"><%= obj.product.get('currency') %><%= obj.product.get('price') %></li>
                 </ul>
                 <div>
                     <img class="focus" src="<%= obj.defaultImage.url %>" />
@@ -209,13 +210,22 @@
             <div class="mask"></div>
         </script>
 
+        <script type="text/template" id="product_title_template">
+            <% if (obj.brand) { %>
+            <div class='brand'>
+                <a href="<%= obj.brand['url'] %>"><%= obj.brand['name'] %></a>
+            </div>
+            <% } %>
+            <%- obj.title || obj.name %>
+        </script>
+
         <script type="text/template" id="product_price_template">
             <% if (obj.sale) { %>
-                <span class="current sale"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
+                <span class="current sale"><%= obj.displayPrice.dollars %>.<span class="cents"><%= obj.displayPrice.cents %></span></span>
                 <span class="suggested-price">Sugg. <span class="dollar-amount">$<%= obj.saleString %></span></span></span>
                 <span class="save-percent">You save <%= obj.savePercent %>%</span>
             <% } else { %>
-                <span class="current no-sale"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
+                <span class="current no-sale"><%= obj.displayPrice.dollars %>.<span class="cents"><%= obj.displayPrice.cents %></span></span>
             <% } %>
         </script>
 
@@ -301,11 +311,6 @@
                     <div class='buy'>
                         <% include("product_buy_template") %>
                     </div>
-                    <% if (obj['recipeName']) { %>
-                    <div class="back">
-                        Back to <%- obj['recipeName'] %> Recipe
-                    </div>
-                    <% } %>
                     <% if (obj['collectionName']) { %>
                     <div class="back">
                         Back to Collection Description
@@ -438,9 +443,6 @@
             <div class="sub-categories">
                 <div class="wrap">
                     <div class="sub-categories-section">
-                        <div class="sub-categories-label">
-                            <span><%- obj.subCategories[0].label %></span>
-                        </div>
                     <% for (var i = 1; i < obj.subCategories.length; i++) { %>
                         <% if (obj.subCategories[i].label) { %>
                         </div>

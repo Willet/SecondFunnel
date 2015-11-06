@@ -2,7 +2,7 @@
 
 # @module core.views
 
-char_limit = 243
+char_limit = 500
 swipe = require('jquery-touchswipe')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
