@@ -481,11 +481,58 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 heroImages =
                     "desktopHeroImage": desktopHeroImage
                     "mobileHeroImage": mobileHeroImage or desktopHeroImage
+                    "title": "#{catObj['title'] or catObj['displayName']}"
                     "template": "hero"
                 tile = new module.HeroTile(heroImages)
             else
                 tile = undefined
             return tile
+
+
+    class module.GeneratedHeroAreaView extends Marionette.LayoutView
+        ###
+        This Hero's are special in that if there is no hero image specified,
+        an overlay with the category name is used (ex: The Chef, Top 25)
+        ###
+        model: module.Tile
+        className: "heroContainer"
+        template: "#hero_template"
+        regions:
+            content: ".content"
+
+        generateHeroArea: ->
+            category = App.intentRank.currentCategory() || App.option('page:home:category')
+            # If category can't be found, default to 'Gifts'?
+            catObj = (App.categories.findModelByName(category) or displayName: 'Gifts')
+
+            tile =
+                desktopHeroImage: catObj.desktopHeroImage or ""
+                mobileHeroImage: catObj.mobileHeroImage or ""
+                title: "#{catObj.title or catObj.displayName}"
+            
+            if @model? and @model.destroy then @model.destroy()
+            @model = new module.Tile(tile)
+            return @
+
+        loadHeroArea: ->
+            @generateHeroArea()
+            # If view is already visible, update with new category
+            if not @isDestroyed
+                @render()
+
+        initialize: (options) ->
+            if App.intentRank.currentCategory and App.categories
+                @generateHeroArea()
+            else
+                # placeholder to stop error
+                @model = new module.Tile()
+                App.vent.once('intentRankInitialized', =>
+                    @loadHeroArea()
+                )
+            @listenTo(App.vent, "change:category", =>
+                @loadHeroArea()
+            )
+            return @
 
 
     ###
