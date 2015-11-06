@@ -4,7 +4,6 @@ $ebags-sans-font: "OpenSans", Arial, sans-serif;
 $ebags-thumbnail-height: 111px;
 $ebags-dark-color: #333;
 $ebags-grey-color: #555;
-$ebags-highlight-red: #DD0F21;
 $ebags-dark-blue: #063a69;
 $ebags-sale-color: #900;
 $ebags-link-color: #2F6BA1;
@@ -63,7 +62,7 @@ body {
     border: none;
     .header-links-bar {
         height: 24px;
-        background-color: $ebags-dark-blue;
+        background-color: $xmas-red-color;
         padding-top: 2px;
         padding-bottom: 2px;
         text-align: center;
@@ -170,13 +169,13 @@ body {
         &:hover, &.expanded {
             background-color: #FFF !important;
             box-shadow: 0px 4px 6px rgba(0,0,0,0.3);
-            border-top: 3px solid $ebags-dark-blue;
+            border-top: 3px solid $xmas-red-color;
             > .name {
                 text-decoration: none;
             }
         }
         &.selected {
-            background-color: $ebags-dark-blue !important;
+            background-color: $xmas-red-color !important;
             > .name {
                 color: #FFF;
             }
@@ -361,6 +360,7 @@ body {
             color: $xmas-red-color;
             font-size: 35px;
             font-weight: 900;
+            line-height: 35px;
         }
         div {
             max-height: 100%;
@@ -390,8 +390,11 @@ body {
             li.name {
                 margin-bottom: 30px;
             }
+            li.name {
+                font-weight: 300;
+            }
             li.price {
-                display: initial;
+                display: block;
             }
             div {
                 /* width determines height */
@@ -713,11 +716,11 @@ body {
             padding-bottom: 5px;
             text-transform: uppercase;
             width: 100%;
-            border: 5px solid $ebags-highlight-red;
+            border: 5px solid $xmas-red-color;
             background-color: #FFF;
-            color: $ebags-highlight-red;
+            color: $xmas-red-color;
             &:hover {
-                background-color: $ebags-highlight-red;
+                background-color: $xmas-red-color;
                 text-decoration: none;
                 color: #FFF;
             }
@@ -1021,9 +1024,9 @@ body {
                     border-top: 3px solid transparent;
                     background-color: #FFF !important;
                     box-shadow: 0px 0px 0px transparent;
-                    color: $ebags-highlight-red;
+                    color: $xmas-red-color;
                     .sub-categories {
-                        border-top: 3px solid $ebags-highlight-red;
+                        border-top: 3px solid $xmas-red-color;
                         box-shadow: 0px 0px 0 1px rgba(0, 0, 0, 0.2);
                         .sub-category {
                             color: #000;
@@ -1032,7 +1035,7 @@ body {
                                 padding-bottom: 0;
                                 > .name {
                                     border-bottom: 1px solid transparent;
-                                    color: $ebags-highlight-red;
+                                    color: $xmas-red-color;
                                     font-weight: bold;
                                 }
                             }
