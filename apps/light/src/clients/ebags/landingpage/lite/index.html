@@ -202,7 +202,7 @@
             <% var tagged = false; try { tagged = !_.isEmpty(obj.taggedProducts); } catch (e) {} %>
             <div class="fullscreen <% if (scrollable) { %>scrollable<% } %> <%= template %> <% if (tagged) { %>tagged<% } %>">
                 <div class="content">
-                    <span class="close desktop-only"><img src="/static/light/surlatable/landingpage/lite/images/cross.svg"></span>
+                    <span class="close desktop-only"></span>
                     <span class="close mobile-only">Back</span>
                     <div class="template target"></div>
                 </div>
@@ -210,9 +210,18 @@
             <div class="mask"></div>
         </script>
 
+        <script type="text/template" id="product_title_template">
+            <% if (obj.brand) { %>
+            <div class='brand'>
+                <a href="<%= obj.brand['url'] %>"><%= obj.brand['name'] %></a>
+            </div>
+            <% } %>
+            <%- obj.title || obj.name %>
+        </script>
+
         <script type="text/template" id="product_price_template">
             <% if (obj.sale) { %>
-                <span class="current sale"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
+                <span class="current sale"><%= obj.displayPrice.dollars %>.<span class="cents"><%= obj.displayPrice.cents %></span></span>
                 <span class="suggested-price">Sugg. <span class="dollar-amount">$<%= obj.saleString %></span></span></span>
                 <span class="save-percent">You save <%= obj.savePercent %>%</span>
             <% } else { %>
