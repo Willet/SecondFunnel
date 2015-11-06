@@ -5,6 +5,7 @@ $ebags-thumbnail-height: 111px;
 $ebags-dark-color: #333;
 $ebags-highlight-red: #DD0F21;
 $ebags-dark-blue: #063a69;
+$xmas-green-color: #487343;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -314,28 +315,33 @@ body {
         width: 66.66%;
     }
     .relative.product-shot {
-        border: 1px solid #CCCCCC;
-        border-radius: 5px;
+        border: 4px solid #FFF;
         padding: 6%;
         position: relative;
-        span.product-label {
-            font-size: 18px;
-            margin: 0;
-            line-height: 20px;
-            color: #333333;
-            text-align: center;
+        ul.label {
             position: absolute;
-            bottom: 6%;
-            left: 6%;
-            right: 6%;
-            display: block;
-            box-shadow: 0px 0px 5px 7px rgba(255, 255, 255, 0.8);
+            top: 0;
+            left: 0;
+            z-index: 1;
             background-color: rgba(255, 255, 255, 0.8);
+            color: #555;
+            font-family: $ebags-sans-font;
+            font-size: 15px;
+            font-weight: normal;
+            line-height: 20px;
+            list-style-type: none;
+            text-align: left;
+            padding: 5px 2px 2px 10px;
+        }
+        li.brand {
+            font-weight: bold;
+        }
+        li.name {
         }
         div {
             max-height: 100%;
-            margin: 0 3.75%;
-            padding-bottom: 7.5%;
+            margin: 0 5%;
+            padding-bottom: 10%;
             image.focus {
                 max-width: 100%;
                 max-height: 100%;
@@ -343,65 +349,27 @@ body {
         }
     }
     .overlay {
-        background: rgba(255,255,255,0.80);
-        @include no-select;
-    }
-    .name {
-        font-size: 0.9em;
-        color: #444;
-        text-decoration: none;
-    }
-    &:hover .name {
-        text-decoration: underline;
-    }
-    .price {
-        font-size: 0.8em;
-        color: #444;
-        font-weight: bold;
-        .sale {
-            display: block;
-            color: #921E1E;
+        padding: 5px;
+        z-index: 1;
+        .table {
+            background: rgba(255,255,255,0.80);
+            border: 3px solid $xmas-green-color;
+            border-radius: 4px;
+            @include no-select;
+            margin-bottom: 0px; // overrule base.scss
         }
-        .original {
-            display: block;
-            color: #999;
+        .title {
+            font-size: 30px;
+            font-family: $ebags-sans-font;
+            color: $xmas-green-color;
+            text-decoration: none;
+            font-weight: bold;
         }
-        .img-wrapper {
-            overflow: hidden;
-            position: relative;
-            &:hover .quick-view {
-                top: 50%;
-            }
-            .quick-view {
-                position: absolute;
-                top: 100%;
-                width: 100%;
-                text-align: center;
-                -webkit-transition: top 0.5s;
-                -moz-transition: top 0.5s;
-                -ms-transition: top 0.5s;
-                -o-transition: top 0.5s;
-                transition: top 0.5s;
-                transition-timing-function: ease-in-out;
-                span {
-                    display: inline-block;
-                    background-color: #F4F4F4;
-                    border: 1px #a3a3a3 solid;
-                    border-radius: 4px;
-                    font-weight: bold;
-                    font-size: 0.8em;
-                    color: #444444;
-                    padding: 4px 8px;
-                    cursor: pointer !important;
-                    &:hover {
-                        text-decoration: underline;
-                    }
-                }
-            }
+        &:hover .name {
+            text-decoration: underline;
         }
     }
 }
-.tile .overlay .title,
 .image-with-tagged-products .caption,
 .image-without-tagged-products .caption {
     color: #333333;
@@ -645,7 +613,7 @@ body {
             border: 1px solid $ebags-dark-color;
             background-color: white;
             &.selected {
-                background-color: #333;
+                background-color: $ebags-dark-color;
             }
         }
     }
@@ -1022,9 +990,7 @@ body {
     }
     .relative.product-shot {
         div {
-            span.product-label {
-                font-size: 13px !important;
-                line-height: normal !important;
+            li.name {
             }
         }
     }
