@@ -354,6 +354,7 @@ body {
             margin-bottom: 5px;
         }
         li.name {
+            font-weight: 300;
         }
         li.price {
             display: none;
@@ -389,9 +390,6 @@ body {
             li.brand,
             li.name {
                 margin-bottom: 30px;
-            }
-            li.name {
-                font-weight: 300;
             }
             li.price {
                 display: block;
