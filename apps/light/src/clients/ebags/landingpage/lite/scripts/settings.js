@@ -10,7 +10,7 @@
     {
       "subCategories":[
         {
-          "label":"Gifts by Price"
+          "label":"Gifts by Recipient"
         },
         {
           "tileSet":"products",
@@ -66,33 +66,9 @@
       "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gifts-By-Price_111x111.jpg"
     },
     {
-      "displayName":"By Recipient",
-      "name":"the-baker",
-      "title":"Gifts for the Baker",
-      "desktopHeroImage":"",
-      "mobileHeroImage":"",
-      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Baker_111x111.jpg"
-    },
-    {
       "subCategories":[
         {
-          "label":"Other Gifts"
-        },
-        {
-          "displayName":"Stocking Stuffers",
-          "name":"stocking-stuffers",
-          "title":"Stocking Stuffers",
-          "desktopHeroImage":"",
-          "mobileHeroImage":"",
-          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Family_111x111.jpg"
-        },
-        {
-          "displayName":"Packing Cubes",
-          "name":"packing-cube",
-          "title":"Packing Cubes",
-          "desktopHeroImage":"",
-          "mobileHeroImage":"",
-          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Host_111x111.jpg"
+          "label":"Gifts by Price"
         },
         {
           "displayName":"For Her",
@@ -111,7 +87,36 @@
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Cook_111x111.jpg"
         }
       ],
-      "displayName":"Other Gifts",
+      "displayName":"Gifts by Recipient",
+      "name":"",
+      "tileSet":"products",
+      "desktopHeroImage":"",
+      "mobileHeroImage":"",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gifts-By-Price_111x111.jpg"
+    },
+    {
+      "subCategories":[
+        {
+          "label":"More Gifts"
+        },
+        {
+          "displayName":"Stocking Stuffers",
+          "name":"stocking-stuffers",
+          "title":"Stocking Stuffers",
+          "desktopHeroImage":"",
+          "mobileHeroImage":"",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Family_111x111.jpg"
+        },
+        {
+          "displayName":"Packing Cubes",
+          "name":"packing-cube",
+          "title":"Packing Cubes",
+          "desktopHeroImage":"",
+          "mobileHeroImage":"",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Host_111x111.jpg"
+        }
+      ],
+      "displayName":"More Gifts",
       "name":"",
       "tileSet":"products",
       "desktopHeroImage":"",
