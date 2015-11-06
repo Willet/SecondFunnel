@@ -201,7 +201,7 @@
             <% var tagged = false; try { tagged = !_.isEmpty(obj.taggedProducts); } catch (e) {} %>
             <div class="fullscreen <% if (scrollable) { %>scrollable<% } %> <%= template %> <% if (tagged) { %>tagged<% } %>">
                 <div class="content">
-                    <span class="close desktop-only"></span>
+                    <span class="close desktop-only"><img src="/static/light/surlatable/landingpage/lite/images/cross.svg"></span>
                     <span class="close mobile-only">Back</span>
                     <div class="template target"></div>
                 </div>
@@ -318,11 +318,6 @@
         <script type="text/template" id="product_preview_template">
             <div class="table <%= obj.orientation %>">
                 <div class="feature">
-                    <div class="cell title-banner desktop-only">
-                        <div class="title">
-                            <% include("product_title_template") %>
-                        </div>
-                    </div>
                     <div class="cell info">
                         <div class="product-info"></div>
                     </div>
