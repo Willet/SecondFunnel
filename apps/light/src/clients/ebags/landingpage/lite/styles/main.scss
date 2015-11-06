@@ -86,7 +86,7 @@ body {
         a.logo {
             position: absolute;
             bottom: 0;
-            left: 0;
+            left: 5px;
             img {
                 width: 120px;
                 height: auto;
@@ -106,7 +106,7 @@ body {
         }
         #search-bar {
             position: absolute;
-            right: 0;
+            right: 5px;
             bottom: 0;
             line-height: 28px;
             cursor: pointer;
@@ -944,6 +944,13 @@ body {
             min-height: initial;
         }
     }
+    .navbar {
+        .container {
+            margin-left: 3%;
+            margin-right: 3%;
+            width: 94%;
+        }
+    }
 }
 
 // MOBILE ONLY
@@ -1384,6 +1391,15 @@ body {
                     }
                 }
             }
+        }
+    }
+}
+
+// IPHONE PORTRAIT ONLY
+@media screen and (max-width: 350px) {
+    #category-area {
+        .category {
+            padding: 0 2%;
         }
     }
 }
