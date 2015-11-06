@@ -3,7 +3,7 @@ $ebags-basic-font: Arial, Helvetica, sans-serif;
 $ebags-sans-font: "OpenSans", Arial, sans-serif;
 $ebags-thumbnail-height: 111px;
 $ebags-dark-color: #333;
-$ebags-grey-color: #777;
+$ebags-grey-color: #555;
 $ebags-highlight-red: #DD0F21;
 $ebags-dark-blue: #063a69;
 $ebags-sale-color: #900;
@@ -557,7 +557,7 @@ body {
         color: #333;
         z-index: 10;
         &:after {
-            content: '\2715';
+            content: '\2573';
         }
         img {
             vertical-align: -1px;
@@ -683,7 +683,7 @@ body {
                 font-weight: normal;
             }
             .suggested-price {
-                color: $ebags-grey-color;
+                color: #777;
                 margin-left: 16px;
                 .dollar-amount {
                     text-decoration: line-through;
