@@ -203,7 +203,7 @@
             <div class="fullscreen <% if (scrollable) { %>scrollable<% } %> <%= template %> <% if (tagged) { %>tagged<% } %>">
                 <div class="content">
                     <span class="close desktop-only"></span>
-                    <span class="close mobile-only">Back</span>
+                    <span class="close mobile-only"></span>
                     <div class="template target"></div>
                 </div>
             </div>
@@ -225,7 +225,7 @@
                 <span class="suggested-price">Sugg. <span class="dollar-amount">$<%= obj.saleString %></span></span></span>
                 <span class="save-percent">You save <%= obj.savePercent %>%</span>
             <% } else { %>
-                <span class="current no-sale"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
+                <span class="current no-sale"><%= obj.displayPrice.dollars %>.<span class="cents"><%= obj.displayPrice.cents %></span></span>
             <% } %>
         </script>
 
@@ -311,11 +311,6 @@
                     <div class='buy'>
                         <% include("product_buy_template") %>
                     </div>
-                    <% if (obj['recipeName']) { %>
-                    <div class="back">
-                        Back to <%- obj['recipeName'] %> Recipe
-                    </div>
-                    <% } %>
                     <% if (obj['collectionName']) { %>
                     <div class="back">
                         Back to Collection Description
