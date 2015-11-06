@@ -105,7 +105,6 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
             return
         
         attributes = {}
-        in_stock = True
 
         sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
@@ -156,10 +155,9 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
                 reg_price = price
             
         except IndexError:
-            in_stock = False
             reg_price = u'$0.00'
 
-        l.add_value('in_stock', in_stock)
+        l.add_value('in_stock', bool(sel.css('#product-actions .product-addToCart').extract_first()))
         l.add_value('price', unicode(reg_price))
         l.add_value('attributes', attributes)
         l.add_value('url', unicode(response.request.url))
