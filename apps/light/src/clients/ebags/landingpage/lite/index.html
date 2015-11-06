@@ -164,12 +164,17 @@
         </script>
 
         <script type="text/template" id="image_tile_template">
-            <% if (obj.template === "product" && obj.defaultImage.get('productShot') === true) { %>
+            <% if (obj.template === "product") { %>
             <div class='relative product-shot'>
+                <ul class="label">
+                    <% if (obj.product.get('brand')) { %>
+                    <li class='brand'><%= obj.product.get('brand')['name'] %></span>
+                    <% } %>
+                    <li class="name"><%= obj.product.get('name') %></span>
+                </ul>
                 <div>
                     <img class="focus" src="<%= obj.defaultImage.url %>" />
                 </div>
-                <span class="product-label"><%= obj.product.get('name') %></span>
             </div>
             <% } else { %>
             <div class='relative'>
@@ -181,23 +186,7 @@
                     <div class='cell'>
                         <% /* "Shop product" is actually wanted for the tile overlay */  %>
                         <div class="title">
-                        <% if (obj.template === "product") { %>
-                            <span>Get Details</span>
-                            <br/>
-                            <span class="tile-name"><%= obj.product.get('name') %></span>
-                        <% } else if (obj.template === "image") { %>
-                            <span>Get Details</span>
-                            <br/>
-                            <span class="tile-name"><%= obj.defaultImage.get('name') %></span>
-                        <% } else if (obj.template === "recipe") { %>
-                            <span>See the Recipe</span>
-                            <br/>
-                            <span class="tile-name"><%= obj.defaultImage.get('name') %></span>
-                        <% } else { %>
-                            <span>Get Details</span>
-                            <br/>
-                            <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
-                        <% } %>
+                            <span>shop now</span>
                         </div>
                     </div>
                 </div>
