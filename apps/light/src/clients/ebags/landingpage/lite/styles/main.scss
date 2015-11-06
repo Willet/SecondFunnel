@@ -926,6 +926,11 @@ body {
     .container {
         padding: 0px;
     }
+    .header-links-bar {
+        .p {
+            display: none;
+        }
+    }
     .navbar {
         &:before,
         &:after {
