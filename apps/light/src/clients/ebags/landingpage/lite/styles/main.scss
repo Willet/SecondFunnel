@@ -956,33 +956,40 @@ body {
     .container {
         padding: 0px;
     }
-    .header-links-bar {
-        .p {
-            display: none;
-        }
-    }
     .navbar {
         &:before,
         &:after {
             content: none;
         }
+        .header-links-bar {
+            height: 10px;
+            p {
+                display: none;
+            }
+        }
         margin: 0;
         margin-bottom: 1px;
         padding: 0;
         border: none;
-        height: 42px;
+        height: 50px;
         min-height: 42px;
         .container {
+            position: static;
+            height: auto;
             a.logo {
                 width: 100%;
                 height: 20px;
                 margin-bottom: 20px;
+                position: static;
                 img {
                     position: relative;
-                    left: 50%;
-                    margin-left: -150px;
-                    width: 300px;
                     height: auto;
+                    position: static;
+                    left: initial;
+                    margin-left: auto;
+                    margin-right: auto;
+                    width: 100px;
+                    margin-top: 10px;
                     &.desktop {
                         display: none;
                     }
@@ -1001,7 +1008,7 @@ body {
         margin-top: 0;
     }
     #category-area {
-        z-index: 10;
+        z-index: 5;
         /* overlap above clickable element with a margin to reduce fat finger clicks
         margin: -20px 0 0;
         padding-top: 22px;*/
@@ -1009,6 +1016,33 @@ body {
         .category-area {
             background-color: #FFF;
             width: 100%;
+            .category {
+                &:hover, &.expanded {
+                    border-top: 3px solid transparent;
+                    background-color: #FFF !important;
+                    box-shadow: 0px 0px 0px transparent;
+                    color: $ebags-highlight-red;
+                    .sub-categories {
+                        border-top: 3px solid $ebags-highlight-red;
+                        box-shadow: 0px 0px 0 1px rgba(0, 0, 0, 0.2);
+                        .sub-category {
+                            color: #000;
+                            font-weight: bold;
+                            &.selected, &:hover {
+                                padding-bottom: 0;
+                                > .name {
+                                    border-bottom: 1px solid transparent;
+                                    color: $ebags-highlight-red;
+                                    font-weight: bold;
+                                }
+                            }
+                            .name {
+                                font-weight: bold;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     #hero-area {
