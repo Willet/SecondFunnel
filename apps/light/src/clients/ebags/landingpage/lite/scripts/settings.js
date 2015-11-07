@@ -111,7 +111,7 @@
     }
   ],
   "categoryHome":false,
-  "gaAccountNumber":"UA-23764505-25",
+  "gaAccountNumber":"UA-23764505-32",
   "column_width":341,
   "social_buttons":null,
   "stickyCategories":true,
