@@ -443,7 +443,7 @@
             <div class="sub-categories">
                 <div class="wrap">
                     <div class="sub-categories-section">
-                    <% for (var i = 1; i < obj.subCategories.length; i++) { %>
+                    <% for (var i = 0; i < obj.subCategories.length; i++) { %>
                         <% if (obj.subCategories[i].label) { %>
                         </div>
                         <div class="sub-categories-label">
@@ -480,7 +480,7 @@
 
     <div class="container">
         <div id="hero-area"></div>
-        <!-- <div class="shop-cta desktop-only">Click to shop the images below</div> -->
+        <div class="shop-cta desktop-only">Click to shop the images below</div>
         <div id="discovery-area" class="discovery-area"></div>
         <div class="tile-sizer tile"></div>
         <div class="no-noscript loading"></div>
