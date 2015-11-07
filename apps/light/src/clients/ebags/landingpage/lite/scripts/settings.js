@@ -6,19 +6,122 @@
     },
     "imageTileWideProb":0.2
   },
-  "mobileCategories":[],
+  "mobileCategories":[
+    {
+      "subCategories":[
+        {
+          "tileSet":"products",
+          "displayName":"Under $30",
+          "name":"under-30",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2430.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Under $50",
+          "name":"under-50",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2450.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Under $70",
+          "name":"under-70",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2470.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Under $100",
+          "name":"under-100",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%24100.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Splurge!",
+          "name":"splurge",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Splurge.jpg",
+          "mobileHeroImage":""
+        }
+      ],
+      "displayName":"By Price"
+    },
+    {
+      "subCategories":[
+        {
+          "displayName":"For Her",
+          "name":"for-her",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Gifts_for_Her.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "displayName":"For Him",
+          "name":"for-him",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Gifts_for_Him.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Traveller",
+          "name":"traveller",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Traveller.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Trendsetter",
+          "name":"trendsetter",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Trendsetter.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Techie",
+          "name":"techie",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Techie.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Outsider",
+          "name":"outsider",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Outdoor.jpg",
+          "mobileHeroImage":""
+        }
+      ],
+      "displayName":"By Recipient"
+    },
+    {
+      "subCategories":[
+        {
+          "displayName":"Stocking Stuffers",
+          "name":"stocking-stuffers",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Stocking_Stuffers.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "displayName":"Packing Cubes",
+          "name":"packing-cube",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Packing_Cubes.jpg",
+          "mobileHeroImage":""
+        }
+      ],
+      "displayName":"More Gifts"
+    }
+  ],
   "categoryHome":false,
   "gaAccountNumber":"UA-23764505-25",
   "column_width":341,
   "social_buttons":null,
   "stickyCategories":true,
-  "generateHeroArea":true,
+  "generateHeroArea":false,
   "useAffiliateLinks":true,
-  "desktopHeroImage":"",
+  "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_All_Gifts.jpg",
   "home":{
-    "category":"all-gifts"
+    "category":"all"
   },
-  "mobileHeroImage":"",
+  "mobileHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_All_Gifts.jpg",
   "minImageWidth":400,
   "masonry":{
     "tileAspectRatio":1,
@@ -28,100 +131,99 @@
     {
       "displayName":"For Her",
       "name":"for-her",
-      "title":"Gifts for Her",
-      "desktopHeroImage":"",
-      "mobileHeroImage":"",
-      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Cook_111x111.jpg"
+      "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Gifts_for_Her.jpg",
+      "mobileHeroImage":""
     },
     {
       "displayName":"For Him",
       "name":"for-him",
-      "title":"Gifts for Him",
-      "desktopHeroImage":"",
-      "mobileHeroImage":"",
-      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Cook_111x111.jpg"
+      "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Gifts_for_Him.jpg",
+      "mobileHeroImage":""
     },
     {
       "subCategories":[
         {
-          "label":"Gifts by Price"
-        },
-        {
           "tileSet":"products",
           "displayName":"Under $30",
           "name":"under-30",
-          "title":"Gifts Under $30",
-          "desktopHeroImage":"",
-          "mobileHeroImage":"",
-          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-25_50x50.jpg"
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2430.jpg",
+          "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Under $50",
           "name":"under-50",
-          "title":"Gifts Under $50",
-          "desktopHeroImage":"",
-          "mobileHeroImage":"",
-          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-50_50x50.jpg"
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2450.jpg",
+          "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Under $70",
           "name":"under-70",
-          "title":"Gifts Under $70",
-          "desktopHeroImage":"",
-          "mobileHeroImage":"",
-          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-100_50x50.jpg"
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2470.jpg",
+          "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Under $100",
           "name":"under-100",
-          "title":"Gifts Under $100",
-          "desktopHeroImage":"",
-          "mobileHeroImage":"",
-          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-100_50x50.jpg"
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%24100.jpg",
+          "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Splurge!",
           "name":"splurge",
-          "title":"Gifts over $100",
-          "desktopHeroImage":"",
-          "mobileHeroImage":"",
-          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gourmet_50x50.jpg"
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Splurge.jpg",
+          "mobileHeroImage":""
         }
       ],
-      "displayName":"Gifts by Price",
-      "name":"",
-      "tileSet":"products",
-      "desktopHeroImage":"",
-      "mobileHeroImage":"",
-      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gifts-By-Price_111x111.jpg"
+      "displayName":"By Price"
     },
     {
-      "displayName":"By Recipient",
-      "name":"the-baker",
-      "title":"Gifts for the Baker",
-      "desktopHeroImage":"",
-      "mobileHeroImage":"",
-      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Baker_111x111.jpg"
+      "subCategories":[
+        {
+          "tileSet":"products",
+          "displayName":"Traveller",
+          "name":"traveller",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Traveller.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Trendsetter",
+          "name":"trendsetter",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Trendsetter.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Techie",
+          "name":"techie",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Techie.jpg",
+          "mobileHeroImage":""
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Outsider",
+          "name":"outsider",
+          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Outdoor.jpg",
+          "mobileHeroImage":""
+        }
+      ],
+      "displayName":"By Recipient"
     },
     {
       "displayName":"Stocking Stuffers",
       "name":"stocking-stuffers",
-      "title":"Stocking Stuffers",
-      "desktopHeroImage":"",
-      "mobileHeroImage":"",
-      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Family_111x111.jpg"
+      "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Stocking_Stuffers.jpg",
+      "mobileHeroImage":""
     },
     {
       "displayName":"Packing Cubes",
       "name":"packing-cube",
-      "title":"Packing Cubes",
-      "desktopHeroImage":"",
-      "mobileHeroImage":"",
-      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Host_111x111.jpg"
+      "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Packing_Cubes.jpg",
+      "mobileHeroImage":""
     }
   ]
 }
