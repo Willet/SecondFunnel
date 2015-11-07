@@ -184,7 +184,7 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
             # If we are creating tiles, add (placeholder) to the feed
             if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
                 self.add_to_feed(item, spider)
-            raise DropItem('DB item validation failed: ({})'.format(e))
+            raise DropItem(u"DB item validation failed: ({})".format(e))
 
         item['instance'] = model # save reference for further pipeline steps
 
@@ -216,7 +216,7 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
             if not image_urls:
                 # Product has no images, convert to placeholder
                 self.convert_to_placeholder(product)
-                raise DropItem(u"<Product {}> has no product images!".format(product))
+                raise DropItem(u"Product has no product images".format(product))
 
             for image_url in image_urls:
                 url = urlparse(image_url, scheme='http').geturl()
@@ -235,7 +235,7 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
             if not images:
                 # Product images failed, convert to placeholder
                 self.convert_to_placeholder(product)
-                raise DropItem(u"<Product {}> failed image processing!".format(product))
+                raise DropItem(u"Product failed image processing".format(product))
             
             # Product is good, delete any out of date images
             old_pks = [pi.pk for pi in old_images]
