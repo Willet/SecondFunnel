@@ -14,37 +14,37 @@
           "label":"Clearance Shops"
         },
         {
+          "tileSet":"products",
           "displayName":"Cooking",
           "name":"cooking",
-          "heroTitle":"Cooking Clearance",
           "heroImage":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_HERO_COOKING_CLEARANCE.png",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_SF_solid_111px_Clearance_Cooking.jpg"
         },
         {
+          "tileSet":"products",
           "displayName":"Baking",
           "name":"baking",
-          "heroTitle":"Baking Clearance",
           "heroImage":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_HERO_BAKING_CLEARANCE.png",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_SF_solid_111px_Clearance_Baking.jpg"
         },
         {
+          "tileSet":"products",
           "displayName":"Dining",
           "name":"dining",
-          "heroTitle":"Dining Clearance",
           "heroImage":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_HERO_DINING_CLEARANCE.png",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_SF_solid_111px_Clearance_Dining.jpg"
         },
         {
+          "tileSet":"products",
           "displayName":"Coffee & Tea",
           "name":"coffee-tea",
-          "heroTitle":"Coffee & Tea Clearance",
           "heroImage":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_HERO_COFFEE_TEA_CLEARANCE.png",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_SF_solid_111px_Clearance_Coffee.jpg"
         },
         {
+          "tileSet":"products",
           "displayName":"Home",
           "name":"home",
-          "heroTitle":"Home Clearance",
           "heroImage":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_HERO_HOME_CLEARANCE.png",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_SF_solid_111px_Clearance_Home.jpg"
         },
@@ -52,7 +52,6 @@
           "tileSet":"products",
           "displayName":"Outdoor",
           "name":"outdoor",
-          "heroTitle":"Outdoor Clearance",
           "heroImage":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_HERO_OUTDOOR_CLEARANCE.png",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_SF_solid_111px_Clearance_Outdoor.jpg"
         },
@@ -63,6 +62,7 @@
           "name":""
         }
       ],
+      "tileSet":"products",
       "displayName":"Clearance",
       "name":"all",
       "heroImage":"http://images.secondfunnel.com/store/surlatable/clearance/SLT_HERO_ALL_CLEARANCE.png",
