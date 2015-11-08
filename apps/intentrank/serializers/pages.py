@@ -49,8 +49,11 @@ class PageSerializer(IRSerializer):
             # for verifying the original upload date of a static campaign
             'pubDate':              str(datetime.now().isoformat()),
             'gaAccountNumber':      getattr(page, 'gaAccountNumber', settings.GOOGLE_ANALYTICS_PROPERTY),
-            'desktopHeroImage':     getattr(page, 'desktopHeroImage', ''),
-            'mobileHeroImage':      getattr(page, 'mobileHeroImage', ''),
+            'defaults': {
+                'heroImage':        getattr(page, 'defaults', {}).get('heroImage', ''),
+                'mobileHeroImage':  getattr(page, 'defaults', {}).get('mobileHeroImage', ''),
+                'heroTitle':        getattr(page, 'defaults', {}).get('heroTitle', ''),
+            },
             # categories format: [{
             #                     "desktopHeroImage":"__img_url__.png"
             #                     "displayName":"For Her",
@@ -76,17 +79,10 @@ class PageSerializer(IRSerializer):
                 # expected format: {'image': True, 'youtube': True, 'banner': False, 'product': False}
                 'wideableTemplates':    getattr(page, 'tiles', {}).get('wideableTemplates', None),
                 # image tile width can be randomized
-                'imageTileWideProb':    getattr(page, 'tiles', {}).get('imageTileWideProb', 0.5),
-                'allowRepeats':         getattr(page, 'tiles', {}).get('allowRepeats', True),
+                'wideProbability':      getattr(page, 'tiles', {}).get('wideProbability', 0.5),
             },
             'masonry': {
                 'transitionDuration': getattr(page, 'masonry', {}).get('transitionDuration', '0.4s'),
-                # minimum number of columns on desktop for masonry
-                'minDesktopColumns':  getattr(page, 'masonry', {}).get('minDesktopColumns', 2),
-                # currently unused:
-                'maxColumnCount':     getattr(page, 'column_count', 4),
-                # minimum number of columns to show on mobile for masonry
-                'minMobileColumns':   getattr(page, 'masonry', {}).get('minMobileColumns', 2),
                 'forceGrid':          getattr(page, 'masonry', {}).get('forceGrid', True),
                 'tileAspectRatio':    getattr(page, 'masonry', {}).get('tileAspectRatio', 0.7),
                 'heightRange':        getattr(page, 'masonry', {}).get('heightRange', 0.6),

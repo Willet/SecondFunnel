@@ -28,7 +28,7 @@ window.PAGES_INFO = {
     'showSharingCount': true,  // optional, for social buttons (default: true)
     'enableTracking': true, // optional; default: true
     'eventMap': undefined,  // optional
-    'imageTileWide': 0.0,
+    'wideProbability': 0.0,
     'imageSizes': undefined,  // optional, overrides built-in size map
     'tapIndicatorText': undefined,  // optional
     'previewAnimationDuration': 100,  // in ms

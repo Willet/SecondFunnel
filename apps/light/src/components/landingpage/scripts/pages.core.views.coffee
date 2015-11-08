@@ -475,64 +475,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # default '' means home
             category = if not _.isEmpty(category) then category else App.option('page:home:category')
             catObj = (App.categories.findModelByName(category) or {})
-            desktopHeroImage = (catObj['desktopHeroImage'] or App.option('page:desktopHeroImage'))
-            mobileHeroImage = (catObj['mobileHeroImage'] or App.option('page:mobileHeroImage'))
-            if desktopHeroImage
+            heroImage = (catObj['heroImage'] or App.option('page:defaults:heroImage'))
+            mobileHeroImage = (catObj['mobileHeroImage'] or App.option('page:defaults:mobileHeroImage'))
+            heroTitle = (catObj['heroTitle'] or App.option('page:defaults:heroTitle'))
+            if heroImage or heroTitle
                 heroImages =
-                    "desktopHeroImage": desktopHeroImage
-                    "mobileHeroImage": mobileHeroImage or desktopHeroImage
-                    "title": "#{catObj['title'] or catObj['displayName']}"
+                    "heroImage": heroImage
+                    "mobileHeroImage": mobileHeroImage or heroImage
+                    "heroTitle": heroTitle
                     "template": "hero"
                 tile = new module.HeroTile(heroImages)
             else
                 tile = undefined
             return tile
-
-
-    class module.GeneratedHeroAreaView extends Marionette.LayoutView
-        ###
-        This Hero's are special in that if there is no hero image specified,
-        an overlay with the category name is used (ex: The Chef, Top 25)
-        ###
-        model: module.Tile
-        className: "heroContainer"
-        template: "#hero_template"
-        regions:
-            content: ".content"
-
-        generateHeroArea: ->
-            category = App.intentRank.currentCategory() || App.option('page:home:category')
-            # If category can't be found, default to 'Gifts'?
-            catObj = (App.categories.findModelByName(category) or displayName: 'Gifts')
-
-            tile =
-                desktopHeroImage: catObj.desktopHeroImage or ""
-                mobileHeroImage: catObj.mobileHeroImage or ""
-                title: "#{catObj.title or catObj.displayName}"
-            
-            if @model? and @model.destroy then @model.destroy()
-            @model = new module.Tile(tile)
-            return @
-
-        loadHeroArea: ->
-            @generateHeroArea()
-            # If view is already visible, update with new category
-            if not @isDestroyed
-                @render()
-
-        initialize: (options) ->
-            if App.intentRank.currentCategory and App.categories
-                @generateHeroArea()
-            else
-                # placeholder to stop error
-                @model = new module.Tile()
-                App.vent.once('intentRankInitialized', =>
-                    @loadHeroArea()
-                )
-            @listenTo(App.vent, "change:category", =>
-                @loadHeroArea()
-            )
-            return @
 
 
     ###
@@ -577,8 +532,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     # second click w/ categories, select category
                     @parent?.contractCategories()
                     
-                    # A category without a name is just drop-down for subcategories
-                    if categoryName
+                    if categoryUrl
+                        App.utils.openUrl(categoryUrl)
+                    else if categoryName
                         # only open again if it isn't already open
                         unless $el.hasClass('selected') and not $subCatEl.hasClass('selected')
                             @selectCategoryEl($el)
@@ -586,8 +542,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             App.router.navigate("category/#{categoryName}",
                                 trigger: true
                             )
-                    if categoryUrl
-                        App.utils.openUrl(categoryUrl)
                 return false # stop propogation
 
             'click .sub-category': (event) ->
@@ -606,7 +560,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
 
                 # url's take priority over category name's
-                if subCategory['url']
+                if subCategory?['url']
                     App.utils.openUrl(subCategory['url'])
 
                 # else switch to the selected category if it has changed
