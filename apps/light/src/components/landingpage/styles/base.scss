@@ -168,7 +168,18 @@ html.no-js .no-noscript {
 #hero-area .jumbotron {
     border-radius: 0px;
     padding: 0;
+    min-height: 100px;
+    .title {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+        width: 100%;
+        line-height: 100px;
+    }
     img {
+        position: relative;
+        z-index: 1; // Covers title
         width: 100%;
     }
 }
@@ -970,9 +981,15 @@ div.spinner {
         }
     }
 
-    .jumbotron {
-        border-bottom: none;
-        margin-top: 0;
+    #hero-area {
+        .jumbotron {
+            border-bottom: none;
+            margin-top: 0;
+            min-height: 60px;
+            .title {
+                line-height: 60px;
+            }
+        }
     }
 
     #discovery-area {

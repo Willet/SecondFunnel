@@ -4,7 +4,7 @@
       "image":true,
       "product":true
     },
-    "imageTileWideProb":0.2
+    "wideProbability":0.2
   },
   "mobileCategories":[
     {
@@ -13,35 +13,35 @@
           "tileSet":"products",
           "displayName":"Under $30",
           "name":"under-30",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2430.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2430.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Under $50",
           "name":"under-50",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2450.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2450.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Under $70",
           "name":"under-70",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2470.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2470.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Under $100",
           "name":"under-100",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%24100.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%24100.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Splurge!",
           "name":"splurge",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Splurge.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Splurge.jpg",
           "mobileHeroImage":""
         }
       ],
@@ -52,41 +52,41 @@
         {
           "displayName":"For Her",
           "name":"for-her",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Gifts_for_Her.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Gifts_for_Her.jpg",
           "mobileHeroImage":""
         },
         {
           "displayName":"For Him",
           "name":"for-him",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Gifts_for_Him.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Gifts_for_Him.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Traveller",
           "name":"traveller",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Traveller.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Traveller.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Trendsetter",
           "name":"trendsetter",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Trendsetter.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Trendsetter.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Techie",
           "name":"techie",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Techie.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Techie.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Outsider",
           "name":"outsider",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Outdoor.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Outdoor.jpg",
           "mobileHeroImage":""
         }
       ],
@@ -97,13 +97,13 @@
         {
           "displayName":"Stocking Stuffers",
           "name":"stocking-stuffers",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Stocking_Stuffers.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Stocking_Stuffers.jpg",
           "mobileHeroImage":""
         },
         {
           "displayName":"Packing Cubes",
           "name":"packing-cube",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Packing_Cubes.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Packing_Cubes.jpg",
           "mobileHeroImage":""
         }
       ],
@@ -117,11 +117,12 @@
   "stickyCategories":true,
   "generateHeroArea":false,
   "useAffiliateLinks":true,
-  "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_All_Gifts.jpg",
+  "defaults":{
+    "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_All_Gifts.jpg"
+  },
   "home":{
     "category":"all"
   },
-  "mobileHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_All_Gifts.jpg",
   "minImageWidth":400,
   "masonry":{
     "tileAspectRatio":1,
@@ -131,13 +132,13 @@
     {
       "displayName":"For Her",
       "name":"for-her",
-      "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Gifts_for_Her.jpg",
+      "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Gifts_for_Her.jpg",
       "mobileHeroImage":""
     },
     {
       "displayName":"For Him",
       "name":"for-him",
-      "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Gifts_for_Him.jpg",
+      "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Gifts_for_Him.jpg",
       "mobileHeroImage":""
     },
     {
@@ -146,35 +147,35 @@
           "tileSet":"products",
           "displayName":"Under $30",
           "name":"under-30",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2430.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2430.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Under $50",
           "name":"under-50",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2450.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2450.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Under $70",
           "name":"under-70",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2470.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%2470.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Under $100",
           "name":"under-100",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%24100.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Under_%24100.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Splurge!",
           "name":"splurge",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Splurge.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Splurge.jpg",
           "mobileHeroImage":""
         }
       ],
@@ -186,28 +187,28 @@
           "tileSet":"products",
           "displayName":"Traveller",
           "name":"traveller",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Traveller.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Traveller.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Trendsetter",
           "name":"trendsetter",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Trendsetter.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Trendsetter.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Techie",
           "name":"techie",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Techie.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Techie.jpg",
           "mobileHeroImage":""
         },
         {
           "tileSet":"products",
           "displayName":"Outsider",
           "name":"outsider",
-          "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Outdoor.jpg",
+          "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Outdoor.jpg",
           "mobileHeroImage":""
         }
       ],
@@ -216,13 +217,13 @@
     {
       "displayName":"Stocking Stuffers",
       "name":"stocking-stuffers",
-      "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Stocking_Stuffers.jpg",
+      "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Stocking_Stuffers.jpg",
       "mobileHeroImage":""
     },
     {
       "displayName":"Packing Cubes",
       "name":"packing-cube",
-      "desktopHeroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Packing_Cubes.jpg",
+      "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Packing_Cubes.jpg",
       "mobileHeroImage":""
     }
   ]

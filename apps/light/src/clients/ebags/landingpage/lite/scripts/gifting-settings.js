@@ -5,7 +5,7 @@
       "image":true,
       "product":true
     },
-    "imageTileWideProb":0.2
+    "wideProbability":0.2
   },
   "mobileCategories":[
     {
@@ -13,7 +13,7 @@
       "tileSet":"products",
       "displayName":"By Price",
       "name":"",
-      "desktopHeroImage":"",
+      "heroImage":"",
       "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gifts-By-Price_111x111.jpg",
       "subCategories":[
         {
@@ -24,7 +24,7 @@
           "displayName":"Under $25",
           "title":"Gifts Under $25",
           "name":"under-25",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-25_50x50.jpg"
         },
@@ -33,7 +33,7 @@
           "displayName":"Under $50",
           "title":"Gifts Under $50",
           "name":"under-50",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-50_50x50.jpg"
         },
@@ -42,7 +42,7 @@
           "displayName":"Under $100",
           "title":"Gifts Under $100",
           "name":"under-100",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-100_50x50.jpg"
         },
@@ -50,7 +50,7 @@
           "displayName":"Gourmet",
           "title":"Gourmet Gifts",
           "name":"gourmet",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gourmet_50x50.jpg"
         }
@@ -60,7 +60,7 @@
       "mobileHeroImage":"",
       "displayName": "By Recipient",
       "name":"",
-      "desktopHeroImage":"",
+      "heroImage":"",
       "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Baker_111x111.jpg",
       "subCategories":[
         {
@@ -68,7 +68,7 @@
         },
         {
           "mobileHeroImage":"",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "displayName":"The Cook",
           "title":"Gifts for The Cook",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Cook_50x50.jpg",
@@ -76,7 +76,7 @@
         },
         {
           "mobileHeroImage":"",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "displayName":"The Entertainer",
           "title":"Gifts for The Entertainer",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Entertainer_50x50.jpg",
@@ -84,7 +84,7 @@
         },
         {
           "mobileHeroImage":"",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "displayName":"The Baker",
           "title":"Gifts for The Baker",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Baker_50x50.jpg",
@@ -92,7 +92,7 @@
         },
         {
           "mobileHeroImage":"",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "displayName":"The Family",
           "title":"Gifts for The Family",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Family_50x50.jpg",
@@ -100,7 +100,7 @@
         },
         {
           "mobileHeroImage":"",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "displayName":"The Host",
           "title":"Gifts for The Host",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Host_50x50.jpg",
@@ -111,7 +111,7 @@
           "displayName":"For Her",
           "title":"Gifts for Her",
           "name":"for-her",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/For-Her_50x50.jpg"
         },
@@ -120,7 +120,7 @@
           "displayName":"For Him",
           "title":"Gifts for Him",
           "name":"for-him",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/For-Him_50x50.jpg"
         },
@@ -129,7 +129,7 @@
           "displayName":"Health Nut",
           "title":"Gifts for The Health Nut",
           "name":"the-health-nut",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Health-Nut_50x50.jpg"
         }
@@ -139,7 +139,7 @@
       "mobileHeroImage":"",
       "displayName": "More Ideas",
       "name":"",
-      "desktopHeroImage":"",
+      "heroImage":"",
       "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/More-Gift-Ideas_111x111.jpg",
       "subCategories":[
         {
@@ -159,7 +159,7 @@
         },
         {
           "mobileHeroImage":"",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "displayName":"Top Registry Gifts",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Registry_50x50.jpg",
           "name":"top-registry"
@@ -168,7 +168,7 @@
           "tileSet":"products",
           "displayName":"Top 25 Gifts",
           "name":"top-25",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Top-25_50x50.jpg"
         },
@@ -176,23 +176,24 @@
           "tileSet":"products",
           "displayName":"All Gifts",
           "name":"all-gifts",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/All-Gifts_50x50.jpg"
         }
       ]
     }
   ],
+  "defaults": {
+    "heroTitle":"All Gifts"
+  },
   "categoryHome":false,
   "gaAccountNumber":"UA-23764505-25",
   "column_width":341,
   "social_buttons":null,
   "stickyCategories":true,
-  "desktopHeroImage":"",
   "home":{
     "category":"all-gifts"
   },
-  "mobileHeroImage":"",
   "minImageWidth":675,
   "masonry":{
     "tileAspectRatio":1,
@@ -204,7 +205,7 @@
       "tileSet":"products",
       "displayName":"Gifts by Price",
       "name":"",
-      "desktopHeroImage":"",
+      "heroImage":"",
       "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gifts-By-Price_111x111.jpg",
       "subCategories":[
         {
@@ -215,7 +216,7 @@
           "displayName":"Under $25",
           "title":"Gifts Under $25",
           "name":"under-25",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-25_50x50.jpg"
         },
@@ -224,7 +225,7 @@
           "displayName":"Under $50",
           "title":"Gifts Under $50",
           "name":"under-50",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-50_50x50.jpg"
         },
@@ -233,7 +234,7 @@
           "displayName":"Under $100",
           "title":"Gifts Under $100",
           "name":"under-100",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Under-100_50x50.jpg"
         },
@@ -242,7 +243,7 @@
           "displayName":"Gourmet",
           "title":"Gourmet Gifts",
           "name":"gourmet",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gourmet_50x50.jpg"
         }
@@ -250,7 +251,7 @@
     },
     {
       "mobileHeroImage":"",
-      "desktopHeroImage":"",
+      "heroImage":"",
       "displayName":"The Cook",
       "title":"Gifts for the Cook",
       "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Cook_111x111.jpg",
@@ -258,7 +259,7 @@
     },
     {
       "mobileHeroImage":"",
-      "desktopHeroImage":"",
+      "heroImage":"",
       "displayName":"The Entertainer",
       "title":"Gifts for the Entertainer",
       "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Entertainer_111x111.jpg",
@@ -266,7 +267,7 @@
     },
     {
       "mobileHeroImage":"",
-      "desktopHeroImage":"",
+      "heroImage":"",
       "displayName":"The Baker",
       "title":"Gifts for the Baker",
       "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Baker_111x111.jpg",
@@ -274,7 +275,7 @@
     },
     {
       "mobileHeroImage":"",
-      "desktopHeroImage":"",
+      "heroImage":"",
       "displayName":"The Family",
       "title":"Gifts for the Family",
       "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Family_111x111.jpg",
@@ -282,7 +283,7 @@
     },
     {
       "mobileHeroImage":"",
-      "desktopHeroImage":"",
+      "heroImage":"",
       "displayName":"The Host",
       "title":"Gifts for the Host",
       "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Host_111x111.jpg",
@@ -292,7 +293,7 @@
       "mobileHeroImage":"",
       "displayName": "More Gift Ideas",
       "name":"",
-      "desktopHeroImage":"",
+      "heroImage":"",
       "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/More-Gift-Ideas_111x111.jpg",
       "subCategories":[
         {
@@ -303,7 +304,7 @@
           "displayName":"For Her",
           "title":"Gifts for Her",
           "name":"for-her",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/For-Her_50x50.jpg"
         },
@@ -312,7 +313,7 @@
           "displayName":"For Him",
           "title":"Gifts for Him",
           "name":"for-him",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/For-Him_50x50.jpg"
         },
@@ -321,7 +322,7 @@
           "displayName":"Health Nut",
           "title":"Gifts for the Health Nut",
           "name":"the-health-nut",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Health-Nut_50x50.jpg"
         },
@@ -350,7 +351,7 @@
           "tileSet":"products",
           "displayName":"Top 25 Gifts",
           "name":"top-25",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Top-25_50x50.jpg"
         },
@@ -358,7 +359,7 @@
           "tileSet":"products",
           "displayName":"All Gifts",
           "name":"all-gifts",
-          "desktopHeroImage":"",
+          "heroImage":"",
           "mobileHeroImage":"",
           "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/All-Gifts_50x50.jpg"
         }
