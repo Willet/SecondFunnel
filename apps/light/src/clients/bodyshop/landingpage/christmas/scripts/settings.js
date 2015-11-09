@@ -38,7 +38,7 @@
     },
     {
       "displayName":"Terrific Teacher",
-      "name":"fanatic",
+      "name":"teacher",
       "heroTitle":"For <b>TERRIFIC TEACHER:</b> Be The Teacher's Pet With These Cute Seasonal Gifts."
     },
     {
