@@ -147,11 +147,11 @@
                     <% for (var j = 0; j < obj.images.length; j++) {
                         // only 1st image is progressively loaded, others load hi-res version
                         if (j === 0) { %>
-                            <div class="image" style="background-image: url('<%= obj.images[j].url %>');">
+                            <div class="image" data-id="<%= obj.images[j].id %>" style="background-image: url('<%= obj.images[j].url %>');">
                                 <div class="hi-res image"></div>
                             </div>
                         <% } else { %>
-                            <div class="image">
+                            <div class="image" data-id="<%= obj.images[j].id %>" >
                                 <div class="hi-res image"></div>
                             </div>
                         <% }
@@ -182,8 +182,8 @@
                     <img class="focus" src="<%= obj.defaultImage.url %>" />
                 </div>
                 <span class="product-label"><%= obj.product.get('name') %></span>
-                <% if (obj.product.get('sale_price')) { %>
-                    <span class="product-price"><%= obj.product.get('currency') %><%= obj.product.get('sale_price') %> (<%= obj.product.get('currency') %><%= obj.product.get('price') %>)</span>
+                <% if (obj.product.get('salePrice')) { %>
+                    <span class="product-price"><%= obj.product.get('currency') %><%= obj.product.get('salePrice') %> (<%= obj.product.get('currency') %><%= obj.product.get('price') %>)</span>
                 <% } else { %>
                     <span class="product-price"><%= obj.product.get('currency') %><%= obj.product.get('price') %></span>
                 <% } %>
@@ -218,6 +218,29 @@
             <% } %>
         </script>
 
+        <script type="text/template" id="similar_product_template">
+            <div class='relative product-shot'>
+                <div>
+                    <img class="focus" src="<%= obj.defaultImage.url %>" />
+                </div>
+                <span class="product-label"><%= obj.name %></span>
+                <% if (obj.salePrice) { %>
+                    <span class="product-price"><%= obj.currency %><%= obj.salePrice %> (<%= obj.currency %><%= obj.price %>)</span>
+                <% } else { %>
+                    <span class="product-price"><%= obj.currency %><%= obj.price %></span>
+                <% } %>
+            </div>
+            <div class="overlay">
+                <div class='table'>
+                    <div class='cell'>
+                        <div class="title">
+                            <span>Get Details</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </script>
+
         <script type="text/template" id="preview_container_template">
             <% var template = (obj.template || "image") %>
             <% var tagged = false; try { tagged = !_.isEmpty(obj.taggedProducts); } catch (e) {} %>
@@ -242,8 +265,8 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <a class='button' href='<%= obj.cjLink || obj.url %>' target='_blank'>
-                <span>Shop Now</span>
+            <a class='button' href='<%= obj.url %>' target='_blank'>
+                <span>ADD TO BAG</span>
             </a>
         </script>
 
@@ -285,6 +308,11 @@
                     <div class='buy'>
                         <% include("product_buy_template") %>
                     </div>
+                    <% if (obj['collectionName']) { %>
+                    <div class="back">
+                        Back to Collection Description
+                    </div>
+                    <% } %>
                 </div>
             </div>
         </script>
@@ -340,11 +368,6 @@
         <script type="text/template" id="product_preview_template">
             <div class="table <%= obj.orientation %>">
                 <div class="feature">
-                    <div class="cell title-banner desktop-only">
-                        <div class="title">
-                            <% include("product_title_template") %>
-                        </div>
-                    </div>
                     <div class="cell info">
                         <div class="product-info"></div>
                     </div>
@@ -362,18 +385,13 @@
                 <div class="similar-cta">Shop the Collection</div>
                 <div class='similar-subtext'>by clicking the images below</div>
             <% } else { %>
-                <div class="similar-cta">You May Also Like</div>
+                <div class="similar-cta">Shop The Set</div>
             <% } %>
             <div class="tiles"></div>
         </script>
 
         <script type="text/template" id="desktop_tagged_products">
             <div class="feature">
-                <div class="cell title-banner">
-                    <div class="title">
-                        <% include("product_title_template") %>
-                    </div>
-                </div>
                 <div class="cell look-image-container">
                     <% if (template === "collection") { %>
                         <% var url = obj.expandedImage ? obj.expandedImage.url : image.url; %>
@@ -417,21 +435,6 @@
                 </div>
             </div>
             <div class="cell similar-products overflow"></div>
-        </script>
-
-        <script type="text/template" id="recipe_template">
-            <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
-            <div class="recipe-container">
-                <div class="title">
-                    <% include("product_title_template") %>
-                </div>
-                <div class="recipe">
-                    <% include("product_description_template") %>
-                </div>
-                <div class="scroll-cta">
-                    Scroll to see more
-                </div>
-            </div>
         </script>
 
         <script type="text/template" id="no_tagged_products">

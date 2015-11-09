@@ -27,3 +27,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 savePercent: savePercent
             )
     )
+
+    module.ProductTile::options =
+        showThumbnails: false
+        previewFeed: true
+
