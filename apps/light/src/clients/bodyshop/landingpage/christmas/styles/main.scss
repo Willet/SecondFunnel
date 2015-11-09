@@ -238,9 +238,9 @@ body {
         vertical-align: middle;
         &:hover {
             &:not(.selected) {
-                background-color: $tbs-white-color;
+                background: $tbs-white-color;
                 .name {
-                    color: $tbs-white-color;
+                    color: $tbs-red-color;
                 }
             }
         }
