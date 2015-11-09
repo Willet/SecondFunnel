@@ -7,6 +7,7 @@ $tbs-category-height: 60px;
 $tbs-red-color: #A93032;
 $tbs-grey-color: #DDD;
 $tbs-black-color: #000;
+$tbs-green-color: #05492F;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -167,7 +168,7 @@ body {
         position: relative;
         width: 14%;
         overflow: visible;
-        background-color: transparent;
+        background: url(/static/light/bodyshop/landingpage/christmas/images/repeating-background.jpg) repeat;
         height: $tbs-category-height;
         border: 3px solid $tbs-white-color;
         vertical-align: middle;
@@ -323,7 +324,7 @@ body {
         height: 100%;
         padding: 0;
         margin-top: 0px;
-        margin-bottom: 2px;
+        margin-bottom: 8px;
         background: none;
         overflow: hidden;
         min-height: 40px;
@@ -527,13 +528,13 @@ body {
                 max-height: 640px;
             }
             &.tagged .content {
-                max-height: 720px;
+                max-height: none; /* will screw up product thumbnails */
             }
         }
     }
     .content {
-        padding: 40px 10px 10px !important;
-        max-height: 720px;
+        padding: 20px 10px !important;
+        max-height: none;
         height: auto;
     }
 }
@@ -580,20 +581,16 @@ body {
         max-width: 1024px !important;
     }
     .close {
-        top: 10px;
-        right: 10px;
+        top: 0;
+        right: 0;
+        padding: 10px;
         text-shadow: none;
-        font-size: 12px;
-        font-weight: normal;
-        color: #fff;
+        font-size: 35px;
+        font-weight: 200;
+        color: #999;
         z-index: 10;
-        &:hover {
-            opacity: 0.6;
-            filter: alpha(opacity=60);
-        }
-        img {
-            vertical-align: -1px;
-            margin-left: 7px;
+        &:after {
+            content: '\2573';
         }
     }
     .title-banner {
@@ -616,7 +613,7 @@ body {
     .info, .look-image-container {
         width: 100%;
         height: 100%;
-        padding: 10px 0 0 0;
+        padding: 0;
         &.tagged {
             padding: 10px 0 170px 0;
         }
@@ -638,46 +635,18 @@ body {
     .look-image-container {
         .look-image {
             display: inline-block;
-            width: 57%;
+            width: 53%;
             height: 100%;
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             border-radius: 10px;
         }
-        .recipe-container {
-            display: inline-block;
-            vertical-align: top;
-            width: 42%;
-            height: 100%;
-            padding: 10px 20px;
-            margin: 0;
-            .title {
-                font-size: 20px;
-                line-height: 20px;
-                margin-bottom: 15px;
-                max-height: 60px;
-            }
-            .recipe {
-                font-size: 12px;
-                max-height: 85%;
-                overflow: auto;
-            }
-            .scroll-cta {
-                width: 100%;
-                text-align: center;
-                font-size: 15px;
-                margin-top: 5px;
-                &:after {
-                    content: url('/static/light/surlatable/landingpage/default/images/scroll-more-arrow.png');
-                }
-            }
-        }
     }
     .gallery-main-image {
         display: inline-block;
         vertical-align: top;
-        width: 57%;
+        width: 53%;
         height: 100%;
         position: relative;
         @include no-select;
@@ -721,9 +690,9 @@ body {
     .product-details {
         display: inline-block;
         vertical-align: top;
-        width: 42%;
+        width: 46%;
         height: 100%;
-        padding: 10px 20px;
+        padding: 10px 20px 0 20px;
         margin: 0 !important;
         text-align: left;
         .title, .price {
@@ -772,19 +741,24 @@ body {
         }
     }
     .buy {
-        width: 70%;
         margin: auto !important;
+        text-align: center;
         .button {
+            display: inline;
             position: relative;
-            font-size: 18px;
+            font-size: 15px;
             font-weight: bold;
             line-height: 35px;
-            padding-top: 5px;
+            padding: 8px;
             text-transform: uppercase;
             width: 100%;
-            border-radius: 10px;
+            color: $tbs-white-color;
+            background-color: $tbs-green-color;
+            &:after {
+                content: "\25BA";
+                font-size: 13px;
+            }
             &:hover {
-                background-color: #fff;
                 text-decoration: none;
             }
         }
@@ -1107,6 +1081,7 @@ body {
                 .gallery-main-image {
                     .main-image-container {
                         height: 100%;
+                        padding: 0 0 10px 10px;
                     }
                     .main-image .description {
                         display: inline-block;
