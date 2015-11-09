@@ -799,7 +799,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         if subcat.name
                             if subcat.name.charAt(0) == '|'
                                 subMemo[cat.attributes.name + subcat.name] = _.extend {}, subcat,
-                                    desktopHeroImage: subcat.desktopHeroImage or cat.attributes.desktopHeroImage
+                                    heroImage: subcat.heroImage or cat.attributes.heroImage
                                     mobileHeroImage: subcat.mobileHeroImage or cat.attributes.mobileHeroImage
                                     subCategory: subcat.name
                                     category: cat

@@ -105,7 +105,6 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
             return
         
         attributes = {}
-        in_stock = True
 
         sel = Selector(response)
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
@@ -138,24 +137,27 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         l.add_value('sku', unicode(sku))
 
         # prices are sometimes in the forms:
+        #    $9.95
         #    $9.95 - $48.96
-        #    Now: $99.96 Was: $139.95 Value: $200.00
+        #    $99.96  Sugg. $1,860.00 | You save 46%
+        price_range = sel.css('meta[property="eb:pricerange"]::attr(content)').extract_first()
+        if price_range:
+            attributes['price_range'] = price_range
+
         try:
-            price_range = sel.css('meta[property="eb:pricerange"]::attr(content)').extract_first()
-            try:
-                reg_price = sel.css('.product-priceInfo #product-priceList span::text').extract_first().split('-')[0]
-            except IndexError:
-                reg_price = sel.css('.product-priceMain span.hide::text').extract_first().split('-')[0]
+            price = sel.css('.product-priceMain span.hide::text').extract_first().split('-')[0]
+            sugg_price = sel.css('.product-priceInfo #product-priceList span::text').extract_first()
+            
+            if sugg_price:
+                reg_price = sugg_price.split('-')[0] # Sometimes "$9.95 - $48.96"
+                l.add_value('sale_price', price)
             else:
-                sale_price = sel.css('.product-priceMain span.hide::text').extract_first().split('-')[0]
-                l.add_value('sale_price', unicode(sale_price))
-            if price_range:
-                attributes['price_range'] = unicode(price_range)
+                reg_price = price
+            
         except IndexError:
-            in_stock = False
             reg_price = u'$0.00'
 
-        l.add_value('in_stock', in_stock)
+        l.add_value('in_stock', bool(sel.css('#product-actions .product-addToCart').extract_first()))
         l.add_value('price', unicode(reg_price))
         l.add_value('attributes', attributes)
         l.add_value('url', unicode(response.request.url))

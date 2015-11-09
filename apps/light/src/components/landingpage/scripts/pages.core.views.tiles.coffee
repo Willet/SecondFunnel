@@ -111,7 +111,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 4: "full"
 
             wideable = wideableTemplates[@model.get("template")]
-            showWide = (Math.random() < App.option("page:tiles:imageTileWideProb", 0.5))
+            showWide = (Math.random() < App.option("page:tiles:wideProbability", 0.5))
             if _.isNumber(@model.get("colspan"))
                 columns = @model.get("colspan")
             else if wideable and showWide

@@ -475,12 +475,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # default '' means home
             category = if not _.isEmpty(category) then category else App.option('page:home:category')
             catObj = (App.categories.findModelByName(category) or {})
-            desktopHeroImage = (catObj['desktopHeroImage'] or App.option('page:desktopHeroImage'))
-            mobileHeroImage = (catObj['mobileHeroImage'] or App.option('page:mobileHeroImage'))
-            if desktopHeroImage
+            heroImage = (catObj['heroImage'] or App.option('page:defaults:heroImage'))
+            mobileHeroImage = (catObj['mobileHeroImage'] or App.option('page:defaults:mobileHeroImage'))
+            heroTitle = (catObj['heroTitle'] or App.option('page:defaults:heroTitle'))
+            if heroImage or heroTitle
                 heroImages =
-                    "desktopHeroImage": desktopHeroImage
-                    "mobileHeroImage": mobileHeroImage or desktopHeroImage
+                    "heroImage": heroImage
+                    "mobileHeroImage": mobileHeroImage or heroImage
+                    "heroTitle": heroTitle
                     "template": "hero"
                 tile = new module.HeroTile(heroImages)
             else
@@ -530,8 +532,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     # second click w/ categories, select category
                     @parent?.contractCategories()
                     
-                    # A category without a name is just drop-down for subcategories
-                    if categoryName
+                    if categoryUrl
+                        App.utils.openUrl(categoryUrl)
+                    else if categoryName
                         # only open again if it isn't already open
                         unless $el.hasClass('selected') and not $subCatEl.hasClass('selected')
                             @selectCategoryEl($el)
@@ -539,8 +542,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             App.router.navigate("category/#{categoryName}",
                                 trigger: true
                             )
-                    if categoryUrl
-                        App.utils.openUrl(categoryUrl)
                 return false # stop propogation
 
             'click .sub-category': (event) ->
@@ -559,7 +560,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
 
                 # url's take priority over category name's
-                if subCategory['url']
+                if subCategory?['url']
                     App.utils.openUrl(subCategory['url'])
 
                 # else switch to the selected category if it has changed

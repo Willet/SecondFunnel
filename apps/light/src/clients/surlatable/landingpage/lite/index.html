@@ -107,19 +107,6 @@
     @@include('shared/campaign_body.html')
 
     <div>
-        <script type="text/template" id="hero_template">
-            <div class="hero-image-wrapper">
-                <div class="visible-xs jumbotron">
-                    <span class="category-name"><%= obj.title %></span>
-                    <% if (obj.mobileHeroImage) { %><img src="<%= obj.mobileHeroImage %>" alt="Hero" /><% } %>
-                </div>
-                <div class="hidden-xs jumbotron">
-                    <span class="category-name"><%= obj.title %></span>
-                    <% if (obj.desktopHeroImage) { %><img src="<%= obj.desktopHeroImage %>" alt="Hero" /><% } %>
-                </div>
-            </div>
-        </script>
-
         <script type="text/template" id="product_galleryDots_template">
             <% for (var i = 0; i < obj.images.length; i++) { %>
                 <div class="item" data-index="<%- i %>"></div>

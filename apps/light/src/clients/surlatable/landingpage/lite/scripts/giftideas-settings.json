@@ -1,0 +1,390 @@
+// A copy of page settings for reference
+{
+  "tiles":{
+    "wideableTemplates":{
+      "image":true,
+      "product":true
+    },
+    "wideProbability":0.2
+  },
+  "mobileCategories":[
+    {
+      "subCategories":[
+        {
+          "label":"Gifts by Price"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Under $25",
+          "name":"under-25",
+          "heroTitle":"Gifts Under $25",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Under_25_111x111.jpeg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Under $50",
+          "name":"under-50",
+          "heroTitle":"Gifts Under $50",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Under_50_111x111.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Under $100",
+          "name":"under-100",
+          "heroTitle":"Gifts Under $100",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Under_100_111x111.jpg"
+        },
+        {
+          "displayName":"Over $100",
+          "name":"over-100",
+          "heroTitle":"Over $100",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Over_100_111x111.jpg"
+        }
+      ],
+      "displayName":"By Price",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Under_25_111x111.jpeg"
+    },
+    {
+      "subCategories":[
+        {
+          "label":"Gifts by Recipient"
+        },
+        {
+          "displayName":"The Chef",
+          "name":"chef",
+          "heroTitle":"Gifts for The Chef",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Cook_50x50.jpg"
+        },
+        {
+          "displayName":"The Entertainer",
+          "name":"entertainer",
+          "heroTitle":"Gifts for The Entertainer",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Entertainer_50x50.jpg"
+        },
+        {
+          "displayName":"The Baker",
+          "name":"baker",
+          "heroTitle":"Gifts for The Baker",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Baker_50x50.jpg"
+        },
+        {
+          "displayName":"The Family",
+          "name":"family",
+          "heroTitle":"Gifts for The Family",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Family_50x50.jpg"
+        },
+        {
+          "displayName":"The Host",
+          "name":"host",
+          "heroTitle":"Gifts for The Host",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Host_50x50.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Coffee Lover",
+          "name":"coffee-lover",
+          "heroTitle":"Gifts for The Coffee Lover",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/For-Her_50x50.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Griller",
+          "name":"griller",
+          "heroTitle":"Gifts for The Griller",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/For-Him_50x50.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Bartender",
+          "name":"bartender",
+          "heroTitle":"Gifts for The Bartender",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Health-Nut_50x50.jpg"
+        }
+      ],
+      "displayName":"By Recipient",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Baker_111x111.jpg"
+    },
+    {
+      "subCategories":[
+        {
+          "label":"More Gift Ideas"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Top 25 Gifts",
+          "heroTitle":"Top 25 Gifts",
+          "name":"top-25",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Top_25_111x111.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Stocking Stuffers",
+          "heroTitle":"Stocking Stuffers",
+          "name": "stocking-stuffers",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Stocking_Stuffers_111x111.jpg"
+        },
+        {
+          "url":"http://www.surlatable.com/category/CAT-11149/",
+          "displayName":"Gift Cards",
+          "name":"gift-cards",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gift-Cards_50x50.jpg"
+        },
+        {
+          "url":"http://www.surlatable.com/category/cat2211278/",
+          "displayName":"Cooking Classes",
+          "name":"cooking-classes",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Cooking-Classes_50x50.jpg"
+        },
+        {
+          "url":"http://www.surlatable.com/category/cat2550418/Top+Registry+Gifts",
+          "displayName":"Top Registry Gifts",
+          "name":"top-registry-gifts",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Registry_50x50.jpg"
+        },
+        {
+          "url":"http://www.surlatable.com/category/cat1470424/Corporate-Gifts",
+          "displayName":"Corporate Gifts",
+          "name":"corporate-gifts",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Registry_50x50.jpg"
+        },
+        {
+          "url":"http://www.surlatable.com/product/prod690263/",
+          "displayName":"Build-A-Mitt",
+          "name":"build-a-mitt",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/SLT_SF_buildamit_thecook.jpg"
+        },
+        {
+          "displayName":"All Gifts",
+          "heroTitle":"All Gifts",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/All-Gifts_50x50.jpg",
+          "name":"all-gifts"
+        }
+      ],
+      "displayName":"More Ideas",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/More_Gift_Ideas_111x111.jpg"
+    }
+  ],
+  "categoryHome":false,
+  "gaAccountNumber":"UA-23764505-25",
+  "column_width":341,
+  "social_buttons":null,
+  "stickyCategories":true,
+  "generateHeroArea":true,
+  "useAffiliateLinks":true,
+  "heroImage":"",
+  "home":{
+    "category":"all-gifts"
+  },
+  "mobileHeroImage":"",
+  "minImageWidth":400,
+  "masonry":{
+    "tileAspectRatio":1,
+    "forceGrid":true
+  },
+  "categories":[
+    {
+      "subCategories":[
+        {
+          "label":"By Price"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Under $25",
+          "name":"under-25",
+          "heroTitle":"Gifts Under $25",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Under_25_111x111.jpeg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Under $50",
+          "name":"under-50",
+          "heroTitle":"Gifts Under $50",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Under_50_111x111.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Under $100",
+          "name":"under-100",
+          "heroTitle":"Gifts Under $100",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Under_100_111x111.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Over $100",
+          "name":"over-100",
+          "heroTitle":"Gifts Over $100",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Over_100_111x111.jpg"
+        }
+      ],
+      "displayName":"By Price",
+      "thumbnail":"http://www.surlatable.com/images/customers/c1079/PRO-1812502/PRO-1812502_pdp/main_variation_Default_view_1_425x425."
+    },
+    {
+      "subCategories":[
+        {
+          "label":"By Recipient"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Entertainer",
+          "name":"entertainer",
+          "heroTitle":"Gifts for The Entertainer",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/The_Entertainer_111x111.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Chef",
+          "name":"chef",
+          "heroTitle":"Gifts for The Chef",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/The_Chef_111x111.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Host",
+          "name":"host",
+          "heroTitle":"Gifts for The Host",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/The_Host_111x111.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Baker",
+          "name":"baker",
+          "heroTitle":"Gifts for The Baker",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/The_Baker_111x111.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Family",
+          "name":"family",
+          "heroTitle":"Gifts for The Family",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/The_Family_111x111.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Coffee Lover",
+          "name":"coffee-lover",
+          "heroTitle":"Gifts for The Coffee Lover",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/The_Coffee_Lover_111x111.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Griller",
+          "name":"griller",
+          "heroTitle":"Gifts for The Griller",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/The_Griller_111x111.jpg"
+        },
+        {
+          "tileSet":"products",
+          "displayName":"Bartender",
+          "name":"bartender",
+          "heroTitle":"Gifts for The Bartender",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/The_Bartender_111x111.jpg"
+        }
+      ],
+      "displayName":"By Recipient",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/The_Entertainer_111x111.jpg"
+    },
+    {
+      "displayName":"Stocking Stuffers",
+      "name":"stocking-stuffers",
+      "heroTitle":"Stocking Stuffers",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Stocking_Stuffers_111x111.jpg"
+    },
+    {
+      "subCategories":[
+        {
+          "label":"Build-A-Mitt"
+        },
+        {
+          "url":"http://www.surlatable.com/product/prod690263/",
+          "displayName":"The Cook",
+          "name":"build-a-mitt-cook",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/SLT_SF_buildamit_thecook.jpg"
+        },
+        {
+          "url":"http://www.surlatable.com/product/prod2230100/",
+          "displayName":"The Baker",
+          "name":"build-a-mitt-baker",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/SLT_SF_buildamit_baking.jpg"
+        },
+        {
+          "url":"http://www.surlatable.com/product/prod2230101/",
+          "displayName":"The Griller",
+          "name":"build-a-mitt-griller",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/SLT_SF_buildamit_grilling.jpg"
+        },
+        {
+          "url":"http://www.surlatable.com/product/prod2230102/",
+          "displayName":"Olive Oil",
+          "name":"build-a-mitt-olive-oil",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/SLT_SF_buildamit_oliveoil.jpg"
+        },
+        {
+          "url":"http://www.surlatable.com/product/prod2230103/",
+          "displayName":"Pasta Lover",
+          "name":"build-a-mitt-pasta-lover",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/SLT_SF_buildamit_pasta.jpg"
+        },
+        {
+          "url":"http://www.surlatable.com/product/prod2230104/",
+          "displayName":"Pizza Lover",
+          "name":"build-a-mitt-pizza-lover",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/SLT_SF_buildamit_pizza.jpg"
+        },
+        {
+          "url":"http://www.surlatable.com/product/prod2230105/",
+          "displayName":"Hot Chocolate",
+          "name":"build-a-mitt-hot-chocolate",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/SLT_SF_buildamit_hotchoc.jpg"
+        }
+      ],
+      "displayName":"Build-A-Mitt",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/SLT_SF_buildamit_thecook.jpg"
+    },
+    {
+      "displayName":"Top 25",
+      "name":"top-25",
+      "heroTitle":"Top 25 Gifts",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/Top_25_111x111.jpg"
+    },
+    {
+      "displayName":"All Gifts",
+      "name":"all-gifts",
+      "heroTitle":"All Gifts",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/The-Baker_111x111.jpg"
+    },
+    {
+      "subCategories":[
+        {
+          "label":"More Gift Ideas"
+        },
+        {
+          "url":"http://www.anrdoezrs.net/links/7774943/type/dlg/http://www.surlatable.com/category/CAT-11149/Gift+Cards",
+          "displayName":"Gift Cards",
+          "name":"gift-cards",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Gift-Cards_50x50.jpg"
+        },
+        {
+          "url":"http://www.anrdoezrs.net/links/7774943/type/dlg/http://www.surlatable.com/category/cat2211278/Cooking+Classes",
+          "displayName":"Cooking Classes",
+          "name":"cooking-classes",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Cooking-Classes_50x50.jpg"
+        },
+        {
+          "url":"http://www.anrdoezrs.net/links/7774943/type/dlg/http://www.surlatable.com/category/cat2550418/Top+Registry+Gifts",
+          "displayName":"Top Registry Gifts",
+          "name":"top-registry-gifts",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Registry_50x50.jpg"
+        },
+        {
+          "url":"http://www.surlatable.com/category/cat1470424/Corporate-Gifts",
+          "displayName":"Corporate Gifts",
+          "name":"corporate-gifts",
+          "thumbnail":"http://images.secondfunnel.com/store/surlatable/gifting/Registry_50x50.jpg"
+        }
+      ],
+      "displayName":"More Gift Ideas",
+      "thumbnail":"http://images.secondfunnel.com/store/surlatable/christmas/More_Gift_Ideas_111x111.jpg"
+    }
+  ]
+}

@@ -367,15 +367,10 @@ body {
         overflow: hidden;
         img {
             border: none;
-            position: relative;
-            z-index: 1;
         }
-        .category-name {
-            width: 100%;
-            line-height: 104px;
+        .title {
             color: $slt-dark-green-color;
             font-family: $slt-modern-font;
-            font-style: italic;
             font-size: 65px;
             font-weight: 300;
             .spaced {
@@ -1119,8 +1114,7 @@ body {
         .visible-sm.jumbotron {
             height: 100%;
             margin-bottom: 1px;
-            .category-name {
-                line-height: 60px;
+            .title {
                 font-size: 30px;
             }
         }
