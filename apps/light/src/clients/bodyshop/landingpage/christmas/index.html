@@ -7,7 +7,7 @@
     @@include('shared/campaign_head.html')
     @@include('shared/campaign_opengraph_tags.html')
     <link rel="shortcut icon"
-         href="/static/light/surlatable/landingpage/lite/images/surlatable-favicon.png" />
+         href="/static/light/boodyshop/landingpage/default/images/favicon.ico" />
     <link rel="stylesheet" href="/static/light/bodyshop/landingpage/christmas/styles/main.css" />
 
     @@include('shared/campaign_respond.html')
@@ -80,9 +80,9 @@
     </script>
 </head>
 <body>
-    <div class="header-links-bar">
+    <div class="header-links-bar desktop-only">
         <div class="container">
-            <nav id="complementary-nav"><ul>
+            <nav id="complementary-nav" class="desktop-only"><ul>
                 <!-- <li class="any">
                     <a id="any" href="/en/about-us/aboutus.aspx" title="About Us">About Us<span></span></a>
                 </li>
@@ -90,19 +90,22 @@
                     <a id="signed" href="/en/services/contactus.aspx" title="Contact Us">Contact Us<span></span></a>
                 </li> -->
                 <li class="any">
-                    <a href="/en/services/storelocator-result.aspx" title="Find a store">Find a store<span></span></a>
+                    <a href="http://www.thebodyshop-usa.com/en/services/storelocator-result.aspx" title="Find a store">Find a store<span></span></a>
                 </li>
                 <li class="email_inscr-03">
-                    <a href="/en/index.aspx" title="Email Updates">Email Updates<span></span></a>
+                    <a href="http://www.thebodyshop-usa.com/en/index.aspx" title="Email Updates">Email Updates<span></span></a>
                 </li>
                 <li class="any">
-                    <a href="/en/giftcard/" title="Gift Cards">Gift Cards<span></span></a>
+                    <a href="http://www.thebodyshop-usa.com/en/giftcard/" title="Gift Cards">Gift Cards<span></span></a>
                 </li>
                 <li class="lyb-information">
-                    <a href="" title="Rewards Points">Rewards Points<span></span></a>
+                    <a href="http://www.thebodyshop-usa.com/index.aspx" title="Rewards Points">Rewards Points<span></span></a>
                 </li>
                 <li class="anonymouse">
-                    <a href="/en/loveyourbody" title="REWARDS CARD">REWARDS CARD<span></span></a>
+                    <a href="http://www.thebodyshop-usa.com/en/loveyourbody" title="REWARDS CARD">REWARDS CARD<span></span></a>
+                </li>
+                <li>
+                    <a href="https://help.thebodyshop-usa.com/us/" title="FAQ">FAQ</a>
                 </li>
             </ul></nav>
 
@@ -117,7 +120,7 @@
         <div class="container">
             
             <a href="http://www.thebodyshop-usa.com/" target="_top" class="logo">
-                <img class="desktop" src="http://www.thebodyshop-usa.com/img/common/logo/logo_tbs_white.png" />
+                <img class="desktop" src="/static/light/bodyshop/landingpage/default/images/logo_tbs_white.png" />
             </a>
             <div id="search-bar" class="search input_search">
                 <input type="text" placeholder="Search" id="searchQuestionDisplayed" style="font-style: normal; z-index: 500; outline: none;" autocomplete="off">
@@ -131,19 +134,6 @@
     @@include('shared/campaign_body.html')
 
     <div>
-        <script type="text/template" id="hero_template">
-            <div class="hero-image-wrapper">
-                <div class="visible-xs jumbotron">
-                    <span class="category-name"><%= obj.title %></span>
-                    <% if (obj.mobileHeroImage) { %><img src="<%= obj.mobileHeroImage %>" alt="Hero" /><% } %>
-                </div>
-                <div class="hidden-xs jumbotron">
-                    <span class="category-name"><%= obj.title %></span>
-                    <% if (obj.desktopHeroImage) { %><img src="<%= obj.desktopHeroImage %>" alt="Hero" /><% } %>
-                </div>
-            </div>
-        </script>
-
         <script type="text/template" id="product_galleryDots_template">
             <% for (var i = 0; i < obj.images.length; i++) { %>
                 <div class="item" data-index="<%- i %>"></div>
@@ -234,8 +224,8 @@
             <% var tagged = false; try { tagged = !_.isEmpty(obj.taggedProducts); } catch (e) {} %>
             <div class="fullscreen <% if (scrollable) { %>scrollable<% } %> <%= template %> <% if (tagged) { %>tagged<% } %>">
                 <div class="content">
-                    <span class="close desktop-only">Keep Shopping <img src="/static/light/surlatable/landingpage/lite/images/close.gif"></span>
-                    <span class="close mobile-only">Back</span>
+                    <span class="close desktop-only"></span>
+                    <span class="close mobile-only"></span>
                     <div class="template target"></div>
                 </div>
             </div>
@@ -458,8 +448,8 @@
                                     Coming soon to Sur la Table!
                                 </div>
                                 <div class="buy">
-                                    <a class='button' href='http://www.surlatable.com/' target='_blank'>
-                                        Shop On Sur la Table
+                                    <a class='button' href='http://www.thebodyshop-usa.com/' target='_blank'>
+                                        Shop On The Body Shop
                                     </a>
                                 </div>
                             </div>
@@ -470,7 +460,6 @@
         </script>
 
         <script type="text/template" id="category_template">
-            <!-- <img src="<%- obj['thumbnail'] || '/static/light/surlatable/landingpage/lite/images/subcat-placeholder.png' %> " /> -->
             <span class="name <% if (obj.subCategories) { %>subcats<% } %>" data-name="<%- obj.name %>"><%- obj.displayName %></span>
             <% if (obj.subCategories) { %>
             <div class="sub-categories">
@@ -487,7 +476,7 @@
                         </div>
                         <% } else { %>
                         <div class="sub-category" data-name="<%- obj.subCategories[i].name %>">
-                            <img src="<%- obj.subCategories[i]['thumbnail'] || '/static/light/surlatable/landingpage/lite/images/subcat-placeholder.png' %> " />
+                            <img src="<%- obj.subCategories[i]['thumbnail'] || '/static/light/bodyshop/landingpage/christmas/images/subcat-placeholder.png' %> " />
                             <span class="name">
                                 <% if (obj.subCategories[i].displayName) { %>
                                     <%- obj.subCategories[i].displayName %>
@@ -509,7 +498,7 @@
 
     <div class="container" id="category-container">
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
-        <img src="http://res.cloudinary.com/secondfunnel/image/upload/v1445356546/Just_header_image_pbqes3.png">
+        <img src="/static/light/bodyshop/landingpage/christmas/images/holiday-banner.png">
         <div id="category-area">
             <div id="category-closer"></div>
         </div>
@@ -531,10 +520,6 @@
     <div>
         @@include('shared/default_templates.html')
     </div>
-    <script type="text/javascript" src="/static/light/surlatable/landingpage/lite/scripts/main.js"></script>
-    <script type="text/javascript">
-        // Fanplyr
-        !function(e,t,a){var n=e.createElement(a),r=e.getElementsByTagName(a)[0];n.async=!0,n.src="//d38nbbai6u794i.cloudfront.net/customers/surlatable/adaptor/surlatable.js",r.parentNode.insertBefore(n,r)}(document,window,"script");
-    </script>
+    <script type="text/javascript" src="/static/light/bodyshop/landingpage/christmas/scripts/main.js"></script>
 </body>
 </html>

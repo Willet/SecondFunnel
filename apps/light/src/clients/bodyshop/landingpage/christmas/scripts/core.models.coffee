@@ -27,11 +27,3 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 savePercent: savePercent
             )
     )
-
-    class module.RecipeTile extends module.Tile
-        initialize: ->
-            super
-            # Recipes have "back to recipe" links
-            recipeName = @model.get('name') or @model.get('title')
-            for product in @model.get('taggedProducts')
-                product.set("recipeName", recipeName)

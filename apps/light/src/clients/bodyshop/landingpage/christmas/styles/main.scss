@@ -1,19 +1,25 @@
 $icon-font-path: "/static/light/fonts/";
 
 $tbs-basic-font: Verdana, Arial, Helvetica, sans-serif;
-$tbs-font: gill-ss-std, Verdana, Geneva, sans-serif;
-$tbs-white: #FFFFFF;
+$tbs-sans-font: GillSans, Verdana, Geneva, sans-serif;
+$tbs-white-color: #FFF;
 $tbs-category-height: 60px;
-$tbs-red: #A93032;
-$tbs-grey: #DDD;
-$tbs-black: #000;
+$tbs-red-color: #A93032;
+$tbs-grey-color: #DDD;
+$tbs-black-color: #000;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
 
+@font-face {
+    font-family: "GillSans";
+    src: url("/static/light/bodyshop/landingpage/default/fonts/gillsans.ttf") format('truetype');
+}
+
 body {
-    background-image: url('http://res.cloudinary.com/secondfunnel/image/upload/v1445350375/tessellating_background_y2lpdn.png');
-    font-family: $tbs-font;
+    background-image: url(/static/light/bodyshop/landingpage/christmas/images/falling-snow.png),
+                      url(/static/light/bodyshop/landingpage/christmas/images/repeating-background.jpg);
+    font-family: $tbs-sans-font;
     background-repeat: repeat;
     background-color: transparent;
 }
@@ -31,24 +37,30 @@ body {
     font-size: 12px;
     line-height: 18px;
     text-align: right;
-    background-color: $tbs-grey;
+    background-color: $tbs-white-color;
     nav {
         display: inline-block;
+        top: 4px;
         right: 0;
         position: relative;
         ul {
             list-style: none;
             margin-bottom: 0;
             li {
+                background: url("/static/light/bodyshop/landingpage/default/images/separator-01.gif") center right no-repeat transparent;
                 display: block;
                 float: left;
                 a {
                     text-transform: uppercase;
-                    padding: 0 7px 0 0;
-                    margin: 0px 5px;
+                    padding: 0 7px;
                     cursor: pointer;
-                    line-height: 31px;
-                    font-size: 16px;
+                    line-height: 23px;
+                    font-size: 12px;
+                    display: block;
+                    color: #666;
+                }
+                &:last-child {
+                    background: none;
                 }
             }
         }
@@ -58,7 +70,7 @@ body {
 .navbar {
     height: 100px;
     border: none;
-    background: $tbs-black;
+    background: $tbs-black-color;
     
     .container {
         position: relative;
@@ -110,7 +122,7 @@ body {
                 font-weight: bold;
                 color: #FFF;
                 @include no-select;
-                background: url("http://www.thebodyshop-usa.com/img/common/box-new.jpg") no-repeat scroll;
+                background: url("/static/light/bodyshop/landingpage/default/images/search.jpg") no-repeat scroll;
                 width: 28px;
                 height: 30px;
             }
@@ -119,7 +131,7 @@ body {
 }
 
 .sticky-wrapper {
-    margin: 15px 0 0 0;
+    margin: 2px 0 0 0;
     width: 100%;
 }
 
@@ -129,12 +141,12 @@ body {
 }
 
 #category-area {
-    border-spacing: 4px !important;
+    border-spacing: 4px 0px !important;
     table-layout: fixed;
     z-index: 2;
     overflow: visible;
     @include no-select;
-    padding-bottom: 20px;
+    padding-bottom: 15px;
     text-align: center;
     .category-area {
         position:relative;
@@ -149,24 +161,65 @@ body {
         width: 100%;
         height: 100%;
     }
-
     .category {
         padding: 0;
         margin-right: 2px;
         position: relative;
         width: 14%;
         overflow: visible;
-        background: transparent;
+        background-color: transparent;
         height: $tbs-category-height;
-        border: 3px solid $tbs-white;
+        border: 3px solid $tbs-white-color;
         vertical-align: middle;
-
-        &.selected, &:hover {
-            background: $tbs-white url('http://res.cloudinary.com/secondfunnel/image/upload/v1445460163/sparks_ahsrwz.png');
-            background-position: 3% 15%;
-            background-repeat: no-repeat;
-            > .name {
-                color: $tbs-red;
+        &:hover {
+            &:not(.selected) {
+                background-color: $tbs-white-color;
+                .name {
+                    color: $tbs-red-color;
+                }
+            }
+        }
+        &.selected {
+            border: none;
+            background-color: transparent; // Over-ride base.scss
+            padding: 3px;
+            &:before, &:after {
+                position: absolute;
+                top: 0;
+                content: "";
+                height: $tbs-category-height;
+                background: url("/static/light/bodyshop/landingpage/christmas/images/selected-category-border.png") no-repeat;
+            }
+            &:before {
+                left: 0;
+                width: 50%;
+                background-position: 0 0;
+            }
+            &:after {
+                right: 0;
+                width: 50%;
+                background-position: 100% 0;
+            }
+            .name {
+                &:before, &:after {
+                    position: absolute;
+                    top: -15px;
+                    content: "";
+                    height: 67px;
+                    /* snow image is 208px x 67px */
+                    background: url("/static/light/bodyshop/landingpage/christmas/images/selected-category-snow.png") no-repeat;
+                    z-index: 1;
+                }
+                &:before {
+                    left: -4px;
+                    width: 63px;
+                    background-position: 0 0;
+                }
+                &:after {
+                    right: -3px;
+                    width: 93px;
+                    background-position: -115px 0;
+                }
             }
         }
         &.expanded {
@@ -182,12 +235,8 @@ body {
             font-size: 16px;
             text-transform: uppercase;
             @include no-select;
-            color: $tbs-white;
+            color: $tbs-white-color;
             text-align: center;
-            line-height: 1;
-            padding-top: 5px;
-            padding-right: 10%;
-            padding-left: 10%;
         }
         .name.subcats {
             &:after {
@@ -265,6 +314,9 @@ body {
 }
 
 #hero-area {
+    .content {
+        background: none;
+    }
     .jumbotron {
         position: relative;
         text-align: center;
@@ -279,19 +331,12 @@ body {
             position: relative;
             z-index: 1;
         }
-        .category-name {
+        .title {
             width: 100%;
-            line-height: 104px;
-            font-style: italic;
-            font-size: 65px;
-            font-weight: 300;
-            .spaced {
-                letter-spacing: 0.05em;
-            }
-            .for {
-                font-style: italic;
-                padding: 0 0.2em;
-            }
+            line-height: 40px;
+            min-height: 40px;
+            font-size: 25px;
+            color: $tbs-white-color;
         }
     }
 }
@@ -989,17 +1034,17 @@ body {
         padding-top: 22px;*/
         overflow: visible;
         .category-area {
-            background-color: #FFF;
             width: 100%;
         }
     }
     #hero-area {
+        display: none;
         position: relative;
         .visible-xs.jumbotron,
         .visible-sm.jumbotron {
             height: 100%;
             margin-bottom: 1px;
-            .category-name {
+            .title {
                 line-height: 60px;
                 font-size: 30px;
             }
