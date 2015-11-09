@@ -14,6 +14,7 @@ var Page = require('landingpage'),
 App.module('utils', require('./utils'));
 App.module('core', require('./core.models'));
 App.module('core', require('./core.views'));
+App.module('core', require('./core.views.tiles'));
 
 // Run Application
 App.init.initialize();
