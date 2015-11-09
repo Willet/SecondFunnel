@@ -515,7 +515,9 @@ body {
 .similar-cta,
 .similar-subtext {
 }
-
+#preview-area .previewContainer .content {
+    box-shadow: none;
+}
 .previewContainer {
     .fullscreen {
         top: 0px;
@@ -561,7 +563,7 @@ body {
         margin: 0;
     }
     .mask {
-        background: rgba(200, 200, 200, 0.7);
+        background: rgba(50, 50, 50, 0.7);
     }
     .cell {
         display: inline-block;
@@ -576,7 +578,6 @@ body {
     .content {
         width: 100%;
         max-width: 1024px !important;
-        border-radius: 10px;
     }
     .close {
         top: 10px;

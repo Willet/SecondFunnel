@@ -200,14 +200,8 @@
                         <div class="title">
                         <% if (obj.template === "product") { %>
                             <span>Get Details</span>
-                            <br/>
-                            <span class="tile-name"><%= obj.product.get('name') %></span>
                         <% } else if (obj.template === "image") { %>
                             <span>Get Details</span>
-                            <br/>
-                            <span class="tile-name"><%= obj.defaultImage.get('name') %></span>
-                        <% } else if (obj.template === "recipe") { %>
-                            <span>See the Recipe</span>
                             <br/>
                             <span class="tile-name"><%= obj.defaultImage.get('name') %></span>
                         <% } else { %>
