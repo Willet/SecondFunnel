@@ -30,7 +30,7 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         return bool(response.selector.css('div#product-block'))
 
     def is_category_page(self, response):
-        return False # update!
+        return bool(response.selector.css('ul.products-list'))
 
     def is_sold_out(self, response):
         return bool(response.selector.css('a.outofstockbtn'))

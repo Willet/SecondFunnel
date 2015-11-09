@@ -181,4 +181,8 @@ class BodyShopDatafeed(RakutenDatafeed):
         # remove out of stock similar products
         similar_products_data = [ sp for sp in similar_products_data if sp['INSTOCK'] == 'in-stock' ]
 
+<<<<<<< HEAD
         return similar_products_data
+=======
+        return similar_products_data
+>>>>>>> dedcbd122c4cb014bcbc95f17644b4d01e106e8b
