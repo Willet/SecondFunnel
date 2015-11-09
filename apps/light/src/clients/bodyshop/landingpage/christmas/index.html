@@ -182,6 +182,11 @@
                     <img class="focus" src="<%= obj.defaultImage.url %>" />
                 </div>
                 <span class="product-label"><%= obj.product.get('name') %></span>
+                <% if (obj.product.get('sale_price')) { %>
+                    <span class="product-price"><%= obj.product.get('currency') %><%= obj.product.get('sale_price') %> (<%= obj.product.get('currency') %><%= obj.product.get('price') %>)</span>
+                <% } else { %>
+                    <span class="product-price"><%= obj.product.get('currency') %><%= obj.product.get('price') %></span>
+                <% } %>
             </div>
             <% } else { %>
             <div class='relative'>
