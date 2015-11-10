@@ -2,6 +2,7 @@ $icon-font-path: "/static/light/fonts/";
 
 $tbs-basic-font: Verdana, Arial, Helvetica, sans-serif;
 $tbs-sans-font: GillSans, Verdana, Geneva, sans-serif;
+$tbs-sans-light: GillSans-Light, Verdana, Geneva, sans-serif;
 $tbs-white-color: #FFF;
 $tbs-category-height: 60px;
 $tbs-red-color: #A93032;
@@ -744,6 +745,7 @@ body {
             text-align: left;
             max-height: 90%;
             white-space: normal;
+            font-family: $tbs-sans-light;
         }
     }
     .gallery-dots {
@@ -775,6 +777,7 @@ body {
             line-height: 24px;
             text-transform: uppercase;
             margin-bottom: 15px;
+            text-transform: uppercase;
         }
         .price {
             color: $tbs-black-color;

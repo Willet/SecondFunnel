@@ -1,6 +1,8 @@
 from scrapy.selector import Selector
 from scrapy.linkextractors import LinkExtractor
+from scrapy_webdriver.action_chains import WaitingActionChains
 from scrapy_webdriver.http import WebdriverRequest
+from selenium.webdriver.common.by import By
 
 from apps.scrapy.items import ScraperProduct
 from apps.scrapy.spiders import Rule
@@ -74,9 +76,18 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         yield item
 
         if item.get('tag_with_products', False):
-            # Scrape similar products
-            url_paths = sel.css('.top-products .content>a::attr(href)').extract()
-            for url_path in url_paths:
-                request = WebdriverRequest(url_path, callback=self.parse_product)
-                self.prep_product_tagging(request, item)
-                yield request
+            # Wait for recommended products to load
+            actions = WaitingActionChains(response.webdriver).wait(20, name='presence_of_element_located',
+                        args=[(By.CSS_SELECTOR, "article.top-products")]).perform()
+            request = response.action_request(actions=actions, callback=self.parse_recommended_products)
+            request.meta['item'] = item
+            yield request
+
+    def parse_recommended_products(self, response):
+        # Scrape similar products
+        sel = Selector(response)
+        url_paths = sel.css('article.top-products .content>a::attr(href)').extract()
+        for url_path in url_paths:
+            request = WebdriverRequest(url_path, callback=self.parse_product)
+            self.prep_product_tagging(request, response.meta.get('item'))
+            yield request
