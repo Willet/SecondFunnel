@@ -115,7 +115,6 @@
   "column_width":341,
   "social_buttons":null,
   "stickyCategories":true,
-  "generateHeroArea":false,
   "useAffiliateLinks":true,
   "defaults":{
     "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_All_Gifts.jpg"

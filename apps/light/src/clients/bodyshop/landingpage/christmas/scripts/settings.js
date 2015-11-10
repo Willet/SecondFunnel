@@ -2,16 +2,15 @@
   "tiles":{
     "wideableTemplates":{
       "image":true,
-      "product":true
+      "product":false
     },
-    "imageTileWideProb":0.2
+    "wideProbability":0.5
   },
   "categoryHome":false,
   "gaAccountNumber":"UA-23764505-29",
   "column_width":341,
   "social_buttons":null,
   "stickyCategories":true,
-  "generateHeroArea":true,
   "useAffiliateLinks":true,
   "defaults":{
     "heroImage":"",
