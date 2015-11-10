@@ -291,11 +291,10 @@
 
         <script type="text/template" id="product_price_template">
             <% if (obj.sale) { %>
-                <span class="current sale"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
-                <span class="suggested-price">Sugg. <span class="dollar-amount">$<%= obj.saleString %></span></span></span>
-                <span class="save-percent">You save <%= obj.savePercent %>%</span>
+                <span class="current sale"><%= obj.displayPrice.dollars %><%= obj.displayPrice.dollars %>.<%= obj.currency %></span>
+                <span class="suggested-price">(<span class="dollar-amount"><%= obj.currency %><%= obj.saleString %></span> Value)</span>
             <% } else { %>
-                <span class="current no-sale"><%= obj.displayPrice.dollars %><span class="cents"><%= obj.displayPrice.cents %></span></span>
+                <span class="current no-sale"><%= obj.displayPrice.dollars %>.<%= obj.displayPrice.cents %></span>
             <% } %>
         </script>
 
@@ -416,7 +415,7 @@
         </script>
 
         <script type="text/template" id="similar_products_template">
-            <span class="similar-cta">Shop The Set</div>
+            <span class="similar-cta">Shop The Set</span>
             <div class="tiles"></div>
         </script>
 

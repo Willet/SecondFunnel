@@ -25,6 +25,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 saleString: saleString
                 sale: onSale
                 savePercent: savePercent
+                currency: attributes.currency or "$"
             )
     )
 
