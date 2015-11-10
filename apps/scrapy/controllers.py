@@ -1,10 +1,13 @@
 import logging
 from django.core.validators import URLValidator
 
-from scrapy.utils.project import get_project_settings
 from scrapy.crawler import Crawler, CrawlerProcess
+from scrapy.utils.project import get_project_settings
 
 from apps.assets.models import Product
+from apps.utils.functional import autodiscover_module_classes
+from apps.scrapy.spiders.webdriver import SecondFunnelCrawlSpider
+from apps.assets.utils import disable_tile_serialization
 
 from .spiders import datafeeds, pages
 
@@ -58,9 +61,15 @@ class PageMaintainer(object):
         raises: django.core.execeptions.ValidationError for invalid url
         """
         logging.debug(u"Adding/updating {} with {} urls".format(self.page, len(source_urls)))
+
+        # Override for page's spider_name to enable added spider functionality
+        spider_name = options.pop('spider_name') if 'spider_name' in options else self.spider_name
+        spider = self._get_spider(pages, spider_name)
+
         # Ensure source urls look good
         for url in source_urls:
             self.url_validator(url)
+        source_urls = [spider.clean_url(url) for url in source_urls]
 
         # If source urls are not already in the page, add new source urls
         source_urls = set(source_urls)
@@ -68,13 +77,11 @@ class PageMaintainer(object):
             self.feed.source_urls = list(set(self.feed.source_urls).union(source_urls))
             self.feed.save()
 
-        # Override for page's spider_name to enable added spider functionality
-        spider_name = options.pop('spider_name') if 'spider_name' in options else self.spider_name
-
         opts = {
             'recreate_tiles': options.get('recreate_tiles', False), # In case you screwed up? Not very useful
             'skip_images': options.get('skip_images', False),
-            'skip_tiles': options.get('skip_tiles', False)
+            'skip_tiles': options.get('skip_tiles', False),
+            'reporting_name': 'page {}'.format(self.page.url_slug.upper()),
         }
         
         if options.get('refresh_images', False):
@@ -115,6 +122,7 @@ class PageMaintainer(object):
             'skip_images': options.get('skip_images', True),
             'skip_tiles': options.get('skip_tiles', True),
             'page_update': True,
+            'reporting_name': 'page {}'.format(self.page.url_slug.upper()),
         }
 
         self._run_scraper(spider_name=spider_name,
@@ -122,6 +130,16 @@ class PageMaintainer(object):
                           categories=[],
                           options=opts,
                           project=datafeeds)
+
+    def _get_spider(self, project, spidername):
+        """Return spider for given spider name"""
+        spiders_export = autodiscover_module_classes(project.__name__, project.__path__,
+                                                     SecondFunnelCrawlSpider)
+        spiders = dict((x.lower(), y) for x, y in spiders_export)
+        try:
+            return spiders["{}spider".format(spidername)]
+        except KeyError:
+            raise LookupError("Could not find spider called \"{}\"".format(spidername))
 
     def _run_scraper(self, spider_name, start_urls, categories, options, project):
         """
@@ -152,7 +170,12 @@ class PageMaintainer(object):
         })
         return settings
 
+    @disable_tile_serialization()
     def _delete_product_images(self, urls):
+        """
+        This function triggers tile serialization because it saves
+        the products after removing the images
+        """
         for url in urls:
             # This should be unique, but quietly handle multiples
             try:

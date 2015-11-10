@@ -172,6 +172,24 @@
     @@include('shared/campaign_body.html')
 
     <div>
+        <script type="text/template" id="hero_template">
+            <div class="hero-image-wrapper">
+                <div class="visible-xs jumbotron">
+                    <% if (obj.heroTitle) { %><span class="title"><%= obj.heroTitle %></span><% } %>
+                    <img src="<%= obj.mobileHeroImage %>" alt="Hero" />
+                </div>
+                <div class="hidden-xs jumbotron">
+                    <% if (obj.heroTitle) { %><span class="title"><%= obj.heroTitle %></span><% } %>
+                    <img src="<%= obj.heroImage %>" alt="Hero" />
+                </div>
+            </div>
+            {% if legal_copy %}
+                <div class="legal us">
+                    {{ legal_copy }}
+                </div>
+            {% endif %}
+        </script>
+
         <script type="text/template" id="image_tile_template">
             <div class='relative'>
                 <img class="focus" src="<%= obj.images[0].url %>" alt="<%= obj.caption %>" />

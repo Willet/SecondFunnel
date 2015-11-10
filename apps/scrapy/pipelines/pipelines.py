@@ -3,18 +3,18 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import cloudinary
-import decimal
-import logging
-import traceback
-
 from collections import defaultdict
+import decimal
 from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.db import transaction
 from django.db.models import Model, Q
+from itertools import chain
 from scrapy.exceptions import DropItem, CloseSpider
+import traceback
 from urlparse import urlparse
 
 from apps.assets.models import Category, Feed, Image, Page, Product, ProductImage, Store, Tag
+from apps.assets.utils import disable_tile_serialization
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
 from apps.scrapy.utils.djangotools import item_to_model, get_or_create, update_model
@@ -47,7 +47,7 @@ class ForeignKeyPipeline(ItemManifold):
         return item
 
 
-class ValidationPipeline(ItemManifold, PlaceholderMixin):
+class ValidationPipeline(ItemManifold, PlaceholderMixin, TilesMixin):
     """
     If item fails validation:
      - if product exists in database, set it to out of stock
@@ -62,9 +62,11 @@ class ValidationPipeline(ItemManifold, PlaceholderMixin):
 
         if missing_fields or empty_fields:
             # Attempt to find the product & mark it as out of stock
-            # If we are creating tiles, create a placeholder
-            self.update_or_save_placeholder(item, spider)
-            raise DropItem('Required fields missing ({}) or empty ({})'.format(
+            item['instance'], item['created'] = self.update_or_save_placeholder(item, spider)
+            # If we are creating tiles, add (placeholder) to the feed
+            if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
+                self.add_to_feed(item, spider)
+            raise DropItem(u"Required fields missing ({}) or empty ({})".format(
                     ', '.join(missing_fields),
                     ', '.join(empty_fields)
                 ))
@@ -91,7 +93,7 @@ class DuplicatesPipeline(ItemManifold, TilesMixin):
                 product = Product.objects.get(store=store, sku=sku)
                 item['instance'] = product
                 self.add_to_feed(item, spider, placeholder=product.is_placeholder)
-            raise DropItem("Duplicate item found here: {}".format(item))
+            raise DropItem(u"Duplicate item found here: {}".format(item))
 
         self.products_seen[spider.name].add(sku)
 
@@ -104,7 +106,7 @@ class DuplicatesPipeline(ItemManifold, TilesMixin):
                 content = Content.objects.filter(store=store, source_url=source_url).select_subclasses()[0]
                 item['instance'] = content
                 self.add_to_feed(item, spider)
-            raise DropItem("Duplicate item found: {}".format(item))
+            raise DropItem(u"Duplicate item found: {}".format(item))
 
         self.content_seen[spider.name].add(source_url)
 
@@ -139,41 +141,50 @@ class ContentImagePipeline(ItemManifold):
                 return item
 
             spider.logger.info(u"\nprocessing image - {}".format(source_url))
-            data = process_image(source_url, create_image_path(store.id), remove_background=remove_background)
+            data = process_image(source_url, create_image_path(store.id), 
+                                 remove_background=remove_background)
             item['url'] = data.get('url')
             item['file_type'] = data.get('format')
-            item['dominant_color'] = data.get('dominant_colour')
+            item['dominant_color'] = data.get('dominant_color')
             item['source_url'] = source_url
-            if not item.get('attributes', False):
-                item['attributes'] = {}
-            try:
-                item['attributes']['sizes'] = data['sizes']
-            except KeyError:
-                item['attributes']['sizes'] = {}
+            item['attributes']['sizes'] = data.get('sizes', {})
 
             return item
 
 
-class ItemPersistencePipeline(PlaceholderMixin):
+class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
     """
     Save item as model
 
-    Any changes to the item after this pipeline will not be automaticlaly persisted!
+    Any changes to the item after this pipeline will not be automatically persisted!
+
+    NOTE: Item save MUST be called after this pipeline step to regenerate tile caches.
+          update_model will merge duplicate Product models with updating Tiles
     """
     def process_item(self, item, spider):
         try:
             item_model = item_to_model(item)
         except TypeError:
-            raise DropItem("Item was not a known model, discarding: {}".format(item))
+            raise DropItem(u"Item was not a known model, discarding: {}".format(item))
 
         model, was_it_created = get_or_create(item_model)
         item['created'] = was_it_created
         spider.logger.info(u"item: {}, created: {}".format(item, was_it_created))
+
         try:
-            update_model(model, item)
+            with disable_tile_serialization():
+                # Disable tile serialization because if running "refresh_images"
+                # an existing valid product will have no product images at this step 
+                # and could trigger a tile serialization error.
+                # Products without product images will get caught by ProductImagePipeline
+                update_model(model, item)
         except ValidationError as e:
-            self.update_or_save_placeholder(item, spider)
-            raise DropItem('DB item validation failed: ({})'.format(e))
+            # Attempt to find the product & mark it as out of stock
+            item['instance'], item['created'] = self.update_or_save_placeholder(item, spider)
+            # If we are creating tiles, add (placeholder) to the feed
+            if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
+                self.add_to_feed(item, spider)
+            raise DropItem(u"DB item validation failed: ({})".format(e))
 
         item['instance'] = model # save reference for further pipeline steps
 
@@ -181,40 +192,156 @@ class ItemPersistencePipeline(PlaceholderMixin):
 
 # --- Item now has instance reference ---
 
+class ProductImagePipeline(ItemManifold, PlaceholderMixin):
+    """
+    If product has image_urls, turn them into <Product Image> and delete
+    all other <Product Image>s that exist already
+    """
+    def process_product(self, item, spider):
+        remove_background = getattr(spider, 'remove_background', False)
+        skip_images = [getattr(spider, 'skip_images', False), item.get('force_skip_images', False)]
+        store = item['store']
+        sku = item['sku']
+        product = item['instance']
+
+        if True in skip_images:
+            spider.logger.info(u"Skipping product images. item: <{0}>, spider.skip_images: {1}, \
+                         item.force_skip_images: {2}".format(item.__class__.__name__, skip_images[0], skip_images[1]))
+        else:
+            old_images = list(product.product_images.all())
+            images = []
+            processed = 0
+            image_urls = item.get('image_urls', [])
+
+            if not image_urls:
+                # Product has no images, convert to placeholder
+                self.convert_to_placeholder(product)
+                raise DropItem(u"Product has no product images".format(product))
+
+            for image_url in image_urls:
+                url = urlparse(image_url, scheme='http').geturl()
+                existing_image = next((old_images.pop(i) for i, pi in enumerate(old_images) \
+                                      if pi.original_url == url), None)
+                if not existing_image:
+                    try:
+                        images.append(self.process_product_image(item, url,
+                                                                 remove_background=remove_background))
+                        processed += 1
+                    except cloudinary.api.Error as e:
+                        spider.logger.info(u"<Product {}> image failed processing:\n{}".format(product, traceback.format_exc()))
+                else:
+                    images.append(existing_image)
+
+            if not images:
+                # Product images failed, convert to placeholder
+                self.convert_to_placeholder(product)
+                raise DropItem(u"Product failed image processing".format(product))
+            
+            # Product is good, delete any out of date images
+            old_pks = [pi.pk for pi in old_images]
+            product.product_images.filter(pk__in=old_pks).delete()
+            product.default_image = spider.choose_default_image(product)
+            product.save()
+            spider.logger.info(u"<Product {}> has {} images, {} processed and {} deleted".format(
+                                                product, len(images), processed, len(old_pks)))
+               
+
+    def process_product_image(self, item, image_url, remove_background=False):
+        store = item['store']
+        product = item['instance']
+
+        try:
+            image = ProductImage.objects.get(original_url=image_url, product=product)
+        except ProductImage.DoesNotExist:
+            image = ProductImage(original_url=image_url, product=product)
+
+        # this image needs to be uploaded
+        if not (image.url and image.file_type):
+            print '\nprocessing image - ' + image_url
+            data = process_image(image_url, create_image_path(store.id),
+                                 remove_background=remove_background)
+            image.url = data.get('url')
+            image.file_type = data.get('format')
+            image.dominant_color = data['dominant_color']
+
+            image.attributes['sizes'] = data['sizes']
+
+            # save the image
+            image.save()
+
+            if product and not product.default_image:
+                product.default_image = image
+                product.save()
+        else:
+            print '\nimage has already been processed'
+
+        print image.to_json()
+
+        return image
+
+
 class AssociateWithProductsPipeline(ItemManifold):
     """
     If a content has 'tag_with_products' field True and a 'content_id' field
     then tag with any subsequent products with 'content_id_to_tag' field matching
     'content_id'
+
+    If a product has 'tag_with_products' field True and a 'product_id' field
+    then tag with any subsequent products with 'product_id_to_tag' field matching
+    'product_id'
     """
     def __init__(self, *args, **kwargs):
         self.images = {}
+        self.products = {}
         super(AssociateWithProductsPipeline, self).__init__(*args, **kwargs)
 
     def process_image(self, item, spider):
         if item.get('tag_with_products') and item.get('content_id'):
-            self.images[item.get('content_id')] = Image.objects.get(store=item['store'], url=item['url'])
+            self.images[item.get('content_id')] = item['instance']
 
     def process_product(self, item, spider):
+        if item.get('tag_with_products') and item.get('product_id'):
+            self.products[item.get('product_id')] = item['instance']
+
         if item.get('content_id_to_tag'):
+            product = item['instance']
             content_id = item.get('content_id_to_tag')
             image = self.images.get(content_id)
             if image:
-                product = item['instance']
-                product_id = product.id
                 tagged_product_ids = image.tagged_products.values_list('id', flat=True)
-                if not product_id in tagged_product_ids:
-                    spider.logger.info(u'Tagging <Image {}> with <Product {}>'.format(image.id, product_id))
+                if not product.id in tagged_product_ids:
+                    spider.logger.info(u"Tagging <Image {}> with <Product {}>".format(image.id, product.id))
                     image.tagged_products.add(product)
                 else:
-                    spider.logger.info(u'<Image {}> already tagged with <Product {}>'.format(image.id, product_id))
+                    spider.logger.info(u"<Image {}> already tagged with <Product {}>".format(image.id, product.id))
+            else:
+                spider.logger.warning(u"Tried to tag <Product {}> to content_id {},\
+                                        but it doesn't exist".format(product.id, content_id))
+
+        if item.get('product_id_to_tag'):
+            similar_product = item['instance']  
+            product_id = item.get('product_id_to_tag')
+            product = self.products.get(product_id)
+            if product:
+                similar_product_ids = product.similar_products.values_list('id', flat=True)
+                if not similar_product.id in similar_product_ids:
+                    spider.logger.info(u"Tagging <Product {}> with <Product {}>".format(product.id,
+                                                                                        similar_product.id))
+                    product.similar_products.add(similar_product)
+                else:
+                    spider.logger.info(u"<Product {}> already tagged with <Product {}>".format(product.id,
+                                                                                               similar_product.id))
+            else:
+                spider.logger.warning(u"Tried to tag <Product {}> to product_id {},\
+                                        but it doesn't exist".format(similar_product.id, product_id))
 
     def close_spider(self, spider):
-        # Save images in one transaction
+        # Save images and products in one transaction
         with transaction.atomic():
-            for id in self.images:
-                self.images[id].save()
-        spider.logger.info(u'Saved {} tagged images'.format(len(self.images)))
+            for instance in chain(self.images.values(), self.products.values()):
+                instance.save()
+        spider.logger.info(u'Saved {} tagged images and {} tagged products'.format(len(self.images),
+                                                                                   len(self.products)))
 
 
 class TagPipeline(ItemManifold):
@@ -238,87 +365,19 @@ class TagPipeline(ItemManifold):
         tag.save()
 
 
-class ProductImagePipeline(ItemManifold):
+class ItemFinishedPipeline(ItemManifold):
     """
-    If product has image_urls, turn them into <Product Image> and delete
-    all other <Product Image>s that exist already
+    A hook for store/spider specific processing of products
     """
     def process_product(self, item, spider):
-        remove_background = getattr(spider, 'remove_background', False)
-        skip_images = [getattr(spider, 'skip_images', False), item.get('force_skip_images', False)]
-        store = item['store']
-        sku = item['sku']
         product = item['instance']
+        spider.on_product_finished(product)
+        return
 
-        if True in skip_images:
-            spider.logger.info(u"Skipping product images. item: <{0}>, spider.skip_images: {1}, \
-                         item.force_skip_images: {2}".format(item.__class__.__name__, skip_images[0], skip_images[1]))
-        else:
-            old_images = list(product.product_images.all())
-            images = []
-            processed = 0
-
-            for image_url in item.get('image_urls', []):
-                url = urlparse(image_url, scheme='http').geturl()
-                existing_image = next((old_images.pop(i) for i, pi in enumerate(old_images) \
-                                      if pi.original_url == url), None)
-                if not existing_image:
-                    try:
-                        images.append(self.process_product_image(item, url,
-                                                                 remove_background=remove_background))
-                        processed += 1
-                    except cloudinary.api.Error as e:
-                        spider.logger.info(u"<Product {}> image failed processing:\n{}".format(product, traceback.format_exc()))
-                else:
-                    images.append(existing_image)
-
-            if not images:
-                # Product has no images, something is wrong with it
-                # Implementation is not very idiomatic unfortunately
-                product.in_stock = False
-                product.save()
-                spider.logger.info(u"<Product {}> failed image processing!".format(product))
-            else:
-                # Product is good, delete any out of date images
-                old_pks = [pi.pk for pi in old_images]
-                product.product_images.filter(pk__in=old_pks).delete()
-
-                spider.logger.info(u"<Product {}> has {} images, {} processed and {} deleted".format(
-                                                    product, len(images), processed, len(old_pks)))
-               
-
-    def process_product_image(self, item, image_url, remove_background=False):
-        store = item['store']
-        product = item['instance']
-
-        try:
-            image = ProductImage.objects.get(original_url=image_url, product=product)
-        except ProductImage.DoesNotExist:
-            image = ProductImage(original_url=image_url, product=product)
-
-        # this image needs to be uploaded
-        if not (image.url and image.file_type):
-            print '\nprocessing image - ' + image_url
-            data = process_image(image_url, create_image_path(store.id),
-                                 remove_background=remove_background)
-            image.url = data.get('url')
-            image.file_type = data.get('format')
-            image.dominant_color = data.get('dominant_colour')
-
-            image.attributes['sizes'] = data['sizes']
-
-            # save the image
-            image.save()
-
-            if product and not product.default_image:
-                product.default_image = image
-                product.save()
-        else:
-            print '\nimage has already been processed'
-
-        print image.to_json()
-
-        return image
+    def process_image(self, item, spider):
+        image = item['instance']
+        spider.on_image_finished(image)
+        return
 
 
 class TileCreationPipeline(TilesMixin):
@@ -326,13 +385,7 @@ class TileCreationPipeline(TilesMixin):
     If spider has feed_id, get or create tile(s) for product or content
     If spider also has category(s), add tile(s) to category(s)
     """
-    def __init__(self, *args, **kwargs):
-        super(TileCreationPipeline, self).__init__(*args, **kwargs)
-
     def process_item(self, item, spider):
-        recreate_tiles = getattr(spider, 'recreate_tiles', False)
-        categories = getattr(spider, 'categories', False)
-
         if self.skip_tiles(item, spider):
             return item
         else:
@@ -340,12 +393,10 @@ class TileCreationPipeline(TilesMixin):
             if feed_id:
                 spider.logger.info(u"Adding '{}' to <Feed {}>".format(item.get('name'), feed_id))
                 tile, _ = self.add_to_feed(item, spider)
+
+                spider.on_tile_finished(tile, item['instance']) # Post-process hook to modify new/updated tiles
             
             return item
-
-
-class SimilarProductsPipeline(ItemManifold):
-    pass
 
 
 class PageUpdatePipeline(ItemManifold):

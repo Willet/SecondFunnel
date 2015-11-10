@@ -27,82 +27,85 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # DEFER: this assumes it is always just an add operation
             options = _.defaults({}, options)
             if options.parse
-                models = @parse models, options
+                models = @parse(models, options)
             @add(models, options)
 
         parse: (resp, options) ->
             return resp
 
+        _convertToModels: (models, options) ->
+
+
         add: (models, options) ->
-            if singular = not _.isArray(models)
-                if models
-                    models = [models]
-                else
-                    models = []
+            singular = not _.isArray(models)
+            if singular
+                models = if models then [models] else []
             at = options["at"] || 0
-            newModels = _.map models, (attrs) =>
-                if attrs instanceof Backbone.Model
-                    attrs
-                else if _.isFunction(@model)
-                    @model(attrs)
-                else
-                    new @model(attrs)
+            # Convert attributes to models while filtering out initialization errors
+            newModels = _.reduce(models, @_reduceToModels, [])
             @models[at..0] = newModels
             if not options.silent
-                _.each newModels, (model) =>
-                    @trigger 'add', model, @, options
-                @trigger 'add:many', newModels, @, options
-            _.each newModels, (model) =>
-                @_addReference model
+                _.each(newModels, (model) => @trigger('add', model, @, options))
+                @trigger('add:many', newModels, @, options)
+            _.each(newModels, (model) => @_addReference(model))
 
         remove: (models, options={}) ->
-            if singular = not _.isArray(models)
-                if models
-                    models = [models]
-                else
-                    models = []
+            singular = not _.isArray(models)
+            if singular
+                models = if models then [models] else []
             for model in models
                 t = _.indexOf(@models, model)
                 if t > -1
                     @models[t..t] = []
                     @length = @length - 1
                     if not options.silent
-                        @trigger 'remove', model, @, options
-                    @_removeReference model, options
-            if singular
-                return models[0]
-            return models
+                        @trigger('remove', model, @, options)
+                    @_removeReference(model, options)
+            
+            return (if singular then models[0] else models)
 
         reset: (models, options) ->
-            _.each @models, (model) ->
-                @_removeReference(model, options)
+            _.each(@models, (model) -> @_removeReference(model, options))
             options.previousModels = @models
             @_reset()
-            models = @add models, _.extend({silent: true}, options)
+            models = @add(models, _.extend({silent: true}, options))
             if not options.silent
-                @trigger 'reset', @, options
+                @trigger('reset', @, options)
             return models
 
         push: (model, options) ->
-            @add model, _.extend({at: @length}, options)
+            @add(model, _.extend({at: @length}, options))
             return model
 
         pop: (options) ->
             model = @at(@length - 1)
-            @remove model, options
+            @remove(model, options)
             return model
 
         unshift: (model, options) ->
-            @add model, options
+            @add(model, options)
             return model
 
         shift: (options) ->
             model = @at 0
-            @remove model
+            @remove(model)
             return model
 
         at: (index) ->
             return @models[index]
+
+        # Hook to modify model initialization
+        _reduceToModels: (memo, attrs) ->
+            try
+                if attrs instanceof Backbone.Model
+                    memo.push(attrs)
+                else if _.isFunction(@model)
+                    memo.push(@model(attrs))
+                else
+                    memo.push(new @model(attrs))
+            catch e
+                console.warn(e)
+            return memo
 
         _addReference: (model, options) ->
             if not model.collection
@@ -136,11 +139,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         'tail', 'drop', 'last', 'without', 'difference', 'indexOf', 'shuffle',
         'lastIndexOf', 'isEmpty', 'chain', 'sample']
 
-    _.each underscore_methods, (method) ->
+    _.each(underscore_methods, (method) ->
         module.List.prototype[method] = () ->
             args = [].slice(arguments) # convert to regular array
             args.unshift(@models)
             return _[method].apply(_, args)
+    )
 
 
     class module.Store extends Backbone.Model
@@ -156,7 +160,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             unless data.slug
                 throw new Error("Missing store slug")
             unless data.displayName
-                @set "displayName", @get("name")
+                @set("displayName", @get("name"))
             return
 
 
@@ -167,12 +171,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # Turn images into Image's
             images =
                 if @get("images")?.length \
-                then (new module.Image($.extend(true, {}, image)) for image in @get("images")) \
+                then (module.Image.getOrCreate(image) for image in @get("images")) \
                 else []
             taggedProducts =
                 if _.isArray(@get('tagged-products')) \
                 then (new module.Product(p) for p in @get('tagged-products')) \
                 else []
+            # defaultImage shares some object as images[0] for image caching (urls)
             defaultImage = images[0]
             @set
                 images: images
@@ -181,6 +186,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 "dominant-color": defaultImage.get("dominant-color")
             @unset('default-image')
             @unset('tagged-products')
+            if App.option("useAffiliateLinks") and @get('affiliateLink') # rename to affiliateLink
+                @set(url: @get('affiliateLink'))
             return
 
 
@@ -197,26 +204,64 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     ###
     class module.Image extends Backbone.Model
         type: "Image"
+        # Cache of images's index by id's
+        @_imagecache: []
+
         defaults:
             url: "http://placehold.it/2048&text=blank"
             "dominant-color": "transparent"
 
+        url: undefined # updated by initialize
+
         initialize: (attributes, options) ->
-            # add a name, colour, and a sized url to each size datum
-            self = this
-            color = @get("dominant-color")
-
-            # the template needs something simpler.
-            @color = color
-            if options and options["suppress_resize"]
-                @url = @get("url")
+            @color = @get("dominant-color")
+            # sizes cloudinary url
+            if options? and options["suppressResize"]
+                try
+                    width = @get("sizes")["master"]["width"]
+                catch error
+                    # master size not set
+                    # use 0 to signify we don't know what width this is
+                    # and that any known width should substitute this one
+                    width = 0
+                @_updateUrl(@get("url"), width)
             else
-                @url = @width(App.feed.width())
-
+                @_updateUrl(@width(App.feed.width()), App.feed.width())
             return
+
+        ###
+        Given image json or id, search cache before creating & caching new Image
+        
+        @param attributes - either (Number) image ID or (Object) image attributes
+        @param options (optional) - passed into Image constructor if used
+        @returns {module.Image} 
+        ###
+        @getOrCreate: (attributes, options={}) ->
+            if _.isObject(attributes)
+                image = @_imagecache[attributes.id]
+                if not image
+                    image = new module.Image(attributes, options)
+                    @_imagecache[image.id] = image
+            else if _.isNumber(attributes)
+                image = @_imagecache[attributes]
+            return image
 
         sync: ->
             false
+
+        width: (width, returnInstance=false) ->
+            # Get url by minimum width
+            # Updates @url to at least this width
+            #
+            # See resizeForDimens for documentation
+            return @resizeForDimens(width, 0, returnInstance)
+
+        height: (height, returnInstance=false) ->
+            # Get url by minimum height
+            # Updates @url to at least this height
+            #
+            # See resizeForDimens for documentation
+            return @resizeForDimens(0, height, returnInstance)
 
         ###
         @param width - in px; 0 means no width restrictions
@@ -225,7 +270,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         will be returned
         @returns {*}
         ###
-        dimens: (width, height, returnInstance=false) ->
+        resizeForDimens: (width, height, returnInstance=false) ->
             options = {}
             resized = $.extend({}, @defaults, @attributes)
             if width > 0
@@ -233,21 +278,124 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if height > 0
                 options.height = height
             unless width or height
+                # App.feed.width is a generic width that doesn't
+                # correspond to an image actually displayed
+                # (tile image width is slightly smaller to account for tile border)
                 options.width = App.feed.width()
-            resized.url = App.utils.getResizedImage(@get("url"), options)
+
+            # first check if the resized url exists in sizes
+            size = @_lookForSize(options)
+
+            # second check for resized url with the rounded size
+            if not size?
+                size = @_lookForSize(@_roundSizes(options))
+            
+            # third generate it from cloudinary url
+            if not size?
+                size = @resizeCloudinaryImage(@get("url"), options)
+            
+            resized.url = size.url
+            if size.width?
+                @_updateUrl(size.url, size.width)
+
             if returnInstance
                 # Create a new instance of (Image or a subclass)
-                return new module[@type](resized)
+                return new module[@type](resized, suppressResize: true)
             else
                 return resized.url
 
-        width: (width, returnInstance=false) ->
-            # get url by min width
-            @dimens(width, 0, returnInstance)
+        _updateUrl: (url, width) ->
+            ###
+            Keep a cache of the widest image size already loaded/cached
 
-        height: (height, returnInstance=false) ->
-            # get url by min height
-            @dimens(0, height, returnInstance)
+            Update url if this image url is bigger than the currently cached one
+
+            NOTE: this isn't foolproof for Cloudinary images loaded with a height
+            restriction
+            ###
+            if not @_maxWidth?
+                @url = url
+                @_maxWidth = if _.isNumber(width) then width else 0
+            if @_maxWidth? and width > @_maxWidth
+                @url = url
+                @_maxWidth = width
+            return
+
+
+        _lookForSize: (options) ->
+            # Check attributes.sizes if we have image url's specified for this size
+            if options.width?
+                return _.findWhere(_.values(@attributes['sizes']), width: options.width)
+            else 
+                return _.findWhere(_.values(@attributes['sizes']), height: options.height)
+
+        _roundSizes: (options) ->
+            ###
+            Round to the nearest whole hundred pixel dimension
+            prevents creating a ridiculous number of images.
+
+            options: width, height
+            width: (optional) width to round
+            height: (optional) height to round
+            ###
+            opts = _.extend({}, options) # new object
+
+            width = Math.max(options.width || 300, App.option('minImageWidth'))
+            height = Math.max(options.height || 300, App.option('minImageHeight'))
+
+            # Only scale images if on desktop
+            ratio = if App.support.mobile() \
+                    then 1 \
+                    else ratio = Math.ceil(window.devicePixelRatio * 2) / 2
+
+            if options.width? and options.height?
+                opts.width = Math.ceil(width / 100.0) * (100 * ratio)
+                opts.height = Math.ceil(height / 100.0) * (100 * ratio)
+            else if options.height?
+                opts.height = Math.ceil(height / 100.0) * (100 * ratio)
+            else if App.feed.width() > 0 and not options.width?
+                opts.width = Math.ceil(App.feed.width()) * ratio
+            else
+                opts.width = Math.ceil(width / 100.0) * (100 * ratio)
+            return opts
+
+        resizeCloudinaryImage: (url, options) ->
+            ###
+            Class method which resizes a Cloudinary url
+
+            url: a cloudinary url
+            options:
+                originalSize: boolean return original url
+                width: width to use (given priority over height)
+                height: height to use
+
+            returns: resized url
+            ###
+            if _.contains(url, ".gif")
+                # Do NOT transform animated gifs
+                return url
+
+            if _.contains(url, "c_fit")
+                # Transformation has been applied to this url, Cloudinary is not smart
+                # with these, so strip back to original url
+                url = url.replace(/(\/c_fit[,_a-zA-Z0-9]+\/v.+?\/)/, '/')
+
+            if options.originalSize
+                # return cleaned url
+                return url
+
+            # Round to 100px increments to avoid 
+            options = @_roundSizes(options)
+
+            options =
+                crop: 'fit'
+                quality: 75
+                width: options.width
+                height: options.height
+
+            url = url.replace(App.CLOUDINARY_DOMAIN, '') #remove absolute uri
+            url = $.cloudinary.url(url, options)
+            return _.extend(options, url: url)
 
 
     class module.Video extends Backbone.Model
@@ -267,39 +415,38 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     class module.Tile extends Backbone.Model
         type: "Tile"
+        # Cache of tile's index by tile-id's
+        @_tilecache: []
+
         ###
+        Prefered method for getting any tile given its ID - handles caching seamlessly
+
         Attempt to retrieve tile and instantiate it as the correct Tile subclass,
         then execute success_cb or failure_cb
+
         @param tileId - <string>
         @param success_cb - <function> (<Tile>)
         @param failure_cb - <function>: ()
         ###
-        # Cache of tile JSON index by tile-id's shared amongst all feeds
-        # Currently only used by tiles inserted at page caching
-        @tilecache = []
-        @getTileById = (tileId, success_cb, failure_cb) ->
+        @getById: (tileId, success_cb, failure_cb) ->
             if App.utils.isNumber(tileId)
                 if App.option('debug', false)
                     console.warn('Router getting tile: '+tileId)
 
                 # Check cache
-                tileJson = @tilecache[tileId]
-                if tileJson?
-                    tile = @selectTileSubclass(tileJson)
-                # Check current feed
-                if not tile?
-                    tile = if (App.discovery?.collection) then App.discovery.collection.tiles[tileId] else undefined
+                tile = @_tilecache[tileId]
+
                 if tile?
                     success_cb(tile)
                     return
 
                 console.debug("Tile #{tileId} not found, fetching from IR")
 
-                tile = new App.core.Tile(
+                tile = new module.Tile(
                     'tile-id': tileId
                 )
                 tile.fetch().done(=>
-                    tile = @selectTileSubclass(tile)
+                    tile = @_selectTileSubclass(tile)
                     success_cb(tile)
                 ).fail(failure_cb)
             else
@@ -307,21 +454,60 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
 
         ###
-        Creates tile from tileJson or {Tile}, infering correct Tile subclass
-        @param tile - {Tile}
+        Given tileJson, gets tile from cache or creates and caches new tile
+
+        @param tileJson - tile json
+        @param otions - passed directly into Tile constructor
         @returns {_*_Tile}
         ###
-        @selectTileSubclass = (tile) ->
+        @getOrCreate: (tileJson, options={}) ->
+            tile = @_tilecache[tileJson['tile-id']]
+
+            if not tile?
+                tile = @_selectTileSubclass(tileJson, options)
+
+            return tile
+
+        ###
+        Creates tile from tileJson or {Tile}, infering correct Tile subclass
+        
+        Adds tile to tilecache
+
+        @param tile - tileJson or {Tile}
+        @param options - passed directly into Tile subclass constructor
+        @returns {_*_Tile}
+        ###
+        @_selectTileSubclass: (tile, options={}) ->
             if tile instanceof module.Tile
+                # already type Tile, re-initialize as correct subclass
                 TileClass = App.utils.findClass('Tile',
-                    tile.get('type') || tile.get('template'), App.core.Tile)
+                    tile.get('type') || tile.get('template'), module.Tile)
                 tile = tile.toJSON()
             else
                 # assume tile is json
                 TileClass = App.utils.findClass('Tile',
-                    tile.type || tile.template, App.core.Tile)
+                    tile.type || tile.template, module.Tile)
 
-            return new TileClass(TileClass.prototype.parse.call(this, tile))
+            tile = new TileClass(tile, options)
+            
+            if tile?
+                @_tilecache[tile.get('tile-id')] = tile
+
+            return tile
+
+        ###
+        Adds tile to cache
+
+        @param tile = {Tile} or tile json
+        ###
+        @cacheTile: (tile) ->
+            if _.isObject(tile) and not _.isEmpty(tile)
+                tile = if _.contains(tile.type, 'Tile') \
+                       then tile \
+                       else module.Tile._selectTileSubclass(tile)
+                if tile?
+                    @_tilecache[tile.get('tile-id')] = tile
+            return
 
         defaults:
             # Default product tile settings, some tiles don't
@@ -332,8 +518,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             "dominant-color": "transparent"
 
         parse: (resp, options) ->
-            unless resp.type
-                resp.type = resp.template
             resp.caption = App.utils.safeString(resp.caption or "")
 
             # https://therealwillet.hipchat.com/history/room/115122#17:48:02
@@ -349,31 +533,35 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             b) images, default image and tagged products default image are converted
             to <Image>s.
             ###
-            if @get("image")? 
-                @set(image: new module.Image(@get("image")))
+            if App.support.mobile() and @mobileOptions?
+                # update options on mobile
+                @options = _.extend({}, @options, @mobileOptions)
 
+            # Instantiate images first, because we will try to re-use these image models
+            # so that image size caching is maximally used.
             if _.isArray(@get("images"))
-                @set(images: (new module.Image(im) for im in @get("images")))
+                @set(images: (module.Image.getOrCreate(im) for im in @get("images") when not _.isEmpty(im)))
 
-            if @get('product')?
-                @set(product: new module.Product(@get('product')))
+            if @get("image")? and not _.isEmpty(@get('image'))
+                @set(image: module.Image.getOrCreate(@get("image")))
 
-            if _.isArray(@get('tagged-products'))
-                @set(taggedProducts: (new module.Product(p) for p in @get('tagged-products')))
-                @unset('tagged-products')
-
-            if @get('default-image')?
+            if @get('default-image')? and not _.isEmpty(@get('default-image'))
                 # getImage uses images, so set first
-                defaultImage = if _.isNumber(@get('default-image')) \
-                               then @getImage(@get('default-image')) \
-                               else new module.Image(@get('default-image'))
+                defaultImage = module.Image.getOrCreate(@get('default-image'))
                 @set(
                     defaultImage: defaultImage
                     'dominant-color': defaultImage.get('dominant-color')
                 )
                 @unset('default-image')
 
-            if @get('video')?
+            if @get('product')? and not _.isEmpty(@get('product'))
+                @set(product: new module.Product(@get('product')))
+
+            if _.isArray(@get('tagged-products'))
+                @set(taggedProducts: (new module.Product(p) for p in @get('tagged-products') when not _.isEmpty(p)))
+                @unset('tagged-products')
+
+            if @get('video')? and not _.isEmpty(@get('video'))
                 video = if (@get('video')['source'] == 'youtube') \
                         then new module.YoutubeVideo(@get('video')) \
                         else new module.Video(@get('video'))
@@ -381,16 +569,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             
             App.vent.trigger("tileModelInitialized", @)
             return
-
-        ###
-        @param byImgId
-        @returns {module.Image}
-        ###
-        getImage: (imgId) ->
-            imageAttr = _.findWhere(@get("images"),
-                id: imgId
-            )
-            return new module.Image(imageAttr)
 
         url: ->
             App.options.IRSource + "/page/" + App.options.campaign + "/tile/" + @get("tile-id")
@@ -419,8 +597,26 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CollectionTile extends module.Tile
         # Similar to Image Tile, but has mini-feed of products
         type: "CollectionTile"
-        displayOptions:
+        options:
+            showThumbnails: false
             previewFeed: true
+        initialize: ->
+            super
+            # A CollectionTile pop-up supports a different image than the tile view
+            if @get("expandedImage")?
+                image = if _.isNumber(@get('expandedImage')) \
+                        then @getImage(@get('expandedImage')) \
+                        else new module.Image(@get('expandedImage'))
+                @set(expandedImage: image)
+            if @get("expandedMobileImage")?
+                image = if _.isNumber(@get('expandedMobileImage')) \
+                        then @getImage(@get('expandedMobileImage')) \
+                        else new module.Image(@get('expandedMobileImage'))
+                @set(expandedMobileImage: image)
+            # Used to create a `back to collection description` link
+            collectionName = @get('name') or @get('title')
+            for product in @get('taggedProducts')
+                product.set("collectionName", collectionName)
 
 
     class module.VideoTile extends module.Tile
@@ -444,12 +640,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if attrs.desktopHeroImage
                 desktopHeroImage = new module.Image(
                     url: attrs.desktopHeroImage
-                    suppress_resize: true
+                    suppressResize: true
                 )
             if attrs.mobileHeroImage
                 mobileHeroImage = new module.Image(
                     url: attrs.mobileHeroImage
-                    suppress_resize: true
+                    suppressResize: true
                 )
 
             if desktopHeroImage
@@ -471,39 +667,50 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         type: "TileCollection"
         ###
         Subclass each tile JSON into their specific containers.
-        @param item            model attributes
-        @returns {Tile}     or an extension of it
+        @param attributes   model attributes
+        @param options      initializiation options
+        @returns Tile or subclass class     or an extension of it
         ###
-        model: (item) ->
-            TileClass = App.utils.findClass("Tile", item.type or item.template, module.Tile)
-            new TileClass(item)
+        model: (attributes, options) ->
+            # This should never be invoked
+            if App.option('debug', false)
+                console.warn("Tile unexpectdly initialized through model creation: %O", attributes)
+            return module.Tile.getOrCreate(attributes, options)
 
-        config: {}
+        _config: {}
         loading: false
 
         ###
-        process common attributes, then delegate the collection's parsing
-        method to their individual tiles.
+        Convert list of tileJsons to subclassed Tiles, while filtering initialization errors
+        Called by List.add, assumed to be used in a reduce operation
+        ###
+        _reduceToModels: (memo, tileJson) ->
+            try
+                # Use getOrCreate to cache tiles. Makes loading preview windows much faster!
+                tile = module.Tile.getOrCreate(tileJson, parse: true)
+                memo.push(tile) # everything worked, let tile through
+            catch e
+                console.warn("Rejecting tile that threw error (%s: %s) during initialization: %O",
+                             e.name, e.message, tile)
+            return memo
 
-        @param resp
+        ###
+        Ensure tileJSON's have tileId. If invalid, warn and discard.
+
+        @param resp - a list of tile's in json
         @param options
         @returns {Array}
         ###
         parse: (resp, options) ->
-            tileIds = App.intentRank.getTileIds()
-
-            respBuilder = _.filter(resp, (tile) =>
-                if tile["tile-id"]
-                    return true
+            removeBadTiles = (memo, tileJson) ->
+                if not tileJson["tile-id"]
+                    console.warn("Rejected tile during parse because it has no tile-id: %O", tile)
                 else
-                    console.warn("Rejected tile during parse beecause it has no tile-id: %O", tile)
-                    return false
-            )
-            tiles = _.map(respBuilder, (jsonEntry) ->
-                TileClass = App.utils.findClass("Tile", jsonEntry.template or jsonEntry.type, module.Tile)
-                return new TileClass(jsonEntry, parse: true)
-            )
-            return tiles
+                    memo.push(tileJson)
+                return memo
+
+            tileJsons = _.reduce(resp, removeBadTiles, [])
+            return tileJsons
 
         ###
         Allows tiles to be fetched without options.
@@ -520,29 +727,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         ###
         url: ->
             category = App.intentRank.currentCategory()
-            url = "#{@config.apiUrl}/page/#{@config.campaign}/getresults?results=#{@config.results}"
+            url = "#{@_config.apiUrl}/page/#{@_config.campaign}/getresults?results=#{@_config.results}"
             if category
                 url += "&category=#{encodeURIComponent(category)}"
             return url
 
         initialize: (arrayOfData, url, campaign, results) ->
             @setup(url, campaign, results) # if necessary
-            @tiles = {}
-            @on("add", @itemAdded, @)
             App.vent.trigger("tileCollectionInitialized", @)
-            return
-
-        ###
-        Adds a reference to the tile in a hashmap of tiles.    Useful for
-        getting the tile if you only know the real tile id.
-
-        @param tile {Object}
-        @param collection {Object}
-        @param options {Object}
-        ###
-        itemAdded: (tile, collection, options) ->
-            id = tile.get("tile-id")
-            @tiles[id] = tile
             return
 
         ###
@@ -555,9 +747,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         setup: (apiUrl, campaign, results) ->
 
             # apply new parameters, or default to existing ones
-            @config.apiUrl = apiUrl or App.option("IRSource") or @config.apiUrl
-            @config.campaign = campaign or App.option("campaign") or @config.campaign
-            @config.results = results or App.option("IRResultsCount") or @config.results
+            @_config.apiUrl = apiUrl or App.option("IRSource") or @_config.apiUrl
+            @_config.campaign = campaign or App.option("campaign") or @_config.campaign
+            @_config.results = results or App.option("IRResultsCount") or @_config.results
             return
 
 
@@ -607,7 +799,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         if subcat.name
                             if subcat.name.charAt(0) == '|'
                                 subMemo[cat.attributes.name + subcat.name] = _.extend {}, subcat,
-                                    desktopHeroImage: subcat.desktopHeroImage or cat.attributes.desktopHeroImage
+                                    heroImage: subcat.heroImage or cat.attributes.heroImage
                                     mobileHeroImage: subcat.mobileHeroImage or cat.attributes.mobileHeroImage
                                     subCategory: subcat.name
                                     category: cat

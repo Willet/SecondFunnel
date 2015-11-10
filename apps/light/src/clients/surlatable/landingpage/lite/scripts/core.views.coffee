@@ -6,57 +6,55 @@ char_limit = 243
 swipe = require('jquery-touchswipe')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
-    module.ProductView::onShow = _.wrap(module.ProductView::onShow, (onShow) ->
-        if App.support.mobile()
-            # Add one for description slide unless it's a product popup
-            # in portrait mode without tagged products
-            if @model.get('type') is "product" and App.utils.portrait() \
-                    and _.isEmpty(@model.get('taggedProducts'))
-                @numberOfImages = @model.get('images').length
-            else
-                @numberOfImages = @model.get('images').length + 1
-        onShow.call(@)
-        return
+    module.ProductView::initialize = _.wrap(
+        module.ProductView::initialize, (initialize) ->
+            initialize.call(@)
+            if App.support.mobile()
+                @numberOfImages += 1 # add slot of description
+            return
     )
 
     module.ProductView::onBeforeRender = ->
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
-        inlineLink = "<a href='#{@model.get('cj_link') or @model.get('url')}'>#{linkName}</a>"
+        inlineLink = "<a href='#{@model.get('url')}'>#{linkName}</a>"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
             @model.set("truncatedDescription", truncatedDescription + " " + inlineLink)
         return
 
     module.ProductView::replaceImages = ->
-        unless App.support.mobile()
-            $container = @$el.find(".main-image-container")
-            if $container.is(":visible")
+        $container = @$el.find(".main-image-container")
+        if $container.is(":visible")
+            if App.support.mobile()
+                maxWidth = $container.width()
+                maxHeight = $container.height()
+            else
                 maxWidth = $container.width()*1.3
                 maxHeight = $container.height()*1.3
-            else
-                maxWidth = App.option("minImageWidth") or 300
-                maxHeight = App.option("minImageHeight") or 300
-            for image, i in @$el.find(".main-image .hi-res")
-                $cachedImage = $(image).parent()
-                if $cachedImage.is("img")
-                    imageUrl = App.utils.getResizedImage($cachedImage.attr("src"),
-                        width: maxWidth,
-                        height: maxHeight
-                    )
-                    $(image).attr("src", imageUrl)
-                else if $cachedImage.is("div")
-                    imageUrl = $cachedImage.css("background-image").replace('url(','').replace(')','')
-                    imageUrl = App.utils.getResizedImage(imageUrl,
-                        width: maxWidth,
-                        height: maxHeight
-                    )
-                    $(image).css("background-image", "url('#{imageUrl}')")
+        else
+            maxWidth = App.option("minImageWidth") or 300
+            maxHeight = App.option("minImageHeight") or 300
+
+        for imageEl, i in @$el.find(".main-image .hi-res")
+            $image = $(imageEl)
+            $cachedImage = $image.parent()
+
+            # find image from id
+            image = _.findWhere(@model.get('images'), id: $cachedImage.data('id'))
+            imageUrl = image.resizeForDimens(maxWidth, maxHeight)
+
+            if $image.is("img")
+                $image.attr("src", imageUrl)
+            else if $image.is("div")
+                $image.css("background-image", "url('#{imageUrl}')")
         return
 
     module.ProductView::resizeProductImages = ->
         productImages = @$el.find(".main-image .hi-res")
         if productImages.length > 0 and productImages.first().is("div")
-            @replaceImages()
+            # Let the browser execute the resizing window callbacks
+            # otherwise, container height is 0 & images are resized to 0 height.
+            setTimeout((=> @replaceImages()), 1)
         else
             imagesLoaded(productImages, (=> @replaceImages()))
         return
@@ -68,29 +66,23 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
     )
 
-    module.ExpandedContent::events =
-        "click @ui.lookThumbnail, .back-to-recipe": (event) ->
-            # Hide products, show content
-            @taggedProductIndex = -1
-            @updateContent()
-            return
-
+    _.extend(module.ExpandedContent::events,
         "click .stl-look .stl-item": (event) ->
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
             product = @taggedProducts[$targetEl.data("index")]
-            url = product.get('cj_link') or product.get('url')
             ### Uncomment to enable switching view to product ###
             #@taggedProductIndex = $targetEl.data("index")
             #if App.support.mobile() and not @ui.lookThumbnail.is(':visible')
             #    @productThumbnails.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @productThumbnails.currentView.index + 1)
             #product = @updateContent()
             App.vent.trigger('tracking:product:thumbnailClick', @getTrackingData(product))
-            App.utils.openUrl(url)
+            App.utils.openUrl(product.get("url"))
             return
+    )
 
     # SLT shows one piece of content at a time
-    _.extend(module.ExpandedContent::defaultViewOptions, featureSingleItem: true)
+    _.extend(module.ExpandedContent::defaultOptions, featureSingleItem: true)
 
     module.ExpandedContent::updateScrollCta = ->
         $recipe = @$el.find(".recipe")
@@ -164,51 +156,3 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
 
         return @
-
-    class module.SLTHeroAreaView extends Marionette.LayoutView
-        ###
-        View responsible for the Sur La Table Hero Area
-        This Hero's are special in that if there is no hero image specified,
-        an overlay with the category name is used (ex: The Chef, Top 25)
-        ###
-        model: module.Tile
-        className: "previewContainer"
-        template: "#hero_template"
-        regions:
-            content: ".content"
-
-        generateHeroArea: ->
-            category = App.intentRank.currentCategory() || App.option('page:home:category')
-            catObj = App.categories.findModelByName(category)
-
-            # If category can't be found, default to 'Gifts'
-            if not catObj? then catObj = displayName: 'Gifts'
-
-            tile =
-                desktopHeroImage: catObj.desktopHeroImage or ""
-                mobileHeroImage: catObj.mobileHeroImage or ""
-                title: "#{catObj.title or catObj.displayName}"
-            
-            if @model? and @model.destroy then @model.destroy()
-            @model = new module.Tile(tile)
-            return @
-
-        loadHeroArea: ->
-            @generateHeroArea()
-            # If view is already visible, update with new category
-            if not @.isDestroyed
-                @.render()
-
-        initialize: (options) ->
-            if App.intentRank.currentCategory and App.categories
-                @generateHeroArea()
-            else
-                # placeholder to stop error
-                @model = new module.Tile()
-                App.vent.once('intentRankInitialized', =>
-                    @loadHeroArea()
-                )
-            @listenTo(App.vent, "change:category", =>
-                @loadHeroArea()
-            )
-            return @

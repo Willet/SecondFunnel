@@ -198,6 +198,24 @@
     <div>
         <!-- Custom templates here -->
         <script type="text/template" id="hero_template">
+            <div class="hero-image-wrapper">
+                <div class="visible-xs jumbotron">
+                    <% if (obj.heroTitle) { %><span class="title"><%= obj.heroTitle %></span><% } %>
+                    <img src="<%= obj.mobileHeroImage %>" alt="Hero" />
+                </div>
+                <div class="hidden-xs jumbotron">
+                    <% if (obj.heroTitle) { %><span class="title"><%= obj.heroTitle %></span><% } %>
+                    <img src="<%= obj.heroImage %>" alt="Hero" />
+                </div>
+            </div>
+            {% if legal_copy %}
+                <div class="legal us">
+                    {{ legal_copy }}
+                </div>
+            {% endif %}
+        </script>
+
+        <script type="text/template" id="hero_template">
             <% var heroId = 1 + Math.floor(Math.random() * 3); %>
             <div class="hero-image-wrapper">
                 <div class="visible-xs jumbotron">
@@ -364,9 +382,7 @@
                 <div class="content">
                     <span class="close desktop-only">X</span>
                     <span class="close mobile-only">Back</span>
-                    <div class="scrollable">
-                        <div class="template target"></div>
-                    </div>
+                    <div class="template target"></div>
                 </div>
             </div>
             <div class="mask"></div>
@@ -571,7 +587,7 @@
             <div class="main-image-container">
                 <div class="main-image">
                     <% for (var j = 0; j < obj.images.length; j++) { %>
-                        <div class="image" style="background-image: url('<%= obj.images[j].url %>');"></div>
+                        <div class="image" data-id="<%= obj.images[j].id %>" style="background-image: url('<%= obj.images[j].url %>');"></div>
                     <% } %>
                 </div>
             </div>

@@ -3,8 +3,7 @@ import re
 import os
 import math
 import random
-import urlparse
-import cStringIO
+from StringIO import StringIO
 from collections import namedtuple
 
 import cloudinary.api
@@ -36,6 +35,10 @@ def get_public_id(url):
     """
     Returns the public ID of a cloudinary resource.
 
+    Ex: http://res.cloudinary.com/secondfunnel/image/upload
+               /v1441808107/sur%20la%20table/6a6bd03ec8a5b8ce.jpg
+        returns "sur%20la%20table/6a6bd03ec8a5b8ce"
+
     @param url: The url of the uploaded resource
     @return: String
     """
@@ -47,6 +50,28 @@ def get_public_id(url):
 
 
 def upload_to_cloudinary(source, path='', effect=None, **kwargs):
+    """
+    Uploads source url to cloudinary
+
+    @param source: url of resource to upload
+    @param: path
+    @param: effect
+    @return: image object or error object
+    Ex image_object: {
+        url: 'http://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg',
+        secure_url: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg',
+        public_id: 'sample',
+        version: '1312461204',
+        width: 864,
+        height: 564,
+        format: 'png',
+        resource_type: 'image',
+        signature: 'abcdefgc024acceb1c5baa8dca46797137fa5ae0c3'
+    }
+    Ex error_object: {
+        error: { message: "Something went wrong" }
+    }
+    """
     kwargs.update({
         'folder': path,
         'colors': True,
@@ -58,9 +83,9 @@ def upload_to_cloudinary(source, path='', effect=None, **kwargs):
 
     if effect:
         kwargs.update({'effect': effect})
-    image = cloudinary.uploader.upload(source, **kwargs)
+    image_object = cloudinary.uploader.upload(source, **kwargs)
 
-    return image
+    return image_object
 
 
 def delete_cloudinary_resource(public_id):
@@ -76,6 +101,15 @@ def delete_cloudinary_resource(public_id):
     except cloudinary.api.NotFound:
         public_id = get_public_id(public_id)
         cloudinary.api.delete_resources(list(public_id))
+
+
+def delete_s3_resource(s3_url):
+    """
+    Deletes the S3 resource at the specified url
+    @params s3_url
+    @return None
+    """
+    raise NotImplementedError
 
 
 def create_configuration(xpos, ypos, width, height):
@@ -106,15 +140,13 @@ def create_image(source):
     Creates an ExtendeImage object given the string representation of the
     image.
 
-    @param source: str
+    @param source: byte string
     @return: ExtendedImage object
     """
     img = None
 
     try:
-        buff = cStringIO.StringIO()
-        buff.write(source)
-        buff.seek(0)
+        buff = StringIO(source.read())
         img = ExtendedImage.open(buff)
     except (IOError, OSError) as e:
         raise e
@@ -129,12 +161,8 @@ def create_image_path(store_id, *args):
     from apps.assets.models import Store
 
     store = Store.objects.get(id=store_id)
-    name = store.name.lower()  # TODO: why not store.slug.lower()?
-
-    if settings.ENVIRONMENT == 'dev':
-        return os.path.join("store", name, *args)
-
-    return urlparse.urljoin("store", name, *args)
+    name = store.slug.lower()
+    return os.path.join("store", name, *args)
 
 
 def hex_to_rgb(hex_color):
@@ -319,3 +347,13 @@ def generate_public_id(url, store=None, cloudinary_compatible=True):
     if cloudinary_compatible:
         return url_hash[:16]
     return url_hash
+
+def is_hex_color(color_string):
+    """returns True if color_string is a hex color of the form '#FFFFFF'"""
+    try:
+        search_result = re.search("^#[0-9ABCDEF]{6}$", color_string)
+        return bool(search_result is not None)
+    except (ValueError, TypeError):
+        return False
+
+

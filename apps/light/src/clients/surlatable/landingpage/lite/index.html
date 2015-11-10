@@ -107,19 +107,6 @@
     @@include('shared/campaign_body.html')
 
     <div>
-        <script type="text/template" id="hero_template">
-            <div class="hero-image-wrapper">
-                <div class="visible-xs jumbotron">
-                    <span class="category-name"><%= obj.title %></span>
-                    <% if (obj.mobileHeroImage) { %><img src="<%= obj.mobileHeroImage %>" alt="Hero" /><% } %>
-                </div>
-                <div class="hidden-xs jumbotron">
-                    <span class="category-name"><%= obj.title %></span>
-                    <% if (obj.desktopHeroImage) { %><img src="<%= obj.desktopHeroImage %>" alt="Hero" /><% } %>
-                </div>
-            </div>
-        </script>
-
         <script type="text/template" id="product_galleryDots_template">
             <% for (var i = 0; i < obj.images.length; i++) { %>
                 <div class="item" data-index="<%- i %>"></div>
@@ -130,11 +117,18 @@
         <script type="text/template" id="product_galleryMainImage_template">
             <div class="main-image-container">
                 <div class="main-image">
-                    <% for (var j = 0; j < obj.images.length; j++) { %>
-                        <div class="image" style="background-image: url('<%= obj.images[j].url %>');">
-                            <div class="hi-res image"></div>
-                        </div>
-                    <% } %>
+                    <% for (var j = 0; j < obj.images.length; j++) {
+                        // only 1st image is progressively loaded, others load hi-res version
+                        if (j === 0) { %>
+                            <div class="image" data-id="<%= obj.images[j].id %>" style="background-image: url('<%= obj.images[j].url %>');">
+                                <div class="hi-res image"></div>
+                            </div>
+                        <% } else { %>
+                            <div class="image" data-id="<%= obj.images[j].id %>" >
+                                <div class="hi-res image"></div>
+                            </div>
+                        <% }
+                    } %>
                     <div class="description mobile-only">
                         <% include("product_description_template") %>
                     </div>
@@ -155,13 +149,22 @@
         </script>
 
         <script type="text/template" id="image_tile_template">
+            <% if (obj.template === "product" && obj.defaultImage.get('productShot') === true) { %>
+            <div class='relative product-shot'>
+                <div>
+                    <img class="focus" src="<%= obj.defaultImage.url %>" />
+                </div>
+                <span class="product-label"><%= obj.product.get('name') %></span>
+            </div>
+            <% } else { %>
             <div class='relative'>
                 <img class="focus" src="<%= obj.defaultImage.url %>" />
             </div>
+            <% } %>
             <div class="overlay">
                 <div class='table'>
                     <div class='cell'>
-                        <% /* "Shop product" is actually wanted for the tile overlay */ %>
+                        <% /* "Shop product" is actually wanted for the tile overlay */  %>
                         <div class="title">
                         <% if (obj.template === "product") { %>
                             <span>Get Details</span>
@@ -192,7 +195,7 @@
         <script type="text/template" id="preview_container_template">
             <% var template = (obj.template || "image") %>
             <% var tagged = false; try { tagged = !_.isEmpty(obj.taggedProducts); } catch (e) {} %>
-            <div class="fullscreen scrollable <%= template %> <% if (tagged) { %>tagged<% } %>">
+            <div class="fullscreen <% if (scrollable) { %>scrollable<% } %> <%= template %> <% if (tagged) { %>tagged<% } %>">
                 <div class="content">
                     <span class="close desktop-only">Keep Shopping <img src="/static/light/surlatable/landingpage/lite/images/close.gif"></span>
                     <span class="close mobile-only">Back</span>
@@ -213,7 +216,7 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <a class='button' href='<%= obj.cj_link || obj.url %>' target='_blank'>
+            <a class='button' href='<%= obj.url %>' target='_blank'>
                 <span>Shop Now</span>
             </a>
         </script>
@@ -242,9 +245,6 @@
                 </div>
                 <div class='buy mobile-only'>
                     <% include("product_buy_template") %>
-                </div>
-                <div class='description mobile-only'>
-                    <% include("product_description_template") %>
                 </div>
                 <div class="product-details desktop-only">
                     <div class='title'>
@@ -297,9 +297,14 @@
                     <div class='buy'>
                         <% include("product_buy_template") %>
                     </div>
-                    <% if (obj['recipe-name']) { %>
-                    <div class="back-to-recipe">
+                    <% if (obj['recipeName']) { %>
+                    <div class="back">
                         Back to <%- obj['recipeName'] %> Recipe
+                    </div>
+                    <% } %>
+                    <% if (obj['collectionName']) { %>
+                    <div class="back">
+                        Back to Collection Description
                     </div>
                     <% } %>
                 </div>
@@ -307,79 +312,89 @@
         </script>
 
         <script type="text/template" id="product_preview_template">
-            <% var tagged = Boolean(obj.taggedProducts.length > 0) %>
             <div class="table <%= obj.orientation %>">
-                <div class="row">
+                <div class="feature">
                     <div class="cell title-banner desktop-only">
                         <div class="title">
                             <% include("product_title_template") %>
                         </div>
                     </div>
-                    <div class="cell info <% if (tagged) { %>tagged<% } %>">
+                    <div class="cell info">
                         <div class="product-info"></div>
                     </div>
-                    <% if (tagged) { %>
                     <div class="cell shop">
                         <div class="product-thumbnails"></div>
                     </div>
-                    <div class="cell similar-products overflow"></div>
-                    <% } %>
                 </div>
+                <div class="cell similar-products overflow"></div>
             </div>
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
         </script>
 
         <script type="text/template" id="similar_products_template">
-            <div class="similar-cta">You May Also Like</div>
+            <% if (parentTemplate === "collection") { %>
+                <div class="similar-cta">Shop the Collection</div>
+                <div class='similar-subtext'>by clicking the images below</div>
+            <% } else { %>
+                <div class="similar-cta">You May Also Like</div>
+            <% } %>
             <div class="tiles"></div>
         </script>
 
         <script type="text/template" id="desktop_tagged_products">
-            <% var tagged = Boolean(obj.taggedProducts.length > 0) %>
-            <div class="cell title-banner">
-                <div class="title">
-                    <% include("product_title_template") %>
+            <div class="feature">
+                <div class="cell title-banner">
+                    <div class="title">
+                        <% include("product_title_template") %>
+                    </div>
+                </div>
+                <div class="cell look-image-container">
+                    <% if (template === "collection") { %>
+                        <% var url = obj.expandedImage ? obj.expandedImage.url : image.url; %>
+                        <img src="<%= url %>" alt="image" class="look-image" />
+                    <% } else if (template === "recipe") { %>
+                        <% include("recipe_template") %>
+                    <% } else { %>
+                        <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
+                    <% } %>
+                </div>
+                <div class="cell info">
+                    <div class="product-info"></div>
+                </div>
+                <div class="cell shop">
+                    <div class="product-thumbnails"></div>
                 </div>
             </div>
-            <div class="cell look-image-container">
-                <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
-                <% if (template === "recipe") { %>
-                    <% include("recipe_template") %>
-                <% } %>
-            </div>
-            <div class="cell info <% if (tagged) { %>tagged<% } %>">
-                <div class="product-info"></div>
-            </div>
-            <% if (tagged) { %>
-            <div class="cell shop">
-                <div class="product-thumbnails"></div>
-            </div>
             <div class="cell similar-products overflow"></div>
-            <% } %>
         </script>
 
         <script type="text/template" id="mobile_tagged_products">
-            <% var tagged = Boolean(obj.taggedProducts.length > 0) %>
-            <div class="look-product-carousel">
-                <div class="cell look-image-container">
-                    <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
-                    <% if (template === "recipe") { %>
-                        <% include("recipe_template") %>
-                    <% } %>
+            <div class="feature">
+                <div class="look-product-carousel">
+                    <div class="cell look-image-container">
+                        <% if (template === "collection") { %>
+                            <% var url = obj.expandedMobileImage ? obj.expandedMobileImage.url :
+                                        ( obj.expandedImage ? obj.expandedImage.url : image.url); %>
+                            <img src="<%= url %>" alt="image" class="look-image" />
+                        <% } else if (template === "recipe") { %>
+                            <% include("recipe_template") %>
+                        <% } else { %>
+                            <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
+                        <% } %>
+                    </div>
+                    <div class="cell info">
+                        <div class="product-info"></div>
+                    </div>
                 </div>
-                <div class="cell info <% if (tagged) { %>tagged<% } %>">
-                    <div class="product-info"></div>
+                <div class="cell shop">
+                    <div class="product-thumbnails"></div>
                 </div>
-            </div>
-            <% if (tagged) { %>
-            <div class="cell shop">
-                <div class="product-thumbnails"></div>
             </div>
             <div class="cell similar-products overflow"></div>
-            <% } %>
         </script>
 
         <script type="text/template" id="recipe_template">
+            <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
             <div class="recipe-container">
                 <div class="title">
                     <% include("product_title_template") %>
@@ -479,5 +494,9 @@
         @@include('shared/default_templates.html')
     </div>
     <script type="text/javascript" src="/static/light/surlatable/landingpage/lite/scripts/main.js"></script>
+    <script type="text/javascript">
+        // Fanplyr
+        !function(e,t,a){var n=e.createElement(a),r=e.getElementsByTagName(a)[0];n.async=!0,n.src="//d38nbbai6u794i.cloudfront.net/customers/surlatable/adaptor/surlatable.js",r.parentNode.insertBefore(n,r)}(document,window,"script");
+    </script>
 </body>
 </html>

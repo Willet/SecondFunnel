@@ -8,12 +8,12 @@ ITEM_PIPELINES = {
     'apps.scrapy.pipelines.ContentImagePipeline': 12,
     # 40 - Persistence-related
     'apps.scrapy.pipelines.ItemPersistencePipeline': 40,
-    'apps.scrapy.pipelines.AssociateWithProductsPipeline': 41,
-    'apps.scrapy.pipelines.TagPipeline': 42,
-    'apps.scrapy.pipelines.ProductImagePipeline': 47,
+    'apps.scrapy.pipelines.ProductImagePipeline': 41,
+    'apps.scrapy.pipelines.AssociateWithProductsPipeline': 42,
+    'apps.scrapy.pipelines.TagPipeline': 43,
+    'apps.scrapy.pipelines.ItemFinishedPipeline': 49,
     # 50 - 
     'apps.scrapy.pipelines.TileCreationPipeline': 50,
-    'apps.scrapy.pipelines.SimilarProductsPipeline': 52,
     # 90 - Scrape job control
     'apps.scrapy.pipelines.PageUpdatePipeline': 99,
 }

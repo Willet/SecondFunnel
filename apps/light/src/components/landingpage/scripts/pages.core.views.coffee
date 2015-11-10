@@ -44,8 +44,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return data
 
         getTemplate: ->
-            if @attrs.type
-                return "##{@attrs.type}_carousel_template"
+            if @attrs.template
+                return "##{@attrs.template}_carousel_template"
             else
                 return "#carousel_template"
 
@@ -405,40 +405,37 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             tile = _.get(options, 'tile', undefined)
             tileId = Number(_.get(options, 'tileId', undefined))
             updateWithCategory = Boolean(_.get(options, 'updateWithCategory', true))
-
-            
+            @tileLoaded = $.Deferred()
+            # every path below must resolve @tileLoaded
             # tile can be an object (tileJson)
             if tile?
-                @tileLoaded = $.when(tile)
+                @tileLoaded.resolve(tile)
             # tileId is either a tile-id or NaN
             else if tileId
-                @tileLoaded = $.Deferred()
                 tileLoadedResolve = =>
                     @tileLoaded.resolve(arguments[0])
                 tileLoadedFailed = =>
                     @tileLoaded.resolve()
-                module.Tile.getTileById(tileId, tileLoadedResolve, tileLoadedFailed)
+                module.Tile.getById(tileId, tileLoadedResolve, tileLoadedFailed)
             # no tile, get category from intentRank
             else
                 if App.intentRank?.currentCategory?
-                    tileJson = @getCategoryHeroImages(App.intentRank.currentCategory())
-                    @tileLoaded = $.when(tileJson)
+                    tile = @_getCategoryHeroTile(App.intentRank.currentCategory())
+                    @tileLoaded.resolve(tile)
                 # get category from intentRank when its ready
                 else
-                    @tileLoaded = $.Deferred()
                     App.vent.once('intentRankInitialized', =>
-                        tileJson = @getCategoryHeroImages(App.intentRank.currentCategory())
-                        @tileLoaded.resolve(tileJson)
+                        tile = @_getCategoryHeroTile(App.intentRank.currentCategory())
+                        @tileLoaded.resolve(tile)
                     )
             # tile can be a {Tile} or {object} tileJson
             @tileLoaded.done((tile) =>
                 if _.isObject(tile) and not _.isEmpty(tile)
                     @model = if _.contains(tile.type, 'Tile') \
                              then tile \
-                             else module.Tile.selectTileSubclass(tile)
+                             else module.Tile.getOrCreate(tile)
                 else
                     @model = undefined
-                @render()
 
                 @listenTo(App.vent, "windowResize", =>
                     @render()
@@ -450,40 +447,47 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         onShow: ->
             @tileLoaded.done(=>
-                if @model?
-                    contentOpts = model: @model
-                    contentInstance = undefined
-                    if _.contains(contentOpts.model.get("type", ""), "hero")
-                        contentInstance = new module.HeroContent(contentOpts)
-                    else
-                        contentInstance = new module.PreviewContent(contentOpts)
-                    @content.show(contentInstance)
-                else
-                    @content.destroy()
-                return
+                @_updateContent()
             )
+
+        updateContent: ->
+            if @_isShown
+                @_updateContent()
 
         updateCategoryHeroImages: (category) ->
             @model?.destroy()
-            heroImagesModel = @getCategoryHeroImages(category)
-            @model = if heroImagesModel then new module.Tile(heroImagesModel) else undefined
-            @render()
+            @model = @_getCategoryHeroTile(category)
+            @updateContent()
 
-        getCategoryHeroImages: (category='') ->
+        _updateContent: ->
+            # Only to be called after view is shown
+            if @model?
+                contentInstance = if _.contains(@model.type?.toLowerCase(), "hero") \
+                                  then new module.HeroContent(model: @model)
+                                  else new module.PreviewContent(model: @model)
+                @content.show(contentInstance)
+            else
+                @content.destroy()
+            return
+
+        _getCategoryHeroTile: (category='') ->
+            # Generates a HeroTile to be displayed
             # default '' means home
             category = if not _.isEmpty(category) then category else App.option('page:home:category')
             catObj = (App.categories.findModelByName(category) or {})
-            desktopHeroImage = (catObj['desktopHeroImage'] or App.option('page:desktopHeroImage'))
-            mobileHeroImage = (catObj['mobileHeroImage'] or App.option('page:mobileHeroImage'))
-            if desktopHeroImage
+            heroImage = (catObj['heroImage'] or App.option('page:defaults:heroImage'))
+            mobileHeroImage = (catObj['mobileHeroImage'] or App.option('page:defaults:mobileHeroImage'))
+            heroTitle = (catObj['heroTitle'] or App.option('page:defaults:heroTitle'))
+            if heroImage or heroTitle
                 heroImages =
-                    "desktopHeroImage": desktopHeroImage
-                    "mobileHeroImage": mobileHeroImage or desktopHeroImage
+                    "heroImage": heroImage
+                    "mobileHeroImage": mobileHeroImage or heroImage
+                    "heroTitle": heroTitle
                     "template": "hero"
-                    "type": "hero"
+                tile = new module.HeroTile(heroImages)
             else
-                heroImages = undefined
-            return heroImages
+                tile = undefined
+            return tile
 
 
     ###
@@ -528,8 +532,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     # second click w/ categories, select category
                     @parent?.contractCategories()
                     
-                    # A category without a name is just drop-down for subcategories
-                    if categoryName
+                    if categoryUrl
+                        App.utils.openUrl(categoryUrl)
+                    else if categoryName
                         # only open again if it isn't already open
                         unless $el.hasClass('selected') and not $subCatEl.hasClass('selected')
                             @selectCategoryEl($el)
@@ -537,8 +542,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             App.router.navigate("category/#{categoryName}",
                                 trigger: true
                             )
-                    if categoryUrl
-                        App.utils.openUrl(categoryUrl)
                 return false # stop propogation
 
             'click .sub-category': (event) ->
@@ -557,7 +560,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
 
                 # url's take priority over category name's
-                if subCategory['url']
+                if subCategory?['url']
                     App.utils.openUrl(subCategory['url'])
 
                 # else switch to the selected category if it has changed

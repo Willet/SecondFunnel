@@ -63,7 +63,7 @@ class SurLaTableDatafeed(CJDatafeed):
             product.price = new_price
         product.sale_price = float(data['SALEPRICE'])
         product.in_stock = True if data['INSTOCK'] == 'yes' else False
-        product.attributes['cj_link'] = data['BUYURL']
+        product.attributes['affiliate_link'] = data['BUYURL']
 
     def _update_similar_products(self, product, data, max_num=3):
         """

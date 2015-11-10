@@ -86,13 +86,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # this is a dirty check
             if $(ev.target).parents(".button").length
                 return
-            else if App.option("page:tiles:openTileInHero", false)
+
+            App.vent.trigger("tracking:tile:open", @model)
+
+            if App.option("page:tiles:openTileInHero", false)
                 # open tile in hero area
                 App.router.navigate("tile/#{String(@model.get('tile-id'))}", trigger: true)
             else
                 # open tile in popup
                 App.router.navigate("preview/#{String(@model.get('tile-id'))}", trigger: true)
-            
             return
 
 
@@ -108,10 +110,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 3: "three-col"
                 4: "full"
 
-            # templates use this as obj.image.url
-            @model.set("image", @model.get("defaultImage"))
             wideable = wideableTemplates[@model.get("template")]
-            showWide = (Math.random() < App.option("page:tiles:imageTileWideProb", 0.5))
+            showWide = (Math.random() < App.option("page:tiles:wideProbability", 0.5))
             if _.isNumber(@model.get("colspan"))
                 columns = @model.get("colspan")
             else if wideable and showWide
@@ -123,12 +123,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     columns = 1
                 else
                     columns = 2
-            for column in columns
-                idealWidth = normalTileWidth * columns
-                imageInfo = @model.get("image").width(idealWidth, true)
-                if imageInfo
-                    break
-            @model.set(image: imageInfo)
+            idealWidth = normalTileWidth * columns
+            # Update default image width to at least idealWidth
+            @model.get("defaultImage").width(idealWidth)
             @$el.addClass(columnDetails[columns])
 
             # Listen for the image being removed from the DOM, if it is, remove
@@ -193,11 +190,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#product_tile_template"
 
         onClick: ->
-        	if App.option('page:tiles:openProductTileInPDP')
+            App.vent.trigger('tracking:tile:bannerExit', @model)
+            if App.option('page:tiles:openProductTileInPDP')
                 App.utils.openUrl(@model.get("url"))
             else
                 super
-            return        
+            return
 
 
     class module.ImageTileView extends module.TileView

@@ -21,42 +21,45 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ProductView::onBeforeRender = ->
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
-        inlineLink = "<a href='#{@model.get('cj_link') or @model.get('url')}'>#{linkName}</a>"
+        inlineLink = "<a href='#{@model.get('url')}'>#{linkName}</a>"
         if @model.get("description")
             truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
             @model.set("truncatedDescription", truncatedDescription + " " + inlineLink)
         return
 
     module.ProductView::replaceImages = ->
-        unless App.support.mobile()
-            $container = @$el.find(".main-image-container")
-            if $container.is(":visible")
+        $container = @$el.find(".main-image-container")
+        if $container.is(":visible")
+            if App.support.mobile()
+                maxWidth = $container.width()
+                maxHeight = $container.height()
+            else
                 maxWidth = $container.width()*1.3
                 maxHeight = $container.height()*1.3
-            else
-                maxWidth = App.option("minImageWidth") or 300
-                maxHeight = App.option("minImageHeight") or 300
-            for image, i in @$el.find(".main-image .hi-res")
-                $cachedImage = $(image).parent()
-                if $cachedImage.is("img")
-                    imageUrl = App.utils.getResizedImage($cachedImage.attr("src"),
-                        width: maxWidth,
-                        height: maxHeight
-                    )
-                    $(image).attr("src", imageUrl)
-                else if $cachedImage.is("div")
-                    imageUrl = $cachedImage.css("background-image").replace('url(','').replace(')','')
-                    imageUrl = App.utils.getResizedImage(imageUrl,
-                        width: maxWidth,
-                        height: maxHeight
-                    )
-                    $(image).css("background-image", "url('#{imageUrl}')")
+        else
+            maxWidth = App.option("minImageWidth") or 300
+            maxHeight = App.option("minImageHeight") or 300
+
+        for imageEl, i in @$el.find(".main-image .hi-res")
+            $image = $(imageEl)
+            $cachedImage = $image.parent()
+
+            # find image from id
+            image = _.findWhere(@model.get('images'), id: $cachedImage.data('id'))
+            imageUrl = image.resizeForDimens(maxWidth, maxHeight)
+
+            if $image.is("img")
+                $image.attr("src", imageUrl)
+            else if $image.is("div")
+                $image.css("background-image", "url('#{imageUrl}')")
         return
 
     module.ProductView::resizeProductImages = ->
         productImages = @$el.find(".main-image .hi-res")
         if productImages.length > 0 and productImages.first().is("div")
-            @replaceImages()
+            # Let the browser execute the resizing window callbacks
+            # otherwise, container height is 0 & images are resized to 0 height.
+            setTimeout((=> @replaceImages()), 1)
         else
             imagesLoaded(productImages, (=> @replaceImages()))
         return
@@ -79,7 +82,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $ev = $(event.target)
             $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
             product = @taggedProducts[$targetEl.data("index")]
-            url = product.get('cj_link') or product.get('url')
+            url = product.get('url')
             ### Uncomment to enable switching view to product ###
             #@taggedProductIndex = $targetEl.data("index")
             #if App.support.mobile() and not @ui.lookThumbnail.is(':visible')

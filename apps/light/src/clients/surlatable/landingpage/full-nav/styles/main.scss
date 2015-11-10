@@ -563,9 +563,7 @@ body {
             border: none;
             border-radius: 5px;
         }
-        .category-name {
-            position: absolute;
-            z-index: 1;
+        .title {
             top: 50%;
             margin-top: -25px;
             width: 100%;
@@ -714,7 +712,7 @@ body {
 .previewContainer,
 .heroContainer {
     .scrollable, .content, .preview-container, .template.target, .table,
-    .row, .image-with-tagged-products, .image-without-tagged-products {
+    .image-with-tagged-products, .image-without-tagged-products {
         width: 100%;
         height: 100%;
     }
@@ -756,9 +754,6 @@ body {
     }
     .table {
         display: block;
-        .row {
-            display: inline-block;
-        }
     }
     .close {
         top: 10px;
@@ -1164,7 +1159,7 @@ body {
 
 @media screen and (max-width: 768px) {
     .fullscreen, .content, .scrollable, .content
-    .preview-container, .template.target, .table, .row,
+    .preview-container, .template.target, .table,
     .image-with-tagged-products, .image-without-tagged-products {
         width: 100%;
         height: 100%;
@@ -1330,7 +1325,7 @@ body {
         .visible-sm.jumbotron {
             height: auto;
             margin-bottom: 1px;
-            .category-name {
+            .title {
                 font-size: 30px;
                 margin-top: -25px;
             }
@@ -1599,7 +1594,7 @@ body {
         .visible-xs.jumbotron,
         .visible-sm.jumbotron {
             margin-bottom: 1px;
-            .category-name {
+            .title {
                 font-size: 25px;
             }
         }

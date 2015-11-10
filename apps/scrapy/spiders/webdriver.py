@@ -1,57 +1,10 @@
 import copy
-import logging
 
 from scrapy.spiders import Spider
 from scrapy.utils.spider import iterate_spider_output
 from scrapy_webdriver.http import WebdriverRequest, WebdriverResponse
 
-
-class SecondFunnelScraper(object):
-    def __init__(self, *args, **kwargs):
-        super(SecondFunnelScraper, self).__init__(*args, **kwargs)
-
-        # Explicit `start_urls` override other `start_urls`
-        if kwargs.get('start_urls'):
-            separator = getattr(self, "start_urls_separator", ",")
-            self.start_urls = kwargs.get('start_urls').split(separator)
-
-        if kwargs.get('feed_id'):
-            self.feed_id = kwargs.get('feed_id')
-
-        if kwargs.get('categories'):
-            self.categories = kwargs.get('categories').split(',')
-
-        # Recreate existing tiles
-        self.recreate_tiles = kwargs.get('recreate_tiles', False)
-        # Skip creation of new tiles
-        self.skip_tiles = kwargs.get('skip_tiles', False)
-        # Skip processing of images (and if spider supports it, scraping of images)
-        self.skip_images = kwargs.get('skip_images', False)
-
-
-class SecondFunnelCrawlScraper(SecondFunnelScraper):
-    # These fields are expected to be completed by subclass crawlers
-    name = ''
-    allowed_domains = []
-    store_slug = ''
-
-    # see documentation for remove_background in apps.imageservice.tasks
-    remove_background = '#FFF'
-
-    def parse_start_url(self, response):
-        if self.is_product_page(response):
-            self.rules = ()
-            self._rules = []
-            return self.parse_product(response)
-        else:
-            self.logger.info(u"Not a product page: {}".format(response.url))
-            return []
-
-    def is_product_page(self, response):
-        raise NotImplementedError
-
-    def parse_product(self, response):
-        raise NotImplementedError
+from .mixins import ProcessingMixin
 
 
 class WebdriverCrawlSpider(Spider):
@@ -76,8 +29,8 @@ class WebdriverCrawlSpider(Spider):
     request_cls = WebdriverRequest
     response_cls = WebdriverResponse
 
-    def __init__(self, *a, **kw):
-        super(WebdriverCrawlSpider, self).__init__(*a, **kw)
+    def __init__(self, *args, **kwargs):
+        super(WebdriverCrawlSpider, self).__init__(*args, **kwargs)
         self._compile_rules()
 
     def _requests_to_follow(self, response):
@@ -86,6 +39,9 @@ class WebdriverCrawlSpider(Spider):
             return
         seen = set()
         for n, rule in enumerate(self._rules):
+            if not rule.source_allowed(response.url):
+                # This rule is skipped for this request url
+                continue
             links = [l for l in rule.link_extractor.extract_links(response) if l not in seen]
             if links and rule.process_links:
                 links = rule.process_links(links)
@@ -150,3 +106,56 @@ class WebdriverCrawlSpider(Spider):
         spider._follow_links = crawler.settings.getbool(
             'CRAWLSPIDER_FOLLOW_LINKS', True)
         return spider
+
+
+class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingMixin):
+    """
+    A base spider for Second Funnel Use
+    """
+    # These fields are expected to be completed by subclass crawlers
+    name = ''
+    allowed_domains = []
+    store_slug = ''
+
+    # see documentation for remove_background in apps.imageservice.tasks
+    remove_background = '#FFF'
+
+    def __init__(self, *args, **kwargs):
+        # Set Options:
+        # Feed to add tiles to:
+        self.feed_id = kwargs.pop('feed_id', None)
+        # Categories to add tiles to:
+        self.categories = kwargs.pop('categories', [])
+        # Recreate existing tiles
+        self.recreate_tiles = kwargs.pop('recreate_tiles', False)
+        # Skip creation of new tiles
+        self.skip_tiles = kwargs.pop('skip_tiles', False)
+        # Skip processing of images (and if spider supports it, scraping of images)
+        self.skip_images = kwargs.pop('skip_images', False)
+        # For reporting
+        self.reporting_name = kwargs.pop('reporting_name', '')
+
+        super(SecondFunnelCrawlSpider, self).__init__(*args, **kwargs)
+
+    def parse_start_url(self, response):
+        """
+        Over-write to add more types of start-urls
+        """
+        if self.is_product_page(response):
+            return self.parse_product(response)
+        elif self.is_category_page(response):
+            # Don't parse category pages
+            # Let Rule's follow links category pages
+            return []
+        else:
+            self.logger.error(u"Unrecognized start url: {}".format(response.url))
+            return []
+
+    def is_product_page(self, response):
+        raise NotImplementedError
+
+    def is_category_page(self, response):
+        raise NotImplementedError
+
+    def parse_product(self, response):
+        raise NotImplementedError

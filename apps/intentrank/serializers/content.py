@@ -1,6 +1,6 @@
 from apps.utils.functional import find_where, get_image_file_type
 
-from .utils import IRSerializer, SerializerError
+from .utils import IRSerializer, SerializerError, camelize_JSON
 
 
 """ Serializers for models that make up tiles """
@@ -22,6 +22,7 @@ class ProductSerializer(IRSerializer):
             "sku": getattr(product, "sku", ""),
             "price": product.price,
             "salePrice": product.sale_price,
+            "currency": product.currency,
             "description": product.description,
             "details": product.details,
             "name": product.name,
@@ -30,7 +31,7 @@ class ProductSerializer(IRSerializer):
             "in-stock": product.in_stock,
         }
 
-        data.update(product.attributes)
+        data.update(camelize_JSON(product.attributes))
 
         try:
             data["default-image"] = product.default_image.to_json()
@@ -84,6 +85,7 @@ class ProductImageSerializer(IRSerializer):
     """This dumps some fields from the image as JSON."""
     def get_dump_object(self, product_image):
         """This will be the data used to generate the object."""
+
         data = {
             "format": product_image.file_type or "jpg",
             "type": "image",
@@ -96,6 +98,9 @@ class ProductImageSerializer(IRSerializer):
             }),
             "orientation": product_image.orientation,
         }
+
+        data.update(camelize_JSON(product_image.attributes))
+        data['productShot'] = product_image.is_product_shot
 
         return data
 

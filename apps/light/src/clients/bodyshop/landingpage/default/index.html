@@ -217,23 +217,67 @@
             <% var product = obj.taggedProducts[0]; %>
             <div class="image-with-tagged-products">
                 <div class="table">
-                    <div class="row">
-                        <div class="cell desktop-only image-cell">
-                            <img src="<%= obj.images[0].url %>" alt="image" class="image look-image" />
-                                <% if (obj.taggedProducts.length > 1 && obj.orientation === 'landscape') { %>
-                                <div class="landscape">
-                                    <div class="stl-title">
-                                        Shop The Set
-                                    </div>
-                                    <div class="stl-look">
-                                        <% var related = obj.taggedProducts; %>
-                                        <% for (var i = 0; i < related.length; i++) { %>
-                                            <div class="stl-item" data-index="<%- i %>">
-                                                <div class="image-container">
-                                                    <img src="<%- related[i].images[0].url %>" />
-                                                    <%- related[i].name %>
+                    <div class="cell desktop-only image-cell">
+                        <img src="<%= obj.images[0].url %>" alt="image" class="image look-image" />
+                            <% if (obj.taggedProducts.length > 1 && obj.orientation === 'landscape') { %>
+                            <div class="landscape">
+                                <div class="stl-title">
+                                    Shop The Set
+                                </div>
+                                <div class="stl-look">
+                                    <% var related = obj.taggedProducts; %>
+                                    <% for (var i = 0; i < related.length; i++) { %>
+                                        <div class="stl-item" data-index="<%- i %>">
+                                            <div class="image-container">
+                                                <img src="<%- related[i].images[0].url %>" />
+                                                <%- related[i].name %>
+                                            </div>
+                                            <div class="overlay">
+                                                <div class="buy">
+                                                    <a class='button' href='<%= obj.url %>'>
+                                                        Shop Now
+                                                    </a>
                                                 </div>
-                                                <div class="overlay">
+                                            </div>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div class="cell mobile-only image-cell">
+                        <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
+                    </div>
+                    <% if (obj.taggedProducts.length > 1 && obj.orientation !== 'landscape') { %>
+                        <div class="cell desktop-only shop-set">
+                            <div class="stl-title">
+                                Shop The Set
+                            </div>
+                            <div class="stl-look">
+                                <% var related = obj.taggedProducts; %>
+                                <% for (var i = 0; i < related.length; i++) { %>
+                                    <div class="stl-item" data-index="<%- i %>">
+                                        <div class="holder">
+                                            <div class="image-container">
+                                                <div>
+                                                    <img src="<%- related[i].images[0].url %>" />
+                                                </div>
+                                            </div>
+                                            <div class="name"><%= related[i].name %></div>
+                                            <div class="price">
+                                                <% if (related[i].salePrice) { %>
+                                                <span class="strike">
+                                                    <%- related[i].price %>
+                                                </span>
+                                                <%- related[i].salePrice %>
+                                            <% } else { %>
+                                                <%- related[i].price %>
+                                            <% } %>
+                                            </div>
+                                        </div>
+                                        <div class="overlay">
+                                            <div class="table">
+                                                <div class="cell">
                                                     <div class="buy">
                                                         <a class='button' href='<%= obj.url %>'>
                                                             Shop Now
@@ -241,124 +285,76 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        <% } %>
+                                        </div>
                                     </div>
-                                </div>
-                            <% } %>
+                                <% } %>
+                            </div>
                         </div>
-                        <div class="cell mobile-only image-cell">
-                            <img src="<%= obj.images[0].url %>" alt="image" class="image look-image"/>
-                        </div>
-                        <% if (obj.taggedProducts.length > 1 && obj.orientation !== 'landscape') { %>
-                            <div class="cell desktop-only shop-set">
-                                <div class="stl-title">
-                                    Shop The Set
-                                </div>
-                                <div class="stl-look">
-                                    <% var related = obj.taggedProducts; %>
-                                    <% for (var i = 0; i < related.length; i++) { %>
-                                        <div class="stl-item" data-index="<%- i %>">
-                                            <div class="holder">
-                                                <div class="image-container">
-                                                    <div>
-                                                        <img src="<%- related[i].images[0].url %>" />
-                                                    </div>
-                                                </div>
-                                                <div class="name"><%= related[i].name %></div>
-                                                <div class="price">
-                                                    <% if (related[i].salePrice) { %>
-                                                    <span class="strike">
-                                                        <%- related[i].price %>
-                                                    </span>
-                                                    <%- related[i].salePrice %>
-                                                <% } else { %>
-                                                    <%- related[i].price %>
-                                                <% } %>
+                    <% } %>
+                    <% if (obj.taggedProducts.length > 1) { %>
+                        <div class="cell mobile-only shop-set">
+                            <div class="stl-title">
+                                Shop The Set
+                            </div>
+                            <div class="stl-look">
+                                <% var related = obj.taggedProducts; %>
+                                <% for (var i = 0; i < related.length; i++) { %>
+                                    <div class="stl-item" data-index="<%- i %>">
+                                        <div class="holder">
+                                            <div class="image-container">
+                                                <div>
+                                                    <img src="<%- related[i].images[0].url %>" />
                                                 </div>
                                             </div>
-                                            <div class="overlay">
-                                                <div class="table">
-                                                    <div class="cell">
-                                                        <div class="buy">
-                                                            <a class='button' href='<%= obj.url %>'>
-                                                                Shop Now
-                                                            </a>
-                                                        </div>
+                                            <div class="name"><%= related[i].name %></div>
+                                            <div class="price">
+                                                <% if (related[i].salePrice) { %>
+                                                <span class="strike">
+                                                    <%- related[i].price %>
+                                                </span>
+                                                Now <%- related[i].salePrice %>
+                                            <% } else { %>
+                                                <%- related[i].price %>
+                                            <% } %>
+                                            </div>
+                                        </div>
+                                        <div class="overlay">
+                                            <div class="table">
+                                                <div class="cell">
+                                                    <div class="buy">
+                                                        <a class='button' href='<%= obj.url %>'>
+                                                            Shop Now
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    <% } %>
-                                </div>
+                                    </div>
+                                <% } %>
                             </div>
-                        <% } %>
-                        <% if (obj.taggedProducts.length > 1) { %>
-                            <div class="cell mobile-only shop-set">
-                                <div class="stl-title">
-                                    Shop The Set
-                                </div>
-                                <div class="stl-look">
-                                    <% var related = obj.taggedProducts; %>
-                                    <% for (var i = 0; i < related.length; i++) { %>
-                                        <div class="stl-item" data-index="<%- i %>">
-                                            <div class="holder">
-                                                <div class="image-container">
-                                                    <div>
-                                                        <img src="<%- related[i].images[0].url %>" />
-                                                    </div>
-                                                </div>
-                                                <div class="name"><%= related[i].name %></div>
-                                                <div class="price">
-                                                    <% if (related[i].salePrice) { %>
-                                                    <span class="strike">
-                                                        <%- related[i].price %>
-                                                    </span>
-                                                    Now <%- related[i].salePrice %>
-                                                <% } else { %>
-                                                    <%- related[i].price %>
-                                                <% } %>
-                                                </div>
-                                            </div>
-                                            <div class="overlay">
-                                                <div class="table">
-                                                    <div class="cell">
-                                                        <div class="buy">
-                                                            <a class='button' href='<%= obj.url %>'>
-                                                                Shop Now
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <% } %>
-                                </div>
-                            </div>
-                        <% } %>
-                        <% if (obj.taggedProducts.length === 1) { %>
-                            <div class="cell info">
-                                <div class="product-info"></div>
-                            </div>
-                        <% } %>
-                    </div>
+                        </div>
+                    <% } %>
+                    <% if (obj.taggedProducts.length === 1) { %>
+                        <div class="cell info">
+                            <div class="product-info"></div>
+                        </div>
+                    <% } %>
                 </div>
             </div>
         <% } else { %>
             <div class="image-without-tagged-products">
                 <div class="table">
-                    <div class="row">
-                        <div class="cell">
-                            <img src="<%= obj.images[0].url %>" alt="image" class="image look-image" />
+                    <div class="cell">
+                        <img src="<%= obj.images[0].url %>" alt="image" class="image look-image" />
+                    </div>
+                    <div class="cell info">
+                        <div class="title">
+                            Coming Soon to The Body Shop!
                         </div>
-                        <div class="cell info">
-                            <div class="title">
-                                Coming Soon to The Body Shop!
-                            </div>
-                            <div class="buy">
-                                <a class='button' href='http://www.thebodyshop-usa.com/'>
-                                    Shop On The Body Shop
-                                </a>
-                            </div>
+                        <div class="buy">
+                            <a class='button' href='http://www.thebodyshop-usa.com/'>
+                                Shop On The Body Shop
+                            </a>
                         </div>
                     </div>
                 </div>
