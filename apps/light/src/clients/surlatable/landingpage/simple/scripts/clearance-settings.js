@@ -80,7 +80,6 @@
   "column_width":341,
   "social_buttons":null,
   "stickyCategories":true,
-  "generateHeroArea":false,
   "home":{
     "category":"all"
   },
