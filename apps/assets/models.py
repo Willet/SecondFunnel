@@ -196,17 +196,18 @@ class BaseModel(models.Model, SerializableMixin):
         """
         old_ir_cache = self.ir_cache
         self.ir_cache = ''  # force tile to regenerate itself
-        if not getattr(self, 'placeholder', False):
-            new_ir_cache = self.to_str(skip_cache=True)
-        else:
+        if getattr(self, 'placeholder', False):
             # if placeholder, leave ir_cache empty
             new_ir_cache = ''
+        else:
+            new_ir_cache = self.to_str(skip_cache=True)
+            
+        self.ir_cache = new_ir_cache
 
         if new_ir_cache == old_ir_cache:
             return new_ir_cache, False
-
-        self.ir_cache = new_ir_cache
-        return new_ir_cache, True
+        else:
+            return new_ir_cache, True
 
     def _cg_attribute_name_to_python_attribute_name(self, cg_attribute_name):
         """(method name can be shorter, but something about PEP 20)
