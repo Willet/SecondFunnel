@@ -218,8 +218,6 @@ class BannerTileSerializer(TileSerializer):
         """
         redirect_url = (tile.attributes.get('redirect_url') or
                         tile.attributes.get('redirect-url'))
-        if not redirect_url:
-            raise SerializerError('Banner Tile #{} must have redirect url'.format(tile.id))
 
         # Needs one image
         # We prefer content over products
