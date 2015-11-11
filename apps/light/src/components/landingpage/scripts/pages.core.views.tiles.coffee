@@ -238,8 +238,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             App.vent.trigger('tracking:tile:bannerExit', @model)
             if @model.get("redirect-url")
                 App.utils.openUrl(@model.get("redirect-url"))
-            else
-                super
             return false # stop event propogation
 
 
