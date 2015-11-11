@@ -556,7 +556,7 @@ div.loading {
         }
         &.scrollable {
             .content {
-                max-height: none;
+                max-height: none !important; // Toggle scrollable
             }
         }
     }

@@ -422,6 +422,7 @@ body {
             min-height: 40px;
             font-size: 25px;
             color: $tbs-white-color;
+            padding-left: 3px;
         }
     }
 }
@@ -608,12 +609,9 @@ body {
         top: 0px;
         bottom: 0px;
         max-width: 800px;
-        &.product {
+        &.product:not(.scrollable) {
             .content {
-                max-height: 640px;
-            }
-            &.tagged .content {
-                max-height: none; /* will screw up product thumbnails */
+                max-height: 500px;
             }
         }
     }
@@ -719,24 +717,25 @@ body {
         vertical-align: top;
         width: 57%;
         height: 100%;
+        line-height: 100%;
         max-width: 500px;
         max-height: 500px;
         position: relative;
         @include no-select;
-        .image, .description {
+        .image {
+            vertical-align: middle;
+            width: 100%;
+            &.hi-res {
+                position: relative;
+                top: 0;
+                left: -100%;
+                z-index: 1;
+            }
+        }
+        .description {
             display: inline-block;
             vertical-align: top;
             width: 100%;
-        }
-        .image {
-            background-size: cover;
-            background-color: transparent;
-            background-position: center;
-            background-repeat: no-repeat;
-            border-radius: 10px;
-            height: 100%;
-        }
-        .description {
             font-size: 12px;
             line-height: 22px;
             overflow: hidden;
@@ -1030,6 +1029,13 @@ body {
 
 // DESKTOP ONLY
 @media screen and (min-width: 992px) {
+    .previewContainer, .heroContainer {
+        .main-image-container {
+            .main-image {
+                line-height: 500px; // Necessary for vertical image alignment
+            }
+        }
+    }
 }
 
 // MOBILE & TABLET ONLY
