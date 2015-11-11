@@ -627,7 +627,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else
                 App.vent.once('intentRankInitialized', =>
                     if App.intentRank.currentCategory()?
-                        @selectCategory (App.intentRank.currentCategory())
+                        @selectCategory(App.intentRank.currentCategory())
                 )
             return @
 
