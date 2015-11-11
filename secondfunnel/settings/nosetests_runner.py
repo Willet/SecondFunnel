@@ -11,6 +11,6 @@ from dev import *
 SOUTH_TESTS_MIGRATE = False
 
 # Use db port 5432 to avoid pgbouncer, otherwise can't connect to DB
-DATABASES['default']['NAME'] = 'test_sfdb'
+DATABASES['default']['NAME'] = 'sfdb'
 DATABASES['default']['HOST'] = 'localhost'
 DATABASES['default']['PORT'] = 5432

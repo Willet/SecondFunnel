@@ -23,5 +23,3 @@ class StoreTest(TestCase):
 class ThemeTest(TestCase):
     # Theme has no methods
     pass
-
-class 
