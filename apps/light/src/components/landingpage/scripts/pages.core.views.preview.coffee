@@ -825,7 +825,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         initialize: (options) ->
             if options.scrollable is undefined
-                options.scrollable = Marionette.getOption(@options.model, 'previewFeed')
+                options.scrollable = Marionette.getOption(@options.model, 'previewFeed') \
+                                     and not _.isEmpty(@options.model.get('taggedProducts'))
             @options = _.extend({}, @defaultOptions, options)
             return
 
