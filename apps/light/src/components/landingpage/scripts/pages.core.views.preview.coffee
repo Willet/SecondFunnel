@@ -651,8 +651,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         showSimilarProducts: ->
             # A hook to customize the pop-up feed initialization
-            if @taggedProducts.length > 2 or \
-               (App.support.mobile() and @taggedProducts.length > 0)
+            if @taggedProducts.length > 0
                 similarProductsInstance = new module.SimilarProductsView(
                     products: @taggedProducts
                     template: @model.get('template')

@@ -77,7 +77,7 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
 
         if item.get('tag_with_products', False):
             # Wait for recommended products to load
-            actions = WaitingActionChains(response.webdriver).wait(45, name='presence_of_element_located',
+            actions = WaitingActionChains(response.webdriver).wait(60, name='presence_of_element_located',
                         args=[(By.CSS_SELECTOR, "article.top-products")]).perform()
             request = response.action_request(actions=actions, callback=self.parse_recommended_products)
             request.meta['item'] = item
