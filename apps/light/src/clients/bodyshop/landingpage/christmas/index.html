@@ -290,10 +290,10 @@
 
         <script type="text/template" id="product_price_template">
             <% if (obj.sale) { %>
-                <span class="current sale"><%= obj.displayPrice.dollars %><%= obj.displayPrice.dollars %>.<%= obj.currency %></span>
+                <span class="current sale"><%= obj.currency %><%= obj.displayPrice.dollars %>.<%= obj.displayPrice.cents %></span>
                 <span class="suggested-price">(<span class="dollar-amount"><%= obj.currency %><%= obj.saleString %></span> Value)</span>
             <% } else { %>
-                <span class="current no-sale"><%= obj.displayPrice.dollars %>.<%= obj.displayPrice.cents %></span>
+                <span class="current no-sale"><%= obj.currency %><%= obj.displayPrice.dollars %>.<%= obj.displayPrice.cents %></span>
             <% } %>
         </script>
 
