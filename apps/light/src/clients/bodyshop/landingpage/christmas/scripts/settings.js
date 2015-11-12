@@ -13,8 +13,7 @@
   "stickyCategories":true,
   "useAffiliateLinks":true,
   "defaults":{
-    "heroImage":"",
-    "mobileHeroImage":""
+    "heroTitle":"<b>SPREAD HAPPINESS</b> With Gifts From The Gifting Wonderland"
   },
   "home":{
     "category":"all-gifts"
@@ -58,7 +57,7 @@
     {
       "displayName":"Modern Gent",
       "name":"modern-gent",
-      "heroTitle":"For <b>MODERN GETN:</b> Suave Suave Suave With These Fine Seasonal Gifts."
+      "heroTitle":"For <b>MODERN GENT:</b> Suave Suave Suave With These Fine Seasonal Gifts."
     },
     {
       "displayName": "More Gift Ideas",

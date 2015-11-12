@@ -527,9 +527,12 @@
         <!-- custom templates -->
     </div>
 
-    <div class="container" id="category-container">
+    <div class="container">
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
-        <img src="/static/light/bodyshop/landingpage/christmas/images/banner.png">
+        <div id="banner">
+            <img class="desktop-only" src="/static/light/bodyshop/landingpage/christmas/images/banner.png" />
+            <img class="mobile-only" src="/static/light/bodyshop/landingpage/christmas/images/mobile-banner.png" />
+        </div>
         <div id="category-area">
             <div id="category-closer"></div>
         </div>

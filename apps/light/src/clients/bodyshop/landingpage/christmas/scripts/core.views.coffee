@@ -100,22 +100,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @ui.lookThumbnail.hide()
         return
 
-    module.CategoryCollectionView::onShow = ->
-        # Enable sticky category bar
-        # Has an offset for the category thumbnails
-        sticky = App.option("page:stickyCategories")
-        if _.isString(sticky)
-            if sticky == 'desktop-only' and not App.support.mobile()
-                @$el.parent().waypoint('sticky',
-                    offset: '-113px' # 111px thumbnail + 1px + 1px borders
-                )
-            else if sticky == 'mobile-only' and App.support.mobile()
-                @$el.parent().waypoint('sticky',
-                    offset: '-113px' # 111px thumbnail + 1px + 1px borders
-                )
-        else if _.isBoolean(sticky) and sticky
-            @$el.parent().waypoint('sticky',
-                offset: '-113px' # 111px thumbnail + 1px + 1px borders
-            )
+    _.extend(module.CategoryView::events,
+        "mouseover": (event) ->
+            App.heroArea.currentView.updateCategoryHeroImages(@model.get("name"))
+        "mouseout": (event) ->
+            App.heroArea.currentView.updateCategoryHeroImages(App.intentRank.currentCategory())
+    )
 
-        return @
