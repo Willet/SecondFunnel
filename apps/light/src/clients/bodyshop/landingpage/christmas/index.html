@@ -496,10 +496,14 @@
             <div class="sub-categories">
                 <div class="wrap">
                     <div class="sub-categories-section">
+                    <% var i = 0;
+                    if (obj.subCategories[0].label) {
+                        i = 1; %>
                         <div class="sub-categories-label">
                             <span><%- obj.subCategories[0].label %></span>
                         </div>
-                    <% for (var i = 1; i < obj.subCategories.length; i++) { %>
+                    <% } %>
+                    <% for (i; i < obj.subCategories.length; i++) { %>
                         <% if (obj.subCategories[i].label) { %>
                     </div>
                     <div class="sub-categories-section">
@@ -552,7 +556,8 @@
     </div>
     <footer>
         <div class="container">
-            <img src="/static/light/bodyshop/landingpage/christmas/images/footer.png"/>
+            <img class="desktop-only" src="/static/light/bodyshop/landingpage/christmas/images/footer.png" />
+            <img class="mobile-only" src="/static/light/bodyshop/landingpage/christmas/images/mobile-footer.png" />
         </div>
     </footer>
     <img src="{% url 'apps.tracking.views.pixel' %}"/>
