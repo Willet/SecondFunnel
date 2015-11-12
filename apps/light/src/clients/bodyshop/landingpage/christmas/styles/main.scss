@@ -298,6 +298,7 @@ body {
                 background-position: 100% 0;
             }
             .name {
+                color: #FEE58D;
                 &:before, &:after {
                     position: absolute;
                     top: -15px;
@@ -435,7 +436,7 @@ body {
             width: 100%;
             line-height: 40px;
             min-height: 40px;
-            font-size: 25px;
+            font-size: 23px;
             color: $tbs-white-color;
             padding-left: 3px;
             font-family: $tbs-title-font;
@@ -820,6 +821,9 @@ body {
             overflow: hidden;
             max-height: 66%;
             margin-bottom: 30px;
+            *:first-child {
+                display: none; // hide "Product details" text
+            }
             p {
                 margin-bottom: 5px;
             }
