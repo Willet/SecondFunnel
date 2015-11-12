@@ -460,6 +460,10 @@ body {
     }
 }
 
+#feed {
+    min-height: 800px;
+}
+
 .tile {
     padding: 3px;
     width: 33.33%;
@@ -477,7 +481,7 @@ body {
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    height: 60px;
+                    height: 80px;
                 }
             }
         }
@@ -1093,6 +1097,12 @@ body {
     }
 }
 
+footer {
+    img {
+        width: 100%;
+    }
+}
+
 // DESKTOP ONLY
 @media screen and (min-width: 992px) {
     .previewContainer, .heroContainer {
@@ -1101,9 +1111,6 @@ body {
                 line-height: 500px; // Necessary for vertical image alignment
             }
         }
-    }
-    #feed {
-        min-height: 800px;
     }
 }
 
@@ -1217,6 +1224,13 @@ body {
             .price {
                 font-size: 15px;
                 bottom: 6px;
+            }
+        }
+        &.wide {
+            .relative.product-shot {
+                div:after {
+                    height: 60px;
+                }
             }
         }
     }
