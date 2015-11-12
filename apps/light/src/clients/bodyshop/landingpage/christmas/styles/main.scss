@@ -1156,28 +1156,29 @@ body {
         line-height: 42px;
         .container {
             a.logo {
-                top: 2px;
                 width: 100%;
                 height: 28px;
                 margin-bottom: 20px;
                 img {
                     position: relative;
+                    top: 4px;
                     left: 50%;
                     margin-left: -150px;
                     width: 300px;
                     height: auto;
-                    &.desktop {
-                        display: none;
-                    }
-                    &.mobile {
-                        display: block;
-                    }
                 }
             }
             #search-bar,
             nav.mainnavmegamenu {
                 display: none;
             }
+        }
+    }
+    #banner {
+        img.mobile-only {
+            position: relative;
+            left: 50%;
+            margin-left: -160px; /* img width 320px
         }
     }
     .sticky-wrapper {
