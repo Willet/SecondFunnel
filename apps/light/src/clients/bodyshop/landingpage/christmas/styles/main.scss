@@ -10,6 +10,8 @@ $tbs-black-color: #000;
 $tbs-title-color: #343434;
 $tbs-text-color: #4D4D4D;
 $tbs-green-color: #05492F;
+$tbs-gold-color: #FEE58D;
+$tbs-dark-gold-color: #D69243;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -168,7 +170,7 @@ body {
             }
         }
         nav.mainnavmegamenu {
-                background-color: #FFF;
+            background-color: #FFF;
             border: 1px solid #cccccb;
             height: 35px;
             position: absolute;
@@ -182,7 +184,7 @@ body {
                 margin-bottom: 0;
                 padding-left: 0;
                 li {
-                    background: url("http://www.thebodyshop-usa.com/img/common/separator/separator-01.gif") no-repeat scroll right center transparent;
+                    background: url("/static/light/bodyshop/landingpage/default/images/separator-01.gif") no-repeat scroll right center transparent;
                     cursor: pointer;
                     display: block;
                     float: left;
@@ -200,6 +202,7 @@ body {
                     }
                     &:last-child {
                         float: right;
+                        background: none;
                     }
                     &.first {
                         a {
@@ -276,7 +279,7 @@ body {
         vertical-align: middle;
         font-family: $tbs-title-font;
         font-weight: bold;
-        &:hover, &.selected {
+        &:hover, &.selected, &.expanded {
             border: none;
             background-color: transparent; // Over-ride base.scss
             padding: 3px;
@@ -297,8 +300,8 @@ body {
                 width: 50%;
                 background-position: 100% 0;
             }
-            .name {
-                color: #FEE58D;
+            >.name {
+                color: $tbs-gold-color;
                 &:before, &:after {
                     position: absolute;
                     top: -15px;
@@ -333,31 +336,48 @@ body {
             font-size: 22px;
             line-height: 22px;
             padding: 0 3%;
-            text-transform: uppercase;
             @include no-select;
             color: $tbs-white-color;
             text-align: center;
-        }
-        .name.subcats {
-            &:after {
-                content: '\00bb';
-                position: relative;
-                top: -1px;
-                left: 1px;
-                text-decoration: none;
-                display: inline-block;
-            }
         }
         .sub-categories {
             position: absolute;
             display: none;
             left: -50%;
+            top: 100%;
             z-index: 1;
+            background: #FFF;
+            padding: 8px;
+            -webkit-box-shadow: -2px 2px 18px 0px rgba(50, 50, 50, 0.75);
+            -moz-box-shadow:    -2px 2px 18px 0px rgba(50, 50, 50, 0.75);
+            box-shadow:         -2px 2px 18px 0px rgba(50, 50, 50, 0.75);
             .wrap {
                 width: 100%;
-                border-radius: 6px;
-                padding: 10px 10px 20px 10px;
+                border-width: 3px;
+                border-style: solid;
+                border-color: #CE8C41 #CE8C41 #F7CC71 #F7BF69;
+                padding: 20px 20px 30px 15px;
                 display: table;
+                position: relative; // required for before/after positioning
+                &:before, &:after {
+                    position: absolute;
+                    content: "";
+                    background: url("/static/light/bodyshop/landingpage/christmas/images/selected-category-border.png") no-repeat;
+                }
+                &:before {
+                    top: -3px; // border-width
+                    left: -3px;
+                    height: 56px;
+                    width: 169px;
+                    background-position: 0 0;
+                }
+                &:after {
+                    right: -3px;
+                    bottom: -3px;
+                    height: 51px;
+                    width: 82px;
+                    background-position: 100% 100%;
+                }
             }
         }
         .sub-categories-section {
@@ -366,30 +386,31 @@ body {
         .sub-category, .sub-categories-label {
             display: block;
             text-align: left;
-            width: 240px;
+            width: 150px;
         }
         .sub-category {
             padding: 6px 0 0 15px;
-            img {
-                width: 50px;
-                height: 50px;
-                margin: 0 12px 0 16px;
-            }
             .name {
                 display: inline-block;
+                color: $tbs-black-color;
+                font-size: 17px;
+                letter-spacing: -0.5px;
+                font-weight: normal;
+                padding: 0 0 0 8px;
             }
             &.selected, &:hover {
                 > .name {
+                    color: $tbs-dark-gold-color;
                 }
             }
         }
         .sub-categories-label {
-            font-style: italic;
-            font-size: 18px;
+            font-size: 17px;
             line-height: 20px;
             padding: 6px 0 8px 15px;;
             text-indent: 5px;
-            text-transform: none;
+            text-transform: uppercase;
+            color: $tbs-red-color;
         }
         &:first-child {
             .sub-categories {
@@ -454,6 +475,15 @@ body {
             div {
                 margin-top: 0;
                 padding: 0;
+                &:after {
+                    content: " ";
+                    background-color: #FFF;
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    height: 60px;
+                }
             }
         }
     }
@@ -845,6 +875,7 @@ body {
     .buy {
         margin: auto !important;
         text-align: left;
+        display: inline-block;
         .button {
             display: inline;
             position: relative;

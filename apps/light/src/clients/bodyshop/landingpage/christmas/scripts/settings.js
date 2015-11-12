@@ -59,6 +59,56 @@
       "displayName":"Modern Gent",
       "name":"modern-gent",
       "heroTitle":"For <b>MODERN GETN:</b> Suave Suave Suave With These Fine Seasonal Gifts."
+    },
+    {
+      "displayName": "More Gift Ideas",
+      "subCategories":[
+        {
+          "label":"By Price"
+        },
+        {
+          "displayName":"Gifts Under $20",
+          "name": "gifts-under-20"
+        },
+        {
+          "displayName":"Gifts $20 - $50",
+          "name": "gifts-20-to-50"
+        },
+        {
+          "displayName":"Gifts Over $50",
+          "name": "gifts-over-50"
+        },
+        {
+          "label":"By Category"
+        },
+        {
+          "displayName":"Bath & Body",
+          "name": "bath-body-gifts"
+        },
+        {
+          "displayName":"Skin Care",
+          "name": "skin-care-gifts"
+        },
+        {
+          "displayName":"Fragrance",
+          "name": "fragrance-gifts"
+        },
+        {
+          "label":"By Recipient"
+        },
+        {
+          "displayName":"For Her",
+          "name": "gifts-for-her"
+        },
+        {
+          "displayName":"For Him",
+          "name": "gifts-for-him"
+        },
+        {
+          "displayName":"For Everyone",
+          "name": "all-gifts"
+        }
+      ]
     }
   ]
 }
