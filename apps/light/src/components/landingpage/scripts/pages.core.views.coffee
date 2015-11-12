@@ -478,13 +478,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             heroImage = (catObj['heroImage'] or App.option('page:defaults:heroImage'))
             mobileHeroImage = (catObj['mobileHeroImage'] or App.option('page:defaults:mobileHeroImage'))
             heroTitle = (catObj['heroTitle'] or App.option('page:defaults:heroTitle'))
+            mobileHeroTitle = (catObj['mobileHeroTitle'] or App.option('page:defaults:mobileHeroTitle'))
             if heroImage or heroTitle
-                heroImages =
+                heroObj =
                     "heroImage": heroImage
                     "mobileHeroImage": mobileHeroImage or heroImage
                     "heroTitle": heroTitle
+                    "mobileHeroTitle": mobileHeroTitle or heroTitle
                     "template": "hero"
-                tile = new module.HeroTile(heroImages)
+                tile = new module.HeroTile(heroObj)
             else
                 tile = undefined
             return tile
