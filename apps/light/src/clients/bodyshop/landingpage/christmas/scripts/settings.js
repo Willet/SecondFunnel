@@ -27,17 +27,17 @@
   "categories":[
     {
       "displayName":"Superstar Sister",
-      "name":"sister",
+      "name":"superstar-sister",
       "heroTitle":"For <b>SUPERSTAR SISTER:</b> Shower Her With Love With Amazing Skin & Body Care Gifts"
     },
     {
       "displayName":"Best Bestie Ever",
-      "name":"bestie",
+      "name":"best-bestie-ever",
       "heroTitle":"For <b>BEST BESTIE EVER:</b> Bemuse Her With Friendly Skin & Body Care Gifts"
     },
     {
       "displayName":"Marvelous Mama",
-      "name":"mama",
+      "name":"marvelous-mama",
       "heroTitle":"For <b>MARVELOUS MAMA:</b> Delight Her With The Ultimate Winter Skin & Body Care Gifts"
     },
     {
@@ -47,17 +47,17 @@
     },
     {
       "displayName":"Fragrance Fanatic",
-      "name":"fanatic",
+      "name":"fragrance-fanatic",
       "heroTitle":"For <b>FRAGRANCE FANATIC:</b> Presents Don't Get More Indulgent Than These Fragrances."
     },
     {
       "displayName":"Terrific Teacher",
-      "name":"teacher",
+      "name":"terrific-teacher",
       "heroTitle":"For <b>TERRIFIC TEACHER:</b> Be The Teacher's Pet With These Cute Seasonal Gifts."
     },
     {
       "displayName":"Modern Gent",
-      "name":"gent",
+      "name":"modern-gent",
       "heroTitle":"For <b>MODERN GETN:</b> Suave Suave Suave With These Fine Seasonal Gifts."
     }
   ]
