@@ -10,6 +10,8 @@ $tbs-black-color: #000;
 $tbs-title-color: #343434;
 $tbs-text-color: #4D4D4D;
 $tbs-green-color: #05492F;
+$tbs-gold-color: #FEE58D;
+$tbs-dark-gold-color: #D69243;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -111,6 +113,7 @@ body {
     height: 129px;
     border: none;
     background: $tbs-black-color;
+    margin-bottom: 25px;
     
     .container {
         position: relative;
@@ -119,17 +122,12 @@ body {
             display: block;
             opacity: 1;
             filter: alpha(opacity=100);
-            padding-left: 2px;
             position: relative;
-            top: 56px;
-            transform: translateY(-50%);
+            top: 40px;
             img {
                 width: 310px;
                 display: block;
                 height: auto;
-                &.mobile {
-                    display: none;
-                }
             }
         }
         #search-bar {
@@ -168,7 +166,7 @@ body {
             }
         }
         nav.mainnavmegamenu {
-                background-color: #FFF;
+            background-color: #FFF;
             border: 1px solid #cccccb;
             height: 35px;
             position: absolute;
@@ -182,7 +180,7 @@ body {
                 margin-bottom: 0;
                 padding-left: 0;
                 li {
-                    background: url("http://www.thebodyshop-usa.com/img/common/separator/separator-01.gif") no-repeat scroll right center transparent;
+                    background: url("/static/light/bodyshop/landingpage/default/images/separator-01.gif") no-repeat scroll right center transparent;
                     cursor: pointer;
                     display: block;
                     float: left;
@@ -200,6 +198,7 @@ body {
                     }
                     &:last-child {
                         float: right;
+                        background: none;
                     }
                     &.first {
                         a {
@@ -238,18 +237,12 @@ body {
     width: 100%;
 }
 
-#category-container {
-    text-align: center;
-    padding-top: 25px;
-}
-
 #category-area {
     border-spacing: 4px 0px !important;
     table-layout: fixed;
     z-index: 2;
     overflow: visible;
     @include no-select;
-    padding-bottom: 15px;
     text-align: center;
     .category-area {
         position:relative;
@@ -276,7 +269,7 @@ body {
         vertical-align: middle;
         font-family: $tbs-title-font;
         font-weight: bold;
-        &:hover, &.selected {
+        &:hover, &.selected, &.expanded {
             border: none;
             background-color: transparent; // Over-ride base.scss
             padding: 3px;
@@ -297,7 +290,8 @@ body {
                 width: 50%;
                 background-position: 100% 0;
             }
-            .name {
+            >.name {
+                color: $tbs-gold-color;
                 &:before, &:after {
                     position: absolute;
                     top: -15px;
@@ -332,31 +326,48 @@ body {
             font-size: 22px;
             line-height: 22px;
             padding: 0 3%;
-            text-transform: uppercase;
             @include no-select;
             color: $tbs-white-color;
             text-align: center;
-        }
-        .name.subcats {
-            &:after {
-                content: '\00bb';
-                position: relative;
-                top: -1px;
-                left: 1px;
-                text-decoration: none;
-                display: inline-block;
-            }
         }
         .sub-categories {
             position: absolute;
             display: none;
             left: -50%;
+            top: 100%;
             z-index: 1;
+            background: #FFF;
+            padding: 8px;
+            -webkit-box-shadow: -2px 2px 18px 0px rgba(50, 50, 50, 0.75);
+            -moz-box-shadow:    -2px 2px 18px 0px rgba(50, 50, 50, 0.75);
+            box-shadow:         -2px 2px 18px 0px rgba(50, 50, 50, 0.75);
             .wrap {
                 width: 100%;
-                border-radius: 6px;
-                padding: 10px 10px 20px 10px;
+                border-width: 3px;
+                border-style: solid;
+                border-color: #CE8C41 #CE8C41 #F7CC71 #F7BF69;
+                padding: 20px 20px 30px 15px;
                 display: table;
+                position: relative; // required for before/after positioning
+                &:before, &:after {
+                    position: absolute;
+                    content: "";
+                    background: url("/static/light/bodyshop/landingpage/christmas/images/selected-category-border.png") no-repeat;
+                }
+                &:before {
+                    top: -3px; // border-width
+                    left: -3px;
+                    height: 56px;
+                    width: 169px;
+                    background-position: 0 0;
+                }
+                &:after {
+                    right: -3px;
+                    bottom: -3px;
+                    height: 51px;
+                    width: 82px;
+                    background-position: 100% 100%;
+                }
             }
         }
         .sub-categories-section {
@@ -365,30 +376,31 @@ body {
         .sub-category, .sub-categories-label {
             display: block;
             text-align: left;
-            width: 240px;
+            width: 150px;
         }
         .sub-category {
             padding: 6px 0 0 15px;
-            img {
-                width: 50px;
-                height: 50px;
-                margin: 0 12px 0 16px;
-            }
             .name {
                 display: inline-block;
+                color: $tbs-black-color;
+                font-size: 17px;
+                letter-spacing: -0.5px;
+                font-weight: normal;
+                padding: 0 0 0 8px;
             }
             &.selected, &:hover {
                 > .name {
+                    color: $tbs-dark-gold-color;
                 }
             }
         }
         .sub-categories-label {
-            font-style: italic;
-            font-size: 18px;
+            font-size: 17px;
             line-height: 20px;
             padding: 6px 0 8px 15px;;
             text-indent: 5px;
-            text-transform: none;
+            text-transform: uppercase;
+            color: $tbs-red-color;
         }
         &:first-child {
             .sub-categories {
@@ -404,10 +416,13 @@ body {
         }
     }
     &.stuck {
-        margin-top: -113px;
+        padding-bottom: 0;
+        background: url(/static/light/bodyshop/landingpage/christmas/images/repeating-background.jpg) repeat;
+        -webkit-box-shadow: 0px 0px 8px 0px rgba(50, 50, 50, 0.75);
+        -moz-box-shadow:    0px 0px 8px 0px rgba(50, 50, 50, 0.75);
+        box-shadow:         0px 0px 8px 0px rgba(50, 50, 50, 0.75);
         .category-area {
             height: auto;
-            /* 2px for border */
         }
     }
 }
@@ -421,7 +436,6 @@ body {
         text-align: left;
         height: 100%;
         padding: 0;
-        margin-top: 0px;
         margin-bottom: 8px;
         background: none;
         overflow: hidden;
@@ -435,10 +449,13 @@ body {
             width: 100%;
             line-height: 40px;
             min-height: 40px;
-            font-size: 25px;
+            font-size: 20px;
             color: $tbs-white-color;
             padding-left: 3px;
             font-family: $tbs-title-font;
+            b {
+                font-size: 22px;
+            }
         }
     }
 }
@@ -453,6 +470,15 @@ body {
             div {
                 margin-top: 0;
                 padding: 0;
+                &:after {
+                    content: " ";
+                    background-color: #FFF;
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    height: 60px;
+                }
             }
         }
     }
@@ -461,25 +487,31 @@ body {
         background-color: $tbs-white-color;
         overflow: hidden;
         span {
+            color: #333;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        .label, .price {
             position: absolute;
             left: 15%;
             right: 15%;
             line-height: 20px;
-            color: #333;
             display: block;
             text-align: center;
-            background-color: rgba(255, 255, 255, 0.8);
-            text-transform: uppercase;
+            white-space: normal;
         }
-        .product-label {
+        .label {
             bottom: 34px;
             font-size: 15px;
             font-weight: 600;
+            text-transform: uppercase;
         }
-        .product-price {
+        .price {
             bottom: 12px;
             font-size: 17px;
             font-weight: bold;
+            .value {
+                font-size: 80%;
+            }
         }
         div {
             margin-top: -10%;
@@ -808,8 +840,8 @@ body {
             margin-bottom: 15px;
             font-size: 26px;
             line-height: 26px;
-            .suggested-price {
-                font-size: 16px;
+            .value {
+                font-size: 70%;
                 margin-left: 16px;
             }
         }
@@ -820,6 +852,9 @@ body {
             overflow: hidden;
             max-height: 66%;
             margin-bottom: 30px;
+            *:first-child {
+                display: none; // hide "Product details" text
+            }
             p {
                 margin-bottom: 5px;
             }
@@ -835,13 +870,14 @@ body {
     .buy {
         margin: auto !important;
         text-align: left;
+        display: inline-block;
         .button {
-            display: inline;
+            display: inline-block;
             position: relative;
             font-size: 15px;
             font-weight: bold;
             line-height: 35px;
-            padding: 10px 5px;
+            padding: 5px;
             text-transform: uppercase;
             width: 100%;
             color: $tbs-white-color;
@@ -979,10 +1015,10 @@ body {
                     left: 5%;
                     right: 5%;
                 }
-                .product-label {
+                .label {
                     bottom: 20px;
                 }
-                .product-price {
+                .price {
                     bottom: 2px;
                 }
             }
@@ -1066,6 +1102,9 @@ body {
             }
         }
     }
+    #feed {
+        min-height: 800px;
+    }
 }
 
 // MOBILE & TABLET ONLY
@@ -1081,6 +1120,11 @@ body {
             width: 100%;
         }
     }
+    .previewContainer, .heroContainer {
+        .similar-products {
+            margin-top: 0px;
+        }
+    }
 }
 
 // MOBILE ONLY
@@ -1093,6 +1137,9 @@ body {
     }
     .container {
         padding: 0px;
+    }
+    .header-links-bar {
+        display: none;
     }
     .navbar {
         &:before,
@@ -1107,11 +1154,11 @@ body {
         height: 42px;
         min-height: 42px;
         line-height: 42px;
-        background-color: #5D285A;
         .container {
             a.logo {
+                top: 2px;
                 width: 100%;
-                height: 20px;
+                height: 28px;
                 margin-bottom: 20px;
                 img {
                     position: relative;
@@ -1127,8 +1174,8 @@ body {
                     }
                 }
             }
-            .header-links-bar,
-            #search-bar {
+            #search-bar,
+            nav.mainnavmegamenu {
                 display: none;
             }
         }
@@ -1159,11 +1206,16 @@ body {
             }
         }
     }
-    .relative.product-shot {
-        div {
-            span.product-label {
-                font-size: 13px !important;
-                line-height: normal !important;
+    .tile {
+        .relative.product-shot {
+            .label {
+                font-size: 12px;
+                line-height: 12px;
+                bottom: 25px;
+            }
+            .price {
+                font-size: 15px;
+                bottom: 6px;
             }
         }
     }
@@ -1221,9 +1273,6 @@ body {
                     margin: 0 auto !important;
                     width: 70%;
                     height: 12%;
-                    .button {
-                        border-radius: 10px;
-                    }
                 }
                 &.tagged {
                     padding: 0;
@@ -1340,15 +1389,9 @@ body {
                 margin: 0 !important;
                 .button {
                     font-size: 20px;
-                    border-radius: 0;
-                    line-height: 0;
-                    height: 100%;
-                    span {
-                        position: absolute;
-                        top: 46%;
-                        left: 0;
-                        right: 0;
-                    }
+                    width: 50%;
+                    margin: 0 25%;
+                    line-height: 20px;
                     &:hover {
                         color: white;
                     }
