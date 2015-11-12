@@ -215,12 +215,15 @@
                 <div>
                     <img class="focus" src="<%= obj.defaultImage.url %>" />
                 </div>
-                <span class="product-label"><%= obj.product.get('name') %></span>
-                <% if (obj.product.get('salePrice')) { %>
-                    <span class="product-price"><%= obj.product.get('currency') %><%= obj.product.get('salePrice') %> (<%= obj.product.get('currency') %><%= obj.product.get('price') %>)</span>
-                <% } else { %>
-                    <span class="product-price"><%= obj.product.get('currency') %><%= obj.product.get('price') %></span>
-                <% } %>
+                <span class="label"><%= obj.product.get('name') %></span>
+                <span class="price">
+                    <%= obj.product.get('currency') %><%= obj.product.get('displayPrice').dollars %>
+                    <% if (obj.product.get('sale')) { %>
+                    <span class='value'>
+                        (<%= obj.product.get('currency') %><%= obj.product.get('value') %> Value)
+                    </span>
+                    <% } %>
+                </span>
             </div>
             <% } else { %>
             <div class='relative'>
@@ -257,12 +260,10 @@
                 <div>
                     <img class="focus" src="<%= obj.defaultImage.url %>" />
                 </div>
-                <span class="product-label"><%= obj.name %></span>
-                <% if (obj.salePrice) { %>
-                    <span class="product-price"><%= obj.currency %><%= obj.salePrice %> (<%= obj.currency %><%= obj.price %>)</span>
-                <% } else { %>
-                    <span class="product-price"><%= obj.currency %><%= obj.price %></span>
-                <% } %>
+                <span class="label"><%= obj.name %></span>
+                <span class="price"><%= obj.currency %><%= obj.displayPrice.dollars %>
+                    <% if (obj.sale) { %><span class='value'>(<%= obj.currency %><%= obj.value %> Value)</span><% } %>
+                </span>
             </div>
             <div class="overlay">
                 <div class='table'>
@@ -291,7 +292,7 @@
         <script type="text/template" id="product_price_template">
             <% if (obj.sale) { %>
                 <span class="current sale"><%= obj.currency %><%= obj.displayPrice.dollars %>.<%= obj.displayPrice.cents %></span>
-                <span class="suggested-price">(<span class="dollar-amount"><%= obj.currency %><%= obj.saleString %></span> Value)</span>
+                <span class="value">(<span class="dollar-amount"><%= obj.currency %><%= obj.value %></span> Value)</span>
             <% } else { %>
                 <span class="current no-sale"><%= obj.currency %><%= obj.displayPrice.dollars %>.<%= obj.displayPrice.cents %></span>
             <% } %>

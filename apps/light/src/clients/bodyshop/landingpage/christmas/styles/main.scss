@@ -462,25 +462,31 @@ body {
         background-color: $tbs-white-color;
         overflow: hidden;
         span {
+            color: #333;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        .label, .price {
             position: absolute;
             left: 15%;
             right: 15%;
             line-height: 20px;
-            color: #333;
             display: block;
             text-align: center;
-            background-color: rgba(255, 255, 255, 0.8);
-            text-transform: uppercase;
+            white-space: normal;
         }
-        .product-label {
+        .label {
             bottom: 34px;
             font-size: 15px;
             font-weight: 600;
+            text-transform: uppercase;
         }
-        .product-price {
+        .price {
             bottom: 12px;
             font-size: 17px;
             font-weight: bold;
+            .value {
+                font-size: 80%;
+            }
         }
         div {
             margin-top: -10%;
@@ -809,8 +815,8 @@ body {
             margin-bottom: 15px;
             font-size: 26px;
             line-height: 26px;
-            .suggested-price {
-                font-size: 16px;
+            .value {
+                font-size: 70%;
                 margin-left: 16px;
             }
         }
@@ -983,10 +989,10 @@ body {
                     left: 5%;
                     right: 5%;
                 }
-                .product-label {
+                .label {
                     bottom: 20px;
                 }
-                .product-price {
+                .price {
                     bottom: 2px;
                 }
             }
@@ -1165,7 +1171,7 @@ body {
     }
     .relative.product-shot {
         div {
-            span.product-label {
+            .label, .price {
                 font-size: 13px !important;
                 line-height: normal !important;
             }

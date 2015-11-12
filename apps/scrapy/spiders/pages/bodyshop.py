@@ -55,8 +55,9 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
 
         old_price = sel.css('p.price.old::text').extract()
         new_price = sel.css('p.price.new::text').extract()
-        if old_price:
-            l.add_value('price', old_price)
+        value = sel.css('.priceOffersSection #product-offers').re_first(r'\$(\d+) Value')
+        if old_price or value:
+            l.add_value('price', (old_price or value))
             l.add_value('sale_price', new_price)
         else:
             l.add_value('price', new_price)
