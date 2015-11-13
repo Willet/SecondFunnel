@@ -639,15 +639,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return @
 
         expandCategory: ($el) ->
-            @$el.find(".#{@childView::className}.expanded").removeClass('expanded')
-            $el.filter(".#{@childView::className}").addClass('expanded')
+            @$el.find(".#{@childView::className}.expanded")?.removeClass('expanded')
+            $el.filter(".#{@childView::className}")?.addClass('expanded')
             App.vent.trigger('categories:expanded')
 
         contractCategories: () ->
-            ex = @$el.find(".#{@childView::className}.expanded")
-            if ex.length
-                ex.removeClass('expanded')
-                App.vent.trigger('categories:contracted')
+            @$el.find(".#{@childView::className}.expanded")?.removeClass('expanded')
+            App.vent.trigger('categories:contracted')
 
         onShow: ->
             # Enable sticky category bar

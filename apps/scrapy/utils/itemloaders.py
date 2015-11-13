@@ -60,8 +60,6 @@ class ScraperProductLoader(ItemLoader):
 
     image_urls_out = Identity()
 
-    in_stock_in = Compose(TakeFirst(), str_to_boolean)
-
 
 class ScraperContentLoader(ItemLoader):
 

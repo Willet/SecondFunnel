@@ -60,28 +60,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             imagesLoaded(productImages, (=> @replaceImages()))
         return
 
-    _.extend(module.ProductView::events, 
-        "click .main-image .hi-res": (event) ->
-            $image = $(event.target)
-            $image.toggleClass("full-image")
-            return
-    )
-
-    _.extend(module.ExpandedContent::events,
-        "click .stl-look .stl-item": (event) ->
-            $ev = $(event.target)
-            $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
-            product = @taggedProducts[$targetEl.data("index")]
-            ### Uncomment to enable switching view to product ###
-            #@taggedProductIndex = $targetEl.data("index")
-            #if App.support.mobile() and not @ui.lookThumbnail.is(':visible')
-            #    @productThumbnails.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @productThumbnails.currentView.index + 1)
-            #product = @updateContent()
-            App.vent.trigger('tracking:product:thumbnailClick', @getTrackingData(product))
-            App.utils.openUrl(product.get("url"))
-            return
-    )
-
     # SLT shows one piece of content at a time
     _.extend(module.ExpandedContent::defaultOptions, featureSingleItem: true)
 

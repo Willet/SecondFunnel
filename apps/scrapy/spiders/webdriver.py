@@ -118,7 +118,8 @@ class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingMixin):
     store_slug = ''
 
     # see documentation for remove_background in apps.imageservice.tasks
-    remove_background = '#FFF'
+    remove_background = False # format: "#FFFFFF"
+    forced_image_ratio = False # format: 1.0
 
     def __init__(self, *args, **kwargs):
         # Set Options:
