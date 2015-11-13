@@ -47,8 +47,8 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
 
         l.add_value('force_skip_tiles', self.skip_tiles)
-        l.add_value('url', response.request.url)
         l.add_value('attributes', {})
+        l.add_css('url', "link[rel='canonical']::attr(href)")
         l.add_css('name', 'h1.title::attr(title)')
         l.add_css('sku', '.volume .title::text', re=r'(\d+)')
         l.add_css('description', 'section.product-infos')

@@ -1,4 +1,5 @@
 from collections import defaultdict
+from itertools import chain
 import logging
 
 from apps.scrapy.utils.djangotools import get_or_create
@@ -11,6 +12,14 @@ class SimpleModelCache(object):
     def __init__(self, model):
         self.model = model
         self.cache = defaultdict(dict)
+
+    def __len__(self):
+        # Break store-indexed caches out and count their items
+        return sum([len(indexed_items) for indexed_items in self.cache.values()])
+
+    def add(self, item, name, store):
+        # Add to cache
+        self.cache[store.slug][name] = item
 
     def get_or_create(self, name, store):
         try:
@@ -34,3 +43,10 @@ class SimpleModelCache(object):
             # Get or create category
             item = None
         return item
+
+    def dump_items(self):
+        """
+        Returns iterable list of all items stored in the cache
+        """
+        lists_of_items = [indexed_items.values() for indexed_items in self.cache.values()]
+        return chain(*lists_of_items)
