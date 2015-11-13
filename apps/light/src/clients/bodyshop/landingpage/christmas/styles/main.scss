@@ -439,11 +439,13 @@ body {
     &.stuck {
         padding-bottom: 0;
         background: url(/static/light/bodyshop/landingpage/christmas/images/repeating-background.jpg) repeat;
-        -webkit-box-shadow: 2px 2px 8px -3px rgba(50, 50, 50, 0.75), -2px 2px 8px -3px rgba(50, 50, 50, 0.75);
-        -moz-box-shadow:    2px 2px 8px -3px rgba(50, 50, 50, 0.75), -2px 2px 8px -3px rgba(50, 50, 50, 0.75);
-        box-shadow:         2px 2px 8px -3px rgba(50, 50, 50, 0.75), -2px 2px 8px -3px rgba(50, 50, 50, 0.75);
         .category-area {
             height: auto;
+        }
+        .category {
+            -webkit-box-shadow: 2px 2px 8px -3px rgba(50, 50, 50, 0.75), -2px 2px 8px -3px rgba(50, 50, 50, 0.75);
+            -moz-box-shadow:    2px 2px 8px -3px rgba(50, 50, 50, 0.75), -2px 2px 8px -3px rgba(50, 50, 50, 0.75);
+            box-shadow:         2px 2px 8px -3px rgba(50, 50, 50, 0.75), -2px 2px 8px -3px rgba(50, 50, 50, 0.75);
         }
     }
 }
@@ -1124,16 +1126,19 @@ body {
         }
     }
     #category-area {
+        width: 102%;
+        max-width: 102%;
         .category:last-child {
             display: block;
             position: absolute;
             top: 70px;
-            right: 2px;
+            right: calc(2% + 2px);
             height: 40px;
             background: #FFF;
             padding: 0;
-            // Ease out opacity, then abruptly hide
-            @include transition(opacity 1s ease-in-out, visibility 1s);
+            border: none;
+            // Ease out opacity
+            @include transition(opacity 0.5s ease-in-out);
             &:before, &:after {
                 background: none;
                 content: initial;
@@ -1158,9 +1163,10 @@ body {
             }
         }
         &.stuck {
+            max-width: 1044px;
             .category:last-child {
-                visibility: hidden;
                 opacity: 0;
+                filter: alpha(opacity=0);
             }
         }
 
@@ -1214,19 +1220,25 @@ body {
         min-height: 42px;
         line-height: 42px;
         .container {
-            a.logo {
-                width: 100%;
+            a.logo, a.bag {
+                position: absolute;
+                width: auto;
                 height: 28px;
                 margin-bottom: 20px;
                 top: 4px;
+            }
+            a.logo {
+                left: 50%;
                 img {
                     position: relative;
-                    top: 4px;
-                    left: 50%;
-                    margin-left: -150px;
-                    width: 300px;
+                    top: 1px;
+                    margin-left: -15px;
+                    width: 30px;
                     height: auto;
                 }
+            }
+            a.bag {
+                left: 80%;
             }
             #search-bar,
             nav.mainnavmegamenu {
