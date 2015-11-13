@@ -265,6 +265,9 @@ body {
         width: 100%;
         height: 100%;
     }
+}
+#category-area,
+#more-gift-ideas {
     .category {
         padding: 0;
         margin-right: 2px;
@@ -355,9 +358,9 @@ body {
             z-index: 1;
             background: #FFF;
             padding: 8px;
-            -webkit-box-shadow: -2px 2px 18px 0px rgba(50, 50, 50, 0.75);
-            -moz-box-shadow:    -2px 2px 18px 0px rgba(50, 50, 50, 0.75);
-            box-shadow:         -2px 2px 18px 0px rgba(50, 50, 50, 0.75);
+            -webkit-box-shadow: 2px 2px 8px -3px rgba(50, 50, 50, 0.75), -2px 2px 8px -3px rgba(50, 50, 50, 0.75);
+            -moz-box-shadow:    2px 2px 8px -3px rgba(50, 50, 50, 0.75), -2px 2px 8px -3px rgba(50, 50, 50, 0.75);
+            box-shadow:         2px 2px 8px -3px rgba(50, 50, 50, 0.75), -2px 2px 8px -3px rgba(50, 50, 50, 0.75);
             .wrap {
                 width: 100%;
                 border-width: 3px;
@@ -436,9 +439,9 @@ body {
     &.stuck {
         padding-bottom: 0;
         background: url(/static/light/bodyshop/landingpage/christmas/images/repeating-background.jpg) repeat;
-        -webkit-box-shadow: 0px 0px 8px 0px rgba(50, 50, 50, 0.75);
-        -moz-box-shadow:    0px 0px 8px 0px rgba(50, 50, 50, 0.75);
-        box-shadow:         0px 0px 8px 0px rgba(50, 50, 50, 0.75);
+        -webkit-box-shadow: 2px 2px 8px -3px rgba(50, 50, 50, 0.75), -2px 2px 8px -3px rgba(50, 50, 50, 0.75);
+        -moz-box-shadow:    2px 2px 8px -3px rgba(50, 50, 50, 0.75), -2px 2px 8px -3px rgba(50, 50, 50, 0.75);
+        box-shadow:         2px 2px 8px -3px rgba(50, 50, 50, 0.75), -2px 2px 8px -3px rgba(50, 50, 50, 0.75);
         .category-area {
             height: auto;
         }
@@ -1112,13 +1115,55 @@ body {
     }
 }
 
-// DESKTOP ONLY
-@media screen and (min-width: 992px) {
+// DESKTOP & TABLET ONLY
+@media screen and (min-width: 768px) {
     .previewContainer, .heroContainer {
         .main-image-container {
             .main-image {
             }
         }
+    }
+    #category-area {
+        .category:last-child {
+            display: block;
+            position: absolute;
+            top: 70px;
+            right: 2px;
+            height: 40px;
+            background: #FFF;
+            padding: 0;
+            // Ease out opacity, then abruptly hide
+            @include transition(opacity 1s ease-in-out, visibility 1s);
+            &:before, &:after {
+                background: none;
+                content: initial;
+            }
+            &.expanded {
+                -webkit-box-shadow: 2px -2px 7px -3px rgba(50, 50, 50, 0.75), -2px -2px 7px -3px rgba(50, 50, 50, 0.75);
+                -moz-box-shadow:    2px -2px 7px -3px rgba(50, 50, 50, 0.75), -2px -2px 7px -3px rgba(50, 50, 50, 0.75);
+                box-shadow:         2px -2px 7px -3px rgba(50, 50, 50, 0.75), -2px -2px 7px -3px rgba(50, 50, 50, 0.75);
+            }
+            > .name {
+                color: $tbs-red-color;
+                text-transform: none;
+                font-weight: 400;
+                font-size: 17px;
+                line-height: 40px;
+                padding: 0;
+                text-decoration: underline; 
+                &:before, &:after {
+                    background: none;
+                    content: initial;
+                }
+            }
+        }
+        &.stuck {
+            .category:last-child {
+                visibility: hidden;
+                opacity: 0;
+            }
+        }
+
     }
 }
 
