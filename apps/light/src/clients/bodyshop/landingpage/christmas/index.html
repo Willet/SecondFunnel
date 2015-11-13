@@ -7,7 +7,7 @@
     @@include('shared/campaign_head.html')
     @@include('shared/campaign_opengraph_tags.html')
     <link rel="shortcut icon"
-         href="/static/light/boodyshop/landingpage/default/images/favicon.ico" />
+         href="/static/light/bodyshop/landingpage/default/images/favicon.ico" />
     <link rel="stylesheet" href="/static/light/bodyshop/landingpage/christmas/styles/main.css" />
 
     @@include('shared/campaign_respond.html')
@@ -117,8 +117,7 @@
             <img src="http://www.thebodyshop.ca/en/img/common/logo/logo_tbs_white.png" alt="">
         </div> -->
         
-        <div class="container">
-            
+        <div class="container" class="desktop-only">
             <a href="http://www.thebodyshop-usa.com/" target="_top" class="logo">
                 <img class="desktop" src="/static/light/bodyshop/landingpage/default/images/logo_tbs_white.png" />
             </a>
@@ -162,6 +161,9 @@
                     </li>
                 </ul>
             </nav>
+        </div>
+        <div class="container mobile-only">
+
         </div>
     </div>
 
@@ -236,13 +238,13 @@
                         <% /* "Shop product" is actually wanted for the tile overlay */  %>
                         <div class="title">
                         <% if (obj.template === "product") { %>
-                            <span>Get Details</span>
+                            <span>Shop Now</span>
                         <% } else if (obj.template === "image") { %>
-                            <span>Get Details</span>
+                            <span>Shop Now</span>
                             <br/>
                             <span class="tile-name"><%= obj.defaultImage.get('name') %></span>
                         <% } else { %>
-                            <span>Get Details</span>
+                            <span>Show Now</span>
                             <br/>
                             <span class="tile-name"><%= (obj.title || obj.name || obj.caption) %></span>
                         <% } %>
@@ -253,6 +255,11 @@
             <% if (App.option("debug", 0) > 1) { %>
                 <span class="type"><%= obj["content-type"] %></span>
             <% } %>
+        </script>
+
+        <script type="text/template" id="similar_products_template">
+            <span class="similar-cta">You May Also Like</span>
+            <div class="tiles"></div>
         </script>
 
         <script type="text/template" id="similar_product_template">
@@ -269,8 +276,45 @@
                 <div class='table'>
                     <div class='cell'>
                         <div class="title">
-                            <span>Get Details</span>
+                            <span>Shop Now</span>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="product_thumbnails_template">
+            <div class="stl-title"><span>You May Also Like</span></div>
+            <div class="stl-carousel carousel-view">
+                <div class="stl-swipe-left carousel-swipe-left"></div>
+                <div class="stl-swipe-right carousel-swipe-right"></div>
+                <div class="stl-swipe-up carousel-swipe-up"></div>
+                <div class="stl-swipe-down carousel-swipe-down"></div>
+                <div class="stl-look-container carousel-container">
+                    <div class="stl-look carousel-slide">
+                        <% for (var i = 0, item; i < obj.items.length; i++) { 
+                            item = obj.items[i]; %>
+                        <div class="stl-item tile" data-index="<%- i %>">
+                            <div class='relative product-shot'>
+                                <div>
+                                    <img class="focus" src="<%= item.defaultImage.url %>" />
+                                </div>
+                                <span class="label"><%= item.name %></span>
+                                <span class="price"><%= item.currency %><%= item.displayPrice.dollars %>
+                                    <% if (item.sale) { %><span class='value'>(<%= item.currency %><%= item.value %> Value)</span><% } %>
+                                </span>
+                            </div>
+                            <div class="overlay">
+                                <div class='table'>
+                                    <div class='cell'>
+                                        <div class="title">
+                                            <span>Shop Now</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -412,11 +456,6 @@
                 <div class="cell similar-products overflow"></div>
             </div>
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
-        </script>
-
-        <script type="text/template" id="similar_products_template">
-            <span class="similar-cta">Shop The Set</span>
-            <div class="tiles"></div>
         </script>
 
         <script type="text/template" id="desktop_tagged_products">

@@ -12,6 +12,8 @@ $tbs-text-color: #4D4D4D;
 $tbs-green-color: #05492F;
 $tbs-gold-color: #FEE58D;
 $tbs-dark-gold-color: #D69243;
+$max-image-height: 445px;
+$shop-cell-height: 260px;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -279,6 +281,10 @@ body {
             border: none;
             background-color: transparent; // Over-ride base.scss
             padding: 3px;
+            >.name {
+                color: $tbs-gold-color;
+            }
+            /* Snow for hover/selected/expanded category */
             &:before, &:after {
                 position: absolute;
                 top: 0;
@@ -296,8 +302,10 @@ body {
                 width: 50%;
                 background-position: 100% 0;
             }
+        }
+        &.selected {
+            /* Gold border for selected category */
             >.name {
-                color: $tbs-gold-color;
                 &:before, &:after {
                     position: absolute;
                     top: -15px;
@@ -335,6 +343,9 @@ body {
             @include no-select;
             color: $tbs-white-color;
             text-align: center;
+        }
+        > .name {
+            text-transform: uppercase;
         }
         .sub-categories {
             position: absolute;
@@ -498,14 +509,14 @@ body {
         background-color: $tbs-white-color;
         overflow: hidden;
         span {
-            color: #333;
+            color: $tbs-title-color;
             background-color: rgba(255, 255, 255, 0.8);
         }
         .label, .price {
             position: absolute;
-            left: 15%;
-            right: 15%;
-            line-height: 20px;
+            left: 0;
+            right: 0;
+            line-height: 16px;
             display: block;
             text-align: center;
             white-space: normal;
@@ -515,6 +526,8 @@ body {
             font-size: 15px;
             font-weight: 600;
             text-transform: uppercase;
+            padding: 3px 15px;
+            height: 32px; // 2x line-height
         }
         .price {
             bottom: 12px;
@@ -526,7 +539,7 @@ body {
         }
         div {
             margin-top: -10%;
-            padding: 5% 5% 15% 5%;
+            padding: 15% 15% 25% 15%;
             image.focus {
                 max-width: 100%;
                 max-height: 100%;
@@ -604,11 +617,13 @@ body {
 .tile .overlay .title,
 .image-with-tagged-products .caption,
 .image-without-tagged-products .caption {
-    color: #333333;
+    color: $tbs-title-color;
     font-size: 21px;
-    font-weight: 200;
+    font-weight: normal;
+    font-family: $tbs-sans-font;
+    text-transform: uppercase;
     span:first-child:after {
-        content: '\00bb';
+        content: '>';
         position: relative;
         font-style: normal;
         top: -1px;
@@ -617,7 +632,6 @@ body {
     .tile-name {
         display: block;
         padding: 0 15px;
-        font-family: $tbs-sans-font;
         font-size: 18px;
         font-weight: normal;  
     }
@@ -625,20 +639,19 @@ body {
         display: block;
         padding: 0 15px;
         font-size: 15px;
-        font-family: $tbs-sans-font;
         margin-top: 5px;
     }
 }
 .tile.banner .overlay {
     cursor: pointer;
     .button {
-        color: #333333;
+        color: $tbs-title-color;
         font-family: $tbs-sans-font;
         font-size: 18px;
         font-weight: normal;
         text-decoration: none;
         span:first-child:after {
-            content: '\00bb';
+            content: "\25BA";
             position: relative;
             font-style: normal;
             top: -1px;
@@ -677,22 +690,24 @@ body {
         top: 0px;
         bottom: 0px;
         max-width: 800px;
-        &.product:not(.scrollable) {
+        &.product {
             .content {
-                max-height: 500px;
+                max-height: $max-image-height;
+            }
+            &.tagged .content {
+                max-height: $max-image-height + $shop-cell-height;
             }
         }
     }
     .content {
-        padding: 20px 10px !important;
-        max-height: none;
+        padding: 10px !important;
+        max-height: $max-image-height + $shop-cell-height;
         height: auto;
     }
 }
 .heroContainer {
     .fullscreen {
-        max-height: 760px;
-        max-width: 1024px;
+        max-height: $max-image-height + $shop-cell-height;
     }
     .content {
         max-height: 100%;
@@ -742,16 +757,14 @@ body {
             content: '\2573';
         }
     }
-    .feature {
-        max-height: 500px;
-    }
     .info, .look-image-container {
         width: 100%;
         height: 100%;
         padding: 0;
-        max-height: 500px;
+        max-height: $max-image-height;
         &.tagged {
-            padding: 10px 0 170px 0;
+            max-height: $max-image-height + $shop-cell-height;
+            padding: 0 0 $shop-cell-height 0;
         }
         text-align: left;
         .back {
@@ -784,18 +797,18 @@ body {
         vertical-align: top;
         width: 57%;
         height: 100%;
-        line-height: 100%;
-        max-width: 500px;
-        max-height: 500px;
+        max-width: $max-image-height;
+        max-height: $max-image-height;
         position: relative;
         @include no-select;
         .image {
-            vertical-align: middle;
-            width: 100%;
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: auto !important;
+            max-width: 100%;
+            height: 100%;   
             &.hi-res {
-                position: relative;
-                top: 0;
-                left: -100%;
                 z-index: 1;
             }
         }
@@ -893,17 +906,12 @@ body {
             width: 100%;
             color: $tbs-white-color;
             background-color: $tbs-black-color;
-            &:after {
-                content: "\25BA";
-                font-size: 13px;
-            }
         }
     }
     .shop {
         position: absolute;
         width: auto;
         padding: 0;
-        margin-top: 5px;
         left: 10px;
         right: 10px;
         bottom: 10px;
@@ -914,18 +922,19 @@ body {
             top: 0;
             width: 100%;
             z-index: 2;
-            font-size: 14px;
-            line-height: 14px;
+            font-size: 20px;
+            line-height: 20px;
             background-color: transparent;
-            >span {
-                position: relative;
-                top: -5px;
-                background-color: #FFF;
-                padding: 0 15px;
-            }
         }
     }
     .product-thumbnails {
+        .stl-title {
+            font-size: 14px;
+            line-height: 14px;
+            padding: 0;
+            z-index: 1;
+            text-transform: uppercase;
+        }
         .stl-carousel {
             display: block;
             width: 100%;
@@ -952,31 +961,30 @@ body {
             .look-thumbnail {
                 display: none;
             }
-            .stl-item,
-            .look-thumbnail {
-                margin: 5px;
-                width: 150px;
-                text-align: center;
-                vertical-align: top;
-                height: auto;
-                img {
-                    display: inline-block;
-                    max-width: 100%;
-                    max-height: 100px;
-                    width: auto;
-                    opacity: 1;
-                    margin: 0 0 5px;
+            .stl-item {
+                width: 33%;
+                .relative {
+                    border: 1px solid #BBB;
+                    img {
+                        display: inline-block;
+                        max-width: 100%;
+                        width: auto;
+                        opacity: 1;
+                        margin: 0;
+                    }
+                    span {
+                        left: 5%;
+                        right: 5%;
+                    }
+                    .label {
+                        bottom: 20px;
+                    }
+                    .price {
+                        bottom: 2px;
+                    }
                 }
-                .name {
-                    width: 100%;
-                    line-height: 14px;
-                    max-height: 28px;
-                    overflow-y: hidden;
-                    margin: auto;
-                    text-align: center;
-                    font-size: 10px;
-                    white-space: normal;
-                    text-transform: none;
+                .table {
+                    display: table;
                 }
             }
         }
@@ -1109,7 +1117,6 @@ body {
     .previewContainer, .heroContainer {
         .main-image-container {
             .main-image {
-                line-height: 500px; // Necessary for vertical image alignment
             }
         }
     }
@@ -1235,6 +1242,10 @@ body {
                 }
             }
         }
+        &:hover overlay {
+            opacity: 0;
+            filter: alpha(opacity=0);
+        }
     }
     .previewContainer {
         max-height: 100%;
@@ -1350,12 +1361,15 @@ body {
             max-height: none !important;
         }
         .close {
-            width: 80px;
+            width: 60px;
             top: 0;
             right: 0;
-            line-height: 65px;
-            font-size: 20px;
+            line-height: 40px;
+            font-size: 35px;
             text-transform: uppercase;
+            &:after {
+                padding-left: 10px;
+            }
         }
         .content {
             padding: 0 !important;
@@ -1461,13 +1475,14 @@ body {
             }
         }
         .product-details {
-            width: calc(100% - 80px);
+            width: calc(100% - 60px);
             height: 65px;
-            padding: 5px 0 0 5px;
+            padding: 5px 0 0 60px;
             position: absolute;
             top: 0;
             left: 0;
             z-index: 10;
+            text-align: center;
             .title {
                 line-height: 18px;
                 font-size: 18px;
@@ -1530,9 +1545,9 @@ body {
                 padding: 0;
                 position: absolute;
                 top: 0;
-                .look-thumbnail, .stl-item {
+                .stl-item {
                     margin: 5px 5px 0 5px;
-                    max-width: 45%;
+                    width: 45%;
                     height: 100%;
                     overflow: hidden;
                     &:last-child {
@@ -1541,6 +1556,16 @@ body {
                     img {
                         height: 100%;
                         max-height: none;
+                    }
+                    .tile {
+                        span {
+                            left: 0;
+                            right: 0;
+                            padding: 0;
+                        }
+                        .label {
+                            bottom: 14px;
+                        }
                     }
                 }
             }

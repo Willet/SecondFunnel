@@ -26,7 +26,3 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
     )
 
-    module.ProductTile::options =
-        showThumbnails: false
-        previewFeed: true
-
