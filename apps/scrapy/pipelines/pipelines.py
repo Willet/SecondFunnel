@@ -143,6 +143,8 @@ class ContentImagePipeline(ItemManifold):
     Load image up to Cloudinary and store image details
     """
     def process_image(self, item, spider):
+        remove_background = getattr(spider, 'remove_background', False)
+        forced_image_ratio = getattr(spider, 'forced_image_ratio', False)
         source_url = item.get('source_url', False)
         if source_url:
             if item.get('url', False) and item.get('file_type', False):
@@ -151,7 +153,8 @@ class ContentImagePipeline(ItemManifold):
 
             spider.logger.info(u"\nprocessing image - {}".format(source_url))
             data = process_image(source_url, create_image_path(store.id), 
-                                 remove_background=remove_background)
+                                 remove_background=remove_background,
+                                 forced_image_ratio=forced_image_ratio)
             item['url'] = data.get('url')
             item['file_type'] = data.get('format')
             item['dominant_color'] = data.get('dominant_color')
@@ -208,6 +211,7 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
     """
     def process_product(self, item, spider):
         remove_background = getattr(spider, 'remove_background', False)
+        forced_image_ratio = getattr(spider, 'forced_image_ratio', False)
         skip_images = [getattr(spider, 'skip_images', False), item.get('force_skip_images', False)]
         store = item['store']
         sku = item['sku']
@@ -233,8 +237,10 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
                                       if pi.original_url == url), None)
                 if not existing_image:
                     try:
-                        images.append(self.process_product_image(item, url,
-                                                                 remove_background=remove_background))
+                        processed_image = self.process_product_image(item, url,
+                                                remove_background=remove_background,
+                                                forced_image_ratio=forced_image_ratio)
+                        images.append(processed_image)
                         processed += 1
                     except cloudinary.api.Error as e:
                         spider.logger.info(u"<Product {}> image failed processing:\n{}".format(product, traceback.format_exc()))
@@ -255,7 +261,7 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
                                                 product, len(images), processed, len(old_pks)))
                
 
-    def process_product_image(self, item, image_url, remove_background=False):
+    def process_product_image(self, item, image_url, remove_background=False, forced_image_ratio=False):
         store = item['store']
         product = item['instance']
 
@@ -268,7 +274,8 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
         if not (image.url and image.file_type):
             print '\nprocessing image - ' + image_url
             data = process_image(image_url, create_image_path(store.id),
-                                 remove_background=remove_background)
+                                 remove_background=remove_background,
+                                 forced_image_ratio=forced_image_ratio)
             image.url = data.get('url')
             image.file_type = data.get('format')
             image.dominant_color = data['dominant_color']
