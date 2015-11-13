@@ -15,6 +15,7 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
     root_url = "http://www.thebodyshop-usa.com"
     allowed_domains = ['thebodyshop-usa.com']
     remove_background = False
+    forced_image_ratio = 1.0
     store_slug = name
     # URLs will be scraped looking for more links that match these rules
     rules = (
@@ -35,7 +36,8 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         return bool(response.selector.css('ul.products-list'))
 
     def is_sold_out(self, response):
-        return bool(response.selector.css('a.outofstockbtn'))
+        style = response.selector.css('a.outofstockbtn::attr(style)').extract_first()
+        return not bool('display' in style and 'none' in style)
 
     ### Parses
     def parse_product(self, response):
@@ -48,6 +50,7 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
 
         l.add_value('force_skip_tiles', self.skip_tiles)
         l.add_value('attributes', {})
+        l.add_value('in_stock', bool(not self.is_sold_out(response)))
         l.add_css('url', "link[rel='canonical']::attr(href)")
         l.add_css('name', 'h1.title::attr(title)')
         l.add_css('sku', '.volume .title::text', re=r'(\d+)')
