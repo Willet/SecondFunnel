@@ -103,8 +103,7 @@ def get_results_view(request, page_id):
     ir = IntentRank(page=page)
     ir.algorithm = algorithm_name
     algorithm = ir.algorithm
-    print "shown_ids: {}".format(shown_ids)
-
+    print "Shown tile ids: {}".format(shown_ids)
     print 'Request for [page {}, feed {}] being handled by {}'.format(
         page.id, page.feed.id, algorithm.__name__)
 
