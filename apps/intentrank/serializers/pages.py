@@ -97,7 +97,6 @@ class IntentRankSerializer(object):
     def to_json(self):
         return {
             'results': 10,
-            'reqNum': 0,  # optional
             'offset': 0,  # TODO: find a way to eliminate this variable
         }
 

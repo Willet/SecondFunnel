@@ -23,7 +23,9 @@ TRACK_SHOWN_TILES_NUM = 20  # move to settings when appropriate
 
 
 def track_tile_view(request, tile_id):
-    """This is a function that accepts a request, not a View.
+    """
+    DEPRECATED
+    This is a function that accepts a request, not a View.
 
     Records this tile_id as having been shown for this session.
     If tracking fails, fails silently.
@@ -43,7 +45,9 @@ def track_tile_view(request, tile_id):
 
 
 def track_tiles_view(request, tile_ids, finite=False, reset=False):
-    """Shorthand"""
+    """
+    DEPRECATED
+    Shorthand"""
     if reset:
         print "IR tracked tiles reset"
         request.session['shown'] = []
@@ -58,6 +62,7 @@ def track_tiles_view(request, tile_ids, finite=False, reset=False):
 
 def limit_showns(request, finite, n=TRACK_SHOWN_TILES_NUM):
     """
+    DEPRECATED 
     Finite algorithms keep track of all tiles for zero repeats
     
     Infinite algorithms keep track of last n tiles to prevent clumped repeats
@@ -87,9 +92,9 @@ def get_results_view(request, page_id):
     category = request.GET.get('category', None)
     offset = int(request.GET.get('offset', 0))  # used only by some deterministic algos
     num_results = int(request.GET.get('results', 10))
-    shown = filter(bool, re.split('(?:,|%2C)', request.GET.get('shown', "")))
+    shown_ids = filter(bool, re.split('(?:,|%2C)', request.GET.get('shown', "")))
     tile_id = request.GET.get('tile-id', 0)  # for related
-    session_reset = True if request.GET.get('session-reset', "").lower() == "true" else False
+    # DEPRECATED: session_reset = True if request.GET.get('session-reset', "").lower() == "true" else False
     content_only = (request.GET.get('tile-set', '') == 'content')
     products_only = (request.GET.get('tile-set', '') == 'products')
 
@@ -98,13 +103,13 @@ def get_results_view(request, page_id):
     ir = IntentRank(page=page)
     ir.algorithm = algorithm_name
     algorithm = ir.algorithm
-
+    print "Shown tile ids: {}".format(shown_ids)
     print 'Request for [page {}, feed {}] being handled by {}'.format(
         page.id, page.feed.id, algorithm.__name__)
 
     # keep track of the last (unique) tiles have been shown, then
     # show everything except these tile ids
-    shown_ids = track_tiles_view(request, tile_ids=shown, finite=page.is_finite, reset=session_reset)
+    # DEPRECATED: shown_ids = track_tiles_view(request, tile_ids=shown, finite=page.is_finite, reset=session_reset)
     offset -= len(shown_ids) # correct for tiles we are removing from queryset
 
     # results is a queryset!
