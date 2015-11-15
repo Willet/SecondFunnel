@@ -190,10 +190,14 @@
                     <% for (var j = 0; j < obj.images.length; j++) {
                         // only 1st image is progressively loaded, others load hi-res version
                         if (j === 0) { %>
-                            <img class="image" data-id="<%= obj.images[j].id %>" src="<%= obj.images[j].url %>" />
-                            <img class="hi-res image" />
+                            <div class="image-holder" data-id="<%= obj.images[j].id %>">
+                                <img class="image"  src="<%= obj.images[j].url %>" />
+                                <div class="overlay-image">
+                                    <img class="hi-res image" />
+                                </div>
+                            </div>
                         <% } else { %>
-                            <div class="image" data-id="<%= obj.images[j].id %>">
+                            <div class="image-holder" data-id="<%= obj.images[j].id %>">
                                 <img class="hi-res image"></div>
                             </div>
                         <% }
@@ -264,7 +268,7 @@
         </script>
 
         <script type="text/template" id="similar_products_template">
-            <span class="similar-cta">You May Also Like</span>
+            <span class="similar-cta">You Might Also Like</span>
             <div class="tiles"></div>
         </script>
 
@@ -290,7 +294,7 @@
         </script>
 
         <script type="text/template" id="product_thumbnails_template">
-            <div class="stl-title"><span>You May Also Like</span></div>
+            <div class="stl-title"><span>You Might Also Like</span></div>
             <div class="stl-carousel carousel-view">
                 <div class="stl-swipe-left carousel-swipe-left"></div>
                 <div class="stl-swipe-right carousel-swipe-right"></div>
@@ -360,14 +364,6 @@
 
         <script type="text/template" id="product_info_template">
             <div class="tagged-product">
-                <div class="product-details mobile-only">
-                    <div class='title'>
-                        <% include("product_title_template") %>
-                    </div>
-                    <div class='price'>
-                        <% include("product_price_template") %>
-                    </div>
-                </div>
                 <div class="gallery-main-image">
                     <div class="gallery-swipe-left"></div>
                     <div class="gallery-swipe-right"></div>
@@ -376,24 +372,21 @@
                         <% include("product_galleryDots_template") %>
                     </div>
                 </div>
-                <div class='buy mobile-only'>
-                    <% include("product_buy_template") %>
-                </div>
-                <div class="product-details desktop-only">
+                <div class="product-details">
                     <div class='title'>
                         <% include("product_title_template") %>
                     </div>
                     <div class='price'>
                         <% include("product_price_template") %>
                     </div>
-                    <div class='description'>
+                    <div class='description desktop-only'>
                         <% include("product_description_template") %>
                     </div>
                     <div class='buy'>
                         <% include("product_buy_template") %>
                     </div>
                     <% if (obj['collectionName']) { %>
-                    <div class="back">
+                    <div class="back desktop-only">
                         Back to Collection Description
                     </div>
                     <% } %>
@@ -403,14 +396,6 @@
 
         <script type="text/template" id="image_info_template">
             <div class="tagged-product">
-                <div class="product-details mobile-only">
-                    <div class='title'>
-                        <% include("product_title_template") %>
-                    </div>
-                    <div class='price'>
-                        <% include("product_price_template") %>
-                    </div>
-                </div>
                 <div class="gallery-main-image">
                     <div class="gallery-swipe-left"></div>
                     <div class="gallery-swipe-right"></div>
@@ -419,29 +404,26 @@
                         <% include("product_galleryDots_template") %>
                     </div>
                 </div>
-                <div class='buy mobile-only'>
-                    <% include("product_buy_template") %>
-                </div>
-                <div class="product-details desktop-only">
+                <div class="product-details">
                     <div class='title'>
                         <% include("product_title_template") %>
                     </div>
                     <div class='price'>
                         <% include("product_price_template") %>
                     </div>
-                    <div class='description'>
+                    <div class='description desktop-only'>
                         <% include("product_description_template") %>
                     </div>
                     <div class='buy'>
                         <% include("product_buy_template") %>
                     </div>
                     <% if (obj['recipeName']) { %>
-                    <div class="back">
+                    <div class="back desktop-only">
                         Back to <%- obj['recipeName'] %> Recipe
                     </div>
                     <% } %>
                     <% if (obj['collectionName']) { %>
-                    <div class="back">
+                    <div class="back desktop-only">
                         Back to Collection Description
                     </div>
                     <% } %>
