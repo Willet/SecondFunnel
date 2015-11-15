@@ -36,9 +36,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             maxHeight = App.option("minImageHeight") or 300
 
         for imageEl, i in @$el.find(".main-image .hi-res")
-            # Format is two side-by-side <img />'s
             $image = $(imageEl)
-            $cachedImage = $image.siblings('.image')
+            $cachedImage = $image.parents(".image-holder")
 
             # find image from id
             image = _.findWhere(@model.get('images'), id: $cachedImage.data('id'))

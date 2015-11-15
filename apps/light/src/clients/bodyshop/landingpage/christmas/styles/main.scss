@@ -827,15 +827,20 @@ body {
         max-height: $max-image-height;
         position: relative;
         @include no-select;
-        .image {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: auto !important;
-            max-width: 100%;
-            height: 100%;   
-            &.hi-res {
-                z-index: 1;
+        .image-holder {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            .image {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: auto !important;
+                max-width: 100%;
+                height: 100%;
+                &.hi-res {
+                    z-index: 1;
+                }
             }
         }
         .description {
@@ -854,6 +859,7 @@ body {
         }
     }
     .gallery-dots {
+        display: none;
         position: absolute;
         left: 0;
         bottom: 10px;
@@ -1070,53 +1076,66 @@ body {
     .stl-swipe-left, .stl-swipe-right,
     .gallery-swipe-left, .gallery-swipe-right {
         display: block;
-        background-repeat: no-repeat;
-        background-position: center;
         border: none;
         position: absolute;
         cursor: pointer;
         z-index: 1;
-        background-color: transparent;
-        background-size: contain;
         margin: 0;
+        &:before {
+            position: relative;
+        }
+        &:after {
+            position: relative;
+        }
     }
     .stl-swipe-up, .stl-swipe-down {
         display: none;
         width: 100%;
         height: 10%;
         left: 0;
-        background-size: 15%;
-        background-position: center 40%;
     }
     .stl-swipe-left, .stl-swipe-right {
         display: none;
         width: 5%;
         height: 100%;
         top: 0;
-        background-size: 50%;
-        background-position: center 40%;
     }
     .gallery-swipe-left, .gallery-swipe-right {
         width: 45px;
         height: 100%;
         top: 0;
-        background-size: 70%;
     }
     .stl-swipe-up {
-        background-image: url('/static/light/surlatable/landingpage/default/images/up.png');
         top: 0;
+        &:after {
+            top: 10px;
+            left: 50%;
+            content: '\25B2'; // /\ solid arrow
+        }
     }
     .stl-swipe-down {
-        background-image: url('/static/light/surlatable/landingpage/default/images/down.png');
         bottom: 0;
+        &:before {
+            left: 50%;
+            bottom: 10px;
+            content: '\25BC'; // \/ solid arrow
+        }
     }
     .stl-swipe-left, .gallery-swipe-left {
-        background-image: url('/static/light/surlatable/landingpage/default/images/left.png');
         left: 0;
+        &:after {
+            top: 50%;
+            content: '\25C0'; // < solid arrow
+            left: 10px;
+        }
     }
     .stl-swipe-right, .gallery-swipe-right {
-        background-image: url('/static/light/surlatable/landingpage/default/images/right.png');
         right: 0;
+        &:before {
+            top: 50%;
+            content: '\25BA'; // > solid arrow
+            right: 10px;
+        }
     }
 }
 
@@ -1294,6 +1313,9 @@ body {
                 bottom: 6px;
             }
         }
+        .overlay {
+            display: none; // mobile has no hover
+        }
         &.wide {
             .relative.product-shot {
                 div:after {
@@ -1301,20 +1323,13 @@ body {
                 }
             }
         }
-        &:hover .overlay {
-            opacity: 0;
-            filter: alpha(opacity=0);
-        }
     }
     .previewContainer {
         max-height: 100%;
-        .tagged-product {
-            padding: 65px 0 50px 0; // top - .product-details, bottom - .buy
+        .content {
+            max-height: 100%; // mobile pop-up is fullscreen
         }
         &.landscape {
-            .close {
-                width: 100px;
-            }
             .info.tagged,
             .look-product-carousel {
                 position: absolute;
@@ -1352,14 +1367,14 @@ body {
                         }
                     }
                 }
-                .buy {
-                    position: absolute;
-                    bottom: 8px;
-                    left: 0;
-                    right: 0;
-                    margin: 0 auto !important;
-                    width: 70%;
-                    height: 12%;
+                .product-details {
+                    .title {
+                        background: none;
+                        width: 40%;
+                    }
+                    .buy {
+                        width: 70%;
+                    }
                 }
                 &.tagged {
                     padding: 0;
@@ -1382,9 +1397,14 @@ body {
                 height: 100%;
                 border-top: none;
                 padding-top: 18px;
+                whitespace: normal;
                 .stl-title {
                     padding: 0 15px;
                     top: -15px;
+                    > span {
+                        line-height: 10px;
+                        font-size: 10px;
+                    }
                 }
                 .stl-look-container {
                     width: 100%;
@@ -1392,13 +1412,15 @@ body {
                     .stl-look {
                         white-space: normal;
                     }
-                }
-                .stl-item, .look-thumbnail {
-                    max-width: 90% !important;
-                    height: 100px !important;
-                    img {
-                        width: auto;
-                        height: auto;
+                    .stl-item, .look-thumbnail {
+                        margin: 5px 0;
+                        width: 85%;
+                        max-width: 90% !important;
+                        height: 100px !important;
+                        img {
+                            width: auto;
+                            height: auto;
+                        }
                     }
                 }
             }
@@ -1418,6 +1440,11 @@ body {
         .fullscreen {
             position: fixed;
             max-height: none !important;
+            &.product.tagged {
+                .content {
+                    max-height: 100%;
+                }
+            }
         }
         .close {
             width: 60px;
@@ -1446,21 +1473,6 @@ body {
                 top: 0;
                 left: 0;
             }
-            .recipe-container {
-                width: 100%;
-                height: 100%;
-                padding: 0 10px;
-                padding-top: 75px;
-                .title {
-                    line-height: 20px;
-                    font-size: 20px;
-                    margin-bottom: 10px;
-                    max-height: 40px;
-                }
-                .recipe {
-                    max-height: calc(100% - 50px);
-                }
-            }
         }
         .feed {
             .look-image-container {
@@ -1475,13 +1487,13 @@ body {
             padding: 0;
             .buy {
                 width: 100%;
-                height: 50px;
                 margin: 0 !important;
+                padding-bottom: 10px;
                 .button {
-                    font-size: 20px;
-                    width: 50%;
-                    margin: 0 25%;
-                    line-height: 20px;
+                    font-size: 18px;
+                    line-height: 40px;
+                    padding: 0;
+                    font-weight: normal;
                     &:hover {
                         color: white;
                     }
@@ -1507,10 +1519,13 @@ body {
             .info {
                 padding: 0;
                 .tagged-product {
-                    padding-bottom: 50px; // .buy
+                    padding-bottom: 105px; // title, price, buy
                 }
                 .main-image .description {
                     display: inline-block;
+                    padding: 40px 60px 0;
+                    font-size: 15px;
+                    line-height: 17px;
                 }
                 .gallery-dots .description-dot {
                     display: inline-block;
@@ -1531,35 +1546,65 @@ body {
             }
         }
         .product-details {
-            width: calc(100% - 60px);
-            height: 65px;
-            padding: 5px 0 0 60px;
             position: absolute;
-            top: 0;
-            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: auto;
             z-index: 10;
-            text-align: center;
+            padding: 0;
+            .title, .price {
+                padding-left: 10px;
+                margin-bottom: 10px;
+            }
             .title {
-                line-height: 18px;
-                font-size: 18px;
-                height: 36px;
+                line-height: 16px;
+                font-size: 16px;
+                height: auto;
                 overflow: hidden;
-                margin-bottom: 5px;
+                background: #FFF;
+                padding-top: 5px 45px 0 0;
             }
             .price {
                 line-height: 20px;
                 font-size: 20px;
-                margin-bottom: 0;
             }
         }
         .gallery-main-image {
             width: 100%;
             height: 100%;
-            margin: 0;
-            .image, .recipe {
-                border-radius: 0;
-                &.full-image {
-                    background-size: contain;
+            max-width: 100%;
+            max-height: 100%;
+            .gallery-swipe-right {
+                &:before {
+                    content: '\24D8'; // (i) sign
+                    font-family: sans-serif;
+                    font-size: 18px;
+                    position: absolute;
+                    top: 50%;
+                    right: 20px;
+                }
+            }
+            .gallery-swipe-left {
+                &:after {
+                    font-family: sans-serif;
+                    font-size: 18px;
+                    position: absolute;
+                }
+            }
+            .image-holder {
+                display: inline-block;
+                .image {
+                    position: relative;
+                    right: auto;
+                    margin: auto;
+                    display: block;
+                }
+                .overlay-image {
+                    // This provides a box for the hi-res image to center in
+                    position: absolute;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
                 }
             }
         }
@@ -1569,25 +1614,27 @@ body {
             bottom: 0;
             height: 28%;
             width: 100% !important;
-            padding: 12px 0 0 0;
             margin-top: 0;
-            .stl-carousel {
-                border: none;
-                border-radius: 0;
-                padding-top: 0;
-            }
             .stl-title {
-                top: -14px; // line-height
                 >span {
+                    line-height: 16px;
+                    font-size: 16px;
+                    height: 16px;
                     top: 0;
                     background: none;
                     padding: 0;
                 }
             }
+            .stl-carousel {
+                border: none;
+                border-radius: 0;
+                padding-top: 0;
+            }
             .stl-swipe-left, .stl-swipe-right {
                 width: 10%;
-                background-size: 40%;
-                background-position: center 40%;
+                &:before, &:after {
+                    top: 45%;
+                }
             }
             .stl-look-container {
                 width: 80%;
@@ -1599,10 +1646,11 @@ body {
                 height: 100%;
                 white-space: nowrap;
                 padding: 0;
+                margin-top: 16px;
                 position: absolute;
                 top: 0;
                 .stl-item {
-                    margin: 5px 5px 0 5px;
+                    margin: 0 5px;
                     width: 45%;
                     height: 100%;
                     overflow: hidden;
@@ -1613,14 +1661,19 @@ body {
                         height: 100%;
                         max-height: none;
                     }
-                    .tile {
+                    &.tile {
                         span {
                             left: 0;
                             right: 0;
-                            padding: 0;
+                            padding: 0 3px;
                         }
                         .label {
-                            bottom: 14px;
+                            font-size: 10px;
+                            line-height: 12px;
+                            bottom: 10px;
+                        }
+                        .price {
+                            font-size: 13px;
                         }
                     }
                 }
