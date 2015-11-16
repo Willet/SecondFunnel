@@ -14,6 +14,44 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
     )
 
+    _.extend(module.ProductView::events,
+        "click .buy": (ev) ->
+            $evTarget = $(ev.target)
+            if $evTarget.is("a")
+                $target = $evTarget
+            else if $evTarget.children("a").length
+                $target = $evTarget.children("a")
+            else if $evTarget.parents("a").length
+                $target = $evTarget.parents("a")
+            else
+                return false
+
+            if $target.hasClass('find-store')
+                @triggerMethod('click:findStore')
+            else
+                @triggerMethod('click:buy')
+
+            productCheckUrl = "http://www.thebodyshop-usa.com/ajax/addsingleproductcheck.aspx"
+            params =
+                "varcode": @model.get('sku'),
+                "qty": 1,
+                "maxqty": ""
+            
+            checkResult = ajaxrequest('POST', productCheckUrl, parmams) #psuedocode
+            # Expected response data: `<div id="divProduct" data="true"></div>`
+
+            productAddUrl = "http://www.thebodyshop-usa.com/ajax/addsingleproduct.aspx"
+            params =
+                "varcode": @model.get('sku'),
+                "qty": 1
+            
+            addResult = ajaxrequest('GET', productAddUrl, params)
+            # Expected response data: `<div id="addtobagsuccess" style="display:none"></div>`
+
+            App.utils.openUrl(url)
+            # Stop propogation to avoid double-opening url
+            return false
+
     module.ProductView::onBeforeRender = ->
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
         inlineLink = "<a href='#{@model.get('url')}'>#{linkName}</a>"
