@@ -1321,7 +1321,7 @@ div.loading {
         z-index: 10;
         overflow-y: scroll;
         // Ease out from left
-        @include transition(width 0.3s ease-in-out);
+        @include transition(width 0.2s ease-in-out);
         width: 0;
         &.visible {
             display: block;

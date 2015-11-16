@@ -617,11 +617,26 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: (options) ->
             @collection = new module.CategoryCollection(_.get(options, 'categories', []),
                                                         model: module.Category)
-
+            @_isMobileCategories = App.support.mobile()
             # Watch for updates to feed, generally from intentRank
             @listenTo(App.vent, "change:category", @selectCategory)
-
+            @listenTo(App.vent, "window:resize", @updateCategories)
             return @
+
+        updateCategories: ->
+            # Handle switches between desktop & mobile
+            if (@_isMobileCategories is not App.support.mobile())
+                @_isMobileCategories = App.support.mobile()
+
+                catArr = App.option("page:categories", [])
+                mobileCatArr = App.option("page:mobileCategories", [])
+                if App.support.mobile() and _.isArray(mobileCatArr) and not _.isEmpty(mobileCatArr)
+                    catArr = mobileCatArr
+                
+                categoriesView = new App.core.CategoryCollectionView(categories: catArr)
+                App.categories = categoriesView.collection # Global reference
+                App.categoryArea.show(categoriesView)
+            return
         
         onRender: ->
             if App.intentRank.currentCategory()?

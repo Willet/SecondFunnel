@@ -6,21 +6,6 @@ char_limit = 350
 swipe = require('jquery-touchswipe')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
-    module.CategoryCollectionView::onShow = ->
-        # Enable sticky category bar
-        sticky = App.option("page:stickyCategories")
-        if App.support.mobile()
-            if (_.isBoolean(sticky) and sticky) or \
-                    (_.isString(sticky) and sticky == 'mobile-only')
-                $('.navbar').waypoint('sticky')
-        else
-            if (_.isBoolean(sticky) and sticky) or \
-                    (_.isString(sticky) and sticky == 'desktop-only')
-                @$el.parent().waypoint('sticky')
-            else if sticky == 'mobile-only' and App.support.mobile()
-                @$el.parent().waypoint('sticky')
-        return @
-
     module.ProductView::initialize = _.wrap(
         module.ProductView::initialize, (initialize) ->
             initialize.call(@)
@@ -98,4 +83,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         "mouseout": (event) ->
             App.heroArea.currentView.updateCategoryHeroImages(App.intentRank.currentCategory())
     )
+
+    module.CategoryCollectionView::onShow = ->
+        # Enable sticky category bar
+        sticky = App.option("page:stickyCategories")
+        if App.support.mobile()
+            if (_.isBoolean(sticky) and sticky) or \
+                    (_.isString(sticky) and sticky == 'mobile-only')
+                $('.navbar').waypoint('sticky')
+        else
+            if (_.isBoolean(sticky) and sticky) or \
+                    (_.isString(sticky) and sticky == 'desktop-only')
+                @$el.parent().waypoint('sticky')
+            else if sticky == 'mobile-only' and App.support.mobile()
+                @$el.parent().waypoint('sticky')
+        return @
 

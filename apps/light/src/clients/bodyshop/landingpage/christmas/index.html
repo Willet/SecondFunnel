@@ -521,7 +521,7 @@
         </script>
 
         <script type="text/template" id="category_template">
-            <% if (!_.isEmpty(obj.name)) { %>
+            <% if (!_.isEmpty(obj.name) || !_.isEmpty(obj.subCategories)) { %>
                 <span class="name <% if (obj.subCategories) { %>subcats<% } %>" data-name="<%- obj.name %>"><%- obj.displayName %></span>
                 <% if (obj.subCategories) { %>
                 <div class="sub-categories">

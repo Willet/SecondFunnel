@@ -39,7 +39,7 @@ App.start();
         if ($topNavSearch.length && $inputBox.length) {
             searchUrl = baseUrl + "?q=" + $inputBox.val();
             App.vent.trigger("tracking:page:externalUrlClick", searchUrl, "search-bar");
-            //App.utils.openUrl(searchUrl, "_top");
+            App.utils.openUrl(searchUrl, "_top");
         }
         return false;
     });
