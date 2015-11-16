@@ -127,6 +127,9 @@
                 </div>
             </div>
             <div class="mobile-only">
+                <div class="category-menu">
+                    <img src="/static/light/bodyshop/landingpage/default/images/menu-icon.png" />
+                </div>
                 <a href="//m.thebodyshop-usa.com/" target="_top" class="logo">
                     <img src="/static/light/bodyshop/landingpage/default/images/logo_tbs_white_mobile.png" />
                 </a>
@@ -518,40 +521,44 @@
         </script>
 
         <script type="text/template" id="category_template">
-            <span class="name <% if (obj.subCategories) { %>subcats<% } %>" data-name="<%- obj.name %>"><%- obj.displayName %></span>
-            <% if (obj.subCategories) { %>
-            <div class="sub-categories">
-                <div class="wrap">
-                    <div class="sub-categories-section">
-                    <% var i = 0;
-                    if (obj.subCategories[0].label) {
-                        i = 1; %>
-                        <div class="sub-categories-label">
-                            <span><%- obj.subCategories[0].label %></span>
-                        </div>
-                    <% } %>
-                    <% for (i; i < obj.subCategories.length; i++) { %>
-                        <% if (obj.subCategories[i].label) { %>
-                    </div>
-                    <div class="sub-categories-section">
-                        <div class="sub-categories-label">
-                            <span><%- obj.subCategories[i].label %></span>
-                        </div>
-                        <% } else { %>
-                        <div class="sub-category" data-name="<%- obj.subCategories[i].name %>">
-                            <span class="name">
-                                <% if (obj.subCategories[i].displayName) { %>
-                                    <%- obj.subCategories[i].displayName %>
-                                <% } else { %>
-                                    <%- obj.subCategories[i].name %>
-                                <% } %>
-                            </span>
-                        </div>
+            <% if (!_.isEmpty(obj.name)) { %>
+                <span class="name <% if (obj.subCategories) { %>subcats<% } %>" data-name="<%- obj.name %>"><%- obj.displayName %></span>
+                <% if (obj.subCategories) { %>
+                <div class="sub-categories">
+                    <div class="wrap">
+                        <div class="sub-categories-section">
+                        <% var i = 0;
+                        if (obj.subCategories[0].label) {
+                            i = 1; %>
+                            <div class="sub-categories-label">
+                                <span><%- obj.subCategories[0].label %></span>
+                            </div>
                         <% } %>
-                    <% } %>
+                        <% for (i; i < obj.subCategories.length; i++) { %>
+                            <% if (obj.subCategories[i].label) { %>
+                        </div>
+                        <div class="sub-categories-section">
+                            <div class="sub-categories-label">
+                                <span><%- obj.subCategories[i].label %></span>
+                            </div>
+                            <% } else { %>
+                            <div class="sub-category" data-name="<%- obj.subCategories[i].name %>">
+                                <span class="name">
+                                    <% if (obj.subCategories[i].displayName) { %>
+                                        <%- obj.subCategories[i].displayName %>
+                                    <% } else { %>
+                                        <%- obj.subCategories[i].name %>
+                                    <% } %>
+                                </span>
+                            </div>
+                            <% } %>
+                        <% } %>
+                        </div>
                     </div>
                 </div>
-            </div>
+                <% } %>
+            <% } else if (obj.label) { %>
+            <span class="category-label"><%- obj.label %></span>
             <% } %>
         </script>
 
