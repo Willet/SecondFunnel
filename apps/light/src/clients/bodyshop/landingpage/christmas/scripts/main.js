@@ -21,13 +21,13 @@ App.start();
 
 (function () {
     // Wrap SLT links with CJ link
-    var re = /^https?\:\/\/www\.surlatable\.com/i;
+    /*var re = /^https?\:\/\/www\.surlatable\.com/i;
     $('a').each(function (el) {
         if (this.href.match(re)) {
             this.href = 'http://www.qksrv.net/links/7774943/type/am/sid/' +
                         App.option('page:slug') + '/' + this.href;
         }
-    });
+    });*/
 
     // Send search bar inqueries to surlatable.com
     $('#submit-search').click(function(ev){
@@ -37,9 +37,9 @@ App.start();
             $inputBox = $this.siblings().first(),
             $topNavSearch = $this.parents('#search-bar');
         if ($topNavSearch.length && $inputBox.length) {
-            searchUrl = baseUrl + "?Ntt=" + $inputBox.val();
+            searchUrl = baseUrl + "?q=" + $inputBox.val();
             App.vent.trigger("tracking:page:externalUrlClick", searchUrl, "search-bar");
-            //App.utils.openUrl(searchUrl, "_top");
+            App.utils.openUrl(searchUrl, "_top");
         }
         return false;
     });
@@ -50,12 +50,24 @@ App.start();
         }
     });
 
+    // Open mobile category menu
+    $('.category-menu').click(function(ev){
+        $('#category-area').addClass('visible');
+        setTimeout("$('#category-area').addClass('expanded'); App.vent.trigger('categories:expanded');", 10);
+    });
+
     // Close categories if clicked
     var $catCloser = $('<div/>', { id: 'category-closer' }).appendTo('#category-area');
     $catCloser.on('click', function () {
         $catCloser.hide();
         $('.category.expanded').removeClass('expanded');
+        $('#category-area.expanded').removeClass('expanded');
+        setTimeout("$('#category-area').removeClass('visible');", 300);
     });
     App.vent.on('categories:expanded', function () { $catCloser.show() });
-    App.vent.on('categories:contracted', function () { $catCloser.hide() });
+    App.vent.on('categories:contracted', function () { 
+        $catCloser.hide();
+        $('#category-area.expanded').removeClass('expanded');
+        setTimeout("$('#category-area').removeClass('visible');", 300);
+    });
 }());

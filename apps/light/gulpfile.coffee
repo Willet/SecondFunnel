@@ -39,7 +39,7 @@ sources =
         "src/components/**/*.scss"
     ]
     images: [
-        "src/clients/**/*.{gif,png,jpg,jpeg,svg}"
+        "src/clients/**/*.{gif,png,jpg,jpeg,svg,ico}"
         "src/components/**/*.{gif,png,jpg,jpeg,svg}"
         "src/demo/**/*.{gif,png,jpg,jpeg,svg}"
         "src/shared/**/*.{gif,png,jpg,jpeg,svg}"
