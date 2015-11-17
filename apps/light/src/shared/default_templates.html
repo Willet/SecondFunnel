@@ -126,9 +126,9 @@
             <div class='cell'>
                 <div class="title">
                     <span><%= obj.overlayText || "Get Details" %></span>
-                    <% if (obj.get('name') || obj.get('title')) { %>
+                    <% if (obj.name || obj.title) { %>
                     <br />
-                    <span class="tile-name"><%= obj.get('name') || obj.get('title') %></span>
+                    <span class="tile-name"><%= obj.name || obj.title %></span>
                     <% } %>
                 </div>
             </div>
