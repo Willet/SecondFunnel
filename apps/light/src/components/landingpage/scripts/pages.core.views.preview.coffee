@@ -448,20 +448,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @_currentIndex = @taggedProductIndex
                 if @taggedProductIndex is -1
                     if @product
-                        # Featured product
-                        @$el.find('.info').show() # display product before rendering
-                        @ui.lookImage.hide() # hide image
                         # Featured product (ex: product tile)
-                        productInstance = new module.ProductView(
-                            model: @product
-                        )
-                        @productInfo.show(productInstance)
+                        @showProduct(@product)
+                        @ui.lookImage.hide() # hide image
                     else
                         # Featured content (ex: image tile)
-                        # will be displayed in .look-image-container, rendered by template
-                        @productInfo.empty()
-                        @ui.lookImage.show() # show image
-                        @$el.find('.info').hide() # hide product
+                        @showImage()
 
                     @ui.lookThumbnail.hide()
 
@@ -475,14 +467,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                             @productThumbnails.currentView.calculateDistance()
                 else
                     # Show tagged product
-                    @$el.find('.info').show() # display product before rendering
+                    @showProduct(@taggedProducts[@taggedProductIndex])
                     if @options.featureSingleItem or App.support.mobile()
                         @ui.lookImage.hide() # hide image
-
-                    productInstance = new module.ProductView(
-                        model: @taggedProducts[@taggedProductIndex]
-                    )
-                    @productInfo.show(productInstance)
 
                     if @options.showLookThumbnail or App.support.mobile()
                         # Some themes use have other links back to the main content/product
@@ -631,6 +618,21 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     direction: "up"
                 )
             return
+
+        showProduct: (product)->
+            # A hook to customize product display
+            @$el.find('.info').show() # display product before rendering
+            productInstance = new module.ProductView(
+                model: product
+            )
+            @productInfo.show(productInstance)
+
+        showImage: ->
+            # A hook to customize image display
+            # image will be displayed in .look-image-container, rendered by template
+            @productInfo.empty()
+            @ui.lookImage.show() # show image
+            @$el.find('.info').hide() # hide product
 
         showThumbnails: ->
             # A hook to customize the thumbnails initialization

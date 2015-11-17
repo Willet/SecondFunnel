@@ -62,6 +62,26 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     # SLT shows one piece of content at a time
     _.extend(module.ExpandedContent::defaultOptions, featureSingleItem: true)
 
+    module.ExpandedContent::showImage = _.wrap(
+        module.ExpandedContent::showImage,
+        (showImage) ->
+            image = @model.get('defaultImage')
+            if not _.isEmpty(image.get('tagged-products'))
+                # show image with its tagged product details
+                product = image.get('tagged-products')[0]
+                if product.type isnt "Product"
+                    product = new module.Product(product)
+                    product.set(
+                        defaultImage: image
+                        images: [image]
+                    )
+                    image.set('tagged-products', [product])
+                @showProduct(product)
+            else
+                # image will be displayed in .look-image-container, rendered by template
+                showImage.call(@)
+    )
+
     module.ExpandedContent::showThumbnails = ->
         # SLT thumbnails are always across the bottom
         if @taggedProducts.length > 0

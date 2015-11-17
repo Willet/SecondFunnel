@@ -220,10 +220,6 @@
             <% include("image_tile_template") %>
         </script>
 
-        <script type="text/template" id="recipe_tile_template">
-            <% include("image_tile_template") %>
-        </script>
-
         <script type="text/template" id="image_tile_template">
             <% if (obj.template === "product" && obj.defaultImage.get('productShot') === true) { %>
             <div class='relative product-shot'>
@@ -420,11 +416,6 @@
                     <div class='buy'>
                         <% include("product_buy_template") %>
                     </div>
-                    <% if (obj['recipeName']) { %>
-                    <div class="back desktop-only">
-                        Back to <%- obj['recipeName'] %> Recipe
-                    </div>
-                    <% } %>
                     <% if (obj['collectionName']) { %>
                     <div class="back desktop-only">
                         Back to Collection Description
@@ -449,14 +440,16 @@
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
         </script>
 
+        <script type="text/template" id="image_preview_template">
+            <% include("product_preview_template") %>
+        </script>
+
         <script type="text/template" id="desktop_tagged_products">
             <div class="feature">
                 <div class="cell look-image-container">
                     <% if (template === "collection") { %>
                         <% var url = obj.expandedImage ? obj.expandedImage.url : image.url; %>
                         <img src="<%= url %>" alt="image" class="look-image" />
-                    <% } else if (template === "recipe") { %>
-                        <% include("recipe_template") %>
                     <% } else { %>
                         <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
                     <% } %>
@@ -479,8 +472,6 @@
                             <% var url = obj.expandedMobileImage ? obj.expandedMobileImage.url :
                                         ( obj.expandedImage ? obj.expandedImage.url : image.url); %>
                             <img src="<%= url %>" alt="image" class="look-image" />
-                        <% } else if (template === "recipe") { %>
-                            <% include("recipe_template") %>
                         <% } else { %>
                             <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
                         <% } %>
