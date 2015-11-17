@@ -40,7 +40,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $cachedImage = $image.parents(".image-holder")
 
             # find image from id
-            image = _.findWhere(@model.get('images'), id: $cachedImage.data('id'))
+            image = _.findWhere(@model.get('images'), id: String($cachedImage.data('id')))
             imageUrl = image.resizeForDimens(maxWidth, maxHeight)
 
             if $image.is("img")
@@ -68,15 +68,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             image = @model.get('defaultImage')
             if not _.isEmpty(image.get('tagged-products'))
                 # show image with its tagged product details
-                product = image.get('tagged-products')[0]
-                if product.type isnt "Product"
-                    product = new module.Product(product)
-                    product.set(
-                        defaultImage: image
-                        images: [image]
-                    )
-                    image.set('tagged-products', [product])
-                @showProduct(product)
+                @showProduct(image.get('tagged-products')[0])
             else
                 # image will be displayed in .look-image-container, rendered by template
                 showImage.call(@)
@@ -118,4 +110,27 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else if sticky == 'mobile-only' and App.support.mobile()
                 @$el.parent().waypoint('sticky')
         return @
+
+    # Image Tile's are a replacement Image for the product tagged on the image
+    # If a need to repurpose Image Tiles arrises, this logic can be 
+    # gated by the attribute `productShot` instead of setting it.
+    module.ImageTile::initialize = ->
+        super
+        image = @get('defaultImage')
+        if not _.isEmpty(image.get('tagged-products'))
+            product = new module.Product(image.get('tagged-products')[0])
+            product.set(
+                defaultImage: image
+                images: [image]
+            )
+            image.set(
+                productShot: true
+                'tagged-products': [product]
+            )
+
+    module.ImageTileView::templateHelpers = ->
+        image = @model.get('defaultImage')
+        if not _.isEmpty(image.get('tagged-products'))
+            # mimic product tile
+            return product: image.get('tagged-products')[0]
 
