@@ -40,7 +40,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $cachedImage = $image.parents(".image-holder")
 
             # find image from id
-            image = _.findWhere(@model.get('images'), id: String($cachedImage.data('id')))
+            image = _.findWhere(@model.get('images'), id: $cachedImage.data('id'))
             imageUrl = image.resizeForDimens(maxWidth, maxHeight)
 
             if $image.is("img")

@@ -108,7 +108,7 @@ class ProductImageSerializer(IRSerializer):
 class ContentSerializer(IRSerializer):
     def get_dump_object(self, content):
         data = {
-            'id': str(content.id),
+            'id': content.id,
             'store-id': str(content.store.id if content.store else 0),
             'source': content.source,
             'source_url': content.source_url,
