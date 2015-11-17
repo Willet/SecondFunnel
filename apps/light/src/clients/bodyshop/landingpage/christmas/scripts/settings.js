@@ -1,6 +1,6 @@
 {
   "tiles":{
-    "wideProbability": 1,
+    "wideProbability":1,
     "wideableTemplates":{
       "image":true,
       "product":false
@@ -107,37 +107,37 @@
   "stickyCategories":true,
   "categories":[
     {
-      "heroTitle":"For <b>SUPERSTAR SISTER:</b> Shower Her With Love With Amazing Skin & Body Care Gifts",
+      "heroTitle":"For <b>SUPERSTAR SISTER:</b> Indulge her with this selection of feel-good seasonal bath & body treats.",
       "displayName":"Superstar Sister",
       "name":"superstar-sister"
     },
     {
-      "heroTitle":"For <b>BEST BESTIE EVER:</b> Bemuse Her With Friendly Skin & Body Care Gifts",
+      "heroTitle":"For <b>BEST BESTIE EVER:</b> Butter her up with the best seasonal indulgences, from body butters to gift treats.",
       "displayName":"Best Bestie Ever",
       "name":"best-bestie-ever"
     },
     {
-      "heroTitle":"For <b>MARVELOUS MAMA:</b> Delight Her With The Ultimate Winter Skin & Body Care Gifts",
+      "heroTitle":"For <b>MARVELOUS MAMA:</b> Delight her with the ultimate winter skin & body care luxuries.",
       "displayName":"Marvelous Mama",
       "name":"marvelous-mama"
     },
     {
-      "heroTitle":"For <b>SECRET SANTA:</b> Surprise Her With Saint Nicolas Skin & Body Care Gifts",
+      "heroTitle":"For <b>SECRET SANTA:</b> Shower them with little scented treats for the holiday season.",
       "displayName":"Secret Santa",
       "name":"secret-santa"
     },
     {
-      "heroTitle":"For <b>FRAGRANCE FANATIC:</b> Presents Don't Get More Indulgent Than These Fragrances.",
+      "heroTitle":"For <b>FRAGRANCE FANATIC:</b> Holiday presents don't get much more indulgent than these fragrance goodies.",
       "displayName":"Fragrance Fanatic",
       "name":"fragrance-fanatic"
     },
     {
-      "heroTitle":"For <b>TERRIFIC TEACHER:</b> Be The Teacher's Pet With These Cute Seasonal Gifts.",
+      "heroTitle":"For <b>TERRIFIC TEACHER:</b> Be the best teacher's pet with these cute seasonal gifts.",
       "displayName":"Terrific Teacher",
       "name":"terrific-teacher"
     },
     {
-      "heroTitle":"For <b>MODERN GENT:</b> Suave Suave Suave With These Fine Seasonal Gifts.",
+      "heroTitle":"For <b>MODERN GENT:</b> Keep him looking his best with his favorite skin care & grooming goodies.",
       "displayName":"Modern Gent",
       "name":"modern-gent"
     },
