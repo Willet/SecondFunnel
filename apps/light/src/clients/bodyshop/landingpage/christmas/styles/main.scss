@@ -312,12 +312,12 @@ div.loading {
             width: 100%;
             line-height: 40px;
             min-height: 40px;
-            font-size: 20px;
+            font-size: 18px;
             color: $tbs-white-color;
             padding-left: 3px;
             font-family: $tbs-title-font;
             b {
-                font-size: 22px;
+                font-size: 20px;
             }
         }
     }
@@ -1174,7 +1174,7 @@ div.loading {
             top: 70px;
             right: calc(2% + 2px);
             height: 40px;
-            background: #FFF;
+            background: none;
             padding: 0;
             border: none;
             // Ease out opacity
@@ -1184,12 +1184,16 @@ div.loading {
                 content: initial;
             }
             &.expanded {
+                background: #FFF;
                 -webkit-box-shadow: 2px -2px 7px -3px rgba(50, 50, 50, 0.75), -2px -2px 7px -3px rgba(50, 50, 50, 0.75);
                 -moz-box-shadow:    2px -2px 7px -3px rgba(50, 50, 50, 0.75), -2px -2px 7px -3px rgba(50, 50, 50, 0.75);
                 box-shadow:         2px -2px 7px -3px rgba(50, 50, 50, 0.75), -2px -2px 7px -3px rgba(50, 50, 50, 0.75);
+                > .name {
+                    color: $tbs-red-color;
+                }
             }
             > .name {
-                color: $tbs-red-color;
+                color: $tbs-white-color;
                 text-transform: none;
                 font-weight: 400;
                 font-size: 17px;
