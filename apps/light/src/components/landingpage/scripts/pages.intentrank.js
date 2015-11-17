@@ -110,6 +110,9 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         data.algorithm = module.options.IRAlgo;
         data.offset = collection.offset || 0;
         data['tile-set'] = module._IRTileSet || module.options.IRTileSet;
+        if (App.option('debug')) {
+            data.time = Date.now();
+        }
 
         opts = $.extend({}, {
             'results': 10,
