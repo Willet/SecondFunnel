@@ -1002,6 +1002,14 @@ div.loading {
 
 // DESKTOP & TABLET ONLY
 @media screen and (min-width: 768px) {
+    body>.container {
+        // No snow in feed
+        background: url(/static/light/bodyshop/landingpage/christmas/images/repeating-background.jpg) repeat;
+        #banner {
+            // Snow behind banner
+            background: url(/static/light/bodyshop/landingpage/christmas/images/falling-snow.png) repeat;
+        }
+    }
     .previewContainer, .heroContainer {
         .main-image-container {
             .main-image {
@@ -1331,11 +1339,16 @@ div.loading {
             }
         }
     }
-    #banner, footer {
+    #banner {
+        img.mobile-only {
+            width: 100%;
+        }
+    }
+    footer {
         img.mobile-only {
             position: relative;
             left: 50%;
-            margin-left: -160px; // img width 320px
+            margin-left: -150px; // img width 300px
         }
     }
     .sticky-wrapper {
@@ -1422,6 +1435,7 @@ div.loading {
             .label {
                 font-size: 12px;
                 line-height: 12px;
+                padding: 3px;
                 bottom: 25px;
             }
             .price {
