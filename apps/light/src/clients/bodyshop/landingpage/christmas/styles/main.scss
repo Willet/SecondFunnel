@@ -374,9 +374,6 @@ div.loading {
             bottom: 12px;
             font-size: 17px;
             font-weight: bold;
-            .value {
-                font-size: 80%;
-            }
         }
         div {
             margin-top: -10%;
@@ -1600,7 +1597,7 @@ div.loading {
             }
             .main-image .description {
                 display: inline-block;
-                padding: 40px 60px 0;
+                padding: 30px 60px 0;
                 font-size: 15px;
                 line-height: 17px;
                 height: auto;
@@ -1632,10 +1629,12 @@ div.loading {
             width: 100%;
             height: auto;
             z-index: 10;
-            padding: 0;
+            padding: 10px 0 0 0;
+            background: #FFF;
             .title, .price {
                 padding-left: 10px;
                 margin-bottom: 10px;
+                text-shadow: 1px 1px 0 #FFF, 1px -1px 0 #FFF, -1px 1px 0 #FFF, -1px -1px 0 #FFF;
             }
             .title {
                 line-height: 16px;
@@ -1656,12 +1655,17 @@ div.loading {
             max-height: 100%;
             .gallery-swipe-right {
                 &:before {
-                    content: '\24D8'; // (i) sign
-                    font-family: sans-serif;
-                    font-size: 18px;
                     position: absolute;
                     top: 50%;
                     right: 20px;
+                    content: '\24D8'; // (i) sign
+                    font-family: sans-serif;
+                    font-size: 18px;
+                    line-height: 18px;
+                    width: 18px;
+                    height: 18px;
+                    background-color: #FFF;
+                    border-radius: 9px;
                 }
             }
             .gallery-swipe-left {
