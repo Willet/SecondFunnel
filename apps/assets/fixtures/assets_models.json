@@ -20,5 +20,90 @@
       "template": "mystore/landingpage/default/index.html",
       "updated_at": "2015-11-18 00:43:26"
     }
+  },
+  {
+    "model": "assets.Product",
+    "pk": 3,
+    "fields": {
+      "name": "Default",
+      "store": 1,
+      "price": 19.99,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.ProductImage",
+    "pk": 4,
+    "fields": {
+      "url": "/image.jpg",
+      "original_url": "test.com/image.jpg",
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Tag",
+    "pk": 5,
+    "fields": {
+      "name": "TestTag",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Content",
+    "pk": 6,
+    "fields": {
+      "url": "/content.jpg",
+      "source": "upload",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Image",
+    "pk": 6,
+    "fields": {
+      "url": "/content.jpg",
+      "source": "upload",
+      "original_url": "test.com/image.jpg",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Category",
+    "pk": 7,
+    "fields": {
+      "name": "TestCategory",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Page",
+    "pk": 8,
+    "fields": {
+      "name": "TestPage",
+      "url_slug": "test_page",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Feed",
+    "pk": 9,
+    "fields": {
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Tile",
+    "pk": 10,
+    "fields": {
+      "template": "default",
+      "feed": 9,
+      "updated_at": "2015-11-18 00:43:26"
+    }
   }
 ]
