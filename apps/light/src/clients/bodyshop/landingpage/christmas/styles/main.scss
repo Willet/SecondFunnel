@@ -633,11 +633,12 @@ div.loading {
             margin-bottom: 5px;
         }
         ul {
-            margin: 0 15px;
+            display: none;
+        /*    margin: 0 15px;
             padding: 0;
         }
         li {
-            padding: 2px 5px;
+            padding: 2px 5px; */
         }
     }
     .look-image-container {
