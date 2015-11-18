@@ -54,6 +54,7 @@ App.start();
     $('.category-menu').click(function(ev){
         $('#category-area').addClass('visible');
         setTimeout("$('#category-area').addClass('expanded'); App.vent.trigger('categories:expanded');", 10);
+        App.vent('categories:expanded')
     });
 
     // Close categories if clicked

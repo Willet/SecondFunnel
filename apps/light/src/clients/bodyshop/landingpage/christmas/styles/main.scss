@@ -372,7 +372,7 @@ div.loading {
         }
         .price {
             bottom: 12px;
-            font-size: 17px;
+            font-size: 15px;
             font-weight: bold;
         }
         div {
@@ -1385,8 +1385,15 @@ div.loading {
                         position: absolute;
                         top: 11px;
                         right: 0;
-                        content: "\25B6";
+                        content: "";
+                        background: url(/static/light/bodyshop/landingpage/default/images/image-sprite.png);
+                        background-position: 0px -230px;
+                        width: 10px;
+                        height: 14px;
                     }
+                }
+                &.selected > .name:after {
+                    background-position: 0px -248px;
                 }
                 > .category-label {
                     font-family: $tbs-sans-font;
