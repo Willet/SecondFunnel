@@ -1,6 +1,3 @@
-// May not end up using this
-// Fixtures are apparently really slow and its better to use
-// fake models via mock, factory_boy or model_mommy
 [
   {
     "model": "assets.Store",
@@ -11,7 +8,8 @@
       "slug": "store_slug", 
       "default_theme": null,
       "default_page": null,
-      "public_base_url": "gifts.mystore.com"
+      "public_base_url": "gifts.mystore.com",
+      "updated_at": "2015-11-18 00:43:26"
     }
   },
   {
@@ -19,7 +17,8 @@
     "pk": 2,
     "fields": {
       "name": "Default",
-      "template": "mystore/landingpage/default/index.html"
+      "template": "mystore/landingpage/default/index.html",
+      "updated_at": "2015-11-18 00:43:26"
     }
   }
 ]
