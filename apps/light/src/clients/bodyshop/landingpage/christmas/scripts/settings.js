@@ -8,45 +8,73 @@
   },
   "mobileCategories":[
     {
+      "label":"By Recipient"
+    },
+    {
+      "heroTitle":"For <b>SUPERSTAR SISTER:</b> Shower Her With Love With Amazing Skin & Body Care Gifts",
       "displayName":"Superstar Sister",
       "name":"superstar-sister"
     },
     {
+      "heroTitle":"For <b>BEST BESTIE EVER:</b> Bemuse Her With Friendly Skin & Body Care Gifts",
       "displayName":"Best Bestie Ever",
       "name":"best-bestie-ever"
     },
     {
+      "heroTitle":"For <b>MARVELOUS MAMA:</b> Delight Her With The Ultimate Winter Skin & Body Care Gifts",
       "displayName":"Marvelous Mama",
       "name":"marvelous-mama"
     },
     {
+      "heroTitle":"For <b>SECRET SANTA:</b> Surprise Her With Saint Nicolas Skin & Body Care Gifts",
       "displayName":"Secret Santa",
       "name":"secret-santa"
     },
     {
+      "heroTitle":"For <b>FRAGRANCE FANATIC:</b> Presents Don't Get More Indulgent Than These Fragrances.",
       "displayName":"Fragrance Fanatic",
       "name":"fragrance-fanatic"
     },
     {
+      "heroTitle":"For <b>TERRIFIC TEACHER:</b> Be The Teacher's Pet With These Cute Seasonal Gifts.",
       "displayName":"Terrific Teacher",
       "name":"terrific-teacher"
     },
     {
+      "heroTitle":"For <b>MODERN GENT:</b> Suave Suave Suave With These Fine Seasonal Gifts.",
       "displayName":"Modern Gent",
       "name":"modern-gent"
+    },
+    {
+      "url":"http://www.thebodyshop-usa.com/gifts/womens-gifts.aspx",
+      "displayName":"For Her",
+      "name":"gifts-for-her"
+    },
+    {
+      "url":"http://www.thebodyshop-usa.com/gifts/mens-gifts.aspx",
+      "displayName":"For Him",
+      "name":"gifts-for-him"
+    },
+    {
+      "url":"http://www.thebodyshop-usa.com/gifts/view-all-gifts.aspx",
+      "displayName":"For Everyone",
+      "name":"all-gifts"
     },
     {
       "label":"By Price"
     },
     {
+      "url":"http://www.thebodyshop-usa.com/gifts/gifts-under-20.aspx",
       "displayName":"Gifts Under $20",
       "name":"gifts-under-20"
     },
     {
+      "url":"http://www.thebodyshop-usa.com/gifts/gifts-20-to-50.aspx",
       "displayName":"Gifts $20 - $50",
       "name":"gifts-20-to-50"
     },
     {
+      "url":"http://www.thebodyshop-usa.com/gifts/gifts-over-50.aspx",
       "displayName":"Gifts Over $50",
       "name":"gifts-over-50"
     },
@@ -54,31 +82,19 @@
       "label":"By Category"
     },
     {
+      "url":"http://www.thebodyshop-usa.com/gifts/bath-body-gifts.aspx",
       "displayName":"Bath & Body",
       "name":"bath-body-gifts"
     },
     {
+      "url":"http://www.thebodyshop-usa.com/gifts/skin-care-gifts.aspx",
       "displayName":"Skin Care",
       "name":"skin-care-gifts"
     },
     {
+      "url":"http://www.thebodyshop-usa.com/gifts/fragrance-gifts.aspx",
       "displayName":"Fragrance",
       "name":"fragrance-gifts"
-    },
-    {
-      "label":"By Recipient"
-    },
-    {
-      "displayName":"For Her",
-      "name":"gifts-for-her"
-    },
-    {
-      "displayName":"For Him",
-      "name":"gifts-for-him"
-    },
-    {
-      "displayName":"For Everyone",
-      "name":"all-gifts"
     }
   ],
   "categoryHome":false,
@@ -86,11 +102,11 @@
   "social_buttons":null,
   "useAffiliateLinks":true,
   "defaults":{
-    "heroTitle":"<b>SPREAD HAPPINESS</b> With Gifts From The Gifting Wonderland"
+    "heroTitle":"For <b>SUPERSTAR SISTER:</b> Indulge her with this selection of feel-good seasonal bath & body treats."
   },
   "column_width":341,
   "home":{
-    "category":"all-gifts"
+    "category":"superstar-sister"
   },
   "masonry":{
     "tileAspectRatio":1,
@@ -140,14 +156,17 @@
           "label":"By Price"
         },
         {
+          "url":"http://www.thebodyshop-usa.com/gifts/gifts-under-20.aspx",
           "displayName":"Gifts Under $20",
           "name":"gifts-under-20"
         },
         {
+          "url":"http://www.thebodyshop-usa.com/gifts/gifts-20-to-50.aspx",
           "displayName":"Gifts $20 - $50",
           "name":"gifts-20-to-50"
         },
         {
+          "url":"http://www.thebodyshop-usa.com/gifts/gifts-over-50.aspx",
           "displayName":"Gifts Over $50",
           "name":"gifts-over-50"
         },
@@ -155,14 +174,17 @@
           "label":"By Category"
         },
         {
+          "url":"http://www.thebodyshop-usa.com/gifts/bath-body-gifts.aspx",
           "displayName":"Bath & Body",
           "name":"bath-body-gifts"
         },
         {
+          "url":"http://www.thebodyshop-usa.com/gifts/skin-care-gifts.aspx",
           "displayName":"Skin Care",
           "name":"skin-care-gifts"
         },
         {
+          "url":"http://www.thebodyshop-usa.com/gifts/fragrance-gifts.aspx",
           "displayName":"Fragrance",
           "name":"fragrance-gifts"
         },
@@ -170,14 +192,17 @@
           "label":"By Recipient"
         },
         {
+          "url":"http://www.thebodyshop-usa.com/gifts/womens-gifts.aspx",
           "displayName":"For Her",
           "name":"gifts-for-her"
         },
         {
+          "url":"http://www.thebodyshop-usa.com/gifts/mens-gifts.aspx",
           "displayName":"For Him",
           "name":"gifts-for-him"
         },
         {
+          "url":"http://www.thebodyshop-usa.com/gifts/view-all-gifts.aspx",
           "displayName":"For Everyone",
           "name":"all-gifts"
         }

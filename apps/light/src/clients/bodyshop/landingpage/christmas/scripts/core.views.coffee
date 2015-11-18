@@ -16,10 +16,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ProductView::onBeforeRender = ->
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
-        inlineLink = "<a href='#{@model.get('url')}'>#{linkName}</a>"
-        if @model.get("description")
-            truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
-            @model.set("truncatedDescription", truncatedDescription + " " + inlineLink)
+        inlineLink = "<span class='more-link'><a href='#{@model.get('url')}'>#{linkName}</a></span>"
+        @model.set("truncatedDescription", "#{@model.get("description")} #{inlineLink}")
         return
 
     module.ProductView::replaceImages = ->
@@ -120,6 +118,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if not _.isEmpty(image.get('tagged-products'))
             product = new module.Product(image.get('tagged-products')[0])
             product.set(
+                contentShot: true
                 defaultImage: image
                 images: [image]
             )

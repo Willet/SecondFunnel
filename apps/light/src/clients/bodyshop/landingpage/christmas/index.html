@@ -356,7 +356,7 @@
 
         <script type="text/template" id="product_info_template">
             <div class="tagged-product">
-                <div class="gallery-main-image">
+                <div class="gallery-main-image <% if (obj.contentShot) { %>contentShot<% } %>">
                     <div class="gallery-swipe-left"></div>
                     <div class="gallery-swipe-right"></div>
                     <% include("product_galleryMainImage_template") %>
@@ -388,7 +388,7 @@
 
         <script type="text/template" id="image_info_template">
             <div class="tagged-product">
-                <div class="gallery-main-image">
+                <div class="gallery-main-image <% if (obj.contentShot) { %>contentShot<% } %>">
                     <div class="gallery-swipe-left"></div>
                     <div class="gallery-swipe-right"></div>
                     <% include("product_galleryMainImage_template") %>
