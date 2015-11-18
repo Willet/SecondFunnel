@@ -118,6 +118,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         if not _.isEmpty(image.get('tagged-products'))
             product = new module.Product(image.get('tagged-products')[0])
             product.set(
+                contentShot: true
                 defaultImage: image
                 images: [image]
             )
