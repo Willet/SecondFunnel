@@ -1002,7 +1002,7 @@ div.loading {
 
 // DESKTOP & TABLET ONLY
 @media screen and (min-width: 768px) {
-    body>.container {
+    body > .container {
         // No snow in feed
         background: url(/static/light/bodyshop/landingpage/christmas/images/repeating-background.jpg) repeat;
         #banner {
