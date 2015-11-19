@@ -32,11 +32,42 @@
     }
   },
   {
+    "model": "assets.Product",
+    "pk": 12,
+    "fields": {
+      "name": "Default",
+      "store": 1,
+      "price": 19.99,
+      "in_stock": false,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Product",
+    "pk": 13,
+    "fields": {
+      "name": "Default",
+      "store": 1,
+      "price": 19.99,
+      "in_stock": true,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
     "model": "assets.ProductImage",
     "pk": 4,
     "fields": {
       "url": "/image.jpg",
       "original_url": "test.com/image.jpg",
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.ProductImage",
+    "pk": 11,
+    "fields": {
+      "url": "/another-image.jpg",
+      "original_url": "test.com/another-image.jpg",
       "updated_at": "2015-11-18 00:43:26"
     }
   },

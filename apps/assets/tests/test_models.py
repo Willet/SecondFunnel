@@ -46,16 +46,11 @@ class StoreTest(TestCase):
 
     def properties_test(self):
         self.store = Store.objects.get(pk=1)
-        print self.store.id
         self.assertEqual(self.store.slug, "store_slug")
         self.assertEqual(self.store.name, "MyStore")
-        self.assertIs(type(self.store.cg_created_at), unicode)
-        self.assertIs(type(self.store.cg_updated_at), unicode)
-        self.assertIs(type(self.store.created_at), datetime.datetime)
+        self.assertIsNot(self.store.cg_created_at, None)
+        self.assertIsNot(self.store.cg_updated_at, None)
         self.assertTrue(self.store.id > 0)
-        self.assertIs(type(self.store.name), unicode)
-        self.assertIs(type(self.store.pk), int)
-        self.assertIs(type(self.store.updated_at), datetime.datetime)
 
 class ThemeTest(TestCase):
     # Theme has no methods
@@ -63,33 +58,31 @@ class ThemeTest(TestCase):
 
     def properties_test(self):
         t = Theme.objects.get(pk=2)
-        self.assertIs(type(t.cg_created_at), unicode)
-        self.assertIs(type(t.cg_updated_at), unicode)
-        self.assertIs(type(t.id), int)
+        self.assertIsNot(t.cg_created_at, None)
+        self.assertIsNot(t.cg_updated_at, None)
         self.assertTrue(t.id > 0)
         self.assertIsNone(t.ir_cache)
         self.assertEqual(t.name, "Default")
-        self.assertIs(type(t.pk), int)
         self.assertTrue(t.pk > 0)
-        self.assertIs(type(t.template), unicode)
-        self.assertIs(type(t.updated_at), datetime.datetime)
+        self.assertTrue(len(t.template) > 0)
 
 class ProductTest(TestCase):
-    # Product has no methods
+    # Product has a method - clean
     fixtures = ['assets_models.json']
 
     def properties_test(self):
         pprice = 19.99
         store_id = 1
         p = Product.objects.get(pk=3)
+        self.assertIsNot(p.cg_created_at, None)
+        self.assertIsNot(p.cg_updated_at, None)
         self.assertEqual(p.store_id, store_id)
         self.assertEqual(float(p.price), pprice)
         self.assertTrue(p.id > 0)
-        self.assertTrue(p.pk > 0)
 
     def blank_clean_test(self):
         p = Product.objects.get(pk=3)
-        p.clean
+        p.clean()
         self.assertEqual(p.attributes, {})
 
     def one_image_clean_test(self):
@@ -99,6 +92,24 @@ class ProductTest(TestCase):
         Product.clean(p)
         self.assertEqual(p.default_image, i)
 
+    def two_image_clean_test(self):
+        p = Product.objects.get(pk=3)
+        i1 = ProductImage.objects.get(pk=4)
+        i2 = ProductImage.objects.get(pk=11)
+        p.product_images.add(i1)
+        p.product_images.add(i2)
+        Product.clean(p)
+        self.assertEqual(p.default_image, i1)
+
+    def two_image_clean_order_test(self):
+        p = Product.objects.get(pk=3)
+        i1 = ProductImage.objects.get(pk=4)
+        i2 = ProductImage.objects.get(pk=11)
+        p.product_images.add(i2)
+        p.product_images.add(i1)
+        Product.clean(p)
+        self.assertEqual(p.default_image, i2)
+
 class ProductImageTest(TestCase):
     # ProductImage has no methods
     fixtures = ['assets_models.json']
@@ -107,9 +118,8 @@ class ProductImageTest(TestCase):
         url = "/image.jpg"
         original_url = "test.com/image.jpg"
         product_image = ProductImage.objects.get(pk=4)
-        self.assertIs(type(product_image.cg_created_at), unicode)
-        self.assertIs(type(product_image.cg_updated_at), unicode)
-        self.assertIs(type(product_image.created_at), datetime.datetime)
+        self.assertIsNot(product_image.cg_created_at, None)
+        self.assertIsNot(product_image.cg_updated_at, None)
         self.assertTrue(product_image.id > 0)
         self.assertIsNone(product_image.ir_cache)
         self.assertTrue(product_image.pk > 0)
@@ -123,14 +133,11 @@ class TagTest(TestCase):
     def properties_test(self):
         store = Store.objects.get(pk=1)
         t = Tag.objects.get(name="TestTag")
-        self.assertIs(type(t.cg_created_at), unicode)
-        self.assertIs(type(t.cg_updated_at), unicode)
-        self.assertIs(type(t.created_at), datetime.datetime)
-        self.assertIs(type(t.id), int)
+        self.assertIsNot(t.cg_created_at, None)
+        self.assertIsNot(t.cg_updated_at, None)
         self.assertTrue(t.id > 0)
         self.assertIsNone(t.ir_cache)
         self.assertEqual(t.name, "TestTag")
-        self.assertIs(type(t.pk), int)
         self.assertTrue(t.pk > 0)
         self.assertEqual(t.store, store)
         self.assertEqual(t.store_id, store.id)
@@ -143,12 +150,10 @@ class ContentTest(TestCase):
     def properties_test(self):
         store = Store.objects.get(pk=1)
         t = Content.objects.get(pk=6)
-        self.assertIs(type(t.cg_created_at), unicode)
-        self.assertIs(type(t.cg_updated_at), unicode)
-        self.assertIs(type(t.created_at), datetime.datetime)
+        self.assertIsNot(t.cg_created_at, None)
+        self.assertIsNot(t.cg_updated_at, None)
         self.assertTrue(t.id > 0)
         self.assertIsNone(t.ir_cache)
-        self.assertIs(type(t.pk), int)
         self.assertTrue(t.pk > 0)
         self.assertEqual(t.store, store)
         self.assertEqual(t.store_id, store.id)
@@ -160,12 +165,10 @@ class ImageTest(TestCase):
     def properties_test(self):
         store = Store.objects.get(pk=1)
         t = Image.objects.get(pk=6)
-        self.assertIs(type(t.cg_created_at), unicode)
-        self.assertIs(type(t.cg_updated_at), unicode)
-        self.assertIs(type(t.created_at), datetime.datetime)
+        self.assertIsNot(t.cg_created_at, None)
+        self.assertIsNot(t.cg_updated_at, None)
         self.assertTrue(t.id > 0)
         self.assertIsNone(t.ir_cache)
-        self.assertIs(type(t.pk), int)
         self.assertTrue(t.pk > 0)
         self.assertEqual(t.store, store)
         self.assertEqual(t.store_id, store.id)
@@ -178,9 +181,8 @@ class CategoryTest(TestCase):
         name = "TestCategory"
         store = Store.objects.get(pk=1)
         c = Category.objects.get(name=name)
-        self.assertIs(type(c.cg_created_at), unicode)
-        self.assertIs(type(c.cg_updated_at), unicode)
-        self.assertIs(type(c.created_at), datetime.datetime)
+        self.assertIsNot(c.cg_created_at, None)
+        self.assertIsNot(c.cg_updated_at, None)
         self.assertTrue(c.id > 0)
         self.assertIsNone(c.ir_cache)
         self.assertEqual(c.name, name)
@@ -200,9 +202,8 @@ class PageTest(TestCase):
         p = Page.objects.get(url_slug=url_slug)
         self.assertIsNone(p.campaign)
         self.assertIsNone(p.campaign_id)
-        self.assertIs(type(p.cg_created_at), unicode)
-        self.assertIs(type(p.cg_updated_at), unicode)
-        self.assertIs(type(p.created_at), datetime.datetime)
+        self.assertIsNot(p.cg_created_at, None)
+        self.assertIsNot(p.cg_updated_at, None)
         self.assertTrue(p.id > 0)
         self.assertIsNone(p.ir_cache)
         self.assertIsNone(p.last_published_at)
@@ -224,13 +225,10 @@ class FeedTest(TestCase):
     def properties_test(self):
         store = Store.objects.get(pk=1)
         f = Feed.objects.get(pk=9)
-        self.assertIs(type(f.cg_created_at), unicode)
-        self.assertIs(type(f.cg_updated_at), unicode)
-        self.assertIs(type(f.created_at), datetime.datetime)
+        self.assertIsNot(f.cg_created_at, None)
+        self.assertIsNot(f.cg_updated_at, None)
         self.assertTrue(f.id > 0)
         self.assertIsNone(f.ir_cache)
-        self.assertIs(type(f.pk), int)
-        self.assertTrue(f.pk > 0)
         self.assertEqual(f.store, store)
         self.assertEqual(f.store_id, store.id)
 
@@ -243,12 +241,30 @@ class TileTest(TestCase):
         store = Store.objects.get(pk=1)
         feed = Feed.objects.get(pk=9)
         t = Tile.objects.get(pk=10)
-        self.assertIs(type(t.cg_created_at), unicode)
-        self.assertIs(type(t.cg_updated_at), unicode)
-        self.assertIs(type(t.created_at), datetime.datetime)
+        self.assertIsNot(t.cg_created_at, None)
+        self.assertIsNot(t.cg_updated_at, None)
         self.assertTrue(t.id > 0)
         self.assertEqual(t.ir_cache, ir_cache)
-        self.assertIs(type(t.pk), int)
-        self.assertTrue(t.pk > 0)
         self.assertEqual(t.feed, feed)
+
+    def clean_no_products_test(self):
+        t = Tile.objects.get(pk=10)
+        t.clean()
+        self.assertTrue(t.in_stock)
+
+    def clean_one_product_test(self):
+        p = Product.objects.get(pk=12)
+        t = Tile.objects.get(pk=10)
+        t.products.add(p)
+        t.clean()
+        self.assertFalse(t.in_stock)
+
+    def clean_two_product_test(self):
+        p1 = Product.objects.get(pk=12)
+        p2 = Product.objects.get(pk=13)
+        t = Tile.objects.get(pk=10)
+        t.products.add(p1)
+        t.products.add(p2)
+        t.clean()
+        self.assertTrue(t.in_stock)
 
