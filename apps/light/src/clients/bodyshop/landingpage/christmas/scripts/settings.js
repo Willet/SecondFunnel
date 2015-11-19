@@ -46,17 +46,17 @@
       "name":"modern-gent"
     },
     {
-      "url":"http://www.thebodyshop-usa.com/gifts/womens-gifts.aspx",
+      "url":"http://m.thebodyshop-usa.com/gifts/womens-gifts.aspx",
       "displayName":"For Her",
       "name":"gifts-for-her"
     },
     {
-      "url":"http://www.thebodyshop-usa.com/gifts/mens-gifts.aspx",
+      "url":"http://m.thebodyshop-usa.com/gifts/mens-gifts.aspx",
       "displayName":"For Him",
       "name":"gifts-for-him"
     },
     {
-      "url":"http://www.thebodyshop-usa.com/gifts/view-all-gifts.aspx",
+      "url":"http://m.thebodyshop-usa.com/gifts/view-all-gifts.aspx",
       "displayName":"For Everyone",
       "name":"all-gifts"
     },
@@ -64,17 +64,17 @@
       "label":"By Price"
     },
     {
-      "url":"http://www.thebodyshop-usa.com/gifts/gifts-under-20.aspx",
+      "url":"http://m.thebodyshop-usa.com/gifts/gifts-under-20.aspx",
       "displayName":"Gifts Under $20",
       "name":"gifts-under-20"
     },
     {
-      "url":"http://www.thebodyshop-usa.com/gifts/gifts-20-to-50.aspx",
+      "url":"http://m.thebodyshop-usa.com/gifts/gifts-20-to-50.aspx",
       "displayName":"Gifts $20 - $50",
       "name":"gifts-20-to-50"
     },
     {
-      "url":"http://www.thebodyshop-usa.com/gifts/gifts-over-50.aspx",
+      "url":"http://m.thebodyshop-usa.com/gifts/gifts-over-50.aspx",
       "displayName":"Gifts Over $50",
       "name":"gifts-over-50"
     },
@@ -82,17 +82,17 @@
       "label":"By Category"
     },
     {
-      "url":"http://www.thebodyshop-usa.com/gifts/bath-body-gifts.aspx",
+      "url":"http://m.thebodyshop-usa.com/gifts/bath-body-gifts.aspx",
       "displayName":"Bath & Body",
       "name":"bath-body-gifts"
     },
     {
-      "url":"http://www.thebodyshop-usa.com/gifts/skin-care-gifts.aspx",
+      "url":"http://m.thebodyshop-usa.com/gifts/skin-care-gifts.aspx",
       "displayName":"Skin Care",
       "name":"skin-care-gifts"
     },
     {
-      "url":"http://www.thebodyshop-usa.com/gifts/fragrance-gifts.aspx",
+      "url":"http://m.thebodyshop-usa.com/gifts/fragrance-gifts.aspx",
       "displayName":"Fragrance",
       "name":"fragrance-gifts"
     }

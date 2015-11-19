@@ -582,7 +582,7 @@ div.loading {
         width: 100%;
         max-width: 1024px !important;
     }
-    .close {
+    .close, .dismiss {
         top: 0;
         right: 0;
         padding: 10px;
@@ -744,7 +744,6 @@ div.loading {
             font-size: 26px;
             line-height: 26px;
             .value {
-                font-size: 70%;
                 margin-left: 16px;
             }
         }
@@ -902,6 +901,7 @@ div.loading {
                 }
                 .price {
                     bottom: 2px;
+                    font-size: 14px;
                 }
             }
             .table {
@@ -1297,11 +1297,16 @@ div.loading {
             }
             .continue-shopping {
                 &:after {
-                    top: 7px;
+                    top: 8px;
                 }
             }
-            .corner {
+            .dismiss {
+                position: absolute;
                 padding: 5px;
+                line-height: 1;
+                &:hover, &:focus {
+                    cursor: pointer;
+                }
             }
             .bag-title {
                 position: absolute;
@@ -1484,7 +1489,6 @@ div.loading {
         width: 0;
         &.visible {
             display: block;
-            box-shadow: 40px 0px 20px 15px rgba(0,0,0,0.7);
         }
         &.expanded {
             width: 60%;
