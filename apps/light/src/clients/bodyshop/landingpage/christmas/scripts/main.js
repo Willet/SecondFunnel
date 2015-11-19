@@ -53,16 +53,14 @@ App.start();
     // Open mobile category menu
     $('.category-menu').click(function(ev){
         $('#category-area').addClass('visible');
-        setTimeout("$('#category-area').addClass('expanded'); App.vent.trigger('categories:expanded');", 10);
+        setTimeout("$('#category-area').addClass('expanded');", 10);
+        App.vent.trigger('categories:expanded')
     });
 
     // Close categories if clicked
     var $catCloser = $('<div/>', { id: 'category-closer' }).appendTo('#category-area');
     $catCloser.on('click', function () {
-        $catCloser.hide();
-        $('.category.expanded').removeClass('expanded');
-        $('#category-area.expanded').removeClass('expanded');
-        setTimeout("$('#category-area').removeClass('visible');", 300);
+        App.vent.trigger('categories:contracted');
     });
     App.vent.on('categories:expanded', function () { $catCloser.show() });
     App.vent.on('categories:contracted', function () { 

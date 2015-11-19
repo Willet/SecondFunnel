@@ -216,16 +216,8 @@
             <% include("image_tile_template") %>
         </script>
 
-        <script type="text/template" id="banner_tile_template">
-            <% include("image_tile_template") %>
-        </script>
-
-        <script type="text/template" id="recipe_tile_template">
-            <% include("image_tile_template") %>
-        </script>
-
         <script type="text/template" id="image_tile_template">
-            <% if (obj.template === "product" && obj.defaultImage.get('productShot') === true) { %>
+            <% if (obj.defaultImage.get('productShot') === true) { %>
             <div class='relative product-shot'>
                 <div>
                     <img class="focus" src="<%= obj.defaultImage.url %>" />
@@ -265,9 +257,6 @@
                     </div>
                 </div>
             </div>
-            <% if (App.option("debug", 0) > 1) { %>
-                <span class="type"><%= obj["content-type"] %></span>
-            <% } %>
         </script>
 
         <script type="text/template" id="similar_products_template">
@@ -367,7 +356,7 @@
 
         <script type="text/template" id="product_info_template">
             <div class="tagged-product">
-                <div class="gallery-main-image">
+                <div class="gallery-main-image <% if (obj.contentShot) { %>contentShot<% } %>">
                     <div class="gallery-swipe-left"></div>
                     <div class="gallery-swipe-right"></div>
                     <% include("product_galleryMainImage_template") %>
@@ -399,7 +388,7 @@
 
         <script type="text/template" id="image_info_template">
             <div class="tagged-product">
-                <div class="gallery-main-image">
+                <div class="gallery-main-image <% if (obj.contentShot) { %>contentShot<% } %>">
                     <div class="gallery-swipe-left"></div>
                     <div class="gallery-swipe-right"></div>
                     <% include("product_galleryMainImage_template") %>
@@ -420,11 +409,6 @@
                     <div class='buy'>
                         <% include("product_buy_template") %>
                     </div>
-                    <% if (obj['recipeName']) { %>
-                    <div class="back desktop-only">
-                        Back to <%- obj['recipeName'] %> Recipe
-                    </div>
-                    <% } %>
                     <% if (obj['collectionName']) { %>
                     <div class="back desktop-only">
                         Back to Collection Description
@@ -449,14 +433,16 @@
             <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
         </script>
 
+        <script type="text/template" id="image_preview_template">
+            <% include("product_preview_template") %>
+        </script>
+
         <script type="text/template" id="desktop_tagged_products">
             <div class="feature">
                 <div class="cell look-image-container">
                     <% if (template === "collection") { %>
                         <% var url = obj.expandedImage ? obj.expandedImage.url : image.url; %>
                         <img src="<%= url %>" alt="image" class="look-image" />
-                    <% } else if (template === "recipe") { %>
-                        <% include("recipe_template") %>
                     <% } else { %>
                         <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
                     <% } %>
@@ -479,8 +465,6 @@
                             <% var url = obj.expandedMobileImage ? obj.expandedMobileImage.url :
                                         ( obj.expandedImage ? obj.expandedImage.url : image.url); %>
                             <img src="<%= url %>" alt="image" class="look-image" />
-                        <% } else if (template === "recipe") { %>
-                            <% include("recipe_template") %>
                         <% } else { %>
                             <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
                         <% } %>

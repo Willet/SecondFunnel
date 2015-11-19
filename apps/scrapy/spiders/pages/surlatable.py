@@ -62,7 +62,7 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         return bool('surlatable.com/product/REC-' in response.url)
 
     def is_sold_out(self, response):
-        return bool(response.selector.css('#product-actions .product-addToCart').extract_first())
+        return not bool(response.selector.css('#product-actions .product-addToCart').extract_first())
 
     ### Scraper control
     @staticmethod

@@ -54,10 +54,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ProductView::onBeforeRender = ->
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
-        inlineLink = "<a href='#{@model.get('url')}'>#{linkName}</a>"
-        if @model.get("description")
-            truncatedDescription = _.truncate(@model.get("description"), char_limit, true, true)
-            @model.set("truncatedDescription", truncatedDescription + " " + inlineLink)
+        inlineLink = "<span class='more-link'><a href='#{@model.get('url')}'>#{linkName}</a></span>"
+        @model.set("truncatedDescription", "#{@model.get("description")} #{inlineLink}")
         return
 
     module.ProductView::replaceImages = ->
@@ -100,6 +98,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     # SLT shows one piece of content at a time
     _.extend(module.ExpandedContent::defaultOptions, featureSingleItem: true)
 
+    module.ExpandedContent::showImage = _.wrap(
+        module.ExpandedContent::showImage,
+        (showImage) ->
+            image = @model.get('defaultImage')
+            if not _.isEmpty(image.get('tagged-products'))
+                # show image with its tagged product details
+                @showProduct(image.get('tagged-products')[0])
+            else
+                # image will be displayed in .look-image-container, rendered by template
+                showImage.call(@)
+    )
+
     module.ExpandedContent::showThumbnails = ->
         # SLT thumbnails are always across the bottom
         if @taggedProducts.length > 0
@@ -117,9 +127,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     _.extend(module.CategoryView::events,
         "mouseover": (event) ->
-            App.heroArea.currentView.updateCategoryHeroImages(@model.get("name"))
+            if not App.support.mobile()
+                App.heroArea.currentView.updateCategoryHeroImages(@model.get("name"))
         "mouseout": (event) ->
-            App.heroArea.currentView.updateCategoryHeroImages(App.intentRank.currentCategory())
+            if not App.support.mobile()
+                App.heroArea.currentView.updateCategoryHeroImages(App.intentRank.currentCategory())
     )
 
     module.CategoryCollectionView::onShow = ->
@@ -136,4 +148,28 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else if sticky == 'mobile-only' and App.support.mobile()
                 @$el.parent().waypoint('sticky')
         return @
+
+    # Image Tile's are a replacement Image for the product tagged on the image
+    # If a need to repurpose Image Tiles arrises, this logic can be 
+    # gated by the attribute `productShot` instead of setting it.
+    module.ImageTile::initialize = ->
+        super
+        image = @get('defaultImage')
+        if not _.isEmpty(image.get('tagged-products'))
+            product = new module.Product(image.get('tagged-products')[0])
+            product.set(
+                contentShot: true
+                defaultImage: image
+                images: [image]
+            )
+            image.set(
+                productShot: true
+                'tagged-products': [product]
+            )
+
+    module.ImageTileView::templateHelpers = ->
+        image = @model.get('defaultImage')
+        if not _.isEmpty(image.get('tagged-products'))
+            # mimic product tile
+            return product: image.get('tagged-products')[0]
 

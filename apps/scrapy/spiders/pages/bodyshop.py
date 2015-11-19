@@ -53,8 +53,10 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
         l.add_value('in_stock', bool(not self.is_sold_out(response)))
         l.add_css('url', "link[rel='canonical']::attr(href)")
         l.add_css('name', 'h1.title::attr(title)')
-        l.add_css('sku', '.volume .title::text', re=r'(\d+)')
-        l.add_css('description', 'section.product-infos')
+        l.add_css('sku', '.itemQuantitySection .title::text', re=r'(\d+)')
+        description = sel.xpath("//section[@class='product-infos']/p[position()=2]/text()").extract()
+        print "description: {}".format(description)
+        l.add_value('description', description)
 
         old_price = sel.css('p.price.old::text').extract()
         new_price = sel.css('p.price.new::text').extract()

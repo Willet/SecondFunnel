@@ -121,14 +121,15 @@
     <div class='relative'>
         <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
     </div>
-    <% if (App.option("debug", 0) > 1) { %>
-        <span class="type"><%= obj["content-type"] %></span>
-    <% } %>
     <div class="overlay">
         <div class='table'>
             <div class='cell'>
-                <div class="buy">
-                    <% include("product_buy_template") %>
+                <div class="title">
+                    <span><%= obj.overlayText || "Get Details" %></span>
+                    <% if (obj.name || obj.title) { %>
+                    <br />
+                    <span class="tile-name"><%= obj.name || obj.title %></span>
+                    <% } %>
                 </div>
             </div>
         </div>
