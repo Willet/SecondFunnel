@@ -89,9 +89,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     _.extend(module.CategoryView::events,
         "mouseover": (event) ->
-            App.heroArea.currentView.updateCategoryHeroImages(@model.get("name"))
+            if not App.support.mobile()
+                App.heroArea.currentView.updateCategoryHeroImages(@model.get("name"))
         "mouseout": (event) ->
-            App.heroArea.currentView.updateCategoryHeroImages(App.intentRank.currentCategory())
+            if not App.support.mobile()
+                App.heroArea.currentView.updateCategoryHeroImages(App.intentRank.currentCategory())
     )
 
     module.CategoryCollectionView::onShow = ->
