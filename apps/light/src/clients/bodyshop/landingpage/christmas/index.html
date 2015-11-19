@@ -415,6 +415,7 @@
                     </div>
                     <% } %>
                 </div>
+                <div class="shopping-bag"></div>
             </div>
         </script>
 
@@ -435,6 +436,33 @@
 
         <script type="text/template" id="image_preview_template">
             <% include("product_preview_template") %>
+        </script>
+
+        <script type="text/template" id="bag_template">
+            <span class="close corner desktop-only"></span>
+            <div class="bag-title">
+                <span>ITEM ADDED TO BAG</span>
+                <span class="continue-shopping close mobile-only">continue shopping</span>
+            </div>
+            <div class="product-details">
+                <div class="image-holder desktop-only" data-id="<%= obj.defaultImage.id %>">
+                    <img class="image"  src="<%= obj.defaultImage.url %>" />
+                </div>
+                <div class='title'>
+                    <% include("product_title_template") %>
+                </div>
+                <div class='price'>
+                    <% include("product_price_template") %>
+                </div>
+            </div>
+            <div class="choices">
+                <div class="view-bag">
+                    <a class='button' href='//<% if (App.support.mobile()) { %>m<% } else { %>www<% } %>.thebodyshop-usa.com/h5/mybasket' target='_blank'>
+                        <span>VIEW BAG</span>
+                    </a>
+                </div>
+                <span class="continue-shopping close desktop-only">continue shopping</span>
+            </div>
         </script>
 
         <script type="text/template" id="desktop_tagged_products">

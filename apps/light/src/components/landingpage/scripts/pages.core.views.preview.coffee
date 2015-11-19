@@ -11,7 +11,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     $window = $(window)
     $document = $(document)
 
-    class module.ProductView extends Marionette.ItemView
+    class module.ProductView extends Marionette.LayoutView
         template: "#product_info_template"
         templates: ->
             templateRules = [
