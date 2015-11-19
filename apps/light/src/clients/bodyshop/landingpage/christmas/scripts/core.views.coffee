@@ -14,8 +14,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 url = if App.support.mobile() \
                       then 'http://m.thebodyshop-usa.com/h5/mybasket' \
                       else 'http://www.thebodyshop-usa.com/h5/mybasket'
-                
                 App.utils.openUrl(url)
+                return false
 
 
     class module.BSProductView extends module.ProductView

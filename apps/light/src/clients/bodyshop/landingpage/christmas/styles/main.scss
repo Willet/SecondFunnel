@@ -918,6 +918,47 @@ div.loading {
             }
         }
     }
+    .shopping-bag {
+        > div {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            background: $tbs-white-color;
+        }
+        .continue-shopping {
+            position: absolute;
+            float: none;
+            margin-right: 10%;
+            padding: 0;
+            color: #000;
+            font-size: 13px;
+            text-decoration: underline;
+            line-height: inherit;
+            &:after {
+                display: block;
+                position: absolute;
+                right: -12px;
+                width: 8px;
+                height: 10px;
+                content: '';
+                background: url(/static/light/bodyshop/landingpage/default/images/image-sprite.png);
+                background-position: 0px -272px;
+            }
+        }
+        .bag-title {
+            width: 100%;
+            height: 40px;
+            span:first-child {
+                font-family: $tbs-title-font;
+                font-weight: bold;
+                font-size: 24px;
+                text-transform: uppercase;
+                padding-left: 15px;
+            }
+        }
+    }
 }
 
 .stl-carousel, .tagged-product {
@@ -999,6 +1040,7 @@ div.loading {
         }
     }
 }
+
 
 // DESKTOP & TABLET ONLY
 @media screen and (min-width: 768px) {
@@ -1248,36 +1290,14 @@ div.loading {
     .previewContainer, .heroContainer {
         .shopping-bag {
             > div {
-                position: absolute;
                 top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
                 width: 50%;
                 height: 200px;
                 margin: auto;
-                z-index: 100;
-                background: #FFF;
             }
             .continue-shopping {
-                position: absolute;
-                float: none;
-                margin-right: 10%;
-                padding: 0;
-                color: #000;
-                font-size: 13px;
-                text-decoration: underline;
-                line-height: inherit;
                 &:after {
-                    display: block;
-                    position: absolute;
                     top: 7px;
-                    right: -12px;
-                    width: 8px;
-                    height: 10px;
-                    content: '';
-                    background: url(/static/light/bodyshop/landingpage/default/images/image-sprite.png);
-                    background-position: 0px -272px;
                 }
             }
             .corner {
@@ -1285,17 +1305,10 @@ div.loading {
             }
             .bag-title {
                 position: absolute;
-                width: 100%;
-                height: 40px;
-                background: #000;
+                background: $tbs-black-color;
                 span:first-child {
-                    font-family: $tbs-title-font;
-                    color: $tbs-white-color;
-                    font-weight: bold;
-                    font-size: 24px;
+                    color: #FFF;
                     line-height: 40px;
-                    text-transform: uppercase;
-                    padding-left: 15px;
                 }
             }
             .product-details {
@@ -1337,8 +1350,8 @@ div.loading {
                     text-align: center;
                     display: inline-block;
                     span {
-                        background: #000;
-                        color: #FFF;
+                        background: $tbs-black-color;
+                        color: $tbs-white-color;
                         padding: 7px 15%;
                         font-weight: bold;
                         font-size: 12px;
@@ -1925,49 +1938,20 @@ div.loading {
         }
         .shopping-bag {
             > div {
-                position: absolute;
-                left: 0;
-                right: 0;
-                bottom: 0;
                 height: auto;
-                z-index: 100;
-                background: #FFF;
             }
             .continue-shopping {
-                position: absolute;
                 width: auto;
-                float: none;
-                margin-right: 10%;
-                padding: 0;
-                color: #000;
-                font-size: 13px;
-                text-decoration: underline;
-                line-height: inherit;
                 text-transform: none;
                 &:after {
-                    display: block;
-                    position: absolute;
                     top: 16px;
-                    right: -12px;
-                    width: 8px;
-                    height: 10px;
-                    content: '';
-                    background: url(/static/light/bodyshop/landingpage/default/images/image-sprite.png);
-                    background-position: 0px -272px;
                 }
             }
             .bag-title {
-                width: 100%;
-                height: 40px;
                 background: $tbs-white-color;
                 line-height: 40px;
                 span:first-child {
-                    font-family: $tbs-title-font;
                     color: $tbs-black-color;
-                    font-weight: bold;
-                    font-size: 24px;
-                    text-transform: uppercase;
-                    padding-left: 15px;
                 }
             }
             .product-details {
