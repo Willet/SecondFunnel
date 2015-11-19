@@ -10,12 +10,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#bag_template"
 
         events:
-            "click .view-bag": (ev) ->
+            "click .view-bag": ->
                 url = if App.support.mobile() \
-                      then 'http://m.thebodyshop-usa.com/h5/mybasket' \
-                      else 'http://www.thebodyshop-usa.com/h5/mybasket'
+                      then 'http://www.thebodyshop-usa.com/checkout/mybasket.aspx' \
+                      else 'http://m.thebodyshop-usa.com/checkout/mybasket.aspx'
                 App.utils.openUrl(url)
                 return false
+            "click .dismiss": ->
+                @triggerMethod('click:closeBag')
 
 
     class module.BSProductView extends module.ProductView
@@ -81,13 +83,17 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return false
             )
 
-        onBeforeRender = ->
+        childEvents:
+            "click:closeBag": (childView) ->
+                @shoppingBag.empty()
+
+        onBeforeRender: ->
             linkName = "More on #{@model.get('name') or @model.get('title')} »"
             inlineLink = "<span class='more-link'><a href='#{@model.get('url')}'>#{linkName}</a></span>"
             @model.set("truncatedDescription", "#{@model.get("description")} #{inlineLink}")
             return
 
-        replaceImages = ->
+        replaceImages: ->
             $container = @$el.find(".main-image-container")
             if $container.is(":visible")
                 if App.support.mobile()
@@ -114,7 +120,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     $image.css("background-image", "url('#{imageUrl}')")
             return
 
-        resizeProductImages = ->
+        resizeProductImages: ->
             productImages = @$el.find(".main-image .hi-res")
             if productImages.length > 0 and productImages.first().is("div")
                 # Let the browser execute the resizing window callbacks
