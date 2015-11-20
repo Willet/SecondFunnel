@@ -61,9 +61,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         if _.contains(html, "addtobagsuccess")
                             @addToBagSuccessHandler()
                         else
-                            @addToBagFailureHanler(textStatus)
+                            @addToBagFailureHandler(textStatus)
                     ).fail((jqXHR, textStatus, errorThrown) =>
-                        @addToBagFailureHanler(textStatus)
+                        @addToBagFailureHandler(textStatus)
                     )
                     # Stop propogation to avoid double-opening url
                     return false
@@ -76,7 +76,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         addToBagSuccessHandler: ->
             @shoppingBag.show(new module.BagView(model: @model))
 
-        addToBagFailureHanler: (error) ->
+        addToBagFailureHandler: (error) ->
             if App.option('debug', false)
                 console.error(
                     """Error adding product to cart:
