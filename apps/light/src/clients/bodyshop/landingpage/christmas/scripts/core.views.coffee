@@ -14,7 +14,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 url = if App.support.mobile() \
                       then 'http://m.thebodyshop-usa.com/checkout/mybasket.aspx' \
                       else 'http://www.thebodyshop-usa.com/checkout/mybasket.aspx'
-                App.utils.openUrl(url)
+                App.utils.openUrl(url, '_top')
                 return false
             "click .dismiss": ->
                 @triggerMethod('click:closeBag')
@@ -32,20 +32,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         events:
             _.extend({}, module.ProductView::events,
                 "click .buy": (ev) ->
-                    $evTarget = $(ev.target)
-                    if $evTarget.is("a")
-                        $target = $evTarget
-                    else if $evTarget.children("a").length
-                        $target = $evTarget.children("a")
-                    else if $evTarget.parents("a").length
-                        $target = $evTarget.parents("a")
-                    else
-                        return false
-
-                    if $target.hasClass('find-store')
-                        @triggerMethod('click:findStore')
-                    else
-                        @triggerMethod('click:buy')
+                    @triggerMethod('click:buy')
 
                     productCheckUrl = "http://www.thebodyshop-usa.com/ajax/addsingleproductcheck.aspx"
                     params =
