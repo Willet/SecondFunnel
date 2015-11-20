@@ -9,6 +9,25 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.BagView extends Marionette.ItemView
         template: "#bag_template"
 
+        onShow: () ->
+            src = App.utils.urlAddParams("http://www.thebodyshop-usa.com/ajax/addsingleproduct.aspx",
+                varcode: @model.get('sku')
+                qty: 1
+            )
+            try
+                if App.support.mobile()
+                    $("<iframe />").prependTo(@$el).attr("src", src)
+                else
+                    $("<iframe />").appendTo(@$el, '.product-details').attr("src", src)
+            catch err               
+                if App.option('debug', false)
+                    console.error(
+                        """Error adding product to cart:
+                        product: %O
+                        error: %O""",
+                        @model, err
+                    )
+
         events:
             "click .view-bag": ->
                 url = if App.support.mobile() \
@@ -33,6 +52,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             _.extend({}, module.ProductView::events,
                 "click .buy": (ev) ->
                     @triggerMethod('click:buy')
+                    @shoppingBag.show(new module.BagView(model: @model))
 
                     ###
                     $.ajax("http://www.thebodyshop-usa.com/ajax/addsingleproductcheck.aspx",
@@ -48,7 +68,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     ).fail(->
                         return
                     )
-                    ###
 
                     $.ajax("http://www.thebodyshop-usa.com/ajax/addsingleproduct.aspx",
                         method: "POST"
@@ -65,6 +84,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     ).fail((jqXHR, textStatus, errorThrown) =>
                         @addToBagFailureHandler(textStatus)
                     )
+                    ###
                     # Stop propogation to avoid double-opening url
                     return false
             )
@@ -72,18 +92,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         childEvents:
             "click:closeBag": (childView) ->
                 @shoppingBag.empty()
-
-        addToBagSuccessHandler: ->
-            @shoppingBag.show(new module.BagView(model: @model))
-
-        addToBagFailureHandler: (error) ->
-            if App.option('debug', false)
-                console.error(
-                    """Error adding product to cart:
-                    product: %O
-                    error: %O""",
-                    @model, error
-                )
 
         onBeforeRender: ->
             linkName = "More on #{@model.get('name') or @model.get('title')} »"

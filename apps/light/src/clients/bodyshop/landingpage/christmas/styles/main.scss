@@ -965,6 +965,11 @@ div.loading {
                 padding-left: 15px;
             }
         }
+        iframe {
+            border: none;
+            width: 100%;
+            height: 50%;
+        }
     }
 }
 
@@ -1299,7 +1304,7 @@ div.loading {
             > div {
                 top: 0;
                 width: 50%;
-                height: 200px;
+                height: 210px;
                 margin: auto;
             }
             .continue-shopping {
@@ -1326,7 +1331,7 @@ div.loading {
             .product-details {
                 width: 100%;
                 height: 100%;
-                padding: 60px 60px 0 20px;
+                padding: 60px 20px 0;
                 border: 0 2px 2px 2px;
                 border-style: solid;
                 border-color:  $tbs-grey-color;
@@ -1956,6 +1961,7 @@ div.loading {
                 }
             }
             .bag-title {
+                position: relative;
                 background: $tbs-white-color;
                 line-height: 40px;
                 span:first-child {
@@ -1981,6 +1987,11 @@ div.loading {
                         color: white;
                     }
                 }
+            }
+            iframe {
+                width: 100%;
+                height: 30px;
+                display: block;
             }
         }
     }
