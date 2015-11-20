@@ -947,6 +947,13 @@ div.loading {
                 background-position: 0px -272px;
             }
         }
+        .product-details {
+            .price {
+                .value {
+                    display: none;
+                }
+            }
+        }
         .bag-title {
             width: 100%;
             height: 40px;
@@ -1337,9 +1344,6 @@ div.loading {
                 }
                 .title {
                     height: 30px;
-                }
-                .value {
-                    display: none;
                 }
             }
             .choices {
