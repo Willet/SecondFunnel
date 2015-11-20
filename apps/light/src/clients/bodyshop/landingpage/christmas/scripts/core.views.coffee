@@ -16,7 +16,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             )
             try
                 if App.support.mobile()
-                    $("<iframe />").prependTo(@$el).attr("src", src)
+                    ajaxHolder = $("<div />").addClass('ajaxHolder').prependTo(@$el)
+                    $("<iframe />").appendTo(ajaxHolder).attr("src", src)
                 else
                     $("<iframe />").appendTo(@$el, '.product-details').attr("src", src)
             catch err               

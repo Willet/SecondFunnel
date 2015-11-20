@@ -1988,10 +1988,17 @@ div.loading {
                     }
                 }
             }
-            iframe {
+            .ajaxHolder {
                 width: 100%;
-                height: 30px;
+                height: 40px;
+                overflow-y: hidden;
                 display: block;
+            }
+            iframe {
+                display: block;
+                width: 100%;
+                height: auto;
+                margin-top: -8px;
             }
         }
     }
