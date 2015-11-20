@@ -12,8 +12,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         events:
             "click .view-bag": ->
                 url = if App.support.mobile() \
-                      then 'http://www.thebodyshop-usa.com/checkout/mybasket.aspx' \
-                      else 'http://m.thebodyshop-usa.com/checkout/mybasket.aspx'
+                      then 'http://m.thebodyshop-usa.com/checkout/mybasket.aspx' \
+                      else 'http://www.thebodyshop-usa.com/checkout/mybasket.aspx'
                 App.utils.openUrl(url)
                 return false
             "click .dismiss": ->
