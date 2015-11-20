@@ -19,7 +19,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     ajaxHolder = $("<div />").addClass('ajaxHolder').prependTo(@$el)
                     $("<iframe />").appendTo(ajaxHolder).attr("src", src)
                 else
-                    $("<iframe />").appendTo(@$el, '.product-details').attr("src", src)
+                    $("<iframe />").appendTo(@$el.find('.product-details')).attr("src", src)
             catch err               
                 if App.option('debug', false)
                     console.error(
