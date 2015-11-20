@@ -1,10 +1,12 @@
 from django.core.management import call_command
 from django.db.models.base import ModelBase
 from django.db import models
+from django.core.exceptions import ValidationError, ObjectDoesNotExist, MultipleObjectsReturned
 import mock
 import datetime
 import time
 import factory
+import mock
 from decimal import *
 from django.test import TestCase
 
@@ -110,6 +112,29 @@ class ProductTest(TestCase):
         Product.clean(p)
         self.assertEqual(p.default_image, i2)
 
+    def blank_clean_fields_test(self):
+        p = Product.objects.get(pk=3)
+        p.price = None
+        p.clean_fields()
+        self.assertFalse(p.price)
+
+    def type_clean_fields_test(self):
+        price = 19.99
+        p = Product.objects.get(pk=3)
+        p.clean_fields()
+        self.assertNotEqual(p.price, price)
+
+    def error_clean_fields_test(self):
+        with self.assertRaises(ValidationError):
+            p = Product.objects.get(pk=3)
+            p.price = "Error"
+            p.clean_fields()
+
+    def exclude_clean_fields_test(self):
+        p = Product.objects.get(pk=3)
+        p.price = "Error"
+        p.clean_fields(["price"])
+
 class ProductImageTest(TestCase):
     # ProductImage has no methods
     fixtures = ['assets_models.json']
@@ -191,6 +216,27 @@ class CategoryTest(TestCase):
         self.assertEqual(c.store_id, store.id)
         self.assertIsNone(c.url)
 
+    def clean_fields_test(self):
+        for i in range(2):
+            with self.assertRaises(ValidationError):
+                name = "TestCategory"
+                store = Store.objects.get(pk=1)
+                c = Category.objects.get(name=name)
+                c2 = Category.objects.create(name=name, store=store)
+                c.clean_fields()
+
+    def clean_fields_same_pk_test(self):
+        for i in range(2):
+            with self.assertRaises(ValidationError):
+                name = "TestCategory"
+                store = Store.objects.get(pk=1)
+                c = Category.objects.get(name=name)
+                c2 = Category.objects.create(name="OtherName", store=store)
+                c2.pk = 7
+                c2.save()
+                c.clean_fields()
+        
+
 class PageTest(TestCase):
     # Page has no methods
     fixtures = ['assets_models.json']
@@ -267,4 +313,37 @@ class TileTest(TestCase):
         t.products.add(p2)
         t.clean()
         self.assertTrue(t.in_stock)
+
+    def product_different_store_save_test(self):
+        t = Tile.objects.get(pk=10)
+        p = Product.objects.get(pk=12)
+        store = Store.objects.get(pk=14)
+        t.products.add(p)
+        p.store = store
+        with self.assertRaises(ValidationError):
+            p.save()
+            t.clean_fields()
+
+    def product_different_store_add_test(self):
+        with self.assertRaises(ValidationError):
+            p = Product.objects.get(pk=15)
+            t = Tile.objects.get(pk=10)
+            t.products.add(p)
+
+    def content_different_store_save_test(self):
+        t = Tile.objects.get(pk=10)
+        c = Content.objects.get(pk=6)
+        store = Store.objects.get(pk=14)
+        t.content.add(c)
+        c.store = store
+        with self.assertRaises(ValidationError):
+            c.save()
+            t.clean_fields()
+
+    def content_different_store_add_test(self):
+        with self.assertRaises(ValidationError):
+            c = Content.objects.get(pk=16)
+            t = Tile.objects.get(pk=10)
+            t.content.add(c)
+            t.clean_fields()
 

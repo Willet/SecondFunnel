@@ -13,6 +13,19 @@
     }
   },
   {
+    "model": "assets.Store",
+    "pk": 14,
+    "fields": {
+      "name": "MyOtherStore",
+      "description": "",
+      "slug": "store_slug", 
+      "default_theme": null,
+      "default_page": null,
+      "public_base_url": "gifts.mystore.com",
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
     "model": "assets.Theme",
     "pk": 2,
     "fields": {
@@ -54,6 +67,17 @@
     }
   },
   {
+    "model": "assets.Product",
+    "pk": 15,
+    "fields": {
+      "name": "OtherDefault",
+      "store": 14,
+      "price": 29.99,
+      "in_stock": true,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
     "model": "assets.ProductImage",
     "pk": 4,
     "fields": {
@@ -87,6 +111,16 @@
       "url": "/content.jpg",
       "source": "upload",
       "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Content",
+    "pk": 16,
+    "fields": {
+      "url": "/content.jpg",
+      "source": "upload",
+      "store": 14,
       "updated_at": "2015-11-18 00:43:26"
     }
   },
