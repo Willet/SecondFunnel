@@ -34,38 +34,37 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 "click .buy": (ev) ->
                     @triggerMethod('click:buy')
 
-                    productCheckUrl = "http://www.thebodyshop-usa.com/ajax/addsingleproductcheck.aspx"
-                    params =
-                        "varcode": @model.get('sku'),
-                        "qty": 1,
-                        "maxqty": ""
-                    
-                    #checkResult = ajaxrequest('POST', productCheckUrl, params) #psuedocode
-                    checkResult = {
-                        'data': '<div id="divProduct" data="true"></div>'
-                    }
-                    # Expected response data: `<div id="divProduct" data="true"></div>`
+                    ###
+                    $.ajax("http://www.thebodyshop-usa.com/ajax/addsingleproductcheck.aspx",
+                        method: "POST"
+                        cache: false
+                        data:
+                            varcode: @model.get('sku')
+                            qty: 1
+                            maxqty: ""
+                    ).done(->
+                        # Expected response data: `<div id="divProduct" data="true"></div>` 
 
-                    productAddUrl = "http://www.thebodyshop-usa.com/ajax/addsingleproduct.aspx"
-                    params =
-                        "varcode": @model.get('sku'),
-                        "qty": 1
-                    
-                    #addResult = ajaxrequest('GET', productAddUrl, params)
-                    addResult = {
-                        'data': '<div id="addtobagsuccess" style="display:none"></div>'
-                    }
-                    # Expected response data: `<div id="addtobagsuccess" style="display:none"></div>`
+                    ).fail(->
+                        return
+                    )
+                    ###
 
-                    if _.contains(addResult.data, "addtobagsuccess")
-                        @shoppingBag.show(new module.BagView(model: @model))
-                    else if App.option('debug', false)
-                        console.error(
-                            """Error adding product to cart:
-                            product: %O
-                            response: """,
-                            @model, addResult
-                        )
+                    $.ajax("http://www.thebodyshop-usa.com/ajax/addsingleproduct.aspx",
+                        method: "POST"
+                        cache: false
+                        data:
+                            varcode: @model.get('sku')
+                            qty: 1
+                    ).done((html, textStatus, jqXHR) =>
+                        # Expected response data: `<div id="addtobagsuccess" style="display:none"></div>`
+                        if _.contains(html, "addtobagsuccess")
+                            @addToBagSuccessHandler()
+                        else
+                            @addToBagFailureHanler(textStatus)
+                    ).fail((jqXHR, textStatus, errorThrown) =>
+                        @addToBagFailureHanler(textStatus)
+                    )
                     # Stop propogation to avoid double-opening url
                     return false
             )
@@ -73,6 +72,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         childEvents:
             "click:closeBag": (childView) ->
                 @shoppingBag.empty()
+
+        addToBagSuccessHandler: ->
+            @shoppingBag.show(new module.BagView(model: @model))
+
+        addToBagFailureHanler: (error) ->
+            if App.option('debug', false)
+                console.error(
+                    """Error adding product to cart:
+                    product: %O
+                    error: %O""",
+                    @model, error
+                )
 
         onBeforeRender: ->
             linkName = "More on #{@model.get('name') or @model.get('title')} »"
