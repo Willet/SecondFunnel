@@ -264,8 +264,62 @@ class PageTest(TestCase):
         self.assertEqual(p.theme_settings_fields, [('image_tile_wide', 0.0), ('desktop_hero_image', ''), ('mobile_hero_image', ''), ('column_width', 256), ('social_buttons', []), ('enable_tracking', 'true')])
         self.assertEqual(p.url_slug, url_slug)
 
+    def deepcopy_test(self):
+        name = "TestPage"
+        url_slug = "test_page"
+        store = Store.objects.get(pk=1)
+        p = Page.objects.get(url_slug=url_slug)
+        feed = Feed.objects.get(pk=9)
+        p.feed = feed # feed must be added for deepcopy to execute
+        pp = p.deepcopy()
+        self.assertIsNone(pp.campaign)
+        self.assertIsNone(pp.campaign_id)
+        self.assertIsNot(pp.cg_created_at, None)
+        self.assertIsNot(pp.cg_updated_at, None)
+        self.assertTrue(pp.id > 0)
+        self.assertIsNone(pp.ir_cache)
+        self.assertIsNone(pp.last_published_at)
+        self.assertIsNone(pp.legal_copy)
+        self.assertEqual(pp.name, name)
+        self.assertTrue(pp.pk > 0)
+        self.assertEqual(pp.feed.tiles.first().template, p.feed.tiles.first().template)
+        self.assertEqual(pp.store, store)
+        self.assertEqual(pp.store_id, store.id)
+        self.assertIsNone(pp.theme)
+        self.assertIsNone(pp.theme_id)
+        self.assertIs(type(pp.theme_settings), dict)
+        self.assertEqual(pp.theme_settings_fields, [('image_tile_wide', 0.0), ('desktop_hero_image', ''), ('mobile_hero_image', ''), ('column_width', 256), ('social_buttons', []), ('enable_tracking', 'true')])
+        self.assertEqual(pp.url_slug, "{}_1".format(url_slug))
+
+    def copy_test(self):
+        name = "TestPage"
+        url_slug = "test_page"
+        store = Store.objects.get(pk=1)
+        p = Page.objects.get(url_slug=url_slug)
+        feed = Feed.objects.get(pk=9)
+        p.feed = feed
+        pp = p.copy()
+        self.assertIsNone(pp.campaign)
+        self.assertIsNone(pp.campaign_id)
+        self.assertIsNot(pp.cg_created_at, None)
+        self.assertIsNot(pp.cg_updated_at, None)
+        self.assertTrue(pp.id > 0)
+        self.assertIsNone(pp.ir_cache)
+        self.assertIsNone(pp.last_published_at)
+        self.assertIsNone(pp.legal_copy)
+        self.assertEqual(pp.name, name)
+        self.assertTrue(pp.pk > 0)
+        self.assertEqual(pp.feed, p.feed)
+        self.assertEqual(pp.store, store)
+        self.assertEqual(pp.store_id, store.id)
+        self.assertIsNone(pp.theme)
+        self.assertIsNone(pp.theme_id)
+        self.assertIs(type(pp.theme_settings), dict)
+        self.assertEqual(pp.theme_settings_fields, [('image_tile_wide', 0.0), ('desktop_hero_image', ''), ('mobile_hero_image', ''), ('column_width', 256), ('social_buttons', []), ('enable_tracking', 'true')])
+        self.assertEqual(pp.url_slug, "{}_1".format(url_slug))
+
+
 class FeedTest(TestCase):
-    # Feed has no methods
     fixtures = ['assets_models.json']
 
     def properties_test(self):
@@ -277,6 +331,85 @@ class FeedTest(TestCase):
         self.assertIsNone(f.ir_cache)
         self.assertEqual(f.store, store)
         self.assertEqual(f.store_id, store.id)
+
+    def find_tiles_content_test(self):
+        f = Feed.objects.get(pk=9)
+        t = Tile.objects.get(pk=10)
+        c = Content.objects.get(pk=6)
+        t.content.add(c)
+        self.assertEqual(set(f.find_tiles(content=c)), set([t]))
+
+    def find_tiles_product_test(self):
+        f = Feed.objects.get(pk=9)
+        t = Tile.objects.get(pk=10)
+        p = Product.objects.get(pk=12)
+        t.products.add(p)
+        self.assertEqual(set(f.find_tiles(product=p)), set([t]))
+
+    def find_tiles_none_test(self):
+        f = Feed.objects.get(pk=9)
+        t = Tile.objects.get(pk=10)
+        self.assertEqual(set(f.find_tiles()), set([t]))
+
+    def find_tiles_no_product_test(self):
+        f = Feed.objects.get(pk=9)
+        t = Tile.objects.get(pk=10)
+        p = Product.objects.get(pk=12)
+        self.assertEqual(set(f.find_tiles(product=p)), set([]))
+
+    def find_tiles_no_content_test(self):
+        f = Feed.objects.get(pk=9)
+        t = Tile.objects.get(pk=10)
+        c = Content.objects.get(pk=6)
+        self.assertEqual(set(f.find_tiles(content=c)), set([]))
+
+    def get_in_stock_tiles_test(self):
+        f = Feed.objects.get(pk=9)
+        t = Tile.objects.get(pk=10)
+        self.assertEqual(set(f.get_in_stock_tiles()), set([t]))
+
+    def get_in_stock_tiles_empty_test(self):
+        f = Feed.objects.get(pk=9)
+        t = Tile.objects.get(pk=10)
+        p = Product.objects.get(pk=12)
+        p.in_stock = False
+        t.products.add(p)
+        self.assertEqual(set(f.get_in_stock_tiles()), set([]))
+
+    def get_all_products_test(self):
+        f = Feed.objects.get(pk=9)
+        t = Tile.objects.get(pk=10)
+        p = Product.objects.get(pk=12)
+        t.products.add(p)
+        self.assertEqual(set(f.get_all_products()), set([p]))
+
+    def get_all_products_no_products_test(self):
+        f = Feed.objects.get(pk=9)
+        self.assertEqual(set(f.get_all_products()), set([]))
+
+    def test_product_image_add(self):
+        f = Feed.objects.get(pk=9)
+        p = Product.objects.get(pk=12)
+        i = ProductImage.objects.get(pk=4)
+        p.default_image = i
+        p.product_images.add(i)
+        f.add(p)
+        self.assertEqual(set(f.get_all_products()), set([p]))
+
+    def test_add(self):
+        f = Feed.objects.get(pk=9)
+        p = Product.objects.get(pk=12)
+        i = ProductImage.objects.get(pk=4)
+        p.default_image = i
+        p.product_images.add(i)
+        f.add(p)
+        self.assertEqual(set(f.get_all_products()), set([p]))
+
+    def deepdelete_test(self):
+        f = Feed.objects.get(pk=9)
+        f._deepdelete_tiles(f.tiles.all())
+        self.assertEqual(set(f.get_in_stock_tiles()), set([]))
+
 
 class TileTest(TestCase):
     # Tile has no methods
