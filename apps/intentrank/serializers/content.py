@@ -56,11 +56,13 @@ class ProductSerializer(IRSerializer):
             # Order images
             if product.attributes.get('product_images_order'):
                 # If image ordering is explicitly given, use it
+                ordered_images = []
                 for i in product.attributes.get('product_images_order', []):
                     try:
-                        product_images.append(find_where(product_images, i))
+                        ordered_images.append(find_where(product_images, i))
                     except ValueError:
                         pass  # could not find matching product image
+                product_images = ordered_images
             elif product.default_image:
                 # If default image is in product_images, move it to front
                 try:

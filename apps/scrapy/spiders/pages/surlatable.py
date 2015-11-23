@@ -71,14 +71,26 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
                              url).group(1)
         return cleaned_url
 
-    @staticmethod
-    def choose_default_image(product):
-        for p in product.product_images.all():
-            if not p.is_product_shot:
-                return p
-        return product.product_images.first()
+    def sort_images_order(self, product_images):
+        # Urls have format:
+        # http://www.surlatable.com/.../PRO-2166064_pdp/touchzoom_variation_Default_view_4_1700x1700.
+        # Need to order them based on view #
+        r = re.compile(r"view_(\d+)_\d+x\d+\.$")
+        def get_image_number(image):
+            num = r.search(image.original_url).group(1)
+            return int(num)
+
+        return sorted(product_images, key=get_image_number)
+
+    def choose_default_image(self, product):
+        images = self.sort_images_order(product.product_images.all())
+        return images[0]
 
     def on_product_finished(self, product):
+        sorted_images = self.sort_images_order(product.product_images.all())
+        product.attributes['product_images_order'] = [i.id for i in sorted_images]
+        product.save()
+
         if self.skip_tiles:
             # update tiles now
             for tile in product.tiles.all():
