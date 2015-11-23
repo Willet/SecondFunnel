@@ -1064,7 +1064,7 @@ class Feed(BaseModel):
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. magic, priority
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently unused by any algo
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
-    is_finite = models.BooleanField(default=False)
+    is_finite = models.BooleanField(default=True)
 
     # Fields used as instructions to update need
     source_urls = ListField(blank=True, type=unicode) # List of urls feed is generated from, allowed to be empty
