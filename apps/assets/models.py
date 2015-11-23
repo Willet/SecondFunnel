@@ -697,6 +697,8 @@ class Content(BaseModel):
             other['tagged-products'] = [Product.objects.get(id=x) for x in
                                         other['tagged-products']]
 
+        # WARNING THIS METHOD DOESN'T EXIST IN THE SUPERCLASS
+        # Error: AttributeError: 'super' object has no attribute 'update'
         return super(Content, self).update(other=other)
 
 

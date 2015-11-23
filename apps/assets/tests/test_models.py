@@ -12,6 +12,7 @@ from django.test import TestCase
 
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \
                                ProductImage, Feed, Tile, Content
+from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource
 
 """
 We are avoiding fixtures because they are so slow:
@@ -67,6 +68,10 @@ class ThemeTest(TestCase):
         self.assertEqual(t.name, "Default")
         self.assertTrue(t.pk > 0)
         self.assertTrue(len(t.template) > 0)
+
+    def load_theme_test(self):
+        t = Theme.objects.get(pk=2)
+        self.assertEqual(t.load_theme(), u'mystore/landingpage/default/index.html')
 
 class ProductTest(TestCase):
     # Product has a method - clean
@@ -151,6 +156,43 @@ class ProductImageTest(TestCase):
         self.assertEqual(product_image.url, url)
         self.assertEqual(product_image.original_url, original_url)
 
+    def save_test(self):
+        t = ProductImage.objects.get(pk=4)
+        self.assertIsNone(t.width)
+        self.assertIsNone(t.height)
+        with self.assertRaises(KeyError):
+            self.assertIsNone(t.attributes['sizes'])
+        t.save()
+        self.assertEqual(t.width, 0)
+        self.assertEqual(t.height, 0)
+
+    def save_dimensions_test(self):
+        t = ProductImage.objects.get(pk=4)
+        t.attributes['sizes'] = {
+            "master": {
+                "width": 640,
+                "height": 480
+            }
+        }
+        self.assertIsNone(t.width)
+        self.assertIsNone(t.height)
+        self.assertIsNotNone(t.attributes['sizes'])
+        t.save()
+        self.assertEqual(t.width, 640)
+        self.assertEqual(t.height, 480)
+        self.assertEqual(t.orientation, "landscape")
+
+    @mock.patch('apps.imageservice.utils.delete_cloudinary_resource', mock.Mock())
+    def delete_test(self):
+        url = "/content.jpg"
+        t = ProductImage.objects.get(pk=4)
+        t.delete()
+
+    def image_tag_test(self):
+        t = ProductImage.objects.get(pk=4)
+        url = "/content.jpg"
+        self.assertEqual(t.image_tag(), u'<img src="{}" style="width: 400px;"/>'.format(url))
+
 class TagTest(TestCase):
     # Tag has no methods
     fixtures = ['assets_models.json']
@@ -183,6 +225,18 @@ class ContentTest(TestCase):
         self.assertEqual(t.store, store)
         self.assertEqual(t.store_id, store.id)
 
+    def image_tag_test(self):
+        t = Content.objects.get(pk=6)
+        url = "/content.jpg"
+        self.assertEqual(t.image_tag(), u'<img src="{}" style="width: 400px;"/>'.format(url))
+
+    # the update function is broken
+
+    def update_test(self):
+        t = Content.objects.get(pk=6)
+        self.assertEqual(t.update(), t)
+    #     t.update(author="John")
+
 class ImageTest(TestCase):
     # Image has no methods
     fixtures = ['assets_models.json']
@@ -197,6 +251,38 @@ class ImageTest(TestCase):
         self.assertTrue(t.pk > 0)
         self.assertEqual(t.store, store)
         self.assertEqual(t.store_id, store.id)
+
+    def save_test(self):
+        t = Image.objects.get(pk=6)
+        self.assertIsNone(t.width)
+        self.assertIsNone(t.height)
+        with self.assertRaises(KeyError):
+            self.assertIsNone(t.attributes['sizes'])
+        t.save()
+        self.assertEqual(t.width, 0)
+        self.assertEqual(t.height, 0)
+
+    def save_dimensions_test(self):
+        t = Image.objects.get(pk=6)
+        t.attributes['sizes'] = {
+            "master": {
+                "width": 640,
+                "height": 480
+            }
+        }
+        self.assertIsNone(t.width)
+        self.assertIsNone(t.height)
+        self.assertIsNotNone(t.attributes['sizes'])
+        t.save()
+        self.assertEqual(t.width, 640)
+        self.assertEqual(t.height, 480)
+
+    @mock.patch('apps.imageservice.utils.delete_cloudinary_resource', mock.Mock())
+    def delete_test(self):
+        url = "/content.jpg"
+        t = Image.objects.get(pk=6)
+        t.delete()
+
 
 class CategoryTest(TestCase):
     # Category has no methods
@@ -317,6 +403,37 @@ class PageTest(TestCase):
         self.assertIs(type(pp.theme_settings), dict)
         self.assertEqual(pp.theme_settings_fields, [('image_tile_wide', 0.0), ('desktop_hero_image', ''), ('mobile_hero_image', ''), ('column_width', 256), ('social_buttons', []), ('enable_tracking', 'true')])
         self.assertEqual(pp.url_slug, "{}_1".format(url_slug))
+
+    def replace_test(self):
+        name = "TestPage"
+        url_slug = "test_page"
+        store = Store.objects.get(pk=1)
+        p = Page.objects.get(url_slug=url_slug)
+        feed = Feed.objects.get(pk=9)
+        p.feed = feed
+        pp = Page.objects.get(pk=17)
+        pp.replace(p)
+        # assure product has been deleted
+        with self.assertRaises(ObjectDoesNotExist):
+            Page.objects.get(pk=8)
+        self.assertIsNone(pp.campaign)
+        self.assertIsNone(pp.campaign_id)
+        self.assertIsNot(pp.cg_created_at, None)
+        self.assertIsNot(pp.cg_updated_at, None)
+        self.assertTrue(pp.id > 0)
+        self.assertIsNone(pp.ir_cache)
+        self.assertIsNone(pp.last_published_at)
+        self.assertIsNone(pp.legal_copy)
+        self.assertEqual(pp.name, name)
+        self.assertTrue(pp.pk > 0)
+        self.assertFalse(pp.feed)
+        self.assertEqual(pp.store, store)
+        self.assertEqual(pp.store_id, store.id)
+        self.assertIsNone(pp.theme)
+        self.assertIsNone(pp.theme_id)
+        self.assertIs(type(pp.theme_settings), dict)
+        self.assertEqual(pp.theme_settings_fields, [('image_tile_wide', 0.0), ('desktop_hero_image', ''), ('mobile_hero_image', ''), ('column_width', 256), ('social_buttons', []), ('enable_tracking', 'true')])
+        self.assertEqual(pp.url_slug, url_slug)
 
 
 class FeedTest(TestCase):

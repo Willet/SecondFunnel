@@ -155,6 +155,16 @@
     }
   },
   {
+    "model": "assets.Page",
+    "pk": 17,
+    "fields": {
+      "name": "TestPage",
+      "url_slug": "other_test_page",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
     "model": "assets.Feed",
     "pk": 9,
     "fields": {
