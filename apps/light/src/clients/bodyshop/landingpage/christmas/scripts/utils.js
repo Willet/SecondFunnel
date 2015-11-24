@@ -15,9 +15,21 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             target = module.openInWindow();
         }
         App.vent.trigger("tracking:click", url);
-        // Add CJ page-id tracking parameter
-        url = App.utils.urlAddParams(url, {'sid': App.option('page:slug')});
+        url = module.addUrlTrackingParameters(url);
         window.open(url, target);
         return;
+    };
+
+    module.addUrlTrackingParameters = function (url) {
+        var params = { 
+            "cvosrc":       "affiliate.linkshare.PUBLISHER-ID",
+            "cvo_campaign": "Holiday2015GiftGuide",
+            "utm_source":   "SecondFunnel",
+            "utm_medium":   "Affiliate",
+            "utm_term":     "Link",
+            "utm_content":  "Holiday",
+            "utm_campaign": "Holiday2015GiftGuide"
+        };
+        return module.urlAddParams(url, _.extend({}, params, App.option["urlParams"]));
     };
 };
