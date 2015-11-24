@@ -439,13 +439,12 @@
         </script>
 
         <script type="text/template" id="bag_template">
-            <span class="dismiss corner desktop-only"></span>
+            <span class="dismiss corner"></span>
             <div class="bag-title">
                 <span>ITEM ADDED TO BAG</span>
-                <span class="continue-shopping close mobile-only">continue shopping</span>
             </div>
             <div class="product-details">
-                <div class="image-holder desktop-only" data-id="<%= obj.defaultImage.id %>">
+                <div class="image-holder" data-id="<%= obj.defaultImage.id %>">
                     <img class="image"  src="<%= obj.defaultImage.url %>" />
                 </div>
                 <div class='title'>
@@ -457,11 +456,11 @@
             </div>
             <div class="choices">
                 <div class="view-bag">
-                    <a class='button' href='//<% if (App.support.mobile()) { %>m<% } else { %>www<% } %>.thebodyshop-usa.com/h5/mybasket' target='_blank'>
+                    <a class='button' href='//<% if (App.support.mobile()) { %>m<% } else { %>www<% } %>.thebodyshop-usa.com/checkout/mybasket.aspx' target='_blank'>
                         <span>VIEW BAG</span>
                     </a>
                 </div>
-                <span class="continue-shopping close desktop-only">continue shopping</span>
+                <span class="continue-shopping close">continue shopping</span>
             </div>
         </script>
 

@@ -10,16 +10,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#bag_template"
 
         onShow: () ->
-            src = App.utils.urlAddParams("http://www.thebodyshop-usa.com/ajax/addsingleproduct.aspx",
+            domain = if App.support.mobile() then 'm' else 'www'
+            src = App.utils.urlAddParams("http://#{domain}.thebodyshop-usa.com/ajax/addsingleproduct.aspx",
                 varcode: @model.get('sku')
                 qty: 1
             )
             try
-                if App.support.mobile()
-                    ajaxHolder = $("<div />").addClass('ajaxHolder').prependTo(@$el)
-                    $("<iframe />").appendTo(ajaxHolder).attr("src", src)
-                else
-                    $("<iframe />").appendTo(@$el.find('.product-details')).attr("src", src)
+                $("<iframe />").appendTo(@$el.find('.product-details')).attr("src", src)
             catch err               
                 if App.option('debug', false)
                     console.error(
@@ -31,9 +28,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         events:
             "click .view-bag": ->
-                url = if App.support.mobile() \
-                      then 'http://m.thebodyshop-usa.com/checkout/mybasket.aspx' \
-                      else 'http://www.thebodyshop-usa.com/checkout/mybasket.aspx'
+                domain = if App.support.mobile() then 'm' else 'www'
+                url = "http://#{domain}.thebodyshop-usa.com/checkout/mybasket.aspx"
                 App.utils.openUrl(url, '_top')
                 return false
             "click .dismiss": ->

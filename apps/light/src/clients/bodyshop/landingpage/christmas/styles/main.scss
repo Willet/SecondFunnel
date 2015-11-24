@@ -921,11 +921,22 @@ div.loading {
     .shopping-bag {
         > div {
             position: absolute;
+            top: 0;
             left: 0;
             right: 0;
             bottom: 0;
             z-index: 100;
+            height: 210px;
+            margin: auto;
             background: $tbs-white-color;
+        }
+        .dismiss {
+            position: absolute;
+            padding: 5px;
+            line-height: 1;
+            &:hover, &:focus {
+                cursor: pointer;
+            }
         }
         .continue-shopping {
             position: absolute;
@@ -939,6 +950,7 @@ div.loading {
             &:after {
                 display: block;
                 position: absolute;
+                top: 8px;
                 right: -12px;
                 width: 8px;
                 height: 10px;
@@ -955,9 +967,13 @@ div.loading {
             }
         }
         .bag-title {
+            position: absolute;
+            background: $tbs-black-color;
             width: 100%;
             height: 40px;
             span:first-child {
+                color: #FFF;
+                line-height: 40px;
                 font-family: $tbs-title-font;
                 font-weight: bold;
                 font-size: 24px;
@@ -969,6 +985,53 @@ div.loading {
             border: none;
             width: 100%;
             height: 50%;
+        }
+        .product-details {
+            width: 100%;
+            height: 100%;
+            padding: 60px 20px 0;
+            border: 0 2px 2px 2px;
+            border-style: solid;
+            border-color:  $tbs-grey-color;
+            .image-holder {
+                position: absolute;
+                width: 55px;
+                height: 55px;
+            }
+            .title, .price {
+                padding-left: 65px;
+                width: 80%;
+                margin-bottom: 5px;
+                font-size: 14px;
+                line-height: 15px;
+            }
+            .title {
+                height: 30px;
+            }
+        }
+        .choices {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: 0 0 30px 8%;
+            line-height: 24px;
+            .view-bag {
+                width: 50%;
+                height: 100%;
+                text-align: center;
+                display: inline-block;
+                span {
+                    background: $tbs-black-color;
+                    color: $tbs-white-color;
+                    padding: 7px 15%;
+                    font-weight: bold;
+                    font-size: 12px;
+                    line-height: 10px; // height - 2 x padding
+                    width: 100%;
+                    display: inline-block;
+                }
+            }
         }
     }
 }
@@ -1302,78 +1365,8 @@ div.loading {
     .previewContainer, .heroContainer {
         .shopping-bag {
             > div {
-                top: 0;
                 width: 50%;
-                height: 210px;
                 margin: auto;
-            }
-            .continue-shopping {
-                &:after {
-                    top: 8px;
-                }
-            }
-            .dismiss {
-                position: absolute;
-                padding: 5px;
-                line-height: 1;
-                &:hover, &:focus {
-                    cursor: pointer;
-                }
-            }
-            .bag-title {
-                position: absolute;
-                background: $tbs-black-color;
-                span:first-child {
-                    color: #FFF;
-                    line-height: 40px;
-                }
-            }
-            .product-details {
-                width: 100%;
-                height: 100%;
-                padding: 60px 20px 0;
-                border: 0 2px 2px 2px;
-                border-style: solid;
-                border-color:  $tbs-grey-color;
-                .image-holder {
-                    position: absolute;
-                    width: 55px;
-                    height: 55px;
-                }
-                .title, .price {
-                    padding-left: 65px;
-                    width: 80%;
-                    margin-bottom: 5px;
-                    font-size: 14px;
-                    line-height: 15px;
-                }
-                .title {
-                    height: 30px;
-                }
-            }
-            .choices {
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                margin: 0 0 30px 8%;
-                line-height: 24px;
-                .view-bag {
-                    width: 50%;
-                    height: 100%;
-                    text-align: center;
-                    display: inline-block;
-                    span {
-                        background: $tbs-black-color;
-                        color: $tbs-white-color;
-                        padding: 7px 15%;
-                        font-weight: bold;
-                        font-size: 12px;
-                        line-height: 10px; // height - 2 x padding
-                        width: 100%;
-                        display: inline-block;
-                    }
-                }
             }
         }
     }
@@ -1951,53 +1944,20 @@ div.loading {
         }
         .shopping-bag {
             > div {
-                height: auto;
+                width: 100%;
             }
-            .continue-shopping {
-                width: auto;
-                text-transform: none;
-                &:after {
-                    top: 16px;
-                }
+            .dismiss {
+                z-index: 12;
             }
             .bag-title {
-                position: relative;
-                background: $tbs-white-color;
-                line-height: 40px;
-                span:first-child {
-                    color: $tbs-black-color;
-                }
-            }
-            .product-details {
-                position: relative;
+                z-index: 11;
             }
             .choices {
-                position: relative;
-                width: 100%;
-                padding: 0 0 10px;
-                line-height: 40px;
-                .view-bag {
-                    text-align: center;
-                    font-size: 18px;
-                    line-height: 40px;
-                    background: $tbs-black-color;
-                    font-weight: normal;
-                    color: white;
-                    &:hover {
-                        color: white;
-                    }
+                z-index: 12;
+                .continue-shopping {
+                    width: auto;
+                    text-transform: lowercase;
                 }
-            }
-            .ajaxHolder {
-                width: 100%;
-                height: 40px;
-                overflow-y: hidden;
-                display: block;
-            }
-            iframe {
-                display: block;
-                width: 100%;
-                height: auto;
             }
         }
     }

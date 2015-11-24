@@ -15,21 +15,28 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             target = module.openInWindow();
         }
         App.vent.trigger("tracking:click", url);
-        url = module.addUrlTrackingParameters(url);
-        window.open(url, target);
+        var destinationUrl = module.addUrlTrackingParameters(url),
+            affiliateUrl = module.buildAffiliateLink(destinationUrl);
+        window.open(affiliateUrl, target);
         return;
     };
 
     module.addUrlTrackingParameters = function (url) {
-        var params = { 
-            "cvosrc":       "affiliate.linkshare.PUBLISHER-ID",
-            "cvo_campaign": "Holiday2015GiftGuide",
-            "utm_source":   "SecondFunnel",
-            "utm_medium":   "Affiliate",
-            "utm_term":     "Link",
-            "utm_content":  "Holiday",
-            "utm_campaign": "Holiday2015GiftGuide"
-        };
+        var params = {};
         return module.urlAddParams(url, _.extend({}, params, App.option["urlParams"]));
     };
+
+    module.buildAffiliateLink = function (destinationUrl) {
+        var baseUrl = "http://click.linksynergy.com/fs-bin/click",
+            params = {
+            "id":        "ijwfSa0syf8",
+            "subid":     "0",
+            "offerid":   "395685.1",
+            "type":      "10",
+            "tmpid":     "7629",
+            "u1":        App.option("page:slug"),
+            "RD_PARM1":  encodeURIComponent(destinationUrl)
+        };
+        return module.urlAddParams(baseUrl, params);
+    }
 };

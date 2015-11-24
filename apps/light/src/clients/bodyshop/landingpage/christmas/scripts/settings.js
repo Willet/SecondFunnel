@@ -209,5 +209,14 @@
       ],
       "displayName":"More Gift Ideas"
     }
-  ]
+  ],
+  "urlParams": {
+    "cvosrc":       "affiliate.linkshare.PUBLISHER-ID",
+    "cvo_campaign": "Holiday2015GiftGuide",
+    "utm_source":   "SecondFunnel",
+    "utm_medium":   "Affiliate",
+    "utm_term":     "Link",
+    "utm_content":  "Holiday",
+    "utm_campaign": "Holiday2015GiftGuide"
+  }
 }
