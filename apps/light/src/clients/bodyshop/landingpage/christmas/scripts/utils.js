@@ -15,9 +15,28 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             target = module.openInWindow();
         }
         App.vent.trigger("tracking:click", url);
-        // Add CJ page-id tracking parameter
-        url = App.utils.urlAddParams(url, {'sid': App.option('page:slug')});
-        window.open(url, target);
+        var destinationUrl = module.addUrlTrackingParameters(url),
+            affiliateUrl = module.buildAffiliateLink(destinationUrl);
+        window.open(affiliateUrl, target);
         return;
     };
+
+    module.addUrlTrackingParameters = function (url) {
+        var params = {};
+        return module.urlAddParams(url, _.extend({}, params, App.option["urlParams"]));
+    };
+
+    module.buildAffiliateLink = function (destinationUrl) {
+        var baseUrl = "http://click.linksynergy.com/fs-bin/click",
+            params = {
+            "id":        "ijwfSa0syf8",
+            "subid":     "0",
+            "offerid":   "395685.1",
+            "type":      "10",
+            "tmpid":     "7629",
+            "u1":        App.option("page:slug"),
+            "RD_PARM1":  encodeURIComponent(destinationUrl)
+        };
+        return module.urlAddParams(baseUrl, params);
+    }
 };
