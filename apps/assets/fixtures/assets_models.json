@@ -173,6 +173,14 @@
     }
   },
   {
+    "model": "assets.Feed",
+    "pk": 18,
+    "fields": {
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
     "model": "assets.Tile",
     "pk": 10,
     "fields": {

@@ -1,6 +1,6 @@
 from django.core.management import call_command
 from django.db.models.base import ModelBase
-from django.db import models
+from django.db import models, transaction
 from django.core.exceptions import ValidationError, ObjectDoesNotExist, MultipleObjectsReturned
 import mock
 import datetime
@@ -13,6 +13,7 @@ from django.test import TestCase
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \
                                ProductImage, Feed, Tile, Content
 from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource
+from apps.assets.utils import disable_tile_serialization
 
 """
 We are avoiding fixtures because they are so slow:
@@ -140,6 +141,29 @@ class ProductTest(TestCase):
         p.price = "Error"
         p.clean_fields(["price"])
 
+    #BROKEN
+    
+#     Traceback (most recent call last):
+#   File "/opt/secondfunnel/app/apps/assets/tests/test_models.py", line 148, in merge_test
+#     p.merge(p2)
+#   File "/opt/secondfunnel/app/apps/assets/models.py", line 497, in merge
+#     other_products = list(other_products)
+#   File "/opt/secondfunnel/app/apps/assets/models.py", line 78, in __getitem__
+#     return getattr(self, key, None)
+# TypeError: getattr(): attribute name must be string
+
+    # def merge_test(self):
+    #     p = Product.objects.get(pk=3)
+    #     p2 = Product.objects.get(pk=15)
+    #     i = ProductImage.objects.get(pk=4)
+    #     p2.product_images.add(i)
+    #     p.merge(p2)
+    #     # assure product has been deleted
+    #     # with self.assertRaises(ObjectDoesNotExist):
+    #     Product.objects.get(pk=15)
+
+
+
 class ProductImageTest(TestCase):
     # ProductImage has no methods
     fixtures = ['assets_models.json']
@@ -184,13 +208,12 @@ class ProductImageTest(TestCase):
 
     @mock.patch('apps.imageservice.utils.delete_cloudinary_resource', mock.Mock())
     def delete_test(self):
-        url = "/content.jpg"
         t = ProductImage.objects.get(pk=4)
         t.delete()
 
     def image_tag_test(self):
         t = ProductImage.objects.get(pk=4)
-        url = "/content.jpg"
+        url = "/image.jpg"
         self.assertEqual(t.image_tag(), u'<img src="{}" style="width: 400px;"/>'.format(url))
 
 class TagTest(TestCase):
@@ -413,7 +436,7 @@ class PageTest(TestCase):
         p.feed = feed
         pp = Page.objects.get(pk=17)
         pp.replace(p)
-        # assure product has been deleted
+        # assure page has been deleted
         with self.assertRaises(ObjectDoesNotExist):
             Page.objects.get(pk=8)
         self.assertIsNone(pp.campaign)
@@ -513,7 +536,7 @@ class FeedTest(TestCase):
         f.add(p)
         self.assertEqual(set(f.get_all_products()), set([p]))
 
-    def test_add(self):
+    def generic_test_add(self):
         f = Feed.objects.get(pk=9)
         p = Product.objects.get(pk=12)
         i = ProductImage.objects.get(pk=4)
@@ -526,6 +549,135 @@ class FeedTest(TestCase):
         f = Feed.objects.get(pk=9)
         f._deepdelete_tiles(f.tiles.all())
         self.assertEqual(set(f.get_in_stock_tiles()), set([]))
+
+    @mock.patch('apps.assets.models.Feed._add_product', mock.Mock())
+    def only_add_product_test(self):
+        f = Feed.objects.get(pk=9)
+        p = Product.objects.get(pk=12)
+        f.add(p)
+        Feed._add_product.assert_called_once_with(product=p, priority=0, category=None, force_create_tile=False)
+
+    @mock.patch('apps.assets.models.Feed._add_content', mock.Mock())
+    def only_add_content_test(self):
+        f = Feed.objects.get(pk=9)
+        c = Content.objects.get(pk=6)
+        f.add(c)
+        Feed._add_content.assert_called_once_with(content=c, priority=0, category=None, force_create_tile=False)
+
+    @mock.patch('apps.assets.models.Feed._copy_tile', mock.Mock())
+    def only_add_tile_test(self):
+        f = Feed.objects.get(pk=9)
+        t = Tile.objects.get(pk=10)
+        f.add(t)
+        Feed._copy_tile.assert_called_once_with(tile=t, priority=0, category=None)
+
+    def add_product_test(self):
+        cat = Category.objects.get(pk=7)
+        f = Feed.objects.get(pk=18)
+        p = Product.objects.get(pk=12)
+        i = ProductImage.objects.get(pk=4)
+        p.product_images.add(i)
+        f._add_product(p, priority=35, category=cat, force_create_tile=False)
+        self.assertEqual(len(f.tiles.all()), 1)
+        self.assertEqual(f.tiles.first().product, p)
+        self.assertEqual(f.tiles.first().priority, 35)
+        self.assertEqual(len(f.tiles.first().categories.all()), 1)
+        self.assertEqual(f.tiles.first().categories.first(), cat)
+
+    def add_existing_product_test(self):
+        cat = Category.objects.get(pk=7)
+        f = Feed.objects.get(pk=18)
+        p = Product.objects.get(pk=12)
+        i = ProductImage.objects.get(pk=4)
+        p.product_images.add(i)
+        # create new tile
+        with transaction.atomic():
+            with disable_tile_serialization():
+                new_tile = Tile(feed=f, template='product', priority=2)
+                new_tile.placeholder = p.is_placeholder
+                new_tile.get_pk()
+                new_tile.products.add(p)
+                new_tile.categories.add(cat)
+            new_tile.save() # full clean & generate ir_cache
+        f._add_product(p, priority=35, category=cat, force_create_tile=False)
+        self.assertEqual(len(f.tiles.all()), 1)
+        self.assertEqual(f.tiles.first(), new_tile)
+        self.assertEqual(f.tiles.first().product, p)
+        self.assertEqual(f.tiles.first().priority, 35)
+        self.assertEqual(len(f.tiles.first().categories.all()), 1)
+        self.assertEqual(f.tiles.first().categories.first(), cat)
+
+    def add_product_force_create_test(self):
+        cat = Category.objects.get(pk=7)
+        f = Feed.objects.get(pk=18)
+        p = Product.objects.get(pk=12)
+        i = ProductImage.objects.get(pk=4)
+        p.product_images.add(i)
+        # create new tile
+        with transaction.atomic():
+            with disable_tile_serialization():
+                new_tile = Tile(feed=f, template='product', priority=2)
+                new_tile.placeholder = p.is_placeholder
+                new_tile.get_pk()
+                new_tile.products.add(p)
+                new_tile.categories.add(cat)
+            new_tile.save() # full clean & generate ir_cache
+        f._add_product(p, priority=35, category=cat, force_create_tile=True)
+        self.assertEqual(len(f.tiles.all()), 2)
+        self.assertEqual(f.tiles.first().product, p)
+        self.assertEqual(f.tiles.last().product, p)
+
+    def add_content_test(self):
+        cat = Category.objects.get(pk=7)
+        f = Feed.objects.get(pk=18)
+        c = Content.objects.get(pk=12)
+        f._add_content(c, priority=35, category=cat, force_create_tile=False)
+        self.assertEqual(len(f.tiles.all()), 1)
+        self.assertEqual(f.tiles.first().content.first(), c)
+        self.assertEqual(f.tiles.first().priority, 35)
+        self.assertEqual(len(f.tiles.first().categories.all()), 1)
+        self.assertEqual(f.tiles.first().categories.first(), cat)
+
+    def add_existing_content_test(self):
+        cat = Category.objects.get(pk=7)
+        f = Feed.objects.get(pk=18)
+        p = Content.objects.get(pk=12)
+        # create new tile
+        with transaction.atomic():
+            with disable_tile_serialization():
+                new_tile = Tile(feed=f, template='product', priority=2)
+                new_tile.placeholder = p.is_placeholder
+                new_tile.get_pk()
+                new_tile.products.add(p)
+                new_tile.categories.add(cat)
+            new_tile.save() # full clean & generate ir_cache
+        f._add_content(p, priority=35, category=cat, force_create_tile=False)
+        self.assertEqual(len(f.tiles.all()), 1)
+        self.assertEqual(f.tiles.first(), new_tile)
+        self.assertEqual(f.tiles.first().product, p)
+        self.assertEqual(f.tiles.first().priority, 35)
+        self.assertEqual(len(f.tiles.first().categories.all()), 1)
+        self.assertEqual(f.tiles.first().categories.first(), cat)
+
+    def add_content_force_create_test(self):
+        cat = Category.objects.get(pk=7)
+        f = Feed.objects.get(pk=18)
+        p = Content.objects.get(pk=12)
+        i = ProductImage.objects.get(pk=4)
+        p.product_images.add(i)
+        # create new tile
+        with transaction.atomic():
+            with disable_tile_serialization():
+                new_tile = Tile(feed=f, template='product', priority=2)
+                new_tile.placeholder = p.is_placeholder
+                new_tile.get_pk()
+                new_tile.products.add(p)
+                new_tile.categories.add(cat)
+            new_tile.save() # full clean & generate ir_cache
+        f._add_content(p, priority=35, category=cat, force_create_tile=True)
+        self.assertEqual(len(f.tiles.all()), 2)
+        self.assertEqual(f.tiles.first().product, p)
+        self.assertEqual(f.tiles.last().product, p)
 
 
 class TileTest(TestCase):
