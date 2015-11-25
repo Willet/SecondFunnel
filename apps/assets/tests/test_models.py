@@ -14,6 +14,7 @@ from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Pro
                                ProductImage, Feed, Tile, Content
 from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource
 from apps.assets.utils import disable_tile_serialization
+import apps.intentrank.serializers as ir_serializers
 
 """
 We are avoiding fixtures because they are so slow:
@@ -630,7 +631,7 @@ class FeedTest(TestCase):
     def add_content_test(self):
         cat = Category.objects.get(pk=7)
         f = Feed.objects.get(pk=18)
-        c = Content.objects.get(pk=12)
+        c = Content.objects.get(pk=6)
         f._add_content(c, priority=35, category=cat, force_create_tile=False)
         self.assertEqual(len(f.tiles.all()), 1)
         self.assertEqual(f.tiles.first().content.first(), c)
@@ -641,20 +642,20 @@ class FeedTest(TestCase):
     def add_existing_content_test(self):
         cat = Category.objects.get(pk=7)
         f = Feed.objects.get(pk=18)
-        p = Content.objects.get(pk=12)
+        c = Content.objects.get(pk=6)
         # create new tile
         with transaction.atomic():
             with disable_tile_serialization():
-                new_tile = Tile(feed=f, template='product', priority=2)
-                new_tile.placeholder = p.is_placeholder
+                new_tile = Tile(feed=f, template='content', priority=2)
+                new_tile.placeholder = False
                 new_tile.get_pk()
-                new_tile.products.add(p)
+                new_tile.content.add(c)
                 new_tile.categories.add(cat)
             new_tile.save() # full clean & generate ir_cache
-        f._add_content(p, priority=35, category=cat, force_create_tile=False)
+        f._add_content(c, priority=35, category=cat, force_create_tile=False)
         self.assertEqual(len(f.tiles.all()), 1)
         self.assertEqual(f.tiles.first(), new_tile)
-        self.assertEqual(f.tiles.first().product, p)
+        self.assertEqual(f.tiles.first().content.first(), c)
         self.assertEqual(f.tiles.first().priority, 35)
         self.assertEqual(len(f.tiles.first().categories.all()), 1)
         self.assertEqual(f.tiles.first().categories.first(), cat)
@@ -662,22 +663,28 @@ class FeedTest(TestCase):
     def add_content_force_create_test(self):
         cat = Category.objects.get(pk=7)
         f = Feed.objects.get(pk=18)
-        p = Content.objects.get(pk=12)
-        i = ProductImage.objects.get(pk=4)
-        p.product_images.add(i)
+        p = Content.objects.get(pk=6)
         # create new tile
         with transaction.atomic():
             with disable_tile_serialization():
-                new_tile = Tile(feed=f, template='product', priority=2)
-                new_tile.placeholder = p.is_placeholder
+                new_tile = Tile(feed=f, template='content', priority=2)
+                new_tile.placeholder = False
                 new_tile.get_pk()
-                new_tile.products.add(p)
+                new_tile.content.add(p)
                 new_tile.categories.add(cat)
             new_tile.save() # full clean & generate ir_cache
         f._add_content(p, priority=35, category=cat, force_create_tile=True)
         self.assertEqual(len(f.tiles.all()), 2)
-        self.assertEqual(f.tiles.first().product, p)
-        self.assertEqual(f.tiles.last().product, p)
+        self.assertEqual(f.tiles.first().content.first(), p)
+        self.assertEqual(f.tiles.last().content.first(), p)
+
+    def add_copy_tile_test(self):
+        cat = Category.objects.get(pk=7)
+        f = Feed.objects.get(pk=18)
+        t = Tile.objects.get(pk=10)
+        f._copy_tile(t, priority=35, category=cat)
+        self.assertEqual(len(f.tiles.all()), 1)
+        # most functionality is in Tile._copy
 
 
 class TileTest(TestCase):
@@ -748,4 +755,46 @@ class TileTest(TestCase):
             t = Tile.objects.get(pk=10)
             t.content.add(c)
             t.clean_fields()
+
+    def tile_copy_test(self):
+        t = Tile.objects.get(pk=10)
+        f = Feed.objects.get(pk=19)
+        with self.assertRaises(ValueError):
+            t._copy(update_fields={'feed':f}) # wrong store
+        tt = t._copy()
+        self.assertEqual(t.template, tt.template)
+
+    def tile_attribute_copy_test(self):
+        t = Tile.objects.get(pk=10)
+        f = Feed.objects.get(pk=19)
+        template = "banner"
+        tt = t._copy(update_fields={'template': template, "attributes": "{redirect_url: 'example.com'}"})
+        self.assertEqual(template, tt.template)
+        self.assertNotEqual(t.template, tt.template)
+
+    def deepdelete_test(self):
+        t = Tile.objects.get(pk=10)
+        i = Content.objects.get(pk=6)
+        t.content.add(i)
+        t.deepdelete()
+        with self.assertRaises(ObjectDoesNotExist):
+            Content.objects.get(pk=6)
+        with self.assertRaises(ObjectDoesNotExist):
+            Tile.objects.get(pk=10)
+
+    def to_json_test(self):
+        t = Tile.objects.get(pk=10)
+        self.assertEqual(type(t.to_json()), dict)
+
+    @mock.patch('apps.assets.models.Tile._to_str', mock.Mock())
+    def to_json_calls(self):
+        t = Tile.objects.get(pk=10)
+        t.to_json()
+        Tile.to_string.assert_called_once_with()
+
+    @mock.patch('apps.intentrank.serializers.DefaultTileSerializer.to_str', mock.Mock())
+    def tile_to_string_test(self):
+        t = Tile.objects.get(pk = 10)
+        t.to_str(skip_cache=False)
+        ir_serializers.DefaultTileSerializer.to_str.assert_called_once_with([t], skip_cache=False)
 
