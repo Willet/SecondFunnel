@@ -20,19 +20,23 @@ App.init.initialize();
 App.start();
 
 (function () {
-    // Wrap SLT links with CJ link
-    /*var re = /^https?\:\/\/www\.surlatable\.com/i;
+    // Wrap links with click handler
+    var re = /^https?\:\/\/(?:www|m)\.thebodyshop-usa\.com/i,
+        onclick = function (el) {
+            App.utils.openUrl(this.href, "_top");
+            return false;
+        };
     $('a').each(function (el) {
         if (this.href.match(re)) {
-            this.href = 'http://www.qksrv.net/links/7774943/type/am/sid/' +
-                        App.option('page:slug') + '/' + this.href;
+            this.click = onclick;
         }
-    });*/
+    });
 
-    // Send search bar inqueries to surlatable.com
+    // Send search bar inqueries to thebodyshop-usa.com
     $('#submit-search').click(function(ev){
         var searchUrl,
-            baseUrl = "http://www.thebodyshop-usa.com/search.aspx",
+            domain = App.support.mobile() ? "m" : "www",
+            baseUrl = "http://" + domain + ".thebodyshop-usa.com/search.aspx",
             $this = $(this),
             $inputBox = $this.siblings().first(),
             $topNavSearch = $this.parents('#search-bar');

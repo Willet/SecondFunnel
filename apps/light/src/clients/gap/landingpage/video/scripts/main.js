@@ -24,20 +24,20 @@ App.start();
     var adcta = App.utils.urlGetParam(window.location.href, 'adcta');
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
         // mobile
-        App.options.urlParams.tid = "gpme000067";
+        App.options.page.urlParams.tid = "gpme000067";
         App.options.clickUrl = "http://ad.doubleclick.net/ddm/clk/288205600;115211941;r?";
     } else {
         // desktop
         App.options.clickUrl = "http://ad.doubleclick.net/ddm/clk/288199394;115211941;n?";
         if (adcta === 'watch') {
-            App.options.urlParams.tid = "gpme000070";
+            App.options.page.urlParams.tid = "gpme000070";
         } else if (adcta === 'shop') {
-            App.options.urlParams.tid = "gpme000071";
+            App.options.page.urlParams.tid = "gpme000071";
         } else if (adcta === 'watchnowfb') {
-            App.options.urlParams.tid = "gpme000075";
+            App.options.page.urlParams.tid = "gpme000075";
         } else {
             // default
-            App.options.urlParams.tid = "gpme000072";
+            App.options.page.urlParams.tid = "gpme000072";
         }
     }
 
