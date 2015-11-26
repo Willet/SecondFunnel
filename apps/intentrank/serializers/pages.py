@@ -87,6 +87,7 @@ class PageSerializer(IRSerializer):
                 'tileAspectRatio':    getattr(page, 'masonry', {}).get('tileAspectRatio', 0.7),
                 'heightRange':        getattr(page, 'masonry', {}).get('heightRange', 0.6),
             },
+            'urlParams': getattr(page, 'urlParams', {}),
         }
 
         return data
@@ -167,7 +168,6 @@ class PageConfigSerializer(object):
             'disableBannerRedirectOnMobile': getattr(page, 'disable_banner_redirect_on_mobile', False),
             'mobileTabletView': getattr(page, 'mobile_table_view', False),
             'conditionalSocialButtons': getattr(page, 'conditional_social_buttons', {}),
-            'urlParams': getattr(page, 'url_params', {}),
 
             # optional; default: true
             'enableTracking': enable_tracking,
