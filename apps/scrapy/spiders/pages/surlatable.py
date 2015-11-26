@@ -77,7 +77,10 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         # Need to order them based on view #
         r = re.compile(r"view_(\d+)_\d+x\d+\.$")
         def get_image_number(image):
-            num = r.search(image.original_url).group(1)
+            try:
+                num = r.search(image.original_url).group(1)
+            except AttributeError:
+                num = 100
             return int(num)
 
         return sorted(product_images, key=get_image_number)
@@ -87,9 +90,10 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
         return images[0]
 
     def on_product_finished(self, product):
-        sorted_images = self.sort_images_order(product.product_images.all())
-        product.attributes['product_images_order'] = [i.id for i in sorted_images]
-        product.save()
+        if not self.skip_images:
+            sorted_images = self.sort_images_order(product.product_images.all())
+            product.attributes['product_images_order'] = [i.id for i in sorted_images]
+            product.save()
 
         if self.skip_tiles:
             # update tiles now
