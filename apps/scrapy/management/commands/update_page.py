@@ -8,7 +8,7 @@ from apps.scrapy.controllers import PageMaintainer
 class Command(BaseCommand):
     help = """Updates all products in a given page.
     Usage:
-    python manage.py update_page [-t, --recreate-tiles] [-i, --update-images] <url_slug>
+    python manage.py update_page [-t, --recreate-tiles] [-i, --update-images] [-s, scrape] <url_slug>
 
     url_slug
         Url slug of the page to rescrape
@@ -30,6 +30,11 @@ class Command(BaseCommand):
                 dest="update_images",
                 default=False,
                 help="Scrape product images."),
+            make_option('-s','--scrape',
+                action="store_true",
+                dest="scrape",
+                default=False,
+                help="Use page scraper."),
         )
 
     def handle(self, url_slug, **options):
@@ -38,5 +43,6 @@ class Command(BaseCommand):
             'recreate_tiles': options['recreate_tiles'],
             'skip_images': not options['update_images'],
             'skip_tiles': True,
+            'project': 'pages' if options['scrape'] else 'datafeeds',
         })
         
