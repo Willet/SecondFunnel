@@ -2,6 +2,7 @@ from scrapy.selector import Selector
 from scrapy.linkextractors import LinkExtractor
 from scrapy_webdriver.action_chains import WaitingActionChains
 from scrapy_webdriver.http import WebdriverRequest
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 
 from apps.scrapy.items import ScraperProduct
@@ -86,11 +87,16 @@ class BodyShopSpider(SecondFunnelCrawlSpider):
 
         if item.get('tag_with_products', False):
             # Wait for recommended products to load
-            actions = WaitingActionChains(response.webdriver).wait(60, name='presence_of_element_located',
-                        args=[(By.CSS_SELECTOR, "article.top-products")]).perform()
-            request = response.action_request(actions=actions, callback=self.parse_recommended_products)
-            request.meta['item'] = item
-            yield request
+            try:
+                actions = WaitingActionChains(response.webdriver).wait(60, name='presence_of_element_located',
+                            args=[(By.CSS_SELECTOR, "article.top-products")]).perform()
+            except TimeoutException:
+                self.logger.warning(u"Timeout before getting similar products: {}".format(response.request.url))
+                pass
+            else:
+                request = response.action_request(actions=actions, callback=self.parse_recommended_products)
+                request.meta['item'] = item
+                yield request
 
     def parse_recommended_products(self, response):
         # Scrape similar products
