@@ -45,6 +45,12 @@ http://www.mattjmorrison.com/2011/09/mocking-django.html
 #         # create a dummy model to inherit abstract class BaseModel
 #         self.model = ModelBase(BaseModel)
 
+class BaseModelTest(TestCase):
+    with mock.patch('myapp.myfile.signal_handler_post_save_user', autospec=True) as mocked_handler:
+        post_save.connect(mocked_handler, sender=User, dispatch_uid='test_cache_mocked_handler')
+        BaseModel.save()
+    self.assertEquals(mocked_handler.call_count, 1)
+
 class StoreTest(TestCase):
     # Store has no methods
     fixtures = ['assets_models.json']
@@ -306,6 +312,8 @@ class ImageTest(TestCase):
         url = "/content.jpg"
         t = Image.objects.get(pk=6)
         t.delete()
+        with self.assertRaises(ObjectDoesNotExist):
+            Image.objects.get(pk=6)
 
 
 class CategoryTest(TestCase):
@@ -458,6 +466,40 @@ class PageTest(TestCase):
         self.assertIs(type(pp.theme_settings), dict)
         self.assertEqual(pp.theme_settings_fields, [('image_tile_wide', 0.0), ('desktop_hero_image', ''), ('mobile_hero_image', ''), ('column_width', 256), ('social_buttons', []), ('enable_tracking', 'true')])
         self.assertEqual(pp.url_slug, url_slug)
+
+    def page_get_incremented_url_slug_test(self):
+        p = Page.objects.get(pk=8)
+        slug = "test_page"
+        self.assertEqual(p._get_incremented_url_slug(), "{}_1".format(slug))
+        p.url_slug = "{}_1".format(slug)
+        p.save()
+        self.assertEqual(p._get_incremented_url_slug(), "{}_2".format(slug))
+
+    def page_get_incremented_name_test(self):
+        p = Page.objects.get(pk=8)
+        page_name = "TestPage"
+        self.assertEqual(p._get_incremented_name(), "{} COPY 1".format(page_name))
+        p.name = "{} COPY 1".format(page_name)
+        p.save()
+        self.assertEqual(p._get_incremented_name(), "{} COPY 2".format(page_name))
+
+    @mock.patch('apps.assets.models.Feed.add', mock.Mock())
+    def add_alias_test(self):
+        p = Page.objects.get(pk=8)
+        f = Feed.objects.get(pk=9)
+        p.feed = f
+        p.save()
+        p.add()
+        Feed.add.assert_called_once_with()
+
+    @mock.patch('apps.assets.models.Feed.remove', mock.Mock())
+    def remove_alias_test(self):
+        p = Page.objects.get(pk=8)
+        f = Feed.objects.get(pk=9)
+        p.feed = f
+        p.save()
+        p.remove()
+        Feed.remove.assert_called_once_with()
 
 
 class FeedTest(TestCase):
@@ -766,9 +808,10 @@ class TileTest(TestCase):
 
     def tile_attribute_copy_test(self):
         t = Tile.objects.get(pk=10)
+        i = Content.objects.get(pk=6)
         f = Feed.objects.get(pk=19)
         template = "banner"
-        tt = t._copy(update_fields={'template': template, "attributes": "{redirect_url: 'example.com'}"})
+        tt = t._copy(update_fields={'template': template, "attributes": {"redirect_url": 'example.com'}, "content": [i]})
         self.assertEqual(template, tt.template)
         self.assertNotEqual(t.template, tt.template)
 
@@ -797,4 +840,15 @@ class TileTest(TestCase):
         t = Tile.objects.get(pk = 10)
         t.to_str(skip_cache=False)
         ir_serializers.DefaultTileSerializer.to_str.assert_called_once_with([t], skip_cache=False)
+
+    def get_first_content_of_test(self):
+        t = Tile.objects.get(pk=10)
+        c = Content.objects.get(pk=6)
+        t.content.add(c)
+        self.assertEqual(c, t.get_first_content_of(Content))
+
+    def get_first_content_of_test(self):
+        t = Tile.objects.get(pk=10)
+        with self.assertRaises(LookupError):
+            t.get_first_content_of(Content)
 
