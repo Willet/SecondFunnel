@@ -13,6 +13,7 @@ from django.db import models, transaction
 from django_extensions.db.fields import CreationDateTimeField
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
+from django.db.models.signals import post_save, m2m_changed
 
 import apps.api.serializers as cg_serializers
 from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource, is_hex_color
