@@ -345,9 +345,15 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <a class='button' href='<%= obj.url %>' target='_blank'>
-                <span>ADD TO BAG</span>
-            </a>
+            <% if (obj['in-stock']) { %>
+                <a class='button' href='<%= obj.url %>' target='_blank'>
+                    <span>ADD TO BAG</span>
+                </a>
+            <% } else { %>
+                <a class='button out-of-stock' href='<%= obj.url %>' target='_blank'>
+                    <span>EMAIL WHEN IN STOCK</span>
+                </a>
+            <% } %>
         </script>
 
         <script type="text/template" id="product_description_template">

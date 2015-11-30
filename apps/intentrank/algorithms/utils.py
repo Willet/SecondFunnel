@@ -38,12 +38,16 @@ def filter_tiles(fn):
             tiles = feed.tiles
         
         # Filter out of stock tiles
-        filters = Q(placeholder=False, in_stock=True)
+        filters = Q(placeholder=False)
+
+        if not feed.store.display_out_of_stock:
+            filters = filters & Q(in_stock=True)
 
         if allowed_set:
             filters = filters & Q(id__in=allowed_set)
         if exclude_set:
             filters = filters & ~Q(id__in=exclude_set)
+        
         # Banner tiles are special tiles meant to link elsewhere
         # Force them into all feeds
         if products_only:

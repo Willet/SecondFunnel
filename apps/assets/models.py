@@ -373,6 +373,7 @@ class Store(BaseModel):
     name = models.CharField(max_length=1024)
     description = models.TextField(blank=True, null=True)
     slug = models.CharField(max_length=64)
+    display_out_of_stock = models.BooleanField(default=False)
 
     default_theme = models.ForeignKey('Theme', related_name='store', blank=True,
                                       null=True, on_delete=models.SET_NULL)
