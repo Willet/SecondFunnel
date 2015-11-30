@@ -6,6 +6,7 @@ $tbs-white-color: #FFF;
 $tbs-category-height: 60px;
 $tbs-red-color: #A93032;
 $tbs-grey-color: #DDD;
+$tbs-light-grey-color: #A3A3A3;
 $tbs-black-color: #000;
 $tbs-title-color: #343434;
 $tbs-text-color: #4D4D4D;
@@ -765,6 +766,9 @@ div.loading {
             width: 100%;
             color: $tbs-white-color;
             background-color: $tbs-black-color;
+            &.out-of-stock {
+                background-color: $tbs-light-grey-color;
+            }
         }
     }
     .shop {

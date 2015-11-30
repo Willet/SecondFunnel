@@ -49,7 +49,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             _.extend({}, module.ProductView::events,
                 "click .buy": (ev) ->
                     @triggerMethod('click:buy')
-                    @shoppingBag.show(new module.BagView(model: @model))
+                    if not @model.get('in-stock')
+                        App.utils.openUrl(@model.get(url))
+                    else
+                        @shoppingBag.show(new module.BagView(model: @model))
 
                     ###
                     $.ajax("http://www.thebodyshop-usa.com/ajax/addsingleproductcheck.aspx",
