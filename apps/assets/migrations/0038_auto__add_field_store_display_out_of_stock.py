@@ -1,34 +1,23 @@
 # -*- coding: utf-8 -*-
-from django.db import models
-from django.core.exceptions import ValidationError
-import itertools
 from south.utils import datetime_utils as datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
+from django.db import models
 
 
-class Migration(DataMigration):
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Update currently live stores
-        pages = orm.Page.objects.filter(url_slug__in=['giftideas', 'halloween', 'ornaments', 'fallbaking', 'thanksgivingtools', 'thanksgivingdecor', 'clearance'])
-        tile_id_lists = [p.feed.tiles.values_list('id', flat=True) for p in pages]
-        tile_ids = set(itertools.chain(*tile_id_lists))
-        products = orm.Product.objects.filter(tiles__in=tile_ids)
-        
-        for product in products.iterator():
-            link = product.attributes.get('cj_link', None)
-            if link:
-                try:
-                    product.attributes['affiliate_link'] = link
-                    del product.attributes['cj_link']
-                    product.save()
-                except ValidationError as e:
-                    print "{}: {}".format(t, e)
-        
+        # Adding field 'Store.display_out_of_stock'
+        db.add_column(u'assets_store', 'display_out_of_stock',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
 
     def backwards(self, orm):
-        pass
+        # Deleting field 'Store.display_out_of_stock'
+        db.delete_column(u'assets_store', 'display_out_of_stock')
+
 
     models = {
         u'assets.category': {
@@ -64,7 +53,7 @@ class Migration(DataMigration):
             'feed_ratio': ('django.db.models.fields.DecimalField', [], {'default': '0.2', 'max_digits': '2', 'decimal_places': '2'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'ir_cache': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'is_finite': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_finite': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'source_urls': ('apps.utils.fields.ListField', [], {'blank': 'True'}),
             'spider_name': ('django.db.models.fields.CharField', [], {'max_length': '64', 'blank': 'True'}),
             'store': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'feeds'", 'to': u"orm['assets.Store']"}),
@@ -154,6 +143,7 @@ class Migration(DataMigration):
             'default_page': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'default_store'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': u"orm['assets.Page']"}),
             'default_theme': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'store'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': u"orm['assets.Theme']"}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'display_out_of_stock': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'ir_cache': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '1024'}),
@@ -259,4 +249,3 @@ class Migration(DataMigration):
     }
 
     complete_apps = ['assets']
-    symmetrical = True
