@@ -449,9 +449,8 @@ class Product(BaseModel):
                 or isinstance(self.price, float)):
                 raise ValidationError({'price': [u'Product price must be decimal or float']})
 
-            sale_price = self.get('sale_price', self.attributes.get('sale_price', float()))
-            if sale_price and not (isinstance(sale_price, decimal.Decimal) \
-                or isinstance(sale_price, float)):
+            if self.sale_price and not (isinstance(self.sale_price, decimal.Decimal) \
+                or isinstance(self.sale_price, float)):
                 raise ValidationError({'sale_price': [u'Product sale price must be decimal or float']})
 
     def clean(self):
