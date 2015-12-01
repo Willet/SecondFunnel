@@ -7,6 +7,7 @@ import datetime
 import time
 import factory
 import mock
+import logging
 from decimal import *
 from django.test import TestCase
 from django.db.models.signals import post_save, m2m_changed
@@ -17,7 +18,8 @@ from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resour
 from apps.assets.utils import disable_tile_serialization
 import apps.intentrank.serializers as ir_serializers
 
-from apps.assets.signals import tile_saved
+from apps.assets.signals import content_m2m_changed, content_saved, product_saved, \
+                                productimage_saved, tile_m2m_changed, tile_saved
 
 """
 We are avoiding fixtures because they are so slow:
@@ -123,20 +125,21 @@ class SignalsTest(TestCase):
     def content_m2m_changed_call_test(self):
         fix = Content.objects.get(pk=6)
         tile = Tile.objects.get(pk=10)
+        pro = Product.objects.get(pk=3)
         with mock.patch('apps.assets.signals.content_m2m_changed', autospec=True) as mocked_handler:
-            m2m_changed.connect(mocked_handler, sender=Content)
+            m2m_changed.connect(mocked_handler, sender=Content.tagged_products.through)
             tile.content.add(fix)
-            self.assertEquals(mocked_handler.call_count, 1)
+            fix.tagged_products.add(pro)
+            self.assertEquals(mocked_handler.call_count, 2)
     
     def tile_m2m_changed_call_test(self):
         fix = Tile.objects.get(pk=10)
-        content = Content.objects.get(pk=6)
-        fix.content.add(content)
+        pro = Product.objects.get(pk=3)
         with mock.patch('apps.assets.signals.tile_m2m_changed', autospec=True) as mocked_handler:
-            m2m_changed.connect(mocked_handler, sender=Tile)
-            content.url = "some/new/url"
-            content.save() # triggers signal
-            self.assertEquals(mocked_handler.call_count, 1)
+            m2m_changed.connect(mocked_handler, sender=Tile.products.through)
+            fix.products.add(pro)
+            logging.debug(mocked_handler.call_args_list)
+            mocked_handler.assert_called_once_with(sender=Tile.products.through)
     
     def tile_saved_call_test(self):
         fix = Tile.objects.get(pk=10)
@@ -144,6 +147,20 @@ class SignalsTest(TestCase):
             post_save.connect(mocked_handler, sender=Tile)
             fix.save() # triggers signal
             self.assertEquals(mocked_handler.call_count, 1)
+
+
+class SignalExecutionTest(TestCase):
+    fixtures = ['assets_models.json']
+
+    @mock.patch('apps.assets.Product.save', mock.Mock())
+    def productimage_saved_execute_test(self):
+        productimage_saved()
+        Product.save.assert_called_once_with()
+
+    @mock.patch('apps.assets.Product.save', mock.Mock())
+    def productimage_saved_execute_test(self):
+        productimage_saved()
+        self.assertEqual(Product.save.call_count, 0)
 
 
 class StoreTest(TestCase):
