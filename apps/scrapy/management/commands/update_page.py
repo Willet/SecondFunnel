@@ -18,6 +18,9 @@ class Command(BaseCommand):
 
     -i, --update-images
         Scrape product images.
+
+    -s, --scrape
+        Use page scrapers (default is use datafeed).
     """
     option_list = BaseCommand.option_list + (
             make_option('-t','--recreate-tiles',

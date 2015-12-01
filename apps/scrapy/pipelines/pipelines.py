@@ -133,8 +133,8 @@ class PricePipeline(ItemManifold):
             item['currency'] = extract_currency(price)
 
         sale_price = item.get('sale_price', None)
-        if sale_price and not isinstance(sale_price, decimal.Decimal):
-            item['sale_price'] = extract_decimal(sale_price)
+        if not isinstance(sale_price, decimal.Decimal):
+            item['sale_price'] = extract_decimal(sale_price) if sale_price else None
         return item
 
 

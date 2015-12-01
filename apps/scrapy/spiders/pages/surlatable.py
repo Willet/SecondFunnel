@@ -166,15 +166,18 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
             
             if sugg_price:
                 reg_price = sugg_price.split('-')[0] # Sometimes "$9.95 - $48.96"
-                l.add_value('sale_price', price)
+                sale_price = price
             else:
                 reg_price = price
+                sale_price = None
             
         except IndexError:
             reg_price = u'$0.00'
+            sale_price = None
 
         l.add_value('in_stock', bool(not self.is_sold_out(response)))
         l.add_value('price', unicode(reg_price))
+        l.add_value('sale_price', unicode(sale_price) if sale_price else None)
         l.add_value('attributes', attributes)
         l.add_value('url', unicode(response.request.url))
         
