@@ -78,6 +78,7 @@ class BodyShopDatafeed(RakutenDatafeed):
     def _update_product_rakuten_fields(product, data):
         # product price should always be the largest price on record
         # so that products appear to be more on sale
+        # For BodyShop datafeed: SALEPRICE == PRICE
         new_price = float(data['PRICE'])
         if new_price > product.price:
             product.price = new_price

@@ -468,6 +468,9 @@ class Product(BaseModel):
             # there is no default image
             self.default_image = self.product_images.first()
 
+        if self.sale_price and self.sale_price > self.price:
+            raise ValidationError({'sale_price': [u'Product sale price must be smaller than price']})
+
     def choose_lifestyle_shot_default_image(self):
         """Set a default_image that is not a product shot for the given tile"""
         if self.default_image and self.default_image != self.product_images.first():
