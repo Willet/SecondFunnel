@@ -319,7 +319,6 @@
                 </div>
                 <div class="cell similar-products overflow"></div>
             </div>
-            <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
         </script>
 
         <script type="text/template" id="similar_products_template">
@@ -327,33 +326,23 @@
                 <div class="similar-cta">Shop the Collection</div>
                 <div class='similar-subtext'>by clicking the images below</div>
             <% } else { %>
-                <div class="similar-cta">You May Also Like</div>
+                <div class="similar-cta">shop the look</div>
             <% } %>
             <div class="tiles"></div>
         </script>
 
         <script type="text/template" id="desktop_tagged_products">
             <div class="feature">
-                <div class="cell title-banner">
-                    <div class="title">
-                        <% include("product_title_template") %>
-                    </div>
+                <% var orientation = (obj.orientation || "square"); %>
+                <% var oneProduct = (obj.taggedProducts.length < 2); %>
+                <div class="cell look-image-container <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
+                    <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
                 </div>
-                <div class="cell look-image-container">
-                    <% if (template === "collection") { %>
-                        <% var url = obj.expandedImage ? obj.expandedImage.url : image.url; %>
-                        <img src="<%= url %>" alt="image" class="look-image" />
-                    <% } else if (template === "recipe") { %>
-                        <% include("recipe_template") %>
-                    <% } else { %>
-                        <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
-                    <% } %>
-                </div>
-                <div class="cell info">
-                    <div class="product-info"></div>
-                </div>
-                <div class="cell shop">
+                <div class="cell shop <%= orientation %>">
                     <div class="product-thumbnails"></div>
+                </div>
+                <div class="cell info <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
+                    <div class="product-info"></div>
                 </div>
             </div>
             <div class="cell similar-products overflow"></div>
@@ -363,15 +352,7 @@
             <div class="feature">
                 <div class="look-product-carousel">
                     <div class="cell look-image-container">
-                        <% if (template === "collection") { %>
-                            <% var url = obj.expandedMobileImage ? obj.expandedMobileImage.url :
-                                        ( obj.expandedImage ? obj.expandedImage.url : image.url); %>
-                            <img src="<%= url %>" alt="image" class="look-image" />
-                        <% } else if (template === "recipe") { %>
-                            <% include("recipe_template") %>
-                        <% } else { %>
-                            <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
-                        <% } %>
+                        <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
                     </div>
                     <div class="cell info">
                         <div class="product-info"></div>
@@ -382,21 +363,6 @@
                 </div>
             </div>
             <div class="cell similar-products overflow"></div>
-        </script>
-
-        <script type="text/template" id="recipe_template">
-            <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
-            <div class="recipe-container">
-                <div class="title">
-                    <% include("product_title_template") %>
-                </div>
-                <div class="recipe">
-                    <% include("product_description_template") %>
-                </div>
-                <div class="scroll-cta">
-                    Scroll to see more
-                </div>
-            </div>
         </script>
 
         <script type="text/template" id="no_tagged_products">
@@ -418,6 +384,33 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="product_thumbnails_template">
+            <div class="stl-title"><span>shop the look</span></div>
+            <div class="stl-carousel carousel-view">
+                <div class="stl-swipe-left carousel-swipe-left"></div>
+                <div class="stl-swipe-right carousel-swipe-right"></div>
+                <div class="stl-swipe-up carousel-swipe-up"></div>
+                <div class="stl-swipe-down carousel-swipe-down"></div>
+                <div class="stl-look-container carousel-container">
+                    <div class="stl-look carousel-slide">
+                        <div class="look-thumbnail mobile-only">
+                            <img src="<%= obj.attrs['lookImageSrc'] %>" class="image" />
+                            <div class="name">
+                                <%= obj.attrs['lookName'] %>
+                            </div>
+                        </div>
+                        <% for (var i = 0, item; i < obj.items.length; i++) { 
+                            item = obj.items[i]; %>
+                        <div class="stl-item" data-index="<%- i %>">
+                            <img src="<%- item.images[0].url %>" class="image" />
+                            <div class="name desktop-only"><%- item.title || item.name %></div>
+                        </div>
+                        <% } %>
                     </div>
                 </div>
             </div>
