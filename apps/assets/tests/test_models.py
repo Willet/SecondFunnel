@@ -6,8 +6,8 @@ import mock
 import datetime
 import time
 import factory
-import mock
 import logging
+import itertools
 from decimal import *
 from django.test import TestCase
 from django.db.models.signals import post_save, m2m_changed
@@ -49,119 +49,6 @@ http://www.mattjmorrison.com/2011/09/mocking-django.html
 #     def setUp(self):
 #         # create a dummy model to inherit abstract class BaseModel
 #         self.model = ModelBase(BaseModel)
-
-# mock class
-# class LocalDjangoSignalsMock():
-#     def __init__(self, to_mock):
-#         """ 
-#         Replaces registered django signals with MagicMocks
-
-#         :param to_mock: list of signal handlers to mock
-#         """
-#         self.mocks = {handler:mock.MagicMock() for handler in to_mock}
-#         self.reverse_mocks = {magicmock:mocked
-#                               for mocked,magicmock in self.mocks.items()}
-#         django_signals = [post_save, m2m_changed]
-#         self.registered_receivers = [signal.receivers
-#                                      for signal in django_signals]
-
-#     def _apply_mocks(self):
-#         for receivers in self.registered_receivers:
-#             for receiver_index in xrange(len(receivers)):
-#                 handler = receivers[receiver_index]
-#                 handler_function = handler[1]()
-#                 if handler_function in self.mocks:
-#                     receivers[receiver_index] = (
-#                         handler[0], self.mocks[handler_function])
-
-#     def _reverse_mocks(self):
-#         for receivers in self.registered_receivers:
-#             for receiver_index in xrange(len(receivers)):
-#                 handler = receivers[receiver_index]
-#                 handler_function = handler[1]
-#                 if not isinstance(handler_function, mock.MagicMock):
-#                     continue
-#                 receivers[receiver_index] = (
-#                     handler[0], weakref.ref(self.reverse_mocks[handler_function]))
-
-#     def __enter__(self):
-#         self._apply_mocks()
-#         return self.mocks
-
-class SignalsTest(TestCase):
-    fixtures = ['assets_models.json']
-
-    # @mock.patch('apps.assets.signals.tile_saved', mock.Mock())
-    # def save_signal_test(self):
-    #     t = Tile.objects.get(pk=10)
-    #     # pagse
-    #     to_mock = [post_save]
-    #     with LocalDjangoSignalsMock(to_mock) as mocks:
-    #         t.save()
-    #         for mocked in to_mock:
-    #             assert(mocks[mocked].call_count)
-
-    def productimage_saved_call_test(self):
-        product_image = ProductImage.objects.get(pk=4)
-        with mock.patch('apps.assets.signals.productimage_saved', autospec=True) as mocked_handler:
-            post_save.connect(mocked_handler, sender=ProductImage)
-            product_image.save() # triggers signal
-            self.assertEquals(mocked_handler.call_count, 1)
-    
-    def product_saved_call_test(self):
-        fix = Product.objects.get(pk=3)
-        with mock.patch('apps.assets.signals.product_saved', autospec=True) as mocked_handler:
-            post_save.connect(mocked_handler, sender=Product)
-            fix.save() # triggers signal
-            self.assertEquals(mocked_handler.call_count, 1)
-    
-    def content_saved_call_test(self):
-        fix = Content.objects.get(pk=6)
-        with mock.patch('apps.assets.signals.content_saved', autospec=True) as mocked_handler:
-            post_save.connect(mocked_handler, sender=Content)
-            fix.save() # triggers signal
-            self.assertEquals(mocked_handler.call_count, 1)
-    
-    def content_m2m_changed_call_test(self):
-        fix = Content.objects.get(pk=6)
-        tile = Tile.objects.get(pk=10)
-        pro = Product.objects.get(pk=3)
-        with mock.patch('apps.assets.signals.content_m2m_changed', autospec=True) as mocked_handler:
-            m2m_changed.connect(mocked_handler, sender=Content.tagged_products.through)
-            tile.content.add(fix)
-            fix.tagged_products.add(pro)
-            self.assertEquals(mocked_handler.call_count, 2)
-    
-    def tile_m2m_changed_call_test(self):
-        fix = Tile.objects.get(pk=10)
-        pro = Product.objects.get(pk=3)
-        with mock.patch('apps.assets.signals.tile_m2m_changed', autospec=True) as mocked_handler:
-            m2m_changed.connect(mocked_handler, sender=Tile.products.through)
-            fix.products.add(pro)
-            logging.debug(mocked_handler.call_args_list)
-            mocked_handler.assert_called_once_with(sender=Tile.products.through)
-    
-    def tile_saved_call_test(self):
-        fix = Tile.objects.get(pk=10)
-        with mock.patch('apps.assets.signals.tile_saved', autospec=True) as mocked_handler:
-            post_save.connect(mocked_handler, sender=Tile)
-            fix.save() # triggers signal
-            self.assertEquals(mocked_handler.call_count, 1)
-
-
-class SignalExecutionTest(TestCase):
-    fixtures = ['assets_models.json']
-
-    @mock.patch('apps.assets.Product.save', mock.Mock())
-    def productimage_saved_execute_test(self):
-        productimage_saved()
-        Product.save.assert_called_once_with()
-
-    @mock.patch('apps.assets.Product.save', mock.Mock())
-    def productimage_saved_execute_test(self):
-        productimage_saved()
-        self.assertEqual(Product.save.call_count, 0)
-
 
 class StoreTest(TestCase):
     # Store has no methods

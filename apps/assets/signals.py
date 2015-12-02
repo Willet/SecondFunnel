@@ -13,6 +13,8 @@ def productimage_saved(sender, **kwargs):
     if not (productimage and productimage.product):
         return
 
+    # raise Exception("omg what is happening")
+
     productimage.product.save()
 
 

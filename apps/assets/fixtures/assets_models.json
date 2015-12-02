@@ -90,6 +90,7 @@
     "model": "assets.ProductImage",
     "pk": 11,
     "fields": {
+      "product": 13,
       "url": "/another-image.jpg",
       "original_url": "test.com/another-image.jpg",
       "updated_at": "2015-11-18 00:43:26"
