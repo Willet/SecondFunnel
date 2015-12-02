@@ -18,6 +18,7 @@ class EBagsSpider(SecondFunnelCrawlSpider):
     root_url = "http://www.ebags.com"
     allowed_domains = ['ebags.com']
     remove_background = False
+    forced_image_ratio = 1.0
     store_slug = name
     # URLs will be scraped looking for more links that match these rules
     rules = (
