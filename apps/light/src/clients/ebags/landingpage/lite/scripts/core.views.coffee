@@ -7,8 +7,8 @@ swipe = require('jquery-touchswipe')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.ProductView::initialize = _.wrap(
-        module.ProductView::initialize, (initialize) ->
-            initialize.call(@)
+        module.ProductView::initialize, (initialize, options) ->
+            initialize.call(@, options)
             if App.support.mobile()
                 @numberOfImages += 1 # add slot of description
             return
@@ -66,23 +66,60 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
     )
 
-    _.extend(module.ExpandedContent::events,
-        "click .stl-look .stl-item": (event) ->
-            $ev = $(event.target)
-            $targetEl = if $ev.hasClass('stl-item') then $ev else $ev.parents('.stl-item')
-            product = @taggedProducts[$targetEl.data("index")]
-            ### Uncomment to enable switching view to product ###
-            #@taggedProductIndex = $targetEl.data("index")
-            #if App.support.mobile() and not @ui.lookThumbnail.is(':visible')
-            #    @productThumbnails.currentView.index = Math.min($(".stl-look").children(':visible').length - 1, @productThumbnails.currentView.index + 1)
-            #product = @updateContent()
-            App.vent.trigger('tracking:product:thumbnailClick', @getTrackingData(product))
-            App.utils.openUrl(product.get("url"))
-            return
-    )
+    module.ExpandedContent::shrinkContainerCallback = ->
+        # Fits content to window, doesn't support overflow content
+        $table = @$el.find(".table")
+        $container = @$el.closest(".fullscreen")
+        $containedItem = @$el.closest(".content")
 
-    # SLT shows one piece of content at a time
-    _.extend(module.ExpandedContent::defaultOptions, featureSingleItem: true)
+        @updateContent()
+
+        if @model.get("type") is "image" or @model.get("type") is "gif"
+            if @taggedProductIndex > -1
+                @ui.lookThumbnail.show()
+            else
+                @ui.lookThumbnail.hide()
+        
+        if App.support.mobile()
+            return
+        tableHeight = undefined
+        numProducts = @taggedProducts.length
+        if @model.get("template") is "image" or @model.get("template") is "gif"
+            if (@model.get("orientation") is "landscape" and numProducts > 1) or @model.get("orientation") is "portrait"
+                tableHeight = if $container.height() then $container.height() else $containedItem.height()
+            else
+                tableHeight = (if $container.width() then $container.width() else $containedItem.width())*0.496
+            $table.css(
+                height: tableHeight
+            )
+            if @model.get("template") is "image" and @model.get("images")?.length > 0
+                $lookImage = @$el.find(".look-image")
+                imageUrl =  @model.get("images")[0].resizeForDimens($lookImage.width()*1.3,
+                                                                    $lookImage.height()*1.3)
+                $lookImage.css("background-image", "url(#{imageUrl})")
+        # loading hero area
+        unless $container?.length
+            return
+        $container.css(
+            top: "0"
+            bottom: "0"
+            left: "0"
+            right: "0"
+        )
+        heightReduction = ($(window).height() - $containedItem.outerHeight()) / 2
+        widthReduction = ($(window).width() - $containedItem.outerWidth()) / 2
+        if heightReduction <= 0 # String because jQuery checks for falsey values
+            heightReduction = "0"
+        if widthReduction <= 0 # String because jQuery checks for falsey values
+            widthReduction = "0"
+        $container.css(
+            top: heightReduction
+            bottom: heightReduction
+            left: widthReduction
+            right: widthReduction
+        )
+        $container.removeClass("loading-images")
+        return
 
     module.ExpandedContent::showThumbnails = ->
         # SLT thumbnails are always across the bottom
@@ -98,23 +135,3 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @productThumbnails.show(thumbnailsInstance)
             @ui.lookThumbnail.hide()
         return
-
-    module.CategoryCollectionView::onShow = ->
-        # Enable sticky category bar
-        # Has an offset for the category thumbnails
-        sticky = App.option("page:stickyCategories")
-        if _.isString(sticky)
-            if sticky == 'desktop-only' and not App.support.mobile()
-                @$el.parent().waypoint('sticky',
-                    offset: '-113px' # 111px thumbnail + 1px + 1px borders
-                )
-            else if sticky == 'mobile-only' and App.support.mobile()
-                @$el.parent().waypoint('sticky',
-                    offset: '-113px' # 111px thumbnail + 1px + 1px borders
-                )
-        else if _.isBoolean(sticky) and sticky
-            @$el.parent().waypoint('sticky',
-                offset: '-113px' # 111px thumbnail + 1px + 1px borders
-            )
-
-        return @
