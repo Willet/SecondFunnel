@@ -158,7 +158,13 @@
                     <li class='brand'><%= obj.product.get('brand')['name'] %></span>
                     <% } %>
                     <li class="name"><%= obj.product.get('name') %></span>
-                    <li class="price"><%= obj.product.get('currency') %><%= obj.product.get('price') %></li>
+                    <li class="price"><%= obj.product.get('currency') %>
+                        <% if (obj.product.get('salePrice')) { %>
+                            <%= obj.product.get('salePrice') %>
+                        <% } else { %>
+                            <%= obj.product.get('price') %>
+                        <% } %>
+                    </li>
                 </ul>
                 <div>
                     <img class="focus" src="<%= obj.defaultImage.url %>" />
