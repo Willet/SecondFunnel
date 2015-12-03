@@ -389,6 +389,7 @@ body {
                 color: $ebags-dark-color;
                 font-size: 20px;
                 margin-bottom: 15px;
+                line-height: 25px;
             }
             li.brand,
             li.name {
@@ -624,82 +625,80 @@ body {
         }
     }
 
-    .image-with-tagged-products .info {
-        width: 36%;
-        height: 67%;
-        padding: 20px;
-        text-align: center;
-        &.one-product {
-            float: none;
-            height: 100%;
-        }
-        &.square,
-        &.portrait {
-            height: 100%;
-        }
-        &.portrait .product-info {
-            height: 66%;
-        }
-        .product-info, .tagged-product {
-            height: 100%;
-            position: relative;
-            > div {
-                margin: 0;
-            }
-        }
-        .gallery-main-image {
-            display: inline-block;
-            position: relative;
-            width: 100%;
-            height: 60%;
-        }
-        .main-image-container {
-            width: 76%;
-            height: 100%;
-            margin: auto;
-            overflow: hidden;
-            position: relative;
-            .main-image {
-                width: 100%;
+    .image-with-tagged-products {
+        .info {
+            width: 36%;
+            height: 67%;
+            padding: 10px 20px;
+            text-align: center;
+            &.square,
+            &.portrait {
                 height: 100%;
-                white-space: nowrap;
-                font-size: 0;
-                .image {
+            }
+            &.portrait .product-info {
+                height: 66%;
+            }
+            .product-info, .tagged-product {
+                height: 100%;
+                position: relative;
+                > div {
+                    margin: 0;
+                }
+            }
+            .gallery-main-image {
+                display: inline-block;
+                position: relative;
+                width: 100%;
+                height: 60%;
+            }
+            .main-image-container {
+                width: 76%;
+                height: 100%;
+                margin: auto;
+                overflow: hidden;
+                position: relative;
+                .main-image {
                     width: 100%;
                     height: 100%;
-                    display: inline-block;
-                    background-size: cover;
-                    background-position: top center;
-                    background-repeat: no-repeat;
+                    white-space: nowrap;
+                    font-size: 0;
+                    .image {
+                        width: 100%;
+                        height: 100%;
+                        display: inline-block;
+                        background-size: cover;
+                        background-position: top center;
+                        background-repeat: no-repeat;
+                    }
                 }
             }
-        }
-        .gallery-dots {
-            margin: 3px 0 !important;
-            width: 100%;
-            font-size: 12px;
-            .item {
-                background-color: $ebags-dark-blue;
-                width: 6px;
-                height: 6px;
-                &.selected {
-                    background-color: $ebags-grey-color;
+            .gallery-dots {
+                margin: 3px 0 !important;
+                width: 100%;
+                font-size: 12px;
+                .item {
+                    background-color: $ebags-dark-blue;
+                    width: 6px;
+                    height: 6px;
+                    &.selected {
+                        background-color: $ebags-grey-color;
+                    }
                 }
             }
-        }
-        .product-details {
-            padding: 10px 0;
-            .brand, .title, .price {
-                font-size: 18px;
-                margin-bottom: 14px;
-                line-height: 25px;
+            .product-details {
+                padding: 10px 0;
+                .brand, .title, .price {
+                    font-size: 18px;
+                    margin-bottom: 14px;
+                    line-height: 25px;
+                }
+                .description {
+                    display: none;
+                }
             }
-            .description {
-                display: none;
+            .brand {
+                display: inline;
             }
-        }
-        .brand {
-            display: inline;
         }
     }
 
@@ -707,7 +706,7 @@ body {
         display: inline-block;
         vertical-align: top;
         width: 100%;
-        height: 100%;
+        height: auto;
         padding: 10px 20px;
         margin: 0 !important;
         text-align: left;
@@ -886,9 +885,6 @@ body {
             width: 63%;
             height: 67%;
         }
-        &.one-product {
-            height: 100% !important;
-        }
         .look-image {
             width: 100%;
             height: 100%;
@@ -955,6 +951,19 @@ body {
             span {
                 white-space: normal;
             }
+        }
+    }
+    .previewContainer .image-with-tagged-products .one-product {
+        .look-image-container {
+            height: 100% !important;
+        }
+        .shop {
+            display: none;
+        }
+        .info {
+            float: none;
+            height: 100%;
+            width: 50%;
         }
     }
 
@@ -1160,6 +1169,9 @@ body {
     }
     .previewContainer,
     .heroContainer {
+        .content {
+            height: 100%;
+        }
         &.landscape {
             height: 100% !important;
 
@@ -1242,7 +1254,6 @@ body {
         }
 
         .close {
-            padding: 0 36px;
             line-height: 36px;
             text-transform: uppercase;
         }
@@ -1375,20 +1386,18 @@ body {
                     }
                     .product-details {
                         text-align: left;
-                        width: 75%;
                         height: 36px;
-                        padding: 5px;
-                        .title, .price {
-                            font-family: $ebags-sans-font;
+                        padding: 5px 20% 5px 5px;
+                        .title, .price, .brand, .current, .suggested-price, .save-percent {
                             font-size: 11px;
                             line-height: 12px;
                             padding: 0;
-                            color: $ebags-dark-blue;
                             height: 12px;
                             overflow: hidden;
+                            margin-bottom: 5px;
                         }
-                        .price {
-                            font-size: 10px !important;
+                        .brand {
+                            display: inline;
                         }
                     }
                     .gallery-main-image {
