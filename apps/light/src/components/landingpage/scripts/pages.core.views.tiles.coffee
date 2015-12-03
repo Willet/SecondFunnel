@@ -238,8 +238,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             App.vent.trigger('tracking:tile:bannerExit', @model)
             if @model.get("redirect-url")
                 App.utils.openUrl(@model.get("redirect-url"))
-            else
-                super
             return false # stop event propogation
 
 
@@ -261,12 +259,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         type: "YoutubeTileView"
         template: "youtube_tile_template"
 
-        constructor: () ->
-            @regions = _.extend({}, @regions, 
+        regions:
+            _.extend({}, module.TileView::regions, # super ugly syntax
                 video: ".youtube-video"
             )
-            super
-
         onClick: (ev) ->
             thumbId = "thumb-#{@model.cid}"
             $thumb = @$("div.thumbnail")

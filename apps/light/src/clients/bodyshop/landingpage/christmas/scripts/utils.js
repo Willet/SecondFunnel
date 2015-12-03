@@ -15,9 +15,36 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             target = module.openInWindow();
         }
         App.vent.trigger("tracking:click", url);
-        // Add CJ page-id tracking parameter
-        url = App.utils.urlAddParams(url, {'sid': App.option('page:slug')});
-        window.open(url, target);
+
+        var destinationUrl = module.addUrlTrackingParameters(url);
+        
+        if (App.option("useAffiliateLinks")) {
+            destinationUrl = module.buildAffiliateLink(destinationUrl);
+        }
+        window.open(destinationUrl, target);
         return;
     };
+
+    module.addUrlTrackingParameters = function (url) {
+        var params = {};
+        return module.urlAddParams(url, _.extend({}, params, App.option("page:urlParams")));
+    };
+
+    module.buildAffiliateLink = function (destinationUrl) {
+        var baseUrl = "http://click.linksynergy.com/fs-bin/click",
+            params = {
+                "id":        "ijwfSa0syf8",
+                "subid":     "0",
+                "offerid":   "395685.1",
+                "type":      "10",
+                "tmpid":     "7629",
+                "u1":        App.option("page:slug"),
+                "RD_PARM1":  encodeURI(destinationUrl)
+            },
+            re = /^https?\:\/\/(?:www|m)\.thebodyshop-usa\.com\/search.aspx/i;
+        if (destinationUrl.match(re)) {
+            params['tmpid'] = "2254";
+        }
+        return module.urlAddParams(baseUrl, params);
+    }
 };

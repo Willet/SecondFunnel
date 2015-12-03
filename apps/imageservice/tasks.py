@@ -156,25 +156,30 @@ def process_gif(source, path='', sizes=None, remove_background=False):
 
 
 
-def process_image(source, path='', sizes=None, remove_background=False):
+def process_image(source, path='', sizes=None, remove_background=False, forced_image_ratio=False):
     """
     Acquires a lock in order to process the image.
 
     @param source: Name of the image source
     @param path: The path to save the object to
     @param sizes: List of sizes to create (unused)
+    @param remove_background: Either hex color str (ex: "#996633") or False
+    @param forced_image_ratio: Either integer width/height ratio (ex: 1.5) or False
     @return: object
     """
     if not sizes:
         sizes = []
 
     with PROCESSING_SEM:
-        data = process_image_now(source, path, remove_background=remove_background)
+        data = process_image_now(source, path,
+                                 sizes=sizes,
+                                 remove_background=remove_background,
+                                 forced_image_ratio=forced_image_ratio)
 
     return data
 
 
-def process_image_now(source, path='', sizes=None, remove_background=False):
+def process_image_now(source, path='', sizes=None, remove_background=False, forced_image_ratio=False):
     """
     Delegates to resize to create the necessary sizes.
 
@@ -193,20 +198,39 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
     """
     data = {'sizes': {}}
     kwargs = {}
-
+    trimmed_object = None
     color = None if remove_background == 'uniform' else remove_background
+
     if (remove_background is not False) and ((remove_background == 'auto') or within_color_range(source, color, 4)):
         print "trimming"
         trimmed_object = upload_to_cloudinary(source, path=path, effect='trim')
-        trimmed_ratio = float(trimmed_object['width']) / trimmed_object['height']
+        trimmed_ratio = (float(trimmed_object['height'])/trimmed_object['width'])
         print "trimmed_ratio:", trimmed_ratio
-
+     
+    if forced_image_ratio is not False:
+        # force image ratio by padding image
         kwargs['crop'] = 'pad'
 
-        # force standard aspect ratios (3:4, 1:1, or 2:1)
+        if not trimmed_object:
+            trimmed_object  = upload_to_cloudinary(source, path=path)
+        desired_ratio = float(forced_image_ratio)
+        actual_ratio = (float(trimmed_object['width']) / trimmed_object['height'])
+
+        if actual_ratio > desired_ratio:
+            kwargs['width'] = kwargs['height'] = trimmed_object['width']
+        else:
+            kwargs['width'] = kwargs['height'] = trimmed_object['height']
+
+        image_object = upload_to_cloudinary(trimmed_object['url'], path=path, **kwargs)
+        delete_cloudinary_resource(trimmed_object['url']) # destroy the temporary
+    elif trimmed_object:
+        # force standard aspect ratios (3:4, 1:1, or 2:1) on trimmed images
+        kwargs['crop'] = 'pad'
+
         aspect_ratios = {0.75: 'portrait', 1: 'square', 2: 'landscape'}
         keys = sorted(aspect_ratios.keys())
         msg = "padding {} dimension, bringing image ratio to {} ({})"
+
         for index, ratio in enumerate(keys):
             if trimmed_ratio < ratio:
                 print msg.format('x', ratio, aspect_ratios[ratio])
@@ -223,10 +247,9 @@ def process_image_now(source, path='', sizes=None, remove_background=False):
 
         image_object = upload_to_cloudinary(trimmed_object['url'], path=path, **kwargs)
         delete_cloudinary_resource(trimmed_object['url']) # destroy the temporary
-
     else:
         print "Not resizing because of spider settings"
-        print "To enable trimming and resizing, change \"remove_background\""
+        print "To enable trimming and resizing, change \"remove_background\" and/or \"forced_image_ratio\""
         image_object = upload_to_cloudinary(source, path=path)
 
     # Grab the dominant colour from cloudinary

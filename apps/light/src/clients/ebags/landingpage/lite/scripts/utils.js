@@ -28,6 +28,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             "utm_medium":   "Pages",
             "utm_campaign": App.option("page:slug")
         };
-        return module.urlAddParams(url, _.extend({}, params, App.option["urlParams"]));
+        return module.urlAddParams(url, _.extend({}, params, App.option("page:urlParams")));
     };
 };

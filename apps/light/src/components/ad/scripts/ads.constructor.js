@@ -58,7 +58,7 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
         debugLevel = App.options.debug = hash.charAt(hashIdx + 6);
-        if (App.options.urlParams && App.options.urlParams.debug) {
+        if (App.options.page && App.options.page.urlParams && App.options.page.urlParams.debug) {
             delete App.options.urlParams.debug;
         }
     } else {

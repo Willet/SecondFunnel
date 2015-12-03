@@ -15,10 +15,6 @@ App.module('utils', require('./utils'));
 App.module('core', require('./core.models'));
 App.module('core', require('./core.views'));
 
-if (App.option("generateHeroArea")) {
-    App.core.HeroAreaView = App.core.GeneratedHeroAreaView;
-}
-
 // Run Application
 App.init.initialize();
 App.start();

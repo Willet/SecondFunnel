@@ -15,7 +15,7 @@ class BodyShopDatafeed(RakutenDatafeed):
             'pathname': '',
             'field_mapping': ['SKU',
                      'NAME',
-                     'numbers??',
+                     'ID',
                      'category',
                      'ADVERTISERCATEGORY',
                      'BUYURL',
@@ -48,10 +48,10 @@ class BodyShopDatafeed(RakutenDatafeed):
         self.options = options
 
         self.lookup_table = super(BodyShopDatafeed, self).load(
-            collect_fields=["SKU", "NAME", "DESCRIPTION", "PRICE",
+            collect_fields=["ID", "NAME", "DESCRIPTION", "PRICE",
                 "SALEPRICE", "BUYURL", "INSTOCK",
                 "ADVERTISERCATEGORY", "ARTIST"],
-            lookup_fields=["SKU","NAME","ADVERTISERCATEGORY"])
+            lookup_fields=["ID","NAME","ADVERTISERCATEGORY"])
     
     def lookup_product(self, product):
         """ Looksup product in datafeed
@@ -62,8 +62,8 @@ class BodyShopDatafeed(RakutenDatafeed):
         """
         return self.lookup_table.find(
             mappings=[
-                ("SKU", product.sku),
-                ("NAME", product.name.encode('ascii', errors='ignore')),
+                ("ID", product.sku),
+                ("NAME", "The Body Shop {}".format(product.name.encode('ascii', errors='ignore'))),
             ], first=True)
 
     def update_product(self, product, data):
@@ -78,6 +78,7 @@ class BodyShopDatafeed(RakutenDatafeed):
     def _update_product_rakuten_fields(product, data):
         # product price should always be the largest price on record
         # so that products appear to be more on sale
+        # For BodyShop datafeed: SALEPRICE == PRICE
         new_price = float(data['PRICE'])
         if new_price > product.price:
             product.price = new_price

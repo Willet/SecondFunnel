@@ -478,13 +478,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             heroImage = (catObj['heroImage'] or App.option('page:defaults:heroImage'))
             mobileHeroImage = (catObj['mobileHeroImage'] or App.option('page:defaults:mobileHeroImage'))
             heroTitle = (catObj['heroTitle'] or App.option('page:defaults:heroTitle'))
+            mobileHeroTitle = (catObj['mobileHeroTitle'] or App.option('page:defaults:mobileHeroTitle'))
             if heroImage or heroTitle
-                heroImages =
+                heroObj =
                     "heroImage": heroImage
                     "mobileHeroImage": mobileHeroImage or heroImage
                     "heroTitle": heroTitle
+                    "mobileHeroTitle": mobileHeroTitle or heroTitle
                     "template": "hero"
-                tile = new module.HeroTile(heroImages)
+                tile = new module.HeroTile(heroObj)
             else
                 tile = undefined
             return tile
@@ -615,11 +617,26 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         initialize: (options) ->
             @collection = new module.CategoryCollection(_.get(options, 'categories', []),
                                                         model: module.Category)
-
+            @_isMobileCategories = App.support.mobile()
             # Watch for updates to feed, generally from intentRank
             @listenTo(App.vent, "change:category", @selectCategory)
-
+            @listenTo(App.vent, "window:resize", @updateCategories)
             return @
+
+        updateCategories: ->
+            # Handle switches between desktop & mobile
+            if (@_isMobileCategories is not App.support.mobile())
+                @_isMobileCategories = App.support.mobile()
+
+                catArr = App.option("page:categories", [])
+                mobileCatArr = App.option("page:mobileCategories", [])
+                if App.support.mobile() and _.isArray(mobileCatArr) and not _.isEmpty(mobileCatArr)
+                    catArr = mobileCatArr
+                
+                categoriesView = new App.core.CategoryCollectionView(categories: catArr)
+                App.categories = categoriesView.collection # Global reference
+                App.categoryArea.show(categoriesView)
+            return
         
         onRender: ->
             if App.intentRank.currentCategory()?
@@ -627,7 +644,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             else
                 App.vent.once('intentRankInitialized', =>
                     if App.intentRank.currentCategory()?
-                        @selectCategory (App.intentRank.currentCategory())
+                        @selectCategory(App.intentRank.currentCategory())
                 )
             return @
 
@@ -637,15 +654,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return @
 
         expandCategory: ($el) ->
-            @$el.find(".#{@childView::className}.expanded").removeClass('expanded')
-            $el.filter(".#{@childView::className}").addClass('expanded')
+            @$el.find(".#{@childView::className}.expanded")?.removeClass('expanded')
+            $el.filter(".#{@childView::className}")?.addClass('expanded')
             App.vent.trigger('categories:expanded')
 
         contractCategories: () ->
-            ex = @$el.find(".#{@childView::className}.expanded")
-            if ex.length
-                ex.removeClass('expanded')
-                App.vent.trigger('categories:contracted')
+            @$el.find(".#{@childView::className}.expanded")?.removeClass('expanded')
+            App.vent.trigger('categories:contracted')
 
         onShow: ->
             # Enable sticky category bar

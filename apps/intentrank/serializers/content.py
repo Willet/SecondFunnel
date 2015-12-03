@@ -34,13 +34,13 @@ class ProductSerializer(IRSerializer):
         data.update(camelize_JSON(product.attributes))
 
         try:
-            data["default-image"] = product.default_image.to_json()
+            data["default-image"] = product.default_image.serializer().get_dump_object(product.default_image)
             data["sizes"] = product.default_image.get('sizes', None)
             data["orientation"] = product.default_image.orientation
         except AttributeError:
             try:
                 # fall back to first image
-                data["default-image"] = product_images[0].to_json()
+                data["default-image"] = product_images[0].serializer().get_dump_object(product_images[0])
                 data["sizes"] = product_images[0].get('sizes', None)
                 data["orientation"] = product_images[0].orientation
             except (IndexError, AttributeError):
@@ -56,11 +56,13 @@ class ProductSerializer(IRSerializer):
             # Order images
             if product.attributes.get('product_images_order'):
                 # If image ordering is explicitly given, use it
+                ordered_images = []
                 for i in product.attributes.get('product_images_order', []):
                     try:
-                        product_images.append(find_where(product_images, i))
+                        ordered_images.append(find_where(product_images, i))
                     except ValueError:
                         pass  # could not find matching product image
+                product_images = ordered_images
             elif product.default_image:
                 # If default image is in product_images, move it to front
                 try:
@@ -72,10 +74,14 @@ class ProductSerializer(IRSerializer):
                                      product_images[:idx] + \
                                      product_images[idx+1:]
 
-            data["images"] = [image.to_json() for image in product_images]
+            data["images"] = [image.serializer().get_dump_object(image) for image in product_images]
 
             # Include a shallow similar_products. Prevents infinite loop
-            for product in product.similar_products.filter(in_stock=True):
+            similar_products = product.similar_products.all()
+            if not product.store.display_out_of_stock:
+                similar_products = similar_products.filter(in_stock=True)
+
+            for product in similar_products:
                 data['tagged-products'].append(self.get_dump_object(product, shallow=True))
 
         return data
@@ -108,18 +114,22 @@ class ProductImageSerializer(IRSerializer):
 class ContentSerializer(IRSerializer):
     def get_dump_object(self, content):
         data = {
-            'id': str(content.id),
+            'id': content.id,
             'store-id': str(content.store.id if content.store else 0),
             'source': content.source,
             'source_url': content.source_url,
             'url': content.url or content.source_url,
             'author': content.author,
             'status': content.status,
+            'tagged-products': [],
         }
 
-        data['tagged-products'] = []
-        for product in content.tagged_products.filter(in_stock=True):
-            data['tagged-products'].append(product.to_json())
+        tagged_products = content.tagged_products.all()
+        if not content.store.display_out_of_stock:
+            tagged_products = tagged_products.filter(in_stock=True)
+
+        for product in tagged_products:
+            data['tagged-products'].append(product.serializer().get_dump_object(product, shallow=True))
 
         return data
 

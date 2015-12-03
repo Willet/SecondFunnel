@@ -14,21 +14,15 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             savePercent = 0
             onSale = attributes.salePrice? and parseInt(attributes.salePrice) < parseInt(attributes.price)
             if onSale
-                saleString = attributes.price
+                value = String(attributes.price).split('.')[0] # drop the decimal
                 priceParts = String(attributes.salePrice).split('.')
-                # round percent saved to nearest 5% like slt main site
-                savePercent = Math.floor(20 * (1 - (attributes.salePrice / attributes.price))) * 5
             @set(
                 displayPrice:
                     dollars: priceParts[0] or "0"
                     cents: priceParts[1] or "00"
-                saleString: saleString
+                value: value or "0"
                 sale: onSale
-                savePercent: savePercent
+                currency: "$"
             )
     )
-
-    module.ProductTile::options =
-        showThumbnails: false
-        previewFeed: true
 

@@ -7,7 +7,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     var resultsAlreadyRequested = [], // list of product IDs
         defaultOptions = {
             'IRSource': '/intentrank',
-            'urlTemplate': '<%=IRSource%>/page/<%=campaign%>/getresults',
+            'urlTemplate': '<%=IRSource%>/page/<%=campaign%>/getresults?category=<%=category%>',
             'add': true,
             'merge': true,
             'remove': false,
@@ -77,7 +77,9 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      */
     module.url = function () {
         compiledTemplate = _.template(module.options.urlTemplate);
-        return compiledTemplate(module.options);
+        data = _.extend({}, module.options,
+                        { 'category': encodeURIComponent(module._category || module.options.category) });
+        return compiledTemplate(data);
     };
 
     /**
@@ -106,12 +108,11 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         }
 
         data.algorithm = module.options.IRAlgo;
-        data.reqNum = module.options.IRReqNum;
         data.offset = collection.offset || 0;
         data['tile-set'] = module._IRTileSet || module.options.IRTileSet;
-
-        // normally undefined, unless a category is selected on the page
-        data.category = module._category || module.options.category || undefined;
+        if (App.option('debug')) {
+            data.time = Date.now();
+        }
 
         opts = $.extend({}, {
             'results': 10,

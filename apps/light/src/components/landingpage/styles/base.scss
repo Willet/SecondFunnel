@@ -256,8 +256,7 @@ div.loading {
     position: relative;
 
     max-width: 100%;
-
-    font-family: proxima-nova-soft, sans-serif, Helvetica, Arial, sans-serif;
+    
     font-size: 15px;
     color: #b5b5b5;
 
@@ -556,7 +555,7 @@ div.loading {
         }
         &.scrollable {
             .content {
-                max-height: none;
+                max-height: none !important; // Toggle scrollable
             }
         }
     }

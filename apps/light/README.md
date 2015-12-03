@@ -21,6 +21,8 @@ django then reads this directory as a template folder for static page generation
 5. Install [Bower](http://bower.io/) by running `bower install`
 6. Register CoffeeScript by running `gulp --require coffee-script/register dev`
 
+Note: If `gulp dev` throws `Error: EACCES`, the permissions in `/apps/light/src` are insufficent. Fix it by running `sudo chmod -R 777 *` in `/apps/light/src`.
+
 ## Gulp
 
 `gulp build` to generate static pages once

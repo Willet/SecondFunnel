@@ -5,10 +5,8 @@
 import cloudinary
 from collections import defaultdict
 import decimal
-from django.core.exceptions import ValidationError, MultipleObjectsReturned
-from django.db import transaction
-from django.db.models import Model, Q
-from itertools import chain
+from django.core.exceptions import ValidationError
+from django.db.models import Model
 from scrapy.exceptions import DropItem, CloseSpider
 import traceback
 from urlparse import urlparse
@@ -20,7 +18,7 @@ from apps.imageservice.utils import create_image_path
 from apps.scrapy.utils.djangotools import item_to_model, get_or_create, update_model
 from apps.scrapy.utils.misc import extract_decimal, extract_currency
 
-from .mixins import ItemManifold, PlaceholderMixin, TilesMixin
+from .mixins import AssociateMixin, ItemManifold, PlaceholderMixin, TilesMixin
 
 
 class ForeignKeyPipeline(ItemManifold):
@@ -73,11 +71,11 @@ class ValidationPipeline(ItemManifold, PlaceholderMixin, TilesMixin):
         return item
 
 
-class DuplicatesPipeline(ItemManifold, TilesMixin):
+class DuplicatesPipeline(ItemManifold, TilesMixin, AssociateMixin):
     """
     Detects if there are duplicates based on sku and spider name.
-    If so, drop this item and, if requested, create tiles with the 
-    previous duplicate.
+    If so, drop this item and, if requested, use the duplicate for tile creation
+    and product/content tagging.
     """
     def __init__(self, *args, **kwargs):
         self.products_seen = defaultdict(set)
@@ -89,9 +87,20 @@ class DuplicatesPipeline(ItemManifold, TilesMixin):
         store = item['store']
 
         if sku in self.products_seen[spider.name]:
-            if not self.skip_tiles(item, spider):
+            try:
                 product = Product.objects.get(store=store, sku=sku)
-                item['instance'] = product
+            except Product.MultipleObjectsReturned:
+                # Merge multiple products
+                with disable_tile_serialization():
+                    qs = Product.objects.filter(store=store, sku=sku)
+                    product = Product.merge_products(qs)
+            item['instance'] = product
+
+            if item.get('content_id_to_tag'):
+                self.tag_to_content(item, spider)
+            if item.get('product_id_to_tag'):
+                self.tag_to_product(item, spider)
+            if not self.skip_tiles(item, spider):
                 self.add_to_feed(item, spider, placeholder=product.is_placeholder)
             raise DropItem(u"Duplicate item found here: {}".format(item))
 
@@ -124,8 +133,8 @@ class PricePipeline(ItemManifold):
             item['currency'] = extract_currency(price)
 
         sale_price = item.get('sale_price', None)
-        if sale_price and not isinstance(sale_price, decimal.Decimal):
-            item['sale_price'] = extract_decimal(sale_price)
+        if not isinstance(sale_price, decimal.Decimal):
+            item['sale_price'] = extract_decimal(sale_price) if sale_price else None
         return item
 
 
@@ -134,6 +143,8 @@ class ContentImagePipeline(ItemManifold):
     Load image up to Cloudinary and store image details
     """
     def process_image(self, item, spider):
+        remove_background = getattr(spider, 'remove_background', False)
+        forced_image_ratio = getattr(spider, 'forced_image_ratio', False)
         source_url = item.get('source_url', False)
         if source_url:
             if item.get('url', False) and item.get('file_type', False):
@@ -142,7 +153,8 @@ class ContentImagePipeline(ItemManifold):
 
             spider.logger.info(u"\nprocessing image - {}".format(source_url))
             data = process_image(source_url, create_image_path(store.id), 
-                                 remove_background=remove_background)
+                                 remove_background=remove_background,
+                                 forced_image_ratio=forced_image_ratio)
             item['url'] = data.get('url')
             item['file_type'] = data.get('format')
             item['dominant_color'] = data.get('dominant_color')
@@ -199,6 +211,7 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
     """
     def process_product(self, item, spider):
         remove_background = getattr(spider, 'remove_background', False)
+        forced_image_ratio = getattr(spider, 'forced_image_ratio', False)
         skip_images = [getattr(spider, 'skip_images', False), item.get('force_skip_images', False)]
         store = item['store']
         sku = item['sku']
@@ -224,8 +237,10 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
                                       if pi.original_url == url), None)
                 if not existing_image:
                     try:
-                        images.append(self.process_product_image(item, url,
-                                                                 remove_background=remove_background))
+                        processed_image = self.process_product_image(item, url,
+                                                remove_background=remove_background,
+                                                forced_image_ratio=forced_image_ratio)
+                        images.append(processed_image)
                         processed += 1
                     except cloudinary.api.Error as e:
                         spider.logger.info(u"<Product {}> image failed processing:\n{}".format(product, traceback.format_exc()))
@@ -246,7 +261,7 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
                                                 product, len(images), processed, len(old_pks)))
                
 
-    def process_product_image(self, item, image_url, remove_background=False):
+    def process_product_image(self, item, image_url, remove_background=False, forced_image_ratio=False):
         store = item['store']
         product = item['instance']
 
@@ -259,7 +274,8 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
         if not (image.url and image.file_type):
             print '\nprocessing image - ' + image_url
             data = process_image(image_url, create_image_path(store.id),
-                                 remove_background=remove_background)
+                                 remove_background=remove_background,
+                                 forced_image_ratio=forced_image_ratio)
             image.url = data.get('url')
             image.file_type = data.get('format')
             image.dominant_color = data['dominant_color']
@@ -280,7 +296,7 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
         return image
 
 
-class AssociateWithProductsPipeline(ItemManifold):
+class AssociateWithProductsPipeline(ItemManifold, AssociateMixin):
     """
     If a content has 'tag_with_products' field True and a 'content_id' field
     then tag with any subsequent products with 'content_id_to_tag' field matching
@@ -290,58 +306,23 @@ class AssociateWithProductsPipeline(ItemManifold):
     then tag with any subsequent products with 'product_id_to_tag' field matching
     'product_id'
     """
-    def __init__(self, *args, **kwargs):
-        self.images = {}
-        self.products = {}
-        super(AssociateWithProductsPipeline, self).__init__(*args, **kwargs)
-
     def process_image(self, item, spider):
         if item.get('tag_with_products') and item.get('content_id'):
-            self.images[item.get('content_id')] = item['instance']
+            self.store_product_to_tag(item, spider)
 
     def process_product(self, item, spider):
         if item.get('tag_with_products') and item.get('product_id'):
-            self.products[item.get('product_id')] = item['instance']
+            self.store_product_to_tag(item, spider)
 
         if item.get('content_id_to_tag'):
-            product = item['instance']
-            content_id = item.get('content_id_to_tag')
-            image = self.images.get(content_id)
-            if image:
-                tagged_product_ids = image.tagged_products.values_list('id', flat=True)
-                if not product.id in tagged_product_ids:
-                    spider.logger.info(u"Tagging <Image {}> with <Product {}>".format(image.id, product.id))
-                    image.tagged_products.add(product)
-                else:
-                    spider.logger.info(u"<Image {}> already tagged with <Product {}>".format(image.id, product.id))
-            else:
-                spider.logger.warning(u"Tried to tag <Product {}> to content_id {},\
-                                        but it doesn't exist".format(product.id, content_id))
+            self.tag_to_content(item, spider)
 
         if item.get('product_id_to_tag'):
-            similar_product = item['instance']  
-            product_id = item.get('product_id_to_tag')
-            product = self.products.get(product_id)
-            if product:
-                similar_product_ids = product.similar_products.values_list('id', flat=True)
-                if not similar_product.id in similar_product_ids:
-                    spider.logger.info(u"Tagging <Product {}> with <Product {}>".format(product.id,
-                                                                                        similar_product.id))
-                    product.similar_products.add(similar_product)
-                else:
-                    spider.logger.info(u"<Product {}> already tagged with <Product {}>".format(product.id,
-                                                                                               similar_product.id))
-            else:
-                spider.logger.warning(u"Tried to tag <Product {}> to product_id {},\
-                                        but it doesn't exist".format(similar_product.id, product_id))
+            self.tag_to_product(item, spider)
 
     def close_spider(self, spider):
         # Save images and products in one transaction
-        with transaction.atomic():
-            for instance in chain(self.images.values(), self.products.values()):
-                instance.save()
-        spider.logger.info(u'Saved {} tagged images and {} tagged products'.format(len(self.images),
-                                                                                   len(self.products)))
+        self.persist_tagged_items(spider)
 
 
 class TagPipeline(ItemManifold):

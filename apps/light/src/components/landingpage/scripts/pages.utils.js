@@ -357,6 +357,6 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             "utm_campaign": "online gift guide"
         };
         */
-        return module.urlAddParams(url, App.options.urlParams);
+        return module.urlAddParams(url, App.option("page:urlParams"));
     };
 };

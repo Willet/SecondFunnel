@@ -197,17 +197,18 @@ class BaseModel(models.Model, SerializableMixin):
         """
         old_ir_cache = self.ir_cache
         self.ir_cache = ''  # force tile to regenerate itself
-        if not getattr(self, 'placeholder', False):
-            new_ir_cache = self.to_str(skip_cache=True)
-        else:
+        if getattr(self, 'placeholder', False):
             # if placeholder, leave ir_cache empty
             new_ir_cache = ''
+        else:
+            new_ir_cache = self.to_str(skip_cache=True)
+            
+        self.ir_cache = new_ir_cache
 
         if new_ir_cache == old_ir_cache:
             return new_ir_cache, False
-
-        self.ir_cache = new_ir_cache
-        return new_ir_cache, True
+        else:
+            return new_ir_cache, True
 
     def _cg_attribute_name_to_python_attribute_name(self, cg_attribute_name):
         """(method name can be shorter, but something about PEP 20)
@@ -373,6 +374,7 @@ class Store(BaseModel):
     name = models.CharField(max_length=1024)
     description = models.TextField(blank=True, null=True)
     slug = models.CharField(max_length=64)
+    display_out_of_stock = models.BooleanField(default=False)
 
     default_theme = models.ForeignKey('Theme', related_name='store', blank=True,
                                       null=True, on_delete=models.SET_NULL)
@@ -448,9 +450,8 @@ class Product(BaseModel):
                 or isinstance(self.price, float)):
                 raise ValidationError({'price': [u'Product price must be decimal or float']})
 
-            sale_price = self.get('sale_price', self.attributes.get('sale_price', float()))
-            if sale_price and not (isinstance(sale_price, decimal.Decimal) \
-                or isinstance(sale_price, float)):
+            if self.sale_price and not (isinstance(self.sale_price, decimal.Decimal) \
+                or isinstance(self.sale_price, float)):
                 raise ValidationError({'sale_price': [u'Product sale price must be decimal or float']})
 
     def clean(self):
@@ -466,6 +467,9 @@ class Product(BaseModel):
         elif not self.default_image and len(image_urls):
             # there is no default image
             self.default_image = self.product_images.first()
+
+        if self.sale_price and self.sale_price > self.price:
+            raise ValidationError({'sale_price': [u'Product sale price must be smaller than price']})
 
     def choose_lifestyle_shot_default_image(self):
         """Set a default_image that is not a product shot for the given tile"""
@@ -1066,7 +1070,7 @@ class Feed(BaseModel):
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. magic, priority
     feed_ratio = models.DecimalField(max_digits=2, decimal_places=2, default=0.20,  # currently unused by any algo
                                      help_text="Percent of content to display on feed using ratio-based algorithm")
-    is_finite = models.BooleanField(default=False)
+    is_finite = models.BooleanField(default=True)
 
     # Fields used as instructions to update need
     source_urls = ListField(blank=True, type=unicode) # List of urls feed is generated from, allowed to be empty

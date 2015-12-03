@@ -22,7 +22,7 @@ App.start();
 
 (function () {
     // Wrap SLT links with CJ link
-    if (App.option("useAffiliateLinks")) {
+    /*if (App.option("useAffiliateLinks")) {
         var re = /^https?\:\/\/www\.surlatable\.com/i;
         $('a').each(function (el) {
             if (this.href.match(re)) {
@@ -30,7 +30,7 @@ App.start();
                             App.option('page:slug') + '/' + this.href;
             }
         });
-    }
+    }*/
 
     // Send search bar inqueries to surlatable.com
     $('#submit-search').click(function(ev){

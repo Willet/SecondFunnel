@@ -10,12 +10,11 @@ from django.views.decorators.http import require_POST
 from apps.assets.models import Category, Page, Product, Store
 from apps.scrapy.controllers import PageMaintainer
 
-stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
 
 @login_required
 def index(request):
     """"Home" page.  does nothing."""
-
+    stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
     data = {
         'stores': stores,
     }
@@ -24,8 +23,8 @@ def index(request):
 @login_required
 def page(request, page_slug):
     """This page is where scrapers are run from"""
-
     page = get_object_or_404(Page, url_slug=page_slug)
+    stores = [{'name': store.name,'pages': store.pages.all()} for store in Store.objects.all()]
     data = {
         'page': page,
         'stores': stores,

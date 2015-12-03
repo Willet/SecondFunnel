@@ -118,7 +118,8 @@ class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingMixin):
     store_slug = ''
 
     # see documentation for remove_background in apps.imageservice.tasks
-    remove_background = '#FFF'
+    remove_background = False # format: "#FFFFFF"
+    forced_image_ratio = False # format: 1.0
 
     def __init__(self, *args, **kwargs):
         # Set Options:
@@ -148,7 +149,7 @@ class SecondFunnelCrawlSpider(WebdriverCrawlSpider, ProcessingMixin):
             # Let Rule's follow links category pages
             return []
         else:
-            self.logger.error(u"Unrecognized start url: {}".format(response.url))
+            self.logger.warning(u"Unrecognized start url: {}".format(response.url))
             return []
 
     def is_product_page(self, response):

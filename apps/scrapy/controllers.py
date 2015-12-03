@@ -101,21 +101,25 @@ class PageMaintainer(object):
 
         options: <dict> which control what is updated IFF implemented for that page
         {
+            'project': <str> 'pages' or 'datafeed', default is 'datafeed'
             'spider_name': <str> Over-ride for page / store spider
             'recreate_tiles': <bool> Recreate tiles the already exist.  Useful for removing out-dated associations & data.
             'skip_images': <bool> Do not scrape product images. Useful if you want a fast data-only update.
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
         }
         """
-        logging.debug(u"Updating {} from datafeed".format(self.page))
         # Add more logic here re start_urls
-        if len(self.feed.source_urls):
-            start_urls = set(self.feed.source_urls)
-        else:
-            start_urls = set(self.feed.get_all_products().values_list('url', flat=True))
+        start_urls = set(self.feed.get_all_products().values_list('url', flat=True))
 
         # Override for page's spider_name to enable added spider functionality
         spider_name = options.pop('spider_name') if 'spider_name' in options else self.spider_name
+        # Override for project to enable scraper updating
+        if options.pop('project', None) == 'pages':
+            project = pages
+            logging.debug(u"Updating {} from pages".format(self.page))
+        else:
+            project = datafeeds
+            logging.debug(u"Updating {} from datafeed".format(self.page))
 
         opts = {
             'recreate_tiles': options.get('recreate_tiles', False), # In case you screwed up? Not very useful
@@ -129,7 +133,7 @@ class PageMaintainer(object):
                           start_urls=start_urls,
                           categories=[],
                           options=opts,
-                          project=datafeeds)
+                          project=project)
 
     def _get_spider(self, project, spidername):
         """Return spider for given spider name"""
