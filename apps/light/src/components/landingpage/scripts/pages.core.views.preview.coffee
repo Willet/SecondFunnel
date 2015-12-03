@@ -15,8 +15,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#product_info_template"
         templates: ->
             templateRules = [
-                # supported contexts: options, data
-                "#<%= data.type %>_info_template"
+                # supported contexts: options (App.options), data (@mdoel.attributes)
+                "#<%= data.parentTemplate %>_info_template"
                 "#image_info_template"
                 "#product_info_template"
             ]
@@ -26,7 +26,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 templateRules = _.reject(templateRules, (t) ->
                     return _.contains(t, "mobile")
                 )
-            templateRules
+            return templateRules
 
 
         events:
@@ -622,6 +622,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         showProduct: (product)->
             # A hook to customize product display
             @$el.find('.info').show() # display product before rendering
+            product.set(parentTemplate: @model.get('template'))
             productInstance = new module.ProductView(
                 model: product
             )

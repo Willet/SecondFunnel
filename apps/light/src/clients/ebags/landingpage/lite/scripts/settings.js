@@ -119,7 +119,7 @@
   },
   "column_width":341,
   "home":{
-    "category":"all"
+    "category":"for-her"
   },
   "masonry":{
     "tileAspectRatio":1,
