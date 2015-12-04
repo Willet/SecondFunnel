@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.db import models, transaction
 from django.db.models.signals import post_save, m2m_changed
@@ -99,6 +100,7 @@ def tile_m2m_changed(sender, **kwargs):
         for tile in tiles:
             # must validate
             ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
+            logging.debug(ir_cache)
             if updated:
                 post_save.disconnect(tile_saved, sender=Tile)
                 tile.save() # run full clean before saving ir cache
