@@ -103,7 +103,7 @@
         {
           "mobileHeroImage":"",
           "displayName":"Packing Cubes",
-          "name":"packing-cube",
+          "name":"packing-cubes",
           "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Packing_Cubes.jpg"
         }
       ],
@@ -222,7 +222,7 @@
     {
       "mobileHeroImage":"",
       "displayName":"Packing Cubes",
-      "name":"packing-cube",
+      "name":"packing-cubes",
       "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Packing_Cubes.jpg"
     }
   ]
